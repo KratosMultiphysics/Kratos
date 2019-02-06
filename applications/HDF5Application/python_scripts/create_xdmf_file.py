@@ -2,8 +2,13 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import os, sys, h5py, xdmf
-
+import os, sys, xdmf
+import warnings
+with warnings.catch_warnings():
+    # suppressing an import-related warningfrom h5py
+    # problem appears when using it in a test with python >=3.6
+    warnings.simplefilter('ignore', category=ImportWarning)
+    import h5py
 
 def GenerateXdmfConnectivities(file_name):
     with h5py.File(file_name, "r") as h5py_file:
@@ -63,8 +68,10 @@ def GetElementResults(h5py_file):
 
 def GetListOfTimeLabels(file_name):
     list_of_file_names = []
+    path, file_name = os.path.split(file_name)
+    if path == "": path = "." # os.listdir fails with empty path
     time_prefix = file_name.replace(".h5", "-")
-    for name in os.listdir():
+    for name in os.listdir(path):
         if name.find(time_prefix) == 0:
             list_of_file_names.append(name)
     list_of_time_labels = []
@@ -74,8 +81,8 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-def main():
-    file_name = sys.argv[1]
+def WriteXdmfFile(file_name):
+    #todo(msandre): generalize to WriteXdmfFile(xdmf_file_name, list_of_h5_file_paths):
     temporal_grid = xdmf.TemporalGrid()
     GenerateXdmfConnectivities(file_name)
     # Get the initial spatial grid from the base file.
@@ -83,10 +90,18 @@ def main():
         current_spatial_grid = GetSpatialGrid(h5py_file)
     for current_time in GetListOfTimeLabels(file_name):
         current_file_name = file_name.replace(".h5", "-" + current_time + ".h5")
-        # Check if the current file has mesh information.
-        with h5py.File(current_file_name, "r") as h5py_file:
-            has_mesh = ("ModelData" in h5py_file.keys())
-            has_data = ("/ResultsData" in h5py_file.keys())
+        try:
+            # Check if the current file has mesh information.
+            with h5py.File(current_file_name, "r") as h5py_file:
+                has_mesh = ("ModelData" in h5py_file.keys())
+                has_data = ("/ResultsData" in h5py_file.keys())
+        except OSError:
+            # in case this file cannot be opened skip it
+            # this can be the case if the file is already opened
+            warn_msg  = 'No xdmf-data was written for file:\n"'
+            warn_msg += current_file_name + '"'
+            KratosMultiphysics.Logger.PrintWarning("XDMF-Writing", warn_msg)
+            continue
         if not has_data:
             continue
         if has_mesh:
@@ -109,9 +124,11 @@ def main():
     # Create the domain.
     domain = xdmf.Domain(temporal_grid)
     # Write.
-    xdmf_file_name = file_name.replace(".h5", ".xdmf")
+    raw_file_name = os.path.split(file_name)[1]
+    xdmf_file_name = raw_file_name.replace(".h5", ".xdmf")
     xdmf.ET.ElementTree(xdmf.Xdmf(domain).create_xml_element()).write(xdmf_file_name)
 
 
 if __name__ == '__main__':
-    main()
+    file_name = sys.argv[1]
+    WriteXdmfFile(file_name)

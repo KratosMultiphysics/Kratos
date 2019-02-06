@@ -86,8 +86,6 @@ namespace Kratos
 
       typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-      typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
       /// Type for shape function values container
       typedef Kratos::Vector ShapeFunctionsType;
 

@@ -148,16 +148,13 @@ public:
 
 	// More results calculation on integration points to interface with python
 	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-		std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-		std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+		std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+		std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
+		3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
 		const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
@@ -320,13 +317,9 @@ private:
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
-
-    bool TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-            std::vector<array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
 
     bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
@@ -336,7 +329,7 @@ private:
     * Returns the behavior of this shell (thin/thick)
     * @return the shell behavior
     */
-    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
     ///@}
 

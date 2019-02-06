@@ -78,6 +78,32 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SET_DOF,                             10 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, PASS_ALPHA_SHAPE,                    11 );
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MesherUtilities::SetModelPartNameToElements(ModelPart& rModelPart)
+  {
+
+    unsigned int start=0;
+    unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
+
+    if(NumberOfSubModelParts>0)
+    {
+      for(auto& i_mp : rModelPart.SubModelParts())
+      {
+        if( i_mp.NumberOfElements() != 0 ){
+          if( i_mp.Is(BOUNDARY) || i_mp.IsNot(ACTIVE) ){ //wall elements or domain elements (unique model part)
+            for(auto& i_elem : i_mp.Elements())
+            {
+              i_elem.SetValue(MODEL_PART_NAME,i_mp.Name());
+            }
+          }
+
+        }
+      }
+    }
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -88,17 +114,19 @@ namespace Kratos
     unsigned int start=0;
     unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
 
-
     if(NumberOfSubModelParts>0){
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	    if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
-	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
-		{
-		  i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
-		}
-	    }
-	}
+      for(auto& i_mp : rModelPart.SubModelParts())
+      {
+        if( i_mp.NumberOfConditions() != 0 ){
+          if( i_mp.Is(BOUNDARY) && i_mp.NumberOfElements() == 0 ){ // only model parts with conditions (unique model part)
+            for(auto& i_cond : i_mp.Conditions())
+            {
+              i_cond.SetValue(MODEL_PART_NAME,i_mp.Name());
+            }
+
+          }
+        }
+      }
     }
 
   }
@@ -115,19 +143,53 @@ namespace Kratos
 
 
     if(NumberOfSubModelParts>0){
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
-	      {
-		i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
-	      }
-	  }
-	}
+      for(auto& i_mp : rModelPart.SubModelParts())
+      {
+
+        if( i_mp.NumberOfNodes() != 0 ){
+          if( i_mp.Is(BOUNDARY) ){ // shared model parts for nodes in boundary conditions
+            for(auto& i_node : i_mp.Nodes())
+            {
+              i_node.GetValue(MODEL_PART_NAMES).push_back(i_mp.Name());
+            }
+
+          }
+          else if( i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) ){ //unique domain model part
+            for(auto& i_node : i_mp.Nodes())
+            {
+              i_node.SetValue(MODEL_PART_NAME,i_mp.Name());
+            }
+          }
+        }
+      }
     }
+
 
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MesherUtilities::SetFlagsToNodes(ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags)
+  {
+    const int nnodes = rModelPart.Nodes().size();
+    ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+      ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+      for(unsigned int i = 0; i<rControlFlags.size(); i++)
+      {
+        if( it->Is(rControlFlags[i]) ){
+          for(unsigned int i = 0; i<rAssignFlags.size(); i++)
+            it->Set(rAssignFlags[i]);
+        }
+      }
+    }
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -171,18 +233,18 @@ namespace Kratos
     double ModelPartVolume = 0;
     if( dimension == 2 ){
 
-      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
-	{
-	  if( i_elem->GetGeometry().Dimension() == 2 )
-	    ModelPartVolume += i_elem->GetGeometry().Area();
-	}
+      for(auto& i_elem : rModelPart.Elements())
+      {
+        if( i_elem.GetGeometry().Dimension() == 2 )
+          ModelPartVolume += i_elem.GetGeometry().Area();
+      }
     }
     else{ //dimension == 3
 
-      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
+      for(auto& i_elem : rModelPart.Elements())
 	{
-	  if( i_elem->GetGeometry().Dimension() == 3 )
-	    ModelPartVolume += i_elem->GetGeometry().Volume();
+	  if( i_elem.GetGeometry().Dimension() == 3 )
+	    ModelPartVolume += i_elem.GetGeometry().Volume();
 	}
      }
 
@@ -190,6 +252,101 @@ namespace Kratos
 
     KRATOS_CATCH(" ")
 
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckRigidOuterCentre(Geometry<Node<3> >& rGeometry)
+  {
+
+    KRATOS_TRY
+
+    bool outer = false;
+
+    unsigned int RigidNodes = 0;
+    const unsigned int size = rGeometry.size();
+
+    for(unsigned int i = 0; i < size; ++i)
+      {
+	if(rGeometry[i].Is(RIGID))
+	  {
+	    RigidNodes += 1;
+	  }
+      }
+
+
+    if(RigidNodes >= size-1)
+    {
+
+      //Baricenter
+      array_1d<double, 3>  Center;
+      Center.clear();
+      array_1d<double, 3>  Normal;
+
+      std::vector<array_1d<double, 3> > Vertices;
+      array_1d<double, 3>  Vertex;
+
+
+      for(unsigned int i = 0; i < size; ++i)
+      {
+        Vertex  = rGeometry[i].Coordinates();
+
+        Vertices.push_back(Vertex);
+
+        Center += Vertex;
+      }
+
+      Center /= (double)size;
+
+      array_1d<double, 3> Corner;
+
+      double tolerance = 0.05;
+      int numouter     = 0;
+
+      int numnodes = 0;
+      for(unsigned int i = 0; i < size; ++i)
+      {
+        if(rGeometry[i].Is(RIGID)){
+
+          Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+
+          double NormNormal = norm_2(Normal);
+          if( NormNormal != 0)
+            Normal /= NormNormal;
+
+          //change position to be the vector from the vertex to the geometry center
+          Corner = Center-Vertices[i];
+
+          double NormCorner = norm_2(Corner);
+          if( NormCorner != 0 )
+            Corner/= NormCorner;
+
+          double projection = inner_prod(Corner,Normal);
+
+          if( projection > tolerance )
+          {
+            ++numouter;
+          }
+          ++numnodes;
+        }
+      }
+
+      if(RigidNodes == size){
+        if(numouter > 0)
+          outer = true;
+      }
+      else if(RigidNodes == size-1){
+        if(numouter = numouter )
+          outer = true;
+      }
+
+    }
+
+    return outer; //if is outside the body
+
+    KRATOS_CATCH( "" )
   }
 
   //*******************************************************************************************
@@ -206,37 +363,36 @@ namespace Kratos
     const unsigned int size = rGeometry.size();
 
     for(unsigned int i = 0; i < size; ++i)
+    {
+      if(rGeometry[i].Is(BOUNDARY))
       {
-	if(rGeometry[i].Is(BOUNDARY))
-	  {
-	    BoundaryNodes += 1;
-	  }
+        BoundaryNodes += 1;
       }
+    }
 
 
     if(BoundaryNodes == size)
+    {
+      //Baricenter
+      array_1d<double, 3>  Center;
+      noalias(Center) = ZeroVector(3);
+      array_1d<double, 3>  Normal;
+
+      std::vector<array_1d<double, 3> > Vertices;
+      array_1d<double, 3>  Vertex;
+
+
+      for(unsigned int i = 0; i < size; ++i)
       {
+        Vertex  = rGeometry[i].Coordinates();
 
-	//Baricenter
-	array_1d<double, 3>  Center;
-	Center.clear();
-	array_1d<double, 3>  Normal;
+        Vertices.push_back(Vertex);
 
-	std::vector<array_1d<double, 3> > Vertices;
-	array_1d<double, 3>  Vertex;
+        Center += Vertex;
+      }
 
 
-	for(unsigned int i = 0; i < size; ++i)
-	  {
-	    Vertex  = rGeometry[i].Coordinates();
-
-	    Vertices.push_back(Vertex);
-
-	    Center += Vertex;
-	  }
-
-
-	Center /= (double)size;
+      Center /= (double)size;
 
 	array_1d<double, 3> Corner;
 
@@ -250,15 +406,15 @@ namespace Kratos
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
 	    double NormNormal = norm_2(Normal);
-	    if( NormNormal != 0)
-	      Normal /= NormNormal;
+        if( NormNormal != 0)
+          Normal /= NormNormal;
 
-	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Center-Vertices[i];
+        //change position to be the vector from the vertex to the geometry center
+        Corner = Center-Vertices[i];
 
-	    double NormCorner = norm_2(Corner);
-	    if( NormCorner != 0 )
-	      Corner/= NormCorner;
+        double NormCorner = norm_2(Corner);
+        if( NormCorner != 0 )
+          Corner/= NormCorner;
 
 	    double projection = inner_prod(Corner,Normal);
 
@@ -490,22 +646,21 @@ namespace Kratos
 	{
 
 	  if( rGeometry[i].Is(NEW_ENTITY) )
-	    return Undefined;
+	    return MesherUtilities::Undefined;
 
-	  WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+	  NodeWeakPtrVectorType& nNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
 
-	  for(unsigned int n=0; n<rN.size(); ++n)
-	    {
-	      for(unsigned int j=i+1; j<size; ++j)
-		{
-
-		  if( rN[n].Id() == rGeometry[j].Id() )
-		    {
-		      NeighbourVertices[i] +=1;
-		      NeighbourVertices[j] +=1;
-		    }
-		}
-	    }
+	  for(auto& i_nnode : nNodes)
+          {
+            for(unsigned int j=i+1; j<size; ++j)
+            {
+              if( i_nnode.Id() == rGeometry[j].Id() )
+              {
+                NeighbourVertices[i] +=1;
+                NeighbourVertices[j] +=1;
+              }
+            }
+          }
 
 	  NumberOfNeighbours += NeighbourVertices[i];
 	}
@@ -826,13 +981,14 @@ namespace Kratos
 
 	double h_nodes = 0;
 	double h = 1000.0;
-	for( WeakPointerVector< Node<3> >::iterator i = BoundaryPoint.GetValue(NEIGHBOUR_NODES).begin();
-	     i !=  BoundaryPoint.GetValue(NEIGHBOUR_NODES).end(); ++i)
+
+        NodeWeakPtrVectorType& nNodes = BoundaryPoint.GetValue(NEIGHBOUR_NODES);
+        for(auto& i_nnode : nNodes)
 	  {
-	    if( i->Is(BOUNDARY) ){
-	      double x = i->X();
-	      double y = i->Y();
-	      double z = i->Z();
+	    if( i_nnode.Is(BOUNDARY) ){
+	      double x = i_nnode.X();
+	      double y = i_nnode.Y();
+	      double z = i_nnode.Z();
 	      double l = (x-xc)*(x-xc);
 	      l += (y-yc)*(y-yc);
 	      l += (z-zc)*(z-zc);
@@ -870,8 +1026,8 @@ namespace Kratos
 
     if( dimension == 2 ){
 
-      bounded_matrix<double,2,2> mJ;    //local jacobian
-      bounded_matrix<double,2,2> mJinv; //inverse jacobian
+      BoundedMatrix<double,2,2> mJ;    //local jacobian
+      BoundedMatrix<double,2,2> mJinv; //inverse jacobian
 
       //calculation of the jacobian  //coordinate center point 0
       for(unsigned int i = 0; i < dimension; ++i)
@@ -919,9 +1075,9 @@ namespace Kratos
     }
     else if( dimension == 3 ){
 
-      bounded_vector<double,3>   mRHS;  //center pos
-      bounded_matrix<double,3,3> mJ;    //local jacobian
-      bounded_matrix<double,3,3> mJinv; //inverse jacobian
+      BoundedVector<double,3>   mRHS;  //center pos
+      BoundedMatrix<double,3,3> mJ;    //local jacobian
+      BoundedMatrix<double,3,3> mJinv; //inverse jacobian
 
 
       //calculation of the jacobian  //coordinate center point 0
@@ -1040,7 +1196,7 @@ namespace Kratos
 	  }
 	else
 	  {
-	    // std::cout<<"  ERASED!"<<std::endl;
+	    //std::cout<<"  ERASED! "<<Radius<<" < "<<AlphaRadius<<" MeanMeshSize "<<MeanMeshSize<<" Alpha "<<AlphaParameter<<std::endl;
 	    return false;
 	  }
       }
@@ -1219,6 +1375,215 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckRelativeVelocities(Geometry<Node<3> >& rVertices, const double& rRelativeFactor)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumberOfVertices = rVertices.size();
+
+    std::vector<double> VelocityModulus(NumberOfVertices);
+
+    for(unsigned int i = 0; i<NumberOfVertices; ++i)
+    {
+      VelocityModulus[i]=norm_2(rVertices[i].FastGetSolutionStepValue(VELOCITY));
+    }
+
+    for(unsigned int i = 0; i<NumberOfVertices-1; ++i)
+    {
+      for(unsigned int j = i+1; j<NumberOfVertices; ++j)
+      {
+        if( VelocityModulus[i]/VelocityModulus[j]>rRelativeFactor || VelocityModulus[j]/VelocityModulus[i]>rRelativeFactor ){
+          return true;
+        }
+      }
+    }
+
+    return false;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension,const double& rTolerance, double& VolumeChange)
+  {
+    bool accepted = false;
+    if(rDimension==2){
+      Triangle2D3<Node<3> > CurrentTriangle(rVertices);
+      double CurrentArea = CurrentTriangle.Area();
+
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedArea = GetMovedVolume(rVertices,rDimension,1.0);
+
+      //std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
+      VolumeChange = CurrentArea-MovedArea;
+
+      if(MovedArea+rTolerance<CurrentArea){
+        accepted = true;
+      }
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > CurrentTetrahedron(rVertices);
+      double CurrentVolume = CurrentTetrahedron.Volume();
+
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedVolume = GetMovedVolume(rVertices,rDimension,1.0);
+
+      //std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
+      VolumeChange = CurrentVolume-MovedVolume;
+
+      if(MovedVolume+rTolerance<CurrentVolume){
+        accepted = true;
+      }
+    }
+
+    return accepted;
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetMovedVolume(GeometryType& rVertices, const unsigned int& rDimension, double MovementFactor)
+  {
+    double MovedVolume = 0.0;
+    if(rDimension==2){
+
+      //Triangle geometry
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+
+      MovedVolume = 0.5 * ( x10 * y20 - y10 * x20 );
+
+    }
+    else if(rDimension==3){
+
+      //Tetrahedron geometry
+      const double onesixth = 1.0/6.0;
+
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+      double z10 = P1[2] - P0[2];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+      double z20 = P1[2] - P0[2];
+
+     noalias(P1)  = rVertices[3].Coordinates() + MovementFactor * (rVertices[3].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[3].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x30 = P1[0] - P0[0];
+      double y30 = P1[1] - P0[1];
+      double z30 = P1[2] - P0[2];
+
+      MovedVolume = onesixth * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
+
+      // if(MovedVolume<0)
+      //   std::cout<<" VOLUME negative "<<std::endl;
+    }
+
+    return MovedVolume;
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetDeformationGradientDeterminant(GeometryType& rVertices, const unsigned int& rDimension)
+  {
+    //Deformation Gradient determinant
+    unsigned int number_of_nodes = rVertices.size();
+
+    //Configuration increment
+    Matrix DeltaPosition(number_of_nodes,rDimension);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const array_1d<double, 3 > & CurrentDisplacement  = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < rDimension; j++ )
+        {
+          DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    //Compute cartesian derivatives [dN/dx_n]
+    Matrix DN_DX;
+
+    if(rDimension==2){
+      Triangle2D3<Node<3> > Triangle(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Triangle.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Tetrahedron.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+    }
+
+
+    Matrix F(rDimension,rDimension);
+    noalias(F) = ZeroMatrix(rDimension,rDimension);
+    for (unsigned int i = 0; i < rDimension; i++)
+    {
+      for (unsigned int j = 0; j < rDimension; j++)
+      {
+        for (unsigned int k = 0; k < number_of_nodes; k++)
+        {
+          F(i,j)+= rVertices[k].Coordinates()[i]*DN_DX(k,j);
+        }
+      }
+    }
+    double detF  = MathUtils<double>::Det(F);
+
+    if(detF<0)
+      std::cout<<" NEGATIVE ELEMENT (DET_F: "<<detF<<")"<<std::endl;
+
+    return detF;
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -1304,7 +1669,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  Condition::Pointer MesherUtilities::FindMasterCondition(Condition::Pointer& pCondition, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
+  Condition::Pointer MesherUtilities::FindMasterCondition(Condition::Pointer& pCondition, ModelPart::ConditionsContainerType & rConditions,bool & condition_found)
   {
     KRATOS_TRY
 
@@ -1321,136 +1686,139 @@ namespace Kratos
     unsigned int edge_elements = 0;
 
 
-    if( rGeometry.size() == 3 ){ //triangles of 3 nodes
+    if( rGeometry.size() == 3 )
+    { //triangles of 3 nodes
 
       condition_found=false;
-      for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ++ic)
-	{
+      for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
+      {
 
-	  //2D edges:
-	  if(ic->IsNot(CONTACT)){
+        //2D edges:
+        if(i_cond->IsNot(CONTACT)){
 
-	    Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+          Geometry<Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
-	    for(unsigned int iface=0; iface<lpofa.size2(); ++iface)
-	      {
-		if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id()
-			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
-		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id()
-			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id() ) )
-		  {
-		    pMasterCondition= *(ic.base());
-		    condition_found=true;
-		    break;
-		  }
-	      }
-	  }
+          for(unsigned int iface=0; iface<lpofa.size2(); ++iface)
+          {
+            if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id()
+                    && rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+                (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id()
+                    && rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+            {
+              pMasterCondition=*i_cond.base();
+              condition_found=true;
+              break;
+            }
+          }
+        }
 
-	  if(condition_found)
-	    {
-	      break;
-	    }
+        if(condition_found)
+        {
+          break;
+        }
 
-	}
-    }else if( rGeometry.size() == 4 ){ //tetraheda of 4 nodes
+      }
+    }
+    else if( rGeometry.size() == 4 )
+    { //tetraheda of 4 nodes
 
       face_elements = 0;
       edge_elements = 0;
 
       condition_found=false;
-      for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ++ic)
-	{
+      for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
+      {
 
-	  //3D faces:
-	  if(ic->IsNot(CONTACT)){
+        //3D faces:
+        if(i_cond->IsNot(CONTACT)){
 
-	    Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+          Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
-	    for(unsigned int iface=0; iface<lpofa.size2(); ++iface)
-	      {
-		//detection for contact elements clockwise numeration of the contact geometry.
-		if( (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id()
-			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
-			&& rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) ||
-		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id()
-			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
-			&& rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
-		    (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id()
-			&& rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
-			&& rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() ) )
-		  {
-		    pMasterCondition= *(ic.base());
-		    condition_found=true;
-		    break;
-		  }
+          for(unsigned int iface=0; iface<lpofa.size2(); ++iface)
+          {
+            //detection for contact elements clockwise numeration of the contact geometry.
+            if( (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id()
+                    && rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
+                    && rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) ||
+                (   rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id()
+                    && rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
+                    && rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+                (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id()
+                    && rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
+                    && rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+            {
+              pMasterCondition = *i_cond.base();
+              condition_found = true;
+              break;
+            }
 
-	      }
+          }
 
-	  }
+        }
 
-	  if(condition_found)
-	    {
-	      pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
-	      face_elements++;
-	      break;
-	    }
+        if(condition_found)
+        {
+          pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+          face_elements++;
+          break;
+        }
 
-	}
+      }
 
       if(!condition_found) {
 
 	//check if it is EDGE_TO_EDGE element sharing only edges with the conditions
 
 	condition_found=false;
-	for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ++ic)
-	  {
+        for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
+        {
 
-	    //3D edges: there are 4 possibilities, it takes the first one that matches
-	    if(ic->IsNot(CONTACT)){
+          //3D edges: there are 4 possibilities, it takes the first one that matches
+          if(i_cond->IsNot(CONTACT)){
 
-	      Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+            Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
-	      for(unsigned int iface=0; iface<lpofa.size2()-1; ++iface)
-		{
-		  if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id()
-			  && rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() )||
-		      (   rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
-			  && rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() )||
-		      (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id()
-			  && rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() )||
+            for(unsigned int iface=0; iface<lpofa.size2()-1; ++iface)
+            {
+              if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id()
+                      && rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() )||
+                  (   rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
+                      && rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() )||
+                  (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id()
+                      && rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() )||
 
-		      (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id()
-			  && rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id() )||
-		      (   rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
-			  && rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() )||
-		      (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id()
-			  && rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) )
-		    {
-		      pMasterCondition= *(ic.base());
-		      condition_found=true;
-		      break;
-		    }
+                  (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id()
+                      && rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id() )||
+                  (   rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
+                      && rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() )||
+                  (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id()
+                      && rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) )
+              {
+                pMasterCondition= *i_cond.base();
+                condition_found=true;
+                break;
+              }
 
-		}
+            }
 
-	    }
+          }
 
-	    if(condition_found)
-	      {
-		pCondition->Set(SELECTED); //meaning that is a element that shares edges instead of faces
-		edge_elements++;
-		break;
-	      }
+          if(condition_found)
+          {
+            pCondition->Set(SELECTED); //meaning that is a element that shares edges instead of faces
+            edge_elements++;
+            break;
+          }
 
-	  }
+        }
 
       }
 
     }
 
 
-    if(!condition_found) {
-
+    if(!condition_found)
+    {
       std::cout<<" WARNING:: Boundary Condition NOT FOUND after CONTACT MESHING SEARCH "<<std::endl;
 
       std::cout<<" Condition Nodes[ ";
@@ -1459,13 +1827,10 @@ namespace Kratos
 	  std::cout<<" "<<rGeometry[i].Id();
 	}
       std::cout<<" ]"<<std::endl;
-
     }
-    else{
-
-      std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
-    }
-
+    // else{
+    //   std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
+    // }
 
     return pMasterCondition;
 
@@ -1475,7 +1840,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  Condition::Pointer MesherUtilities::FindMasterCondition(Condition::Pointer& pCondition, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
+  Condition::Pointer MesherUtilities::FindMasterCondition(Condition::Pointer& pCondition, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rConditions,bool & condition_found)
   {
     KRATOS_TRY
 
@@ -1489,38 +1854,38 @@ namespace Kratos
     //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
     condition_found=false;
-    for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ++ic)
-      {
-	//2D edges:
-	if(ic->IsNot(CONTACT)){
+    for(auto i_cond(rConditions.begin()); i_cond != rConditions.end(); ++i_cond)
+    {
+      //2D edges:
+      if(i_cond->IsNot(CONTACT)){
 
-	  Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
+        Geometry< Node<3> >& rConditionGeom = i_cond->GetGeometry();
 
-	  for(unsigned int i=0; i<lpofa.size2();++i)
-	    {
-	      // std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
+        for(unsigned int i=0; i<lpofa.size2();++i)
+        {
+          // std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
+          // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 
-	      if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id()
-		      && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) ||
-		  (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id()
-		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() ) )
-		{
-		  pMasterCondition = *(ic.base());
-		  pSlaveNode = rGeometry[lpofa(0,i)];
-		  //std::cout<<"   Slave_Node: found: "<<rGeometry[lpofa(0,i)].Id()<<std::endl;
-		  condition_found=true;
-		  break;
-		}
+          if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id()
+                  && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) ||
+              (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id()
+                  && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() ) )
+          {
+            pMasterCondition = *i_cond.base();
+            pSlaveNode = rGeometry[lpofa(0,i)];
+            //std::cout<<"   Slave_Node: found: "<<rGeometry[lpofa(0,i)].Id()<<std::endl;
+            condition_found=true;
+            break;
+          }
 
-	    }
-	}
-	if(condition_found)
-	  {
-	    break;
-	  }
-
+        }
       }
+      if(condition_found)
+      {
+        break;
+      }
+
+    }
 
     // if(!found)
     //     KRATOS_THROW_ERROR( std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
@@ -1640,17 +2005,15 @@ namespace Kratos
 
     double minimum_h = rCriticalRadius;
 
-    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; ++i_node)
+    for(auto& i_node : rModelPart.Nodes())
       {
-
-	double nodal_h = i_node->FastGetSolutionStepValue(NODAL_H);
+	double nodal_h = i_node.FastGetSolutionStepValue(NODAL_H);
 	if( nodal_h < rCriticalRadius )
 	  minimum_h = nodal_h;
-
       }
 
     //if( minimum_h < rCriticalRadius )
-    //  std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
+    //  KRATOS_INFO(" CRITICAL MESH SIZE ")<<" supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
 
     return minimum_h;
 
@@ -1754,55 +2117,55 @@ namespace Kratos
     int direct = 1;
 
     for(int i = 0; i<NumberOfPoints; ++i)
-      {
-	//from now on it is consecutive
-	if(!rMeshingVariables.InputInitializedFlag){
-	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
-	  (nodes_begin + i)->SetId(direct);
-	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.NodeMaxId)
-	    rMeshingVariables.NodeMaxId = rMeshingVariables.NodalPreIds[direct];
-	}
-
-	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
-
-	if(rMeshingVariables.Options.Is(MesherUtilities::CONSTRAINED)){
-
-	  if( (nodes_begin + i)->Is(BOUNDARY) ){
-
-	    array_1d<double, 3>&  Normal=(nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
-	    double Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
-
-	    array_1d<double, 3> Offset;
-
-	    Normal /= norm_2(Normal);
-	    for(unsigned int j=0; j<dimension; ++j){
-	      Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
-	    }
-
-	    for(unsigned int j=0; j<dimension; ++j){
-	      PointList[base+j]   = Coordinates[j] + Offset[j];
-	    }
-
-	    //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates + Offset<<std::endl;
-	  }
-	  else{
-	    for(unsigned int j=0; j<dimension; ++j){
-	      PointList[base+j]   = Coordinates[j];
-	    }
-
-	    //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates<<std::endl;
-	  }
-
-	}
-	else{
-	  for(unsigned int j=0; j<dimension; ++j){
-	    PointList[base+j]   = Coordinates[j];
-	  }
-	}
-
-	base+=dimension;
-	direct+=1;
+    {
+      //from now on it is consecutive
+      if(!rMeshingVariables.InputInitializedFlag){
+        rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
+        (nodes_begin + i)->SetId(direct);
+        if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.NodeMaxId)
+          rMeshingVariables.NodeMaxId = rMeshingVariables.NodalPreIds[direct];
       }
+
+      array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
+
+      if(rMeshingVariables.Options.Is(MesherUtilities::CONSTRAINED)){
+
+        if( (nodes_begin + i)->Is(BOUNDARY) ){
+
+          array_1d<double, 3>&  Normal=(nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+          double Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
+
+          array_1d<double, 3> Offset;
+
+          Normal /= norm_2(Normal);
+          for(unsigned int j=0; j<dimension; ++j){
+            Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
+          }
+
+          for(unsigned int j=0; j<dimension; ++j){
+            PointList[base+j]   = Coordinates[j] + Offset[j];
+          }
+
+          //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates + Offset<<std::endl;
+        }
+        else{
+          for(unsigned int j=0; j<dimension; ++j){
+            PointList[base+j]   = Coordinates[j];
+          }
+
+          //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates<<std::endl;
+        }
+
+      }
+      else{
+        for(unsigned int j=0; j<dimension; ++j){
+          PointList[base+j]   = Coordinates[j];
+        }
+      }
+
+      base+=dimension;
+      direct+=1;
+    }
 
     //InMesh.SetPointList(PointList);
 
@@ -1835,15 +2198,15 @@ namespace Kratos
 
     int base=0;
     for(unsigned int el = 0; el<(unsigned int)NumberOfElements; ++el)
-      {
-	Geometry<Node<3> >& geom = (element_begin+el)->GetGeometry();
+    {
+      Geometry<Node<3> >& geom = (element_begin+el)->GetGeometry();
 
-	for(unsigned int i=0; i<nds; ++i)
-	  {
-	    ElementList[base+i] = geom[i].Id();
-	  }
-	base+=nds;
+      for(unsigned int i=0; i<nds; ++i)
+      {
+        ElementList[base+i] = geom[i].Id();
       }
+      base+=nds;
+    }
 
     KRATOS_CATCH( "" )
 

@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -65,7 +65,32 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SmallDisplacement::UseElementProvidedStrain()
+Element::Pointer SmallDisplacement::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    SmallDisplacement::Pointer p_new_elem = Kratos::make_shared<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SmallDisplacement::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -76,15 +101,16 @@ bool SmallDisplacement::UseElementProvidedStrain()
 void SmallDisplacement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
@@ -93,7 +119,7 @@ void SmallDisplacement::CalculateAll(
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
 
-    if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+    if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize( mat_size, mat_size, false );
 
@@ -101,7 +127,7 @@ void SmallDisplacement::CalculateAll(
     }
 
     // Resizing as needed the RHS
-    if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
+    if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
         if ( rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize( mat_size, false );
 
@@ -109,22 +135,31 @@ void SmallDisplacement::CalculateAll(
     }
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    if ( CalculateStiffnessMatrixFlag ) {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    } else {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    }
 
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
-    for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+
+    // Computing in all integrations points
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
-        const Vector body_force = this->GetBodyForce(integration_points, point_number);
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
@@ -133,17 +168,17 @@ void SmallDisplacement::CalculateAll(
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
-        double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
 
         if ( dimension == 2 && GetProperties().Has( THICKNESS ))
             int_to_reference_weight *= GetProperties()[THICKNESS];
 
-        if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+        if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
             this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
         }
 
-        if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
+        if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
     }
@@ -160,8 +195,7 @@ void SmallDisplacement::CalculateKinematicVariables(
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    const GeometryType::IntegrationPointsArrayType& r_integration_points =
-        GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
     // Shape functions
     rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
 
@@ -183,13 +217,12 @@ void SmallDisplacement::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacement::CalculateConstitutiveVariables(
+void SmallDisplacement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
     )
 {
     // Displacements vector
@@ -207,6 +240,22 @@ void SmallDisplacement::CalculateConstitutiveVariables(
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacement::CalculateConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    )
+{
+    // Set the constitutive variables
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
@@ -220,7 +269,7 @@ void SmallDisplacement::CalculateB(
     const Matrix& rDN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -256,7 +305,7 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor)
+Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     Matrix F(dim,dim);

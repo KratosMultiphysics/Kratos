@@ -1,13 +1,14 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz 
+//                   Anna Rehr
 //
 
 #if !defined(KRATOS_ERROR_METRICS_PROCESS)
@@ -29,7 +30,7 @@ namespace Kratos
 
     /// The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -37,7 +38,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -47,15 +48,16 @@ namespace Kratos
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with a error already computed
  * @author Vicente Mataix Ferrandiz
+ * @author Anna Rehr
  */
 template<SizeType TDim>
-class MetricErrorProcess
+class KRATOS_API(MESHING_APPLICATION) MetricErrorProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Containers definition
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
@@ -72,15 +74,21 @@ public:
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
 
+    /// Matrix type definition
+    typedef BoundedMatrix<double, TDim, TDim> MatrixType;
+
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+
     /// Pointer definition of MetricErrorProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetricErrorProcess);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-     
+
     // Constructor
-    
+
     /**
      * This is the default constructor
      * @param rThisModelPart The model part to be computed
@@ -90,10 +98,10 @@ public:
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
-    
+
     /// Destructor.
     ~MetricErrorProcess() override = default;
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -106,12 +114,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
      */
     void Execute() override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -125,7 +133,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -142,7 +150,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
-    
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -179,7 +187,7 @@ protected:
 
 
     ///@}
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -187,7 +195,7 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart; /// The model part to compute
 
     double mMinSize;           /// The minimal size of the elements
@@ -199,7 +207,7 @@ private:
     bool mAverageNodalH;       /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
 
     SizeType mEchoLevel;       /// The echo level
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -218,12 +226,6 @@ private:
      */
     void CalculateMetric();
 
-    /**
-     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
-     * @param itElement The element iterator
-     */
-    void ComputeElementSize(ElementItType itElement);
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -235,7 +237,7 @@ private:
     ///@}
     ///@name Private LifeCycle
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -260,12 +262,12 @@ private:
 ///@{
 
 /// input stream function
-template<unsigned int TDim, class TVarType> 
+template<unsigned int TDim, class TVarType>
 inline std::istream& operator >> (std::istream& rIStream,
                                   MetricErrorProcess<TDim>& rThis);
 
 /// output stream function
-template<unsigned int TDim, class TVarType> 
+template<unsigned int TDim, class TVarType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const MetricErrorProcess<TDim>& rThis)
 {

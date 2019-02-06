@@ -13,6 +13,7 @@
 // Project includes
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "replace_elements_and_conditions_for_adjoint_problem_process.h"
+#include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"

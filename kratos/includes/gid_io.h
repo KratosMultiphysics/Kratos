@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -71,7 +71,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GidIO);
 
     ///typedefs
-	typedef IO BaseType;
+    typedef IO BaseType;
 
     ///Flags for mesh writing
 //             enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
@@ -196,6 +196,9 @@ public:
                                           GeometryData::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Point2D,
+                                          GiD_Point, "Kratos_Point2D_Mesh" ) );
+        mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Point3D,
                                           GiD_Point, "Kratos_Point3D_Mesh" ) );
 
@@ -230,7 +233,7 @@ public:
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin1_element_gp",
                                             GeometryData::Kratos_Linear, GiD_Linear, 1, gp_indices ) );
 
-	//case Point with 1 gauss point //Gid does not accept this kind of gauss point (october 18th 2014)
+    //case Point with 1 gauss point //Gid does not accept this kind of gauss point (october 18th 2014)
         //mGidGaussPointContainers.push_back( TGaussPointContainer( "point1_element_gp",
         //                                    GeometryData::Kratos_Point, GiD_Point, 1, gp_indices ) );
 
@@ -635,7 +638,7 @@ public:
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+                for ( auto it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
                 {
@@ -652,7 +655,7 @@ public:
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
             {
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+                for ( auto it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
                 {
@@ -663,7 +666,7 @@ public:
             }
 
         // Writing gauss points definitions
-        for ( typename std::vector<TGaussPointContainer>::iterator it = mGidGaussPointContainers.begin();
+        for ( auto it = mGidGaussPointContainers.begin();
               it != mGidGaussPointContainers.end(); it++ )
         {
             it->WriteGaussPoints(mResultFile);
@@ -682,7 +685,7 @@ public:
             mResultFileOpen = false;
         }
         //resetting gauss point containers
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( auto it =
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
@@ -694,9 +697,9 @@ public:
 
     ///functions for writing nodal results
 
-	///////////////////////////////////////////////////////////////////////
-	//////                  HISTORICAL DATABASE BLOCK                 /////
-	///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    //////                  HISTORICAL DATABASE BLOCK                 /////
+    ///////////////////////////////////////////////////////////////////////
      /**
      * writes nodal results for variables of type bool
      */
@@ -896,9 +899,9 @@ public:
         Timer::Stop("Writing Results");
 
     }
-   	///////////////////////////////////////////////////////////////////////
-	//////                 NON- HISTORICAL DATABASE BLOCK                 /////
-	///////////////////////////////////////////////////////////////////////
+       ///////////////////////////////////////////////////////////////////////
+    //////                 NON- HISTORICAL DATABASE BLOCK                 /////
+    ///////////////////////////////////////////////////////////////////////
 
    /**
     * Writes nodal flags
@@ -1155,7 +1158,7 @@ public:
      * or undeformed state
      * @param Mode either GiD_PostAscii (default) or GiD_PostBinary
      */
-    void WriteNodeMesh( MeshType& rThisMesh )
+    void WriteNodeMesh( MeshType& rThisMesh ) override
     {
         KRATOS_TRY
 
@@ -1180,20 +1183,15 @@ public:
         int nodes_id[1];
         GiD_fBeginElements(mMeshFile);
 
-//         mNodeList.clear();
-
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
             GiD_fWriteElement(mMeshFile,node_iterator->Id(), nodes_id);
-//             mNodeList.push_back(*node_iterator);
         }
         GiD_fEndElements(mMeshFile);
         GiD_fEndMesh(mMeshFile);
-
-//         mNodeList.Unique();
 
         Timer::Stop("Writing Mesh");
 
@@ -1229,15 +1227,6 @@ public:
         Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
         Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
-        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
-        {
-            nodes_id[0] = node_iterator->Id();
-            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
-//             mNodeList.push_back(*node_iterator);
-        }*/
-
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
                 ++element_iterator)
@@ -1254,7 +1243,7 @@ public:
     }//WriteSphereMesh
 
 
-void WriteCircleMesh( MeshType& rThisMesh )
+    void WriteCircleMesh( MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -1300,7 +1289,7 @@ void WriteCircleMesh( MeshType& rThisMesh )
         KRATOS_CATCH("")
     }//WriteCircleMesh
 
-void WriteClusterMesh( MeshType& rThisMesh )
+    void WriteClusterMesh( MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -1328,15 +1317,6 @@ void WriteClusterMesh( MeshType& rThisMesh )
         // DEM variables
         Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
         Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
-
-        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
-        {
-            nodes_id[0] = node_iterator->Id();
-            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
-//             mNodeList.push_back(*node_iterator);
-        }*/
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
@@ -1372,25 +1352,21 @@ void WriteClusterMesh( MeshType& rThisMesh )
         {
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
-                for ( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
-                        it != mGidMeshContainers.end(); it++ )
+                for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
                     if ( it->AddElement( element_iterator ) )
                         break;
         }
         if ( mWriteConditions == WriteConditionsFlag::WriteConditions || mWriteConditions == WriteConditionsOnly )
-		{
+        {
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
-                for ( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
-                        it != mGidMeshContainers.end(); it++ )
+                for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
-		}
-//         mNodeList.clear();
+        }
 
-        for ( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
-                it != mGidMeshContainers.end(); it++ )
+        for ( auto it = mGidMeshContainers.begin(); it != mGidMeshContainers.end(); it++ )
         {
             it->FinalizeMeshCreation();
             if ( mWriteDeformed == WriteDeformed )
@@ -1400,19 +1376,8 @@ void WriteClusterMesh( MeshType& rThisMesh )
             else
                 KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
 
-            ModelPart::NodesContainerType tempNodes = it->GetMeshNodes();
-            for( ModelPart::NodesContainerType::iterator iter = tempNodes.begin(); iter != tempNodes.end(); iter++ )
-            {
-//                 mNodeList.push_back(*iter);
-
-            }
-
             it->Reset();
         }
-
-//         mNodeList.Unique();
-
-
 
         Timer::Stop("Writing Mesh");
 
@@ -1445,22 +1410,18 @@ void WriteClusterMesh( MeshType& rThisMesh )
     }
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints variables of type int on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+    virtual void PrintOnGaussPoints( const Variable<bool>& rVariable, ModelPart& rModelPart,
                                      double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
-
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1481,11 +1442,28 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
 
+        Timer::Stop("Writing Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Results");
+
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1505,10 +1483,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1528,12 +1503,8 @@ void WriteClusterMesh( MeshType& rThisMesh )
         KRATOS_TRY;
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
-
         }
 
         Timer::Stop("Writing Results");
@@ -1551,11 +1522,8 @@ void WriteClusterMesh( MeshType& rThisMesh )
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
 
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1589,7 +1557,6 @@ protected:
     std::vector<TGaussPointContainer> mGidGaussPointContainers;
     bool mMeshFileOpen;
     bool mResultFileOpen;
-//     ModelPart::NodesContainerType mNodeList;
 
 private:
 

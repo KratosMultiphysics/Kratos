@@ -343,25 +343,6 @@ public:
     //     return p_clone;
     // }
 
-
-    /**
-     * :TODO: the lumpig factors need to be reviewed and
-     * probably reimplemented
-     * (comment by janosch)
-     */
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 8)
-           rResult.resize( 8, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        return rResult;
-    }
-
     /**
      * Information
      */
@@ -389,70 +370,76 @@ public:
         return sqrt( fabs( DeterminantOfJacobian( point ) ) );
     }
 
-    /**
-     * This method calculates and returns area or surface area of
+    /** This method calculates and returns area or surface area of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
      * @return double value contains area or surface
-     * area.
+     * area.N
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: the characteristic area is to be reviewed
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
         Vector temp;
-        DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
         double Area = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
             Area += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
         return Area;
-
-        //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
-
     }
 
-
     /**
-     * This method calculates and returns length, area or volume of
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
+    double Volume() const override
+    {
+        return Area();
+    }
+
+    /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
+     *
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: the characteristic domain size is to be reviewed
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -614,14 +601,14 @@ public:
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
         ShapeFunctionsValuesInIntegrationPoint =
             row( CalculateShapeFunctionsIntegrationPointsValues(
                      ThisMethod ), IntegrationPointIndex );
@@ -662,7 +649,7 @@ public:
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -853,7 +840,7 @@ public:
         }
 
         // Setting up result matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
 
         // Filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -898,7 +885,7 @@ public:
         }
 
         //setting up result matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
 
         //filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -1093,7 +1080,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( unsigned int i = 0; i < 4; i++ )
             {
@@ -1208,7 +1195,7 @@ public:
         ) const override
     {
         // Setting up result matrix
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         // Primary nodes
@@ -1247,7 +1234,7 @@ public:
      */
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -1278,7 +1265,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         const CoordinatesArrayType& Coords = rPoint.Coordinates();
@@ -1306,7 +1293,7 @@ public:
 
         for ( unsigned  int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 2, 2 );
+            rResult[i].resize( 2, 2 , false);
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
@@ -1386,7 +1373,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1394,8 +1381,8 @@ public:
         {
             for ( int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
-                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
+                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2);
             }
         }
 
@@ -1534,41 +1521,41 @@ private:
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             // Primary nodes
-            row( shape_function_values, pnt )( 0 ) =
+            row( shape_function_values, pnt )[0] =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 + integration_points[pnt].X()
                       + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 1 ) =
+            row( shape_function_values, pnt )[1] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 2 ) =
+            row( shape_function_values, pnt )[2] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           - integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 3 ) =
+            row( shape_function_values, pnt )[3] =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 ) * ( 1.0
                         + integration_points[pnt].X()
                         - integration_points[pnt].Y() ) ) / 4.0;
             
             // Secondary nodes
-            row( shape_function_values, pnt )( 4 ) =
+            row( shape_function_values, pnt )[4] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) ) / 2.0;
-            row( shape_function_values, pnt )( 5 ) =
+            row( shape_function_values, pnt )[5] =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 6 ) =
+            row( shape_function_values, pnt )[6] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 + integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 7 ) =
+            row( shape_function_values, pnt )[7] =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;

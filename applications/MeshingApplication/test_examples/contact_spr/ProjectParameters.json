@@ -1,0 +1,105 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "contact_spr",
+        "model_part_name" : "Structure",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "solver_type"                        : "Static",
+        "time_stepping"                      :{
+            "time_step"        : 1.1
+        },
+        "echo_level"                         : 1,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "contact_spr"
+        },
+        "material_import_settings" :{
+            "materials_filename": "StructuralMaterials.json"
+        },
+        "contact_settings":
+        {
+            "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "convergence_criterion"              : "adaptative_remesh_criteria",
+        "max_iteration"                      : 2,
+        "linear_solver_settings"             : {
+                "solver_type": "SuperLUSolver"
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","IMPOSE_DISP_Auto1"]
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module"   : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "IMPOSE_DISP_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,-0.01,0.0]
+        }
+    }
+    ],
+    "loads_process_list"       : [],
+    "contact_process_list" :[
+    {
+        "python_module"   : "alm_contact_process",
+        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ALMContactProcess",
+        "Parameters"            : {
+            "model_part_name"             : "Structure",
+            "contact_model_part"          : {
+                                                "0" : ["Contact_Part"]
+                                            },
+            "contact_type"                : "Frictionless",
+            "assume_master_slave"         : {
+                                                "0" : ["Parts_Parts_Auto1"]
+                                            }
+        }
+    }
+    ],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","WEIGHTED_GAP"],
+            "nodal_nonhistorical_results": ["NORMAL","NODAL_AREA", "AUGMENTED_NORMAL_CONTACT_PRESSURE","CONTACT_PRESSURE"],
+            "nodal_flags_results": ["ACTIVE","SLAVE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    }
+}

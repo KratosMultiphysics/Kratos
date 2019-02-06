@@ -28,14 +28,14 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosPoromechanicsApplication, m)
 {
-    class_<KratosPoromechanicsApplication,
+    py::class_<KratosPoromechanicsApplication,
     KratosPoromechanicsApplication::Pointer,
     KratosApplication>(m, "KratosPoromechanicsApplication")
-    .def(init<>());
+    .def( py::init<>());
 
     AddCustomStrategiesToPython(m);
     AddCustomMPIStrategiesToPython(m);
@@ -70,6 +70,8 @@ PYBIND11_MODULE(KratosPoromechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_AREA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_WIDTH )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_DAMAGE )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, SHEAR_FRACTURE_ENERGY )
 }
 
 }  // namespace Python.

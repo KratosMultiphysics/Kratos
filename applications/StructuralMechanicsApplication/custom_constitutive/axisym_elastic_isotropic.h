@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED)

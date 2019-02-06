@@ -107,15 +107,16 @@ public:
      * @param rPointProjected The point pojected over the plane
      * @param rNormal The normal of the geometry
      * @param rVector The direction to project
+     * @param EchoLevel If we want debugging info we should consider greater than 0
      * @return Distance The distance between surfaces
      */
-
     static inline double FastProjectDirection(
         const GeometryType& rGeom,
         const PointType& rPointDestiny,
         PointType& rPointProjected,
         const array_1d<double,3>& rNormal,
-        const array_1d<double,3>& rVector
+        const array_1d<double,3>& rVector,
+        const SizeType EchoLevel = 0
         )
     {
         // Zero tolerance
@@ -128,16 +129,14 @@ public:
 
         if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
-
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
-            KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
+            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: Zero projection vector. Projection using the condition vector instead." << std::endl;
         } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
-
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
         } else {
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates();
-            KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
+            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: The line and the plane are coplanar. Something wrong happened " << std::endl;
         }
 
         return distance;
@@ -151,7 +150,6 @@ public:
      * @param rDistance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
-
     static inline PointType FastProject(
         const PointType& rPointOrigin,
         const PointType& rPointDestiny,
@@ -164,7 +162,11 @@ public:
         rDistance = inner_prod(vector_points, rNormal);
 
         PointType point_projected;
+    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        point_projected.Coordinates() = rPointDestiny.Coordinates() - rNormal * rDistance;
+    #else
         noalias(point_projected.Coordinates()) = rPointDestiny.Coordinates() - rNormal * rDistance;
+    #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
     }
@@ -176,7 +178,6 @@ public:
      * @param rResultingPoint The distance between the point and the plane
      * @return Inside True is inside, false not
      */
-
     static inline bool ProjectIterativeLine2D(
         GeometryType& rGeomOrigin,
         const GeometryType::CoordinatesArrayType& rPointDestiny,
@@ -231,10 +232,18 @@ public:
             // Derivatives of shape functions
             Matrix ShapeFunctionsGradients;
             ShapeFunctionsGradients = rGeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, rResultingPoint );
+
+        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            DN = prod(X,ShapeFunctionsGradients);
+
+            J = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
+        #else
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-            Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
+        #endif // ifdef KRATOS_USE_AMATRIX
+
+            const Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
 
             old_delta_xi = DeltaXi;
             DeltaXi = RHS[0]/J(0, 0);

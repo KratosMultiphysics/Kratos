@@ -140,19 +140,6 @@ public:
                                               rCurrentProcessInfo);
     }
 
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrices,
-                                              rLHSVariables,
-                                              rRightHandSideVectors,
-                                              rRHSVariables,
-                                              rCurrentProcessInfo);
-    }
-
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
     {
@@ -342,6 +329,13 @@ public:
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;

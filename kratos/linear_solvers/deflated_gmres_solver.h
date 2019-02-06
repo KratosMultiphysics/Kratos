@@ -488,7 +488,7 @@ protected:
             }
 	
             S = L;           
-            Vector diagK (mother_indices.size() );
+            VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
            
@@ -531,7 +531,7 @@ protected:
 
 	S = L;
 
-            Vector diagK (mother_indices.size() );
+            VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
          
@@ -581,10 +581,10 @@ private:
     SparseMatrixType mD;
     SparseMatrixType mS;
     
-    Vector mrp;
-    Vector mru;
-    Vector mp;
-    Vector mu;
+    VectorType mrp;
+	VectorType mru;
+	VectorType mp;
+	VectorType mu;
 	
     std::ofstream myfile;
     ///@}
@@ -660,7 +660,7 @@ private:
 	int red_dim=S_deflated.size1();											//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Vector  cs (m+1);
+	VectorType  cs (m+1);
         Matrix  H (m+1, m+1);
         int restart = 0;
 	int p_dim=mS.size1();
@@ -796,7 +796,7 @@ KRATOS_WATCH(norm_2(res))
 	// put here deflation i.e. solve for WTLWp=WTr fixing w
 	//ww is a deflation matrix W written in a vector format	
 	//extracted the part of the residual corresponding to the pressure - r_p
-	Vector rp;	
+	VectorType rp;	
 	//get the lower part of the residual vector, corresponding to pressure dofs
 	GetPPart (r, rp);
 	std::size_t reduced_size = S_deflated.size1();

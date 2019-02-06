@@ -63,21 +63,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PastixComplexSolver(Parameters& r_settings)
+    PastixComplexSolver(Parameters rSettings)
     {
-		mp_pastix_data = NULL;
+        mpPastixData = nullptr;
 
-		Parameters default_settings(R"(
-            {
-                "solver_type" : "pastix",
-                "echo_level" : 0
-            })");
+        Parameters default_settings(R"(
+        {
+            "solver_type" : "pastix",
+            "echo_level" : 0
+        })");
 
-        r_settings.ValidateAndAssignDefaults(default_settings);
+        rSettings.ValidateAndAssignDefaults(default_settings);
 
-		m_echo_level = r_settings["echo_level"].GetInt();
-		if (m_echo_level > 4 || m_echo_level < 0)
-			KRATOS_ERROR << "invalid echo_level: " << m_echo_level << std::endl;
+        mEchoLevel = rSettings["echo_level"].GetInt();
+        if (mEchoLevel > 4 || mEchoLevel < 0)
+        {
+            KRATOS_ERROR << "Invalid echo_level: " << mEchoLevel << std::endl;
+        }
     }
 
     PastixComplexSolver(const PastixComplexSolver& Other) = delete;
@@ -96,131 +98,172 @@ public:
     ///@name Operations
     ///@{
 
-	void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-	{
-		if (mp_pastix_data != NULL)
-			this->Clear();
-
-		m_nrows = rA.size1();
-
-		if (m_rowptr.size() != rA.index1_data().size())
-			m_rowptr.resize(rA.index1_data().size());
-
-		if (m_col.size() != rA.index2_data().size())
-			m_col.resize(rA.index2_data().size());
-
-		if (m_perm.size() != static_cast<unsigned int>(m_nrows))
-			m_perm.resize(m_nrows);
-
-		if (m_invp.size() != static_cast<unsigned int>(m_nrows))
-			m_invp.resize(m_nrows);
-
-		// initialize iparm and dparm values
-		m_iparm[IPARM_MODIFY_PARAMETER] = API_NO;
-		m_iparm[IPARM_START_TASK      ] = API_TASK_INIT;
-        m_iparm[IPARM_END_TASK        ] = API_TASK_INIT;
-
-        z_pastix(&mp_pastix_data, 0, m_nrows, NULL, NULL, NULL, NULL, NULL, NULL, 1, m_iparm, m_dparm);
-    }
-
-	void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    /** This function is designed to be called as few times as possible. It creates the data structures
+     * that only depend on the connectivity of the matrix (and not on its coefficients)
+     * so that the memory can be allocated once and expensive operations can be done only when strictly
+     * needed
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
+    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-		if (mp_pastix_data != NULL)
-			KRATOS_ERROR << "pastix_data != NULL upon entering InitializeSolutionStep." << std::endl;
+        if (mpPastixData != nullptr)
+            this->Clear();
 
-		// 1-based indexing for pastix
-		std::copy(std::begin(rA.index1_data()),std::end(rA.index1_data()),std::begin(m_rowptr));
-		for (auto &i : m_rowptr)
-			++i;
-		std::copy(std::begin(rA.index2_data()),std::end(rA.index2_data()),std::begin(m_col));
-		for (auto &i : m_col)
-			++i;
+        mNRows = rA.size1();
 
-		// factorize system matrix
-	    m_iparm[IPARM_VERBOSE        ] = static_cast<API_VERBOSE>(m_echo_level);
-      	m_iparm[IPARM_RHS_MAKING     ] = API_RHS_B; // user-provided rhs
-        m_iparm[IPARM_SYM            ] = API_SYM_NO; // non-symmetric
-        m_iparm[IPARM_FACTORIZATION  ] = API_FACT_LU; // LU factorization
-        m_iparm[IPARM_TRANSPOSE_SOLVE] = API_YES; // solve transpose for csr matrix format
-#ifdef _OPENMP
-        m_iparm[IPARM_THREAD_NBR     ] = omp_get_max_threads();
-#endif
+        if (mRowptr.size() != rA.index1_data().size())
+            mRowptr.resize(rA.index1_data().size());
 
-        m_iparm[IPARM_START_TASK] = API_TASK_ORDERING;
-        m_iparm[IPARM_END_TASK  ] = API_TASK_NUMFACT;
+        if (mCol.size() != rA.index2_data().size())
+            mCol.resize(rA.index2_data().size());
 
-		z_pastix(&mp_pastix_data, 0, m_nrows,
-			static_cast<pastix_int_t*>(&m_rowptr[0]),
-			static_cast<pastix_int_t*>(&m_col[0]),
-			static_cast<std::complex<double>*>(&rA.value_data()[0]),
-			static_cast<pastix_int_t*>(&m_perm[0]),
-			static_cast<pastix_int_t*>(&m_invp[0]),
-			NULL,
-			1, m_iparm, m_dparm);
+        if (mPerm.size() != static_cast<unsigned int>(mNRows))
+            mPerm.resize(mNRows);
+            
+        if (mInvp.size() != static_cast<unsigned int>(mNRows))
+            mInvp.resize(mNRows);
+
+        // initialize iparm and dparm values
+        mIparm[IPARM_MODIFY_PARAMETER] = API_NO;
+        mIparm[IPARM_START_TASK      ] = API_TASK_INIT;
+        mIparm[IPARM_END_TASK        ] = API_TASK_INIT;
+
+        z_pastix(&mpPastixData, 0, mNRows, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 1, mIparm, mDparm);
     }
 
+    /** This function is designed to be called every time the coefficients change in the system
+     * that is, normally at the beginning of each solve.
+     * For example if we are implementing a direct solver, this is the place to do the factorization
+     * so that then the backward substitution can be performed effectively more than once
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
+    void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        if (mpPastixData != nullptr)
+            KRATOS_ERROR << "pastix_data != nullptr upon entering InitializeSolutionStep." << std::endl;
+
+        // 1-based indexing for pastix
+        std::copy(std::begin(rA.index1_data()),std::end(rA.index1_data()),std::begin(mRowptr));
+        for (auto &i : mRowptr)
+            ++i;
+        std::copy(std::begin(rA.index2_data()),std::end(rA.index2_data()),std::begin(mCol));
+        for (auto &i : mCol)
+            ++i;
+
+        // factorize system matrix
+        mIparm[IPARM_VERBOSE        ] = static_cast<API_VERBOSE>(mEchoLevel);
+        mIparm[IPARM_RHS_MAKING     ] = API_RHS_B; // user-provided rhs
+        mIparm[IPARM_SYM            ] = API_SYM_NO; // non-symmetric
+        mIparm[IPARM_FACTORIZATION  ] = API_FACT_LU; // LU factorization
+        mIparm[IPARM_TRANSPOSE_SOLVE] = API_YES; // solve transpose for csr matrix format
+    #ifdef _OPENMP
+        mIparm[IPARM_THREAD_NBR     ] = omp_get_max_threads();
+    #endif
+
+        mIparm[IPARM_START_TASK] = API_TASK_ORDERING;
+        mIparm[IPARM_END_TASK  ] = API_TASK_NUMFACT;
+
+        z_pastix(&mpPastixData, 0, mNRows,
+            static_cast<pastix_int_t*>(&mRowptr[0]),
+            static_cast<pastix_int_t*>(&mCol[0]),
+            static_cast<std::complex<double>*>(&rA.value_data()[0]),
+            static_cast<pastix_int_t*>(&mPerm[0]),
+            static_cast<pastix_int_t*>(&mInvp[0]),
+            nullptr,
+            1, mIparm, mDparm);
+    }
+
+    /** 
+     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
     void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-		if (mp_pastix_data == NULL)
-			KRATOS_ERROR << "pastix_data == NULL upon entering Solve." << std::endl;
+        if (mpPastixData == nullptr)
+            KRATOS_ERROR << "pastix_data == nullptr upon entering Solve." << std::endl;
 
-		noalias(rX) = rB;
-        m_iparm[IPARM_START_TASK] = API_TASK_SOLVE;
-        m_iparm[IPARM_END_TASK  ] = API_TASK_SOLVE;
+        noalias(rX) = rB;
+        mIparm[IPARM_START_TASK] = API_TASK_SOLVE;
+        mIparm[IPARM_END_TASK  ] = API_TASK_SOLVE;
 
-		z_pastix(&mp_pastix_data, 0, m_nrows,
-			static_cast<pastix_int_t*>(&m_rowptr[0]),
-			static_cast<pastix_int_t*>(&m_col[0]),
-			static_cast<std::complex<double>*>(&rA.value_data()[0]),
-			static_cast<pastix_int_t*>(&m_perm[0]),
-			static_cast<pastix_int_t*>(&m_invp[0]),
-			static_cast<std::complex<double>*>(&rX[0]),
-			1, m_iparm, m_dparm);
+        z_pastix(&mpPastixData, 0, mNRows,
+            static_cast<pastix_int_t*>(&mRowptr[0]),
+            static_cast<pastix_int_t*>(&mCol[0]),
+            static_cast<std::complex<double>*>(&rA.value_data()[0]),
+            static_cast<pastix_int_t*>(&mPerm[0]),
+            static_cast<pastix_int_t*>(&mInvp[0]),
+            static_cast<std::complex<double>*>(&rX[0]),
+            1, mIparm, mDparm);
     }
 
+    /** 
+     * @brief Normal solve method.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-		InitializeSolutionStep(rA, rX, rB);
+	    	InitializeSolutionStep(rA, rX, rB);
         PerformSolutionStep(rA, rX, rB);
         FinalizeSolutionStep(rA, rX, rB);
 
         return true;
     }
 
-	void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    /** This function is designed to be called at the end of the solve step.
+     * for example this is the place to remove any data that we do not want to save for later
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
+    void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-		this->Clear();
+        this->Clear();
     }
 
-	void Clear() override
+    /** This function is designed to clean up all internal data in the solver.
+     * Clear is designed to leave the solver object as if newly created.
+     * After a clear a new Initialize is needed
+     */
+    void Clear() override
     {
-		if (mp_pastix_data != NULL)
-		{
-        	m_iparm[IPARM_START_TASK] = API_TASK_CLEAN;
-        	m_iparm[IPARM_END_TASK  ] = API_TASK_CLEAN;
+        if (mpPastixData != nullptr)
+        {
+            mIparm[IPARM_START_TASK] = API_TASK_CLEAN;
+            mIparm[IPARM_END_TASK  ] = API_TASK_CLEAN;
 
-			z_pastix(&mp_pastix_data, 0, m_nrows,
-				static_cast<pastix_int_t*>(&m_rowptr[0]),
-				static_cast<pastix_int_t*>(&m_col[0]),
-				NULL,
-				static_cast<pastix_int_t*>(&m_perm[0]),
-				static_cast<pastix_int_t*>(&m_invp[0]),
-				NULL,
-				1, m_iparm, m_dparm);
+            z_pastix(&mpPastixData, 0, mNRows,
+                static_cast<pastix_int_t*>(&mRowptr[0]),
+                static_cast<pastix_int_t*>(&mCol[0]),
+                nullptr,
+                static_cast<pastix_int_t*>(&mPerm[0]),
+                static_cast<pastix_int_t*>(&mInvp[0]),
+                nullptr,
+                1, mIparm, mDparm);
 
-			mp_pastix_data = NULL;
-		}
+            mpPastixData = nullptr;
+        }
     }
 
 	///@}
     ///@name Input and output
     ///@{
 
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Pastix direct solver finished.";
     }
 
+    /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
     }
@@ -230,16 +273,16 @@ public:
 private:
 	///@name Member Variables
     ///@{
-
-	pastix_data_t* mp_pastix_data;
-	pastix_int_t m_nrows;
-	std::vector<pastix_int_t> m_rowptr;
-	std::vector<pastix_int_t> m_col;
-	std::vector<pastix_int_t> m_perm;
-	std::vector<pastix_int_t> m_invp;
-	pastix_int_t m_iparm[IPARM_SIZE];
-	double m_dparm[DPARM_SIZE];
-	int m_echo_level;
+    
+    pastix_data_t* mpPastixData;
+    pastix_int_t mNRows;
+    std::vector<pastix_int_t> mRowptr;
+    std::vector<pastix_int_t> mCol;
+    std::vector<pastix_int_t> mPerm;
+    std::vector<pastix_int_t> mInvp;
+    pastix_int_t mIparm[IPARM_SIZE];
+    double mDparm[DPARM_SIZE];
+    int mEchoLevel;
 
     ///@}
 }; // Class PastixComplexSolver

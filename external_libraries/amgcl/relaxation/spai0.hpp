@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -109,21 +109,14 @@ struct spai0 {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
+    size_t bytes() const {
+        return backend::bytes(*M);
+    }
+
     std::shared_ptr<matrix_diagonal> M;
 };
 
 } // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::spai0<Backend> > {
-    static size_t get(const relaxation::spai0<Backend> &R) {
-        return backend::bytes(*R.M);
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

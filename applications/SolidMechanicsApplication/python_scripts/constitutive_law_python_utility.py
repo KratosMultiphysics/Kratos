@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 import materials
-KratosMultiphysics.CheckForPreviousImport()
-
 
 class ConstitutiveLawUtility:
     #

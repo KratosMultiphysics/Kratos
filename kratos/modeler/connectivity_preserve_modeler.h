@@ -67,6 +67,8 @@ public:
 
 private:
 
+    void CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart);
+
     void ResetModelPart(ModelPart &rDestinationModelPart);
 
     void CopyCommonData(

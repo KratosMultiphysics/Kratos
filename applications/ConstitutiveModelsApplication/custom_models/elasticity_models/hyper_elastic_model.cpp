@@ -20,14 +20,15 @@ namespace Kratos
 
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
+  const HyperElasticModel::MatrixType HyperElasticModel::msIdentityMatrix = IdentityMatrix(3);
 
   HyperElasticModel::HyperElasticModel()
     : ConstitutiveModel()
-    , msIdentityMatrix( identity_matrix<double>(3) )
+      //, msIdentityMatrix( identity_matrix<double>(3) )
   {
     KRATOS_TRY
 
-    noalias(this->mHistoryVector) = ZeroVector(6);
+    //noalias(this->mHistoryVector) = ZeroVector(6);
 
     this->mHistoryVector[0] = 1.0;
     this->mHistoryVector[1] = 1.0;
@@ -41,7 +42,7 @@ namespace Kratos
 
   HyperElasticModel::HyperElasticModel(const HyperElasticModel& rOther)
     : ConstitutiveModel(rOther)
-    , msIdentityMatrix(rOther.msIdentityMatrix)
+      //, msIdentityMatrix(rOther.msIdentityMatrix)
   {
   }
 
@@ -169,6 +170,7 @@ namespace Kratos
 
     HyperElasticDataType Variables;
     this->CalculateStrainData(rValues,Variables);
+    noalias(rStressMatrix) = ZeroMatrix(3,3);
     this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
 
     KRATOS_CATCH(" ")
@@ -723,7 +725,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int HyperElasticModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int HyperElasticModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 

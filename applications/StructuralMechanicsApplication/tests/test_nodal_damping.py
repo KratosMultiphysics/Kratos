@@ -9,7 +9,6 @@ from math import sqrt, atan, cos, exp
 class NodalDampingTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -64,7 +63,9 @@ class NodalDampingTests(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def test_nodal_damping(self):
-        mp = KratosMultiphysics.ModelPart("sdof")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("sdof")
+
         self._add_variables(mp)
 
         #create node

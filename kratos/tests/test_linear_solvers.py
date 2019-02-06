@@ -42,8 +42,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
         #construct the solver
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver(settings)
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(settings)
 
         #solve
         linear_solver.Solve(A,x,b)
@@ -75,22 +75,22 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "TFQMRSolver",
+                        "solver_type" : "tfqmr",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "ILU0Preconditioner"
+                        "preconditioner_type" : "ilu0"
                     },
                     {
-                        "solver_type" : "TFQMRSolver",
+                        "solver_type" : "tfqmr",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "DiagonalPreconditioner"
+                        "preconditioner_type" : "diagonal"
                     },
                     {
-                        "solver_type" : "TFQMRSolver",
+                        "solver_type" : "tfqmr",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 1000,
-                        "preconditioner_type" : "None"
+                        "preconditioner_type" : "none"
                     }
                 ]
             }
@@ -101,16 +101,16 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "CGSolver",
+                        "solver_type" : "cg",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "DiagonalPreconditioner"
+                        "preconditioner_type" : "diagonal"
                     },
                     {
-                        "solver_type" : "CGSolver",
+                        "solver_type" : "cg",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 1000,
-                        "preconditioner_type" : "None"
+                        "preconditioner_type" : "none"
                     }
                 ]
             }
@@ -121,7 +121,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "DeflatedCGSolver"
+                        "solver_type" : "deflated_cg"
                     }
                 ]
             }
@@ -132,30 +132,30 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "BICGSTABSolver",
+                        "solver_type" : "bicgstab",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "ILU0Preconditioner",
+                        "preconditioner_type" : "ilu0",
                         "scaling": false
                     },
                     {
-                        "solver_type" : "BICGSTABSolver",
+                        "solver_type" : "bicgstab",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "ILU0Preconditioner",
+                        "preconditioner_type" : "ilu0",
                         "scaling": false
                     },
                     {
-                        "solver_type" : "BICGSTABSolver",
+                        "solver_type" : "bicgstab",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "DiagonalPreconditioner"
+                        "preconditioner_type" : "diagonal"
                     },
                     {
-                        "solver_type" : "BICGSTABSolver",
+                        "solver_type" : "bicgstab",
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 500,
-                        "preconditioner_type" : "None"
+                        "preconditioner_type" : "none"
                     }
                 ]
             }
@@ -166,7 +166,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "SkylineLUFactorizationSolver",
+                        "solver_type" : "skyline_lu_factorization",
                         "scaling": false
                     }
                 ]
@@ -183,15 +183,15 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "SuperLUSolver",
+                        "solver_type" : "ExternalSolversApplication.super_lu",
                         "scaling": false
                     },
                     {
-                        "solver_type" : "SuperLUIterativeSolver",
+                        "solver_type" : "ExternalSolversApplication.super_lu_iterative",
                         "scaling": false
                     },
                     {
-                        "solver_type" : "SuperLUIterativeSolver",
+                        "solver_type" : "ExternalSolversApplication.super_lu_iterative",
                         "scaling": true
                     }
                 ]
@@ -212,7 +212,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "PastixSolver",
+                        "solver_type" : "ExternalSolversApplication.pastix",
                         "solution_method": "Direct",
                             "tolerance":1e-6,
                             "max_iteration":100,
@@ -234,14 +234,14 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
 
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"iluk",
                         "krylov_type": "bicgstab",
                         "coarsening_type": "aggregation",
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1,
+                        "verbosity" : 0,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
@@ -258,14 +258,14 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
 
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"iluk",
                         "krylov_type": "lgmres",
                         "coarsening_type": "aggregation",
                         "max_iteration": 300,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1 ,
+                        "verbosity" : 0 ,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
@@ -276,12 +276,96 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    def test_amgcl_unpreconditioned(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "bicgstab",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "gmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    }
+                ]
+            }
+            """)
+
+    def test_amgcl_no_amg_only_preconditioner(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1,
+                        "block_size" : 2
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"iluk",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"spai0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"damped_jacobi",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"gauss_seidel",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "amgcl",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"chebyshev",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    }
+                ]
+            }
+            """)
+
     def test_amgcl_bicgstab_ilu0(self):
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
                         "krylov_type": "bicgstab",
                         "coarsening_type": "aggregation",
@@ -304,7 +388,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
                         "krylov_type": "idrs",
                         "coarsening_type": "aggregation",
@@ -327,7 +411,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"spai0",
                         "krylov_type": "bicgstab",
                         "coarsening_type": "aggregation",
@@ -351,7 +435,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
 
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"spai0",
                         "krylov_type": "cg",
                         "coarsening_type": "ruge_stuben",
@@ -376,7 +460,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                 {
 
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "amgcl",
                         "smoother_type":"iluk",
                         "krylov_type": "bicgstabl",
                         "coarsening_type": "aggregation",

@@ -10,17 +10,16 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED )
 #define  KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -49,8 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ExponentialStrainSofteningLaw 
-        : public HardeningLaw 
+class ExponentialStrainSofteningLaw
+        : public MPMHardeningLaw
 {
 public:
 
@@ -87,8 +86,16 @@ public:
     ///@name Operations
     ///@{
 
+
+    /*
+    * @brief This function return the softening rule for internal friction angle, cohesion, and internal dilatancy angle:
+    * @param[in/out] rHardening Exponential softening rate of change
+    * @param[in] rAlpha Plastic deviatoric strain
+    * @param[in] rThisVariable Identifier variable: INTERNAL_FRICTION_ANGLE, COHESION, INTERNAL_DILATANCY_ANGLE
+    * @return Softening rate of change parameter
+    */
     double& CalculateHardening(double &rHardening, const double &rAlpha, const Variable<double>& rThisVariable) override;
-	
+
     ///@}
     ///@name Access
     ///@{
@@ -129,7 +136,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -166,7 +173,7 @@ private:
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -15,11 +15,10 @@
 // System includes
 
 // Project includes
-#include "processes/process.h"
-
 #include "custom_bounding/spatial_bounding_box.hpp"
 #include "custom_utilities/mesh_data_transfer_utilities.hpp"
-
+#include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
@@ -69,6 +68,9 @@ public:
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 
     enum ContactElementType //(contact domain definition)
     {
@@ -669,7 +671,7 @@ public:
       std::vector<int> NodalPreIds;
       std::vector<int> PreservedElements;
 
-      std::vector<bounded_vector<double, 3> > Holes;
+      std::vector<BoundedVector<double, 3> > Holes;
 
       //Mesher pointers to the mesh structures
       MeshContainer       InMesh;
@@ -790,12 +792,12 @@ public:
 	mpReferenceCondition=&rCondition;
       };
 
-      void SetHoles(std::vector<bounded_vector<double, 3> >& rHoles)
+      void SetHoles(std::vector<BoundedVector<double, 3> >& rHoles)
       {
 	Holes = rHoles;
       }
 
-      std::vector<bounded_vector<double, 3> >& GetHoles()
+      std::vector<BoundedVector<double, 3> >& GetHoles()
       {
 	return Holes;
       }
@@ -901,9 +903,13 @@ public:
     ///@name Operations
     ///@{
 
+    void SetModelPartNameToElements (ModelPart& rModelPart);
+
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
+
+    void SetFlagsToNodes (ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags);
 
     double ComputeModelPartVolume (ModelPart& rModelPart);
 
@@ -911,6 +917,8 @@ public:
     //*******************************************************************************************
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
+
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 
@@ -943,6 +951,18 @@ public:
 
     //writes a list of particles telling if they are set as boundary or not
     void CheckParticles     (ModelPart& rModelPart);
+
+    //computes velocity norms of the geometry
+    bool CheckRelativeVelocities (Geometry<Node<3> >& rGeometry, const double& rRelativeFactor);
+
+    //computes prediction of volume decrease of the geometry
+    bool CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension,const double& rTolerance,double& VolumeChange);
+
+    //computes prediction of volume after a projection of the displacement geometry
+    double GetMovedVolume(GeometryType& rVertices, const unsigned int& rDimension, double MovementFactor);
+
+    //computes deformation gradient determinant
+    double GetDeformationGradientDeterminant(GeometryType& rVertices, const unsigned int& rDimension);
 
     //*******************************************************************************************
     //*******************************************************************************************

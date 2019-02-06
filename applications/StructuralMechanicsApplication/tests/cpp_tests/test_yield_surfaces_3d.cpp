@@ -33,15 +33,16 @@ namespace Kratos
 {
 namespace Testing
 {
-typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential> MC;
-typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential> VM;
-typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential> DP;
-typedef RankineYieldSurface<ModifiedMohrCoulombPlasticPotential> R;
-typedef TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential> T;
-typedef SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential> SJ;
+typedef Node<3> NodeType;
+typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> MC;
+typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> VM;
+typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> DP;
+typedef RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> R;
+typedef TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> T;
+typedef SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> SJ;
 
 void GenerateTestVariables(
-    Vector &rStressVector,
+    array_1d<double, 6> &rStressVector,
     Vector &rStrainVector,
     Properties &rMaterialProperties)
 {
@@ -72,13 +73,14 @@ void GenerateTestVariables(
 }
 
 /**
-    * Check the correct calculation of the uniaxial stress of the yield surfaces
-    */
+* Check the correct calculation of the uniaxial stress of the yield surfaces
+*/
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanicsFastSuite)
 {
-    Vector Strain, Stress;
-    Properties rMaterialProperties;
-    GenerateTestVariables(Stress, Strain, rMaterialProperties);
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    Properties material_properties;
+    GenerateTestVariables(Stress, Strain, material_properties);
 
     // Analytical solutions of the yield surfaces
     double MCres, VMres, DPres, Rres, Tres, SJres;
@@ -89,14 +91,18 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
     Tres = 1.82564e+06;
     SJres = 774.919;
 
+    ProcessInfo dummy_process_info;
+    Geometry<NodeType> dummy_geometry;
+    ConstitutiveLaw::Parameters aux_param(dummy_geometry, material_properties, dummy_process_info);
+
     // Solutions to test...
     double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0, TestSJ = 0.0;
-    MC::CalculateEquivalentStress(Stress, Strain, TestMC, rMaterialProperties);
-    VM::CalculateEquivalentStress(Stress, Strain, TestVM, rMaterialProperties);
-    DP::CalculateEquivalentStress(Stress, Strain, TestDP, rMaterialProperties);
-    R::CalculateEquivalentStress(Stress, Strain, TestR, rMaterialProperties);
-    T::CalculateEquivalentStress(Stress, Strain, TestT, rMaterialProperties);
-    SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, rMaterialProperties);
+    MC::CalculateEquivalentStress(Stress, Strain, TestMC, aux_param);
+    VM::CalculateEquivalentStress(Stress, Strain, TestVM, aux_param);
+    DP::CalculateEquivalentStress(Stress, Strain, TestDP, aux_param);
+    R::CalculateEquivalentStress(Stress, Strain, TestR, aux_param);
+    T::CalculateEquivalentStress(Stress, Strain, TestT, aux_param);
+    SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, aux_param);
 
     // Check the results!
     KRATOS_CHECK_NEAR(MCres, TestMC, 0.001e6);
@@ -113,13 +119,14 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFastSuite)
 {
     double I1, J2;
-    Vector Strain, Stress;
-    Vector Deviator = ZeroVector(6);
-    Properties rMaterialProperties;
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    array_1d<double, 6> Deviator = ZeroVector(6);
+    Properties material_properties;
 
-    GenerateTestVariables(Stress, Strain, rMaterialProperties);
-    ConstitutiveLawUtilities::CalculateI1Invariant(Stress, I1);
-    ConstitutiveLawUtilities::CalculateJ2Invariant(Stress, I1, Deviator, J2);
+    GenerateTestVariables(Stress, Strain, material_properties);
+    ConstitutiveLawUtilities<6>::CalculateI1Invariant(Stress, I1);
+    ConstitutiveLawUtilities<6>::CalculateJ2Invariant(Stress, I1, Deviator, J2);
 
     // Analytical solutions of the yield surfaces derivatives
     std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
@@ -128,12 +135,16 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     DPres = {0.244142, 0.244142, 1.9703, 1.72615, 1.72615, 0.0};
     Tres = {-0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077};
 
-    Vector TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6), TestT = ZeroVector(6);
+    array_1d<double, 6> TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6), TestT = ZeroVector(6);
 
-    MC::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestMC, rMaterialProperties);
-    VM::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestVM, rMaterialProperties);
-    DP::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestDP, rMaterialProperties);
-    T::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestT, rMaterialProperties);
+    ProcessInfo dummy_process_info;
+    Geometry<NodeType> dummy_geometry;
+    ConstitutiveLaw::Parameters aux_param(dummy_geometry, material_properties, dummy_process_info);
+
+    MC::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestMC, aux_param);
+    VM::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestVM, aux_param);
+    DP::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestDP, aux_param);
+    T::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestT, aux_param);
 
     // Check the results!
     for (int comp = 0; comp < 6; comp++)
@@ -150,9 +161,10 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructuralMechanicsFastSuite)
 {
-    Properties rMaterialProperties;
-    Vector Strain, Stress;
-    GenerateTestVariables(Stress, Strain, rMaterialProperties);
+    Properties material_properties;
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    GenerateTestVariables(Stress, Strain, material_properties);
 
     // Analytical solutions of the initial threshold
     double MCres, VMres, DPres, Rres, Tres, SJres;
@@ -163,13 +175,17 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructura
     Tres = 3.0e6;
     SJres = 65.4654;
 
+    ProcessInfo dummy_process_info;
+    Geometry<NodeType> dummy_geometry;
+    ConstitutiveLaw::Parameters aux_param(dummy_geometry, material_properties, dummy_process_info);
+
     double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT, TestSJ = 0.0;
-    MC::GetInitialUniaxialThreshold(rMaterialProperties, TestMC);
-    VM::GetInitialUniaxialThreshold(rMaterialProperties, TestVM);
-    DP::GetInitialUniaxialThreshold(rMaterialProperties, TestDP);
-    R::GetInitialUniaxialThreshold(rMaterialProperties, TestR);
-    T::GetInitialUniaxialThreshold(rMaterialProperties, TestT);
-    SJ::GetInitialUniaxialThreshold(rMaterialProperties, TestSJ);
+    MC::GetInitialUniaxialThreshold(aux_param, TestMC);
+    VM::GetInitialUniaxialThreshold(aux_param, TestVM);
+    DP::GetInitialUniaxialThreshold(aux_param, TestDP);
+    R::GetInitialUniaxialThreshold(aux_param, TestR);
+    T::GetInitialUniaxialThreshold(aux_param, TestT);
+    SJ::GetInitialUniaxialThreshold(aux_param, TestSJ);
 
     // Check the results!
     KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001e6);
@@ -185,9 +201,10 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructura
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralMechanicsFastSuite)
 {
-    Properties rMaterialProperties;
-    Vector Strain, Stress;
-    GenerateTestVariables(Stress, Strain, rMaterialProperties);
+    Properties material_properties;
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    GenerateTestVariables(Stress, Strain, material_properties);
     double characteristic_length = 0.1;
 
     // Analytical solutions damage parameter Linear Softening
@@ -199,13 +216,17 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralM
     Tres = -0.00214286;
     SJres = -4.500000e+08;
 
+    ProcessInfo dummy_process_info;
+    Geometry<NodeType> dummy_geometry;
+    ConstitutiveLaw::Parameters aux_param(dummy_geometry, material_properties, dummy_process_info);
+
     double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0, TestSJ = 0.0;
-    MC::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
-    VM::CalculateDamageParameter(rMaterialProperties, TestVM, characteristic_length);
-    DP::CalculateDamageParameter(rMaterialProperties, TestDP, characteristic_length);
-    R::CalculateDamageParameter(rMaterialProperties, TestR, characteristic_length);
-    T::CalculateDamageParameter(rMaterialProperties, TestT, characteristic_length);
-    SJ::CalculateDamageParameter(rMaterialProperties, TestSJ, characteristic_length);
+    MC::CalculateDamageParameter(aux_param, TestMC, characteristic_length);
+    VM::CalculateDamageParameter(aux_param, TestVM, characteristic_length);
+    DP::CalculateDamageParameter(aux_param, TestDP, characteristic_length);
+    R::CalculateDamageParameter(aux_param, TestR, characteristic_length);
+    T::CalculateDamageParameter(aux_param, TestT, characteristic_length);
+    SJ::CalculateDamageParameter(aux_param, TestSJ, characteristic_length);
 
     // Check the results!
     KRATOS_CHECK_NEAR(MCres, TestMC, 0.001);
@@ -221,12 +242,13 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralM
 	*/
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosStructuralMechanicsFastSuite)
 {
-    Properties rMaterialProperties;
-    Vector Strain, Stress;
-    GenerateTestVariables(Stress, Strain, rMaterialProperties);
+    Properties material_properties;
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    GenerateTestVariables(Stress, Strain, material_properties);
     double characteristic_length = 0.1;
 
-    rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
+    material_properties.SetValue(SOFTENING_TYPE, 1);
 
     // Analytical solutions damage parameter Exponential Softening
     double MCres, VMres, DPres, Rres, Tres;//, SJres;
@@ -237,12 +259,16 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosStruct
     Tres = 0.00429492;
 //     SJres = -2.00000000;
 
+    ProcessInfo dummy_process_info;
+    Geometry<NodeType> dummy_geometry;
+    ConstitutiveLaw::Parameters aux_param(dummy_geometry, material_properties, dummy_process_info);
+
     double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0;//, TestSJ = 0.0;
-    MC::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
-    VM::CalculateDamageParameter(rMaterialProperties, TestVM, characteristic_length);
-    DP::CalculateDamageParameter(rMaterialProperties, TestDP, characteristic_length);
-    R::CalculateDamageParameter(rMaterialProperties, TestR, characteristic_length);
-    T::CalculateDamageParameter(rMaterialProperties, TestT, characteristic_length);
+    MC::CalculateDamageParameter(aux_param, TestMC, characteristic_length);
+    VM::CalculateDamageParameter(aux_param, TestVM, characteristic_length);
+    DP::CalculateDamageParameter(aux_param, TestDP, characteristic_length);
+    R::CalculateDamageParameter(aux_param, TestR, characteristic_length);
+    T::CalculateDamageParameter(aux_param, TestT, characteristic_length);
 
     // Check the results!
     KRATOS_CHECK_NEAR(MCres, TestMC, 0.0001);

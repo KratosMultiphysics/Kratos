@@ -391,15 +391,6 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 4)
-   	   rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
-
     ///@}
     ///@name Information
     ///@{
@@ -506,7 +497,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -514,12 +505,11 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const  override
     {
         BoundedMatrix<double,3,4> X;
         BoundedMatrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
+        for(unsigned int i=0; i<this->size();i++) {
             X(0,i ) = this->GetPoint( i ).X();
             X(1,i ) = this->GetPoint( i ).Y();
             X(2,i ) = this->GetPoint( i ).Z();

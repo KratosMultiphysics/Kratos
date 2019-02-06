@@ -63,7 +63,8 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.testCavity()
 
     def setUpModel(self):
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
 
@@ -94,8 +95,10 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "amgcl"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False

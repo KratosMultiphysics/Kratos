@@ -13,6 +13,7 @@
 #include "adjoint_finite_difference_truss_element_3D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 
@@ -26,51 +27,6 @@ AdjointFiniteDifferenceTrussElement::AdjointFiniteDifferenceTrussElement(Element
 
 AdjointFiniteDifferenceTrussElement::~AdjointFiniteDifferenceTrussElement()
 {
-}
-
-void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(rVariable == STRESS_ON_GP)
-    {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        const SizeType  GP_num = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        if (rOutput.size() != GP_num)
-            rOutput.resize(GP_num, false);
-
-        switch (traced_stress_type)
-        {
-            case TracedStressType::FX:
-            {
-                std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->CalculateOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = force_vector[i][0];
-                break;
-            }
-            case TracedStressType::PK2:
-            {
-                std::vector<Vector> stress_vector;
-                mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = stress_vector[i][0];
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-    }
-    else
-    {
-        rOutput.resize(1);
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
 }
 
 void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
@@ -122,7 +78,8 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
     CheckDofs();
     CheckProperties(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF(this->GetGeometry().Length() < std::numeric_limits<double>::epsilon())
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+         < std::numeric_limits<double>::epsilon())
         << "Element #" << this->Id() << " has a length of zero!" << std::endl;
 
     return return_value;
@@ -131,7 +88,7 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
 }
 
 
-void AdjointFiniteDifferenceTrussElement::CheckVariables()
+void AdjointFiniteDifferenceTrussElement::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
@@ -141,7 +98,7 @@ void AdjointFiniteDifferenceTrussElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckDofs()
+void AdjointFiniteDifferenceTrussElement::CheckDofs() const
 {
     const SizeType number_of_nodes = this->GetGeometry().size();
 
@@ -158,7 +115,7 @@ void AdjointFiniteDifferenceTrussElement::CheckDofs()
     }
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const PropertiesType & r_properties = GetProperties();
@@ -178,46 +135,6 @@ void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCu
     cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
 }
 
-double AdjointFiniteDifferenceTrussElement::CalculateReferenceLength()
-{
-  KRATOS_TRY;
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
-  const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-  const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-  const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-  const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
-
-  KRATOS_DEBUG_ERROR_IF(L <= numerical_limit)
-   << "Reference Length of element" << this->Id() << "~ 0" << std::endl;
-  return L;
-  KRATOS_CATCH("")
-}
-
-double AdjointFiniteDifferenceTrussElement::CalculateCurrentLength()
-{
-    KRATOS_TRY;
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const double du =
-        this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
-        this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    const double dv =
-        this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-        this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    const double dw =
-        this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
-        this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-    const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-    const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-    const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-    const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
-                               (dw + dz) * (dw + dz));
-
-    KRATOS_DEBUG_ERROR_IF(l <= numerical_limit)
-        << "Current Length of element" << this->Id() << "~ 0" << std::endl;
-    return l;
-    KRATOS_CATCH("")
-}
-
 void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector)
 {
     KRATOS_TRY;
@@ -229,7 +146,7 @@ void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDeri
     if (rDerivativeVector.size() != num_dofs)
         rDerivativeVector.resize(num_dofs, false);
 
-    const double l = CalculateCurrentLength();
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
     const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
     const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
@@ -276,8 +193,8 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
-    const double l_0 = CalculateReferenceLength();
-    const double l = CalculateCurrentLength();
+    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     double prestress = 0.0;
     if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
         prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
@@ -297,8 +214,8 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(cons
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
-    const double l = CalculateCurrentLength();
-    const double l_0 = CalculateReferenceLength();
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     double derivative_pre_factor = E * l / (l_0 * l_0);
 
     KRATOS_DEBUG_ERROR_IF(derivative_pre_factor<=numerical_limit)

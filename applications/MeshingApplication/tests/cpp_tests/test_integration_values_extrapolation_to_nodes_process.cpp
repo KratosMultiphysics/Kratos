@@ -18,6 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
@@ -51,7 +52,7 @@ namespace Kratos
         
         void Create2DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -96,7 +97,7 @@ namespace Kratos
 
         void Create3DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -221,14 +222,14 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
             
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
@@ -270,14 +271,14 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();

@@ -247,6 +247,23 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     ~ResidualBasedNewtonRaphsonStrategy() override
     {
+        // If the linear solver has not been deallocated, clean it before
+        // deallocating mpA. This prevents a memory error with the the ML
+        // solver (which holds a reference to it).
+        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+
+        // Deallocating system vectors to avoid errors in MPI. Clear calls
+        // TrilinosSpace::Clear for the vectors, which preserves the Map of
+        // current vectors, performing MPI calls in the process. Due to the
+        // way Python garbage collection works, this may happen after
+        // MPI_Finalize has already been called and is an error. Resetting
+        // the pointers here prevents Clear from operating with the
+        // (now deallocated) vectors.
+        mpA.reset();
+        mpDx.reset();
+        mpb.reset();
+
         Clear();
     }
 
@@ -468,6 +485,7 @@ class ResidualBasedNewtonRaphsonStrategy
         GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }
@@ -859,6 +877,28 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewtonRaphsonStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,8 +54,9 @@ namespace relaxation {
 
 template <class Backend>
 struct wrapper {
-    typedef boost::property_tree::ptree params;
+    typedef Backend                     backend_type;
     typedef typename Backend::params    backend_params;
+    typedef boost::property_tree::ptree params;
 
     runtime::relaxation::type r;
     void *handle;
@@ -321,7 +322,6 @@ struct wrapper {
     call_apply(const Matrix&, const VectorRHS&, VectorX&) const {
         throw std::logic_error("The relaxation is not supported by the backend");
     }
-
 };
 
 } // namespace relaxation

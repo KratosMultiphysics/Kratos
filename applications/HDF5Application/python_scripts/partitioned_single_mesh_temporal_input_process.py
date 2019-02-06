@@ -21,7 +21,7 @@ def Factory(settings, Model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_io.HDF5ParallelFileFactory(settings["file_settings"])
-    nodal_solution_step_input = hdf5_io.PrimalBossakInput(settings["nodal_solution_step_data_settings"])
+    nodal_solution_step_input = hdf5_io.NodalSolutionStepDataInput(settings["nodal_solution_step_data_settings"])
     element_data_value_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
     nodal_data_value_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
     input_time_settings = KratosMultiphysics.Parameters("""{}""")

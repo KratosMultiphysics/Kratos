@@ -1,35 +1,19 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
-import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
-import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "MetisApplication",
-    "TrilinosApplication",
-    "MappingApplication",
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
-import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Import base class file
-import partitioned_fsi_base_solver
+from KratosMultiphysics.FSIApplication import partitioned_fsi_base_solver
 
 def CreateSolver(model, project_parameters):
     return TrilinosPartitionedFSIBaseSolver(model, project_parameters)
@@ -72,15 +56,31 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         if KratosMPI.mpi.rank == 0:
             KratosMultiphysics.Logger.PrintWarning(" ".join(map(str, args)))
 
+    def _GetEpetraCommunicator(self):
+        if not hasattr(self, '_epetra_communicator'):
+            self._epetra_communicator = self._CreateEpetraCommunicator()
+        return self._epetra_communicator
+
+    def _CreateEpetraCommunicator(self):
+        return KratosTrilinos.CreateCommunicator()
+
+    def _CreateConvergenceAccelerator(self):
+        convergence_accelerator = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(
+            self._GetFluidInterfaceSubmodelPart(),
+            self._GetEpetraCommunicator(),
+            self.settings["coupling_settings"]["coupling_strategy_settings"])
+        self._PrintInfoOnRankZero("::[TrilinosPartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
+        return convergence_accelerator
+
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities2D(self.epetra_communicator)
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray2D(self._GetEpetraCommunicator())
         else:
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self.epetra_communicator)
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray3D(self._GetEpetraCommunicator())
 
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
-        mapper_settings = self.settings["coupling_solver_settings"]["mapper_settings"]
+        mapper_settings = self.settings["coupling_settings"]["mapper_settings"]
 
         if (mapper_settings.size() == 1):
             fluid_submodelpart_name = mapper_settings[0]["fluid_interface_submodelpart_name"].GetString()
@@ -95,7 +95,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             mapper_project_parameters["interface_submodel_part_origin"].SetString(fluid_submodelpart_name)
             mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                              self.structure_solver.main_model_part,
                                                                              mapper_project_parameters)
 
@@ -124,7 +124,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             pos_mapper_project_parameters["interface_submodel_part_origin"].SetString(pos_face_submodelpart_name)
             pos_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  pos_mapper_project_parameters)
 
@@ -138,7 +138,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             neg_mapper_project_parameters["interface_submodel_part_origin"].SetString(neg_face_submodelpart_name)
             neg_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  neg_mapper_project_parameters)
 
@@ -156,7 +156,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
-        redistribution_max_iters = 50
+        redistribution_max_iters = 200
 
         # Convert the nodal reaction to traction loads before transfering
         KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
@@ -186,7 +186,10 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
 
         # Solve the mesh problem
-        self.mesh_solver.Solve()
+        self.mesh_solver.InitializeSolutionStep()
+        self.mesh_solver.Predict()
+        self.mesh_solver.SolveSolutionStep()
+        self.mesh_solver.FinalizeSolutionStep()
 
         self._PrintInfoOnRankZero("Mesh prediction computed.")
 
@@ -196,7 +199,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
-        redistribution_max_iters = 50
+        redistribution_max_iters = 200
 
         # Convert the nodal reaction to traction loads before transfering
         KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(

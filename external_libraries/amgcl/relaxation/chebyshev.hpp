@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -198,17 +198,6 @@ class chebyshev {
 };
 
 } // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::chebyshev<Backend> > {
-    static size_t get(const relaxation::chebyshev<Backend> &R) {
-        return R.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

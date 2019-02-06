@@ -370,14 +370,6 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4) rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
-
     ///@}
     ///@name Information
     ///@{
@@ -525,7 +517,7 @@ public:
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside(
+    bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -533,10 +525,8 @@ public:
     {
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
-        if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
-        {
-            if ( std::abs(rResult[1]) <= (1.0+Tolerance) )
-            {
+        if ( std::abs(rResult[0]) <= (1.0+Tolerance) ) {
+            if ( std::abs(rResult[1]) <= (1.0+Tolerance) ) {
                 return true;
             }
         }
@@ -545,7 +535,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -553,7 +543,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
@@ -1520,7 +1510,7 @@ private:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
-        )
+        ) const
     {
         BoundedMatrix<double,3,4> X;
         BoundedMatrix<double,3,2> DN;
@@ -1539,8 +1529,8 @@ private:
 
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
-        array_1d<double, 2> DeltaXi( 2, 0.0 );
-	const array_1d<double, 3> zero_array(3, 0.0);
+        array_1d<double, 2> DeltaXi = ZeroVector( 2 );
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:

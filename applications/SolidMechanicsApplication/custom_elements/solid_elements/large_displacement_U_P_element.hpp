@@ -331,7 +331,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    unsigned int GetDofsSize() override;
+    SizeType GetDofsSize() override;
 
 
     /**

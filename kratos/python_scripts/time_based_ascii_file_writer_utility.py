@@ -103,9 +103,12 @@ class TimeBasedAsciiFileWriterUtility(object):
 
             if not(is_found):
                 warn_msg  = "No line was found in " + self.file_name + " after restarting containing indicated restart time, \n"
-                warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
+                warn_msg += "appending results after restart from time " + str(restart_time) + " not possible.\n"
+                warn_msg += "To avoid loss of data continuing writing from the end of file\n"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
-                return None
+
+                new_lines+= "# indicated restart time " + str(restart_time) + " not found (up to the given tolerance)\n"
+                new_lines+= "# continuing writing after restart from the previous end of file\n"
 
             output_file = self.__OpenOutputFile() # this overwrites the old file
             output_file.write(file_header)

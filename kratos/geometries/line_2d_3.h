@@ -283,8 +283,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
 	if(rResult.size() != 3)
            rResult.resize( 3, false );
@@ -319,7 +329,7 @@ public:
 
         const double length = lx * lx + ly * ly;
 
-        return sqrt( length );
+        return std::sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -351,25 +361,18 @@ public:
     */
     double DomainSize() const override
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(2);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
-
-        const double length = lx * lx + ly * ly;
-
-        return sqrt( length );
+        return Length();
     }
     
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon() 

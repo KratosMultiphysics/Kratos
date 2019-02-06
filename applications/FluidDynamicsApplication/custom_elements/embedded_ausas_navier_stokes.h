@@ -647,7 +647,7 @@ protected:
             this->AddSystemBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
             // Add the normal component penalty contribution
-            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
 
             // Use the pressure as a Lagrange multiplier to enforce the no penetration condition
             // this->AddSystemNormalVelocityLagrangeMultiplierContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
@@ -720,7 +720,7 @@ protected:
             this->AddRHSBoundaryTermsContribution(rRightHandSideVector, rData);
 
             // Add the normal component penalty contribution
-            this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData);
+            this->AddRHSNormalVelocityPenaltyContribution(rRightHandSideVector, rData, rCurrentProcessInfo);
 
         } else {
 
@@ -904,8 +904,9 @@ protected:
     void AddSystemNormalVelocityPenaltyContribution(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        const EmbeddedAusasElementDataStruct &rData) {
-
+        const EmbeddedAusasElementDataStruct &rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
 
@@ -932,7 +933,7 @@ protected:
         }
 
         // Compute the penalty coefficient
-        const double pen_coef = ComputePenaltyCoefficient(rData);
+        const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
 
         // Compute the LHS and RHS penalty contributions
         BoundedMatrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
@@ -1003,7 +1004,8 @@ protected:
     */
     void AddRHSNormalVelocityPenaltyContribution(
         VectorType &rRightHandSideVector,
-        const EmbeddedAusasElementDataStruct &rData) {
+        const EmbeddedAusasElementDataStruct &rData,
+        const ProcessInfo &rCurrentProcessInfo) {
 
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
@@ -1031,7 +1033,7 @@ protected:
         }
 
         // Compute the penalty coefficient
-        const double pen_coef = ComputePenaltyCoefficient(rData);
+        const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
 
         // Compute the RHS penalty contributions
         array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize);
@@ -1226,8 +1228,10 @@ protected:
     * This function computes the penalty coefficient for the level set normal velocity imposition
     * @param rData reference to element data structure
     */
-    double ComputePenaltyCoefficient(const EmbeddedAusasElementDataStruct &rData) {
-
+    double ComputePenaltyCoefficient(
+        const EmbeddedAusasElementDataStruct &rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         // Compute the intersection area using the Gauss pts. weights
         double intersection_area = 0.0;
         for (unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_int).size(); ++i_gauss) {
@@ -1257,7 +1261,7 @@ protected:
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
-        const double K = 10.0;
+        const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
         const double pen_coef = K * pen_cons / intersection_area;
 
         return pen_coef;

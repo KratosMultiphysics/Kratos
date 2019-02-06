@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -18,9 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -86,12 +84,13 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -99,9 +98,33 @@ public:
         ) const override;
 
     /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
+
+    /**
      * Check if Rotational Dof existant
      */
-    bool HasRotDof() override {return false;};
+    bool HasRotDof() const override {return false;};
 
     ///@}
     ///@name Access
@@ -118,14 +141,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Point load Condition #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Point load Condition #" << Id();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -164,15 +198,15 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     /**
      * It calcules the integration load for the point load
      */
-    virtual double GetPointLoadIntegrationWeight();
+    virtual double GetPointLoadIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access

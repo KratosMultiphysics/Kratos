@@ -39,20 +39,39 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress : public ElasticIsotropic3D
+/**
+ * @class LinearPlaneStress
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class defines a small deformation linear elastic constitutive model for plane stress cases
+ * @details This class derives from the linear elastic case on 3D
+ * @author Riccardo Rossi
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress 
+    : public ElasticIsotropic3D
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
+    
+    /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
+    
+    /// The base class ElasticIsotropic3D type definition
     typedef ElasticIsotropic3D      BaseType;
+    
+    /// The size type definition
     typedef std::size_t             SizeType;
-    /**
-     * Counted pointer of LinearPlaneStress
-     */
-
+    
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
+    /// Counted pointer of LinearPlaneStress
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress );
 
     ///@name Life Cycle
@@ -95,7 +114,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
+        return Dimension;
     };
 
     /**
@@ -103,7 +122,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSize;
     }
 
     ///@}

@@ -105,7 +105,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-16,1e-24)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -131,7 +131,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.00)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-16,1e-24)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -334,7 +334,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_linear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -375,7 +377,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_nonlinear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -425,7 +428,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_prestress_nonlinear_fix(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -455,7 +460,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_prestress_nonlinear_free(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -485,7 +492,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_prestress_linear_fix(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -515,7 +524,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_prestress_linear_free(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -545,7 +556,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_dynamic(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -595,7 +608,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_cable(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         self._add_constitutive_law(mp,True)
@@ -631,7 +646,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_dynamic_explicit_nonlinear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         _add_explicit_variables(mp)
         self._apply_material_properties(mp,dim)
@@ -680,7 +697,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_dynamic_explicit_linear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         _add_explicit_variables(mp)
         self._apply_material_properties(mp,dim)
@@ -730,7 +749,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_linear_plasticity(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties_plasticity(mp,dim,200,1.5)
         self._add_constitutive_law(mp,False)
@@ -781,7 +802,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_nonlinear_plasticity(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties_plasticity(mp,dim,750,0.1)
         self._add_constitutive_law(mp,False)

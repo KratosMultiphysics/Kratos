@@ -27,9 +27,6 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
 
-//#include  "utilities/triangle_triangle_intersection.h"
-
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -363,8 +360,18 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 3)
             rResult.resize( 3, false );
@@ -493,10 +500,6 @@ public:
      * @return double value with the minimum edge length
      */
     virtual double Semiperimeter() const {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-
       return CalculateSemiperimeter(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
@@ -731,7 +734,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override {
+        ) const override {
 
         rResult = ZeroVector(3);
 

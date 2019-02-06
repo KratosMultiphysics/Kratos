@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -308,17 +308,6 @@ class skyline_lu {
 };
 
 } // namespace solver
-
-namespace backend {
-
-template <typename V, class O>
-struct bytes_impl< solver::skyline_lu<V, O> > {
-    static size_t get(const solver::skyline_lu<V, O> &S) {
-        return S.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 

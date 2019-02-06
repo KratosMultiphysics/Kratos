@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 
 // Application includes
 #include "tests/test_utils.h"
@@ -39,24 +39,22 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalResults1, KratosHDF5Tes
                               "EXTERNAL_FORCES_VECTOR",
                               "CONSTITUTIVE_MATRIX"]
         })");
-    ModelPart write_model_part;
-    TestModelPartFactory::CreateModelPart(write_model_part);
+    Model this_model;
+    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+    TestModelPartFactory::CreateModelPart(r_write_model_part);
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
-        write_model_part, {{"DENSITY"},
-                           {"VELOCITY"},
-                           {"DOMAIN_SIZE"},
-                           {"EXTERNAL_FORCES_VECTOR"},
-                           {"CONSTITUTIVE_MATRIX"}});
+        r_write_model_part,
+        {{"DENSITY"}, {"VELOCITY"}, {"DOMAIN_SIZE"}, {"EXTERNAL_FORCES_VECTOR"}, {"CONSTITUTIVE_MATRIX"}});
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
-    model_part_io.WriteNodes(write_model_part.Nodes());
+    model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::NodalDataValueIO nodal_value_io(settings, p_file);
-    nodal_value_io.WriteNodalResults(write_model_part.Nodes());
-    ModelPart read_model_part;
-    model_part_io.ReadNodes(read_model_part.Nodes());
-    nodal_value_io.ReadNodalResults(read_model_part.Nodes(),
-                                    read_model_part.GetCommunicator());
-    CompareNonHistoricalNodalData(read_model_part.Nodes(), write_model_part.Nodes());
+    nodal_value_io.WriteNodalResults(r_write_model_part.Nodes());
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
+    model_part_io.ReadNodes(r_read_model_part.Nodes());
+    nodal_value_io.ReadNodalResults(r_read_model_part.Nodes(),
+                                    r_read_model_part.GetCommunicator());
+    CompareNonHistoricalNodalData(r_read_model_part.Nodes(), r_write_model_part.Nodes());
 }
 
 } // namespace Testing

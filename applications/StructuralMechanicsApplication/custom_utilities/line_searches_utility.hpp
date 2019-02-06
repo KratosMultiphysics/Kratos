@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Nelson Lafontaine
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LINE_SEARCHES_UTILITY)

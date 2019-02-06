@@ -35,7 +35,6 @@
 
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
@@ -43,6 +42,7 @@
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
+#include "custom_elements/embedded_fluid_element_discontinuous.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/two_fluid_vms_linearized_darcy.h"
@@ -70,7 +70,7 @@
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
-
+#include "custom_elements/vms_adjoint_element.h"
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -85,7 +85,10 @@
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 
 namespace Kratos
@@ -269,9 +272,13 @@ private:
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
+    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokesDiscontinuous2D3N;
+    const EmbeddedFluidElementDiscontinuous< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokesDiscontinuous3D4N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
-    
+    const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMSDiscontinuous2D3N;
+    const EmbeddedFluidElementDiscontinuous< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMSDiscontinuous3D4N;
+
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
     const TwoFluidVMSLinearizedDarcy<3,4> mTwoFluidVMSLinearizedDarcy3D;
@@ -374,6 +381,9 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
 
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
+
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
@@ -381,7 +391,10 @@ private:
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid2DLaw mNewtonianTwoFluid2DLaw;
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
+    const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
+    const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
 
     ///@}
     ///@name Private Operators

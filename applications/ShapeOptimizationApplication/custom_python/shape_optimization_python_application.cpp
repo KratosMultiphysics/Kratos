@@ -28,31 +28,24 @@
 
 // ==============================================================================
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<KratosShapeOptimizationApplication,
+        KratosShapeOptimizationApplication::Pointer,
+        KratosApplication >(m, "KratosShapeOptimizationApplication")
+        .def(py::init<>())
+        ;
 
-using namespace pybind11;
+    AddCustomUtilitiesToPython(m);
 
+    //registering variables in python
 
-
-  PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
-  {
-
-	  class_<KratosShapeOptimizationApplication,
-			  KratosShapeOptimizationApplication::Pointer,
-			  KratosApplication >(m, "KratosShapeOptimizationApplication")
-        .def(init<>())
-			;
-
-	AddCustomUtilitiesToPython(m);
-
-
-	//registering variables in python
-
-	// Geometry variables
+    // Geometry variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
@@ -92,11 +85,25 @@ using namespace pybind11;
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
+
+    // Bead optimization
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DF1DALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DF1DALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DPDALPHA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DPDALPHA_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DLDALPHA);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BEAD_DIRECTION);
+
+    // For auxiliary operations
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_VARIABLE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_VARIABLE_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_VARIABLE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_VARIABLE_MAPPED);
   }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

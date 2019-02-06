@@ -81,17 +81,11 @@ void SPRErrorProcess<TDim>::Execute()
 template<SizeType TDim>
 void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
 {
-    // Array of nodes
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
-
     // We do a find of neighbours
-    {
-        FindNodalNeighboursProcess find_neighbours(mThisModelPart);
-        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-        find_neighbours.Execute();
-    }
+    FindNodalNeighbours(mThisModelPart);
 
     // Iteration over all nodes -- construction of patches
+    NodesArrayType& nodes_array = mThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
@@ -160,7 +154,12 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
         const auto& process_info = mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
 
-        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
+        // The error_integration_point is printed
+        if (mEchoLevel > 2) {
+            std::stringstream ss_error_integration_point;
+            ss_error_integration_point << error_integration_point;
+            KRATOS_INFO("SPRErrorProcess") << "Error GP:" << ss_error_integration_point.str() << std::endl;
+        }
 
         // We compute the error overall
         double error_energy_norm = 0.0;
@@ -267,6 +266,19 @@ void SPRErrorProcess<TDim>::CalculatePatch(
         const BoundedMatrix<double, 1, SigmaSize> sigma = prod(p_k,coeff);
         noalias(rSigmaRecovered) = row(sigma, 0);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
+{
+    FindNodalNeighboursProcess find_neighbours(rModelPart);
+    // Array of nodes
+    NodesArrayType& nodes_array = rModelPart.Nodes();
+    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+    find_neighbours.Execute();
 }
 
 /***********************************************************************************/

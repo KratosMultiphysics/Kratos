@@ -4,9 +4,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return PfemFluidSolver(main_model_part, custom_settings)
 
@@ -88,7 +85,7 @@ class PfemFluidSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
@@ -175,9 +172,13 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_RATE)
 
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
@@ -267,7 +268,7 @@ class PfemFluidSolver:
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = Serializer(restart_path, self.serializer_flag)
+            serializer = FileSerializer(restart_path, self.serializer_flag)
 
             serializer.Load(self.main_model_part.Name, self.main_model_part)
             print("    Load input restart file.")
@@ -301,7 +302,7 @@ class PfemFluidSolver:
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        #self.fluid_solver.Initialize()
+        self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()

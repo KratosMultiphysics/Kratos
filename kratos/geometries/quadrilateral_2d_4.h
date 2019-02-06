@@ -54,17 +54,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A four node 2D quadrilateral geometry with bi-linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
+ * The node ordering corresponds with:
  *            v
  *            ^
  *            |
- *      3-----------2 
- *      |     |     |         
- *      |     |     |          
- *      |     +---- | --> u    
- *      |           |          
- *      |           |          
- *      0-----------1      
+ *      3-----------2
+ *      |     |     |
+ *      |     |     |
+ *      |     +---- | --> u
+ *      |           |
+ *      |           |
+ *      0-----------1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -332,7 +332,7 @@ public:
         return typename BaseType::Pointer( new Quadrilateral2D4( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -341,8 +341,8 @@ public:
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
     //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }   
-        
+    //     }
+
     //     //creating a geometry with the new points
     //     Geometry< Point<3> >::Pointer p_clone( new Quadrilateral2D4< Point<3> >( NewPoints ) );
 
@@ -367,15 +367,6 @@ public:
 		rResult(3, 1) = 1.0;
 		return rResult;
 	}
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4)
-            rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
 
     ///@}
     ///@name Information
@@ -419,30 +410,40 @@ public:
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
-
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.00;
+        double Area = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
             Area += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
         return Area;
-
-        //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
     }
 
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
+    double Volume() const override
+    {
+        return Area();
+    }
 
     /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
@@ -453,28 +454,25 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
@@ -486,7 +484,7 @@ public:
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -582,7 +580,7 @@ public:
 
         return 0;
     }
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -601,7 +599,7 @@ public:
       rResult[1] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] );
       rResult[2] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] );
       rResult[3] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] );
-        
+
         return rResult;
     }
 
@@ -711,7 +709,7 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
@@ -737,7 +735,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
         rResult( 1, 0 ) =  0.25 * ( 1.0 - rPoint.Y() );
@@ -765,10 +763,10 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
+        rResult[0].resize( 2, 2 , false);
+        rResult[1].resize( 2, 2 , false);
+        rResult[2].resize( 2, 2 , false);
+        rResult[3].resize( 2, 2 , false);
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
@@ -820,7 +818,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }
@@ -1133,5 +1131,5 @@ GeometryData Quadrilateral2D4<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined
 
