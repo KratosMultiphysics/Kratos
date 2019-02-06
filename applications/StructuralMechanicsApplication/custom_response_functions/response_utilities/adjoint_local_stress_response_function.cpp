@@ -40,8 +40,8 @@ namespace Kratos
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
 
-        if(ResponseSettings.Has("consider_particular_solution"))
-            mAddParticularSolution = ResponseSettings["consider_particular_solution"].GetBool();
+        if(ResponseSettings.Has("add_particular_solution"))
+            mAddParticularSolution = ResponseSettings["add_particular_solution"].GetBool();
     }
 
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
@@ -353,7 +353,7 @@ namespace Kratos
         if(element_name == "CrLinearBeamElement3D2N" || element_name == "TrussLinearElement3D2N")
         {
             Vector particular_solution;
-            // delifers particular solution of influence function in local coordinates
+            // delivers particular solution of influence function in local coordinates
             this->CalculateParticularSolutionLinearElement2N(particular_solution);
             // transform particular solution into global coordinates
             mpTracedElement->Calculate(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution, mrModelPart.GetProcessInfo());
