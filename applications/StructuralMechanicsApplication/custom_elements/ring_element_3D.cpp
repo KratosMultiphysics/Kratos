@@ -16,40 +16,40 @@
 // External includes
 
 // Project includes
-#include "custom_elements/ring_element_3D4N.hpp"
+#include "custom_elements/ring_element_3D.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
 
 
 namespace Kratos {
-RingElement3D4N::RingElement3D4N(IndexType NewId,
+RingElement3D::RingElement3D(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
 
-RingElement3D4N::RingElement3D4N(IndexType NewId,
+RingElement3D::RingElement3D(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {}
 
 Element::Pointer
-RingElement3D4N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
+RingElement3D::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                          PropertiesType::Pointer pProperties) const {
   const GeometryType &rGeom = this->GetGeometry();
-  return Kratos::make_shared<RingElement3D4N>(NewId, rGeom.Create(rThisNodes),
+  return Kratos::make_shared<RingElement3D>(NewId, rGeom.Create(rThisNodes),
                                                pProperties);
 }
 
 Element::Pointer
-RingElement3D4N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+RingElement3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<RingElement3D4N>(NewId, pGeom,
+  return Kratos::make_shared<RingElement3D>(NewId, pGeom,
                                                pProperties);
 }
 
-RingElement3D4N::~RingElement3D4N() {}
+RingElement3D::~RingElement3D() {}
 
-void RingElement3D4N::EquationIdVector(EquationIdVectorType &rResult,
+void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
                                         ProcessInfo &rCurrentProcessInfo) {
 
   const int points_number = GetGeometry().PointsNumber();
@@ -69,7 +69,7 @@ void RingElement3D4N::EquationIdVector(EquationIdVectorType &rResult,
         this->GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
   }
 }
-void RingElement3D4N::GetDofList(DofsVectorType &rElementalDofList,
+void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
                                   ProcessInfo &rCurrentProcessInfo) {
 
   const int points_number = GetGeometry().PointsNumber();
@@ -91,12 +91,12 @@ void RingElement3D4N::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void RingElement3D4N::Initialize() {
+void RingElement3D::Initialize() {
   KRATOS_TRY
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::GetValuesVector(Vector &rValues, int Step) {
+void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -118,7 +118,7 @@ void RingElement3D4N::GetValuesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::GetFirstDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -140,7 +140,7 @@ void RingElement3D4N::GetFirstDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::GetSecondDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -163,7 +163,7 @@ void RingElement3D4N::GetSecondDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-Vector RingElement3D4N::GetCurrentLengthArray() const
+Vector RingElement3D::GetCurrentLengthArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -172,7 +172,7 @@ Vector RingElement3D4N::GetCurrentLengthArray() const
   for (int i=0;i<number_of_segments;++i)
   {
     int next_node_id = i+1;
-    if (i==3) next_node_id = 0;
+    if (i==points_number-1) next_node_id = 0;
 
     const double du =
         this->GetGeometry()[next_node_id].FastGetSolutionStepValue(DISPLACEMENT_X) -
@@ -192,7 +192,7 @@ Vector RingElement3D4N::GetCurrentLengthArray() const
   return segment_lengths;
 }
 
-Vector RingElement3D4N::GetRefLengthArray() const
+Vector RingElement3D::GetRefLengthArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -201,7 +201,7 @@ Vector RingElement3D4N::GetRefLengthArray() const
   for (int i=0;i<number_of_segments;++i)
   {
     int next_node_id = i+1;
-    if (i==3) next_node_id = 0;
+    if (i==points_number-1) next_node_id = 0;
 
     const double dx = this->GetGeometry()[next_node_id].X0() - this->GetGeometry()[i].X0();
     const double dy = this->GetGeometry()[next_node_id].Y0() - this->GetGeometry()[i].Y0();
@@ -211,7 +211,7 @@ Vector RingElement3D4N::GetRefLengthArray() const
   return segment_lengths;
 }
 
-double RingElement3D4N::GetCurrentLength() const
+double RingElement3D::GetCurrentLength() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -221,7 +221,7 @@ double RingElement3D4N::GetCurrentLength() const
   return length;
 }
 
-double RingElement3D4N::GetRefLength() const
+double RingElement3D::GetRefLength() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -231,7 +231,7 @@ double RingElement3D4N::GetRefLength() const
   return length;
 }
 
-Vector RingElement3D4N::GetDeltaPositions(const int& rDirection) const
+Vector RingElement3D::GetDeltaPositions(const int& rDirection) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number;
@@ -245,7 +245,7 @@ Vector RingElement3D4N::GetDeltaPositions(const int& rDirection) const
   {
 
     int next_node_id = i+1;
-    if (i==3) next_node_id = 0;
+    if (i==points_number-1) next_node_id = 0;
 
     if (rDirection==1)
     {
@@ -278,14 +278,14 @@ Vector RingElement3D4N::GetDeltaPositions(const int& rDirection) const
   return delta_position;
 }
 
-double RingElement3D4N::CalculateGreenLagrangeStrain() const
+double RingElement3D::CalculateGreenLagrangeStrain() const
 {
   const double reference_length = this->GetRefLength();
   const double current_length = this->GetCurrentLength();
   return (0.50 * (((current_length*current_length)-(reference_length*reference_length)) / (reference_length*reference_length)));
 }
 
-Vector RingElement3D4N::GetDirectionVectorNt() const
+Vector RingElement3D::GetDirectionVectorNt() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -297,9 +297,11 @@ Vector RingElement3D4N::GetDirectionVectorNt() const
   const Vector d_z = this->GetDeltaPositions(3);
   const Vector lengths = this->GetCurrentLengthArray();
 
-  n_t[0] = (d_x[3]/lengths[3])-(d_x[0]/lengths[0]);
-  n_t[1] = (d_y[3]/lengths[3])-(d_y[0]/lengths[0]);
-  n_t[2] = (d_z[3]/lengths[3])-(d_z[0]/lengths[0]);
+  const int last_node = points_number-1;
+
+  n_t[0] = (d_x[last_node]/lengths[last_node])-(d_x[0]/lengths[0]);
+  n_t[1] = (d_y[last_node]/lengths[last_node])-(d_y[0]/lengths[0]);
+  n_t[2] = (d_z[last_node]/lengths[last_node])-(d_z[0]/lengths[0]);
 
   n_t[3] = (d_x[0]/lengths[0])-(d_x[1]/lengths[1]);
   n_t[4] = (d_y[0]/lengths[0])-(d_y[1]/lengths[1]);
@@ -309,14 +311,17 @@ Vector RingElement3D4N::GetDirectionVectorNt() const
   n_t[7] = (d_y[1]/lengths[1])-(d_y[2]/lengths[2]);
   n_t[8] = (d_z[1]/lengths[1])-(d_z[2]/lengths[2]);
 
-  n_t[9]  = (d_x[2]/lengths[2])-(d_x[3]/lengths[3]);
-  n_t[10] = (d_y[2]/lengths[2])-(d_y[3]/lengths[3]);
-  n_t[11] = (d_z[2]/lengths[2])-(d_z[3]/lengths[3]);
+  if (points_number==4)
+  {
+    n_t[9]  = (d_x[2]/lengths[2])-(d_x[3]/lengths[3]);
+    n_t[10] = (d_y[2]/lengths[2])-(d_y[3]/lengths[3]);
+    n_t[11] = (d_z[2]/lengths[2])-(d_z[3]/lengths[3]);
+  }
 
   return n_t;
 }
 
-Vector RingElement3D4N::GetInternalForces() const
+Vector RingElement3D::GetInternalForces() const
 {
   const double k_0            = this->LinearStiffness();
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
@@ -327,7 +332,7 @@ Vector RingElement3D4N::GetInternalForces() const
   return internal_foces;
 }
 
-Matrix RingElement3D4N::ElasticStiffnessMatrix() const
+Matrix RingElement3D::ElasticStiffnessMatrix() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -341,7 +346,7 @@ Matrix RingElement3D4N::ElasticStiffnessMatrix() const
   return elastic_stiffness_matrix;
 }
 
-Matrix RingElement3D4N::GeometricStiffnessMatrix() const
+Matrix RingElement3D::GeometricStiffnessMatrix() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -377,13 +382,13 @@ Matrix RingElement3D4N::GeometricStiffnessMatrix() const
     sub_stiffness_matrix /= std::pow(current_length,3.0);
 
 
-    if (i==3)
+    if (i==points_number-1)
     {
       project(geometric_stiffness_matrix, range(0,3),range(0,3)) += sub_stiffness_matrix;
-      project(geometric_stiffness_matrix, range(9,12),range(9,12)) += sub_stiffness_matrix;
+      project(geometric_stiffness_matrix, range(local_size-dimension,local_size),range(local_size-dimension,local_size)) += sub_stiffness_matrix;
 
-      project(geometric_stiffness_matrix, range(0,3),range(9,12)) -= sub_stiffness_matrix;
-      project(geometric_stiffness_matrix, range(9,12),range(0,3)) -= sub_stiffness_matrix;
+      project(geometric_stiffness_matrix, range(0,3),range(local_size-dimension,local_size)) -= sub_stiffness_matrix;
+      project(geometric_stiffness_matrix, range(local_size-dimension,local_size),range(0,3)) -= sub_stiffness_matrix;
     }
     else
     {
@@ -400,14 +405,14 @@ Matrix RingElement3D4N::GeometricStiffnessMatrix() const
   return geometric_stiffness_matrix;
 }
 
-inline Matrix RingElement3D4N::TotalStiffnessMatrix() const
+inline Matrix RingElement3D::TotalStiffnessMatrix() const
 {
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix();
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix();
   return (ElasticStiffnessMatrix+GeometrixStiffnessMatrix);
 }
 
-void RingElement3D4N::CalculateLeftHandSide(
+void RingElement3D::CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
             ProcessInfo& rCurrentProcessInfo)
 {
@@ -423,7 +428,7 @@ void RingElement3D4N::CalculateLeftHandSide(
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::CalculateRightHandSide(
+void RingElement3D::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
@@ -436,7 +441,7 @@ void RingElement3D4N::CalculateRightHandSide(
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
                                             ProcessInfo &rCurrentProcessInfo)
 {
@@ -453,7 +458,7 @@ void RingElement3D4N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::CalculateLumpedMassVector(VectorType &rMassVector)
+void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
 {
     KRATOS_TRY;
 
@@ -487,7 +492,7 @@ void RingElement3D4N::CalculateLumpedMassVector(VectorType &rMassVector)
     KRATOS_CATCH("")
 }
 
-void RingElement3D4N::CalculateMassMatrix(
+void RingElement3D::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
@@ -512,7 +517,7 @@ void RingElement3D4N::CalculateMassMatrix(
     KRATOS_CATCH("")
 }
 
-void RingElement3D4N::CalculateDampingMatrix(
+void RingElement3D::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
@@ -548,7 +553,7 @@ void RingElement3D4N::CalculateDampingMatrix(
   KRATOS_CATCH("")
 }
 
-void RingElement3D4N::AddExplicitContribution(
+void RingElement3D::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     Variable<double >& rDestinationVariable,
@@ -577,7 +582,7 @@ void RingElement3D4N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-void RingElement3D4N::AddExplicitContribution(
+void RingElement3D::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
     Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo
@@ -630,7 +635,7 @@ void RingElement3D4N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int RingElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
+int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -639,17 +644,18 @@ int RingElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
     const double domain_size = this->GetCurrentLength();
     KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-    KRATOS_ERROR_IF_NOT(GetGeometry().PointsNumber()==4) << "the ring element " << this->Id() << "does not have 4 nodes" << std::endl;
+
+    KRATOS_ERROR_IF_NOT((GetGeometry().PointsNumber()==4) || (GetGeometry().PointsNumber()==3)) << "the ring element " << this->Id() << "does not have 3 || 4 nodes" << std::endl;
 
     return 0;
 
     KRATOS_CATCH("")
 }
 
-void RingElement3D4N::save(Serializer &rSerializer) const {
+void RingElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
-void RingElement3D4N::load(Serializer &rSerializer) {
+void RingElement3D::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
 } // namespace Kratos.

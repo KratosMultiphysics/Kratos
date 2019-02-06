@@ -31,7 +31,7 @@
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/cable_element_3D2N.hpp"
 #include "custom_elements/sliding_cable_element_3D.hpp"
-#include "custom_elements/ring_element_3D4N.hpp"
+#include "custom_elements/ring_element_3D.hpp"
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
@@ -309,7 +309,8 @@ private:
     const TrussElementLinear3D2N mTrussLinearElement3D2N;
     const CableElement3D2N mCableElement3D2N;
     const SlidingCableElement3D mSlidingCableElement3D3N;
-    const RingElement3D4N mRingElement3D4N;
+    const RingElement3D mRingElement3D4N;
+    const RingElement3D mRingElement3D3N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;

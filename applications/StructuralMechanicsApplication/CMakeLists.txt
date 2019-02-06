@@ -92,7 +92,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cable_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sliding_cable_element_3D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ring_element_3D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ring_element_3D.cpp
 
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp

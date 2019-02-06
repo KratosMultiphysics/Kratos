@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_RING_ELEMENT_3D4N_H_INCLUDED )
-#define  KRATOS_RING_ELEMENT_3D4N_H_INCLUDED
+#if !defined(KRATOS_RING_ELEMENT_3D_H_INCLUDED )
+#define  KRATOS_RING_ELEMENT_3D_H_INCLUDED
 
 // System includes
 
@@ -35,12 +35,12 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class RingElement3D4N : public Element
+    class RingElement3D : public Element
     {
     protected:
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(RingElement3D4N);
+        KRATOS_CLASS_POINTER_DEFINITION(RingElement3D);
 
 
         typedef Element BaseType;
@@ -55,15 +55,15 @@ namespace Kratos
         typedef BaseType::DofsVectorType DofsVectorType;
 
 
-        RingElement3D4N() {};
-        RingElement3D4N(IndexType NewId,
+        RingElement3D() {};
+        RingElement3D(IndexType NewId,
                         GeometryType::Pointer pGeometry);
-        RingElement3D4N(IndexType NewId,
+        RingElement3D(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties);
 
 
-        ~RingElement3D4N() override;
+        ~RingElement3D() override;
 
     /**
      * @brief Creates a new element
