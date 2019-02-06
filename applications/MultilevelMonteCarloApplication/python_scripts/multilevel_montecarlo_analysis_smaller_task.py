@@ -245,6 +245,7 @@ output:
         pickled_metric_refinement_parameters    : project parameters serialization
         pickled_remeshing_refinement_parameters : project parameters serialization
 '''
+@ExaquteTask(returns=2)
 def SerializeRefinementParameters(metric_refinement_parameters,remeshing_refinement_parameters):
     '''save parameters as StreamSerializer Kratos objects'''
     serialized_metric_refinement_parameters = KratosMultiphysics.StreamSerializer()
