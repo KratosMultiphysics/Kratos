@@ -370,8 +370,8 @@ void NodalConcentratedElement::Initialize()
 
     if (HasProperties()) {
         // We check the nodal stiffness
-        if (rconst_this.Has(NODAL_STIFFNESS) || GetProperties().Has(NODAL_STIFFNESS)) {
-            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_STIFFNESS) && GetProperties().Has(NODAL_STIFFNESS)) << "NODAL_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
+        if (rconst_this.Has(NODAL_DISPLACEMENT_STIFFNESS) || GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS)) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_DISPLACEMENT_STIFFNESS) && GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS)) << "NODAL_DISPLACEMENT_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
         } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
@@ -415,7 +415,7 @@ void NodalConcentratedElement::Initialize()
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
     } else {
         // We check the nodal stiffness
-        if (rconst_this.Has(NODAL_STIFFNESS))
+        if (rconst_this.Has(NODAL_DISPLACEMENT_STIFFNESS))
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
         else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
@@ -608,8 +608,8 @@ void NodalConcentratedElement::PrivateCalculateRightHandSide(
 
         // Compute and add internal forces
         const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 >& initial_displacement = this->Has(INITIAL_DISPLACEMENT) ? this->GetValue(INITIAL_DISPLACEMENT) : zero_array;
-        const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_STIFFNESS) ? GetProperties().GetValue(NODAL_STIFFNESS) : rconst_this.GetValue(NODAL_STIFFNESS)) : rconst_this.GetValue(NODAL_STIFFNESS);
+        const array_1d<double, 3 >& initial_displacement = this->Has(NODAL_INITIAL_DISPLACEMENT) ? this->GetValue(NODAL_INITIAL_DISPLACEMENT) : zero_array;
+        const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS) ? GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS) : rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS)) : rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
 
         for ( IndexType j = 0; j < dimension; ++j )
             rRightHandSideVector[j]  -= nodal_stiffness[j] * (current_displacement[j] - initial_displacement[j]);
@@ -623,7 +623,7 @@ void NodalConcentratedElement::PrivateCalculateRightHandSide(
 
         // Compute and add internal forces
         const array_1d<double, 3 >& current_rotation = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
-        const array_1d<double, 3 >& initial_rotation = this->Has(INITIAL_ROTATION) ? this->GetValue(INITIAL_ROTATION) : zero_array;
+        const array_1d<double, 3 >& initial_rotation = this->Has(NODAL_INITIAL_ROTATION) ? this->GetValue(NODAL_INITIAL_ROTATION) : zero_array;
         const array_1d<double, 3 >& nodal_rotational_stiffness = HasProperties() ? (GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS) ? GetProperties().GetValue(NODAL_ROTATIONAL_STIFFNESS) : rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS)) : rconst_this.GetValue(NODAL_ROTATIONAL_STIFFNESS);
 
         for ( IndexType j = 0; j < dimension; ++j )
@@ -670,7 +670,7 @@ void NodalConcentratedElement::PrivateCalculateLeftHandSide(
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
         mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
 
-        const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_STIFFNESS) ? GetProperties().GetValue(NODAL_STIFFNESS) : rconst_this.GetValue(NODAL_STIFFNESS)) : rconst_this.GetValue(NODAL_STIFFNESS);
+        const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_DISPLACEMENT_STIFFNESS) ? GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS) : rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS)) : rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
 
         for ( IndexType j = 0; j < dimension; ++j )
             rLeftHandSideMatrix( j, j ) += nodal_stiffness[j];
@@ -760,7 +760,7 @@ void NodalConcentratedElement::AddExplicitContribution(
     Vector damping_residual_contribution = ZeroVector(system_size);
 
     // Calculate damping contribution to residual -->
-    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_prop, rCurrentProcessInfo)) {
         Vector current_nodal_velocities = ZeroVector(system_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
@@ -962,7 +962,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
         KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
         KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_STIFFNESS)
+        KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
     }
 
         // The rotational terms

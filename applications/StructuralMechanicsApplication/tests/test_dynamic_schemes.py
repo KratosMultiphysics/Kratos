@@ -32,7 +32,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mass = 1.0
         stiffness = 0.0
         element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
-        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
+        element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS, [0, stiffness,0])
 
         #time integration parameters
         time = 0.0
@@ -84,7 +84,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mass = 1.0
         stiffness = 10.0
         element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
-        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
+        element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS, [0, stiffness,0])
 
         #time integration parameters
         time = 0.0
@@ -148,7 +148,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mass = 1.0
         stiffness = 0.0
         element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
-        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
+        element.SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS, [0, stiffness,0])
         gravity = -9.81
         node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
 

@@ -142,7 +142,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         if (!mThisParameters["nodal_stiffness"][2].IsNull())
             nodal_stiffness[2] = mThisParameters["nodal_stiffness"][2].GetDouble();
 
-        p_properties->SetValue(NODAL_STIFFNESS, nodal_stiffness);
+        p_properties->SetValue(NODAL_DISPLACEMENT_STIFFNESS, nodal_stiffness);
     }
     if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull() || !mThisParameters["nodal_rotational_stiffness"][1].IsNull() || !mThisParameters["nodal_rotational_stiffness"][2].IsNull()) {
         array_1d<double, 3> nodal_rotational_stiffness(3, 0.0);
@@ -262,11 +262,11 @@ void AssignNodalElementsToNodes::ExecuteInitializeSolutionStep()
             #pragma omp parallel for
             for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); ++i) {
                 auto it_elem = it_elem_begin + i;
-                if (it_elem->Has(INITIAL_DISPLACEMENT)) {
-                    it_elem->SetValue(INITIAL_DISPLACEMENT, it_elem->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT));
+                if (it_elem->Has(NODAL_INITIAL_DISPLACEMENT)) {
+                    it_elem->SetValue(NODAL_INITIAL_DISPLACEMENT, it_elem->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT));
                 }
-                if (it_elem->Has(INITIAL_ROTATION)) {
-                    it_elem->SetValue(INITIAL_ROTATION, it_elem->GetGeometry()[0].FastGetSolutionStepValue(ROTATION));
+                if (it_elem->Has(NODAL_INITIAL_ROTATION)) {
+                    it_elem->SetValue(NODAL_INITIAL_ROTATION, it_elem->GetGeometry()[0].FastGetSolutionStepValue(ROTATION));
                 }
             }
             // Set the flag ACTIVE
