@@ -90,7 +90,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type":"gmres",
                 "coarsening_type":"aggregation",
