@@ -1510,6 +1510,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     Condition::Pointer p_base_condition = nullptr;
     if (mpRefCondition[PropId] == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
             p_prop = mrThisModelPart.pGetProperties(0);
@@ -1563,6 +1564,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
 
     if (mpRefCondition[PropId] == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
             p_prop = mrThisModelPart.pGetProperties(0);
@@ -1614,6 +1616,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) {
+        KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
 
@@ -1668,6 +1671,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) {
+        KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
 
@@ -1724,10 +1728,22 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
         exit(EXIT_FAILURE);
     }
 
+    Properties::Pointer p_prop = nullptr;
+    Element::Pointer p_base_element = nullptr;
+
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
-        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
-        return p_element;
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+            return p_element;
+        } else {
+            p_prop = mrThisModelPart.pGetProperties(0);
+            PointerVector<NodeType> dummy_nodes (3);
+            p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
+        }
+    } else {
+        p_base_element = mpRefElement[PropId];
+        p_prop = p_base_element->pGetProperties();
     }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
@@ -1741,7 +1757,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
         element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
         element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
 
-        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
+        p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
 
@@ -1766,10 +1782,22 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     if (MMG3D_Get_tetrahedron(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
+    Properties::Pointer p_prop = nullptr;
+    Element::Pointer p_base_element = nullptr;
+
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
-        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
-        return p_element;
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+            return p_element;
+        } else {
+            p_prop = mrThisModelPart.pGetProperties(0);
+            PointerVector<NodeType> dummy_nodes (4);
+            p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
+        }
+    } else {
+        p_base_element = mpRefElement[PropId];
+        p_prop = p_base_element->pGetProperties();
     }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
@@ -1785,7 +1813,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
         element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
         element_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
 
-        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
+        p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
 
@@ -1812,7 +1840,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
-        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
+        KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1869,6 +1897,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
+        KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
 

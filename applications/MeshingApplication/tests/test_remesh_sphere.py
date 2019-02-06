@@ -327,7 +327,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
             "discretization_type"              : "Isosurface",
             "filename"                         : "mmg_eulerian_test/test_sphere_isosurface",
             "save_external_files"              : true,
-            "echo_level"                       : 3
+            "echo_level"                       : 0
         }
         """)
 
