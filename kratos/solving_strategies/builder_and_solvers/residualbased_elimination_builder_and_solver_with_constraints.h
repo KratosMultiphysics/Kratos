@@ -1321,7 +1321,7 @@ protected:
         TSystemVectorType& rb
         ) override
     {
-        if (mComputeConstantContribution) {
+        if (mDoFMasterFixedSet.size() > 0) {
             // We apply the same method as in the block builder and solver but instead of fixing the fixed Dofs, we just fix the master fixed Dofs
             std::vector<double> scaling_factors (mDoFToSolveSystemSize, 0.0);
 
@@ -1347,8 +1347,8 @@ protected:
             // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
             #pragma omp parallel for
             for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                IndexType col_begin = Arow_indices[k];
-                IndexType col_end = Arow_indices[k+1];
+                const IndexType col_begin = Arow_indices[k];
+                const IndexType col_end = Arow_indices[k+1];
                 bool empty = true;
                 for (IndexType j = col_begin; j < col_end; ++j) {
                     if(Avalues[j] != 0.0) {
@@ -1365,9 +1365,9 @@ protected:
 
             #pragma omp parallel for
             for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                IndexType col_begin = Arow_indices[k];
-                IndexType col_end = Arow_indices[k+1];
-                double k_factor = scaling_factors[k];
+                const IndexType col_begin = Arow_indices[k];
+                const IndexType col_end = Arow_indices[k+1];
+                const double k_factor = scaling_factors[k];
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
@@ -1846,7 +1846,7 @@ private:
         TSystemVectorType& rb
         )
     {
-        if (mComputeConstantContribution) {
+        if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
             #pragma omp parallel for
