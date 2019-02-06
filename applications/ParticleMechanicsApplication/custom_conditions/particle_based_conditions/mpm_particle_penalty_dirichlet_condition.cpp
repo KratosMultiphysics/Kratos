@@ -89,6 +89,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
             rGeom[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
             rGeom[i].UnSetLock();
         }
@@ -185,7 +186,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
                 for (unsigned int j = 0; j < dimension; j++)
                 {
                     shape_function(j, block_size * i + j) = Variables.N[i];
-                    if (Is(SLIP) && j!=1) {shape_function(j, block_size * i + j) = 0.0;}
                 }
             }
         }
@@ -230,6 +230,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
             rGeom[i].FastGetSolutionStepValue(NORMAL).clear();
             rGeom[i].UnSetLock();
         }

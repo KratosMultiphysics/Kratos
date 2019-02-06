@@ -213,7 +213,7 @@ public:
     {
         KRATOS_TRY
 
-        // Rotate displacement to the local coordinate system since Dx is in the local coordinate system
+        // Rotate the current displacement to the modified coordinate system since Dx is currently at the modified coordinate system
         // Do not confuse with the name RotateVelocities, what the function really do is to RotateDisplacements
         mRotationTool.RotateVelocities(r_model_part);
 
