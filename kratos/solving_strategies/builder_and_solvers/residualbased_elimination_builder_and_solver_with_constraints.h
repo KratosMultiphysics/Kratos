@@ -1319,65 +1319,67 @@ protected:
         TSystemVectorType& rb
         ) override
     {
-        // We apply the same method as in the block builder and solver but instead of fixing the fixed Dofs, we just fix the master fixed Dofs
-        std::vector<double> scaling_factors (mDoFToSolveSystemSize, 0.0);
+        if (mComputeConstantContribution) {
+            // We apply the same method as in the block builder and solver but instead of fixing the fixed Dofs, we just fix the master fixed Dofs
+            std::vector<double> scaling_factors (mDoFToSolveSystemSize, 0.0);
 
-        // NOTE: Dofs are assumed to be numbered consecutively
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-            auto it_dof = it_dof_begin + k;
-            if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
-                auto it = mDoFSlaveSet.find(*it_dof);
-                if (it == mDoFSlaveSet.end()) {
-                    if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
-                        scaling_factors[k] = 1.0;
+            // NOTE: Dofs are assumed to be numbered consecutively
+            const auto it_dof_begin = BaseType::mDofSet.begin();
+            #pragma omp parallel for
+            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
+                auto it_dof = it_dof_begin + k;
+                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+                    auto it = mDoFSlaveSet.find(*it_dof);
+                    if (it == mDoFSlaveSet.end()) {
+                        if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
+                            scaling_factors[k] = 1.0;
+                        }
                     }
                 }
             }
-        }
 
-        double* Avalues = rA.value_data().begin();
-        IndexType* Arow_indices = rA.index1_data().begin();
-        IndexType* Acol_indices = rA.index2_data().begin();
+            double* Avalues = rA.value_data().begin();
+            IndexType* Arow_indices = rA.index1_data().begin();
+            IndexType* Acol_indices = rA.index2_data().begin();
 
-        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-            IndexType col_begin = Arow_indices[k];
-            IndexType col_end = Arow_indices[k+1];
-            bool empty = true;
-            for (IndexType j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
-                    empty = false;
-                    break;
+            // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+            #pragma omp parallel for
+            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
+                IndexType col_begin = Arow_indices[k];
+                IndexType col_end = Arow_indices[k+1];
+                bool empty = true;
+                for (IndexType j = col_begin; j < col_end; ++j) {
+                    if(Avalues[j] != 0.0) {
+                        empty = false;
+                        break;
+                    }
+                }
+
+                if(empty) {
+                    rA(k,k) = 1.0;
+                    rb[k] = 0.0;
                 }
             }
 
-            if(empty) {
-                rA(k,k) = 1.0;
-                rb[k] = 0.0;
-            }
-        }
+            #pragma omp parallel for
+            for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
+                IndexType col_begin = Arow_indices[k];
+                IndexType col_end = Arow_indices[k+1];
+                double k_factor = scaling_factors[k];
+                if (k_factor == 0) {
+                    // Zero out the whole row, except the diagonal
+                    for (IndexType j = col_begin; j < col_end; ++j)
+                        if (static_cast<int>(Acol_indices[j]) != k )
+                            Avalues[j] = 0.0;
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-            IndexType col_begin = Arow_indices[k];
-            IndexType col_end = Arow_indices[k+1];
-            double k_factor = scaling_factors[k];
-            if (k_factor == 0) {
-                // Zero out the whole row, except the diagonal
-                for (IndexType j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != k )
-                        Avalues[j] = 0.0;
-
-                // Zero out the RHS
-                rb[k] = 0.0;
-            } else {
-                // Zero out the column which is associated with the zero'ed row
-                for (IndexType j = col_begin; j < col_end; ++j) {
-                    if(scaling_factors[ Acol_indices[j] ] == 0 ) {
-                        Avalues[j] = 0.0;
+                    // Zero out the RHS
+                    rb[k] = 0.0;
+                } else {
+                    // Zero out the column which is associated with the zero'ed row
+                    for (IndexType j = col_begin; j < col_end; ++j) {
+                        if(scaling_factors[ Acol_indices[j] ] == 0 ) {
+                            Avalues[j] = 0.0;
+                        }
                     }
                 }
             }
@@ -1810,16 +1812,18 @@ private:
                 const IndexType i_global = rEquationId[i_local];
                 auto it_dof = BaseType::mDofSet.begin() + i_global;
 
-                if (!(it_dof->IsFixed()) && mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end()) { // Free dof not in the MPC
-                    // ASSEMBLING THE SYSTEM VECTOR
-                    double& r_b_value = rb[i_global];
-                    const double& rhs_value = rRHSContribution[i_local];
+                const bool is_master_fixed = mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end() ? false : true;
+                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
+                if (is_master_fixed || is_slave) { // Fixed or MPC dof
+                    double& r_b_value = r_reactions_vector[i_global - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()];
+                    const double rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
                     r_b_value += rhs_value;
-                } else { // Fixed or MPC dof
-                    double& r_b_value = r_reactions_vector[i_global - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()];
-                    const double rhs_value = rRHSContribution[i_local];
+                } else if (it_dof->IsFree()) {  // Free dof not in the MPC
+                    // ASSEMBLING THE SYSTEM VECTOR
+                    double& r_b_value = rb[i_global];
+                    const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
                     r_b_value += rhs_value;
@@ -1840,16 +1844,18 @@ private:
         TSystemVectorType& rb
         )
     {
-        // NOTE: dofs are assumed to be numbered consecutively
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-            auto it_dof = it_dof_begin + k;
-            if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
-                auto it = mDoFSlaveSet.find(*it_dof);
-                if (it == mDoFSlaveSet.end()) {
-                    if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                        rb[k] = 0.0;
+        if (mComputeConstantContribution) {
+            // NOTE: dofs are assumed to be numbered consecutively
+            const auto it_dof_begin = BaseType::mDofSet.begin();
+            #pragma omp parallel for
+            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
+                auto it_dof = it_dof_begin + k;
+                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+                    auto it = mDoFSlaveSet.find(*it_dof);
+                    if (it == mDoFSlaveSet.end()) {
+                        if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
+                            rb[k] = 0.0;
+                        }
                     }
                 }
             }
