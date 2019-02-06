@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -116,8 +117,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as solvers_wrapper
-        return solvers_wrapper.CreateSolver(self.model, self.project_parameters)
+        return structural_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
