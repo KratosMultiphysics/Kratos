@@ -19,10 +19,13 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "includes/communicator.h"
+#include "includes/mesh.h"
 #include "includes/table.h"
+#include "includes/kratos_flags.h"
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
 
