@@ -12,12 +12,16 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/rigid_body_point_link_condition.hpp"
+#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+const std::array<const VariableData,6> RigidBodyPointLinkCondition::mLinearDofs = {DISPLACEMENT_X,DISPLACEMENT_Y,DISPLACEMENT_Z,VELOCITY_X,VELOCITY_Y,VELOCITY_Z};
+const std::array<const VariableData,3> RigidBodyPointLinkCondition::mAngularDofs = {ROTATION_X,ROTATION_Y,ROTATION_Z};
+
 
 /**
  * Flags related to the condition computation
@@ -25,16 +29,11 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(RigidBodyPointLinkCondition, COMPUTE_RHS_VECTOR, 0);
 KRATOS_CREATE_LOCAL_FLAG(RigidBodyPointLinkCondition, COMPUTE_LHS_MATRIX, 1);
 
-
 //***********************************************************************************
 //***********************************************************************************
 RigidBodyPointLinkCondition::RigidBodyPointLinkCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
-  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-  {
-    GetGeometry()[i].Set(SLAVE); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
-  }
 }
 
 //***********************************************************************************
@@ -42,10 +41,6 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition(IndexType NewId, Geomet
 RigidBodyPointLinkCondition::RigidBodyPointLinkCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
-  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-  {
-    GetGeometry()[i].Set(SLAVE); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
-  }
 }
 
 //************************************************************************************
@@ -59,7 +54,7 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition( RigidBodyPointLinkCond
 //***********************************************************************************
 Condition::Pointer RigidBodyPointLinkCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -87,26 +82,25 @@ void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
 
   rConditionDofList.resize(0);
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  WeakPointerVector<Element>& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for(WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-
     DofsVectorType SlaveDofList;
-    ie->GetDofList(SlaveDofList, rCurrentProcessInfo);
+    ie.GetDofList(SlaveDofList, rCurrentProcessInfo);
 
-    for(unsigned int i=0; i<SlaveDofList.size(); i++)
+    for(SizeType i=0; i<SlaveDofList.size(); i++)
       rConditionDofList.push_back(SlaveDofList[i]);
   }
 
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   DofsVectorType MasterDofList;
   MasterElement.GetDofList(MasterDofList, rCurrentProcessInfo);
 
-  for(unsigned int i=0; i<MasterDofList.size(); i++)
+  for(SizeType i=0; i<MasterDofList.size(); i++)
     rConditionDofList.push_back(MasterDofList[i]);
 
   KRATOS_CATCH("")
@@ -122,25 +116,25 @@ void RigidBodyPointLinkCondition::EquationIdVector(EquationIdVectorType& rResult
 
   rResult.resize( 0, false );
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  WeakPointerVector<Element>& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     EquationIdVectorType SlaveResult;
-    ie->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
 
-    for(unsigned int i=0; i<SlaveResult.size(); i++)
+    for(SizeType i=0; i<SlaveResult.size(); i++)
       rResult.push_back(SlaveResult[i]);
   }
 
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   EquationIdVectorType MasterResult;
   MasterElement.EquationIdVector(MasterResult, rCurrentProcessInfo);
 
-  for(unsigned int i=0; i<MasterResult.size(); i++)
+  for(SizeType i=0; i<MasterResult.size(); i++)
     rResult.push_back(MasterResult[i]);
 
   KRATOS_CATCH("")
@@ -156,34 +150,35 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
 
   rValues.resize(0);
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  WeakPointerVector<Element>& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  unsigned int indexi = 0;
-  unsigned int sizei  = 0;
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  SizeType indexi = 0;
+  SizeType sizei  = 0;
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    ie->GetValuesVector(SlaveValues,Step);
+    ie.GetValuesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
 
-    for(unsigned int i=0; i<SlaveValues.size(); i++)
+    for(SizeType i=0; i<SlaveValues.size(); i++)
       rValues[indexi+i] = SlaveValues[i];
 
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetValuesVector(MasterValues, Step);
 
   sizei += MasterValues.size();
+  rValues.resize(sizei,true);
 
-  for(unsigned int i=0; i<MasterValues.size(); i++)
+  for(SizeType i=0; i<MasterValues.size(); i++)
     rValues[indexi+i] = MasterValues[i];
 
   KRATOS_CATCH("")
@@ -198,34 +193,35 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
 
   rValues.resize(0);
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  WeakPointerVector<Element>& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  unsigned int indexi = 0;
-  unsigned int sizei  = 0;
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  SizeType indexi = 0;
+  SizeType sizei  = 0;
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    ie->GetFirstDerivativesVector(SlaveValues,Step);
+    ie.GetFirstDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
 
-    for(unsigned int i=0; i<SlaveValues.size(); i++)
+    for(SizeType i=0; i<SlaveValues.size(); i++)
       rValues[indexi+i] = SlaveValues[i];
 
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetFirstDerivativesVector(MasterValues, Step);
 
   sizei += MasterValues.size();
+  rValues.resize(sizei,true);
 
-  for(unsigned int i=0; i<MasterValues.size(); i++)
+  for(SizeType i=0; i<MasterValues.size(); i++)
     rValues[indexi+i] = MasterValues[i];
 
 
@@ -242,92 +238,36 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
 
   rValues.resize(0);
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  WeakPointerVector<Element>& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  unsigned int indexi = 0;
-  unsigned int sizei  = 0;
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  SizeType indexi = 0;
+  SizeType sizei  = 0;
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    ie->GetSecondDerivativesVector(SlaveValues,Step);
+    ie.GetSecondDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
 
-    for(unsigned int i=0; i<SlaveValues.size(); i++)
+    for(SizeType i=0; i<SlaveValues.size(); i++)
       rValues[indexi+i] = SlaveValues[i];
 
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetSecondDerivativesVector(MasterValues, Step);
 
   sizei += MasterValues.size();
+  rValues.resize(sizei,true);
 
-  for(unsigned int i=0; i<MasterValues.size(); i++)
+  for(SizeType i=0; i<MasterValues.size(); i++)
     rValues[indexi+i] = MasterValues[i];
-
-  KRATOS_CATCH("")
-}
-
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-void RigidBodyPointLinkCondition::AddExplicitContribution(const VectorType& rRHSVector,
-							  const Variable<VectorType>& rRHSVariable,
-							  Variable<array_1d<double,3> >& rDestinationVariable,
-							  const ProcessInfo& rCurrentProcessInfo)
-{
-  KRATOS_TRY
-
-  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-  if( rRHSVariable == CONTACT_FORCES_VECTOR && rDestinationVariable == CONTACT_FORCE )
-  {
-
-    for(unsigned int i=0; i< number_of_nodes; i++)
-    {
-      int index = i * (dimension * (dimension-1));
-
-      GetGeometry()[i].SetLock();
-
-      array_1d<double, 3 > &ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-      for(unsigned int j=0; j<dimension; j++)
-      {
-        ContactForce[j] += rRHSVector[index + j];
-      }
-
-      GetGeometry()[i].UnSetLock();
-    }
-  }
-
-
-  if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
-  {
-
-    for(unsigned int i=0; i< number_of_nodes; i++)
-    {
-      int index = i * (dimension * (dimension-1));
-
-      GetGeometry()[i].SetLock();
-
-      array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-      for(unsigned int j=0; j<dimension; j++)
-      {
-        ForceResidual[j] += rRHSVector[index + j];
-      }
-
-      GetGeometry()[i].UnSetLock();
-    }
-  }
 
   KRATOS_CATCH("")
 }
@@ -340,16 +280,15 @@ void RigidBodyPointLinkCondition::Initialize()
 {
   KRATOS_TRY
 
-  //Fix linked deformable point dofs (TODO: Get nodal dofs to fix the correct ones)
-  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+  //Fix linked deformable point dofs
+  for ( SizeType i = 0; i < GetGeometry().size(); i++ )
   {
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_X))->FixDof();
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_Y))->FixDof();
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_Z))->FixDof();
-
-    (GetGeometry()[i].pGetDof(ROTATION_X))->FixDof();
-    (GetGeometry()[i].pGetDof(ROTATION_Y))->FixDof();
-    (GetGeometry()[i].pGetDof(ROTATION_Z))->FixDof();
+    DofsContainerType& rDofs = GetGeometry()[i].GetDofs();
+    for(DofsContainerType::iterator it = rDofs.begin(); it != rDofs.end(); ++it)
+    {
+      if(it->GetVariable() != PRESSURE) // it must be some way to fix only kinematic dofs.
+        it->FixDof();
+    }
   }
 
   KRATOS_CATCH("")
@@ -363,10 +302,6 @@ void RigidBodyPointLinkCondition::InitializeSolutionStep( ProcessInfo& rCurrentP
 {
   KRATOS_TRY
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-
-  PointPointerType  mpSlaveNode = GetGeometry()(inode);
-
   KRATOS_CATCH("")
 }
 
@@ -376,15 +311,6 @@ void RigidBodyPointLinkCondition::InitializeSolutionStep( ProcessInfo& rCurrentP
 void RigidBodyPointLinkCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
   KRATOS_TRY
-
-  // const unsigned int inode = GetGeometry().PointsNumber()-1;
-
-  // PointPointerType  mpSlaveNode = GetGeometry()(inode);
-
-  // array_1d<double, 3 >&  Displacement = mpSlaveNode->FastGetSolutionStepValue(DISPLACEMENT);
-  // array_1d<double, 3 >&  Rotation     = mpSlaveNode->FastGetSolutionStepValue(ROTATION);
-
-  // std::cout<<" Link Initialize RB iteration [Rotation:"<<Rotation<<"; Disp:"<<Displacement<<"]"<<std::endl;
 
   KRATOS_CATCH("")
 }
@@ -414,12 +340,12 @@ void RigidBodyPointLinkCondition::FinalizeSolutionStep( ProcessInfo& CurrentProc
 
 void RigidBodyPointLinkCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                                            VectorType& rRightHandSideVector,
-                                                           const unsigned int& rSlaveElementSize,
+                                                           const SizeType& rSlaveElementSize,
                                                            Flags& rCalculationFlags)
 
 {
   //resizing as needed the LHS
-  unsigned int MatSize = rSlaveElementSize + 6; //slave elements + rigid-body element
+  SizeType MatSize = rSlaveElementSize + this->GetDofsSize(); //slave elements + rigid-body element
 
   if ( rCalculationFlags.Is(RigidBodyPointLinkCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
   {
@@ -443,39 +369,94 @@ void RigidBodyPointLinkCondition::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
+  const SizeType inode = GetGeometry().PointsNumber()-1;
 
   // set the slave node
   GeometryType& SlaveGeometry = rVariables.pSlaveElement->GetGeometry();
 
-  for ( unsigned int i = 0; i < SlaveGeometry.size(); i++ )
+  for(SizeType i=0; i<SlaveGeometry.size(); ++i)
   {
-    if( SlaveGeometry[i].Id() == GetGeometry()[inode].Id() )
+    if(SlaveGeometry[i].Id() == GetGeometry()[inode].Id()){
       rVariables.SlaveNode = i;
+      //std::cout<<" Slave Node "<<i<<" Id "<<SlaveGeometry[i].Id()<<std::endl;
+    }
+    else{
+      if(SlaveGeometry[i].Is(RIGID)){
+        rVariables.RigidNodes.push_back(i);
+        //std::cout<<" Rigid Node "<<i<<" Id "<<SlaveGeometry[i].Id()<<std::endl;
+      }
+      else{
+        rVariables.DeformableNodes.push_back(i);
+        //std::cout<<" Deformable Node "<<i<<" Id "<<SlaveGeometry[i].Id()<<std::endl;
+      }
+    }
   }
 
-  rVariables.Distance.resize(3);
-  noalias(rVariables.Distance) = ZeroVector(3);
-  rVariables.SkewSymDistance.resize(3,3,false);
-  noalias(rVariables.SkewSymDistance) = ZeroMatrix(3,3);
-  rVariables.LagrangeMultipliers.resize(3);
-  noalias(rVariables.LagrangeMultipliers) = ZeroVector(3);
+  DofsVectorType ElementalDofList;
+  rVariables.pSlaveElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
+  rVariables.SlaveLinearBlockSize = 0;
+  rVariables.SlaveAngularBlockSize = 0;
+  for(const auto & elem_dof : ElementalDofList)
+  {
+    for(const auto& dof : mLinearDofs)
+    {
+      if( elem_dof->GetVariable() == dof )
+        ++rVariables.SlaveLinearBlockSize;
+    }
+    for(const auto& dof : mAngularDofs)
+    {
+      if( elem_dof->GetVariable() == dof )
+        ++rVariables.SlaveAngularBlockSize;
+    }
+  }
+
+  rVariables.SlaveLinearBlockSize = SizeType(rVariables.SlaveLinearBlockSize/double(SlaveGeometry.size()));
+  rVariables.SlaveAngularBlockSize = SizeType(rVariables.SlaveAngularBlockSize/double(SlaveGeometry.size()));
 
   //compute distance from the slave node to the master rigid body element node (center of gravity)
-  Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  MasterElement.GetDofList(ElementalDofList, rCurrentProcessInfo);
+  rVariables.MasterLinearBlockSize = 0;
+  rVariables.MasterAngularBlockSize = 0;
+  for(const auto & elem_dof : ElementalDofList)
+  {
+    for(const auto& dof : mLinearDofs)
+    {
+      if( elem_dof->GetVariable() == dof )
+        ++rVariables.MasterLinearBlockSize;
+    }
+    for(const auto& dof : mAngularDofs)
+    {
+      if( elem_dof->GetVariable() == dof )
+        ++rVariables.MasterAngularBlockSize;
+    }
+  }
 
-  //rVariables.Distance = MasterElement.GetGeometry()[0].Coordinates() - GetGeometry()[inode].Coordinates();
+  if((rVariables.SlaveLinearBlockSize + rVariables.SlaveAngularBlockSize) != 0){
+    if(rVariables.MasterLinearBlockSize != rVariables.SlaveLinearBlockSize)
+      KRATOS_ERROR<<" Linear Deformable Dofs and Rigid Dofs not coincide "<<rVariables.SlaveLinearBlockSize<<" !+ "<<rVariables.MasterLinearBlockSize<<std::endl;
 
-  rVariables.Distance = GetGeometry()[inode].Coordinates() - MasterElement.GetGeometry()[0].Coordinates();
-  //std::cout<<" Distance "<<norm_2(rVariables.Distance)<<std::endl;
+    if(rVariables.MasterAngularBlockSize < rVariables.SlaveAngularBlockSize)
+      KRATOS_ERROR<<" Angular Deformable Dofs and Rigid Dofs not coincide "<<rVariables.SlaveAngularBlockSize<<" !+ "<<rVariables.MasterAngularBlockSize<<std::endl;
+  }
 
-  //compute the skewsymmmetric tensor of the distance
-  this->VectorToSkewSymmetricTensor(rVariables.Distance, rVariables.SkewSymDistance);
+  array_1d<double,3> Distance;
+  for(SizeType i=0; i<rVariables.RigidNodes.size(); ++i)
+  {
+    Distance = SlaveGeometry[rVariables.RigidNodes[i]].Coordinates() - MasterElement.GetGeometry()[0].Coordinates();
+    BeamMathUtilsType::VectorToSkewSymmetricTensor(Distance, rVariables.SlaveSkewSymDistance);
+    rVariables.RigidSkewSymDistances.push_back(rVariables.SlaveSkewSymDistance);
+    //std::cout<<" ["<<MasterElement.Id()<<"-"<<SlaveGeometry[rVariables.RigidNodes[i]].Id()<<"] "<<norm_2(Distance)<<std::endl;
 
+  }
+
+  Distance = SlaveGeometry[rVariables.SlaveNode].Coordinates() - MasterElement.GetGeometry()[0].Coordinates();
+  BeamMathUtilsType::VectorToSkewSymmetricTensor(Distance, rVariables.SlaveSkewSymDistance);
+  //std::cout<<" ["<<MasterElement.Id()<<"-"<<SlaveGeometry[rVariables.SlaveNode].Id()<<"] "<<norm_2(Distance)<<" SLV "<<std::endl;
   KRATOS_CATCH("")
 }
 
@@ -485,7 +466,7 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
 
 void RigidBodyPointLinkCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 							   LocalSystemComponents& rLinkedSystem,
-							   ElementType::Pointer& pSlaveElement,
+							   Element* pSlaveElement,
 							   ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
@@ -518,31 +499,57 @@ void RigidBodyPointLinkCondition::CalculateConditionSystem(LocalSystemComponents
 
 void RigidBodyPointLinkCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, LocalSystemComponents& rLinkedSystem, GeneralVariables& rVariables)
 {
+  KRATOS_TRY
 
   MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
   MatrixType& rLinkedLeftHandSideMatrix = rLinkedSystem.GetLeftHandSideMatrix();
+  // MatrixType BeamLeftHandSideMatrix = rLeftHandSideMatrix;
 
   // operation performed: add Kg to the rLefsHandSideMatrix
-  this->CalculateAndAddStiffness( rLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables );
+  if(rLinkedLeftHandSideMatrix.size1()!=0)
+    this->CalculateAndAddTangent(rLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
-  //KRATOS_WATCH( rLeftHandSideMatrix )
+  // if(rLinkedLeftHandSideMatrix.size1()!=0)
+  //   this->CalculateAndAddTangentBeam(BeamLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
+  // std::cout<<" Link "<<this->Id()<<std::endl;
+  // WriteMatrixInRows( "rLinkHandSideMatrix", rLinkedLeftHandSideMatrix );
+  // WriteMatrixInRows( "rLeftHandSideMatrix", rLeftHandSideMatrix );
+  // WriteMatrixInRows( "BeamLHandSideMatrix", BeamLeftHandSideMatrix );
+  // MatrixType ErrorMatrix = rLeftHandSideMatrix-BeamLeftHandSideMatrix;
+  // WriteMatrixInRows( "ErrorMatrix", ErrorMatrix );
+
+  KRATOS_CATCH("")
 }
-
 
 //************************************************************************************
 //************************************************************************************
 
 void RigidBodyPointLinkCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, LocalSystemComponents& rLinkedSystem, GeneralVariables& rVariables)
 {
+  KRATOS_TRY
+
   //contribution of the internal and external forces
   VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
   VectorType& rLinkedRightHandSideVector = rLinkedSystem.GetRightHandSideVector();
+  // VectorType  BeamRightHandSideVector = rRightHandSideVector;
 
   // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-  this->CalculateAndAddForces( rRightHandSideVector, rLinkedRightHandSideVector, rVariables);
+  if(rLinkedRightHandSideVector.size()!=0)
+    this->CalculateAndAddForces(rRightHandSideVector, rLinkedRightHandSideVector, rVariables);
 
-  //KRATOS_WATCH( rRightHandSideVector )
+  // if(rLinkedRightHandSideVector.size()!=0)
+  //   this->CalculateAndAddForcesBeam(BeamRightHandSideVector, rLinkedRightHandSideVector, rVariables);
+
+  // std::cout<<" Link "<<this->Id()<<std::endl;
+  // KRATOS_WATCH( rLinkedRightHandSideVector )
+  // KRATOS_WATCH( rRightHandSideVector )
+  // KRATOS_WATCH( BeamRightHandSideVector )
+  // KRATOS_WATCH( BeamRightHandSideVector-rRightHandSideVector )
+
+  //rRightHandSideVector = BeamRightHandSideVector;
+
+  KRATOS_CATCH("")
 }
 
 
@@ -553,21 +560,36 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 							VectorType& rRightHandSideVector,
 							ProcessInfo& rCurrentProcessInfo )
 {
-  //set sizes to zero
-  rLeftHandSideMatrix.clear();
-  rLeftHandSideMatrix.resize(0,0);
-
-  rRightHandSideVector.clear();
-  rRightHandSideVector.resize(0);
-
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-  WeakPointerVector< Element >& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const SizeType inode = GetGeometry().PointsNumber()-1;
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  //std::cout<<" [ID:"<<this->Id()<<"] [SlaveElements: "<<SlaveElements.size()<<"] [NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
+  // std::cout<<" LocalSystem [ID:"<<this->Id()<<"] [SlaveElements: "<<SlaveElements.size()<<"] [NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  EquationIdVectorType SlaveResult;
+  std::vector<SizeType> element_dofs;
+  SizeType master_index = 0;
+  for(auto& ie : SlaveElements)
   {
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    element_dofs.push_back(SlaveResult.size());
+    master_index += element_dofs.back();
+  }
+
+  SizeType total_size = master_index + this->GetDofsSize();
+
+  //set sizes and initialize to zero
+  rLeftHandSideMatrix.resize(total_size, total_size, false);
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(total_size, total_size);
+  rRightHandSideVector.resize(total_size);
+  noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+  SizeType counter = 0;
+  SizeType local_index = 0;
+  for(auto& ie : SlaveElements)
+  {
+    //std::cout<<" ["<<this->Id()<<"] SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -578,13 +600,8 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
     MatrixType LocalLeftHandSideMatrix;
     VectorType LocalRightHandSideVector;
 
-    //get dofs size of the slave body element
-    EquationIdVectorType EquationIds;
-    ie->EquationIdVector(EquationIds,rCurrentProcessInfo);
-    unsigned int SlaveElementSize = EquationIds.size();
-
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, SlaveElementSize, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, element_dofs[counter], LocalSystem.CalculationFlags );
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix(LocalLeftHandSideMatrix);
@@ -593,63 +610,110 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
     //create linked system components
     LocalSystemComponents LinkedSystem;
 
-    MatrixType LeftHandSideMatrix;
-    VectorType RightHandSideVector;
-    //std::cout<<"[LINK]"<<std::endl;
-    ie->CalculateLocalSystem(LeftHandSideMatrix,RightHandSideVector,rCurrentProcessInfo);
+    MatrixType SlaveLeftHandSideMatrix;
+    VectorType SlaveRightHandSideVector;
+    ie.CalculateLocalSystem(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
-    LinkedSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LinkedSystem.SetRightHandSideVector(RightHandSideVector);
+    LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
+    LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
+    //std::cout<<"[LINK]: "<<ie->Id()<<std::endl;
     //Calculate condition system
-    ElementType::Pointer SlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, SlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo);
 
     //assemble the local system into the global system
 
-    //resizing as needed the LHS
-    unsigned int GlobalSize1 = rLeftHandSideMatrix.size1();
-    unsigned int LocalSize1  = LocalLeftHandSideMatrix.size1();
-    unsigned int MatSize1    = GlobalSize1+LocalSize1;
+    //std::cout<<" Assemble SLAVE start "<<ie->Id()<<std::endl;
+    //std::cout<<" LHS "<<local_index<<" "<<element_dofs[counter]<<" "<<master_index<<" "<<total_size<<std::endl;
 
-    unsigned int GlobalSize2 = rLeftHandSideMatrix.size2();
-    unsigned int LocalSize2  = LocalLeftHandSideMatrix.size2();
-    unsigned int MatSize2    = GlobalSize2+LocalSize2;
+    this->AssembleLocalLHS(rLeftHandSideMatrix, LocalLeftHandSideMatrix, local_index, element_dofs[counter], master_index);
 
-    rLeftHandSideMatrix.resize( MatSize1, MatSize2, true );
+    //std::cout<<" RHS "<<local_index<<" "<<element_dofs[counter]<<" "<<master_index<<" "<<total_size<<std::endl;
+    // std::cout<<" Local RighHandSide "<<LocalRightHandSideVector<<std::endl;
 
-    unsigned int indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      unsigned int indexj = 0;
-      for(unsigned int j=GlobalSize2; j<MatSize2; j++)
-      {
-        rLeftHandSideMatrix(i,j) = LocalLeftHandSideMatrix(indexi,indexj);
-        indexj++;
-      }
-      indexi++;
-    }
+    this->AssembleLocalRHS(rRightHandSideVector, LocalRightHandSideVector, local_index, element_dofs[counter], master_index);
 
-    //resizing as needed the RHS
-    GlobalSize1 = rRightHandSideVector.size();
-    LocalSize1  = LocalRightHandSideVector.size();
-    MatSize1    = GlobalSize1+LocalSize1;
+    local_index += element_dofs[counter];
+    ++counter;
 
-    rRightHandSideVector.resize( MatSize1, true );
-
-    indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      rRightHandSideVector[i]=LocalRightHandSideVector[indexi];
-      indexi++;
-    }
-
+    //std::cout<<" Assemble SLAVE finish "<<ie->Id()<<std::endl;
   }
 
   //std::cout<<" LINK RighHandSide "<<rRightHandSideVector<<std::endl;
+  //std::cout<<" LINK LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+}
 
-  // KRATOS_WATCH( rLeftHandSideMatrix )
-  // KRATOS_WATCH( rRightHandSideVector )
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyPointLinkCondition::AssembleLocalLHS(MatrixType& rLeftHandSideMatrix,
+                                                   const MatrixType& rLocalLeftHandSideMatrix,
+                                                   const SizeType& local_index,
+                                                   const SizeType& dofs_size,
+                                                   const SizeType& master_index)
+{
+  SizeType total_size = rLeftHandSideMatrix.size1();
+  SizeType local_size = local_index + dofs_size;
+  SizeType indexi = 0;
+  for(SizeType i=local_index; i<local_size; i++)
+  {
+    SizeType indexj = 0;
+    for(SizeType j=local_index; j<local_size; j++)
+    {
+      rLeftHandSideMatrix(i,j) += rLocalLeftHandSideMatrix(indexi,indexj);
+      indexj++;
+    }
+
+    indexj = dofs_size;
+    for(SizeType j=master_index; j<total_size; j++)
+    {
+      rLeftHandSideMatrix(i,j) += rLocalLeftHandSideMatrix(indexi,indexj);
+      rLeftHandSideMatrix(j,i) += rLocalLeftHandSideMatrix(indexj,indexi);
+      indexj++;
+    }
+
+    indexi++;
+  }
+
+  indexi = dofs_size;
+  for(SizeType i=master_index; i<total_size; i++)
+  {
+    SizeType indexj = dofs_size;
+    for(SizeType j=master_index; j<total_size; j++)
+    {
+      rLeftHandSideMatrix(i,j) += rLocalLeftHandSideMatrix(indexi,indexj);
+      indexj++;
+    }
+    indexi++;
+  }
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyPointLinkCondition::AssembleLocalRHS(VectorType& rRightHandSideVector,
+                                                   const VectorType& rLocalRightHandSideVector,
+                                                   const SizeType& local_index,
+                                                   const SizeType& dofs_size,
+                                                   const SizeType& master_index)
+{
+  SizeType total_size = rRightHandSideVector.size();
+  SizeType local_size = local_index + dofs_size;
+
+  SizeType indexi = 0;
+  for(SizeType i=local_index; i<local_size; i++)
+  {
+    rRightHandSideVector[i] += rLocalRightHandSideVector[indexi];
+    indexi++;
+  }
+  indexi = dofs_size;
+  for(SizeType i=master_index; i<total_size; i++)
+  {
+    rRightHandSideVector[i] += rLocalRightHandSideVector[indexi];
+    indexi++;
+  }
+
 }
 
 //************************************************************************************
@@ -661,17 +725,35 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 {
   KRATOS_TRY
 
-  //set sizes to zero
-  rLeftHandSideMatrix.resize(0,0);
-  rRightHandSideVector.resize(0);
-
-
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-  WeakPointerVector< Element >& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const SizeType inode = GetGeometry().PointsNumber()-1;
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  //std::cout<<" System2ndDerivatives [ID:"<<this->Id()<<"] [SlaveElements: "<<SlaveElements.size()<<"] [NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
+
+  EquationIdVectorType SlaveResult;
+  std::vector<SizeType> element_dofs;
+  SizeType master_index = 0;
+  for(auto& ie : SlaveElements)
   {
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    element_dofs.push_back(SlaveResult.size());
+    master_index += element_dofs.back();
+  }
+
+  SizeType total_size = master_index + this->GetDofsSize();
+
+  //set sizes and initialize to zero
+  rLeftHandSideMatrix.resize(total_size, total_size, false);
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(total_size, total_size);
+  rRightHandSideVector.resize(total_size);
+  noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+  SizeType counter = 0;
+  SizeType local_index = 0;
+  for(auto& ie : SlaveElements)
+  {
+    //std::cout<<" ["<<this->Id()<<"] 2nd SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -683,14 +765,8 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     MatrixType LocalLeftHandSideMatrix;
     VectorType LocalRightHandSideVector;
 
-    //get dofs size of the slave body element
-    EquationIdVectorType EquationIds;
-    //std::cout<<"  [ Node :"<<GetGeometry()[inode].Id() <<" Linked to Elements :"<<ie->Id()<<" ] "<<std::endl;
-    ie->EquationIdVector(EquationIds,rCurrentProcessInfo);
-    unsigned int SlaveElementSize = EquationIds.size();
-
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, SlaveElementSize, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, element_dofs[counter], LocalSystem.CalculationFlags );
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix(LocalLeftHandSideMatrix);
@@ -699,60 +775,28 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     //create linked system components
     LocalSystemComponents LinkedSystem;
 
-    MatrixType LeftHandSideMatrix;
-    VectorType RightHandSideVector;
-    //std::cout<<"[LINK]"<<std::endl;
-    ie->CalculateSecondDerivativesContributions(LeftHandSideMatrix,RightHandSideVector,rCurrentProcessInfo);
+    MatrixType SlaveLeftHandSideMatrix;
+    VectorType SlaveRightHandSideVector;
+    //std::cout<<"[DERIVATIVE_LINK]: "<<ie->Id()<<std::endl;
+    ie.CalculateSecondDerivativesContributions(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
-    LinkedSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LinkedSystem.SetRightHandSideVector(RightHandSideVector);
+    LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
+    LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    ElementType::Pointer SlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, SlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
-    //resizing as needed the LHS
-    unsigned int GlobalSize1 = rLeftHandSideMatrix.size1();
-    unsigned int LocalSize1  = LocalLeftHandSideMatrix.size1();
-    unsigned int MatSize1    = GlobalSize1+LocalSize1;
+    this->AssembleLocalLHS(rLeftHandSideMatrix, LocalLeftHandSideMatrix, local_index, element_dofs[counter], master_index);
+    this->AssembleLocalRHS(rRightHandSideVector, LocalRightHandSideVector, local_index, element_dofs[counter], master_index);
 
-    unsigned int GlobalSize2 = rLeftHandSideMatrix.size2();
-    unsigned int LocalSize2  = LocalLeftHandSideMatrix.size2();
-    unsigned int MatSize2    = GlobalSize2+LocalSize2;
-
-    rLeftHandSideMatrix.resize( MatSize1, MatSize2, true );
-
-    unsigned int indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      unsigned int indexj = 0;
-      for(unsigned int j=GlobalSize2; j<MatSize2; j++)
-      {
-        rLeftHandSideMatrix(i,j) = LocalLeftHandSideMatrix(indexi,indexj);
-        indexj++;
-      }
-      indexi++;
-    }
-
-    //resizing as needed the RHS
-    GlobalSize1 = rRightHandSideVector.size();
-    LocalSize1  = LocalRightHandSideVector.size();
-    MatSize1    = GlobalSize1+LocalSize1;
-
-    rRightHandSideVector.resize( MatSize1, true );
-
-    indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      rRightHandSideVector[i]=LocalRightHandSideVector[indexi];
-      indexi++;
-    }
-
+    local_index += element_dofs[counter];
+    ++counter;
   }
 
   //std::cout<<" LINK Dynamic RighHandSide "<<rRightHandSideVector<<std::endl;
+  //std::cout<<" LINK Dynamic LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
 
   KRATOS_CATCH("")
 }
@@ -760,20 +804,35 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-							  ProcessInfo& rCurrentProcessInfo )
+void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                         ProcessInfo& rCurrentProcessInfo)
 {
   //set sizes to zero
-  rRightHandSideVector.clear();
-  rRightHandSideVector.resize(0);
-
   MatrixType LocalLeftHandSideMatrix = Matrix();
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-  WeakPointerVector< Element >& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const SizeType inode = GetGeometry().PointsNumber()-1;
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  EquationIdVectorType SlaveResult;
+  std::vector<SizeType> element_dofs;
+  SizeType master_index = 0;
+  for(auto& ie : SlaveElements)
+  {
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    element_dofs.push_back(SlaveResult.size());
+    master_index += element_dofs.back();
+  }
+
+  SizeType total_size = master_index + this->GetDofsSize();
+
+  //set sizes and initialize to zero
+  rRightHandSideVector.resize(total_size);
+  noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+  SizeType counter = 0;
+  SizeType local_index = 0;
+  for(auto& ie : SlaveElements)
   {
 
     //create local system components
@@ -784,44 +843,28 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide( VectorType& rRightHand
 
     VectorType LocalRightHandSideVector;
 
-    //get dofs size of the slave body element
-    EquationIdVectorType EquationIds;
-    ie->EquationIdVector(EquationIds,rCurrentProcessInfo);
-    unsigned int SlaveElementSize = EquationIds.size();
-
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, SlaveElementSize, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, element_dofs[counter], LocalSystem.CalculationFlags );
     //Set Variables to Local system components
     LocalSystem.SetRightHandSideVector(LocalRightHandSideVector);
 
     //create linked system components
     LocalSystemComponents LinkedSystem;
 
-    VectorType RightHandSideVector;
-    ie->CalculateRightHandSide(RightHandSideVector,rCurrentProcessInfo);
+    VectorType SlaveRightHandSideVector;
+    ie.CalculateRightHandSide(SlaveRightHandSideVector,rCurrentProcessInfo);
 
-    LinkedSystem.SetRightHandSideVector(RightHandSideVector);
+    LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    ElementType::Pointer SlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, SlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
-    //resizing as needed the RHS
-    unsigned int GlobalSize1 = rRightHandSideVector.size();
-    unsigned int LocalSize1  = LocalRightHandSideVector.size();
-    unsigned int MatSize1    = GlobalSize1+LocalSize1;
+    this->AssembleLocalRHS(rRightHandSideVector, LocalRightHandSideVector, local_index, element_dofs[counter], master_index);
 
-    rRightHandSideVector.resize( MatSize1, true );
-
-    unsigned int indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      rRightHandSideVector[i]=LocalRightHandSideVector[indexi];
-      indexi++;
-    }
-
+    local_index += element_dofs[counter];
+    ++counter;
   }
   //KRATOS_WATCH( rLeftHandSideMatrix )
   //KRATOS_WATCH( rRightHandSideVector )
@@ -836,15 +879,31 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
   KRATOS_TRY
 
   //set sizes to zero
-  rLeftHandSideMatrix.resize(0,0);
-
   VectorType LocalRightHandSideVector = Vector(0);
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-  WeakPointerVector< Element >& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const SizeType inode = GetGeometry().PointsNumber()-1;
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  EquationIdVectorType SlaveResult;
+  std::vector<SizeType> element_dofs;
+  SizeType master_index = 0;
+  for(auto& ie : SlaveElements)
+  {
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    element_dofs.push_back(SlaveResult.size());
+    master_index += element_dofs.back();
+  }
+
+  SizeType total_size = master_index + this->GetDofsSize();
+
+  //set sizes and initialize to zero
+  rLeftHandSideMatrix.resize(total_size, total_size, false);
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(total_size, total_size);
+
+  SizeType counter = 0;
+  SizeType local_index = 0;
+  for(auto& ie : SlaveElements)
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -854,13 +913,8 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
 
     MatrixType LocalLeftHandSideMatrix;
 
-    //get dofs size of the slave body element
-    EquationIdVectorType EquationIds;
-    ie->EquationIdVector(EquationIds,rCurrentProcessInfo);
-    unsigned int SlaveElementSize = EquationIds.size();
-
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, SlaveElementSize, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, element_dofs[counter], LocalSystem.CalculationFlags );
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix(LocalLeftHandSideMatrix);
@@ -870,40 +924,20 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
     //create linked system components
     LocalSystemComponents LinkedSystem;
 
-    MatrixType LeftHandSideMatrix;
-    ie->CalculateSecondDerivativesLHS(LeftHandSideMatrix,rCurrentProcessInfo);
+    MatrixType SlaveLeftHandSideMatrix;
+    ie.CalculateSecondDerivativesLHS(SlaveLeftHandSideMatrix,rCurrentProcessInfo);
 
-    LinkedSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
 
     //Calculate condition system
-    ElementType::Pointer SlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, SlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
-    //resizing as needed the LHS
-    unsigned int GlobalSize1 = rLeftHandSideMatrix.size1();
-    unsigned int LocalSize1  = LocalLeftHandSideMatrix.size1();
-    unsigned int MatSize1    = GlobalSize1+LocalSize1;
+    this->AssembleLocalLHS(rLeftHandSideMatrix, LocalLeftHandSideMatrix, local_index, element_dofs[counter], master_index);
 
-    unsigned int GlobalSize2 = rLeftHandSideMatrix.size2();
-    unsigned int LocalSize2  = LocalLeftHandSideMatrix.size2();
-    unsigned int MatSize2    = GlobalSize2+LocalSize2;
-
-    rLeftHandSideMatrix.resize( MatSize1, MatSize2, true );
-
-    unsigned int indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      unsigned int indexj = 0;
-      for(unsigned int j=GlobalSize2; j<MatSize2; j++)
-      {
-        rLeftHandSideMatrix(i,j) = LocalLeftHandSideMatrix(indexi,indexj);
-        indexj++;
-      }
-      indexi++;
-    }
-
+    local_index += element_dofs[counter];
+    ++counter;
   }
 
   KRATOS_CATCH("")
@@ -918,15 +952,31 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
   KRATOS_TRY
 
   //set sizes to zero
-  rRightHandSideVector.resize(0);
-
   MatrixType LocalLeftHandSideMatrix = Matrix();
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
-  const unsigned int inode = GetGeometry().PointsNumber()-1;
-  WeakPointerVector< Element >& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const SizeType inode = GetGeometry().PointsNumber()-1;
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  EquationIdVectorType SlaveResult;
+  std::vector<SizeType> element_dofs;
+  SizeType master_index = 0;
+  for(auto& ie : SlaveElements)
+  {
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    element_dofs.push_back(SlaveResult.size());
+    master_index += element_dofs.back();
+  }
+
+  SizeType total_size = master_index + this->GetDofsSize();
+
+  //set sizes and initialize to zero
+  rRightHandSideVector.resize(total_size);
+  noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+  SizeType counter = 0;
+  SizeType local_index = 0;
+  for(auto& ie : SlaveElements)
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -936,44 +986,28 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 
     VectorType LocalRightHandSideVector;
 
-    //get dofs size of the slave body element
-    EquationIdVectorType EquationIds;
-    ie->EquationIdVector(EquationIds,rCurrentProcessInfo);
-    unsigned int SlaveElementSize = EquationIds.size();
-
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, SlaveElementSize, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, element_dofs[counter], LocalSystem.CalculationFlags );
     //Set Variables to Local system components
     LocalSystem.SetRightHandSideVector(LocalRightHandSideVector);
 
     //create linked system components
     LocalSystemComponents LinkedSystem;
 
-    VectorType RightHandSideVector;
-    ie->CalculateSecondDerivativesRHS(RightHandSideVector,rCurrentProcessInfo);
+    VectorType SlaveRightHandSideVector;
+    ie.CalculateSecondDerivativesRHS(SlaveRightHandSideVector,rCurrentProcessInfo);
 
-    LinkedSystem.SetRightHandSideVector(RightHandSideVector);
+    LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    ElementType::Pointer SlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, SlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
-    //resizing as needed the RHS
-    unsigned int GlobalSize1 = rRightHandSideVector.size();
-    unsigned int LocalSize1  = LocalRightHandSideVector.size();
-    unsigned int MatSize1    = GlobalSize1+LocalSize1;
+    this->AssembleLocalRHS(rRightHandSideVector, LocalRightHandSideVector, local_index, element_dofs[counter], master_index);
 
-    rRightHandSideVector.resize( MatSize1, true );
-
-    unsigned int indexi = 0;
-    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-    {
-      rRightHandSideVector[i]=LocalRightHandSideVector[indexi];
-      indexi++;
-    }
-
+    local_index += element_dofs[counter];
+    ++counter;
   }
 
   KRATOS_CATCH("")
@@ -985,6 +1019,8 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 void RigidBodyPointLinkCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
+
+      //std::cout<<" MassMatrix "<<this->Id()<<std::endl;
 
   rMassMatrix.resize(0, 0, false);
 
@@ -998,6 +1034,8 @@ void RigidBodyPointLinkCondition::CalculateDampingMatrix( MatrixType& rDampingMa
 {
   KRATOS_TRY
 
+      //std::cout<<" DampingMatrix "<<this->Id()<<std::endl;
+
   rDampingMatrix.resize(0, 0, false);
 
   KRATOS_CATCH("")
@@ -1007,9 +1045,329 @@ void RigidBodyPointLinkCondition::CalculateDampingMatrix( MatrixType& rDampingMa
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHandSideMatrix,
-							   MatrixType& rLinkedLeftHandSideMatrix,
-							   GeneralVariables& rVariables)
+void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSideMatrix,
+                                                         MatrixType& rLinkedLeftHandSideMatrix,
+                                                         GeneralVariables& rVariables)
+
+{
+  KRATOS_TRY
+
+  //Set variables from the slave linked elements (deformable elements)
+  //Get the stiffness tangent matrix from the linearization of the internal forces and the external forces
+  //Predict the lagrange multiplier due to the link and add it to the stiffness components
+
+  const SizeType dofs_size = this->GetDofsSize();
+
+  SizeType SlaveBlockSize = rVariables.SlaveLinearBlockSize + rVariables.SlaveAngularBlockSize;
+
+  //std::cout<<" Slave LHS matrix "<< rLinkedLeftHandSideMatrix <<std::endl;
+
+  SizeType start_master = rLeftHandSideMatrix.size1() - dofs_size;
+  SizeType start_slave = rVariables.SlaveNode * SlaveBlockSize;
+  SizeType start_rotation = 3-rVariables.MasterAngularBlockSize;
+
+  // Set slave counterpart
+  Matrix ForceMatrix(3,3);
+  Matrix MomentMatrix(3,3);
+  Matrix MomentRowMatrix(3,3);
+  Matrix MomentColumnMatrix(3,3);
+
+  noalias(ForceMatrix) = ZeroMatrix(3,3);
+
+  // slave rotation dofs
+  bool add_row_moments = true;
+  if( rVariables.SlaveAngularBlockSize != 0 )
+    add_row_moments = false;
+
+  for(SizeType i=0; i<rVariables.SlaveLinearBlockSize; i++)
+  {
+    for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+    {
+      //nodal block ii
+      rLeftHandSideMatrix(start_master+i,start_master+j) += rLinkedLeftHandSideMatrix(start_slave+i,start_slave+j);
+
+      ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_slave+i,start_slave+j);
+    }
+  }
+
+  noalias(MomentRowMatrix) = prod(rVariables.SlaveSkewSymDistance,ForceMatrix);
+  noalias(MomentColumnMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
+  noalias(MomentMatrix) = prod(MomentRowMatrix,rVariables.SlaveSkewSymDistance);
+
+
+  for(SizeType i=0; i<rVariables.SlaveAngularBlockSize; i++)
+  {
+    for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+    {
+      //row blocks
+      rLeftHandSideMatrix(start_master+j,start_master+rVariables.MasterLinearBlockSize+i) += rLinkedLeftHandSideMatrix(start_slave+j,start_slave+rVariables.SlaveLinearBlockSize+i);
+      rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_slave+j);
+      ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_slave+j);
+    }
+  }
+  // override Moment Matrix
+  if(!add_row_moments)
+    noalias(MomentRowMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
+
+
+  for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+  {
+    for(SizeType j=0; j<rVariables.MasterLinearBlockSize; j++)
+    {
+      rLeftHandSideMatrix(start_master+j,start_master+rVariables.MasterLinearBlockSize+i) -= MomentColumnMatrix(j,start_rotation+i);
+      if(add_row_moments)
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) -= MomentRowMatrix(start_rotation+i,j);
+    }
+  }
+
+  for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+  {
+    for(SizeType j=0; j<rVariables.MasterAngularBlockSize; j++)
+    {
+      if(add_row_moments){
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += MomentMatrix(start_rotation+i,start_rotation+j);
+      }
+      else{
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_slave+rVariables.SlaveLinearBlockSize+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentRowMatrix(start_rotation+i,start_rotation+j);
+      }
+    }
+  }
+
+
+  // Non rigid nodes of the linked element:
+  for(SizeType d=0; d<rVariables.DeformableNodes.size(); ++d)
+  {
+    SizeType start_deformable = rVariables.DeformableNodes[d] * SlaveBlockSize;
+
+    noalias(ForceMatrix) = ZeroMatrix(3,3);
+
+    for(SizeType i=0; i<rVariables.SlaveLinearBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+      {
+        //nodal block ij
+        rLeftHandSideMatrix(start_master+i,start_deformable+j) += rLinkedLeftHandSideMatrix(start_slave+i,start_deformable+j);
+        rLeftHandSideMatrix(start_deformable+j,start_master+i) += rLinkedLeftHandSideMatrix(start_deformable+j,start_slave+i);
+        ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_slave+i,start_deformable+j);
+      }
+    }
+
+
+    for(SizeType i=0; i<rVariables.SlaveAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.SlaveAngularBlockSize; j++)
+      {
+        //nodal block ij
+        rLeftHandSideMatrix(start_master+rVariables.SlaveLinearBlockSize+i,start_deformable+rVariables.SlaveLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_deformable+rVariables.SlaveLinearBlockSize+j);
+        //nodal block ji
+        rLeftHandSideMatrix(start_deformable+rVariables.SlaveLinearBlockSize+j,start_master+rVariables.SlaveLinearBlockSize+i) += rLinkedLeftHandSideMatrix(start_deformable+rVariables.SlaveLinearBlockSize+j,start_slave+rVariables.SlaveLinearBlockSize+i);
+      }
+
+    }
+
+    noalias(MomentRowMatrix) = prod(rVariables.SlaveSkewSymDistance,ForceMatrix);
+    noalias(MomentColumnMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
+
+
+    //angular blocks
+    for(SizeType i=0; i<rVariables.SlaveAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+      {
+        //column blocks
+        rLeftHandSideMatrix(start_deformable+i,start_master+rVariables.MasterLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_deformable+i,start_slave+rVariables.SlaveLinearBlockSize+j);
+        rLeftHandSideMatrix(start_deformable+rVariables.MasterLinearBlockSize+i,start_master+j) += rLinkedLeftHandSideMatrix(start_deformable+rVariables.SlaveLinearBlockSize+i,start_slave+j);
+
+        ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_deformable+rVariables.SlaveLinearBlockSize+i,start_slave+j);
+
+        //row blocks
+        rLeftHandSideMatrix(start_master+i,start_deformable+rVariables.MasterLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+i,start_deformable+rVariables.SlaveLinearBlockSize+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_deformable+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_deformable+j);
+      }
+    }
+
+    // override Moment Matrix
+    if(!add_row_moments)
+      noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
+
+    for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.MasterLinearBlockSize; j++)
+      {
+        rLeftHandSideMatrix(start_deformable+j,start_master+rVariables.MasterLinearBlockSize+i) -= MomentColumnMatrix(j,start_rotation+i);
+        if(add_row_moments)
+          rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_deformable+j) -= MomentRowMatrix(start_rotation+i,j);
+        else
+          rLeftHandSideMatrix(start_deformable+rVariables.SlaveLinearBlockSize+j,start_master+rVariables.MasterLinearBlockSize+i) -= MomentMatrix(j,start_rotation+i);
+      }
+    }
+
+  }
+
+
+  // Other rigid nodes of the linked element:
+  for(SizeType n=0; n<rVariables.RigidNodes.size(); ++n)
+  {
+
+    SizeType start_rigid = rVariables.RigidNodes[n] * SlaveBlockSize;
+
+    noalias(ForceMatrix) = ZeroMatrix(3,3);
+
+    for(SizeType i=0; i<rVariables.SlaveLinearBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+      {
+        //nodal block ij
+        rLeftHandSideMatrix(start_master+i,start_master+j) += rLinkedLeftHandSideMatrix(start_slave+i,start_rigid+j);
+        ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_slave+i,start_rigid+j);
+      }
+    }
+
+    for(SizeType i=0; i<rVariables.SlaveAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.SlaveAngularBlockSize; j++)
+      {
+        //nodal block ij
+        rLeftHandSideMatrix(start_master+rVariables.SlaveLinearBlockSize+i,start_rigid+rVariables.SlaveLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_rigid+rVariables.SlaveLinearBlockSize+j);
+      }
+    }
+
+
+    noalias(MomentRowMatrix) = prod(rVariables.SlaveSkewSymDistance,ForceMatrix);
+    noalias(MomentColumnMatrix) = prod(ForceMatrix,rVariables.RigidSkewSymDistances[n]);
+    noalias(MomentMatrix) = prod(MomentRowMatrix,rVariables.RigidSkewSymDistances[n]);
+
+    for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.MasterLinearBlockSize; j++)
+      {
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) -= MomentRowMatrix(start_rotation+i,j);
+        rLeftHandSideMatrix(start_master+j,start_master+rVariables.MasterLinearBlockSize+i) -= MomentColumnMatrix(j,start_rotation+i);
+      }
+    }
+
+
+    for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+    {
+      for(SizeType j=0; j<rVariables.MasterAngularBlockSize; j++)
+      {
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += MomentMatrix(start_rotation+i,start_rotation+j);
+      }
+    }
+
+
+    for(SizeType d=0; d<rVariables.DeformableNodes.size(); ++d)
+    {
+      SizeType start_deformable = rVariables.DeformableNodes[d] * SlaveBlockSize;
+
+      noalias(ForceMatrix) = ZeroMatrix(3,3);
+
+      for(SizeType i=0; i<rVariables.SlaveLinearBlockSize; i++)
+      {
+        for(SizeType j=0; j<rVariables.SlaveLinearBlockSize; j++)
+        {
+          //nodal block ij
+          rLeftHandSideMatrix(start_deformable+j,start_master+i) += rLinkedLeftHandSideMatrix(start_deformable+j,start_slave+i);
+          ForceMatrix(i,j) = rLinkedLeftHandSideMatrix(start_deformable+j,start_slave+i);
+        }
+      }
+
+      noalias(MomentMatrix) = prod(ForceMatrix,rVariables.RigidSkewSymDistances[n]);
+
+      for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+      {
+        for(SizeType j=0; j<rVariables.MasterLinearBlockSize; j++)
+        {
+          rLeftHandSideMatrix(start_deformable+j,start_master+rVariables.MasterLinearBlockSize+i) -= MomentMatrix(j,start_rotation+i);
+        }
+      }
+    }
+
+  }
+
+  // std::cout<<" Slave "<<rVariables.SlaveNode<<std::endl;
+  // WriteMatrixInRows( "rLinkedLeftHandSideMatrix", rLinkedLeftHandSideMatrix );
+  // WriteMatrixInRows( "rLeftHandSideMatrix", rLeftHandSideMatrix );
+
+  KRATOS_CATCH("")
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSideVector,
+							VectorType& rLinkedRightHandSideVector,
+							GeneralVariables& rVariables)
+
+{
+  KRATOS_TRY
+
+  //Set variables from the slave linked elements (deformable elements)
+  //Get the internal forces and the external forces, compute the residual
+  //Predict the lagrange multiplier due to the link and add it to the forces
+
+  const SizeType dofs_size = this->GetDofsSize();
+
+  SizeType SlaveBlockSize = rVariables.SlaveLinearBlockSize + rVariables.SlaveAngularBlockSize;
+
+  SizeType start_master = rRightHandSideVector.size() - dofs_size;
+  SizeType start_slave  = rVariables.SlaveNode * SlaveBlockSize;
+
+  //std::cout<<" RHS vector "<<rRightHandSideVector<<std::endl;
+
+  if( rVariables.SlaveAngularBlockSize != 0 ){
+
+    for(SizeType i=0; i<SlaveBlockSize; i++)
+    {
+      rRightHandSideVector[start_master+i] += rLinkedRightHandSideVector[start_slave+i];
+    }
+
+  }
+  else{
+
+    Vector ForceVector(3);
+    noalias(ForceVector) = ZeroVector(3);
+
+    //std::cout<<" RHS vector "<<rRightHandSideVector<<std::endl;
+
+    for(SizeType i=0; i<rVariables.SlaveLinearBlockSize; i++)
+    {
+      rRightHandSideVector[start_master+i] += rLinkedRightHandSideVector[start_slave+i];
+      ForceVector[i] = rLinkedRightHandSideVector[start_slave+i];
+    }
+
+    //std::cout<<" ForceVector "<<ForceVector<<" Moment "<<MomentVector<<" skew "<<rVariables.SlaveSkewSymDistance<<std::endl;
+
+    SizeType start_rotation = 3-rVariables.MasterAngularBlockSize;
+
+    Vector MomentVector(3);
+    noalias(MomentVector) = prod(rVariables.SlaveSkewSymDistance,ForceVector);
+
+    for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
+    {
+      rRightHandSideVector[start_master+rVariables.MasterLinearBlockSize+i] -= MomentVector[start_rotation+i];
+    }
+
+  }
+
+  // std::cout<<" [LINK ID:"<<this->Id()<<"]  RHS Vector "<<rLinkedRightHandSideVector<<std::endl;
+  // std::cout<<" [ID:"<<this->Id()<<"] [Link Force "<<ForceVector<<"][Link Moment "<<MomentVector<<"][NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
+  //std::cout<<" RHS Vector "<<rRightHandSideVector<<std::endl;
+
+  //std::cout<<" LINK: "<<this->Id()<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+
+  KRATOS_CATCH("")
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void RigidBodyPointLinkCondition::CalculateAndAddTangentBeam(MatrixType& rLeftHandSideMatrix,
+                                                             MatrixType& rLinkedLeftHandSideMatrix,
+                                                             GeneralVariables& rVariables)
 
 {
   KRATOS_TRY
@@ -1070,7 +1428,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHand
     }
   }
 
-  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SkewSymDistance);
+  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
 
   for(unsigned int i=0; i<dimension; i++)
   {
@@ -1092,7 +1450,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHand
     }
   }
 
-  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SkewSymDistance);
+  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
 
   for(unsigned int i=0; i<dimension; i++)
   {
@@ -1117,7 +1475,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHand
     }
   }
 
-  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SkewSymDistance);
+  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
 
   for(unsigned int i=0; i<dimension; i++)
   {
@@ -1138,7 +1496,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHand
     }
   }
 
-  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SkewSymDistance);
+  noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SlaveSkewSymDistance);
 
   for(unsigned int i=0; i<dimension; i++)
   {
@@ -1269,12 +1627,12 @@ void RigidBodyPointLinkCondition::CalculateAndAddStiffness(MatrixType& rLeftHand
 }
 
 
-//***********************************************************************************
-//***********************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSideVector,
-							VectorType& rLinkedRightHandSideVector,
-							GeneralVariables& rVariables)
+void RigidBodyPointLinkCondition::CalculateAndAddForcesBeam(VectorType& rRightHandSideVector,
+                                                            VectorType& rLinkedRightHandSideVector,
+                                                            GeneralVariables& rVariables)
 
 {
   KRATOS_TRY
@@ -1322,30 +1680,33 @@ void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSi
   KRATOS_CATCH("")
 }
 
+
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::VectorToSkewSymmetricTensor( const Vector& rVector,
-							       Matrix& rSkewSymmetricTensor )
+RigidBodyPointLinkCondition::SizeType RigidBodyPointLinkCondition::GetDofsSize()
 {
   KRATOS_TRY
 
-  //Initialize Local Matrices
-  if( rSkewSymmetricTensor.size1() != 3 )
-    rSkewSymmetricTensor.resize(3, 3, false);
+  SizeType size = 0;
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes =  GetGeometry().size();
+  bool rotation_dofs = GetGeometry()[0].HasDofFor(ROTATION_Z);
 
-  noalias(rSkewSymmetricTensor) = ZeroMatrix(3,3);
+  if(rotation_dofs){
+    if( dimension == 2 )
+      size = number_of_nodes * 3;
+    else
+      size = number_of_nodes * 6;
+  }
+  else
+    size = number_of_nodes * dimension;
 
-  rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
-  rSkewSymmetricTensor( 0, 2 ) =  rVector[1];
-  rSkewSymmetricTensor( 1, 2 ) = -rVector[0];
-
-  rSkewSymmetricTensor( 1, 0 ) =  rVector[2];
-  rSkewSymmetricTensor( 2, 0 ) = -rVector[1];
-  rSkewSymmetricTensor( 2, 1 ) =  rVector[0];
+  return size;
 
   KRATOS_CATCH("")
 }
+
 
 //************************************************************************************
 //************************************************************************************
@@ -1354,14 +1715,13 @@ void RigidBodyPointLinkCondition::WriteMatrixInRows( std::string MatrixName, con
 {
   std::cout<<MatrixName<<" ["<<rMatrix.size1()<<","<<rMatrix.size2()<<"]:"<<std::endl;
 
-  for(unsigned int i=0; i<rMatrix.size1(); i++)
+  for(SizeType i=0; i<rMatrix.size1(); i++)
   {
     std::cout<<"(";
-    for(unsigned int j=0; j<rMatrix.size2()-1; j++)
+    for(SizeType j=0; j<rMatrix.size2()-1; j++)
     {
       std::cout<<rMatrix(i,j)<<", ";
     }
-
     std::cout<<rMatrix(i,rMatrix.size2()-1)<<")"<<std::endl;
   }
 }

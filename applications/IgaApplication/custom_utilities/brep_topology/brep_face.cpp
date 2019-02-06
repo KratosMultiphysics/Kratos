@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:     BSD License
-//           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//               Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
@@ -18,8 +18,8 @@ namespace Kratos
 {
     void BrepFace::GetGeometryNodes(
         ModelPart& rModelPart,
-        const int& rU, 
-        const int& rV)
+        const int& rU,
+        const int& rV) const
     {
         int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
         int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
@@ -32,24 +32,13 @@ namespace Kratos
         if (rU >= 0)
         {
             u_start = rU * (number_of_cps_u - 1);
-            u_end = rU * number_of_cps_u + 1;
+            u_end = rU * (number_of_cps_u - 1) + 1;
         }
         if (rV >= 0)
         {
             v_start = rV * (number_of_cps_v - 1);
-            v_end = rV * number_of_cps_v + 1;
+            v_end = rV * (number_of_cps_v - 1) + 1;
         }
-
-        KRATOS_WATCH(number_of_cps_u)
-            KRATOS_WATCH(number_of_cps_v)
-
-        KRATOS_WATCH(rU)
-            KRATOS_WATCH(rV)
-
-        KRATOS_WATCH(u_start)
-            KRATOS_WATCH(u_end)
-            KRATOS_WATCH(v_start)
-            KRATOS_WATCH(v_end)
 
         for (int i = u_start; i < u_end; ++i)
         {
@@ -60,18 +49,55 @@ namespace Kratos
         }
     }
 
+    void BrepFace::GetGeometryVariationNodes(
+        ModelPart& rModelPart,
+        const int& rU,
+        const int& rV) const
+    {
+        int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
+        int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
+
+        int u_start = 0;
+        int u_end = number_of_cps_u;
+        int v_start = 0;
+        int v_end = number_of_cps_v;
+
+        if (rU == 0)
+        {
+            u_start = 1;
+            u_end = 2;
+        }
+        if (rU == 1)
+        {
+            u_start = number_of_cps_u - 2;
+            u_end = number_of_cps_u - 1;
+        }
+        if (rV == 0)
+        {
+            v_start = 1;
+            v_end = 2;
+        }
+        if (rV == 1)
+        {
+            v_start = number_of_cps_v - 2;
+            v_end = number_of_cps_v - 1;
+        }
+
+        for (int i = u_start; i < u_end; ++i)
+        {
+            for (int j = v_start; j < v_end; ++j)
+            {
+                rModelPart.AddNode(mNodeSurfaceGeometry3D->GetNode(i, j));
+            }
+        }
+    }
 
     void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        //bool trimmed = Is(IGAFlags::IS_TRIMMED);
-
-        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         auto spans_u = mNodeSurfaceGeometry3D->SpansU();
         auto spans_v = mNodeSurfaceGeometry3D->SpansV();
 
@@ -175,19 +201,18 @@ namespace Kratos
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
-        auto clipper = TrimmedSurfaceClipping(0.01, 0.00001);
+        auto clipper = TrimmedSurfaceClipping(0.000001, 0.00000001);
 
         clipper.Clear();
 
-        for (int l = 0; l < mEmbeddedLoops.size(); ++l)
+        for (int l = 0; l < mTrimmingLoops.size(); ++l)
         {
             clipper.BeginLoop();
 
-            auto trimming_curves = mEmbeddedLoops[l].GetTrimmingCurves();
+            auto trimming_curves = mTrimmingLoops[l].GetTrimmingCurves();
             for (int t = 0; t < trimming_curves.size(); ++t)
             {
                 auto crv = (trimming_curves[t].GetCurve2D());
@@ -197,7 +222,7 @@ namespace Kratos
             clipper.EndLoop();
         }
 
-        //clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
+        clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
 
         int degree_u = mNodeSurfaceGeometry3D->DegreeU();
         int degree_v = mNodeSurfaceGeometry3D->DegreeV();
@@ -209,37 +234,39 @@ namespace Kratos
             for (int j = 0; j < clipper.NbSpansU(); ++j)
             {
                 if (clipper.SpanTrimType(i, j) == ANurbs::Empty)
+                {
                     continue;
+                }
                 if (clipper.SpanTrimType(i, j) == ANurbs::Full)
                 {
-                    //auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
-                    //    degree_u + 1,
-                    //    degree_v + 1,
-                    //    clipper.SpanU(i),
-                    //    clipper.SpanV(j));
+                    auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
+                        degree_u + 1,
+                        degree_v + 1,
+                        clipper.SpanU(i),
+                        clipper.SpanV(j));
 
-                    //CreateIntegrationElementsConditions(integration_points, m_model_part, rType, rName,
-                    //    rPropertiesId, rShapeFunctionDerivativesOrder, rVariables);
+                    CreateIntegrationElementsConditions(integration_points, rModelPart, rType, rName,
+                        rShapeFunctionDerivativesOrder, rVariables);
 
-                    //continue;
+                    continue;
                 }
-                else
+                if (clipper.SpanTrimType(i, j) == ANurbs::Trimmed)
                 {
-                    //auto polygons = clipper.SpanPolygons(i, j);
-                    //for (int p = 0; p < polygons.size(); ++p)
-                    //{
-                    //    auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
+                    auto polygons = clipper.SpanPolygons(i, j);
 
-                    //    integration_point_polygon.Compute(degree, polygons[p]);
+                    for (int p = 0; p < polygons.size(); ++p)
+                    {
+                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
 
-                    //    std::vector<ANurbs::IntegrationPoint2<double>> integration_points;
-                    //    for (int integration_point = 0; integration_point < integration_point_polygon.NbIntegrationPoints(); ++integration_point)
-                    //    {
-                    //        integration_points[integration_point] = integration_point_polygon.IntegrationPoint(integration_point);
-                    //    }
-                    //    CreateIntegrationElementsConditions(integration_points, m_model_part, rType, rName,
-                    //        rPropertiesId, rShapeFunctionDerivativesOrder, rVariables);
-                    //}
+                        integration_point_polygon.Compute(degree, polygons[p]);
+                        std::vector<ANurbs::IntegrationPoint2<double>> integration_points(integration_point_polygon.NbIntegrationPoints());
+                        for (int integration_point = 0; integration_point < integration_point_polygon.NbIntegrationPoints(); ++integration_point)
+                        {
+                            integration_points[integration_point] = integration_point_polygon.IntegrationPoint(integration_point);
+                        }
+                        CreateIntegrationElementsConditions(integration_points, rModelPart, rType, rName,
+                            rShapeFunctionDerivativesOrder, rVariables);
+                    }
                 }
             }
         }
@@ -250,12 +277,9 @@ namespace Kratos
         const int trim_index,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         int number_of_points_spans =
             mNodeSurfaceGeometry3D->DegreeU()
             + mNodeSurfaceGeometry3D->DegreeV() + 1;
@@ -316,7 +340,6 @@ namespace Kratos
                     element->SetValue(TANGENTS, tangents);
 
                     element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
-
                     element->SetValue(BREP_ID, this->Id());
                 }
                 if (rType == "condition")
@@ -340,14 +363,11 @@ namespace Kratos
                     condition->SetValue(TANGENTS, tangents);
 
                     condition->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
-
                     condition->SetValue(BREP_ID, this->Id());
                 }
                 // for strong application of properties on control point nodes
                 if (rType == "node")
                 {
-                    KRATOS_WATCH(rModelPart)
-                    KRATOS_WATCH(shape_function)
                     for (int sh_nonzero = 0; sh_nonzero < shape_function.size(); ++sh_nonzero)
                     {
                         if (shape_function(sh_nonzero) > 1e-5)
@@ -355,7 +375,6 @@ namespace Kratos
                             rModelPart.AddNode(control_points(sh_nonzero));
                         }
                     }
-                    KRATOS_WATCH(rModelPart)
                 }
             }
         }
@@ -366,12 +385,9 @@ namespace Kratos
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables) const
     {
-        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         ANurbs::SurfaceShapeEvaluator<double> shape(
             mNodeSurfaceGeometry3D->DegreeU(),
             mNodeSurfaceGeometry3D->DegreeV(),
@@ -379,10 +395,14 @@ namespace Kratos
 
         for (int k = 0; k < rIntegrationPoints.size(); ++k)
         {
+            array_1d<double, 2> local_coordinates;
+            local_coordinates[0] = rIntegrationPoints[k].u;
+            local_coordinates[1] = rIntegrationPoints[k].v;
+
             shape.Compute(
                 mNodeSurfaceGeometry3D->KnotsU(),
                 mNodeSurfaceGeometry3D->KnotsV(),
-                mNodeSurfaceGeometry3D->Weights(),
+                //mNodeSurfaceGeometry3D->Weights(),
                 rIntegrationPoints[k].u,
                 rIntegrationPoints[k].v);
 
@@ -397,7 +417,8 @@ namespace Kratos
                 int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
                 int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(indexU, indexV));
+                non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
+                    shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
                 N_0[n] = shape(0, indexU, indexV);
                 N_1(n, 0) = shape(1, indexU, indexV);
@@ -407,7 +428,6 @@ namespace Kratos
                 N_2(n, 2) = shape(4, indexU, indexV);
             }
 
-            rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
             if (rType == "element")
             {
@@ -415,12 +435,17 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
+                rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+
                 auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
                 element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
                 element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                 element->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
+
+                element->SetValue(LOCAL_COORDINATES, local_coordinates);
+                element->SetValue(BREP_ID, this->Id());
             }
 
             if (rType == "condition")
@@ -429,12 +454,17 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
+                rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+
                 auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
                 condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
                 condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                 condition->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
+
+                condition->SetValue(LOCAL_COORDINATES, local_coordinates);
+                condition->SetValue(BREP_ID, this->Id());
             }
 
             // for strong application of properties on control point nodes
@@ -521,6 +551,11 @@ namespace Kratos
                     return trimming_loops[j].GetCurve2D();
             }
         }
+        for (int i = 0; i < mEmbeddedEdges.size(); ++i)
+        {
+            if (mEmbeddedEdges[i].GetTrimIndex() == trim_index)
+                return mEmbeddedEdges[i].GetCurve2D();
+        }
         KRATOS_ERROR << "Trimming curve of index: " << trim_index << " does not exist." << std::endl;
     }
 
@@ -553,6 +588,7 @@ namespace Kratos
         bool rIsRational,
         std::vector<BrepBoundaryLoop>& rTrimmingLoops,
         std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
+        std::vector<BrepTrimmingCurve>& rEmbeddedEdges,
         std::vector<EmbeddedPoint>& rEmbeddedPoints,
         Vector& rKnotVectorU,
         Vector& rKnotVectorV,
@@ -564,6 +600,7 @@ namespace Kratos
           m_is_trimmed(rIsTrimmed),
           m_is_rational(rIsRational),
           mEmbeddedLoops(rEmbeddedLoops),
+          mEmbeddedEdges(rEmbeddedEdges),
           mEmbeddedPoints(rEmbeddedPoints),
           mModelPart(rModelPart),
           IndexedObject(rBrepId),
@@ -577,7 +614,8 @@ namespace Kratos
 
         for (int i = 0; i < rKnotVectorU.size()-2; ++i)
         {
-            mNodeSurfaceGeometry3D->SetKnotU(i, rKnotVectorU(i+1));
+            mNodeSurfaceGeometry3D->SetKnotU(
+                i, rKnotVectorU(i+1));
         }
 
         for (int i = 0; i < rKnotVectorV.size()-2; ++i)
@@ -589,11 +627,13 @@ namespace Kratos
         {
             for (int j = 0; j < number_of_nodes_v; ++j)
             {
-                Node<3>::Pointer node = rModelPart.pGetNode(rControlPointIds[j*(number_of_nodes_u)+i]);
+                Node<3>::Pointer node = rModelPart.pGetNode(
+                    rControlPointIds[j*(number_of_nodes_u)+i]);
                 mNodeSurfaceGeometry3D->SetNode(i, j, node);
                 if (rIsRational)
                 {
-                    mNodeSurfaceGeometry3D->SetWeight(i, j, node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
+                    mNodeSurfaceGeometry3D->SetWeight(i, j,
+                        node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
                 }
             }
         }

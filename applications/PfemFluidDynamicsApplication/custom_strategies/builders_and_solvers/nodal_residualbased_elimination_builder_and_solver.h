@@ -112,7 +112,7 @@ namespace Kratos
       typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
       typedef Vector VectorType;
-
+      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
 
       ///@}
       ///@name Life Cycle
@@ -141,7 +141,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-     
+
       void BuildNodally(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart& rModelPart,
@@ -153,7 +153,7 @@ namespace Kratos
 	  KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
 	/* std::cout<<"Building LHS and RHS of Momentum Equation Nodally"<<std::endl; */
-     
+
         //contributions to the system
 	LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 	LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -167,7 +167,7 @@ namespace Kratos
 	const double timeInterval = CurrentProcessInfo[DELTA_TIME];
 	const double FourThirds = 4.0 / 3.0;
 	const double nTwoThirds = -2.0 / 3.0;
-     
+
 	double secondLame=0;
 	double volumetricCoeff=0;
 	double density=0;
@@ -200,19 +200,19 @@ namespace Kratos
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
 
-	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      const unsigned int neighSize = neighb_nodes.size()+1;
-	      
+
 	      if(neighSize>1){
 		const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-		const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();	      
+		const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
 
 		LHS_Contribution= ZeroMatrix(localSize,localSize);
 		RHS_Contribution= ZeroVector(localSize);
-		
+
 		if (EquationId.size() != localSize)
 		  EquationId.resize(localSize, false);
-     
+
 		density=itNode->FastGetSolutionStepValue(DENSITY);
 
 		if(itNode->Is(SOLID)){
@@ -220,7 +220,7 @@ namespace Kratos
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/
 		    ((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*secondLame/3.0;
 		}
-		else if(itNode->Is(FLUID)){		  		
+		else if(itNode->Is(FLUID)){
 		  secondLame = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		  /* volumetricCoeff*=0.000025;//dam break fine */
@@ -233,11 +233,11 @@ namespace Kratos
 		  /* std::cout<<"bulkReduction "<<bulkReduction<<std::endl; */
 		  /* volumetricCoeff*=0.0002;		 */
 		}
-	    
+
 		firstRow=0;
 		firstCol=0;
 
-	
+
 		/* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
 		if(dimension==2){
 
@@ -252,63 +252,63 @@ namespace Kratos
 		    itNode->FastGetSolutionStepValue(ACCELERATION_X,0);
 		  accY=2.0*(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))/timeInterval -
 		    itNode->FastGetSolutionStepValue(ACCELERATION_Y,0);
-		    
-		  RHS_Contribution[0]+=-nodalVolume*density*accX;		    
+
+		  RHS_Contribution[0]+=-nodalVolume*density*accX;
 		  RHS_Contribution[1]+=-nodalVolume*density*accY;
 
 		  //-------- EXTERNAL FORCES TERM -------//
 
 		  array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-		  RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];		    
+		  RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];
 		  RHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
-		    
+
 		  //-------- INTERNAL FORCES TERM -------//
-		  
+
 		  sigmaXX=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[0];
 		  sigmaYY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[1];
 		  sigmaXY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[2];
-		  
+
 		  if(itNode->IsNot(SOLID)){
 		    pressure=itNode->FastGetSolutionStepValue(PRESSURE,0)*theta+itNode->FastGetSolutionStepValue(PRESSURE,1)*(1-theta);
 		    sigmaXX=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
 		    sigmaYY=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1] + pressure;
-		  }		  
+		  }
 
 		  const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
 		  EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
 		  EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
 
 		    for (unsigned int i = 0; i< neighSize; i++)
-		      {		
+		      {
 
 			dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 			dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
-		      
+
 			RHS_Contribution[firstCol]  += - nodalVolume * (dNdXi*sigmaXX + dNdYi*sigmaXY);
 			RHS_Contribution[firstCol+1]+= - nodalVolume * (dNdYi*sigmaYY + dNdXi*sigmaXY);
-			
+
 			for (unsigned int j = 0; j< neighSize; j++)
 			  {
 			    dNdXj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow];
 			    dNdYj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+1];
-		     
+
 			    LHS_Contribution(firstRow,firstCol)    += nodalVolume * ( (FourThirds * secondLame + volumetricCoeff) * dNdXj * dNdXi + dNdYj * dNdYi * secondLame )*theta;
 			    LHS_Contribution(firstRow,firstCol+1)  += nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdXj * dNdYi + dNdYj * dNdXi * secondLame )*theta;
-			
+
 			    LHS_Contribution(firstRow+1,firstCol)  += nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdYj * dNdXi + dNdXj * dNdYi * secondLame )*theta;
 			    LHS_Contribution(firstRow+1,firstCol+1)+= nodalVolume * ( (FourThirds * secondLame + volumetricCoeff) * dNdYj * dNdYi + dNdXj * dNdXi * secondLame )*theta;
-		    
+
 			    firstRow+=2;
 			  }
 			firstRow=0;
 			firstCol+=2;
-			
+
 			if(i<neighb_nodes.size()){
 			  EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
 			  EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
 			}
-			
+
 		      }
 		  /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
 
@@ -327,20 +327,20 @@ namespace Kratos
 		    itNode->FastGetSolutionStepValue(ACCELERATION_Y,0);
 		  accZ=2.0*(itNode->FastGetSolutionStepValue(VELOCITY_Z,0)-itNode->FastGetSolutionStepValue(VELOCITY_Z,1))/timeInterval -
 		    itNode->FastGetSolutionStepValue(ACCELERATION_Z,0);
-		    
+
 		  RHS_Contribution[0]+=-nodalVolume*density*accX;
 		  RHS_Contribution[1]+=-nodalVolume*density*accY;
 		  RHS_Contribution[2]+=-nodalVolume*density*accZ;
-		  
+
 		  //-------- EXTERNAL FORCES TERM -------//
 
 		  array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-		  RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];		    
+		  RHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];
 		  RHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
 		  RHS_Contribution[2]+=nodalVolume*density*VolumeAcceleration[2];
 
-		  //-------- INTERNAL FORCES TERM -------//	    
+		  //-------- INTERNAL FORCES TERM -------//
 
 		  sigmaXX=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[0];
 		  sigmaYY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[1];
@@ -348,7 +348,7 @@ namespace Kratos
 		  sigmaXY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[3];
 		  sigmaXZ=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[4];
 		  sigmaYZ=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[5];
-	  
+
 		  if(itNode->IsNot(SOLID)){
 		    pressure=itNode->FastGetSolutionStepValue(PRESSURE,0)*theta+itNode->FastGetSolutionStepValue(PRESSURE,1)*(1-theta);
 		    sigmaXX=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
@@ -360,28 +360,28 @@ namespace Kratos
 		  EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
 		  EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
 		  EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
-	
+
 		  for (unsigned int i = 0; i< neighSize; i++)
 		    {
 		      dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 		      dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
 		      dNdZi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+2];
-		      
+
 		      RHS_Contribution[firstCol]  += -nodalVolume * (dNdXi*sigmaXX + dNdYi*sigmaXY + dNdZi*sigmaXZ);
 		      RHS_Contribution[firstCol+1]+= -nodalVolume * (dNdYi*sigmaYY + dNdXi*sigmaXY + dNdZi*sigmaYZ);
 		      RHS_Contribution[firstCol+2]+= -nodalVolume * (dNdZi*sigmaZZ + dNdXi*sigmaXZ + dNdYi*sigmaYZ);
-		    
+
 		      for (unsigned int j = 0; j< neighSize; j++)
 			{
 
 			  dNdXj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow];
 			  dNdYj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+1];
 			  dNdZj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+2];
-  
+
 			  LHS_Contribution(firstRow,firstCol)    += nodalVolume * ( (FourThirds * secondLame + volumetricCoeff) * dNdXj * dNdXi + (dNdYj * dNdYi + dNdZj * dNdZi )* secondLame )*theta;
 			  LHS_Contribution(firstRow,firstCol+1)  += nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdXj * dNdYi + dNdYj * dNdXi * secondLame )*theta;
 			  LHS_Contribution(firstRow,firstCol+2)  += nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdXj * dNdZi + dNdZj * dNdXi * secondLame )*theta;
-			
+
 			  LHS_Contribution(firstRow+1,firstCol)  += nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdYj * dNdXi + dNdXj * dNdYi * secondLame )*theta;
 			  LHS_Contribution(firstRow+1,firstCol+1)+= nodalVolume * ( (FourThirds * secondLame + volumetricCoeff) * dNdYj * dNdYi + (dNdXj * dNdXi + dNdZj * dNdZi )* secondLame )*theta;
 			  LHS_Contribution(firstRow+1,firstCol+2)+= nodalVolume * ( (nTwoThirds * secondLame + volumetricCoeff) * dNdYj * dNdZi + dNdZj * dNdYi * secondLame )*theta;
@@ -391,17 +391,17 @@ namespace Kratos
 			  LHS_Contribution(firstRow+2,firstCol+2)+= nodalVolume * ( (FourThirds * secondLame + volumetricCoeff) * dNdZj * dNdZi + (dNdXj * dNdXi + dNdYj * dNdYi )* secondLame )*theta;
 
 			  firstRow+=3;
-		      
+
 			}
 		      firstRow=0;
 		      firstCol+=3;
-		      
+
 		      if(i<neighb_nodes.size()){
 			EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
 			EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
 			EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
 		      }
-		      
+
 		    }
 
 
@@ -523,7 +523,7 @@ namespace Kratos
         KRATOS_TRY
 
 	  Timer::Start("Build");
-	
+
 	/* boost::timer m_build_time; */
 	BuildNodally(pScheme, rModelPart, A, b);
 	/* std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; */
@@ -810,7 +810,7 @@ namespace Kratos
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
 	/* std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; */
-	
+
         KRATOS_CATCH("")
 
 	  }
@@ -818,7 +818,7 @@ namespace Kratos
       //**************************************************************************
       //**************************************************************************
 
- 
+
 
       /**
        * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
@@ -1000,7 +1000,7 @@ namespace Kratos
 	    if(dimension==3)
 	      EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
 
-	    WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
 	    	firstCol+=dimension;
@@ -1029,7 +1029,7 @@ namespace Kratos
 #endif
 		  }
 	      }
-	
+
 
 	  }
 

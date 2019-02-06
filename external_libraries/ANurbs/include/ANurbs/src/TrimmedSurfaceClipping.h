@@ -48,20 +48,32 @@ private:
     ToIntPoint(
         const Vector2Type& point) const
     {
-        const int x = (int)(point[0] / m_scale);
-        const int y = (int)(point[1] / m_scale);
+        return ToIntPoint(Nth(point, 0), Nth(point, 1));
+    }
 
-        return {x, y};
+    inline ClipperLib::IntPoint
+    ToIntPoint(
+        const ScalarType x,
+        const ScalarType y) const
+    {
+        ClipperLib::IntPoint intPoint;
+
+        intPoint.X = (int)(x / m_scale);
+        intPoint.Y = (int)(y / m_scale);
+
+        return intPoint;
     }
 
     inline Vector2Type
     FromIntPoint(
-        const ClipperLib::IntPoint& point) const
+        const ClipperLib::IntPoint& intPoint) const
     {
-        const ScalarType x = point.X * m_scale;
-        const ScalarType y = point.Y * m_scale;
+        Vector2Type point;
 
-        return {x, y};
+        point[0] = intPoint.X * m_scale;
+        point[1] = intPoint.Y * m_scale;
+
+        return point;
     }
 
 private:
@@ -109,10 +121,10 @@ private:
         ClipperLib::Paths clip(1);
         ClipperLib::PolyTree polytree;
 
-        clip[0] << ToIntPoint({spanU.T0(), spanV.T0()})
-                << ToIntPoint({spanU.T1(), spanV.T0()})
-                << ToIntPoint({spanU.T1(), spanV.T1()})
-                << ToIntPoint({spanU.T0(), spanV.T1()});
+        clip[0] << ToIntPoint(spanU.T0(), spanV.T0())
+                << ToIntPoint(spanU.T1(), spanV.T0())
+                << ToIntPoint(spanU.T1(), spanV.T1())
+                << ToIntPoint(spanU.T0(), spanV.T1());
 
         ClipperLib::Clipper clipper;
         clipper.AddPaths(m_paths, ClipperLib::ptSubject, true);

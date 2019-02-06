@@ -90,7 +90,7 @@ public:
 
       double Radius = 0.0;
       //BOUNDARY flag must be set in model part nodes
-      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius);
+      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius,0.1);
 
       KRATOS_CATCH("")
     }
@@ -197,14 +197,18 @@ public:
 
             }
 
+            //check if free surface nodes are outside the bounding box
+            if( it->Is(FREE_SURFACE) ){
+              if( !mBoundingBox.IsInside( it->Coordinates() ) ){
+                it->Set(TO_ERASE,true);
+                std::cout<<" SELECTED to erase "<<std::endl;
+              }
+            }
+
             it->Set(SELECTED,false);
           }
 
-          //check if free surface nodes are outside the bounding box
-          if( it->Is(FREE_SURFACE) ){
-            if( !mBoundingBox.IsInside( it->Coordinates() ) )
-              it->Set(TO_ERASE,true);
-          }
+
         }
       }
       KRATOS_CATCH("")

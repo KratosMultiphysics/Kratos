@@ -1,4 +1,4 @@
-//   Project Name:        Kratos       
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: Nelson Lafontaine  $
 //   Date:                $Date: 2012-05-24 $
 //   Revision:            $Revision: 1.0 $
@@ -12,10 +12,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 #include "utilities/spatial_containers_configure.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "mpi.h"
 
 namespace Kratos
@@ -40,7 +40,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-    
+
 template <std::size_t TDimension>
 class MpiDiscreteParticleConfigure{
 public:
@@ -50,7 +50,7 @@ public:
              MAX_LEVEL = 16,
              MIN_LEVEL = 2
       };
-      
+
         typedef  Point                        PointType;
         typedef  std::vector<double>::iterator                   DistanceIteratorType;
         typedef  std::vector<typename Element::Pointer>          ContainerType; // ModelPart::ElementsContainerType::ContainerType ContainerType;
@@ -64,14 +64,14 @@ public:
         typedef  std::vector<ContactPairType>                    ContainerContactType;
         typedef  ContainerContactType::iterator                  IteratorContactType;
         typedef  ContainerContactType::value_type                PointerContactType;
-      
+
         typedef  std::vector<PointerType>::iterator              PointerTypeIterator;
 
 
 
 
 
-      
+
       /// Pointer definition of SpatialContainersConfigure
       KRATOS_CLASS_POINTER_DEFINITION(MpiDiscreteParticleConfigure);
 
@@ -91,11 +91,11 @@ public:
           ///@name Operations
           ///@{
 
-	    
+
     //******************************************************************************************************************
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint){
-        
+
         rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
 	double radius = rObject->GetGeometry()[0].GetSolutionStepValue(RADIUS);
 
@@ -108,14 +108,14 @@ public:
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius){
 
         rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
-        
+
         for(std::size_t i = 0; i < 3; i++){
             rLowPoint[i]  += -Radius;
             rHighPoint[i] += Radius;
             }
 
         }
-        
+
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter){
 
         rCenter  = rObject->GetGeometry().GetPoint(0);
@@ -151,21 +151,21 @@ public:
 
 
     //******************************************************************************************************************
-    
+
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
- 
+
 //        double separation_from_particle_radius_ratio = 0.1;
 
         array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
- 
+
         const double& radius = rObject->GetGeometry()[0].GetSolutionStepValue(RADIUS);
 
         bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
         rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
 
         return  intersect;
- 
+
     }
 
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
@@ -175,7 +175,7 @@ public:
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
- 
+
         rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
         return  intersect;
     }
@@ -195,22 +195,22 @@ public:
     {
         int mpi_rank;
         int mpi_size;
-        
+
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
+
         std::vector<int> reduceArray(mpi_size+1);
-        
+
         MPI_Allgather(&total_elements,1,MPI_INT,&reduceArray[1],1,MPI_INT,MPI_COMM_WORLD);
-        
+
         reduceArray[0] = 1;
         for(int i = 1; i <= mpi_size; i++)
             reduceArray[i] += reduceArray[i-1];
-        
+
         first_element = reduceArray[mpi_rank];
     }
 
-    template<class TObjectType>                            
+    template<class TObjectType>
     static inline void AsyncSendAndReceive(Communicator::Pointer Communicator,
                                            std::vector<TObjectType>& SendObjects,
                                            std::vector<TObjectType>& RecvObjects,
@@ -221,52 +221,52 @@ public:
         Communicator->AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
         Timer::Stop("ASYNC2");
     }
-    
+
     template<class TObjectType>
     static inline void AsyncSendAndReceive(std::vector<TObjectType>& SendObjects,
                                            std::vector<TObjectType>& RecvObjects,
                                            int * msgSendSize,
-                                           int * msgRecvSize)                                       
+                                           int * msgRecvSize)
     {
         Timer::Start("ASYNC1");
-        
+
         int mpi_rank;
         int mpi_size;
-      
+
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  
+
         std::stringstream * serializer_buffer;
         std::vector<std::string> buffer(mpi_size);
 //         std::string buffer[mpi_size];
-        
+
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i)
             {
                 Kratos::Serializer particleSerializer;
                 particleSerializer.save("nodes",SendObjects[i]);
-                
+
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 buffer[i] = std::string(serializer_buffer->str());
                 msgSendSize[i] = buffer[i].size();
             }
         }
-  
+
         MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
-  
+
         int NumberOfCommunicationEvents = 0;
         int NumberOfCommunicationEventsIndex = 0;
-        
+
         char * message[mpi_size];
         char * mpi_send_buffer[mpi_size];
-        
+
         for(int j = 0; j < mpi_size; j++)
         {
             if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
             if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
         }
-        
+
         MPI_Request reqs[NumberOfCommunicationEvents];
         MPI_Status stats[NumberOfCommunicationEvents];
 
@@ -293,7 +293,7 @@ public:
         MPI_Barrier(MPI_COMM_WORLD);
 
         for(int i = 0; i < mpi_size; i++)
-        { 
+        {
             if (i != mpi_rank && msgRecvSize[i])
             {
                 Kratos::Serializer particleSerializer;
@@ -305,19 +305,19 @@ public:
 
             MPI_Barrier(MPI_COMM_WORLD);
         }
-        
+
         // Free buffers
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i && msgRecvSize[i])
                 free(message[i]);
-            
+
             if(i != mpi_rank && msgSendSize[i])
                 free(mpi_send_buffer[i]);
         }
         Timer::Stop("ASYNC1");
     }
-     
+
     //******************************************************************************************************************
 
     ///@}
@@ -346,7 +346,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-      
+
 
     ///@}
 
@@ -442,7 +442,7 @@ private:
 
         return rOStream;
         }
-        
+
     ///@}
 
 }   // namespace Kratos.

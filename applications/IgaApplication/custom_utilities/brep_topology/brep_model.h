@@ -27,15 +27,13 @@ namespace Kratos
         bool GetNodesGeometry(
             ModelPart& rModelPart,
             const int brep_id,
-            const int rU,
-            const int rV);
+            const Vector& rLocalParameter);
 
         bool GetIntegrationDomainGeometry(
             ModelPart& rModelPart,
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -44,7 +42,6 @@ namespace Kratos
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -53,7 +50,6 @@ namespace Kratos
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -61,7 +57,6 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -71,7 +66,6 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
   

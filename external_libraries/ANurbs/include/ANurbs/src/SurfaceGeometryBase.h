@@ -222,6 +222,16 @@ public:
         return poles;
     }
 
+    ScalarType
+    Weight(
+        const int index) const
+    {
+        const int indexU = index / NbPolesV();
+        const int indexV = index % NbPolesV();
+
+        return Weight(indexU, indexV);
+    }
+
     virtual ScalarType
     Weight(
         const int indexU,

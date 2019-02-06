@@ -23,7 +23,7 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -122,8 +122,6 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
     rVariables.detFT = 1;
 
-    rVariables.detJ = 1;
-
     rVariables.B.resize( strain_size , number_of_nodes * dimension, false );
 
     rVariables.F.resize( 3, 3, false );
@@ -153,13 +151,6 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
-    rVariables.j = this->MPMJacobianDelta( rVariables.j, xg, rVariables.CurrentDisp);
-
-    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    rVariables.J = this->MPMJacobian( rVariables.J, xg);
-
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
@@ -172,13 +163,23 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     // Define the stress measure
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
+    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian( Jacobian, xg);
+
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, rVariables.detJ);
+    double detJ;
+    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
+
+    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
+    Matrix jacobian;
+    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n]
     rVariables.DN_DX = prod( rVariables.DN_De, InvJ);
@@ -188,7 +189,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(), Initial);
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
+    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
 
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
@@ -331,11 +332,6 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
-    // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
-
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
 
@@ -400,7 +396,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( dimension, dimension );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( dimension, dimension );
     double det_b=0;
     MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
@@ -509,7 +505,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -557,7 +553,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const a
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -604,18 +600,18 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
     if (dimension == 2 && rGeom.PointsNumber() == 3)
     {
         rResult.resize(3, false);
-        rResult( 0 ) = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
+        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
     }
     // For Quadrilateral 2D
     else if (dimension == 2 && rGeom.PointsNumber() == 4)
     {
         rResult.resize(4, false);
-        rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 2 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        rResult( 3 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
     }
 
     return rResult;
@@ -730,9 +726,6 @@ void UpdatedLagrangianAxisymmetry::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseJ0",mInverseJ0);
-    rSerializer.save("DeterminantJ0",mDeterminantJ0);
-
 }
 
 void UpdatedLagrangianAxisymmetry::load( Serializer& rSerializer )
@@ -741,8 +734,6 @@ void UpdatedLagrangianAxisymmetry::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseJ0",mInverseJ0);
-    rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 
 } // Namespace Kratos

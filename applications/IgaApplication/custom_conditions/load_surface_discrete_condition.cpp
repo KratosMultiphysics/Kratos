@@ -37,14 +37,11 @@ namespace Kratos
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-        Vector g3 = ZeroVector(3);
+        array_1d<double, 3> g3 = ZeroVector(3);
         IgaSurfaceUtilties::CalculateBaseVector(GetGeometry(), DN_De, g3);
 
         const double d_area = norm_2(g3);
         const double integration_weight_area = integration_weight * d_area;
-
-        KRATOS_WATCH(d_area)
-        KRATOS_WATCH(integration_weight)
 
         // Surface loads
         if (this->Has(SURFACE_LOAD))

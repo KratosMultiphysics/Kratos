@@ -11,7 +11,7 @@
 // System includes
 
 // External includes
- 
+
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.h"
 #include "includes/cfd_variables.h"
@@ -26,7 +26,7 @@ namespace Kratos {
 
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
     return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(NewElement) );
-    
+
     KRATOS_CATCH("");
 
   }
@@ -48,14 +48,14 @@ namespace Kratos {
       this->InitializeElementalVariables(rElementalVariables);
       // Loop on integration points
       const ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
-      
+
       // const unsigned int NumGauss = GaussWeights.size();
       // if(NumGauss==1){
       // 	this->CalcElementalStrains(rElementalVariables,rCurrentProcessInfo,rDN_DX);
       // }else{
       // 	std::cout<<"a different structure is required for more gauss points"<<std::endl;
       // }
- 
+
       double elementVolume=0;
       if(TDim==3){
 	elementVolume=rGeom.Volume()*0.25;
@@ -71,14 +71,14 @@ namespace Kratos {
 
 	  if(nodalSFDneighboursSize>1){
 	    double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-	    WeakPointerVector<Element >& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
 	    double numberOfNeighElems=double(neighb_elems.size());
 	    meshSize+=this->ElementSize()/numberOfNeighElems;
 
 	    if(rGeom[i].Is(FREE_SURFACE)){
 	      this->NodalFreeSurfaceLength(i);
 	    }
-	  
+
 	    const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
 
 	    // the nodal strain measure could be also be computed as follows (now they are computed in the strategy)
@@ -89,7 +89,7 @@ namespace Kratos {
 	      for (unsigned int j = 0; j< NumNodes; j++)
 		{
 		  unsigned int position=rGeom[j].Id();
-	     
+
 		  unsigned int SFDposition=0;
 		  for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
 		    {
@@ -103,9 +103,9 @@ namespace Kratos {
 		      }
 		      SFDposition+=TDim;
 		    }
-	      
+
 		}
-	    
+
 	  }
 	  else{
 	    std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
@@ -115,17 +115,17 @@ namespace Kratos {
 	      }
 	  }
 	}
-	 
 
 
-      
+
+
       KRATOS_CATCH( "" );
 
     }
 
 
 
-  
+
   template< >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::NodalFreeSurfaceLength(unsigned int nodeIndex)
   {
@@ -134,7 +134,7 @@ namespace Kratos {
     array_1d<double,2> Edge(2,0.0);
     // unsigned int countFreeSurface=1;
     for (SizeType i = 0; i < NumNodes; i++){
-      
+
       if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex){
 	noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
 	rGeom[nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
@@ -142,14 +142,14 @@ namespace Kratos {
       }
     }
     // if(countFreeSurface==NumNodes){
-    //   WeakPointerVector<Element >& neighb_elemsA = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-    //   WeakPointerVector<Element >& neighb_elemsB = rGeom[1].GetValue(NEIGHBOUR_ELEMENTS);
-    //   WeakPointerVector<Element >& neighb_elemsC = rGeom[2].GetValue(NEIGHBOUR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsA = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsB = rGeom[1].GetValue(NEIGHBOUR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsC = rGeom[2].GetValue(NEIGHBOUR_ELEMENTS);
     //   if(neighb_elemsA.size()==1 && neighb_elemsB.size()==1 && neighb_elemsC.size()==1){
     // 	rGeom[nodeIndex].Set(ISOLATED);
     //   }
     // }
-      
+
   }
 
   template< >
@@ -162,48 +162,48 @@ namespace Kratos {
 
 
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-      
+
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(1));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(2));
       const double c = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(0));
-	  
+
       const double s = (a+b+c) / 2.0;
-	  
+
       rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
-      
+
     }
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-            
+
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(1));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(3));
       const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(0));
-	  
+
       const double s = (a+b+c) / 2.0;
-	  
+
       rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
 
     }
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-      
+
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(2));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(3));
       const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(0));
-	  
+
       const double s = (a+b+c) / 2.0;
-	  
+
       rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
-      
+
     }
-    if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
-      
+    if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+
       const double a = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(2));
       const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(3));
       const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(1));
-	  
+
       const double s = (a+b+c) / 2.0;
-	  
+
       rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
-      
+
     }
 
   }
@@ -246,7 +246,7 @@ namespace Kratos {
       }
   }
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::CalcElementalStrains(ElementalVariables & rElementalVariables,
 											 const ProcessInfo &rCurrentProcessInfo,
 											 const ShapeFunctionDerivativesType& rDN_DX)
@@ -263,7 +263,7 @@ namespace Kratos {
     //   theta=1.0;
     // }
     this->GetNodesPosition(NodesPosition,rCurrentProcessInfo,theta);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -285,14 +285,14 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
-				    rElementalVariables.InvFgrad, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
 
     // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
-    // 				    rElementalVariables.InvFgradVel, 
+    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
+    // 				    rElementalVariables.InvFgradVel,
     // 				    rElementalVariables.DetFgradVel);
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -308,7 +308,7 @@ namespace Kratos {
     rElementalVariables.SpatialDefRate[0]=rElementalVariables.SpatialVelocityGrad(0,0);
     rElementalVariables.SpatialDefRate[1]=rElementalVariables.SpatialVelocityGrad(1,1);
     rElementalVariables.SpatialDefRate[2]=0.5*(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1));
-  
+
     double aThird=1.0/3.0;
     double dev_X=rElementalVariables.SpatialDefRate[0]-
       (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1])*aThird;
@@ -322,9 +322,9 @@ namespace Kratos {
 						   4.0*rElementalVariables.SpatialDefRate[2]*rElementalVariables.SpatialDefRate[2]));
 
 
-  }  
+  }
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::CalcElementalStrains(ElementalVariables & rElementalVariables,
 											 const ProcessInfo &rCurrentProcessInfo,
 											 const ShapeFunctionDerivativesType& rDN_DX)
@@ -341,7 +341,7 @@ namespace Kratos {
       theta=1.0;
     }
     this->GetNodesPosition(NodesPosition,rCurrentProcessInfo,theta);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -363,27 +363,27 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
-				    rElementalVariables.InvFgrad, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
 
     // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
-    // 				    rElementalVariables.InvFgradVel, 
+    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
+    // 				    rElementalVariables.InvFgradVel,
     // 				    rElementalVariables.DetFgradVel);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
     rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
-  
+
     rElementalVariables.VolumetricDefRate=0;
     for (SizeType i = 0; i < dimension; i++)
       {
 	rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
       }
-  
+
     rElementalVariables.SpatialDefRate[0]=rElementalVariables.SpatialVelocityGrad(0,0);
     rElementalVariables.SpatialDefRate[1]=rElementalVariables.SpatialVelocityGrad(1,1);
     rElementalVariables.SpatialDefRate[2]=rElementalVariables.SpatialVelocityGrad(2,2);
@@ -415,8 +415,8 @@ namespace Kratos {
   }
 
 
-  
-  
+
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
 											     Matrix &NContainer,
@@ -438,7 +438,7 @@ namespace Kratos {
     }
   }
 
-  
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 												    std::vector<double>& rValues,
@@ -451,7 +451,7 @@ namespace Kratos {
     if ( rVariable == FLOW_INDEX)
       {
 	rValues[0]=this->GetValue(FLOW_INDEX);
-      }	
+      }
   }
 
 
@@ -502,7 +502,7 @@ namespace Kratos {
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
       }
-    
+
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
       {

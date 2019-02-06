@@ -38,7 +38,7 @@ namespace Kratos
         // Utilities
         /* Returns trimming curve index
         */
-        int& GetTrimIndex();
+        const int& GetTrimIndex() const;
 
         const Kratos::shared_ptr<Kratos::Curve<2>> GetCurve2D() const;
 

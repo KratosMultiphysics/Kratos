@@ -171,7 +171,7 @@ public:
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * n * n * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy * n * n / CharacteristicLength);
         }
@@ -225,12 +225,12 @@ public:
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double checker = std::abs(lode_angle * 180 / Globals::Pi);
+        const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c2, c3;
         const double c1 = 0.0;
 
-        if (checker < 29.0) {
+        if (std::abs(checker) < 29.0) { // the lode_angle cannot be greater than pi/6
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
         } else {

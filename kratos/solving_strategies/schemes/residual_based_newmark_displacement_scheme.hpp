@@ -82,6 +82,24 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Constructor. The Newmark method (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
+      :DerivedBaseType(0.0)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Default constructor. The Newmark method
+     */
     explicit ResidualBasedNewmarkDisplacementScheme()
       :DerivedBaseType(0.0)
     {

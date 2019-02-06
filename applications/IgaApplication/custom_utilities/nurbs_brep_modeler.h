@@ -10,6 +10,9 @@
 
 #include "brep_json_io.h"
 #include "brep_topology/brep_model.h"
+
+#include "integration_utilities/iga_integration_utilities.h"
+
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -96,6 +99,8 @@ namespace Kratos
         ///@name Private Operations
         ///@{
 
+        const BrepEdge& GetBrepEdge(int& rBrepId) const;
+        const BrepFace& GetBrepFace(int& rBrepId) const;
         ///@}
         ///@name Un accessible methods
         ///@{

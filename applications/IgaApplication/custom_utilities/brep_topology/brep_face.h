@@ -90,13 +90,17 @@ namespace Kratos
         void GetGeometryNodes(
             ModelPart& rModelPart,
             const int& rU,
-            const int& rV);
+            const int& rV) const;
+
+        void GetGeometryVariationNodes(
+            ModelPart& rModelPart,
+            const int& rU,
+            const int& rV) const;
 
         void GetGeometryIntegration(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -104,16 +108,14 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         void CreateIntegrationElementsConditions(
             std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
 
@@ -122,7 +124,6 @@ namespace Kratos
             const int trim_index,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -157,6 +158,7 @@ namespace Kratos
             bool rIsRational,
             std::vector<BrepBoundaryLoop>& rTrimmingLoops,
             std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
+            std::vector<BrepTrimmingCurve>& rEmbeddedEdges,
             std::vector<EmbeddedPoint>& rEmbeddedPoints,
             Vector& rKnotVectorU,
             Vector& rKnotVectorV,
@@ -175,6 +177,7 @@ namespace Kratos
         bool m_is_rational;
         std::vector<BrepBoundaryLoop> mTrimmingLoops;
         std::vector<BrepBoundaryLoop> mEmbeddedLoops;
+        std::vector<BrepTrimmingCurve> mEmbeddedEdges;
         std::vector<EmbeddedPoint> mEmbeddedPoints;
 
         //3d surface parameters

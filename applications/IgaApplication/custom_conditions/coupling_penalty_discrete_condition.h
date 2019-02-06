@@ -16,23 +16,24 @@
 #define  KRATOS_COUPLING_PENALTY_DISCRETE_CONDITION_H_INCLUDED
 
 // System includes
-//#include "includes/define.h"
-//#include "includes/condition.h"
-//#include "includes/variables.h"
+#include "includes/define.h"
+#include "includes/condition.h"
 
 // External includes
 
 // Project includes
-#include "custom_conditions/coupling_base_discrete_condition.h"
 #include "iga_application_variables.h"
 
 #include "custom_utilities/iga_flags.h"
+
+#include "custom_conditions/base_discrete_condition.h"
+
 
 namespace Kratos
 {
 
 class CouplingPenaltyDiscreteCondition
-    : public CouplingBaseDiscreteCondition
+    : public BaseDiscreteCondition
 {
 public:
 
@@ -41,20 +42,42 @@ public:
 
     /// Default constructor.
     CouplingPenaltyDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : CouplingBaseDiscreteCondition(NewId, pGeometry)
+        : BaseDiscreteCondition(NewId, pGeometry)
     {};
 
     CouplingPenaltyDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : CouplingBaseDiscreteCondition(NewId, pGeometry, pProperties)
+        : BaseDiscreteCondition(NewId, pGeometry, pProperties)
     {};
 
     CouplingPenaltyDiscreteCondition()
-        : CouplingBaseDiscreteCondition()
+        : BaseDiscreteCondition()
     {};
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    /**
+    * @brief Creates a new element
+    * @param NewId The Id of the new created element
+    * @param pGeom The pointer to the geometry of the element
+    * @param pProperties The pointer to property
+    * @return The pointer to the created element
+    */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override
     {
-        return Kratos::make_shared< CouplingPenaltyDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<CouplingPenaltyDiscreteCondition>(
+            NewId, pGeom, pProperties);
+    };
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+    ) const override
+    {
+        return Kratos::make_shared< CouplingPenaltyDiscreteCondition >(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     /// Destructor.
@@ -97,21 +120,74 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    void Initialize();
+
     void GetShapeFunctions(
         Vector& rShapeFunctions);
 
 private:
+
+    array_1d<double, 3> mg1_0_slave;
+    array_1d<double, 3> mg2_0_slave;
+    array_1d<double, 3> mg3_0_slave;
+    array_1d<double, 3> mg1_0_master;
+    array_1d<double, 3> mg2_0_master;
+    array_1d<double, 3> mg3_0_master;
+
+    void CaculateRotationalShapeFunctions(
+        Vector& Phi_r,
+        Vector& Phi_r_Lambda,
+        Matrix& Phi_rs,
+        array_1d<double, 2>& Diff_Phi);
+
+    void CaculateRotation(const Matrix &ShapeFunctionDerivatives,
+        Vector &Phi_r,
+        Matrix &Phi_rs,
+        array_1d<double, 2> &Phi,
+        array_1d<double, 3> &TrimTangent,
+        const Vector &Tangents,
+        const bool Master);
+
+    void CaculateRotation2(const Matrix &ShapeFunctionDerivatives,
+        Vector &Phi_r,
+        Matrix &Phi_rs,
+        array_1d<double, 2> &Phi,
+        array_1d<double, 3> &TrimTangent,
+        const Vector &Tangents,
+        const bool Master);
+
+    void JacobianElement(const Matrix& DN_De,
+        Matrix& Jacobian, const bool Master);
+
+    void MappingGeometricToParameterMasterElement(const Matrix& DN_De_Master,
+        const array_1d<double, 2>& Tangents,
+        double& JGeometricToParameter);
+
+    void MappingGeometricToParameterOnMasterCurve(double& JGeometricToParameter);
+
 
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+        rSerializer.save("g1_0_slave", mg1_0_slave);
+        rSerializer.save("g2_0_slave", mg2_0_slave);
+        rSerializer.save("g3_0_slave", mg3_0_slave);
+        rSerializer.save("g1_0_master", mg1_0_master);
+        rSerializer.save("g2_0_master", mg2_0_master);
+        rSerializer.save("g3_0_master", mg3_0_master);
     }
 
     virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+        rSerializer.load("g1_0_slave", mg1_0_slave);
+        rSerializer.load("g2_0_slave", mg2_0_slave);
+        rSerializer.load("g3_0_slave", mg3_0_slave);
+        rSerializer.load("g1_0_master", mg1_0_master);
+        rSerializer.load("g2_0_master", mg2_0_master);
+        rSerializer.load("g3_0_master", mg3_0_master);
     }
 
 }; // Class CouplingPenaltyDiscreteCondition

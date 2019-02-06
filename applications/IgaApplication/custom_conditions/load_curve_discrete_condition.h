@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-//#include "iga_application_variables.h"
+#include "iga_application_variables.h"
 
 #include "custom_conditions/base_discrete_condition.h"
 

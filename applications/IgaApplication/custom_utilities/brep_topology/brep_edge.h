@@ -104,22 +104,28 @@ namespace Kratos
         */
         bool IsCouplingEdge();
 
+        void GetGeometryNodes(
+            ModelPart& rModelPart,
+            const int& rT) const;
+
+        void GetGeometryVariationNodes(
+            ModelPart& rModelPart,
+            const int& rT) const;
+
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         void GetIntegrationBrep(
             ModelPart& rModelPart,
             const int& trim_index,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         
         const EdgeTopology GetEdgeTopology(
@@ -128,6 +134,8 @@ namespace Kratos
         const Kratos::shared_ptr<NodeCurveGeometry3D> GetCurve3d() const;
 
         const std::vector<EdgeTopology>& GetBrepEdgeTopologyVector() const; 
+
+        const int GetNumberOfEdgeTopologies() const;
 
         ///Constructor
         BrepEdge(

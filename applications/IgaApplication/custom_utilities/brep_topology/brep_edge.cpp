@@ -18,6 +18,51 @@
 
 namespace Kratos
 {
+    void BrepEdge::GetGeometryNodes(
+        ModelPart& rModelPart,
+        const int& rT) const
+    {
+        int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+
+        int t_start = 0;
+        int t_end = number_of_cps;
+
+        if (rT >= 0)
+        {
+            t_start = rT * (number_of_cps - 1);
+            t_end = rT * (number_of_cps - 1) + 1;
+        }
+
+        for (int i = t_start; i < t_end; ++i)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(i));
+        }
+    }
+
+    void BrepEdge::GetGeometryVariationNodes(
+        ModelPart& rModelPart,
+        const int& rT) const
+    {
+        int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+
+        if (number_of_cps < 3)
+        {
+            KRATOS_ERROR << "BrepEdge::GetGeometryVariationNodes: Not enough control points to get Variation Nodes." << std::endl;
+        }
+
+        int t_start = 1;
+        int t_end = number_of_cps - 1;
+
+        if (rT == 0)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(1));
+        }
+        else if (rT == 1)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(number_of_cps - 1));
+        }
+    }
+
     bool BrepEdge::IsCouplingEdge()
     {
         return (mBrepEdgeTopologyVector.size() > 1);
@@ -33,15 +78,17 @@ namespace Kratos
         return mBrepEdgeTopologyVector[rTopologyIndex];
     }
 
+    const int BrepEdge::GetNumberOfEdgeTopologies() const
+    {
+        return mBrepEdgeTopologyVector.size();
+    }
+
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
         const int& rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
         //{
             //auto this_curve = Kratos::make_unique<Kratos::Curve<3>>(
@@ -82,7 +129,7 @@ namespace Kratos
                         if (rModelPart.GetRootModelPart().Elements().size() > 0)
                             id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
                         element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -93,7 +140,7 @@ namespace Kratos
                         int id = 0;
                         if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                             int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
                         condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -122,9 +169,8 @@ namespace Kratos
         const int& trim_index,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
         const int& rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
         for (int ep = 0; ep < mEmbeddedPoints.size(); ++ep)
         {
