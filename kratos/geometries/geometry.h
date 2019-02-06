@@ -14,6 +14,7 @@
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_GEOMETRY_H_INCLUDED )
@@ -91,7 +92,23 @@ public:
       VOLUME_TO_SURFACE_AREA,
       VOLUME_TO_EDGE_LENGTH,
       VOLUME_TO_AVERAGE_EDGE_LENGTH,
-      VOLUME_TO_RMS_EDGE_LENGTH
+      VOLUME_TO_RMS_EDGE_LENGTH,
+      MIN_DIHEDRAL_ANGLE,
+      MAX_DIHEDRAL_ANGLE,
+      MIN_SOLID_ANGLE
+    };
+
+    /**
+     * @brief This defines the different methods to compute the lumping methods
+     * @details The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    enum class LumpingMethods {
+        ROW_SUM,
+        DIAGONAL_SCALING,
+        QUADRATURE_ON_NODES
     };
 
 
@@ -410,10 +427,105 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult )  const
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    virtual Vector& LumpingFactors(
+        Vector& rResult,
+        const LumpingMethods LumpingMethod = LumpingMethods::ROW_SUM
+        )  const
     {
-        KRATOS_ERROR << "Called the virtual function for LumpingFactors " << *this << std::endl;
+        const SizeType number_of_nodes = this->size();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+
+        // Clear lumping factors
+        if (rResult.size() != number_of_nodes)
+            rResult.resize(number_of_nodes, false);
+        rResult = ZeroVector(number_of_nodes);
+
+        if (LumpingMethod == LumpingMethods::ROW_SUM) {
+            const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            // Vector fo jacobians
+            Vector detJ_vector(r_integrations_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
+            double domain_size = 0.0;
+            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ_vector[point_number];
+                const Vector& rN = row(r_Ncontainer,point_number);
+
+                // Computing domain size
+                domain_size += integration_weight;
+
+                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                    rResult[i] += rN[i] * integration_weight;
+                }
+            }
+
+            // Divide by the domain size
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                rResult[i] /= domain_size;
+            }
+        } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
+            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            // Vector fo jacobians
+            Vector detJ_vector(r_integrations_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
+            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
+                const double detJ = detJ_vector[point_number];
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
+                const Vector& rN = row(r_Ncontainer,point_number);
+
+                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                    rResult[i] += std::pow(rN[i], 2) * integration_weight;
+                }
+            }
+
+            // Computing diagonal scaling coefficient
+            double total_value = 0.0;
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                total_value += rResult[i];
+            }
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                rResult[i] /= total_value;
+            }
+        } else if (LumpingMethod == LumpingMethods::QUADRATURE_ON_NODES) {
+            // Divide by the domain size
+            const double domain_size = DomainSize();
+
+            // Getting local coordinates
+            Matrix local_coordinates(number_of_nodes, local_space_dimension);
+            PointsLocalCoordinates(local_coordinates);
+            Point local_point(ZeroVector(3));
+            array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
+
+            // Iterate over integration points
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
+            const double weight = r_integrations_points[0].Weight()/static_cast<double>(number_of_nodes);
+            for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
+                for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
+                    r_local_coordinates[dim] = local_coordinates(point_number, dim);
+                }
+                const double detJ = DeterminantOfJacobian(local_point);
+                rResult[point_number] = weight * detJ/domain_size;
+            }
+        }
+
         return rResult;
     }
 
@@ -773,10 +885,36 @@ public:
          quality = VolumeToAverageEdgeLength();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH) {
          quality = VolumeToRMSEdgeLength();
+       } else if(qualityCriteria == QualityCriteria::MIN_DIHEDRAL_ANGLE) {
+         quality = MinDihedralAngle();
+       } else if (qualityCriteria == QualityCriteria::MAX_DIHEDRAL_ANGLE) {
+         quality = MaxDihedralAngle();
+       } else if(qualityCriteria == QualityCriteria::MIN_SOLID_ANGLE) {
+         quality = MinSolidAngle();
        }
 
        return quality;
      }
+
+    /** Calculates the dihedral angles of the geometry.
+     * Calculates the dihedral angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles )  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
+
+    /** Calculates the solid angles of the geometry.
+     * Calculates the solid angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles )  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
 
     ///@}
     ///@name Access
@@ -1349,19 +1487,21 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        const Matrix& ShapeFunctionsGradientInIntegrationPoint = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
+        const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += (( *this )[i]).Coordinates()[k]*ShapeFunctionsGradientInIntegrationPoint(i,m);
+        const SizeType points_number = this->PointsNumber();
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k];
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += value * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1379,7 +1519,7 @@ public:
     @param ThisMethod integration method which jacobians has to
     be calculated in its integration points.
 
-    @param DeltaPosition Matrix with the nodes position increment which describes
+    @param rDeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
@@ -1389,21 +1529,23 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix& DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, const Matrix& rDeltaPosition ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        const Matrix& ShapeFunctionsGradientInIntegrationPoint = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
+        const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += ( (( *this )[i]).Coordinates()[k]  - DeltaPosition(i,k)  )*ShapeFunctionsGradientInIntegrationPoint(i,m);
+        const SizeType points_number = this->PointsNumber();
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k] - rDeltaPosition(i,k);
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += value * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1424,20 +1566,22 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType points_number = this->PointsNumber();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += (( *this )[i]).Coordinates()[k]*shape_functions_gradients(i,m);
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k];
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += value * shape_functions_gradients(i,m);
                 }
             }
         }
@@ -1451,7 +1595,7 @@ public:
     @param rCoordinates point which jacobians has to
     be calculated in it.
 
-    @param DeltaPosition Matrix with the nodes position increment which describes
+    @param rDeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -1460,22 +1604,24 @@ public:
     @see InverseOfJacobian
     */
 
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& rDeltaPosition ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType points_number = this->PointsNumber();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += ( (( *this )[i]).Coordinates()[k] - DeltaPosition(i,k))*shape_functions_gradients(i,m);
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k] - rDeltaPosition(i,k);
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += value * shape_functions_gradients(i,m);
                 }
             }
         }
@@ -2387,6 +2533,39 @@ protected:
      */
     virtual double VolumeToRMSEdgeLength() const {
       KRATOS_ERROR << "Calling base class 'VolumeToRMSEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element 
+     * In radians
+     * @return [description]
+     */
+    virtual double MinDihedralAngle() const {
+      KRATOS_ERROR << "Calling base class 'MinDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    virtual double MaxDihedralAngle() const {
+        KRATOS_ERROR << "Calling base class 'MaxDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
+    }
+
+    /** Calculates the min solid angle quality metric.
+     * Calculates the min solid angle quality metric.
+     * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry. Valid only for 3d elems!
+     * In stereo radians
+     * @return [description]
+     */
+    virtual double MinSolidAngle() const {
+      KRATOS_ERROR << "Calling base class 'MinSolidAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
     }
 

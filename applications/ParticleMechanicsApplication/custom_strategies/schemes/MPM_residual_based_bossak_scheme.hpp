@@ -422,9 +422,6 @@ public:
                 double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
                 double & nodal_density = (i)->FastGetSolutionStepValue(DENSITY);
-                double & nodal_aux_R   = (i)->FastGetSolutionStepValue(AUX_R);
-                array_1d<double, 3 > & nodal_aux_R_vel = (i)->FastGetSolutionStepValue(AUX_R_VEL);
-                array_1d<double, 3 > & nodal_aux_R_acc = (i)->FastGetSolutionStepValue(AUX_R_ACC);
 
                 nodal_momentum.clear();
                 nodal_inertia.clear();
@@ -432,9 +429,6 @@ public:
                 nodal_pressure = 0.0;
 
                 nodal_density = 0.0;
-                nodal_aux_R = 0.0;
-                nodal_aux_R_vel.clear();
-                nodal_aux_R_acc.clear();
             }
 
             if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
@@ -506,7 +500,7 @@ public:
 			{
 
 			    auto i = mr_grid_model_part.NodesBegin() + iter;
-			    const double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
+			    const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 
                 if (nodal_mass > 1.0e-16 )
                 {
@@ -671,17 +665,6 @@ public:
                                       ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-                i != mr_grid_model_part.NodesEnd(); ++i)
-        {
-            if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
-            {
-                array_1d<double, 3 > & external_force = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
-                array_1d<double, 3 > & internal_force = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
-                external_force.clear();
-                internal_force.clear();
-            }
-        }
     }
 
     //***************************************************************************

@@ -28,22 +28,21 @@ template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNum
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    TVarType& OriginVariable,
-    TVarType& DestinationVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-    ): mOriginModelPart(rOriginModelPart),
-       mDestinationModelPart(rDestinationModelPart),
-       mOriginVariable(OriginVariable),
-       mDestinationVariable(DestinationVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
+    ):  mOriginModelPart(rOriginModelPart),
+        mDestinationModelPart(rDestinationModelPart),
+        mOriginVariable(KratosComponents<TVarType>::Get(ThisParameters["origin_variable"].GetString())),
+        mDestinationVariable((ThisParameters["destination_variable"].GetString() == "") ? mOriginVariable : KratosComponents<TVarType>::Get(ThisParameters["destination_variable"].GetString())),
+        mThisParameters(ThisParameters),
+        mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -68,9 +67,39 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
+    mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
+    mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
+    mEchoLevel = mThisParameters["echo_level"].GetInt();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
+SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    TVarType& OriginVariable,
+    TVarType& DestinationVariable,
+    Parameters ThisParameters,
+    LinearSolverType::Pointer pThisLinearSolver
+    ): mOriginModelPart(rOriginModelPart),
+       mDestinationModelPart(rDestinationModelPart),
+       mOriginVariable(OriginVariable),
+       mDestinationVariable(DestinationVariable),
+       mThisParameters(ThisParameters),
+       mpThisLinearSolver(pThisLinearSolver)
+{
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -88,6 +117,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
         ExecuteExplicitMapping();
     else
         ExecuteImplicitMapping();
+
+    // We apply the coeffcient if different of one
+    if (mMappingCoefficient != 1.0) {
+        NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+
+        if (mDestinationHistorical) {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
+                auto it_node = r_nodes_array.begin() + k;
+                it_node->FastGetSolutionStepValue(mDestinationVariable) *= mMappingCoefficient;
+            }
+        } else {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
+                auto it_node = r_nodes_array.begin() + k;
+                it_node->GetValue(mDestinationVariable) *= mMappingCoefficient;
+            }
+        }
+    }
 
     KRATOS_CATCH("");
 }
@@ -596,6 +644,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
 
@@ -663,8 +712,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         }
 
         // We remove the not used conditions
-        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
-        root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        if (remove_isolated_conditions) {
+            ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+            r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
 
         NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(r_nodes_array.size());
@@ -723,6 +774,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
 
@@ -784,8 +836,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         }
 
         // We remove the not used conditions
-        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
-        r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        if (remove_isolated_conditions) {
+            ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+            r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
 
         // Finally we solve the system
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
@@ -827,6 +881,10 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
+        "remove_isolated_conditions"       : false,
+        "mapping_coefficient"              : 1.0e0,
+        "origin_variable"                  : "TEMPERATURE",
+        "destination_variable"             : "",
         "origin_variable_historical"       : true,
         "destination_variable_historical"  : true,
         "search_parameters"                : {

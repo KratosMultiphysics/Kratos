@@ -41,8 +41,8 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_parts_die","Parts_parts_slab"],
-        "processes_sub_model_part_list"      : ["Contact_Part","DISPLACEMENT_bc_fix","DISPLACEMENT_bc_rolling_support",
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_parts_die","Parts_parts_slab"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","DISPLACEMENT_bc_rolling_support",
                                                 "DISPLACEMENT_bc_press", "Parts_parts_die",		"Parts_parts_slab"],
         "rotation_dofs"                      : false
     },
@@ -73,7 +73,7 @@
             }
         },{
             "python_module"   : "impose_vector_value_by_components_over_time_process",
-            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "process_name"          : "ImposeVectorValueByComponentsOverTimeProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
@@ -91,7 +91,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {

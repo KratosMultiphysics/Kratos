@@ -166,7 +166,8 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeLinearRegre
     SizeType n = 0;
 
     // Initialize the values
-    double xi, yi;
+    double xi = 0.0;
+    double yi = 0.0;
     double sum_x, sum_xsq, sum_y, sum_xy;
 
     sum_x = 0.0;
@@ -258,6 +259,10 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithR
             case BaseType::TypeSolution::NormalContactStress :
                 CorrectALMFrictionlessMortarLM(ItNode, a, b);
                 break;
+            case BaseType::TypeSolution::FrictionlessPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::FrictionalPenaltyMethod :
+                break;
         }
     } else {
         ItNode->Set(ACTIVE, true);
@@ -275,6 +280,10 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithR
                 break;
             case BaseType::TypeSolution::NormalContactStress :
                 PredictALMFrictionlessMortarLM(ItNode, a, b);
+                break;
+            case BaseType::TypeSolution::FrictionlessPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::FrictionalPenaltyMethod :
                 break;
         }
     }

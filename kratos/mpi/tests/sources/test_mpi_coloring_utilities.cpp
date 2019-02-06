@@ -14,7 +14,6 @@
 #include "mpi.h"
 #include "mpi/mpi_environment.h"
 #include "mpi/utilities/mpi_coloring_utilities.h"
-#include "includes/parallel_environment.h"
 
 #include "testing/testing.h"
 

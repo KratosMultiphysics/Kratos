@@ -830,6 +830,11 @@ public:
             }
             delete [] temp;
         }
+        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag)
+        {
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(pDx->Map()) );
+            BaseType::mpReactionsVector.swap(pNewReactionsVector);
+        }
         else
         {
             if(TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)

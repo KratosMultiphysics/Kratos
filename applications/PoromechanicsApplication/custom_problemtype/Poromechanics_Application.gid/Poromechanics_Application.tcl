@@ -75,11 +75,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     WriteProjectParameters $basename $dir $problemtypedir $TableDict
 
     # Copy python script in the problemdir
-    if {[GiD_AccessValue get gendata Fracture_Propagation] eq true} {
-        file copy -force [file join $problemtypedir poromechanics_fracture_main.py] [file join $dir MainKratos.py]
-    } else {
-        file copy -force [file join $problemtypedir KratosPoromechanics.py] [file join $dir MainKratos.py]
-    }
+    file copy -force [file join $problemtypedir KratosPoromechanics.py] [file join $dir MainKratos.py]
 
     # Run the problem
     set run 1
@@ -161,6 +157,8 @@ proc Poromechanics_Application::PropagateFractures3D { } {
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 proc Poromechanics_Application::CreateContactEntity { } {
+
+    ## This proc can be called from the command line of GiD as "-np- Poromechanics_Application::CreateContactEntity"
 
     set LayerName "Layer0"
 
