@@ -123,7 +123,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     if (!mThisParameters["nodal_mass"].IsNull())
             p_properties->SetValue(NODAL_MASS, mThisParameters["nodal_mass"].GetDouble());
     if (!mThisParameters["nodal_inertia"][0].IsNull() || !mThisParameters["nodal_inertia"][1].IsNull() || !mThisParameters["nodal_inertia"][2].IsNull()) {
-        array_1d<double, 3> nodal_inertia(3, 0.0);
+        array_1d<double, 3> nodal_inertia = ZeroVector(3);;
         if (!mThisParameters["nodal_inertia"][0].IsNull())
             nodal_inertia[0] = mThisParameters["nodal_inertia"][0].GetDouble();
         if (!mThisParameters["nodal_inertia"][1].IsNull())
@@ -134,7 +134,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         p_properties->SetValue(NODAL_INERTIA, nodal_inertia);
     }
     if (!mThisParameters["nodal_stiffness"][0].IsNull() || !mThisParameters["nodal_stiffness"][1].IsNull() || !mThisParameters["nodal_stiffness"][2].IsNull()) {
-        array_1d<double, 3> nodal_stiffness(3, 0.0);
+        array_1d<double, 3> nodal_stiffness = ZeroVector(3);;
         if (!mThisParameters["nodal_stiffness"][0].IsNull())
             nodal_stiffness[0] = mThisParameters["nodal_stiffness"][0].GetDouble();
         if (!mThisParameters["nodal_stiffness"][1].IsNull())
@@ -145,7 +145,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         p_properties->SetValue(NODAL_DISPLACEMENT_STIFFNESS, nodal_stiffness);
     }
     if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull() || !mThisParameters["nodal_rotational_stiffness"][1].IsNull() || !mThisParameters["nodal_rotational_stiffness"][2].IsNull()) {
-        array_1d<double, 3> nodal_rotational_stiffness(3, 0.0);
+        array_1d<double, 3> nodal_rotational_stiffness = ZeroVector(3);;
         if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull())
             nodal_rotational_stiffness[0] = mThisParameters["nodal_rotational_stiffness"][0].GetDouble();
         if (!mThisParameters["nodal_rotational_stiffness"][1].IsNull())
@@ -156,7 +156,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         p_properties->SetValue(NODAL_ROTATIONAL_STIFFNESS, nodal_rotational_stiffness);
     }
     if (!mThisParameters["nodal_damping_ratio"][0].IsNull() || !mThisParameters["nodal_damping_ratio"][1].IsNull() || !mThisParameters["nodal_damping_ratio"][2].IsNull()) {
-        array_1d<double, 3> nodal_damping_ratio(3, 0.0);
+        array_1d<double, 3> nodal_damping_ratio = ZeroVector(3);;
         if (!mThisParameters["nodal_damping_ratio"][0].IsNull())
             nodal_damping_ratio[0] = mThisParameters["nodal_damping_ratio"][0].GetDouble();
         if (!mThisParameters["nodal_damping_ratio"][1].IsNull())
@@ -167,7 +167,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         p_properties->SetValue(NODAL_DAMPING_RATIO, nodal_damping_ratio);
     }
     if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull() || !mThisParameters["nodal_rotational_damping_ratio"][1].IsNull() || !mThisParameters["nodal_rotational_damping_ratio"][2].IsNull()) {
-        array_1d<double, 3> nodal_rotational_damping_ratio(3, 0.0);
+        array_1d<double, 3> nodal_rotational_damping_ratio = ZeroVector(3);;
         if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull())
             nodal_rotational_damping_ratio[0] = mThisParameters["nodal_rotational_damping_ratio"][0].GetDouble();
         if (!mThisParameters["nodal_rotational_damping_ratio"][1].IsNull())
