@@ -325,8 +325,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -765,7 +775,7 @@ public:
      * In radians
      * @return [description]
      */
-    virtual double MinDihedralAngle() const override {
+    double MinDihedralAngle() const override {
       Vector dihedral_angles(6);
       ComputeDihedralAngles(dihedral_angles);
       double min_dihedral_angle = 1000.0;
@@ -776,6 +786,24 @@ public:
       return min_dihedral_angle;
     }
 
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(6);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = -1000.0;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            if (dihedral_angles[i] > max_dihedral_angle)  max_dihedral_angle = dihedral_angles[i];
+        }
+        return max_dihedral_angle;
+    }
+
+
 
     /** Calculates the min solid angle quality metric.
      * Calculates the min solid angle quality metric.
@@ -783,7 +811,7 @@ public:
      * In stereo radians
      * @return [description]
      */
-    virtual double MinSolidAngle() const override {
+    double MinSolidAngle() const override {
       Vector solid_angles(4);
       ComputeSolidAngles(solid_angles);
       double min_solid_angle = 1000.0;
@@ -801,7 +829,7 @@ public:
      *
      * @return   The solid angles of the geometry
     */
-    virtual inline void ComputeSolidAngles(Vector& rSolidAngles) const override
+    inline void ComputeSolidAngles(Vector& rSolidAngles) const override
     {
       if(rSolidAngles.size() != 4)
           rSolidAngles.resize(4, false);
@@ -821,7 +849,7 @@ public:
      *
      * @return   The dihedral angles of the geometry
     */
-    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
     {
       if(rDihedralAngles.size() != 6)
           rDihedralAngles.resize(6, false);

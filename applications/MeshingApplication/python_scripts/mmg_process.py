@@ -46,6 +46,11 @@ class MmgProcess(KratosMultiphysics.Process):
             "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
+            "blocking_threshold_size"          : false,
+            "threshold_sizes" : {
+                "minimal_size"                     : 0.1,
+                "maximal_size"                     : 10.0
+            },
             "strategy"                         : "LevelSet",
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
@@ -275,7 +280,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
         mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
-        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
+        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["minimal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
         mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])
@@ -297,14 +302,6 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.model_part.Set(KratosMultiphysics.MODIFIED, False)
 
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed before starting the time loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
@@ -322,6 +319,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 if self.step_frequency > 0:
                     if self.step >= self.step_frequency:
                         if self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
+                            if self.settings["blocking_threshold_size"].GetBool():
+                                MeshingApplication.BlockThresholdSizeElements(self.model_part, self.settings["threshold_sizes"])
                             self._ExecuteRefinement()
                             self.step = 0  # Reset
 
@@ -333,14 +332,6 @@ class MmgProcess(KratosMultiphysics.Process):
         """
         if self.strategy == "superconvergent_patch_recovery":
             self._ErrorCalculation()
-
-    def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -354,14 +345,6 @@ class MmgProcess(KratosMultiphysics.Process):
             self.remeshing_cycle += 1
             if self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] <= self.error_threshold or self.remeshing_cycle > self.params["max_iterations"].GetInt():
                 self.model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = False
-
-    def ExecuteFinalize(self):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
 
     def _CreateMetricsProcess(self):
         self.metric_processes = []
