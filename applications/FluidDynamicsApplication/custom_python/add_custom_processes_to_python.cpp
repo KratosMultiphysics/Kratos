@@ -38,6 +38,7 @@
 #include "custom_processes/move_rotor_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
 #include "spaces/ublas_space.h"
+#include "custom_processes/two_fluids_inlet_process.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -131,6 +132,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    ;
+
+    py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
+    (m,"TwoFluidsInletProcess")
+    .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
+    .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
     ;
 }
 
