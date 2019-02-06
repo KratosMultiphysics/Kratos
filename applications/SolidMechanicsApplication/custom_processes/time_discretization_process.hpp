@@ -32,11 +32,13 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType                      NodesContainerType;
-typedef  ModelPart::ElementsContainerType                ElementsContainerType;
-typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+typedef ModelPart::NodesContainerType                      NodesContainerType;
+typedef ModelPart::ElementsContainerType                ElementsContainerType;
+typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-
+typedef WeakPointerVector<Node<3> >       NodeWeakPtrVectorType;
+typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 ///@}
 ///@name  Enum's
 ///@{
@@ -84,7 +86,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
                 "start_time": 0,
                 "end_time": 1,
                 "time_step": 1,
-                "prediction_level": -1, 
+                "prediction_level": -1,
                 "increase_factor": 2,
                 "decrease_factor": 2,
                 "steps_update_delay": 4
@@ -99,7 +101,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
     mTime.SetFactors(rParameters["increase_factor"].GetDouble(), rParameters["decrease_factor"].GetDouble(), rParameters["steps_update_delay"]);
 
     mTime.PredictionLevel = rParameters["prediction_level"].GetInt();
-    
+
   }
 
   /// Destructor.
@@ -122,7 +124,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
     KRATOS_TRY
 
     ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-   
+
     if(!rCurrentProcessInfo[CONVERGENCE_ACHIEVED])
     {
       this->ReduceTimeStep();
@@ -139,18 +141,18 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 
     // update total time
     mTime.Total = rCurrentProcessInfo[TIME];
-    
+
     KRATOS_CATCH("");
   }
 
 
   // Deprecated methods:
-  
+
   // void PreExecute()
   // {
 
   //   KRATOS_TRY
-        
+
   //   const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];
   //   const double currentTimeInterval = rCurrentProcessInfo[CURRENT_DELTA_TIME];
 
@@ -279,8 +281,8 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //           }
 //           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
 //           double unsafetyFactor=0;
-//           WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-//           for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
+//           NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+//           for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
 //           {
 //             array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
 //             double squaredDistance=0;
@@ -530,13 +532,13 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
   struct TimeParameters {
 
     int PredictionLevel;
-    
+
     double InitialStep;
     double PreviousStep;
     double CurrentStep;
 
     double PredictedStep;
-    
+
     double Total;
 
     double Start;
@@ -580,7 +582,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
           MileStone += InitialStep;
         }
       }
-      return CheckSameTime(PreviousStep, CurrentStep);      
+      return CheckSameTime(PreviousStep, CurrentStep);
     }
 
     bool Decrease()
@@ -591,7 +593,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
         if( CurrentStep <= 1e-2*InitialStep )
           CurrentStep = 1e-2*InitialStep;
       }
-      return CheckSameTime(PreviousStep, CurrentStep); 
+      return CheckSameTime(PreviousStep, CurrentStep);
     }
 
     bool PredictActive()
@@ -612,7 +614,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
       else
         return Decrease();
     }
-    
+
     bool ActiveDelay()
     {
       if( DelayCounter == UpdateDelay )
@@ -632,7 +634,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
       if( rNewTime > rTime-tolerance && rNewTime < rTime+tolerance )
         return true;
       else
-        return false;      
+        return false;
     }
 
   }
@@ -646,29 +648,29 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 
   void ReduceTimeStep()
   {
-    KRATOS_TRY   
-    
+    KRATOS_TRY
+
     rCurrentProcessInfo[TIME] -= mTime.CurrentStep;
     rCurrentProcessInfo[STEP] -= 1;
-    
+
     mrModelPart.ReduceTimeStep(rCurrentProcessInfo[TIME]);
-    
+
     rCurrentProcessInfo.SetValue(DELTA_TIME_CHANGED, mTime.Decrease());
-   
+
     KRATOS_CATCH("");
   }
 
   void UpdateTimeStep()
   {
     KRATOS_TRY
-        
+
     this->PredictTimeStep();
 
     rCurrentProcessInfo.SetValue(DELTA_TIME_CHANGED, mTime.Update());
-   
+
     KRATOS_CATCH("");
   }
-  
+
   void PredictTimeStep()
   {
     KRATOS_TRY
@@ -676,10 +678,10 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
     if( mTime.PredictActive() ){
       this->PredictTimeStep(mTime.PredictedStep);
     }
-    
+
     KRATOS_CATCH("");
   }
-  
+
   void PredictTimeStep(double& rTimeStep)
   {
     KRATOS_TRY
@@ -690,11 +692,11 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
   void CheckCriticalElement()
   {
     KRATOS_TRY
-    
+
     KRATOS_CATCH("");
   }
 
-    
+
   ///@}
   ///@name Protected  Access
   ///@{

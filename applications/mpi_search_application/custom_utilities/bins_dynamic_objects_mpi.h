@@ -31,7 +31,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 
 #include "spatial_containers/tree.h"
 #include "spatial_containers/cell.h"

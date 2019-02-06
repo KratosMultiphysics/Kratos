@@ -16,21 +16,12 @@
 #if !defined(KRATOS_METIS_CONTACT_PARTITIONING_PROCESS_INCLUDED )
 #define  KRATOS_METIS_CONTACT_PARTITIONING_PROCESS_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
 
 // External includes
 #include <parmetis.h>
 
-
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "processes/graph_coloring_process.h"
 #include "includes/model_part.h"
 #include "mpi/includes/mpi_communicator.h"
@@ -39,7 +30,6 @@ extern "C" {
     //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
     extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
 }
-
 
 
 namespace Kratos
@@ -726,5 +716,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_METIS_CONTACTmContactNodes[i]_PARTITIONING_PROCESS_INCLUDED defined
-
-

@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
@@ -168,7 +168,9 @@ public:
 
         #pragma omp parallel
         {
-            SignedIndexVectorType marker(ncols, -1);
+            SignedIndexVectorType marker(ncols);
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+                marker[i_fill] = -1;
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
@@ -201,7 +203,9 @@ public:
 
         #pragma omp parallel
         {
-            SignedIndexVectorType marker(ncols, -1);
+            SignedIndexVectorType marker(ncols);
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+                marker[i_fill] = -1;
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
@@ -417,7 +421,9 @@ public:
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-                SignedIndexVectorType marker(ncols, -1);
+                SignedIndexVectorType marker(ncols);
+                for (int i = 0; i < static_cast<int>(ncols); ++i)
+                    marker[i] = -1;
 
                 // Initialize
                 IndexType new_A_cols = 0;
@@ -456,7 +462,9 @@ public:
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-                SignedIndexVectorType marker(ncols, -1);
+                SignedIndexVectorType marker(ncols);
+                for (int i = 0; i < static_cast<int>(ncols); ++i)
+                    marker[i] = -1;
 
                 // Initialize
                 const IndexType row_beg = new_a_ptr[ia];
@@ -533,7 +541,10 @@ public:
             rA.resize(size_system_2, size_system_1, false);
         }
 
-        IndexVectorType new_a_ptr(size_system_2 + 1, 0);
+        IndexVectorType new_a_ptr(size_system_2 + 1);
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i)
+            new_a_ptr[i] = 0;
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
@@ -551,7 +562,10 @@ public:
         // We initialize the blocks sparse matrix
         std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
 
-        IndexVectorType aux_indexes(size_system_2, 0);
+        IndexVectorType aux_indexes(size_system_2);
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2); ++i)
+            aux_indexes[i] = 0;
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {

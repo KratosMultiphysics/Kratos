@@ -299,13 +299,8 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
                 break
 
         t_middle = times[i_time]
-        #old_times = [time * t_middle / interval for time in times]
-        #recent_times = [t_middle + time * (interval - t_middle) / interval for time in times]
         old_times = times[:i_time + 1]
         recent_times = times[i_time:]
-        #print('old_times',old_times)
-        #print('recent_times',recent_times)
-        #cacac
         # Calculating window integral  ------------------------------
         if len(recent_times) >= 4:
             F_win = Daitche(recent_times, f, 2)

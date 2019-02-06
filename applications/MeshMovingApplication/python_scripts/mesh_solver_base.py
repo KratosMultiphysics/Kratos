@@ -3,15 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-
 # Other imports
-from python_solver import PythonSolver
-
-
-def CreateSolver(mesh_model_part, custom_settings):
-    return MeshSolverBase(mesh_model_part, custom_settings)
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 class MeshSolverBase(PythonSolver):
@@ -44,7 +37,7 @@ class MeshSolverBase(PythonSolver):
                 "input_filename" : "unknown_name"
             },
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
@@ -175,7 +168,7 @@ class MeshSolverBase(PythonSolver):
     #### Private functions ####
 
     def _create_linear_solver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
         return linear_solver
 

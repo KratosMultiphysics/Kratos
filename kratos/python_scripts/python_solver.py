@@ -154,20 +154,28 @@ class PythonSolver(object):
 
             # Import model part from mdpa file.
             self.print_on_rank_zero("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
+            if (model_part_import_settings.Has("reorder_consecutive") and model_part_import_settings["reorder_consecutive"].GetBool()):
+                KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
+            else:
+                KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
+
             if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
             self.print_on_rank_zero("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+
         elif (input_type == "rest"):
             self.print_on_rank_zero("::[PythonSolver]::", "Loading model part from restart file.")
             from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             self.print_on_rank_zero("::[PythonSolver]::", "Finished loading model part from restart file.")
+
         elif(input_type == "use_input_model_part"):
             pass
+
         else:
             raise Exception("Other model part input options are not yet implemented.")
+
         self.print_on_rank_zero("ModelPart", model_part)
         self.print_on_rank_zero("::[PythonSolver]:: ", "Finished reading model part.")
 

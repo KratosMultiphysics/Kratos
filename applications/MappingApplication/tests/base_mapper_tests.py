@@ -2,6 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
+import os
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class MapperTestsBase(object):
     '''This is the baseclass for the Mapper-Tests
@@ -13,8 +17,8 @@ class MapperTestsBase(object):
     @classmethod
     def setUpClass(cls):
         # Mdpa Input files
-        cls.input_file_origin      = "MapperTests_mdpa/MappingApplication_test_geometry_tri"
-        cls.input_file_destination = "MapperTests_mdpa/MappingApplication_test_geometry_quad"
+        cls.input_file_origin      = GetFilePath("MapperTests_mdpa/MappingApplication_test_geometry_tri")
+        cls.input_file_destination = GetFilePath("MapperTests_mdpa/MappingApplication_test_geometry_quad")
 
         cls.current_model = KM.Model()
         cls.model_part_origin = cls.current_model.CreateModelPart("origin")
