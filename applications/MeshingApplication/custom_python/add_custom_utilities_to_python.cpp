@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 /* Utilities */
+#include "custom_utilities/meshing_utilities.h"
 #include "custom_utilities/projection.h"
 #include "custom_utilities/binbased_projection.h"
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
@@ -48,6 +49,10 @@ namespace py = pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    // MeshingUtilities
+    m.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
+    m.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
+    
     py::class_<MeshTransfer < 2 > >(m,"MeshTransfer2D")
     .def(py::init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
