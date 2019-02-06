@@ -70,7 +70,7 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
-            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
+            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
 
@@ -94,11 +94,10 @@ def EvaluateQuantityOfInterest(simulation):
     this way I only store the values in the current nodes and not also in the buffer'''
     # KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, simulation._GetSolver().main_model_part.Nodes)
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    Q = 0.0
+    QoI = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
-        Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        # print(node.Id,"NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
-    return Q
+        QoI = QoI + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
+    return QoI
 
 
 '''
@@ -113,7 +112,23 @@ output:
         current_MLMC_level                      : level of the current MLMC simulation
 '''
 def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement):
-    return ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement),current_MLMC_level
+    '''generate the sample'''
+    sample = GenerateSample()
+    '''initialize the MultilevelMonteCarloResults class'''
+    mlmc_results_class = mlmc.MultilevelMonteCarloResults()
+    mlmc_results_class.QoI = [[] for _ in range (current_MLMC_level+1)]
+    mlmc_results_class.time_ML = [[] for _ in range (current_MLMC_level+1)]
+    if (current_MLMC_level == 0):
+        mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_MLMC_level,mlmc_results_class)
+    else:
+        for level in range(current_MLMC_level+1):
+            mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,level,mlmc_results_class)
+            del(pickled_coarse_model,pickled_coarse_parameters)
+            pickled_coarse_model = pickled_current_model
+            pickled_coarse_parameters = pickled_current_parameters
+            del(pickled_current_model,pickled_current_parameters)
+    mlmc_results_class.finer_level = current_MLMC_level
+    return mlmc_results_class,current_MLMC_level
 
 
 '''
@@ -129,61 +144,56 @@ output:
                              finer_level : finest level
                              time_ML     : list of MLMC time for all levels computed in the current simulation
 '''
-@ExaquteTask(returns=1)
-def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement):
+@ExaquteTask(returns=3)
+def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_level,mlmc_results_class):
     '''unpickle model and build Kratos Model object'''
-    model_serializer = pickle.loads(pickled_coarse_model)
+    serialized_model = pickle.loads(pickled_coarse_model)
     current_model = KratosMultiphysics.Model()
-    model_serializer.Load("ModelSerialization",current_model)
-    del(model_serializer)
+    serialized_model.Load("ModelSerialization",current_model)
+    del(serialized_model)
     '''unpickle parameters and build Kratos Parameters object'''
     serialized_parameters = pickle.loads(pickled_coarse_parameters)
     current_parameters = KratosMultiphysics.Parameters()
     serialized_parameters.Load("ParametersSerialization",current_parameters)
     del(serialized_parameters)
-    '''unpickle metric and remesh refinement parameters and build Kratos Parameters objects'''
-    settings_metric_refinement_serializer = pickle.loads(pickled_settings_metric_refinement)
-    settings_remesh_refinement_serializer = pickle.loads(pickled_settings_remesh_refinement)
-    current_settings_metric_refinement = KratosMultiphysics.Parameters()
-    current_settings_remesh_refinement = KratosMultiphysics.Parameters()
-    settings_metric_refinement_serializer.Load("MetricRefinementParametersSerialization",current_settings_metric_refinement)
-    settings_remesh_refinement_serializer.Load("RemeshRefinementParametersSerialization",current_settings_remesh_refinement)
-    del(settings_metric_refinement_serializer,settings_remesh_refinement_serializer)
-    '''generate the sample'''
-    sample = GenerateSample()
-    '''initialize the MultilevelMonteCarloResults class and prepare the results'''
-    mlmc_results_class = mlmc.MultilevelMonteCarloResults()
-    QoI = []
+    '''start time'''
     start_MLMC_time = time.time()
-    end_MLMC_time = []
-    if(current_MLMC_level == 0):
-        simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
-        simulation.Run()
-        QoI.append(EvaluateQuantityOfInterest(simulation))
+    '''refine if current current_level > 0, adaptive refinement based on the solution of previous level'''
+    if (current_level > 0):
+        '''unpickle metric and remesh refinement parameters and build Kratos Parameters objects'''
+        settings_metric_refinement_serializer = pickle.loads(pickled_settings_metric_refinement)
+        settings_remesh_refinement_serializer = pickle.loads(pickled_settings_remesh_refinement)
+        current_settings_metric_refinement = KratosMultiphysics.Parameters()
+        current_settings_remesh_refinement = KratosMultiphysics.Parameters()
+        settings_metric_refinement_serializer.Load("MetricRefinementParametersSerialization",current_settings_metric_refinement)
+        settings_remesh_refinement_serializer.Load("RemeshRefinementParametersSerialization",current_settings_remesh_refinement)
+        del(settings_metric_refinement_serializer,settings_remesh_refinement_serializer)
+        '''refine the model Kratos object'''
+        refined_model,refined_parameters = refinement.compute_refinement_hessian_metric(current_model,current_parameters,size_meshes[current_level],size_meshes[current_level-1],current_settings_metric_refinement,current_settings_remesh_refinement)
+        '''initialize the model Kratos object'''
+        simulation = MultilevelMonteCarloAnalysis(refined_model,refined_parameters,sample)
+        simulation.Initialize()
+        '''update model Kratos object'''
+        current_model = simulation.model
+        current_parameters = simulation.project_parameters
         del(simulation)
-        end_MLMC_time.append(time.time())
-    else:
-        for lev in range(current_MLMC_level+1):
-            '''refine if current lev > 0'''
-            if (lev > 0):
-                '''refine the model Kratos object'''
-                model_refined = refinement.compute_refinement_hessian_metric(simulation,size_meshes[lev],size_meshes[lev-1],current_settings_metric_refinement,current_settings_remesh_refinement)
-                '''initialize the model Kratos object'''
-                simulation = MultilevelMonteCarloAnalysis(model_refined,current_parameters,sample)
-                simulation.Initialize()
-                '''update model Kratos object'''
-                current_model = simulation.model
-                del(simulation)
-            simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
-            simulation.Run()
-            QoI.append(EvaluateQuantityOfInterest(simulation))
-            end_MLMC_time.append(time.time())
-    '''prepare results of the simulation in the MultilevelMonteCarloResults class'''
-    mlmc_results_class.finer_level = current_MLMC_level
-    for lev in range(current_MLMC_level+1):
-        mlmc_results_class.time_ML.append(end_MLMC_time[lev]-start_MLMC_time)
-        mlmc_results_class.QoI.append(QoI[lev])
-    return mlmc_results_class
+    simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
+    simulation.Run()
+    QoI = EvaluateQuantityOfInterest(simulation)
+    '''save model and parameters as StreamSerializer Kratos objects'''
+    serialized_finer_model = KratosMultiphysics.StreamSerializer()
+    serialized_finer_model.Save("ModelSerialization",simulation.model)
+    serialized_finer_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_finer_parameters.Save("ParametersSerialization",simulation.project_parameters)
+    '''pickle model and parameters'''
+    pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    pickled_finer_parameters = pickle.dumps(serialized_finer_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    del(simulation)
+    end_MLMC_time = time.time()
+    '''register results of the current level in the MultilevelMonteCarloResults class'''
+    mlmc_results_class.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+    mlmc_results_class.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+    return mlmc_results_class,pickled_finer_model,pickled_finer_parameters
 
 
 '''
@@ -234,6 +244,7 @@ output:
         pickled_metric_refinement_parameters    : project parameters serialization
         pickled_remeshing_refinement_parameters : project parameters serialization
 '''
+#TODO: to execute this function in a compss task, metric_refinement_parameters and remeshing_refinement_parameters should be read from a file
 def SerializeRefinementParameters(metric_refinement_parameters,remeshing_refinement_parameters):
     '''save parameters as StreamSerializer Kratos objects'''
     serialized_metric_refinement_parameters = KratosMultiphysics.StreamSerializer()
@@ -245,58 +256,6 @@ def SerializeRefinementParameters(metric_refinement_parameters,remeshing_refinem
     pickled_remesh_refinement_parameters = pickle.dumps(serialized_remesh_refinement_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     print("\n","#"*50," SERIALIZATION REFINEMENT PARAMETERS COMPLETED ","#"*50,"\n")
     return pickled_metric_refinement_parameters,pickled_remesh_refinement_parameters
-
-'''
-function executing the refinement of the problem
-input:
-        pickled_model_coarse : serialization of the model with coarser model part
-        pickled_parameters   : serialization of the Project Parameters
-        min_size             : minimum size of the refined model part
-        max_size             : maximum size of the refined mesh
-output:
-        QoI                   : Quantity of Interest
-        pickled_model_refined : serialization of the model with refined model part
-'''
-@ExaquteTask(returns=2)
-def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
-    fake_sample = 1.0
-    '''overwrite the old model serializer with the unpickled one'''
-    model_serializer_coarse = pickle.loads(pickled_model_coarse)
-    model_coarse = KratosMultiphysics.Model()
-    model_serializer_coarse.Load("ModelSerialization",model_coarse)
-    del(model_serializer_coarse)
-    '''overwrite the old parameters serializer with the unpickled one'''
-    serialized_parameters = pickle.loads(pickled_parameters)
-    parameters_refinement = KratosMultiphysics.Parameters()
-    serialized_parameters.Load("ParametersSerialization",parameters_refinement)
-    del(serialized_parameters)
-    simulation_coarse = MultilevelMonteCarloAnalysis(model_coarse,parameters_refinement,fake_sample)
-    simulation_coarse.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation_coarse)
-    '''refine'''
-    model_refined = refinement.compute_refinement_hessian_metric(simulation_coarse,min_size,max_size)
-    '''initialize'''
-    simulation = MultilevelMonteCarloAnalysis(model_refined,parameters_refinement,fake_sample)
-    simulation.Initialize()
-    '''serialize model and pickle it'''
-    serialized_model = KratosMultiphysics.StreamSerializer()
-    serialized_model.Save("ModelSerialization",simulation.model)
-    pickled_model_refined = pickle.dumps(serialized_model, 2)
-    return QoI,pickled_model_refined
-
-
-'''
-function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
-input :
-        AveragedMeanQoI       : Multilevel Monte Carlo expected value
-        ExactExpectedValueQoI : exact expected value
-output :
-        relative_error        : relative error
-'''
-@ExaquteTask(returns=1)
-def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
-    relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
-    return relative_error
 
 
 if __name__ == '__main__':
@@ -311,34 +270,34 @@ if __name__ == '__main__':
         "tol0"                            : 0.25,
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
-        "number_samples_screening"        : 15,
+        "number_samples_screening"        : 25,
         "Lscreening"                      : 2,
-        "Lmax"                            : 6,
+        "Lmax"                            : 4,
         "initial_mesh_size"               : 0.5
     }
     """)
     '''customize setting parameters of the metric of the adaptive refinement utility'''
     settings_metric_refinement = KratosMultiphysics.Parameters("""
         {
-            "hessian_strategy_parameters"              :{
-                    "metric_variable"                  : ["TEMPERATURE"],
-                    "estimate_interpolation_error"     : false,
-                    "interpolation_error"              : 0.004
+            "hessian_strategy_parameters"           :{
+                    "metric_variable"               : ["TEMPERATURE"],
+                    "estimate_interpolation_error"  : false,
+                    "interpolation_error"           : 0.004
             },
-            "anisotropy_remeshing"              : true,
+            "anisotropy_remeshing"                  : true,
             "anisotropy_parameters":{
-                "reference_variable_name"          : "TEMPERATURE",
-                "hmin_over_hmax_anisotropic_ratio" : 0.15,
-                "boundary_layer_max_distance"      : 1.0,
-                "interpolation"                    : "Linear"
+                "reference_variable_name"           : "TEMPERATURE",
+                "hmin_over_hmax_anisotropic_ratio"  : 0.15,
+                "boundary_layer_max_distance"       : 1.0,
+                "interpolation"                     : "Linear"
             },
-            "local_gradient_variable"           : "TEMPERATURE"
+            "local_gradient_variable"               : "TEMPERATURE"
         }
     """)
     '''customize setting parameters of the remesh of the adaptive refinement utility'''
     settings_remesh_refinement = KratosMultiphysics.Parameters("""
         {
-            "echo_level"                       : 0
+            "echo_level"                            : 0
         }
     """)
     pickled_settings_metric_refinement,pickled_settings_remesh_refinement = SerializeRefinementParameters(settings_metric_refinement,settings_remesh_refinement)
@@ -346,9 +305,9 @@ if __name__ == '__main__':
     '''contruct MultilevelMonteCarlo class'''
     mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
     ''''start screening phase'''
-    for lev in range(mlmc_class.current_number_levels+1):
-        for instance in range (mlmc_class.number_samples[lev]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+    for level in range(mlmc_class.current_number_levels+1):
+        for instance in range (mlmc_class.number_samples[level]):
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
     '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -358,9 +317,9 @@ if __name__ == '__main__':
         mlmc_class.InitializeMLMCPhase()
         mlmc_class.ScreeningInfoInitializeMLMCPhase()
         '''MLMC execution phase'''
-        for lev in range (mlmc_class.current_number_levels+1):
-            for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+        for level in range (mlmc_class.current_number_levels+1):
+            for instance in range (mlmc_class.difference_number_samples[level]):
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
         '''finalize MLMC phase'''
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
@@ -369,9 +328,6 @@ if __name__ == '__main__':
     "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
 
     '''### OBSERVATIONS ###
-
-    compss: between different tasks you don't need compss_wait_on/get_value_from_remote, it's pycompss who handles everything automatically
-    if the output of a task is given directly to the input of an other, pycompss handles everything
 
     compss: set absolute path when launching with compss
 
