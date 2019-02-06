@@ -297,8 +297,6 @@ public:
         
         //TEST:
         bool kutta_element = false;
-        if (this->Is(INTERFACE))
-            kutta_element = true;
 
         for(unsigned int i=0; i<NumNodes; ++i)
             if(GetGeometry()[i].Is(STRUCTURE))
