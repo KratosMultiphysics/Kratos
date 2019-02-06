@@ -138,11 +138,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
+                    if self.project_parameters.Has(process_name):
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
+                    if self.project_parameters.Has(process_name):
                         raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
