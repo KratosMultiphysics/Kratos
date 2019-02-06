@@ -2,10 +2,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class StructuralMechanicsAnalysis(AnalysisStage):
     """
@@ -117,8 +116,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_structural
-        return python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
+        import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as solvers_wrapper
+        return solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -136,7 +135,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -163,9 +162,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         self.__CheckForDeprecatedGiDSettings()
         if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
         gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,
