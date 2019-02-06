@@ -64,6 +64,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         print("Cl:",self.result_force[1]) 
         print("Cd:",self.result_force[0])   
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,self.result_force[1])
+        for node in self.fluid_model_part.GetSubModelPart("KuttaLS").Nodes:
+            Cl_jump=node.GetValue(KratosMultiphysics.TEMPERATURE)
+        print("Cl_jump:",Cl_jump)
         plt.plot(x_upper,cp_upper,'o',label='Upper surface')
         plt.plot(x_lower,cp_lower,'ro',label='Lower surface')
         title="Cl: %.5f, Cd: %.5f" % (self.result_force[1],self.result_force[0])

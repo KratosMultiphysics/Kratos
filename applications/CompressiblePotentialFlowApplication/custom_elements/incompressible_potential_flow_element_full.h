@@ -361,10 +361,10 @@ public:
 
                         noalias(rLeftHandSideMatrix) += aux_matrix;                       
                     }
-                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             }
             else //if (this->Is(FLUID) || this->IsNotDefined(FLUID)){
-                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);          
+                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
+                         
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
         }
         else //it is a wake element
@@ -520,7 +520,7 @@ public:
 
         if (this->Is(MARKER) && active == true){
             CheckWakeCondition();
-            // ComputePotentialJump(rCurrentProcessInfo);   
+            ComputePotentialJump(rCurrentProcessInfo);   
         }   
     }
 
