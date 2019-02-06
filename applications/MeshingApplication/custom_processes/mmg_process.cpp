@@ -607,6 +607,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
 
+    /* Save to file */
+    if (save_to_file) SaveSolutionToFile(true);
+
+    // Some information
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
     if (TMMGLibray == MMGLibray::MMG2D) { // 2D
@@ -845,9 +849,6 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
         r_sub_model_part.AddNodes(vector_ids);
     }
-
-    /* Save to file */
-    if (save_to_file) SaveSolutionToFile(true);
 
     ///* Free memory */
     //FreeMemory();
