@@ -8,7 +8,7 @@
 
 #include "buoyancy_laws/buoyancy_law.h"
 #include "drag_laws/drag_law.h"
-#include "inviscid_force_laws/standard_inviscid_force_law.h"
+#include "inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
 
 namespace Kratos {
 
@@ -19,8 +19,8 @@ public:
 
     // Pointer types for HydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
-
-    HydrodynamicInteractionLaw();
+    HydrodynamicInteractionLaw(){}
+    HydrodynamicInteractionLaw(Properties::Pointer pProp, Parameters& r_hydrodynamic_parameters);
     HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw);
 
     void SetBuoyancyLaw(const BuoyancyLaw& r_law){mpBuoyancyLaw = r_law.Clone();}

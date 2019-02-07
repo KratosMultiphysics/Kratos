@@ -3,7 +3,7 @@
 
 namespace Kratos {
 
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw():
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(Properties::Pointer pProp, Parameters& r_hydrodynamic_parameters):
         mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)

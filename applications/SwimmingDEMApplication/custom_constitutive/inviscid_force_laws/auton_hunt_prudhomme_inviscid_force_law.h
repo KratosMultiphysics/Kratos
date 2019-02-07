@@ -8,16 +8,16 @@
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) StandardInviscidForceLaw : public InviscidForceLaw {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) AutonHuntPrudhommeInviscidForceLaw : public InviscidForceLaw {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(StandardInviscidForceLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(AutonHuntPrudhommeInviscidForceLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
-        StandardInviscidForceLaw(): mDoApplyFaxenCorrections(false){}
+        AutonHuntPrudhommeInviscidForceLaw(): mDoApplyFaxenCorrections(false){}
 
-        ~StandardInviscidForceLaw(){}
+        ~AutonHuntPrudhommeInviscidForceLaw(){}
 
         InviscidForceLaw::Pointer Clone() const override;
 
@@ -44,7 +44,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, InviscidForceLaw)
         }
 
-    }; //class StandardInviscidForceLaw
+    }; //class AutonHuntPrudhommeInviscidForceLaw
 
 } // Namespace Kratos
 

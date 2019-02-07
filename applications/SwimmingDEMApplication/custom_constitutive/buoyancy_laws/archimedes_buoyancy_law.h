@@ -8,16 +8,16 @@
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) StandardBuoyancyLaw : public BuoyancyLaw {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) ArchimedesBuoyancyLaw : public BuoyancyLaw {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(StandardBuoyancyLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(ArchimedesBuoyancyLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
-        StandardBuoyancyLaw(){}
+        ArchimedesBuoyancyLaw(){}
 
-        ~StandardBuoyancyLaw(){}
+        ~ArchimedesBuoyancyLaw(){}
 
         BuoyancyLaw::Pointer Clone() const override;
 
@@ -44,7 +44,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BuoyancyLaw)
         }
 
-    }; //class StandardBuoyancyLaw
+    }; //class ArchimedesBuoyancyLaw
 
 } // Namespace Kratos
 

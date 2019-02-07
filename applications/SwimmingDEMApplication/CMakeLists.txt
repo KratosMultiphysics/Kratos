@@ -40,7 +40,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
 
     # Buoyancy laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/buoyancy_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/standard_buoyancy_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.cpp
 
     # Drag Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/drag_law.cpp
@@ -54,7 +54,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
 
     # Inviscid Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp

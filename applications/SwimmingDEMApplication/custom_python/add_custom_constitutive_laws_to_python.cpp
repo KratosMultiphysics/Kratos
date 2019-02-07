@@ -14,7 +14,7 @@
 
 // Buoyancy Laws
 #include "../custom_constitutive/buoyancy_laws/buoyancy_law.h"
-#include "../custom_constitutive/buoyancy_laws/standard_buoyancy_law.h"
+#include "../custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.h"
 
 // Drag laws
 #include "../custom_constitutive/drag_laws/drag_law.h"
@@ -28,7 +28,7 @@
 
 // Inviscid force laws
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
-#include "../custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.h"
+#include "../custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
 
 
 namespace Kratos {
@@ -44,6 +44,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<HydrodynamicInteractionLaw, HydrodynamicInteractionLaw::Pointer>(m, "HydrodynamicInteractionLaw")
         .def(py::init<>())
+        .def(py::init<Properties::Pointer, Parameters&>())
         .def("Clone", &HydrodynamicInteractionLaw::Clone)
         .def("SetHydrodynamicInteractionLawInProperties", &HydrodynamicInteractionLaw::SetHydrodynamicInteractionLawInProperties)
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
@@ -60,7 +61,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("GetTypeOfLaw", &BuoyancyLaw::GetTypeOfLaw)
         ;
 
-    py::class_<StandardBuoyancyLaw, StandardBuoyancyLaw::Pointer, BaseBuoyancyLawType>(m, "StandardBuoyancyLaw")
+    py::class_<ArchimedesBuoyancyLaw, ArchimedesBuoyancyLaw::Pointer, BaseBuoyancyLawType>(m, "ArchimedesBuoyancyLaw")
         .def(py::init<>())
         ;
 
@@ -109,7 +110,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("GetTypeOfLaw", &InviscidForceLaw::GetTypeOfLaw)
         ;
 
-    py::class_<StandardInviscidForceLaw, StandardInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "StandardInviscidForceLaw")
+    py::class_<AutonHuntPrudhommeInviscidForceLaw, AutonHuntPrudhommeInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "AutonHuntPrudhommeInviscidForceLaw")
         .def(py::init<>())
         ;
   }

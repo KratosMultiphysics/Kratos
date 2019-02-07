@@ -26,7 +26,7 @@
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 #include "custom_constitutive/buoyancy_laws/buoyancy_law.h"
 #include "custom_constitutive/drag_laws/drag_law.h"
-#include "custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.h"
+#include "custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
 
 namespace Kratos
 {

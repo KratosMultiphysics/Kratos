@@ -18,7 +18,11 @@ public:
     // Pointer types for PowerLawFluidHydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(PowerLawFluidHydrodynamicInteractionLaw);
 
-    PowerLawFluidHydrodynamicInteractionLaw(): HydrodynamicInteractionLaw(){}
+    PowerLawFluidHydrodynamicInteractionLaw()
+        : HydrodynamicInteractionLaw(){}
+
+    PowerLawFluidHydrodynamicInteractionLaw(Properties::Pointer pProp, Parameters& r_hydrodynamic_parameters)
+        : HydrodynamicInteractionLaw(pProp, r_hydrodynamic_parameters){}
 
     PowerLawFluidHydrodynamicInteractionLaw(const PowerLawFluidHydrodynamicInteractionLaw &rPowerLawFluidHydrodynamicInteractionLaw)
         : HydrodynamicInteractionLaw(rPowerLawFluidHydrodynamicInteractionLaw){}
