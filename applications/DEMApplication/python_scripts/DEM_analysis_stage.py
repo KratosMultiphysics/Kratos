@@ -31,12 +31,12 @@ class DEMAnalysisStage(AnalysisStage):
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
 
-    def GetInputParameters(self):
+    def GetInputParameters(self):   # TODO: deprecated
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
-    def LoadParametersFile(self):
+    def LoadParametersFile(self):   # TODO: deprecated
         self.DEM_parameters = self.GetInputParameters()
         self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
@@ -62,11 +62,17 @@ class DEMAnalysisStage(AnalysisStage):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self, model, parameters):
+    def __init__(self, model, DEM_parameters):
         self.model = model
         self.main_path = self.GetMainPath()
         self.mdpas_folder_path = self.main_path
-        self.LoadParametersFile()
+
+        self.DEM_parameters = DEM_parameters    # TODO, can be improved
+        self.project_parameters = DEM_parameters
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
+
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()

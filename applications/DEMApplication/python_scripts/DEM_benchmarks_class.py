@@ -5026,18 +5026,17 @@ class Benchmark40: # multiple benchmarks for general code verification.
         pass
 
 
-
-
-
-
 def delete_archives():
 
     #.......................Removing extra files
     files_to_delete_list = glob('*.time')
-    # files_to_delete_list.extend(glob('*.dat'))
+    files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.lst'))
+    files_to_delete_list.extend(glob('*.info'))
+    files_to_delete_list.extend(glob('*.err'))
+    files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
