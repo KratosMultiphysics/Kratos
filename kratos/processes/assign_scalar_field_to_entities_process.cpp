@@ -59,7 +59,7 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 {
     KRATOS_TRY;
 
-    ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
+    const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
     const double r_current_time = r_current_process_info[TIME];
 
