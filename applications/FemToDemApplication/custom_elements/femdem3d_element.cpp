@@ -97,7 +97,7 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+	this->Computep_edge_neighbours(rCurrentProcessInfo);
 	this->InitializeInternalVariablesAfterMapping();
 }
 
@@ -122,9 +122,9 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 	}
 }
 
-void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
+void FemDem3DElement::Computep_edge_neighbours(ProcessInfo &rCurrentProcessInfo)
 {
-	std::vector<std::vector<Element *>> EdgeNeighboursContainer;
+	std::vector<std::vector<Element *>> p_edge_neighboursContainer;
 	Geometry<Node<3>> &NodesCurrentElement = this->GetGeometry();
 
 	Node<3> &pNode0 = NodesCurrentElement[0];
@@ -149,7 +149,7 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 	Matrix nodes_indexes = ZeroMatrix(6, 2);
 	this->SetNodeIndexes(nodes_indexes);
 
-	// Loop over EDGES to assign the elements that share that edge -> Fill mEdgeNeighboursContainer
+	// Loop over EDGES to assign the elements that share that edge -> Fill mp_edge_neighboursContainer
 	for (unsigned int edge = 0; edge < 6; edge++) {
 		const int NodeIndex1 = nodes_indexes(edge, 0);
 		const int NodeIndex2 = nodes_indexes(edge, 1);
@@ -205,11 +205,11 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 			if (aux == 0)
 				edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
 		}
-		EdgeNeighboursContainer.push_back(edge_shared_elements);
+		p_edge_neighboursContainer.push_back(edge_shared_elements);
 	} // End loop edges
 
 	// Storages the information inside the element
-	this->SaveEdgeNeighboursContainer(EdgeNeighboursContainer);
+	this->Savep_edge_neighboursContainer(p_edge_neighboursContainer);
 
 } // End finding edge neighbour elements
 
@@ -432,11 +432,11 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		// Loop over edges of the element
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
+			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
 			Vector average_stress_edge, average_strain_edge;
 
-			this->CalculateAverageStressOnEdge(average_stress_edge, EdgeNeighbours);
-			this->CalculateAverageStrainOnEdge(average_strain_edge, EdgeNeighbours);
+			this->CalculateAverageStressOnEdge(average_stress_edge, p_edge_neighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_edge, p_edge_neighbours);
 
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
@@ -710,7 +710,6 @@ void FemDem3DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 	Matrix InvJ = ZeroMatrix(dimension, dimension);
 	double detJ;
 	MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
-
 	KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = "<< detJ << std::endl;
 
 	//compute cartesian derivatives for this integration point  [dN/dx_n]
@@ -1393,7 +1392,6 @@ void FemDem3DElement::DruckerPragerCriterion(
 	// Check input variables
 	if (friction_angle < tolerance) {
 		friction_angle = 32.0 * Globals::Pi / 180;
-		std::cout << "Friction Angle not defined, assumed equal to 32deg " << std::endl;
 	}
 	const double c_max = std::abs(sigma_t * (3.0 + std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0));
 	const double I1 = CalculateI1Invariant(rStressVector);
@@ -1669,20 +1667,20 @@ void FemDem3DElement::IntegratePerturbedStrain(
 	const Matrix& rElasticMatrix
 	)
 {
-	const Vector& perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
+	const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
 	Vector damages_edges = ZeroVector(mNumberOfEdges);
 	const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-		std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
+		std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
 
 		// We compute the average stress/strain on edge to integrate
-		Vector average_stress_vector = perturbed_predictive_stress;
+		Vector average_stress_vector = r_perturbed_predictive_stress;
 		Vector average_strain_vector = rPerturbedStrainVector;
 		int counter = 0;
-		for (unsigned int elem = 0; elem < EdgeNeighbours.size(); elem++) {
-			average_stress_vector += EdgeNeighbours[elem]->GetValue(STRESS_VECTOR);
-			average_strain_vector += EdgeNeighbours[elem]->GetValue(STRAIN_VECTOR);
+		for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
+			average_stress_vector += p_edge_neighbours[elem]->GetValue(STRESS_VECTOR);
+			average_strain_vector += p_edge_neighbours[elem]->GetValue(STRAIN_VECTOR);
 			counter++;
 		}
 		average_stress_vector /= (counter + 1);
@@ -1704,7 +1702,7 @@ void FemDem3DElement::IntegratePerturbedStrain(
 		damages_edges[edge] = damage_edge;
 	} // Loop edges
 	const double damage_element = this->CalculateElementalDamage(damages_edges);
-	rPerturbedStressVector = (1.0 - damage_element) * perturbed_predictive_stress;
+	rPerturbedStressVector = (1.0 - damage_element) * r_perturbed_predictive_stress;
 }
 
 void FemDem3DElement::AssignComponentsToTangentTensor(
