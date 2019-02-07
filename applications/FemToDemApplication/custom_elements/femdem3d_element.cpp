@@ -97,7 +97,7 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	this->Computep_edge_neighbours(rCurrentProcessInfo);
+	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
 	this->InitializeInternalVariablesAfterMapping();
 }
 
@@ -122,7 +122,7 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 	}
 }
 
-void FemDem3DElement::Computep_edge_neighbours(ProcessInfo &rCurrentProcessInfo)
+void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 {
 	std::vector<std::vector<Element *>> p_edge_neighboursContainer;
 	Geometry<Node<3>> &NodesCurrentElement = this->GetGeometry();
@@ -209,7 +209,7 @@ void FemDem3DElement::Computep_edge_neighbours(ProcessInfo &rCurrentProcessInfo)
 	} // End loop edges
 
 	// Storages the information inside the element
-	this->Savep_edge_neighboursContainer(p_edge_neighboursContainer);
+	this->SaveEdgeNeighboursContainer(p_edge_neighboursContainer);
 
 } // End finding edge neighbour elements
 
