@@ -84,6 +84,31 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
                                             const Vector& rStressVector, 
                                             const double IntegrationWeight);
 
+    void PerturbateDeformationGradient(
+        Matrix& rPerturbedDeformationGradient,
+        const Matrix& rDeformationGradientGP,
+        const double Perturbation,
+        const int IComponent,
+        const int JComponent);
+
+    int CalculateVoigtIndex(
+      const SizeType VoigtSize,
+      const int ComponentI,
+      const int ComponentJ);
+
+    void CalculateTangentTensor(
+      Matrix& TangentTensor,
+      const Vector& rStrainVectorGP,
+      const Vector& rStressVectorGP,
+      const Matrix& rDeformationGradientGP,
+      const Matrix& rElasticMatrix);
+
+    void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
+      Vector& rPerturberStressVector,
+      const Vector& rPerturbedStrainVector,
+      const Matrix& rElasticMatrix,
+      const Matrix& rPerturbedDeformationGradient);
+
 }; // Class
 } // namespace Kratos
 #endif // KRATOS_FEMDEM3D_LARGE_DISAPLCEMENT_ELEMENT_H_INCLUDED  defined

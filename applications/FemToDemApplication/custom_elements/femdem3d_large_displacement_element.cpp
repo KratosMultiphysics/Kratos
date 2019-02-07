@@ -225,7 +225,7 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
 		Vector stress_vector = ZeroVector(6);
-        this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector)
+		this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector);
         const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
         this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
@@ -496,9 +496,9 @@ void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
 	    for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
             double perturbation;
             this->CalculatePerturbation(rStrainVectorGP, perturbation, i_component);
-            this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradient, perturbation, i_component, j_component);
-            this->CalculateGreenLagrangeStrain(perturbed_strain, perturbed_deformation_gradient);
-            this->IntegratePerturbedDeformationGradient(perturbed_stress, perturbed_strain, rElasticMatrix);
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradientGP, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain, perturbed_deformation_gradient);
+            this->IntegratePerturbedDeformationGradient(perturbed_stress, perturbed_strain, rElasticMatrix, perturbed_deformation_gradient);
             const Vector& delta_stress = perturbed_stress - rStressVectorGP;
             const int voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
             this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, voigt_index);
@@ -510,17 +510,27 @@ void FemDem3DLargeDisplacementElement::PerturbateDeformationGradient(
     Matrix& rPerturbedDeformationGradient,
     const Matrix& rDeformationGradientGP,
     const double Perturbation,
-    const IndexType IComponent,
-    const IndexType JComponent
+    const int IComponent,
+    const int JComponent
 )
 {
 
 }
 
-IndexType FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
+void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
+    Vector& rPerturberStressVector,
+    const Vector& rPerturbedStrainVector,
+    const Matrix& rElasticMatrix,
+    const Matrix& rPerturbedDeformationGradient
+    )
+{
+    
+}
+
+int FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
     const SizeType VoigtSize,
-    const IndexType ComponentI,
-    const IndexType ComponentJ
+    const int ComponentI,
+    const int ComponentJ
     )
 {
     if (VoigtSize == 6) {
