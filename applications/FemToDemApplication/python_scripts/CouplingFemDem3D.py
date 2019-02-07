@@ -830,7 +830,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		total_displacement_z = 0.0
 		interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
 
-
 		if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
 			if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
 				for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
@@ -871,9 +870,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			# Print the selected nodes files
 			if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
-
 				NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
-
 				for inode in range(0, NumNodes):
 					IdNode = self.PlotFilesNodesIdList[inode]
 					node = self.FEM_Solution.main_model_part.GetNode(IdNode)
@@ -902,7 +899,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					 "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " +
 					 "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " +
 					 "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "    " + "{0:.4e}".format(Rz).rjust(11) + "\n")
-
 					self.PlotFilesNodesList[inode].close()
 
 			# print the selected element files
@@ -941,9 +937,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					 "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) +
 					 "    " + "{0:.4e}".format(Exz).rjust(11) +
 					 "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
-
 					self.PlotFilesElementsList[iElem].close()
-
 			self.TimePreviousPlotting = time
 
 #============================================================================================================================
@@ -964,11 +958,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# open plots for nodes selected
 		if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
-
 			NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
-
 			for node in range(0, NumNodes):
-
 				Id = self.FEM_Solution.ProjectParameters["watch_nodes_list"][node].GetInt()
 				iPlotFileNode = open("PlotNode_" + str(Id) + ".txt","w")
 				iPlotFileNode.write("\n")
@@ -979,11 +970,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# open plots for elements selected
 		if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
-
 			NumNElements = self.FEM_Solution.ProjectParameters["watch_elements_list"].size()
-
 			for elem in range(0, NumNElements):
-
 				Id = self.FEM_Solution.ProjectParameters["watch_elements_list"][elem].GetInt()
 				iPlotFileElem = open("PlotElement_" + str(Id) + ".txt","w")
 				iPlotFileElem.write("\n")
@@ -1001,7 +989,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 
 	def InitializeSolutionAfterRemeshing(self):
-
 		# Initialize the "flag" IS_DEM in all the nodes
 		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
 		# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
