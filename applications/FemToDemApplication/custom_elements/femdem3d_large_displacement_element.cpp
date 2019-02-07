@@ -510,11 +510,18 @@ void FemDem3DLargeDisplacementElement::PerturbateDeformationGradient(
     Matrix& rPerturbedDeformationGradient,
     const Matrix& rDeformationGradientGP,
     const double Perturbation,
-    const int IComponent,
-    const int JComponent
+    const int ComponentI,
+    const int ComponentJ
 )
 {
-
+    Matrix aux_perturbation_matrix = IdentityMatrix(rDeformationGradientGP.size1());
+    if (ComponentI == ComponentJ) {
+        aux_perturbation_matrix(ComponentI, ComponentJ) += Perturbation;
+    } else {
+        aux_perturbation_matrix(ComponentI, ComponentJ) += 0.5 * Perturbation;
+        aux_perturbation_matrix(ComponentJ, ComponentI) += 0.5 * Perturbation;
+    }
+    noalias(rPerturbedDeformationGradient) = prod(aux_perturbation_matrix, rDeformationGradientGP);
 }
 
 void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
@@ -526,6 +533,7 @@ void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
 {
     
 }
+
 
 int FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
     const SizeType VoigtSize,
