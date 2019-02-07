@@ -4,10 +4,10 @@ import KratosMultiphysics
 
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 
-"""
-For user-scripting it is intended that a new class is derived
-from PotentialFlowAnalysis to do modifications
-"""
+
+""" For user-scripting it is intended that a new class is derived
+from PotentialFlowAnalysis to do modifications """
+
 
 if __name__ == "__main__":
 
