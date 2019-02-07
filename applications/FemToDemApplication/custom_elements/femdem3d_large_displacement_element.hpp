@@ -10,8 +10,8 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_FEMDEM3D_LARGE_DISAPLCEMENT_ELEMENT_H_INCLUDED)
-#define KRATOS_FEMDEM3D_LARGE_DISAPLCEMENT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_FEMDEM3D_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED)
+#define KRATOS_FEMDEM3D_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 #include "custom_elements/femdem3d_element.hpp"
 
@@ -96,4 +96,4 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
 
 }; // Class
 } // namespace Kratos
-#endif // KRATOS_FEMDEM3D_LARGE_DISAPLCEMENT_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_FEMDEM3D_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined
