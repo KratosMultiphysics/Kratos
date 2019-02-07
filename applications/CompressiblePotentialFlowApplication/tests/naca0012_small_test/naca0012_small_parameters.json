@@ -21,7 +21,7 @@
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "linear_solver_settings"  : {
-                "solver_type"             : "ExternalSolversApplication.SuperLUSolver",
+                "solver_type"             : "ExternalSolversApplication.super_lu",
                 "verbosity"               : 0
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
