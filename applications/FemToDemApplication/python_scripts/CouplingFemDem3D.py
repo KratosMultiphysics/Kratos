@@ -839,11 +839,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
 					total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
 			else:
-                for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
-                    submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
-                    for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
-                        total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                        total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+				for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+					submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
+					for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+						total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+						total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
 						total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
 
 			if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
@@ -854,11 +854,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
 					total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
 			else:
-                for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
-                    submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
-                    for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
-                        total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
-                        total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+				for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+					submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
+					for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+						total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+						total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
 						total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)	
 
 			self.PlotFile = open("PlotFile.txt","a")
