@@ -98,16 +98,11 @@ public:
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
 
-            if (time == mTimeGrouting)
+            #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
             {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-                    it->FastGetSolutionStepValue(var) = current_temp;
-
-                }
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->FastGetSolutionStepValue(var) = mInitialValue;
             }
         }
 
@@ -117,7 +112,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;

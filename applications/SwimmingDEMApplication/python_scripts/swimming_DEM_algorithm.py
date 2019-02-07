@@ -19,7 +19,7 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 
@@ -268,10 +268,11 @@ class Algorithm(object):
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
 
     def SetDoSolveDEMVariable(self):
-        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
         if self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool():
-            self.do_solve_dem = False
+            self.pp.CFD_DEM["do_solve_dem"].SetBool(False)
+
+        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
     def SetCustomBetaParameters(self, custom_parameters):
         custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
@@ -323,8 +324,6 @@ class Algorithm(object):
         self.DispersePhaseInitialize()
 
         self.SetAllModelParts()
-
-        self.SetCutsOutput()
 
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
@@ -397,15 +396,19 @@ class Algorithm(object):
                 self.fluid_model_part,
                 self.spheres_model_part,
                 self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
+                self.pp.CFD_DEM,
+                self.pp.coupling_dem_vars,
+                self.pp.coupling_fluid_vars,
+                self.pp.time_filtered_vars,
+                flow_field=self.GetFieldUtility(),
+                domain_size=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
+        self.custom_functions_tool = SDP.FunctionsCalculator(self.domain_size)
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(
@@ -459,7 +462,7 @@ class Algorithm(object):
         self.step       = 0
         self.time       = self.pp.Start_time
         self.Dt         = self.pp.Dt
-        self.final_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
+        self.end_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
         self.DEM_step   = 0
         self.time_dem   = 0.0
         self.Dt_DEM     = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -482,7 +485,7 @@ class Algorithm(object):
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
-        self.report.total_steps_expected = int(self.final_time / self.Dt_DEM)
+        self.report.total_steps_expected = int(self.end_time / self.Dt_DEM)
 
         Say(self.report.BeginReport(self.timer))
 
@@ -507,7 +510,7 @@ class Algorithm(object):
             gauge = analytics.Gauge(
                 self.fluid_model_part,
                 self.Dt,
-                self.final_time,
+                self.end_time,
                 variables_to_measure,
                 steps_between_measurements
                 )
@@ -592,7 +595,7 @@ class Algorithm(object):
             self.calculate_distance_process.Execute()
 
     def TheSimulationMustGoOn(self):
-        return self.time <= self.final_time
+        return self.time <= self.end_time
 
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 1
@@ -942,7 +945,7 @@ class Algorithm(object):
         # Warning: this estimation is based on a constant time step for DEM.
         # This is usually the case, but could not be so.
         # A more robust implementation is needed!
-        N_steps = int(self.final_time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
+        N_steps = int(self.end_time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
         not_neglecting_history_force = self.pp.CFD_DEM["basset_force_type"].GetInt() > 0
         using_hinsberg_method = (
             self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or
@@ -1003,11 +1006,6 @@ class Algorithm(object):
     def FinalizeDragOutput(self):
         for i in self.drag_file_output_list:
             i.close()
-
-    def SetCutsOutput(self):
-        if not self.pp.VolumeOutput:
-            cut_list = define_output.DefineCutPlanes()
-            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
 
     def SetDragOutput(self):
         # define the drag computation list

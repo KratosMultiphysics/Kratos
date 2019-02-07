@@ -18,14 +18,14 @@ def Wait():
 class FEM_Solution(MainSolidFEM.Solution):
 
 	def Info(self):
-		print("FEM part of the FEMDEM application")
+		KratosMultiphysics.Logger.PrintInfo("FEM part of the FEMDEM application")
 
 #============================================================================================================================					
 	def __init__(self, Model):
 
 		#### TIME MONITORING START ####
 		# Time control starts		
-		print(timer.ctime())
+		KratosMultiphysics.Logger.PrintInfo(timer.ctime())
 		# Measure process time
 		self.t0p = timer.clock()
 		# Measure wall time
@@ -41,7 +41,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		# set echo level
 		self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
-		print(" ")
+		KratosMultiphysics.Logger.PrintInfo(" ")
 
 		# defining the number of threads:
 		num_threads =  self.GetParallelSize()
@@ -181,11 +181,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 		
 		self.GraphicalOutputExecuteInitialize()
 
-		print(" ")
-		print("=================================================")
-		print(" - Kratos FemDem Application Calculation Start - ")
-		print("=================================================")
-
 		self.model_processes.ExecuteBeforeSolutionLoop()
 
 		self.GraphicalOutputExecuteBeforeSolutionLoop()		
@@ -211,18 +206,11 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
-		neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, 2, 5)
-		neighbour_elemental_finder.ClearNeighbours()
-		neighbour_elemental_finder.Execute()
-
-		#print("")
-		print(" [STEP:",self.step," TIME:", self.time,"]")
+		KratosMultiphysics.Logger.PrintInfo(" [STEP:",self.step," TIME:", self.time,"]")
 
 		# processes to be executed at the begining of the solution step
 		self.model_processes.ExecuteInitializeSolutionStep()
-
 		self.GraphicalOutputExecuteInitializeSolutionStep()
-
 		self.solver.InitializeSolutionStep()
 
 #============================================================================================================================
@@ -254,18 +242,18 @@ class FEM_Solution(MainSolidFEM.Solution):
 		# Ending the problem (time integration finished)
 		self.GraphicalOutputExecuteFinalize()		
 		self.model_processes.ExecuteFinalize()
-		print(" ")
-		print("=================================================")
-		print(" - Kratos FemDem Application Calculation End   - ")
-		print("=================================================")
-		print(" ")
+		KratosMultiphysics.Logger.PrintInfo(" ")
+		KratosMultiphysics.Logger.PrintInfo("=================================================")
+		KratosMultiphysics.Logger.PrintInfo(" - Kratos FemDem Application Calculation End   - ")
+		KratosMultiphysics.Logger.PrintInfo("=================================================")
+		KratosMultiphysics.Logger.PrintInfo(" ")
 		#### END SOLUTION ####
 		# Measure process time
 		tfp = timer.clock()
 		# Measure wall time
 		tfw = timer.time()
-		print("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
-		print(timer.ctime())
+		KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
+		KratosMultiphysics.Logger.PrintInfo(timer.ctime())
 
  #============================================================================================================================	   
 	def SetGraphicalOutput(self):
@@ -296,8 +284,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 	#============================================================================================================================
 	def GraphicalOutputExecuteFinalize(self):
 		self.graphical_output.ExecuteFinalize()
-				
-
 	#============================================================================================================================   
 	def SetParallelSize(self, num_threads):
 		parallel = KratosMultiphysics.OpenMPUtils()

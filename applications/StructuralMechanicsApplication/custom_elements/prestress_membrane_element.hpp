@@ -85,11 +85,20 @@ namespace Kratos
 
     void Initialize() override;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
@@ -103,10 +112,6 @@ namespace Kratos
 
     void CalculateMassMatrix(
       MatrixType& rMassMatrix,
-      ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateDampingMatrix(
-      MatrixType& rDampingMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(
@@ -127,10 +132,9 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  protected:
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-  private:
+private:
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Vector mDetJ0;
@@ -158,9 +162,6 @@ namespace Kratos
       Matrix& rD,
       const double& rWeight);
 
-
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateAndAddNonlinearKm(
         Matrix& rK,
         Matrix& rB11,
@@ -185,14 +186,12 @@ namespace Kratos
         array_1d<double, 3>& rgab,
         array_1d<double, 3>& rGab);
 
-    void CalculateAndAdd_BodyForce(
-      const Vector& rN,
-      const ProcessInfo& rCurrentProcessInfo,
-      array_1d<double, 3>& BodyForce,
-      VectorType& rRightHandSideVector,
-      const double& rWeight);
+    void CalculateAndAddBodyForce(
+        VectorType& rRightHandSideVector,
+        const IndexType PointNumber,
+        const double& rWeight) const;
 
-    void CalculateAndAdd_PressureForce(
+    void CalculateAndAddPressureForce(
       VectorType& rResidualVector,
       const Vector& N,
       const array_1d<double, 3>& rv3,
@@ -258,8 +257,6 @@ namespace Kratos
                     const double Lambda1, const double Lambda2);
 
     const Matrix CalculateDeformationGradient(const unsigned int PointNumber);
-
-    int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Serialization

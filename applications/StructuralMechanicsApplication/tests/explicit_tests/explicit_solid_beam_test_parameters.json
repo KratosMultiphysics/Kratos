@@ -1,0 +1,111 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "explicit_solid_beam_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.0005
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "time_integration_method"            : "explicit",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "explicit_tests/explicit_solid_beam_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "explicit_tests/explicit_solid_beam_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.0e-6
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type"         : "amgcl"
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "check_analytic_results_process" : [
+        {
+            "python_module"   : "check_scalar_to_nodes_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"          : "CheckValueProcess",
+            "Parameters"            : {
+                    "model_part_name" : "Check_ModelPart",
+                    "variable_name"   : "DISPLACEMENT_Y",
+                    "interval"        : [0.0, "End"],
+                    "value"           : "-3.28e-5*(1.0 - cos((3.14159/0.0049)*t))",
+                    "tolerance_rank"  : 6
+            }
+        }
+        ],
+        "list_other_processes"     : []
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "explicit_solid_beam_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "time",
+                        "output_frequency"    : 1e-4,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 100.0
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "sdof",
+        "input_file"  : "ProjectParametersSDof"
+    }
+}

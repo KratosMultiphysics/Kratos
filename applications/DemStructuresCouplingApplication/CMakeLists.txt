@@ -6,7 +6,7 @@ message("**** configuring KratosDemStructuresCouplingApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  ")
@@ -73,4 +73,4 @@ install(TARGETS KratosDemStructuresCouplingCore DESTINATION libs )
 install(TARGETS KratosDemStructuresCouplingApplication DESTINATION libs )
 
 # Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DemStructuresCouplingApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DemStructuresCouplingApplication.py" DESTINATION "KratosMultiphysics/DemStructuresCouplingApplication" RENAME "__init__.py")

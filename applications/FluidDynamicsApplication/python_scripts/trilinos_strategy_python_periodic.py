@@ -4,8 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # import base class
 from trilinos_strategy_python import SolvingStrategyPython

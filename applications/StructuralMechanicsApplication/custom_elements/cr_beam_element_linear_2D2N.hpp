@@ -100,7 +100,7 @@ namespace Kratos
         /**
          * @brief This function calculates the reference length
          */
-        double CalculateLength() override;
+        double CalculateLength() const override;
 
 
         void GetValueOnIntegrationPoints(

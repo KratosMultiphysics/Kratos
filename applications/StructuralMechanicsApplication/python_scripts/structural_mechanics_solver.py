@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -76,14 +73,7 @@ class MechanicalSolver(PythonSolver):
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "symmetric_scaling": true,
-                "verbosity": 1
-            },
+            "linear_solver_settings": { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
@@ -229,13 +219,10 @@ class MechanicalSolver(PythonSolver):
                 pass
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
+    def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.Solve()
-
-    def InitializeSolutionStep(self):
+            self.Initialize() #required after clearing
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -422,10 +409,34 @@ class MechanicalSolver(PythonSolver):
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
-        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+            # using a default linear solver (selecting the fastest one available)
+            import KratosMultiphysics.kratos_utilities as kratos_utils
+            if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+                from KratosMultiphysics import EigenSolversApplication
+            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+                from KratosMultiphysics import ExternalSolversApplication
+
+            linear_solvers_by_speed = [
+                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
+                "sparse_lu",  # EigenSolversApplication
+                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
+                "super_lu",   # ExternalSolversApplication
+                "skyline_lu_factorization" # in Core, always available, but slow
+            ]
+
+            for solver_name in linear_solvers_by_speed:
+                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
+                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
+                    self.print_on_rank_zero('::[MechanicalSolver]:: ',\
+                        'Using "' + solver_name + '" as default linear solver')
+                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+
+        raise Exception("Linear-Solver could not be constructed!")
+
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
@@ -435,9 +446,10 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-                raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     def _create_solution_scheme(self):

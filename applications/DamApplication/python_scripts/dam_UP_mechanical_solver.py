@@ -5,24 +5,21 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 import dam_mechanical_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
-    
+
     return DamUPMechanicalSolver(main_model_part, custom_settings)
 
 
 class DamUPMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
 
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -82,17 +79,17 @@ class DamUPMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
-        
+
         print("Construction of DamUPMechanicalSolver finished")
 
     def AddVariables(self):
-        
+
         super(DamUPMechanicalSolver, self).AddVariables()
-        
+
         ## Fluid variables
         # Add pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -101,7 +98,7 @@ class DamUPMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt2_PRESSURE)
 
     def AddDofs(self):
-        
+
         for node in self.main_model_part.Nodes:
             ## Solid dofs
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
@@ -123,10 +120,10 @@ class DamUPMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
     def _ConstructScheme(self, scheme_type, solution_type):
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
-        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()  
-        
+        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
+
         beta=0.25
         gamma=0.5
-        scheme = KratosDam.DamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)       
-        
+        scheme = KratosDam.DamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)
+
         return scheme

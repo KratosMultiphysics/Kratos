@@ -71,7 +71,7 @@ namespace Kratos
 
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -114,7 +114,7 @@ namespace Kratos
 
         void Create3DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -240,14 +240,13 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create2DGeometry(this_model_part, "Element2D3N");
 
@@ -255,11 +254,12 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(NODAL_AREA, 0.0);
                 it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
 
-            typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
 
@@ -291,14 +291,13 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create3DGeometry(this_model_part, "Element3D4N");
 
@@ -306,12 +305,13 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(NODAL_AREA, 0.0);
                 it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
 
             // Compute gradient
-            typedef ComputeNodalGradientProcess<3, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
 
@@ -347,14 +347,13 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create2DGeometry(this_model_part, "Element2D3N");
 
@@ -362,12 +361,12 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
                 it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
 
             // Compute metric
-            ComputeHessianSolMetricProcess<2, Variable<double>> hessian_process = ComputeHessianSolMetricProcess<2, Variable<double>>(this_model_part, DISTANCE);
+            auto hessian_process = ComputeHessianSolMetricProcess(this_model_part, DISTANCE);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -394,14 +393,13 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create3DGeometry(this_model_part, "Element3D4N");
 
@@ -409,12 +407,12 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
                 it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
 
             // Compute metric
-            ComputeHessianSolMetricProcess<3, Variable<double>> hessian_process = ComputeHessianSolMetricProcess<3, Variable<double>>(this_model_part, DISTANCE);
+            auto hessian_process = ComputeHessianSolMetricProcess(this_model_part, DISTANCE);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -445,15 +443,15 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
@@ -473,7 +471,7 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISPLACEMENT_X) = (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->Coordinates()[0] += (it_node->X() == 1.0) ? 0.5 : 0.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
                 it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
 
@@ -510,15 +508,15 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
@@ -538,7 +536,7 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISPLACEMENT_X) = (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->Coordinates()[0] += (it_node->X() == 1.0) ? 0.5 : 0.0;
-                it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
+                it_node->SetValue(NODAL_H, 1.0);
                 it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
 

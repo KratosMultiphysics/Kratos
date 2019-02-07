@@ -26,8 +26,6 @@
 #include "includes/element.h"
 #include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
-
-#include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 
 namespace Kratos
@@ -231,16 +229,16 @@ public:
         // Rotate the displacement back to the original coordinate system to calculate the velocity and acceleration
         // Do not confuse with the name RecoverVelocities, what the function really do is to RecoverDisplacements
         mRotationTool.RecoverVelocities(r_model_part);
-        
+
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
 		{
 			auto i = r_model_part.NodesBegin() + iter;
-			array_1d<double, 3 > & delta_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+			const array_1d<double, 3 > & delta_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
 
             array_1d<double, 3 > & current_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & current_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
-            
+
             const array_1d<double, 3 > & previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             const array_1d<double, 3 > & previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
@@ -266,15 +264,15 @@ public:
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(r_model_part.Nodes().size()); ++iter)
 		{
-			
+
 			auto i = r_model_part.NodesBegin() + iter;
             const array_1d<double, 3 > & previous_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 			const array_1d<double, 3 > & previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             const array_1d<double, 3 > & previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            
+
             array_1d<double, 3 > & current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
             //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
-            
+
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
             {
                 current_displacement[0] = 0.0;
@@ -320,7 +318,7 @@ public:
 
             UpdateVelocity(current_velocity, current_displacement, previous_velocity, previous_acceleration);
             UpdateAcceleration (current_acceleration, current_displacement, previous_velocity, previous_acceleration);
-			
+
 		}
     }
 
@@ -414,7 +412,7 @@ public:
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 		{
-			
+
 			auto i = mr_grid_model_part.NodesBegin() + iter;
 			if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
             {
@@ -424,9 +422,6 @@ public:
                 double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
                 double & nodal_density = (i)->FastGetSolutionStepValue(DENSITY);
-                double & nodal_aux_R   = (i)->FastGetSolutionStepValue(AUX_R);
-                array_1d<double, 3 > & nodal_aux_R_vel = (i)->FastGetSolutionStepValue(AUX_R_VEL);
-                array_1d<double, 3 > & nodal_aux_R_acc = (i)->FastGetSolutionStepValue(AUX_R_ACC);
 
                 nodal_momentum.clear();
                 nodal_inertia.clear();
@@ -434,9 +429,6 @@ public:
                 nodal_pressure = 0.0;
 
                 nodal_density = 0.0;
-                nodal_aux_R = 0.0;
-                nodal_aux_R_vel.clear();
-                nodal_aux_R_acc.clear();
             }
 
             if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
@@ -493,7 +485,7 @@ public:
                     }
                 }
 			}
-                     
+
             norm_velocity = 0.0;
             norm_acceleration = 0.0;
             norm_pressure = 0.0;
@@ -506,30 +498,30 @@ public:
 			#pragma omp parallel for reduction(+:norm_velocity,norm_acceleration,norm_pressure,norm_delta_velocity,norm_delta_acceleration,norm_delta_pressure)
 			for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 			{
-			
+
 			    auto i = mr_grid_model_part.NodesBegin() + iter;
-			    double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                
+			    const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+
                 if (nodal_mass > 1.0e-16 )
                 {
                     array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
                     array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
 
-                    array_1d<double, 3 > & nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 > & nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                    const array_1d<double, 3 > & nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                    const array_1d<double, 3 > & nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
                     array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
                     array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
                     double delta_nodal_pressure = 0.0;
-                    
+
                     if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
                     {
                         double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                         delta_nodal_pressure = nodal_mpressure/nodal_mass;
                     }
-            
+
                     delta_nodal_velocity = nodal_momentum/nodal_mass;
                     delta_nodal_acceleration = nodal_inertia/nodal_mass;
 
@@ -555,7 +547,7 @@ public:
             norm_delta_velocity     = std::sqrt(norm_delta_velocity);
             norm_delta_acceleration = std::sqrt(norm_delta_acceleration);
             norm_delta_pressure     = std::sqrt(norm_delta_pressure);
-            
+
             ++it_num;
         }
 
@@ -590,7 +582,7 @@ public:
 
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        
+
         int num_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector element_partition;
         OpenMPUtils::DivideInPartitions(rElements.size(), num_threads, element_partition);
@@ -601,11 +593,11 @@ public:
 
             ElementsArrayType::iterator element_begin = rElements.begin() + element_partition[k];
             ElementsArrayType::iterator element_end   = rElements.begin() + element_partition[k + 1];
-            
+
             for (ElementsArrayType::iterator itElem = element_begin; itElem != element_end; itElem++)
             {
                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
-                
+
             }
         }
 
@@ -638,7 +630,7 @@ public:
                                    TSystemVectorType& b) override
     {
         KRATOS_TRY
-        
+
         ElementsArrayType& pElements = r_model_part.Elements();
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -652,7 +644,7 @@ public:
         {
             (it) -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
-        
+
         KRATOS_CATCH( "" )
     }
 
@@ -673,17 +665,6 @@ public:
                                       ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-                i != mr_grid_model_part.NodesEnd(); ++i)
-        {
-            if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
-            {
-                array_1d<double, 3 > & external_force = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
-                array_1d<double, 3 > & internal_force = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
-                external_force.clear();
-                internal_force.clear();
-            }
-        }
     }
 
     //***************************************************************************
@@ -723,7 +704,7 @@ public:
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
         mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-       
+
         KRATOS_CATCH( "" )
     }
 
@@ -761,7 +742,7 @@ public:
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement->GetGeometry());
         mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
-        
+
         KRATOS_CATCH( "" )
 
     }
@@ -805,8 +786,8 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());        
-        
+        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+
         KRATOS_CATCH( "" )
     }
 
@@ -842,8 +823,8 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());        
-        
+        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+
         KRATOS_CATCH( "" )
     }
 
@@ -896,7 +877,7 @@ public:
         KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) <<"DISPLACEMENT has Key zero! (check if the application is correctly registered"<<std::endl;
         KRATOS_ERROR_IF(VELOCITY.Key() == 0) <<"VELOCITY has Key zero! (check if the application is correctly registered"<<std::endl;
         KRATOS_ERROR_IF(ACCELERATION.Key() == 0) <<"ACCELERATION has Key zero! (check if the application is correctly registered"<<std::endl;
-        
+
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
                 it!=r_model_part.NodesEnd(); it++)

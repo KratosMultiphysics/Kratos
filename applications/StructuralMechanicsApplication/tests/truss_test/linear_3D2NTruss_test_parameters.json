@@ -30,12 +30,12 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false,
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann","DISPLACEMENT_allnodes"],
+        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann","DISPLACEMENT_allnodes"],
         "rotation_dofs"                      : false
     },
     "processes" : {

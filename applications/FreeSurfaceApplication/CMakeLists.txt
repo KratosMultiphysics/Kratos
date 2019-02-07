@@ -43,4 +43,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSurfaceApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FreeSurfaceApplication.py" DESTINATION "KratosMultiphysics/FreeSurfaceApplication" RENAME "__init__.py")

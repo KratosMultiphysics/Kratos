@@ -3,16 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
-
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 
 from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 import trilinos_import_model_part_utility
@@ -39,7 +33,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "input_filename": "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "MultiLevelSolver"
+                "solver_type" : "multi_level"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],

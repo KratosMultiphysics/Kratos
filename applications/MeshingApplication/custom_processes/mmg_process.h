@@ -14,6 +14,7 @@
 #define KRATOS_MMG_PROCESS
 
 // System includes
+#include <unordered_set>
 #include <unordered_map>
 
 // External includes
@@ -25,6 +26,7 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 #include "containers/variables_list.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -361,7 +363,6 @@ private:
      * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-
     static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
     {
         if(Str == "Lagrangian" || Str == "LAGRANGIAN")
@@ -377,69 +378,70 @@ private:
     /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
-
     void InitializeMeshData();
 
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
-
     void InitializeSolData();
 
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
-
     void ExecuteRemeshing();
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      */
-
     void ReorderAllIds();
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
-
     void InitializeElementsAndConditions();
 
     /**
      * @brief It checks if the nodes are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckNodes();
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckConditions0();
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckConditions1();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-
     IndexVectorType CheckElements0();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-
     IndexVectorType CheckElements1();
 
     /**
      * @brief It blocks certain nodes before remesh the model
-     * @param iNode The index of the noode
+     * @param iNode The index of the node
      */
-
     void BlockNode(IndexType iNode);
+
+    /**
+     * @brief It blocks certain conditions before remesh the model
+     * @param iCondition The index of the condition
+     */
+    void BlockCondition(IndexType iCondition);
+
+    /**
+     * @brief It blocks certain elements before remesh the model
+     * @param iElement The index of the element
+     */
+    void BlockElement(IndexType iElement);
 
     /**
      * @brief It creates the new node
@@ -448,7 +450,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pNode The pointer to the new node created
      */
-
     NodeType::Pointer CreateNode(
         IndexType iNode,
         int& Ref,
@@ -462,7 +463,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-
     ConditionType::Pointer CreateCondition0(
         const IndexType CondId,
         int& PropId,
@@ -477,7 +477,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-
     ConditionType::Pointer CreateCondition1(
         const IndexType CondId,
         int& PropId,
@@ -492,7 +491,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-
     ElementType::Pointer CreateElement0(
         const IndexType ElemId,
         int& PropId,
@@ -507,7 +505,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-
     ElementType::Pointer CreateElement1(
         const IndexType ElemId,
         int& PropId,
@@ -519,13 +516,11 @@ private:
      * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param PostOutput If the file to save is after or before remeshing
      */
-
     void SaveSolutionToFile(const bool PostOutput);
 
     /**
      * @brief It frees the memory used during all the process
      */
-
     void FreeMemory();
 
     /**
@@ -537,20 +532,17 @@ private:
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
-
     void InitMesh();
 
     /**
      * @brief Here the verbosity is set
      */
-
     void InitVerbosity();
 
     /**
      * @brief Here the verbosity is set using the API
      * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
-
     void InitVerbosityParameter(const IndexType VerbosityMMG);
 
     /**
@@ -559,7 +551,6 @@ private:
      * @param NumArrayElements Number of Elements
      * @param NumArrayConditions Number of Conditions
      */
-
     void SetMeshSize(
         const SizeType NumNodes,
         const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
@@ -570,27 +561,23 @@ private:
      * @brief This sets the size of the solution for the scalar case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeScalar(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the vector case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeVector(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeTensor(const SizeType NumNodes);
 
     /**
      * @brief This checks the mesh data and prints if it is OK
      */
-
     void CheckMeshData();
 
     /**
@@ -598,7 +585,6 @@ private:
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-
     void OutputMesh(
         const bool PostOutput,
         const IndexType Step
@@ -705,6 +691,68 @@ private:
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      */
     void AssignAndClearAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief It sets to zero the entity data, using the variables from the orginal model part
+     * @param rNewModelPart The new container
+     * @param rOldModelPart The old container
+     * @tparam TContainerType The container type
+     * @todo Interpolate values in the future
+     */
+    template<class TContainerType>
+    void SetToZeroEntityData(
+        TContainerType& rNewContainer,
+        const TContainerType& rOldContainer
+        )
+    {
+        // Firts we generate the variable list
+        std::unordered_set<std::string> list_variables;
+        const auto it_begin_old = rOldContainer.begin();
+        auto& data = it_begin_old->Data();
+        for(auto i = data.begin() ; i != data.end() ; ++i) {
+            list_variables.insert((i->first)->Name());
+        }
+
+        for (auto& var_name : list_variables) {
+            if (KratosComponents<Variable<bool>>::Has(var_name)) {
+                const Variable<bool>& r_var = KratosComponents<Variable<bool>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, false, rNewContainer);
+            } else if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const Variable<double>& r_var = KratosComponents<Variable<double>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, 0.0, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+                const Variable<array_1d<double, 3>>& r_var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+                const array_1d<double, 3> aux_value = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
+                const Variable<array_1d<double, 4>>& r_var = KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name);
+                const array_1d<double, 4> aux_value = ZeroVector(4);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
+                const Variable<array_1d<double, 6>>& r_var = KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name);
+                const array_1d<double, 6> aux_value = ZeroVector(6);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
+                const Variable<array_1d<double, 9>>& r_var = KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name);
+                const array_1d<double, 9> aux_value = ZeroVector(9);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+                const Variable<Vector>& r_var = KratosComponents<Variable<Vector>>::Get(var_name);
+                Vector aux_value = ZeroVector(it_begin_old->GetValue(r_var).size());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+                const Variable<Matrix>& r_var = KratosComponents<Variable<Matrix>>::Get(var_name);
+                const Matrix& ref_matrix = it_begin_old->GetValue(r_var);
+                Matrix aux_value = ZeroMatrix(ref_matrix.size1(), ref_matrix.size2());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            }
+        }
+    }
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries();
 
     /**
      * @brief This function creates an before/after remesh output file

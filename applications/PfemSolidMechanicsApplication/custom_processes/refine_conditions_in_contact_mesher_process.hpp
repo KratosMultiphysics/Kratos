@@ -163,7 +163,7 @@ public:
 	{
 
 	  std::vector<Point > list_of_points;
-	  std::vector<ConditionType::Pointer> list_of_conditions;
+	  std::vector<Condition*> list_of_conditions;
 
 	  unsigned int conditions_size = mrModelPart.Conditions().size();
 
@@ -311,7 +311,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildNewConditions( ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    void BuildNewConditions( ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<Condition*>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -372,28 +372,10 @@ private:
 	  N[1] = 0.5;
 
 	  MeshDataTransferUtilities DataTransferUtilities;
-	  DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, *pnode);
+	  DataTransferUtilities.Interpolate( geom, N, variables_list, pnode);
 
 	  // //int cond_id = list_of_points[i].Id();
 	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions().find(cond_id).base()))->GetGeometry();
-
-	  // unsigned int buffer_size = pnode->GetBufferSize();
-
-	  // for(unsigned int step = 0; step<buffer_size; step++)
-	  //   {
-          //     //getting the data of the solution step
-          //     double* step_data = (pnode)->SolutionStepData().Data(step);
-
-          //     double* node0_data = rConditionGeometry[0].SolutionStepData().Data(step);
-          //     double* node1_data = rConditionGeometry[1].SolutionStepData().Data(step);
-
-          //     //copying this data in the position of the vector we are interested in
-          //     for(unsigned int j= 0; j<step_data_size; j++)
-	  // 	{
-	  // 	  step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-	  // 	}
-	  //   }
-
 
 	  //set specific control values and flags:
 	  pnode->Set(BOUNDARY);
@@ -474,7 +456,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineContactBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineContactBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<Condition*>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -707,7 +689,7 @@ private:
 
 		      new_point.SetId(ic->Id()); //set condition Id
 
-		      ConditionType::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
+		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).lock().get();
 
 
 		      if( (rConditionGeometry[0].Is(TO_SPLIT) && rConditionGeometry[1].Is(TO_SPLIT)) )
@@ -775,7 +757,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineOtherBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineOtherBoundary(ModelPart& rModelPart, std::vector<Point >& list_of_points, std::vector<Condition*>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -973,7 +955,7 @@ private:
 
 	      if (!radius_insert && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_BOUNDARY_ON_THRESHOLD) && vsize>0){
 
-		Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+		Element& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
 		plastic_power=0;
 		std::vector<double> Value(1);
@@ -1023,7 +1005,7 @@ private:
 
 	      if( (!radius_insert || !energy_insert) && vsize>0 ){
 
-		Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+		Element& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
 		//std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
 
@@ -1210,7 +1192,7 @@ private:
 		    std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
 
 		  list_of_points.push_back(new_point);
-		  list_of_conditions.push_back(*(ic.base()));
+		  list_of_conditions.push_back((*(ic.base())).get());
 
 
 		  // if( this->mEchoLevel > 0 ){

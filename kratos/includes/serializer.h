@@ -28,6 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/flags.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
@@ -121,7 +122,7 @@ template <class TDataType> class Variable;
  *
  * @author Pooyan Dadvand
  */
-class KRATOS_API(KRATOS_CORE) Serializer
+class KRATOS_API(KRATOS_CORE) Serializer : public Flags
 {
 public:
     ///@name  Enum's
@@ -136,6 +137,9 @@ public:
 
     /// Pointer definition of Serializer
     KRATOS_CLASS_POINTER_DEFINITION(Serializer);
+
+    KRATOS_DEFINE_LOCAL_FLAG( MPI );
+    KRATOS_DEFINE_LOCAL_FLAG( SHALLOW_GLOBAL_POINTERS_SERIALIZATION );
 
     typedef std::size_t SizeType;
 
@@ -538,7 +542,6 @@ public:
         save_map(rTag, rObject);
     }
 
-
     template<class TDataType>
     void save(std::string const & rTag, TDataType const& rObject)
     {
@@ -818,6 +821,25 @@ public:
         return mpBuffer;
     }
 
+    /**
+     * This function let's one introduce "pValue"  between the objects 
+     * which are considered to be already serialized
+     * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
+     */
+    template<class TDataType>
+    void AddToSavedPointers(const TDataType& pValue) {
+        mSavedPointers.insert(pValue);
+    }
+    
+    /**
+     * This function is to be used to inform the serializer that the object
+     * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
+     * This function is useful to substitute some objects with others that already exist.
+     */
+    void RedirectLoadingPointer(void * pStoredPointer, void * pAllocatedPosition) {
+        mLoadedPointers[pStoredPointer]=pAllocatedPosition;
+    }
+
     static RegisteredObjectsContainerType& GetRegisteredObjects()
     {
         return msRegisteredObjects;
@@ -839,17 +861,17 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "Serializer";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {}
 
 
@@ -1373,7 +1395,6 @@ private:
 //       return rOStream;
 //     }
 ///@}
-
 
 }  // namespace Kratos.
 
