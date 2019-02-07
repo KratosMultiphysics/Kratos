@@ -93,6 +93,18 @@ void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Va
             }
         }
     }
+    else if (rVariable == PSEUDO_MOMENT)
+    {
+        // MFusseder TODO: delete setvalue
+        this->SetValue(DESIGN_VARIABLE_NAME, "I22");
+        this->CalculatePartialDesignVariableDerivative(MOMENT, rOutput, rCurrentProcessInfo);
+    }
+    else if (rVariable == PSEUDO_FORCE)
+    {
+        // MFusseder TODO: delete setvalue
+        this->SetValue(DESIGN_VARIABLE_NAME, "I22");
+        this->CalculatePartialDesignVariableDerivative(FORCE, rOutput, rCurrentProcessInfo);
+    }
     else
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 

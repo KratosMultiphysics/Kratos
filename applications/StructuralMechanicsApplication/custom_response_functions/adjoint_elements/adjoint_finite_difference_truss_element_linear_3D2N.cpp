@@ -69,6 +69,12 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateOnIntegrationPoints(con
             for (IndexType j = 0; j < 3 ; ++j)
                 rOutput[i][j] = strain_vector[i][j];
     }
+    else if (rVariable == PSEUDO_FORCE)
+    {
+        // MFusseder TODO: delete setvalue
+        this->SetValue(DESIGN_VARIABLE_NAME, "CROSS_AREA");
+        this->CalculatePartialDesignVariableDerivative(FORCE, rOutput, rCurrentProcessInfo);
+    }
     else
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 
