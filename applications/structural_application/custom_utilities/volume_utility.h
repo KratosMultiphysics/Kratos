@@ -143,12 +143,12 @@ public:
         //unsigned int number_of_nodes = geom.PointsNumber(); // gets the total number of nodes of a element
         //KRATOS_WATCH (number_of_nodes);
         //int inode; // "i" counter
-        vector<double> ce(3),ne(3); //ce = center, ne= normal
+        Vector ce(3),ne(3); //ce = center, ne= normal
         noalias(ce) = ZeroVector(3);
         noalias(ne) = ZeroVector(3);
         //double ce[3],ne[3]; // vectors
         //double v1[3],v2[3]; // vectors
-        vector<double> v1 (3), v2(3) ; //auxiliary vectors
+        Vector v1 (3), v2(3) ; //auxiliary vectors
         noalias(v1) = ZeroVector(3);
         noalias(v2) = ZeroVector(3);
         //const vector<double> coords(3); // coordenadas dos nós

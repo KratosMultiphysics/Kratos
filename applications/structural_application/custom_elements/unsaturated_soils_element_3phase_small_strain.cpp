@@ -3071,7 +3071,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateStressAndTangentialSti
     noalias( tanC_A ) = ZeroMatrix( dim, dim );
 
     if ( tanC_U.size1() != 6 || tanC_U.size2() != 6 )
-        tanC_U.resize( 6, 6 );
+        tanC_U.resize( 6, 6, false );
 
     noalias( tanC_U ) = ZeroMatrix( 6, 6 );
 
@@ -3083,7 +3083,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateStressAndTangentialSti
 
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
         StrainVector,
-        ZeroMatrix( 1 ),
+        ZeroMatrix( 1, 1 ),
         StressVector,
         tanC_U,
         rCurrentProcessInfo,
@@ -3182,7 +3182,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( co
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             if ( rValues[i].size1() != 3 || rValues[i].size2() != 3 )
-                rValues[i].resize( 3, 3 );
+                rValues[i].resize( 3, 3, false );
 
             noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( ELASTIC_LEFT_CAUCHY_GREEN_OLD, rValues[i] );
         }

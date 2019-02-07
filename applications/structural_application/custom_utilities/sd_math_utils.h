@@ -46,6 +46,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SD_MATH_UTILS
 #define PI 3.1415926535898
 
+#include "boost/numeric/ublas/matrix.hpp"
+#include "boost/numeric/ublas/lu.hpp"
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
 #include <cmath>
@@ -69,13 +71,13 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
+//    typedef BoundedVector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
 
-    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+//    typedef BoundedVector<Second_Order_Tensor> Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+    typedef BoundedVector<BoundedVector<Matrix, 3>, 3 > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+//    typedef Matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
 
     /**
@@ -94,7 +96,7 @@ public:
      * three real (not complex) solutions
      */
 
-    static inline bool CardanoFormula(double a, double b, double c, double d, Vector& solution)
+    static inline bool CardanoFormula(double a, double b, double c, double d, VectorType& solution)
     {
         solution.resize(3,false);
         noalias(solution)= ZeroVector(3);
@@ -161,7 +163,7 @@ public:
      * WARNING only valid for 2*2 and 3*3 Matrices yet
      */
 
-    static inline Vector EigenValues(const Matrix& A, double crit, double zero)
+    static inline Vector EigenValues(const MatrixType& A, double crit, double zero)
     {
         int dim= A.size1();
 
@@ -797,7 +799,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    static inline Vector TensorToStrainVector( const Matrix& Tensor )
+    static inline Vector TensorToStrainVector( const MatrixType& Tensor )
     {
         KRATOS_TRY
         Vector StrainVector;
@@ -834,16 +836,15 @@ public:
     * @param input the given Matrix
     * @param inverse inverse of the given Matrix
     */
-    static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
+    static int InvertMatrix( const boost::numeric::ublas::matrix<double>& input, boost::numeric::ublas::matrix<double>& inverse )
     {
         int singular = 0;
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A(input);
+        typedef boost::numeric::ublas::permutation_matrix<std::size_t> pmatrix;
+        boost::numeric::ublas::matrix<double> A(input);
         pmatrix pm(A.size1());
-        singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
-        lu_substitute(A, pm, inverse);
+        singular = boost::numeric::ublas::lu_factorize(A,pm);
+        inverse.assign( boost::numeric::ublas::identity_matrix<double>(A.size1()));
+        boost::numeric::ublas::lu_substitute(A, pm, inverse);
         return singular;
     }
 
@@ -852,7 +853,7 @@ public:
     * @param Tensor the given second order tensor
     * @return the norm of the given tensor
     */
-    static double normTensor(Matrix& Tensor)
+    static double normTensor(MatrixType& Tensor)
     {
         double result=0.0;
         for(unsigned int i=0; i< Tensor.size1(); i++)
@@ -869,11 +870,12 @@ public:
     * @param Vector the given vector
     * @param Tensor the symmetric second order tensor
     */
-    static inline void VectorToTensor(const Vector& Stress,Matrix& Tensor)
+    static inline void VectorToTensor(const VectorType& Stress,MatrixType& Tensor)
     {
         if(Stress.size()==6)
         {
-            Tensor.resize(3,3);
+            std::size_t m=3, n=3;
+            Tensor.resize(m,n);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(3);
             Tensor(0,2)= Stress(5);
@@ -886,7 +888,8 @@ public:
         }
         if(Stress.size()==3)
         {
-            Tensor.resize(2,2);
+            std::size_t m=3, n=3;
+            Tensor.resize(m,n);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(2);
             Tensor(1,0)= Stress(2);
@@ -900,7 +903,7 @@ public:
     * @param Tensor the given symmetric second order tensor
     * @param Vector the vector
     */
-    static void TensorToVector( const Matrix& Tensor, Vector& Vector)
+    static void TensorToVector( const MatrixType& Tensor, VectorType& Vector)
     {
         //if(Vector.size()!= 6)
         unsigned int  dim  =  Tensor.size1();
@@ -924,7 +927,7 @@ public:
         return;
     }
 
-    static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
+    static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,MatrixType& Matrix)
     {
         // Simetrias seguras
         //  Cijkl = Cjilk;
@@ -1095,7 +1098,7 @@ public:
     * @param Tensor the given Tensor
     * @param Vector the Matrix
     */
-    static void TensorToMatrix(std::vector<std::vector<Matrix> >& Tensor,Matrix& Matrix)
+    static void TensorToMatrix(std::vector<std::vector<Matrix> >& Tensor,MatrixType& Matrix)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1170,7 +1173,7 @@ public:
      * @param Tensor the given Tensor
      * @param Vector the Matrix
      */
-    static void TensorToMatrix( const array_1d<double, 81>& Tensor, Matrix& Matrix )
+    static void TensorToMatrix( const array_1d<double, 81>& Tensor, MatrixType& Matrix )
     {
         if(Matrix.size1()!=6 || Matrix.size2()!=6)
             Matrix.resize(6,6,false);
@@ -1245,7 +1248,7 @@ public:
      * @param C the given Tensor
      * @param alpha
      */
-    static void OuterProductFourthOrderTensor(const double alpha, const Matrix& A,const Matrix& B, Fourth_Order_Tensor& Result)
+    static void OuterProductFourthOrderTensor(const double alpha, const MatrixType& A,const MatrixType& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {

@@ -60,7 +60,20 @@ typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
 
 typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 
-typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
+typedef boost::numeric::ublas::matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
+
+template <typename TExpressionType, std::size_t TCategory>
+    typename TExpressionType::data_type norm_1(
+    AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+        using data_type = typename TExpressionType::data_type;
+        auto& the_expression = TheExpression.expression();
+        data_type result = data_type();
+        for (std::size_t i = 0; i < the_expression.size(); ++i) {
+            if(result < std::fabs(the_expression[i]))
+                result = std::fabs(the_expression[i]);
+        }
+    return result;
+}
 
 Energy_Yield_Function::Energy_Yield_Function(myState State )
     :FluencyCriteria()

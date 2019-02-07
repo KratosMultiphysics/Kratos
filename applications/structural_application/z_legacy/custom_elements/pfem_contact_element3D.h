@@ -191,8 +191,8 @@ namespace Kratos {
           bool Check_image_inside_face(const array_1d<double,3> n, int reference_face, const Geometry< Node<3> >& geom,bool image_inside);
           bool same_side(const array_1d<double,3> p0, const array_1d<double,3> p1,const array_1d<double,3> a,const array_1d<double,3> b);
 	  void CalculateOldIterationContactHeight(double& H_zero, const int reference_face);
-	  void CalculateMinDistanceAndNormal(double& h,array_1d<double,3>& n,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points);
-          void DetectContact(Geometry< Node<3> >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
+	  void CalculateMinDistanceAndNormal(double& h,array_1d<double,3>& n,const BoundedMatrix<double, 4, 3 > ordered_points);
+          void DetectContact(Geometry< Node<3> >& geom, BoundedMatrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
           void CheckIsContactMaster(int& flag);
 	  void FlagVariableCheckForNonSuitableElements(double& accepted);
      private:

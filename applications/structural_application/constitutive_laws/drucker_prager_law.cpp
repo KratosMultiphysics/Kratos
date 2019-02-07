@@ -339,6 +339,7 @@ void DruckerPragerLaw::CalculateStressAndTangentMatrix(Matrix& StressTensor,
     //Help Values
     Matrix Dummy1(6,6);
     Matrix InverseXi(6,6);
+    double detInverseXi;
     Matrix Dummy2(6,6);
     Matrix Dummy3(3,3);
     double normXi;
@@ -390,7 +391,7 @@ void DruckerPragerLaw::CalculateStressAndTangentMatrix(Matrix& StressTensor,
             for(unsigned int j=0; j<6; j++)
                 InverseXi(i,j)= InvC(i,j)+delta_gamma*Dummy1(i,j);
 
-        SD_MathUtils<double>::InvertMatrix( InverseXi, Dummy2);
+        MathUtils<double>::InvertMatrix( InverseXi, Dummy2, detInverseXi);
 
         SD_MathUtils<double>::MatrixToTensor(Dummy2, Xi);
 
@@ -508,7 +509,7 @@ void DruckerPragerLaw::CalculateStressAndTangentMatrix(Matrix& StressTensor,
         for(unsigned int j=0; j<6; j++)
             InverseXi(i,j)= InvC(i,j)+delta_gamma*Dummy1(i,j);
 
-    SD_MathUtils<double>::InvertMatrix( InverseXi, Dummy2);
+    MathUtils<double>::InvertMatrix( InverseXi, Dummy2, detInverseXi);
 
     SD_MathUtils<double>::MatrixToTensor(Dummy2, Xi);
 

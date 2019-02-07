@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 //#include "spatial_containers/bins_static.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "structural_application.h"

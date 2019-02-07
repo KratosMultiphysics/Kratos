@@ -66,7 +66,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomIOToPython();
+void  AddCustomIOToPython(pybind11::module& m);
 
 }  // namespace Python.
 

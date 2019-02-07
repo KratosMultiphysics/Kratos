@@ -1721,17 +1721,17 @@ void UnsaturatedSoilsElement_1phase_SmallStrain::CalculateStressAndTangentialSti
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     if ( tanC_W.size1() != dim || tanC_W.size2() != dim )
-        tanC_W.resize( dim, dim );
+        tanC_W.resize( dim, dim, false );
 
     noalias( tanC_W ) = ZeroMatrix( dim, dim );
 
     if ( tanC_U.size1() != 6 || tanC_U.size2() != 6 )
-        tanC_U.resize( 6, 6 );
+        tanC_U.resize( 6, 6, false );
 
     noalias( tanC_U ) = ZeroMatrix( 6, 6 );
 
     if ( StressVector.size() != 6 )
-        StressVector.resize( 6 );
+        StressVector.resize( 6, false );
 
     //Set suction in const. law
 //   mConstitutiveLawVector[PointNumber]->SetValue(PRESSURE, dummy_pressure,  rCurrentProcessInfo);
@@ -1740,7 +1740,7 @@ void UnsaturatedSoilsElement_1phase_SmallStrain::CalculateStressAndTangentialSti
     //retrieve the material response
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
         StrainVector,
-        ZeroMatrix( 1 ),
+        ZeroMatrix( 1, 1 ),
         StressVector,
         tanC_U,
         rCurrentProcessInfo,

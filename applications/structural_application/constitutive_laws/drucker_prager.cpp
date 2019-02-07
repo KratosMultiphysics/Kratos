@@ -308,29 +308,29 @@ int DruckerPrager::Check( const Properties& props, const GeometryType& geom, con
 void DruckerPrager::InitializeMaterial( const Properties& props,
                                         const GeometryType& geom, const Vector& ShapeFunctionsValues )
 {
-    mOldStress.resize( 6 );
+    mOldStress.resize( 6, false );
     mOldStress = ZeroVector( 6 );
-    mCtangent.resize(6, 6);
+    mCtangent.resize(6, 6, false);
     mCtangent = ZeroMatrix( 6, 6 );
-    mCtangentInv.resize(6, 6);
+    mCtangentInv.resize(6, 6, false );
     mCtangentInv = ZeroMatrix(6, 6);
-    mOldStrain.resize( 6 );
+    mOldStrain.resize( 6, false );
     mOldStrain = ZeroVector( 6 );
-    mCurrentStrain.resize( 6 );
+    mCurrentStrain.resize( 6, false );
     mCurrentStrain = ZeroVector( 6 );
 //     mCurrentStrainInc.resize( 6 );
 //     mCurrentStrainInc = ZeroVector( 6 );
-    mCurrentStress.resize( 6 );
+    mCurrentStress.resize( 6, false );
     mCurrentStress = ZeroVector( 6 );
-    mCurrentPlasticStrains.resize( 6 );
+    mCurrentPlasticStrains.resize( 6, false );
     mCurrentPlasticStrains = ZeroVector( 6 );
-    mOldSElasticStrain.resize( 6 );
+    mOldSElasticStrain.resize( 6, false );
     mOldSElasticStrain = ZeroVector( 6 );
-    mCurrentElasticStrain.resize( 6 );
+    mCurrentElasticStrain.resize( 6, false );
     mCurrentElasticStrain = ZeroVector( 6 );
-    mOldPlasticStrains.resize( 6 );
+    mOldPlasticStrains.resize( 6, false );
     mOldPlasticStrains = ZeroVector( 6 );
-    mPrestress.resize( 6 );
+    mPrestress.resize( 6, false );
     mPrestress = ZeroVector( 6 );
     mPrestressFactor = 1.0;
 
@@ -349,7 +349,7 @@ void DruckerPrager::InitializeMaterial( const Properties& props,
     mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
     mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
 
-    
+
 //     ResetMaterial( props, geom, ShapeFunctionsValues );
 
 //     mG = mE / ( 2.0 * ( 1.0 + mNU ) );
@@ -358,7 +358,7 @@ void DruckerPrager::InitializeMaterial( const Properties& props,
 //     CalculateUnit4thSym3D();
 
 //     CalculateUnit2nd3D();
-    
+
     ResetMaterial( props, geom, ShapeFunctionsValues );
 
 }
@@ -368,15 +368,15 @@ void DruckerPrager::ResetMaterial( const Properties& props,
 {
     mG = mE / ( 2.0 * ( 1.0 + mNU ) );
     mK = mE / ( 3.0 * ( 1.0 - 2.0 * mNU ) );
-// 
+//
     CalculateElasticMatrix( mCtangent, mE, mNU );
     mPrestressFactor = 1.0;
     mPrestress = ZeroVector( 6 );
-// 
+//
 //     CalculateElasticMatrix( mCtangent, mE, mNU );
-// 
+//
 //     CalculateUnit4thSym3D();
-// 
+//
 //     CalculateUnit2nd3D();
 
 }
@@ -415,7 +415,7 @@ void DruckerPrager::CalculateMaterialResponse( const Vector& StrainVector,
         const Properties& props, const GeometryType& geom,
         const Vector& ShapeFunctionsValues, bool CalculateStresses,
         int CalculateTangent, bool SaveInternalVariables )
-{    
+{
     bool isYielded = false;
     bool isApex = false;
     double dGamma = 0.0;
@@ -435,7 +435,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
     mCurrentElasticStrain = StrainVector;
     Vector CurrentStrainInc = StrainVector - mOldStrain;
 
-    
+
 //     StressVector = prod( mCtangent, StrainVector )  - mPrestressFactor * mPrestress;
     StressVector = prod( mCtangent, CurrentStrainInc);
     for ( unsigned int i = 0; i < 6; i++ )
@@ -494,7 +494,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
     {
 // 	KRATOS_WATCH( " ############ ########## ######## Plasticity ########## ########## #  # # #  #" );
 
-      
+
         //Plastic regione is activated
         isYielded = true;
 
@@ -512,7 +512,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
 
             yield_function = sqrtJ2 - mG * dGamma + mEta * pTr_n - mXi
                              * ( mCohesion + mHardening * mAlpha );
-                             
+
             if( itr > 48 )
             {
 //                 mdGamma = 0.0;
@@ -533,7 +533,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
                     break;
                 }
                 else {
-		  
+
 // 		              KRATOS_WATCH( " ############ ########## ######## Apex ########## ########## #  # # #  #" );
 //                     KRATOS_THROW_ERROR( std::logic_error, "Kratos was killed because a material point in DP-model reached the APEX region", "" );
 
@@ -599,7 +599,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
         mCurrentStress += (mPrestressFactor * mPrestress);
     }
     mCurrentPlasticStrains = mOldPlasticStrains + CurrentStrainInc - (mCurrentElasticStrain - mOldSElasticStrain);
-    
+
 //     mCurrentStress += mPrestressFactor * mPrestress;
 
 //     mCurrentPlasticStrains = -prod(InverseC(mCtangentInv),StressVector);
@@ -612,7 +612,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
 //     {
 //         mCurrentPlasticStrains[i] = 2*mCurrentPlasticStrains[i] + StrainVector[i];
 //     }
-    
+
     //     mCurrentPlasticStrains = StrainVector - prod(InverseC(mCtangentInv),StressVector);
 //     mCurrentPlasticStrains[1] = StrainVector[1] - prod(InverseC(mCtangentInv),StressVector)(1);
 //     mCurrentPlasticStrains[2] = StrainVector[2] - prod(InverseC(mCtangentInv),StressVector)(2);
@@ -633,7 +633,7 @@ void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
 
 //     Vector Strain_trial( 6 );
 //     Strain_trial = StrainVector;
-    
+
 //     if ( false )
     if ( isYielded )
     {
@@ -650,7 +650,7 @@ void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
             for( unsigned int i=0; i<3; i++ )
             {
                 unit4thSym3D(i,i) = 1.0;
-                unit4thSym3D(i+3,i+3) = 0.5; 
+                unit4thSym3D(i+3,i+3) = 0.5;
                 unit2nd3D[i] = 1.0;
             }
 
@@ -680,12 +680,12 @@ void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
 
             double A_aux = 1.0 / ( mG + mK * mEta * mEta + mXi * mXi * mHardening );
 //             double A_aux = 1.43014e-09;
-            
+
 
             double B_aux = 2.0 * mG * ( 1.0 - dGamma / ( sqrt( 2.0 ) * StrainDevNorm ) );
 
             double C_aux = 2.0 * mG * ( dGamma / ( sqrt( 2.0 ) * StrainDevNorm ) - mG * A_aux );
-            
+
             double D_aux = sqrt( 2.0 ) * mG * mK * A_aux;
 
             double E_aux = mK * ( 1 - mK * mEta * mEta * A_aux );
@@ -697,13 +697,13 @@ void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
                                                          * UnitStrainDev[i] * unit2nd3D[j] + mEta * unit2nd3D[i]
                                                          * UnitStrainDev[j] ) + ( E_aux - B_aux / 3.0 )
                                                  * unit2nd3D[i] * unit2nd3D[j];
-                                                 
+
             for ( int i = 0; i < 6; i++ )
                 for ( int j = 0; j < 6; j++ )
                     if( fabs(ConsistentTangent(i,j)) < 1.0e-7 )
                         ConsistentTangent(i,j) = 0.0;
 
-             
+
             rResult = ConsistentTangent;
         }
     }
@@ -716,7 +716,7 @@ void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
 
 Matrix DruckerPrager::InverseC(Matrix& InvC) {
     if (InvC.size1() != 6 || InvC.size2() != 6)
-        InvC.resize(6, 6);
+        InvC.resize(6, 6, false );
 
     noalias(InvC) = ZeroMatrix(6, 6);
 
@@ -796,17 +796,17 @@ void DruckerPrager::CalculateElasticMatrix( Matrix& C, const double E,
 //     for ( unsigned int i = 0; i < 6; i++ )
 //         for ( unsigned int j = 0; j < 6; j++ )
 //             unit4thSym3D[i][j] = 0;
-// 
+//
 //     unit4thSym3D[0][0] = 1.0;
-// 
+//
 //     unit4thSym3D[1][1] = 1.0;
-// 
+//
 //     unit4thSym3D[2][2] = 1.0;
-// 
+//
 //     unit4thSym3D[3][3] = 0.5;
-// 
+//
 //     unit4thSym3D[4][4] = 0.5;
-// 
+//
 //     unit4thSym3D[5][5] = 0.5;
 //
 //}

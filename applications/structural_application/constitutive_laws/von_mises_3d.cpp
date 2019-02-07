@@ -344,8 +344,8 @@ void VonMises3D::CalculateCauchyStresses( Vector& rCauchy_StressVector,
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
     double J = MathUtils<double>::Det3( rF );
 
-    boost::numeric::ublas::bounded_matrix<double, 3,3> temp;
-    boost::numeric::ublas::bounded_matrix<double, 3,3> aux;
+    BoundedMatrix<double, 3,3> temp;
+    BoundedMatrix<double, 3,3> aux;
 
     noalias( temp ) = prod( rF, S );
     noalias( aux ) = prod( temp, trans( rF ) );

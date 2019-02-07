@@ -83,9 +83,9 @@ for incompressible isotropic hyperelastic materials.
 
 namespace Hyperelastic2DAuxiliaries
 {
-//         boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
+//         BoundedMatrix<double,2,2> mstemp;
 //         #pragma omp threadprivate(mstemp)
-//         boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+//         BoundedMatrix<double,2,2> msaux;
 //         #pragma omp threadprivate(msaux)
 //	/// NEW ///
 // 		Vector E1; // variables for pertubation method
@@ -539,7 +539,7 @@ void Hyperelastic2D::CalculateConstitutiveMatrix(const Vector& StrainVector, Mat
 {
     if( rResult.size1() != 3 ) // EBST
     {
-        rResult.resize(3,3);
+        rResult.resize(3,3,false);
     }
 //
     Vector E1(6);
@@ -734,8 +734,8 @@ void Hyperelastic2D::CalculateCauchyStresses(
     double J = MathUtils<double>::Det2( rF );
     //KRATOS_WATCH("MATRIZ F em HYP2D")
     //KRATOS_WATCH (J);
-    boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+    BoundedMatrix<double,2,2> mstemp;
+    BoundedMatrix<double,2,2> msaux;
 
 
     noalias(mstemp) = prod(rF,S);

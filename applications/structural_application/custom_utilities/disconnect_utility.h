@@ -167,7 +167,7 @@ private:
     {
         KRATOS_TRY
         ElementsArrayType& pElements  = model_part.Elements();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
         int  count_2  = 0;
@@ -221,7 +221,7 @@ private:
     {
         KRATOS_TRY
         ElementsArrayType& pElements  = model_part.Elements();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
         int  count_2  = 0;
@@ -347,7 +347,7 @@ private:
         unsigned int count_2 = 0;
 
         Joint2D rJoint;
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
         ElementsArrayType::iterator it_end   = pElements.ptr_end();

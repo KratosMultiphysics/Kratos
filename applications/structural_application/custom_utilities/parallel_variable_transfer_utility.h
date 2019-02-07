@@ -55,6 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //System includes
 //External includes
 #include "boost/smart_ptr.hpp"
+#include "boost/numeric/ublas/matrix.hpp"
+#include "boost/numeric/ublas/vector.hpp"
 
 //Project includes
 #include "includes/define.h"
@@ -84,8 +86,10 @@ public:
     typedef Geometry<Node<3> >::GeometryType GeometryType;
     typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
 //     typedef ParallelUblasSpace<double, CompressedMatrix, Vector> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> SpaceType
-    ;
+    // typedef UblasSpace<double, Matrix, Vector> SpaceType
+    typedef UblasSpace<double, boost::numeric::ublas::matrix<double>, boost::numeric::ublas::vector<double> > SpaceType;
+    typedef boost::numeric::ublas::zero_matrix<double> UblasZeroMatrix;
+    typedef boost::numeric::ublas::zero_vector<double> UblasZeroVector;
 
     /**
      * Constructor.
@@ -355,8 +359,8 @@ public:
         ElementsArrayType& ElementsArray= model_part.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -420,8 +424,8 @@ public:
         ElementsArrayType& ElementsArray= model_part.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -487,8 +491,8 @@ public:
         ElementsArrayType& ElementsArray= model_part.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -551,8 +555,8 @@ public:
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -617,8 +621,8 @@ public:
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -680,8 +684,8 @@ public:
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -756,12 +760,12 @@ public:
         SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -845,9 +849,9 @@ public:
         {
             for(unsigned int secondvalue=0; secondvalue<3; secondvalue++)
             {
-                noalias(g)= ZeroVector(model_part.NumberOfNodes());
+                boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
 
-                noalias(b)= ZeroVector(model_part.NumberOfNodes());
+                boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
                 //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
                 // see Jiao + Heath "Common-refinement-based data tranfer ..."
                 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -927,7 +931,7 @@ public:
         SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
         /*
                         for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
                         it != ElementsArray.ptr_end(); ++it )
@@ -1007,8 +1011,8 @@ public:
 
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -1055,9 +1059,9 @@ public:
 
         for(unsigned int firstvalue=0; firstvalue<6; firstvalue++)
         {
-            noalias(g)= ZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
 
-            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1134,19 +1138,19 @@ public:
 
         //SetUpEquationSystem
         SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
-        noalias(g)= ZeroVector(model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(b)= ZeroVector(model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
         //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
         // see Jiao + Heath "Common-refinement-based data tranfer ..."
         // International Journal for numerical methods in engineering 61 (2004) 2402--2427
         // for general description of L_2-Minimization
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -1241,7 +1245,7 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
         for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
@@ -1279,8 +1283,8 @@ public:
         {
             for(unsigned int secondvalue= 0; secondvalue< 3; secondvalue++)
             {
-                noalias(b)= ZeroVector(rTarget.NumberOfNodes());
-                noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+                boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
+                boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
                 //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
                 // see Jiao + Heath "Common-refinement-based data tranfer ..."
                 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1377,7 +1381,7 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
 
@@ -1414,8 +1418,8 @@ public:
         }
         for(unsigned int firstvalue= 0; firstvalue< 6; firstvalue++)
         {
-            noalias(b)= ZeroVector(rTarget.NumberOfNodes());
-            noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1509,11 +1513,11 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
-        noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
-        noalias(b)= ZeroVector(rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
         //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
         // see Jiao + Heath "Common-refinement-based data tranfer ..."
         // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1886,16 +1890,6 @@ public:
               *oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
-    }
-
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
     }
 
 };//Class Scheme

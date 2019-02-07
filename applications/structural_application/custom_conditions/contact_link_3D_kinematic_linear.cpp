@@ -119,8 +119,8 @@ ContactLink3D_Kinematic_Linear::ContactLink3D_Kinematic_Linear( IndexType NewId,
     GetValue( CONTACT_LINK_M ).resize( 2, 2, false );
     noalias( GetValue( CONTACT_LINK_M ) ) = ZeroMatrix( 2, 2 );
 
-    mvMaster.resize( 3 );
-    mTMaster.resize( 2, 3 );
+    mvMaster.resize( 3 , false);
+    mTMaster.resize( 2, 3 , false);
 }
 
 //********************************************************

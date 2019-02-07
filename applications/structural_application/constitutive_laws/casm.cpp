@@ -164,7 +164,7 @@ Matrix& Casm::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     if (rThisVariable == PK2_STRESS_TENSOR)
     {
-        rValue.resize(3,3);
+        rValue.resize(3,3, false );
         rValue(0,0)= mStress(0);
         rValue(0,1)= mStress(3);
         rValue(0,2)= mStress(5);
@@ -179,7 +179,7 @@ Matrix& Casm::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
     }
     if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
     {
-        rValue.resize(3,3);
+        rValue.resize(3,3, false );
         rValue(0,0)= mCurrentStrain[0];
         rValue(0,1)= mCurrentStrain[3];
         rValue(0,2)= mCurrentStrain[5];
@@ -194,7 +194,7 @@ Matrix& Casm::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
     }
     if (rThisVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
     {
-        rValue.resize(3,3);
+        rValue.resize(3,3, false );
         rValue(0,0)=mCurrentPlasticStrains[0];
         rValue(0,1)=mCurrentPlasticStrains[3];
         rValue(0,2)=mCurrentPlasticStrains[5];
@@ -275,19 +275,19 @@ void Casm::InitializeMaterial( const Properties& props,
                                const GeometryType& geom,
                                const Vector& ShapeFunctionsValues )
 {
-    mStress.resize(6);
-    mOldStress.resize(6);
+    mStress.resize(6, false );
+    mOldStress.resize(6, false );
     mOldStress = ZeroVector(6);
     mCtangent = ZeroMatrix(6,6);
-    mOldStrain.resize(6);
+    mOldStrain.resize(6, false );
     mOldStrain = ZeroVector(6);
-    mCurrentStrain.resize(6);
+    mCurrentStrain.resize(6, false );
     mCurrentStrain = ZeroVector(6);
-    mStrain.resize(6);
+    mStrain.resize(6, false );
     mStrain = ZeroVector(6);
-    mCurrentStrainInc.resize(6);
+    mCurrentStrainInc.resize(6, false );
     mCurrentStrainInc = ZeroVector(6);
-    mCurrentStress.resize(6);
+    mCurrentStress.resize(6, false );
     mCurrentStress = ZeroVector(6);
 
     mMaterialParameters = props[MATERIAL_PARAMETERS];
@@ -307,11 +307,11 @@ void Casm::InitializeMaterial( const Properties& props,
         mCurrentStrainInc[i] = 0.0;
         mCurrentStrain[i] = 0.0;
     }
-    mInSituStressOriginal.resize(6);
-    mInSituStress.resize(6);
+    mInSituStressOriginal.resize(6, false );
+    mInSituStress.resize(6, false );
     mInSituStress = ZeroVector(6);
     mInSituStressOriginal = ZeroVector(6);
-    mConsistentTangent.resize(6,6);
+    mConsistentTangent.resize(6,6, false );
     mConsistentTangent = ZeroMatrix(6,6);
 //         mInSituStrain = ZeroVector(6);
 
@@ -458,7 +458,7 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
 
     if ( StressVector.size() != 6 )
     {
-        StressVector.resize(6);
+        StressVector.resize(6, false );
     }
 
     double hydrostatic_pressure = (mOldStress(0) + mOldStress(1) + mOldStress(2)) / 3.0;
@@ -632,7 +632,7 @@ void Casm::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResu
 Matrix Casm::InverseC(Matrix& InvC)
 {
     if (InvC.size1()!=6 || InvC.size2()!=6)
-        InvC.resize(6,6);
+        InvC.resize(6,6, false );
 
     noalias(InvC)= ZeroMatrix(6,6);
 

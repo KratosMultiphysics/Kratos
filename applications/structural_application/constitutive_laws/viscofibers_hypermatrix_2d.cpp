@@ -961,7 +961,7 @@ void Viscofibers_Hypermatrix2D::CalculateComposite(const Vector& StrainVector,  
 // 				//double J_onethird = pow(J,(1.0/3.0));
 // 				double J_23 = pow(J,(-2.0/3.0));
 // 				// I don't need below! (the modified deformation gradient)
-// // 				boost::numeric::ublas::bounded_matrix<double,2,2> Fbar; // Fbar = J_onethird* F, modified deformation gradient
+// // 				BoundedMatrix<double,2,2> Fbar; // Fbar = J_onethird* F, modified deformation gradient
 // // 				Fbar=J_onethird*DeformationGradient;
 // // 				noalias(ane)=ZeroVector(3); // new
 // // 				for  (i=0; i<3; i++) //
@@ -1129,7 +1129,7 @@ void Viscofibers_Hypermatrix2D::CalculateConstitutiveMatrix(const Vector& Strain
 {
     if( rResult.size1() != 3 ) // EBST
     {
-        rResult.resize(3,3);
+        rResult.resize(3,3,false);
     }
 //
     Vector E1(6);
@@ -1346,8 +1346,8 @@ void Viscofibers_Hypermatrix2D::CalculateCauchyStresses(
     double J = MathUtils<double>::Det2( rF );
     //KRATOS_WATCH("MATRIZ F em HYP2D")
     //KRATOS_WATCH (J);
-    boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+    BoundedMatrix<double,2,2> mstemp;
+    BoundedMatrix<double,2,2> msaux;
 
 
     noalias(mstemp) = prod(rF,S);

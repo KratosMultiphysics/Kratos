@@ -404,7 +404,7 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
 
     if(LocalMatrix.size1()!=12 || LocalMatrix.size2()!=12)   // Matriz local de rigidez de la Estructura.
         LocalMatrix.resize(12,12,false);
-    noalias(LocalMatrix)   = zero_matrix<double>(12,12);
+    noalias(LocalMatrix)   = ZeroMatrix(12,12);
 
     //Inicializando matriz local de la estructura
 
@@ -493,10 +493,10 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     Vector Normal_zero(9); // vector que contiene los cosenos directores.
     Vector x_zero(6);
     Vector Vector_zero(3);
-    noalias(Normal_zero) =	zero_vector<double>(9);
-    noalias(x_zero)      =	zero_vector<double>(6);
-    noalias(Vector_zero) =	zero_vector<double>(3);
-    noalias(Rotation)    =	zero_matrix<double> (12,12);
+    noalias(Normal_zero) =	ZeroVector(9);
+    noalias(x_zero)      =	ZeroVector(6);
+    noalias(Vector_zero) =	ZeroVector(3);
+    noalias(Rotation)    =	ZeroMatrix (12,12);
 
     double nx, ny, nz,teta/*, phi*/;
 

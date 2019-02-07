@@ -926,9 +926,10 @@ void  MixedLagrangian::CalculateAlamnsiStrain( const Matrix& F,
     unsigned int dim = F.size1();
     Matrix StrainTensor = ZeroMatrix( dim, dim );
     Matrix F_inv        = ZeroMatrix( dim, dim );
+    double detF;
     Matrix Result       = ZeroMatrix( dim, dim );
     StrainTensor        = SD_MathUtils<double>::StrainVectorToTensor( StrainVector );
-    SD_MathUtils<double>::InvertMatrix( F, F_inv );
+    MathUtils<double>::InvertMatrix( F, F_inv, detF );
     noalias( Result )  =   prod( trans( F_inv ), Matrix( prod( StrainTensor, F_inv ) ) );
     StrainVector     =   SD_MathUtils<double>::TensorToStrainVector( StrainTensor );
 
@@ -942,8 +943,9 @@ void MixedLagrangian::CalculateSPKStress( const Matrix& F,
     Matrix StressTensor = ZeroMatrix( dim, dim );
     Matrix Result       = ZeroMatrix( dim, dim );
     Matrix F_inv        = ZeroMatrix( dim, dim );
+    double detF;
     StressTensor        = MathUtils<double>::StressVectorToTensor( StressVector );
-    SD_MathUtils<double>::InvertMatrix( F, F_inv );
+    MathUtils<double>::InvertMatrix( F, F_inv, detF );
     noalias( Result )  =   prod( F_inv, Matrix( prod( StressTensor, trans( F_inv ) ) ) );
     SD_MathUtils<double>::TensorToVector( StressTensor, StressVector );
 

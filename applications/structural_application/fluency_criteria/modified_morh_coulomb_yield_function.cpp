@@ -134,7 +134,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
     //const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson));
 
     Vector Aux_Trial_Stress;
-    Aux_Trial_Stress.resize(StressVector.size());
+    Aux_Trial_Stress.resize(StressVector.size(), false);
     noalias(Aux_Trial_Stress) =  StressVector;
 
     array_1d<double,3> Sigma = ZeroVector(3);
@@ -245,7 +245,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
 
                 /// Updating Rankine
                 Vector Imput_Parameters_R;
-                Imput_Parameters_R.resize(4);
+                Imput_Parameters_R.resize(4, false);
                 Imput_Parameters_R = ZeroVector(4);
                 Imput_Parameters_R[0] =  mlength;
                 Imput_Parameters_R[1] =  m_modified_morh_coulomb_maccumulated_plastic_strain_current;
@@ -410,9 +410,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -727,9 +727,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -1136,9 +1136,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -1597,7 +1597,7 @@ void Modified_Morh_Coulomb_Yield_Function::GetValue(const Variable<Matrix>& rVar
 
     if (rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
     {
-        Result.resize(1, size);
+        Result.resize(1, size, false);
         for(unsigned int i = 0; i< size; i++ )
             Result(0,i) = mplastic_strain(i);
 
@@ -1633,12 +1633,12 @@ void Modified_Morh_Coulomb_Yield_Function::GetValue(const Variable<Vector>& rVar
     const int size = mplastic_strain.size();
     if(rVariable==ALMANSI_PLASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mplastic_strain;
     }
     if(rVariable==ALMANSI_ELASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mElastic_strain;
     }
 }

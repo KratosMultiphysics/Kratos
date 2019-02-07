@@ -74,25 +74,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-/**
- * defines a vector set of other conditions needed for interection between
- * different conditions
- */
-typedef Condition BaseType;
-typedef PointerVectorSet<BaseType, IndexedObject> ConditionsContainerType;
-typedef PointerVectorSet<MasterContactFace3D, IndexedObject> ContactMasterContainerType;
-typedef Condition::GeometryType::PointsArrayType PointsArrayType;
-typedef BaseType::EquationIdVectorType EquationIdVectorType;
-typedef PointerVectorSet< EquationIdVectorType, IndexedObject>
-EquationIdVectorContainerType;
-typedef BaseType::MatrixType LHS_ContributionType;
-typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
-typedef std::size_t IndexType;
-/**
- * REMOVED
- */
-//     typedef BaseType::SecondaryCondition SecondaryConditionType;
-//     typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
 
 /**
  * Contact surface element for 3D contact problems
@@ -105,6 +86,25 @@ class SlaveContactFace3D : public Condition
 public:
     // Counted pointer of SlaveContactFace3D
     KRATOS_CLASS_POINTER_DEFINITION(SlaveContactFace3D);
+
+    /**
+     * defines a vector set of other conditions needed for interection between
+     * different conditions
+     */
+    typedef Condition BaseType;
+    // typedef PointerVectorSet<BaseType, IndexedObject> ConditionsContainerType;
+    typedef PointerVectorSet<MasterContactFace3D, IndexedObject> ContactMasterContainerType;
+    typedef Condition::GeometryType::PointsArrayType PointsArrayType;
+    // typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    // typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
+    // typedef BaseType::MatrixType LHS_ContributionType;
+    // typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
+    // typedef std::size_t IndexType;
+    /**
+     * REMOVED
+     */
+    //     typedef BaseType::SecondaryCondition SecondaryConditionType;
+    //     typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
 
     /**
      * Default constructor.
@@ -181,8 +181,8 @@ public:
     void EquationIdVector( EquationIdVectorType& rResult,
                            ProcessInfo& rCurrentProcessInfo);
 
-    void MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
-                                          ProcessInfo& rCurrentProcessInfo );
+    // void MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
+    //                                       ProcessInfo& rCurrentProcessInfo );
 
     void GetDofList( DofsVectorType& ConditionalDofList,
                      ProcessInfo& CurrentProcessInfo);

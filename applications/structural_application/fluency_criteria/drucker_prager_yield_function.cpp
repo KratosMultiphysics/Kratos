@@ -60,7 +60,7 @@ typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
 
 typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 
-typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
+typedef boost::numeric::ublas::matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
 
 Drucker_Prager_Yield_Function::Drucker_Prager_Yield_Function(myState State)
     :FluencyCriteria()

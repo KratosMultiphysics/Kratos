@@ -668,7 +668,7 @@ void CamClay3D::getFactors(Vector& rResults, double devS)
     double b2 = 2.0 * mGm * 2.0 * mQk * a5 / (b * mM * mM);
 
     if(rResults.size() != 5)
-        rResults.resize(5);
+        rResults.resize(5, false );
 
     rResults[0] = 2.0 * mGm * devS;
     rResults[1] = mKm * (a1 + a2 * b1) - 2.0 * mGm * devS / 3;
@@ -727,7 +727,7 @@ void CamClay3D::CalculateElasticTangent(Matrix& C, double K, double G)
     double C2 = K - 2.0 * G / 3;
 
     if(C.size1() != 6 || C.size2() != 6)
-        C.resize(6, 6);
+        C.resize(6, 6, false );
 
     for(int i = 0; i < 6; ++i)
         for(int j = i; j < 6; ++j)

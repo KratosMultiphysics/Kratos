@@ -10,8 +10,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -121,12 +120,12 @@ void (GidIOType::*pointer_to_array1d_write_nodal_results)(
 //               ModelPart& r_model_part, double SolutionTag)
 //                 = &GidIOType::PrintOnGaussPoints;
 
-void  AddCustomIOToPython()
+void  AddCustomIOToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<GidIOType, GidIOType::Pointer, bases<IO>, boost::noncopyable>(
-        "StructuralGidIO",init<std::string const&, GiD_PostMode,
+    class_<GidIOType, GidIOType::Pointer, IO>(m, "StructuralGidIO")
+    .def(init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())

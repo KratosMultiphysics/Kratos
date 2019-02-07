@@ -98,7 +98,7 @@ ElasticConstraint::~ElasticConstraint()
 void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
     bool CalculateResidualVectorFlag = true;
@@ -106,7 +106,7 @@ void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-    
+
     KRATOS_CATCH("")
 }
 
@@ -115,14 +115,14 @@ void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector,
 void ElasticConstraint::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-        
+
     KRATOS_CATCH("")
 }
 
@@ -135,7 +135,7 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
                                       bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    
+
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dim = 3;
 
@@ -146,7 +146,7 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
     if(rRightHandSideVector.size() != number_of_nodes*dim)
         rRightHandSideVector.resize(number_of_nodes*dim,false);
     noalias(rRightHandSideVector) = ZeroVector(number_of_nodes*dim);
-    
+
 
     if( number_of_nodes == 1 )
     {
@@ -164,36 +164,36 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( GetGeometry().GetDefaultIntegrationMethod() );
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( GetGeometry().GetDefaultIntegrationMethod() );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GetGeometry().GetDefaultIntegrationMethod() );
-        
-        array_1d<double, 3 > tangent_1;
-        array_1d<double, 3 > tangent_2;
-        array_1d<double, 3 > normal_vector;
-             
+
+        Vector tangent_1(3);
+        Vector tangent_2(3);
+        Vector normal_vector(3);
+
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
         {
             Vector bedding = ZeroVector(3);
             Vector displacement = ZeroVector(3);
-            
+
             for( unsigned int i=0; i<3; i++ )
             {
                 tangent_1[i] = 0.0;
                 tangent_2[i] = 0.0;
                 normal_vector[i] = 0.0;
             }
-             
+
             for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
             {
                 tangent_1 += GetGeometry()[node] * DN_De[PointNumber]( node, 0 );
                 tangent_2 += GetGeometry()[node] * DN_De[PointNumber]( node, 1 );
-            
+
                 noalias( displacement ) += GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ) * Ncontainer(PointNumber,node);
                 noalias( bedding ) += GetGeometry()[node].GetSolutionStepValue( ELASTIC_BEDDING_STIFFNESS ) * Ncontainer(PointNumber,node);
             }
-        
+
             normal_vector = MathUtils<double>::CrossProduct( tangent_1, tangent_2 );
             double IntegrationWeight = integration_points[PointNumber].Weight();
             double dA = MathUtils<double>::Norm3( normal_vector );
-        
+
             for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
             {
                 for( unsigned int i=0; i<dim; i++ )
@@ -210,9 +210,9 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
             }
         }
     }
-    
+
     KRATOS_CATCH("")
-    
+
 }
 
 

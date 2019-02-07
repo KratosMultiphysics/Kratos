@@ -49,8 +49,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-// Remark: with reference to J. Oliver et al. (2008) and the 
-// Java version of IMPL-EX algorithm by hbui 
+// Remark: with reference to J. Oliver et al. (2008) and the
+// Java version of IMPL-EX algorithm by hbui
 
 // System includes
 #include <iostream>
@@ -119,7 +119,7 @@ double& IsotropicDamageIMPLEX::GetValue( const Variable<double>& rThisVariable, 
         return mD;
     if( rThisVariable == ALPHA )
         return mAlpha;
-  
+
     KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
 }
 
@@ -127,7 +127,7 @@ Vector& IsotropicDamageIMPLEX::GetValue( const Variable<Vector>& rThisVariable, 
 {
     if( rThisVariable == STRESSES )
         return mCurrentStress;
-    
+
     KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
 }
 
@@ -185,7 +185,7 @@ void IsotropicDamageIMPLEX::InitializeMaterial( const Properties& props,
     mq = mAlpha;
     mAlpha_old = mAlpha;
     mAlpha_old_old = mAlpha_old;
-    
+
     KRATOS_WATCH(mE_0);
     KRATOS_WATCH(mE_f);
     KRATOS_WATCH(ml);
@@ -201,39 +201,39 @@ void IsotropicDamageIMPLEX::InitializeSolutionStep( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues,
         const ProcessInfo& CurrentProcessInfo )
-{ 
+{
     // Initialize algorithmic IMPL-EX variables
     mAlpha_old_old = mAlpha_old;
     mAlpha_old = mAlpha;
     mq_old = mq;
-    
+
 //     KRATOS_WATCH(mAlpha_old_old);
 //     KRATOS_WATCH(mAlpha_old);
 //     KRATOS_WATCH(mAlpha);
-    
+
     //==========================================================================================
     //-----------------------------------{ EXPLICIT ALGORITHM }---------------------------------
     //==========================================================================================
-    
+
     // Compute elastic constitutive tensor
     Matrix C = ZeroMatrix(6,6);
     CalculateElasticMatrix(C);
-    
+
     // Explicit extrapolation of the internal variable alpha
     mdAlpha = mAlpha_old - mAlpha_old_old;
     mAlpha_alg = mAlpha_old + mdAlpha;
-    
+
     // Calculate softening function
     double H = SofteningLaw(mAlpha_old);
-    
+
     // Compute stress-like internal variable
     mq_alg = mq_old + H*mdAlpha;
-  
-    // Compute extrapolated damage variable 
+
+    // Compute extrapolated damage variable
     mDamage_alg = 1.0 - ( mq_alg / mAlpha_alg );
-    
+
     // Compute algorithmic tangent operator
-    mC_alg = (1.0 - mDamage_alg)*C; 
+    mC_alg = (1.0 - mDamage_alg)*C;
 }
 
 void IsotropicDamageIMPLEX::FinalizeSolutionStep( const Properties& props,
@@ -241,7 +241,7 @@ void IsotropicDamageIMPLEX::FinalizeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues,
         const ProcessInfo& CurrentProcessInfo )
 {
-  
+
 }
 
 void IsotropicDamageIMPLEX::FinalizeNonLinearIteration( const Properties& props,
@@ -266,24 +266,24 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-  
+
     //==========================================================================================
     //----------------------------------{ IMPLICIT ALGORITHM }----------------------------------
     //==========================================================================================
-    
+
     // Compute elastic constitutive tensor
     Matrix C = ZeroMatrix(6,6);
     CalculateElasticMatrix(C);
-    
+
     // Compute effective stresses
     StressVector = prod(C,StrainVector);
-    
+
     // Equivalent strain based on the energy norm
-    double eps_eq = sqrt((1.0/mE)*inner_prod(trans(StrainVector),StressVector));
-   
+    double eps_eq = sqrt((1.0/mE)*inner_prod(StrainVector,StressVector));
+
     // Compute trial state
     double alpha_trial = mAlpha_old;
-    
+
     // Determine loading function
     double f = eps_eq - alpha_trial;
 
@@ -299,62 +299,62 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
         // Damage/loading state
         dlambda = f;
     }
-    
+
 //     KRATOS_WATCH(dlambda);
-    
+
     // Update internal variable
     mAlpha = mAlpha_old + dlambda;
-    
+
     // Calculate softening function
     double H = SofteningLaw(mAlpha_old);
-    
+
     // Update stress-like internal variable
     mq = mq_old + H*dlambda;
-    
+
     // Update damage variable
     mD = 1.0 - (mq/mAlpha);
-    
+
 //     KRATOS_WATCH(mD);
 //     KRATOS_WATCH(mq);
 //     KRATOS_WATCH(mAlpha);
-    
+
 //     if (mD > 1.0)
 //     {
 //        KRATOS_WATCH("DAMAGE VARIABLE IS NOT VALID.");
 //        KRATOS_WATCH(mq/mAlpha);
 //     }
-//     
+//
 //     if (mD < 0)
 //        KRATOS_WATCH("DAMAGE VARIABLE IS NEGATIVE ...");
-    
+
     // Update corrected stresses
     Matrix C_t = (1.0 - mD)*C;
     noalias(AlgorithmicTangent) = C_t;
     mCurrentStress = prod( C_t, StrainVector );
-    
+
     //==========================================================================================
     //----------------------------------{ EXPLICIT ALGORITHM }----------------------------------
     //==========================================================================================
-    
+
     // Explicit extrapolation of the internal variable alpha
     mdAlpha = mAlpha_old - mAlpha_old_old;
     mAlpha_alg = mAlpha_old + mdAlpha;
-    
+
     // Compute stress-like internal variable
     mq_alg = mq_old + H*mdAlpha;
-  
-    // Compute extrapolated damage variable 
+
+    // Compute extrapolated damage variable
     mDamage_alg = 1.0 - ( mq_alg / mAlpha_alg );
-    
+
     // Compute algorithmic tangent operator
-    mC_alg = (1.0 - mDamage_alg)*C; 
-    
+    mC_alg = (1.0 - mDamage_alg)*C;
+
     // Set algorithmic tangent operator
     noalias(AlgorithmicTangent) = mC_alg;
-    
+
     // Compute extrapolated stresses
     StressVector = prod( mC_alg, StrainVector );
-    
+
 }
 
 void IsotropicDamageIMPLEX::CalculateElasticMatrix( Matrix& C )
@@ -376,7 +376,7 @@ void IsotropicDamageIMPLEX::CalculateElasticMatrix( Matrix& C )
 double IsotropicDamageIMPLEX::SofteningLaw( const double& alpha)
 {
      double H = -(mE_0/mE_f)*exp(-(alpha-mE_0)/mE_f);
-     
+
      return H;
 }
 

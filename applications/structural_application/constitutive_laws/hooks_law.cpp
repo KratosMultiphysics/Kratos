@@ -117,7 +117,7 @@ void HooksLaw::InitializeMaterial( const Properties& props,
     double lambda= mNU*mE/((1+mNU)*(1-2*mNU));
     double mu= mE/(2*(1+mNU));
     //calculate Elastic Matrix acc. to Hooks Law
-    mC.resize(6,6);
+    mC.resize(6,6,false);
 
     mC(0,0)=2*mu+lambda;
     mC(0,1)=lambda;

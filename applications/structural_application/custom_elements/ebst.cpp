@@ -152,7 +152,7 @@ void Ebst::GetValuesVector(
 
     const unsigned int MatSize = number_of_nodes * 3;
     if (values.size() != MatSize)
-        values.resize(MatSize);
+        values.resize(MatSize, false);
 
     //nodes of the central element
     for (unsigned int i = 0; i < 3; i++)
@@ -191,7 +191,7 @@ void Ebst::GetFirstDerivativesVector(
 
     const unsigned int MatSize = number_of_nodes * 3;
     if (values.size() != MatSize)
-        values.resize(MatSize);
+        values.resize(MatSize, false);
 
     //nodes of the central element
     for (unsigned int i = 0; i < 3; i++)
@@ -230,7 +230,7 @@ void Ebst::GetSecondDerivativesVector(
 
     const unsigned int MatSize = number_of_nodes * 3;
     if (values.size() != MatSize)
-        values.resize(MatSize);
+        values.resize(MatSize, false);
 
     //nodes of the central element
     for (unsigned int i = 0; i < 3; i++)
@@ -332,13 +332,13 @@ void Ebst::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY
 
-// 	boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
-//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
-//         boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+// 	BoundedMatrix<double, 6, 18 > msL1;
+//         BoundedMatrix<double, 3, 18 > msB_f;
+//         BoundedMatrix<double, 3, 18 > msB_m;
+//         BoundedMatrix<double, 18, 18 > msK;
+    BoundedMatrix<double, 6, 3 > ms_coord;
+//         BoundedMatrix<double, 3, 2 > ms_loc_der_central;
+//         BoundedMatrix<double, 6, 2 > ms_loc_der_patch;
 
     //calculate a basis of the local system of coordinates
     WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
@@ -358,10 +358,10 @@ void Ebst::CalculateOnIntegrationPoints(
     }
 
     //compute phis on center and all gauss points
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiM;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG1;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG2;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG3;
+    BoundedMatrix<double, 2, 3 > phiM;
+    BoundedMatrix<double, 2, 3 > phiG1;
+    BoundedMatrix<double, 2, 3 > phiG2;
+    BoundedMatrix<double, 2, 3 > phiG3;
     CalculatePhiM(phiM, mdcgM, ms_coord);
     CalculatePhiG(phiG1, mdcg1, ms_coord);
     CalculatePhiG(phiG2, mdcg2, ms_coord);
@@ -560,13 +560,13 @@ void Ebst::CalculateAll(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
-    boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
-//         boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+    BoundedMatrix<double, 6, 18 > msL1;
+    BoundedMatrix<double, 3, 18 > msB_f;
+    BoundedMatrix<double, 3, 18 > msB_m;
+    BoundedMatrix<double, 18, 18 > msK;
+    BoundedMatrix<double, 6, 3 > ms_coord;
+//         BoundedMatrix<double, 3, 2 > ms_loc_der_central;
+//         BoundedMatrix<double, 6, 2 > ms_loc_der_patch;
 
     WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
@@ -585,10 +585,10 @@ void Ebst::CalculateAll(
     }
 
     //compute phis on center and all gauss points
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiM;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG1;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG2;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG3;
+    BoundedMatrix<double, 2, 3 > phiM;
+    BoundedMatrix<double, 2, 3 > phiG1;
+    BoundedMatrix<double, 2, 3 > phiG2;
+    BoundedMatrix<double, 2, 3 > phiG3;
     CalculatePhiM(phiM, mdcgM, ms_coord);
     //  KRATOS_WATCH("......")
     //KRATOS_WATCH(phiG1);
@@ -650,7 +650,7 @@ void Ebst::CalculateAll(
 
 
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 6 > DN = ZeroMatrix(3, 6);
+    BoundedMatrix<double, 3, 6 > DN = ZeroMatrix(3, 6);
     DN(0, 0) = mdcgM(0, 0);
     DN(1, 1) = mdcgM(1, 0);
     DN(2, 0) = mdcgM(1, 0);
@@ -702,7 +702,7 @@ void Ebst::CalculateAll(
     const double& N31 = mdcgM(0, 2);
     const double& N32 = mdcgM(1, 2);
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > m;
+    BoundedMatrix<double, 3, 3 > m;
     m(0, 0) = 2 * (N11 * ro111 + N12 * ro211);
     m(1, 0) = 2 * (N11 * ro122 + N12 * ro222);
     m(2, 0) = 2 * (N11 * ro112 + N12 * ro212);
@@ -715,7 +715,7 @@ void Ebst::CalculateAll(
     m(1, 2) = 2 * (N31 * ro122 + N32 * ro222);
     m(2, 2) = 2 * (N31 * ro112 + N32 * ro212);
     //         KRATOS_WATCH(m);
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > n;
+    BoundedMatrix<double, 3, 18 > n;
     noalias(n) = ZeroMatrix(3, 18);
     n(0, 0) = t3e[0];
     n(0, 1) = t3e[1];
@@ -765,7 +765,7 @@ void Ebst::CalculateAll(
     //    double aux1 = aux0 * E / (1.0 - nu * nu);
     //    double aux2 = aux1 * nu;
     //    double aux3 = aux0 * E * 0.5 / (1.0 + nu);
-    //    boost::numeric::ublas::bounded_matrix<double, 3, 3 > msDmat_f;
+    //    BoundedMatrix<double, 3, 3 > msDmat_f;
     //    msDmat_f(0, 0) = aux1;
     //    msDmat_f(0, 1) = aux2;
     //    msDmat_f(0, 2) = 0.0;
@@ -781,7 +781,7 @@ void Ebst::CalculateAll(
     //    array_1d<double, 3 > bending_stress;
     //    noalias(bending_stress) = prod(msDmat_f, bending_strain);
     //    KRATOS_WATCH(bending_stress);
-    //    boost::numeric::ublas::bounded_matrix<double, 3, 18 > aux;
+    //    BoundedMatrix<double, 3, 18 > aux;
     //    noalias(aux) = prod(msDmat_f, msB_f);
     //    noalias(msK) = prod(trans(msB_f), aux);
     //KRATOS_WATCH(msK);
@@ -811,7 +811,7 @@ void Ebst::CalculateAll(
     //    double c2 = c1 * nu;
     //    double c3 = 0.5 * E / (1.0 + nu);
     //
-    //    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_m;
+    //    BoundedMatrix<double, 3, 3 > Dmat_m;
     //    Dmat_m(0, 0) = c1;
     //    Dmat_m(0, 1) = c2;
     //    Dmat_m(0, 2) = 0.0;
@@ -830,13 +830,13 @@ void Ebst::CalculateAll(
 
     array_1d<double, 3 >& membrane_stress = m_membrane_stress;
     array_1d<double, 3 >& bending_stress = m_bending_stress;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_m;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_f;
+    BoundedMatrix<double, 3, 3 > Dmat_m;
+    BoundedMatrix<double, 3, 3 > Dmat_f;
     double h_on_h0;
     CalculateEquivalentStresses(membrane_strain, bending_strain, Dmat_m, Dmat_f, membrane_stress, bending_stress, h_on_h0,rCurrentProcessInfo);
 
     //bending contribution to the elemental stiffness
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > aux;
+    BoundedMatrix<double, 3, 18 > aux;
     noalias(aux) = prod(Dmat_f, msB_f);
     noalias(msK) = prod(trans(msB_f), aux);
 
@@ -881,7 +881,7 @@ void Ebst::CalculateAll(
     //resizing as needed the LHS
 
     if (rLeftHandSideMatrix.size1() != MatSize)
-        rLeftHandSideMatrix.resize(MatSize, MatSize);
+        rLeftHandSideMatrix.resize(MatSize, MatSize, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
 
     if (rRightHandSideVector.size() != MatSize)
@@ -994,13 +994,13 @@ void Ebst::Initialize()
 {
     KRATOS_TRY
 
-//         boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
-//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
-    boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
-    boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+//         BoundedMatrix<double, 6, 18 > msL1;
+//         BoundedMatrix<double, 3, 18 > msB_f;
+//         BoundedMatrix<double, 3, 18 > msB_m;
+//         BoundedMatrix<double, 18, 18 > msK;
+    BoundedMatrix<double, 6, 3 > ms_coord;
+    BoundedMatrix<double, 3, 2 > ms_loc_der_central;
+    BoundedMatrix<double, 6, 2 > ms_loc_der_patch;
 
     //find the "nodal neighbours" given the elemental neighbours
     WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -1036,7 +1036,7 @@ void Ebst::Initialize()
     //    std::cout << "node2" << GetGeometry()[1].Id() << "opposite node =" << nodal_neigb[1].Id() << std::endl;
     //    std::cout << "node3" << GetGeometry()[2].Id() << "opposite node =" << nodal_neigb[2].Id() << std::endl;
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > ijac;
+    BoundedMatrix<double, 2, 2 > ijac;
 
 
     //**********************************************************************************
@@ -1100,7 +1100,7 @@ void Ebst::Initialize()
     ms_loc_der_central(1, 1) = 0.0;
     ms_loc_der_central(2, 0) = 0.0;
     ms_loc_der_central(2, 1) = 1.0;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > phiM = ZeroMatrix(3, 2);
+    BoundedMatrix<double, 3, 2 > phiM = ZeroMatrix(3, 2);
     for (unsigned int i = 0; i < 3; i++)
     {
         for (unsigned int j = 0; j < 3; j++)
@@ -1110,7 +1110,7 @@ void Ebst::Initialize()
         }
     }
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > jac;
+    BoundedMatrix<double, 2, 2 > jac;
     jac(0, 0) = phiM(0, 0) * mvxe[0] + phiM(1, 0) * mvxe[1] + phiM(2, 0) * mvxe[2];
     jac(1, 0) = phiM(0, 1) * mvxe[0] + phiM(1, 1) * mvxe[1] + phiM(2, 1) * mvxe[2];
     jac(0, 1) = phiM(0, 0) * mvye[0] + phiM(1, 0) * mvye[1] + phiM(2, 0) * mvye[2];
@@ -1202,20 +1202,20 @@ void Ebst::Initialize()
 void Ebst::CalculateCartesianDerOnGauss(
     const double eta1,
     const double eta2,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 3 > & ms_coord,
+    const BoundedMatrix<double, 6, 3 > & ms_coord,
     const array_1d<double, 3 > & vxe,
     const array_1d<double, 3 > & vye,
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > & Jinv,
-    boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcg
+    BoundedMatrix<double, 2, 2 > & Jinv,
+    BoundedMatrix<double, 2, 6 > & dcg
 )
 {
-//               boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
-//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
-//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
-//         boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
-    boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+//               BoundedMatrix<double, 6, 18 > msL1;
+//         BoundedMatrix<double, 3, 18 > msB_f;
+//         BoundedMatrix<double, 3, 18 > msB_m;
+//         BoundedMatrix<double, 18, 18 > msK;
+//         BoundedMatrix<double, 6, 3 > ms_coord;
+    BoundedMatrix<double, 3, 2 > ms_loc_der_central;
+    BoundedMatrix<double, 6, 2 > ms_loc_der_patch;
 
     double eta3 = 1.0 - eta2 - eta1;
 
@@ -1240,7 +1240,7 @@ void Ebst::CalculateCartesianDerOnGauss(
     ms_loc_der_patch(5, 0) = 0.0;
     ms_loc_der_patch(5, 1) = eta2 - 0.5;
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > phi;
+    BoundedMatrix<double, 3, 2 > phi;
     noalias(phi) = prod(trans(ms_coord), ms_loc_der_patch);
 
     array_1d<double, 3 > phi1, phi2;
@@ -1269,7 +1269,7 @@ void Ebst::CalculateCartesianDerOnGauss(
     t1g /= n1;
     // KRATOS_WATCH(t1g);
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > jac;
+    BoundedMatrix<double, 2, 2 > jac;
     jac(0, 0) = inner_prod(phi1, t1g);
     jac(0, 1) = inner_prod(phi1, t2g);
     jac(1, 0) = inner_prod(phi2, t1g);
@@ -1287,9 +1287,9 @@ void Ebst::CalculateCartesianDerOnGauss(
 }
 
 void Ebst::CalculatePhiM(
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiM,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & dcM,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 3 > & ms_coord
+    BoundedMatrix<double, 2, 3 > & phiM,
+    const BoundedMatrix<double, 2, 3 > & dcM,
+    const BoundedMatrix<double, 6, 3 > & ms_coord
 )
 {
     noalias(phiM) = ZeroMatrix(2, 3);
@@ -1306,9 +1306,9 @@ void Ebst::CalculatePhiM(
 }
 
 void Ebst::CalculatePhiG(
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcG,
-    const boost::numeric::ublas::bounded_matrix<double, 6, 3 > & ms_coord
+    BoundedMatrix<double, 2, 3 > & phiG,
+    const BoundedMatrix<double, 2, 6 > & dcG,
+    const BoundedMatrix<double, 6, 3 > & ms_coord
 )
 {
     noalias(phiG) = ZeroMatrix(2, 3);
@@ -1326,7 +1326,7 @@ void Ebst::CalculatePhiG(
 
 void Ebst::CalculateAndAdd_MembraneStrain(
     array_1d<double, 3 > & strain,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG
+    const BoundedMatrix<double, 2, 3 > & phiG
 )
 {
     strain[0] += 0.5 * (phiG(0, 0) * phiG(0, 0) + phiG(0, 1) * phiG(0, 1) + phiG(0, 2) * phiG(0, 2) - 1.0);
@@ -1335,13 +1335,13 @@ void Ebst::CalculateAndAdd_MembraneStrain(
 }
 
 void Ebst::CalculateAndAdd_MembraneB(
-    boost::numeric::ublas::bounded_matrix<double, 3, 18 > & B_m,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG
+    BoundedMatrix<double, 3, 18 > & B_m,
+    const BoundedMatrix<double, 2, 6 > & dcgG,
+    const BoundedMatrix<double, 2, 3 > & phiG
 )
 {
     //implementing as in Eqn 75
-    boost::numeric::ublas::bounded_matrix<double, 6, 18 > aux;
+    BoundedMatrix<double, 6, 18 > aux;
     noalias(aux) = ZeroMatrix(6, 18);
     for (unsigned int i = 0; i < 6; i++)
     {
@@ -1356,7 +1356,7 @@ void Ebst::CalculateAndAdd_MembraneB(
         //	    aux(1,base) = dcgG(i,1); aux(1,base+1) = dcgG(i,1); aux(1,base+2) = dcgG(i,1);
     }
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 6 > aux_phi;
+    BoundedMatrix<double, 3, 6 > aux_phi;
     noalias(aux_phi) = ZeroMatrix(3, 6);
     aux_phi(0, 0) = phiG(0, 0);
     aux_phi(0, 1) = phiG(0, 1);
@@ -1380,10 +1380,10 @@ void Ebst::Calculate_h_ab(
     array_1d<double, 3 > & h_ab,
     const unsigned int alpha,
     const unsigned int beta,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG1,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG2,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & phiG3,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 3 > & dcgM
+    const BoundedMatrix<double, 2, 3 > & phiG1,
+    const BoundedMatrix<double, 2, 3 > & phiG2,
+    const BoundedMatrix<double, 2, 3 > & phiG3,
+    const BoundedMatrix<double, 2, 3 > & dcgM
 )
 {
     //GAUSS 1
@@ -1410,14 +1410,14 @@ void Ebst::Calculate_h_ab(
 }
 
 void Ebst::CalculateAndAdd_Membrane_Kg(
-    boost::numeric::ublas::bounded_matrix<double, 18, 18 > & K,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG1,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG2,
-    const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG3,
+    BoundedMatrix<double, 18, 18 > & K,
+    const BoundedMatrix<double, 2, 6 > & dcgG1,
+    const BoundedMatrix<double, 2, 6 > & dcgG2,
+    const BoundedMatrix<double, 2, 6 > & dcgG3,
     const array_1d<double, 3 > & membrane_stress
 )
 {
-    boost::numeric::ublas::bounded_matrix<double, 6, 6 > A;
+    BoundedMatrix<double, 6, 6 > A;
 
 
     for (unsigned int i = 0; i < 6; i++)
@@ -1462,8 +1462,8 @@ void Ebst::CalculateAndAdd_Membrane_Kg(
 //    void Ebst::CalculateEquivalentStresses(
 //            const array_1d<double, 3 > & membrane_strain,
 //            const array_1d<double, 3 > & bending_strain,
-//            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Dmat_m,
-//            boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Dmat_f,
+//            BoundedMatrix<double, 3, 3 > & Dmat_m,
+//            BoundedMatrix<double, 3, 3 > & Dmat_f,
 //            array_1d<double, 3 > & membrane_stress,
 //            array_1d<double, 3 > & bending_stress,
 //            double& h_on_h0 //  ratio between current thickness and original thickness h/h0
@@ -1520,8 +1520,8 @@ void Ebst::CalculateAndAdd_Membrane_Kg(
 void Ebst::CalculateEquivalentStresses(
     const array_1d<double, 3 > & membrane_strain,
     const array_1d<double, 3 > & bending_strain,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Dmat_m,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Dmat_f,
+    BoundedMatrix<double, 3, 3 > & Dmat_m,
+    BoundedMatrix<double, 3, 3 > & Dmat_f,
     array_1d<double, 3 > & membrane_stress,
     array_1d<double, 3 > & bending_stress,
     double& h_on_h0, //  ratio between current thickness and original thickness h/h0

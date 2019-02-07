@@ -154,7 +154,7 @@ void Von_Misses_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
     else
     {
         //std::cout<<"______________"<<std::endl;
-        boost::numeric::ublas::bounded_matrix<double,3,3> P;
+        BoundedMatrix<double,3,3> P;
         P(0,0) = 0.6666666666666667;
         P(0,1) = -0.3333333333333333;
         P(0,2) = 0.0;

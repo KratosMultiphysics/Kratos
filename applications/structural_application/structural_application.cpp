@@ -87,7 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos {
 //Example
 typedef Matrix fix_matrix_33;
-//typedef boost::numeric::ublas::bounded_matrix<double,3,3> fix_matrix_33;
+//typedef BoundedMatrix<double,3,3> fix_matrix_33;
 typedef Vector array3;
 //typedef array_1d<double,3> array3;
 KRATOS_CREATE_VARIABLE(fix_matrix_33, MATRIX_A)

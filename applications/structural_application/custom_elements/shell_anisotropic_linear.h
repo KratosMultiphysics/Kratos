@@ -230,7 +230,7 @@ private:
     );
 
     void CalculateMembraneB(
-        boost::numeric::ublas::bounded_matrix<double,9,3>& B,
+        BoundedMatrix<double,9,3>& B,
         const double&  beta0,
         const double& loc1,
         const double& loc2,
@@ -245,7 +245,7 @@ private:
 
 
     void CalculateBendingB(
-        boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
+        BoundedMatrix<double,9,3>& Bb,
         const double& loc2,
         const double& loc3,
         const double& x12,
@@ -257,47 +257,47 @@ private:
     );
 
     void CalculateMembraneContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-        boost::numeric::ublas::bounded_matrix<double,9,9>& Km
+        const BoundedMatrix<double,9,3>& Bm,
+        const BoundedMatrix<double,3,3>& Em,
+        BoundedMatrix<double,9,9>& Km
     );
 
     void AssembleMembraneContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,9>& Km,
+        const BoundedMatrix<double,9,9>& Km,
         const double& coeff,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system
+        BoundedMatrix<double,18,18>& Kloc_system
     );
 
     void CalculateBendingContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
-        boost::numeric::ublas::bounded_matrix<double,9,9>& Kb
+        const BoundedMatrix<double,9,3>& Bb,
+        const BoundedMatrix<double,3,3>& Eb,
+        BoundedMatrix<double,9,9>& Kb
     );
 
     void AssembleBendingContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,9>& Kb,
+        const BoundedMatrix<double,9,9>& Kb,
         const double& coeff,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system
+        BoundedMatrix<double,18,18>& Kloc_system
     );
 
     void CalculateMixedContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
-        const boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& B,
-        boost::numeric::ublas::bounded_matrix<double,9,9>& Kmix_top
+        const BoundedMatrix<double,9,3>& Bm,
+        const BoundedMatrix<double,9,3>& Bb,
+        const BoundedMatrix<double,3,3>& B,
+        BoundedMatrix<double,9,9>& Kmix_top
     );
 
     void AssembleMixedContribution(
-        const boost::numeric::ublas::bounded_matrix<double,9,9>& Kmix_top,
+        const BoundedMatrix<double,9,9>& Kmix_top,
         const double& coeff,
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system
+        BoundedMatrix<double,18,18>& Kloc_system
     );
 
     void CalculateGaussPointContribution(
-        boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& B,
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
+        BoundedMatrix<double,18,18>& Kloc_system ,
+        const BoundedMatrix<double,3,3>& Em,
+        const BoundedMatrix<double,3,3>& B,
+        const BoundedMatrix<double,3,3>& Eb,
         const double& weight,
         const double& h, /*thickness*/
         const double& loc1, /*local coords*/
@@ -312,7 +312,7 @@ private:
     );
 
     double CalculateBeta(
-        const boost::numeric::ublas::bounded_matrix<double,3,3>& Em
+        const BoundedMatrix<double,3,3>& Em
     );
 
     void CalculateAllMatrices(
@@ -331,7 +331,7 @@ private:
         const array_1d<double,3>& v1,
         const array_1d<double,3>& v2,
         const array_1d<double,3>& v3,
-        const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+        const BoundedMatrix<double,18,18>& Kloc_system,
         Matrix& rLeftHandSideMatrix
     );
 

@@ -307,9 +307,9 @@ namespace Kratos
         J = GetGeometry().Jacobian( J );
 
         //auxiliary terms
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> C;
+        BoundedMatrix<double, 2, 2> j;
+        BoundedMatrix<double, 2, 2> g;
+        BoundedMatrix<double, 2, 2> C;
         array_1d<double, 3> ge;
         array_1d<double, 3> gn;
         array_1d<double, 3> v3;
@@ -339,7 +339,7 @@ namespace Kratos
             noalias( g ) = prod( trans( j ), j );
 
             // calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
+            BoundedMatrix<double, 2, 2> tmp;
             tmp = prod( g, mG_Vector[PointNumber] );
             noalias( C ) = prod( trans( mG_Vector[PointNumber] ), tmp );
 
@@ -367,7 +367,7 @@ namespace Kratos
             if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             {
                 if ( Output[PointNumber].size2() != StrainVector.size() )
-                    Output[PointNumber].resize( 1, StrainVector.size() );
+                    Output[PointNumber].resize( 1, StrainVector.size(), false );
 
                 for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
                     Output[PointNumber]( 0, ii ) = StrainVector[ii];
@@ -375,32 +375,32 @@ namespace Kratos
             else if ( rVariable == PK2_STRESS_TENSOR )
             {
                 if ( Output[PointNumber].size2() != 6 )
-                    Output[PointNumber].resize( 1, 6 );
+                    Output[PointNumber].resize( 1, 6, false );
 
                 for ( unsigned int ii = 0; ii < 6; ii++ )
                     Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
             }
             // VM
-            else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress  
+            else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
 	    {
 		  if(Output[PointNumber].size2() != 6)
-		      Output[PointNumber].resize(1,6);
-		  
-                boost::numeric::ublas::bounded_matrix<double, 2, 2> msF;
+		      Output[PointNumber].resize(1,6, false);
+
+                BoundedMatrix<double, 2, 2> msF;
 	      	noalias(msF) = ZeroMatrix(2,2); //VM
 		noalias(msF)=tmp; //VM
 		Vector CauchyStressVector( 3 );
-		  
-	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy	
+
+	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy
 	      noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
 	      Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
-		
+
 		   for(unsigned int ii = 0; ii<6; ii++)
 					Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
 				 ////KRATOS_WATCH(Output[PointNumber]);
 	     }
         // VM
-        
+
         }
 
     }
@@ -421,7 +421,7 @@ namespace Kratos
         unsigned int MatSize = number_of_nodes * 3;
 
         if ( rMassMatrix.size1() != MatSize )
-            rMassMatrix.resize( MatSize, MatSize );
+            rMassMatrix.resize( MatSize, MatSize, false );
 
         rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
@@ -460,7 +460,7 @@ namespace Kratos
         unsigned int MatSize = number_of_nodes * 3;
 
         if ( rDampingMatrix.size1() != MatSize )
-            rDampingMatrix.resize( MatSize, MatSize );
+            rDampingMatrix.resize( MatSize, MatSize, false );
 
         rDampingMatrix = ZeroMatrix( MatSize, MatSize );
 
@@ -509,7 +509,7 @@ namespace Kratos
         const unsigned int MatSize = number_of_nodes * 3;
 
         if ( values.size() != MatSize )
-            values.resize( MatSize );
+            values.resize( MatSize, false );
 
         for ( unsigned int i = 0;i < number_of_nodes;i++ )
         {
@@ -533,7 +533,7 @@ namespace Kratos
         const unsigned int MatSize = number_of_nodes * 3;
 
         if ( values.size() != MatSize )
-            values.resize( MatSize );
+            values.resize( MatSize, false );
 
         for ( unsigned int i = 0;i < number_of_nodes;i++ )
         {
@@ -558,7 +558,7 @@ namespace Kratos
         const unsigned int MatSize = number_of_nodes * 3;
 
         if ( values.size() != MatSize )
-            values.resize( MatSize );
+            values.resize( MatSize, false );
 
         for ( unsigned int i = 0;i < number_of_nodes;i++ )
         {
@@ -635,7 +635,7 @@ namespace Kratos
 
     void MembraneElement::CalculateAndAddKg(
         Matrix& K,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        BoundedMatrix<double, 3, 3>& Q,
         const Matrix& DN_De,
         Vector& StressVector,
         double weight )
@@ -691,9 +691,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Kij;
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_ge;
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_gn;
+        BoundedMatrix<double, 3, 3> Kij;
+        BoundedMatrix<double, 3, 3> Cross_ge;
+        BoundedMatrix<double, 3, 3> Cross_gn;
         double coeff;
         unsigned int number_of_nodes = GetGeometry().size();
 
@@ -727,7 +727,7 @@ namespace Kratos
     //***********************************************************************************
 
     void MembraneElement::MakeCrossMatrix(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+        BoundedMatrix<double, 3, 3>& M,
         array_1d<double, 3>& U )
 
     {
@@ -789,7 +789,7 @@ namespace Kratos
 
     void  MembraneElement::SubtractMatrix(
         MatrixType& Destination,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+        BoundedMatrix<double, 3, 3>& InputMatrix,
         int InitialRow,
         int InitialCol )
 
@@ -807,7 +807,7 @@ namespace Kratos
     //***********************************************************************************
 
     void MembraneElement::CalculateQ(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        BoundedMatrix<double, 3, 3>& Q,
         Matrix& mG )
 
     {
@@ -828,7 +828,7 @@ namespace Kratos
 
     void MembraneElement::CalculateB(
         Matrix& B,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        BoundedMatrix<double, 3, 3>& Q,
         const Matrix& DN_De,
         array_1d<double, 3>& ge,
         array_1d<double, 3>& gn )
@@ -868,7 +868,7 @@ namespace Kratos
     //***********************************************************************************
 
     void MembraneElement::CalculateJ(
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& j,
+        BoundedMatrix<double, 2, 2>& j,
         array_1d<double, 3>& ge,
         array_1d<double, 3>& gn,
         array_1d<double, 3>& v3 )
@@ -892,7 +892,7 @@ namespace Kratos
 
     void MembraneElement::CalculateStrain(
         Vector& StrainVector,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& C )
+        BoundedMatrix<double, 2, 2>& C )
 
     {
         KRATOS_TRY
@@ -977,16 +977,16 @@ namespace Kratos
         Matrix B( 3, MatSize );
         Vector StrainVector( 3 );
         Vector StressVector( 3 );
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>  C = ZeroMatrix( 2, 2 );
+        BoundedMatrix<double, 2, 2>  C = ZeroMatrix( 2, 2 );
         Matrix D = ZeroMatrix( 3, 3 );
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix( 3, 3 );
+        BoundedMatrix<double, 3, 3>  Q = ZeroMatrix( 3, 3 );
 
         //resizing as needed the LHS
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
             if ( rLeftHandSideMatrix.size1() != MatSize )
-                rLeftHandSideMatrix.resize( MatSize, MatSize );
+                rLeftHandSideMatrix.resize( MatSize, MatSize, false );
 
             noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
         }
@@ -995,7 +995,7 @@ namespace Kratos
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
             if ( rRightHandSideVector.size() != MatSize )
-                rRightHandSideVector.resize( MatSize );
+                rRightHandSideVector.resize( MatSize, false );
 
             rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
         }
@@ -1016,34 +1016,34 @@ namespace Kratos
         array_1d<double, 3> BodyForce;
 
 //         double elem_positive_face_pressure = 0.0;
-// 
+//
 //         double elem_negative_face_pressure = 0.0;
-// 
+//
 //         bool zero_positive_nodal_pressure = false;
-// 
+//
 //         bool zero_negative_nodal_pressure = false;
-// 
+//
 //         for ( unsigned int k = 0; k < GetGeometry().size();k++ )
 //         {
 //             double temp = GetGeometry()[k].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
 //             elem_negative_face_pressure += temp;
-// 
+//
 //             if ( temp == 0 )
 //                 zero_negative_nodal_pressure = true;
-// 
+//
 //             temp = GetGeometry()[k].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-// 
+//
 //             elem_positive_face_pressure += temp;
-// 
+//
 //             if ( temp == 0 )
 //                 zero_positive_nodal_pressure = true;
 //         }
-// 
+//
 //         if ( zero_negative_nodal_pressure == true )
 //             elem_negative_face_pressure = 0.0;
 //         else
 //             elem_negative_face_pressure /= ( double ) GetGeometry().size();
-// 
+//
 //         if ( zero_positive_nodal_pressure == true )
 //             elem_positive_face_pressure = 0.0;
 //         else
@@ -1084,15 +1084,15 @@ namespace Kratos
             gn[2] = J[PointNumber]( 2, 1 );
 
             CrossProduct( v3, ge, gn );
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> j;
+            BoundedMatrix<double, 2, 2> j;
             CalculateJ( j, ge, gn, v3 );
 
             // calculation of matrix g = jtrans*j;
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> g;
+            BoundedMatrix<double, 2, 2> g;
             noalias( g ) = prod( trans( j ), j );
 
             // calculation of the Right Cauchy-Green Tensor C = Gtrans*g*G
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> tmp;
+            BoundedMatrix<double, 2, 2> tmp;
             tmp = prod( g, mG_Vector[PointNumber] );
             noalias( C ) = prod( trans( mG_Vector[PointNumber] ), tmp );
 
@@ -1102,7 +1102,7 @@ namespace Kratos
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                 StrainVector,
-                ZeroMatrix( 1 ),
+                ZeroMatrix( 1, 1 ),
                 StressVector,
                 D,
                 rCurrentProcessInfo,
@@ -1289,7 +1289,7 @@ namespace Kratos
         //verify that the constitutive law has the correct dimension
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
                 KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id() );
-        
+
         //check constitutive law
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {

@@ -280,10 +280,10 @@ void SlaveContactFace3DNewmark::EquationIdVector( EquationIdVectorType& rResult,
 }
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3DNewmark::MasterElementsEquationIdVectors(EquationIdVectorContainerType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
-{
-}
+// void SlaveContactFace3DNewmark::MasterElementsEquationIdVectors(EquationIdVectorContainerType& rResult,
+//         ProcessInfo& rCurrentProcessInfo )
+// {
+// }
 
 //************************************************************************************
 //************************************************************************************

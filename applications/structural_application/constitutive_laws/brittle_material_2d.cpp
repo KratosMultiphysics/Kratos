@@ -190,8 +190,8 @@ void BrittleMaterial2D::InitializeMaterial( const Properties& props,
     mStrain_New.resize(3, false);
     mStrain_Old        = ZeroVector(3);
     mStrain_New        = ZeroVector(3);
-    noalias(m_invF_old) = IdentityMatrix(2,2);
-    noalias(mF)         = IdentityMatrix(2,2);
+    noalias(m_invF_old) = IdentityMatrix(2);
+    noalias(mF)         = IdentityMatrix(2);
     mpFluencyCriteria->InitializeMaterial(*mpProperties);
     mpFluencyCriteria->GetValue(mlength);
 
@@ -216,8 +216,9 @@ void BrittleMaterial2D::FinalizeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo)
 {
+    double detF;
     noalias(mStrain_Old) = mStrain_New;
-    SD_MathUtils<double>::InvertMatrix(mF,m_invF_old);   /// WARNING = descomeatr
+    MathUtils<double>::InvertMatrix(mF,m_invF_old,detF);   /// WARNING = descomeatr
     mpFluencyCriteria->FinalizeSolutionStep();
 
     // Calculating the local fail failure
@@ -231,7 +232,7 @@ void BrittleMaterial2D::FinalizeSolutionStep( const Properties& props,
 //***********************************************************************************************
 
 
-void BrittleMaterial2D::CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C)
+void BrittleMaterial2D::CalculateElasticMatrix(BoundedMatrix<double,4,4>& C)
 {
 
     // plane strain and axial symmetric
@@ -287,7 +288,7 @@ void BrittleMaterial2D::ComputeTrialElasticStress(const Matrix& Delta_F, const M
 
     Vector Desviatoric_Strain(4);
     Vector Elastic_Strain(4);
-    ElasticTrialStress.resize(4);
+    ElasticTrialStress.resize(4, false );
 
 
     Matrix Elastic_Strain_Tensor(3,3);
@@ -316,7 +317,7 @@ void BrittleMaterial2D::ComputeTrialElasticStress(const Matrix& Delta_F, const M
 
 
     noalias(Bar_Elastic_Tensor) = prod(Matrix(prod(trans(Aux), Elastic_Strain_Tensor)), Aux);
-    const identity_matrix<double> Unit(2);
+    const IdentityMatrix Unit(2);
     /// Delta almansi strain del paso n al paso n+1
     Matrix C(2,2);
 
@@ -542,9 +543,10 @@ void BrittleMaterial2D::CalculateStress(
     Matrix Inv_Delta_F;
     Inv_Delta_F.resize(2,2, false);
     noalias(Inv_Delta_F) = ZeroMatrix(2,2);
+    double det_Delta_F;
     CalculateAlmansiStrain(StrainVector, DeformationGradient, Almansi); /// push-foward greeen
     noalias(Delta_F)            = prod(DeformationGradient,m_invF_old);
-    SD_MathUtils<double>::InvertMatrix(Delta_F, Inv_Delta_F);
+    MathUtils<double>::InvertMatrix(Delta_F, Inv_Delta_F, det_Delta_F);
     mpFluencyCriteria->GetValue(Inv_Delta_F);
 
 
@@ -582,14 +584,14 @@ void BrittleMaterial2D::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det2( rF );
-    boost::numeric::ublas::bounded_matrix<double,2,2> temp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> aux;
+    BoundedMatrix<double,2,2> temp;
+    BoundedMatrix<double,2,2> aux;
     noalias(temp) = prod(rF,S);
     noalias(aux) = prod(temp,trans(rF));
     aux *= J;
 
     if(rCauchy_StressVector.size() != 3)
-        rCauchy_StressVector.resize(3);
+        rCauchy_StressVector.resize(3, false );
 
     rCauchy_StressVector[0] = aux(0,0);
     rCauchy_StressVector[1] = aux(1,1);
@@ -604,16 +606,17 @@ void BrittleMaterial2D::CalculateAlmansiStrain(const Vector& Strain, const Matri
     int size2 = F.size1();
 
     Matrix F_inv;
+    double detF;
     Matrix Strain_Tensor;
     Matrix Almansi_Tensor;
 
-    Almansi.resize(size1);
-    F_inv.resize(size2, size2);
-    Almansi_Tensor.resize(size2, size2);
-    Strain_Tensor.resize(size2, size2);
+    Almansi.resize(size1, false );
+    F_inv.resize(size2, size2, false );
+    Almansi_Tensor.resize(size2, size2, false );
+    Strain_Tensor.resize(size2, size2, false );
 
     Strain_Tensor = SD_MathUtils<double>::StrainVectorToTensor(Strain);
-    SD_MathUtils<double>::InvertMatrix(F, F_inv);
+    MathUtils<double>::InvertMatrix(F, F_inv, detF);
     noalias(Almansi_Tensor) =  prod( Matrix(prod(trans(F_inv), Strain_Tensor)),F_inv);
 
     noalias(Almansi) = SD_MathUtils<double>::TensorToStrainVector(Almansi_Tensor);
@@ -627,16 +630,17 @@ void BrittleMaterial2D::CalculateSPK(const Vector& Cauchy_Stress, const Matrix& 
     const double J  = MathUtils<double>::Det2( F );
 
     Matrix F_inv;
+    double detF;
     Matrix Stress_Tensor;
     Matrix Cauchy_Tensor;
 
-    Stress.resize(size1);
-    F_inv.resize(size2, size2);
-    Cauchy_Tensor.resize(size2, size2);
-    Stress_Tensor.resize(size2, size2);
+    Stress.resize(size1, false );
+    F_inv.resize(size2, size2, false );
+    Cauchy_Tensor.resize(size2, size2, false );
+    Stress_Tensor.resize(size2, size2, false );
 
     Cauchy_Tensor = MathUtils<double>::StressVectorToTensor(Cauchy_Stress);
-    SD_MathUtils<double>::InvertMatrix(F, F_inv);
+    MathUtils<double>::InvertMatrix(F, F_inv, detF);
     noalias(Stress_Tensor) =  prod( Matrix(prod(F_inv, Cauchy_Tensor)),trans(F_inv));
     SD_MathUtils<double>::TensorToVector(Stress_Tensor, Stress);
     Stress*= J;

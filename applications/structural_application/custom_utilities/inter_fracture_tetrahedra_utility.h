@@ -185,8 +185,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -470,19 +470,6 @@ public:
 ///************************************************************************************************
 ///************************************************************************************************
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
-
-///************************************************************************************************
-///************************************************************************************************
-
     static void Find_Coord_Gauss_Points(Element::GeometryType& geom, array_1d<double,3>&  Coord_Point)
     {
         double x    = 0.00;
@@ -518,8 +505,8 @@ public:
 #endif
 
 //mfail_node.clear();
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)

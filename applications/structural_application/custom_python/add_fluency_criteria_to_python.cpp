@@ -50,22 +50,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
-
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
-#include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 #include "custom_python/add_fluency_criteria_to_python.h"
 #include "fluency_criteria/fluency_criteria.h"
-#include "python/vector_python_interface.h"
 #include "fluency_criteria/energy_yield_function.h"
 #include "fluency_criteria/isotropic_rankine_yield_function.h"
 //#include "fluency_criteria/tresca_yield_function.h"
@@ -96,7 +89,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 typedef FluencyCriteria                   FluencyCriteriaType;
 typedef SofteningHardeningCriteria        SofteningHardeningType;
 typedef Morh_Coulomb_Yield_Function       MorhCoulombType;
@@ -108,60 +101,59 @@ typedef SofteningHardeningCriteria::Pointer SofteningHardeningPointerType;
 typedef MorhCoulombType::Pointer            MorhCoulombPointerType;
 typedef RankineType::Pointer                RankinePointerType;
 
-void  AddFluencyCriteriaToPython()
+void  AddFluencyCriteriaToPython(pybind11::module& m)
 {
 
-    class_< FluencyCriteriaType, boost::noncopyable >
-    ("FluencyCriteriaType",
-     init<>() )
+    class_< FluencyCriteriaType >
+    (m, "FluencyCriteriaType")
+    .def( init<>() )
     ;
 
-    class_< SofteningHardeningType, boost::noncopyable >
-    ("SofteningHardeningType",
-     init<>() )
+    class_< SofteningHardeningType >
+    (m, "SofteningHardeningType")
+    .def( init<>() )
     ;
 
-    enum_<myState>("State")
+    enum_<myState>(m, "State")
     .value("Plane_Stress", Plane_Stress)
     .value("Plane_Strain", Plane_Strain)
     .value("Tri_D", Tri_D)
     ;
 
-    enum_<myPotencialPlastic>("PotencialPlastic")
+    enum_<myPotencialPlastic>(m, "PotencialPlastic")
     .value("Not_Associated", Not_Associated)
     .value("Associated", Associated)
     ;
 
 
     /*
-    class_<Rankine_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
+    class_<Rankine_Yield_Function, bases< FluencyCriteriaType > >
     ("RankineYieldFunction",
     init<myState> () )
     ;
     */
 
-    class_<Isotropic_Rankine_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("IsotropicRankineYieldFunction",
-     init<SofteningHardeningPointerType,
-     myState> () )
+    class_<Isotropic_Rankine_Yield_Function, FluencyCriteriaType >
+    (m, "IsotropicRankineYieldFunction")
+    .def( init<SofteningHardeningPointerType, myState> () )
     ;
 
     /*
-    class_<Tresca_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
+    class_<Tresca_Yield_Function, bases< FluencyCriteriaType > >
     ("TrescaYieldFunction",
     init<myState> () )
     ;
     */
 
-    class_<Von_Mises_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("VonMisesYieldFunction",
-     init<const myState&, const SofteningHardeningPointerType&> () )
+    class_<Von_Mises_Yield_Function, FluencyCriteriaType >
+    (m, "VonMisesYieldFunction")
+    .def( init<const myState&, const SofteningHardeningPointerType&> () )
     //init<myState, myPotencialPlastic> () )
     ;
 
-    class_<Modified_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("ModifiedMorhCoulombYieldFunction",
-     init<myState, MorhCoulombPointerType, RankinePointerType> () )
+    class_<Modified_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    (m, "ModifiedMorhCoulombYieldFunction")
+    .def( init<myState, MorhCoulombPointerType, RankinePointerType> () )
     /* init<const SofteningHardeningPointerType&,
          const SofteningHardeningPointerType&,
          const SofteningHardeningPointerType&,
@@ -172,58 +164,58 @@ void  AddFluencyCriteriaToPython()
     ;
 
 
-    class_<Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("MorhCoulombYieldFunction",
-     init<const SofteningHardeningPointerType&,
+    class_<Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    (m, "MorhCoulombYieldFunction")
+    .def(init<const SofteningHardeningPointerType&,
      const SofteningHardeningPointerType&,
      const SofteningHardeningPointerType&,
      const myState,
      const myPotencialPlastic> () )
     ;
 
-    class_<Standard_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("StandardMorhCoulombYieldFunction",
-     init<const SofteningHardeningPointerType&,
+    class_<Standard_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    (m, "StandardMorhCoulombYieldFunction")
+    .def(init<const SofteningHardeningPointerType&,
      const myState> () )
     ;
 
     /*
-    class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
+    class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaType > >
     ("DruckerPragerYieldFunction",
     init<myState> () )
     ;
                  */
 
 
-    class_<Energy_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
-    ("EnergyYieldFunction",
-     init<myState> () )
+    class_<Energy_Yield_Function, FluencyCriteriaType >
+    (m, "EnergyYieldFunction")
+    .def( init<myState> () )
     ;
 
 
-    class_<Exponential_Softening, bases< SofteningHardeningType>, boost::noncopyable >
-    ("ExponentialSoftening",
-     init<> () )
+    class_<Exponential_Softening, SofteningHardeningType >
+    (m, "ExponentialSoftening")
+    .def( init<> () )
     ;
 
-    class_<Linear_Softening, bases< SofteningHardeningType>, boost::noncopyable >
-    ("LinearSoftening",
-     init<> () )
+    class_<Linear_Softening, SofteningHardeningType >
+    (m, "LinearSoftening")
+    .def( init<> () )
     ;
 
-    class_<Cohesion_Softening, bases< SofteningHardeningType>, boost::noncopyable >
-    ("CohesionSoftening",
-     init<> () )
+    class_<Cohesion_Softening, SofteningHardeningType >
+    (m, "CohesionSoftening")
+    .def( init<> () )
     ;
 
-    class_<Friction_Softening, bases< SofteningHardeningType>, boost::noncopyable >
-    ("FrictionSoftening",
-     init<> () )
+    class_<Friction_Softening, SofteningHardeningType >
+    (m, "FrictionSoftening")
+    .def( init<> () )
     ;
 
-    class_<Dilatancy_Softening, bases< SofteningHardeningType>, boost::noncopyable >
-    ("DilatancySoftening",
-     init<> () )
+    class_<Dilatancy_Softening, SofteningHardeningType >
+    (m, "DilatancySoftening")
+    .def( init<> () )
     ;
 
 

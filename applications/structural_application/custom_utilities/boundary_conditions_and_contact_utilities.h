@@ -93,6 +93,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 // #include "utilities/timer_CLabra.h"
 #include "custom_conditions/slave_contact_point_2d.h"
 #include "custom_conditions/slave_contact_point_3d.h"
@@ -204,7 +205,6 @@ public:
 
 
 
-    BoundaryConditionsAndContactUtilities() {}
     BoundaryConditionsAndContactUtilities(ModelPart& model_part, const unsigned int& dimension, const double& penalty_factor) : mr_model_part(model_part), mrdimension(dimension)
     {
         mpenalty_factor = penalty_factor;
@@ -270,8 +270,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> partition;
-        CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
+        std::vector<unsigned int> partition;
+        OpenMPUtils::CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
         //ContactPairType it_pair;
         ResultContainerType  Result(MaxNumberOfResults);
 
@@ -1264,8 +1264,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -1304,8 +1304,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -1345,8 +1345,8 @@ public:
             NodosVecinos.Execute();
             CondicionesVecinas.Execute();
 
-            vector<unsigned int> condition_partition;
-            CreatePartition(number_of_threads, pConditions.size(), condition_partition);
+            std::vector<unsigned int> condition_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pConditions.size(), condition_partition);
             #pragma omp parallel for
             for(int k=0; k<number_of_threads; k++)
             {
@@ -1359,8 +1359,8 @@ public:
                 }
             }
 
-            vector<unsigned int> element_partition;
-            CreatePartition(number_of_threads, pElements.size(), element_partition);
+            std::vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
             #pragma omp parallel for
             for(int k=0; k<number_of_threads; k++)
             {
@@ -1457,8 +1457,8 @@ public:
 
 
         LinkingConditions.resize(number_of_threads);
-        vector<unsigned int> partition;
-        CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
+        std::vector<unsigned int> partition;
+        OpenMPUtils::CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
         ContactPairType it_pair;
 
         std::cout<<"     PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl;
@@ -1656,8 +1656,8 @@ public:
 
         LocalSearch3D(rBinsObjectDynamic, mBoundaryElements.begin(), mBoundaryElements.end());
 
-        vector<unsigned int> partition;
-        CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
+        std::vector<unsigned int> partition;
+        OpenMPUtils::CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
         ContactPairType it_pair;
 
 
@@ -2117,8 +2117,8 @@ public:
         std::vector<std::vector<unsigned int> >   segment;
         segment.resize(neighb_cond_slave.size());
 
-        vector<array_1d<double, 2> >        Points0;
-        vector<array_1d<double, 2> >        Points1;
+        std::vector<array_1d<double, 2> >        Points0;
+        std::vector<array_1d<double, 2> >        Points1;
         array_1d<double, 2>                 Point;
 
         unsigned int I   = 0;
@@ -2126,8 +2126,8 @@ public:
         unsigned int III = 1;
         unsigned int IV  = 0;
 
-        Points0.resize(2, false);
-        Points1.resize(2, false);
+        Points0.resize(2);
+        Points1.resize(2);
 
         for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
         {
@@ -2135,20 +2135,20 @@ public:
 
             Point[0]      = 0.00;
             Point[1]      = 0.00;
-            Points0(0)[0] = geom[0].X();
-            Points0(0)[1] = geom[0].Y();
-            Points0(1)[0] = geom[1].X();
-            Points0(1)[1] = geom[1].Y();
+            Points0[0][0] = geom[0].X();
+            Points0[0][1] = geom[0].Y();
+            Points0[1][0] = geom[1].X();
+            Points0[1][1] = geom[1].Y();
 
             I    = 0;
             III  = 0;
             for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond)
             {
                 Condition::GeometryType& geom_3 = cond->GetGeometry();
-                Points1(0)[0] = geom_3[0].X();
-                Points1(0)[1] = geom_3[0].Y();
-                Points1(1)[0] = geom_3[1].X();
-                Points1(1)[1] = geom_3[1].Y();
+                Points1[0][0] = geom_3[0].X();
+                Points1[0][1] = geom_3[0].Y();
+                Points1[1][0] = geom_3[1].X();
+                Points1[1][1] = geom_3[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                     segment[IV].push_back(I);
@@ -2628,8 +2628,8 @@ public:
 
         std::vector<unsigned int>           segment;
         std::vector<unsigned int>::iterator it;
-        vector<array_1d<double, 2> >        Points0;
-        vector<array_1d<double, 2> >        Points1;
+        std::vector<array_1d<double, 2> >        Points0;
+        std::vector<array_1d<double, 2> >        Points1;
         array_1d<double, 2>                 Point;
 
         unsigned int I   = 0;
@@ -2637,8 +2637,8 @@ public:
         unsigned int III = 1;
 
 
-        Points0.resize(2, false);
-        Points1.resize(2, false);
+        Points0.resize(2);
+        Points1.resize(2);
 
         for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
         {
@@ -2646,20 +2646,20 @@ public:
             Point[0]      = 0.00;
             Point[1]      = 0.00;
 
-            Points0(0)[0] = geom[0].X();
-            Points0(0)[1] = geom[0].Y();
-            Points0(1)[0] = geom[1].X();
-            Points0(1)[1] = geom[1].Y();
+            Points0[0][0] = geom[0].X();
+            Points0[0][1] = geom[0].Y();
+            Points0[1][0] = geom[1].X();
+            Points0[1][1] = geom[1].Y();
 
             I   = 0;
             III = 1;
             for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond)
             {
                 Condition::GeometryType& geom_3 = cond->GetGeometry();
-                Points1(0)[0] = geom_3[0].X();
-                Points1(0)[1] = geom_3[0].Y();
-                Points1(1)[0] = geom_3[1].X();
-                Points1(1)[1] = geom_3[1].Y();
+                Points1[0][0] = geom_3[0].X();
+                Points1[0][1] = geom_3[0].Y();
+                Points1[1][0] = geom_3[1].X();
+                Points1[1][1] = geom_3[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                 {
@@ -2746,30 +2746,30 @@ public:
             unsigned int segmento = 0;
 
             std::vector<array_1d<double, 2> > Points;   // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
-            Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-            Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-            Points0(1)[0] = SlaveNode->X();
-            Points0(1)[1] = SlaveNode->Y();
+            Points0[0][0] = SlaveNode->X0() + old_pos[0];
+            Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+            Points0[1][0] = SlaveNode->X();
+            Points0[1][1] = SlaveNode->Y();
 
             unsigned int JJ = 1;
             for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++)
             {
                 Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-                Points1(0)[0] = geom_2[0].X();
-                Points1(0)[1] = geom_2[0].Y();
-                Points1(1)[0] = geom_2[1].X();
-                Points1(1)[1] = geom_2[1].Y();
+                Points1[0][0] = geom_2[0].X();
+                Points1[0][1] = geom_2[0].Y();
+                Points1[1][0] = geom_2[1].X();
+                Points1[1][1] = geom_2[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)==IT_POINT)
                 {
@@ -2836,8 +2836,8 @@ public:
         {
             std::vector<unsigned int>         segment;
             std::vector<array_1d<double, 2> > Points; // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             // test with edges
@@ -2847,8 +2847,8 @@ public:
             unsigned int III      = 1;
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
             for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
             {
@@ -2856,20 +2856,20 @@ public:
                 Point[0]      = 0.00;
                 Point[1]      = 0.00;
 
-                Points0(0)[0] = geom[0].X();
-                Points0(0)[1] = geom[0].Y();
-                Points0(1)[0] = geom[1].X();
-                Points0(1)[1] = geom[1].Y();
+                Points0[0][0] = geom[0].X();
+                Points0[0][1] = geom[0].Y();
+                Points0[1][0] = geom[1].X();
+                Points0[1][1] = geom[1].Y();
 
                 I   = 0;
                 III = 1;
                 for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond)
                 {
                     Condition::GeometryType& geom_3 = cond->GetGeometry();
-                    Points1(0)[0] = geom_3[0].X();
-                    Points1(0)[1] = geom_3[0].Y();
-                    Points1(1)[0] = geom_3[1].X();
-                    Points1(1)[1] = geom_3[1].Y();
+                    Points1[0][0] = geom_3[0].X();
+                    Points1[0][1] = geom_3[0].Y();
+                    Points1[1][0] = geom_3[1].X();
+                    Points1[1][1] = geom_3[1].Y();
 
                     if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)==IT_POINT)
                     {
@@ -2896,10 +2896,10 @@ public:
                 // en caso de que el nodo quede fuera e intersecte con dos aristas
                 else if (Points.size()>1)
                 {
-                    Points0(0)[0] = SlaveNode->X();
-                    Points0(0)[1] = SlaveNode->Y();
-                    Points0(1)[0] = SlaveNode->X();
-                    Points0(1)[1] = SlaveNode->Y();
+                    Points0[0][0] = SlaveNode->X();
+                    Points0[0][1] = SlaveNode->Y();
+                    Points0[1][0] = SlaveNode->X();
+                    Points0[1][1] = SlaveNode->Y();
 
                     double dist0 = 0.00;
                     array_1d<double, 2> rect;
@@ -2954,29 +2954,29 @@ public:
 
 
             std::vector<array_1d<double, 2> > Points;   // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
-            Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-            Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-            Points0(1)[0] = SlaveNode->X();
-            Points0(1)[1] = SlaveNode->Y();
+            Points0[0][0] = SlaveNode->X0() + old_pos[0];
+            Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+            Points0[1][0] = SlaveNode->X();
+            Points0[1][1] = SlaveNode->Y();
             /*
              array_1d<double, 2> Dir;
-             Dir[0]       = Points0(1)[0] - Points0(0)[0];
-             Dir[1]       = Points0(1)[1] - Points0(0)[1];
+             Dir[0]       = Points0[1][0] - Points0[0][0];
+             Dir[1]       = Points0[1][1] - Points0[0][1];
              noalias(Dir) = (1.00/(sqrt(inner_prod(Dir, Dir)))) * Dir;
 
-             Points0(0)[0] -= Dir[0];
-             Points0(0)[1] -= Dir[1];
-             Points0(1)[0] += Dir[0];
-             Points0(1)[1] += Dir[1];
+             Points0[0][0] -= Dir[0];
+             Points0[0][1] -= Dir[1];
+             Points0[1][0] += Dir[0];
+             Points0[1][1] += Dir[1];
             */
 
             unsigned int JJ = 1;
@@ -2984,10 +2984,10 @@ public:
             {
                 Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-                Points1(0)[0] = geom_2[0].X();
-                Points1(0)[1] = geom_2[0].Y();
-                Points1(1)[0] = geom_2[1].X();
-                Points1(1)[1] = geom_2[1].Y();
+                Points1[0][0] = geom_2[0].X();
+                Points1[0][1] = geom_2[0].Y();
+                Points1[1][0] = geom_2[1].X();
+                Points1[1][1] = geom_2[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                 {
@@ -3056,9 +3056,9 @@ public:
 
         std::vector<double>               Distances;   // punto de interseccion del segmento
         array_1d<double, 2>               Points0;
-        vector<array_1d<double, 2> >      Points1;
+        std::vector<array_1d<double, 2> >      Points1;
 
-        Points1.resize(2, false);
+        Points1.resize(2);
 
         Points0[0] = SlaveNode->X();
         Points0[1] = SlaveNode->Y();
@@ -3069,10 +3069,10 @@ public:
         {
             Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-            Points1(0)[0] = geom_2[0].X();
-            Points1(0)[1] = geom_2[0].Y();
-            Points1(1)[0] = geom_2[1].X();
-            Points1(1)[1] = geom_2[1].Y();
+            Points1[0][0] = geom_2[0].X();
+            Points1[0][1] = geom_2[0].Y();
+            Points1[1][0] = geom_2[1].X();
+            Points1[1][1] = geom_2[1].Y();
 
             Segment1.AssignPointsAndComputeParameters(Points1[0], Points1[1]);
             Distances.push_back(Segment1.DistPoint2Segment2D(Points0));
@@ -3128,20 +3128,20 @@ public:
             unsigned int segmento = 0;
 
             std::vector<array_1d<double, 2> > Points;   // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
-            Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-            Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-            Points0(1)[0] = SlaveNode->X();
-            Points0(1)[1] = SlaveNode->Y();
+            Points0[0][0] = SlaveNode->X0() + old_pos[0];
+            Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+            Points0[1][0] = SlaveNode->X();
+            Points0[1][1] = SlaveNode->Y();
 
 
             unsigned int JJ = 1;
@@ -3149,10 +3149,10 @@ public:
             {
                 Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-                Points1(0)[0] = geom_2[0].X();
-                Points1(0)[1] = geom_2[0].Y();
-                Points1(1)[0] = geom_2[1].X();
-                Points1(1)[1] = geom_2[1].Y();
+                Points1[0][0] = geom_2[0].X();
+                Points1[0][1] = geom_2[0].Y();
+                Points1[1][0] = geom_2[1].X();
+                Points1[1][1] = geom_2[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)==IT_POINT)
                 {
@@ -3220,30 +3220,30 @@ public:
             unsigned int segmento  = 0;
 
             std::vector<array_1d<double, 2> > Points;   // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
-            Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-            Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-            Points0(1)[0] = SlaveNode->X();
-            Points0(1)[1] = SlaveNode->Y();
+            Points0[0][0] = SlaveNode->X0() + old_pos[0];
+            Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+            Points0[1][0] = SlaveNode->X();
+            Points0[1][1] = SlaveNode->Y();
 
             unsigned int JJ = 1;
             for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++)
             {
                 Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-                Points1(0)[0] = geom_2[0].X();
-                Points1(0)[1] = geom_2[0].Y();
-                Points1(1)[0] = geom_2[1].X();
-                Points1(1)[1] = geom_2[1].Y();
+                Points1[0][0] = geom_2[0].X();
+                Points1[0][1] = geom_2[0].Y();
+                Points1[1][0] = geom_2[1].X();
+                Points1[1][1] = geom_2[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                 {
@@ -3310,8 +3310,8 @@ public:
             array_1d<double,3>& old_pos                          = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
             std::vector<unsigned int>         segment;
             std::vector<array_1d<double, 2> > Points; // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             // test with edges
@@ -3321,8 +3321,8 @@ public:
             unsigned int III      = 1;
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
             for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
             {
@@ -3330,20 +3330,20 @@ public:
 
                 Point[0]      = 0.00;
                 Point[1]      = 0.00;
-                Points0(0)[0] = geom[0].X();
-                Points0(0)[1] = geom[0].Y();
-                Points0(1)[0] = geom[1].X();
-                Points0(1)[1] = geom[1].Y();
+                Points0[0][0] = geom[0].X();
+                Points0[0][1] = geom[0].Y();
+                Points0[1][0] = geom[1].X();
+                Points0[1][1] = geom[1].Y();
 
                 I   = 0;
                 III = 1;
                 for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond)
                 {
                     Condition::GeometryType& geom_3 = cond->GetGeometry();
-                    Points1(0)[0] = geom_3[0].X();
-                    Points1(0)[1] = geom_3[0].Y();
-                    Points1(1)[0] = geom_3[1].X();
-                    Points1(1)[1] = geom_3[1].Y();
+                    Points1[0][0] = geom_3[0].X();
+                    Points1[0][1] = geom_3[0].Y();
+                    Points1[1][0] = geom_3[1].X();
+                    Points1[1][1] = geom_3[1].Y();
 
                     if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)==IT_POINT)
                     {
@@ -3370,10 +3370,10 @@ public:
                 // en caso de que el nodo quede fuera e intersecte con dos aristas
                 else if (Points.size()>1)
                 {
-                    Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-                    Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-                    Points0(1)[0] = SlaveNode->X();
-                    Points0(1)[1] = SlaveNode->Y();
+                    Points0[0][0] = SlaveNode->X0() + old_pos[0];
+                    Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+                    Points0[1][0] = SlaveNode->X();
+                    Points0[1][1] = SlaveNode->Y();
 
                     double dist0 = 0.00;
                     array_1d<double, 2> rect;
@@ -3421,8 +3421,8 @@ public:
             array_1d<double,3>& old_pos                          = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
             std::vector<unsigned int>         segment;
             std::vector<array_1d<double, 2> > Points; // punto de interseccion del segmento
-            vector<array_1d<double, 2> >      Points0;
-            vector<array_1d<double, 2> >      Points1;
+            std::vector<array_1d<double, 2> >      Points0;
+            std::vector<array_1d<double, 2> >      Points1;
             array_1d<double, 2>               Point;
 
             // test with edges
@@ -3432,8 +3432,8 @@ public:
             unsigned int III       = 1;
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
             for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
             {
@@ -3441,20 +3441,20 @@ public:
                 Point[0] = 0.00;
                 Point[1] = 0.00;
 
-                Points0(0)[0] = geom[0].X();
-                Points0(0)[1] = geom[0].Y();
-                Points0(1)[0] = geom[1].X();
-                Points0(1)[1] = geom[1].Y();
+                Points0[0][0] = geom[0].X();
+                Points0[0][1] = geom[0].Y();
+                Points0[1][0] = geom[1].X();
+                Points0[1][1] = geom[1].Y();
 
                 I   = 0;
                 III = 1;
                 for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond)
                 {
                     Condition::GeometryType& geom_3 = cond->GetGeometry();
-                    Points1(0)[0] = geom_3[0].X();
-                    Points1(0)[1] = geom_3[0].Y();
-                    Points1(1)[0] = geom_3[1].X();
-                    Points1(1)[1] = geom_3[1].Y();
+                    Points1[0][0] = geom_3[0].X();
+                    Points1[0][1] = geom_3[0].Y();
+                    Points1[1][0] = geom_3[1].X();
+                    Points1[1][1] = geom_3[1].Y();
 
                     if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                     {
@@ -3481,10 +3481,10 @@ public:
                 // en caso de que el nodo quede fuera e intersecte con dos aristas
                 else if (Points.size()>1)
                 {
-                    Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-                    Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-                    Points0(1)[0] = SlaveNode->X();
-                    Points0(1)[1] = SlaveNode->Y();
+                    Points0[0][0] = SlaveNode->X0() + old_pos[0];
+                    Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+                    Points0[1][0] = SlaveNode->X();
+                    Points0[1][1] = SlaveNode->Y();
 
                     double dist0 = 0.00;
                     array_1d<double, 2> rect;
@@ -4010,7 +4010,7 @@ public:
 
 
 private:
-    ModelPart mr_model_part;
+    ModelPart& mr_model_part;
     unsigned int mrdimension;
     double       mpenalty_factor;
     bool mcompute_boundary_contour;
@@ -4041,8 +4041,8 @@ private:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         //int    I                     = 0;
         //double g                     = 0.00;
@@ -4355,9 +4355,9 @@ private:
 #else
         int number_of_threads = 1;
 #endif
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         int distance   = std::distance(mBoundaryNodes.begin(), mBoundaryNodes.end());
-        CreatePartition(number_of_threads, distance, node_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, distance, node_partition);
         BinsDynamic<2, NodeType, NodesContainerType> BinsPoint(mBoundaryNodes.begin(), mBoundaryNodes.end());
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -4460,8 +4460,8 @@ private:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -4515,9 +4515,9 @@ private:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> partition;
+        std::vector<unsigned int> partition;
         int distance_2 = int(it_end-it_begin);
-        CreatePartition(number_of_threads, distance_2, partition);
+        OpenMPUtils::CreatePartition(number_of_threads, distance_2, partition);
 
         #pragma omp parallel for private(I, distance, compare_distance, Result, Points0, Points1, Points2, Points3)
         for(int k=0; k<number_of_threads; k++)
@@ -4613,17 +4613,6 @@ private:
         KRATOS_CATCH("")
     }
 
-
-
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads + 1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for (unsigned int i = 1; i < number_of_threads; i++)
-            partitions[i] = partitions[i - 1] + partition_size;
-    }
 
     inline void V3DCro( double& x1,
                         double& y1,

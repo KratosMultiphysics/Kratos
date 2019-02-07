@@ -55,6 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //System includes
 //External includes
 #include "boost/smart_ptr.hpp"
+#include "boost/numeric/ublas/matrix.hpp"
+#include "boost/numeric/ublas/vector.hpp"
 
 //Project includes
 #include "includes/define.h"
@@ -93,10 +95,14 @@ public:
     typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Geometry<Node<3> >::GeometryType GeometryType;
     typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
     typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
     typedef Geometry<Node<3> >::GeometriesArrayType GeometriesArrayType;
+    typedef boost::numeric::ublas::zero_matrix<double> UblasZeroMatrix;
+    typedef boost::numeric::ublas::zero_vector<double> UblasZeroVector;
 
     /**
      * Constructor.
@@ -764,7 +770,7 @@ public:
         SpaceType::MatrixType M(vicinitynodes.size(), vicinitynodes.size());
         SpaceType::VectorType g(vicinitynodes.size());
         SpaceType::VectorType b(vicinitynodes.size());
-        noalias(M)= ZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
 
         //loop over all vicinityelements
         for( std::vector<int>::iterator it=vicinityelements.begin(); it != vicinityelements.end(); ++it)
@@ -800,8 +806,8 @@ public:
         {
             for(unsigned int secondvalue=0; secondvalue<3; secondvalue++)
             {
-                noalias(g)= ZeroVector(vicinitynodes.size());
-                noalias(b)= ZeroVector(vicinitynodes.size());
+                boost::numeric::ublas::noalias(g)= UblasZeroVector(vicinitynodes.size());
+                boost::numeric::ublas::noalias(b)= UblasZeroVector(vicinitynodes.size());
                 //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
                 // see Jiao + Heath "Common-refinement-based data tranfer ..."
                 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -833,7 +839,7 @@ public:
                         }
                     }
                 }
-                SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                SkylineLUFactorizationSolver<SpaceType, LocalSpaceType>().Solve(M, g, b);
 //                         CGSolverType(1.0e-8, 15000).Solve(M, g, b);
                 for (std::map<int, int>::iterator it=vicinitynodes.begin(); it != vicinitynodes.end(); ++it)
                     model_part.GetNode(it->first).GetSolutionStepValue(rThisVariable)(firstvalue, secondvalue) = g(it->second);
@@ -868,7 +874,7 @@ public:
         SpaceType::MatrixType M(vicinitynodes.size(), vicinitynodes.size());
         SpaceType::VectorType g(vicinitynodes.size());
         SpaceType::VectorType b(vicinitynodes.size());
-        noalias(M)= ZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
 
         //loop over all vicinityelements
         boost::progress_display show_progress( vicinityelements.size() );
@@ -903,8 +909,8 @@ public:
 
         for(unsigned int firstvalue=0; firstvalue<6; firstvalue++)
         {
-            noalias(g)= ZeroVector(vicinitynodes.size());
-            noalias(b)= ZeroVector(vicinitynodes.size());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(vicinitynodes.size());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(vicinitynodes.size());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -938,7 +944,7 @@ public:
                 }
             }
 
-            SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+            SkylineLUFactorizationSolver<SpaceType, LocalSpaceType>().Solve(M, g, b);
 //                     CGSolverType(1.0e-8, 15000).Solve(M, g, b);
             for (std::map<int, int>::iterator it=vicinitynodes.begin(); it != vicinitynodes.end(); ++it)
                 model_part.GetNode(it->first).GetSolutionStepValue(rThisVariable)(firstvalue)= g(it->second);
@@ -972,9 +978,9 @@ public:
         SpaceType::MatrixType M(vicinitynodes.size(), vicinitynodes.size());
         SpaceType::VectorType g(vicinitynodes.size());
         SpaceType::VectorType b(vicinitynodes.size());
-        noalias(M)= ZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
-        noalias(g)= ZeroVector(vicinitynodes.size());
-        noalias(b)= ZeroVector(vicinitynodes.size());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(vicinitynodes.size(), vicinitynodes.size());
+        boost::numeric::ublas::noalias(g)= UblasZeroVector(vicinitynodes.size());
+        boost::numeric::ublas::noalias(b)= UblasZeroVector(vicinitynodes.size());
 
         //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
         // see Jiao + Heath "Common-refinement-based data tranfer ..."
@@ -1013,7 +1019,7 @@ public:
                 }
             }
         }
-        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+        SkylineLUFactorizationSolver<SpaceType, LocalSpaceType>().Solve(M, g, b);
 //                 CGSolverType(1.0e-8, 15000).Solve(M, g, b);
         for (std::map<int, int>::iterator it=vicinitynodes.begin(); it != vicinitynodes.end(); ++it)
             model_part.GetNode(it->first).GetSolutionStepValue(rThisVariable)= g(it->second);
@@ -1190,15 +1196,15 @@ public:
 
 
 
-    void ExtractCapNodes( boost::python::list surface_nodes, int len_surface_nodes )
-    {
-        for( int it=0; it < len_surface_nodes; it++ )
-        {
-            boost::python::extract<int> x( surface_nodes[it] );
-            if( x.check() ) cap_nodes.push_back( x() );
-            else break;
-        }
-    }
+    // void ExtractCapNodes( boost::python::list surface_nodes, int len_surface_nodes )
+    // {
+    //     for( int it=0; it < len_surface_nodes; it++ )
+    //     {
+    //         boost::python::extract<int> x( surface_nodes[it] );
+    //         if( x.check() ) cap_nodes.push_back( x() );
+    //         else break;
+    //     }
+    // }
 
     void DefineCapNodes(ModelPart& model_part, std::vector<int>& vicinityelements, ClosedCylinder3D& cylinder)
     {

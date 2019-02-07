@@ -53,12 +53,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <cstring>
-// External includes
-#include "boost/smart_ptr.hpp"
 
+// External includes
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 #include "custom_python/add_conditions_to_python.h"
@@ -73,7 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/condition.h"
 #include "includes/properties.h"
 #include "python/add_mesh_to_python.h"
-#include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 
 namespace Kratos
@@ -81,23 +79,24 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+
+using namespace pybind11;
 typedef Condition ConditionBaseType;
 typedef Geometry<Node<3> > GeometryType;
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef GeometryType::PointsArrayType NodesArrayType;
 
-void  AddCustomConditionsToPython()
+void  AddCustomConditionsToPython(pybind11::module& m)
 {
 
-    class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
-    ("FaceForce3D",
-     init<int, GeometryType::Pointer, Properties::Pointer>() )
+    class_< FaceForce3D, FaceForce3D::Pointer, ConditionBaseType >
+    (m, "FaceForce3D")
+    .def( init<int, GeometryType::Pointer, Properties::Pointer>() )
     ;
-    
-    class_< PointPointJointCondition, PointPointJointCondition::Pointer, bases< ConditionBaseType > >
-    ("PointPointJointCondition",
-     init<int, Node<3>::Pointer, Node<3>::Pointer>() )
+
+    class_< PointPointJointCondition, PointPointJointCondition::Pointer, ConditionBaseType >
+    (m, "PointPointJointCondition")
+    .def( init<int, Node<3>::Pointer, Node<3>::Pointer>() )
     ;
 }
 

@@ -750,8 +750,8 @@ public:
         std::cout<< "Element to be reseted" << std::endl;
 
         std::vector<double> Variable_Value;
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
         //unsigned int index = 0;
         #pragma omp parallel for private(Variable_Value)
         for(int k=0; k<number_of_threads; k++)
@@ -798,8 +798,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -815,8 +815,8 @@ public:
         }
 
 
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
         #pragma omp parallel for private(MassMatrix)
         for(int k=0; k<number_of_threads; k++)
@@ -1129,20 +1129,6 @@ public:
 
     }
 
-
-    ///************************************************************************************************
-    ///************************************************************************************************
-
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads + 1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for (unsigned int i = 1; i < number_of_threads; i++)
-            partitions[i] = partitions[i - 1] + partition_size;
-    }
-
     ///************************************************************************************************
     ///************************************************************************************************
 
@@ -1192,8 +1178,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
         {
@@ -1205,9 +1191,9 @@ public:
             }
         }
 
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         number_of_threads  = 1;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
         //mfail_node.clear();
 
         unsigned int New_Id      = 0;

@@ -736,7 +736,7 @@ private:
     void CalculateCorrectionForce(ModelPart::ElementsContainerType::iterator& ielem,ModelPart& r_model_part)
     {
         Geometry< Node<3> >& geom = ielem->GetGeometry();
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+        BoundedMatrix<double, TDim+1, TDim> DN_DX;
         array_1d<double,TDim+1> N;
         double volume;
 
@@ -773,7 +773,7 @@ private:
     void CalculateBPV(
         Matrix& BPV,
         const array_1d<double,TDim+1> N,
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX)
+        BoundedMatrix<double, TDim+1, TDim> DN_DX)
 
     {
 

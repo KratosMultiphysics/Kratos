@@ -32,8 +32,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -49,16 +48,17 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomProcessesToPython()
+void AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<TopologyUpdateProcess, bases<Process>, boost::noncopyable >
-    ("TopologyUpdateProcess", init<ModelPart&, double, double, double>())
+    class_<TopologyUpdateProcess, Process >
+    (m, "TopologyUpdateProcess")
+    .def(init<ModelPart&, double, double, double>())
     .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
     .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
     .def("GetObjective", &TopologyUpdateProcess::GetObjective)
-    .def(self_ns::str(self))
+    // .def(self_ns::str(self))
     ;
 
 }

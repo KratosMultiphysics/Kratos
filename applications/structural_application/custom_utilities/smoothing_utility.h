@@ -113,18 +113,6 @@ public:
 
 
 
-    inline void CreatePartition( unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions )
-    {
-        partitions.resize( number_of_threads + 1 );
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-
-        for ( unsigned int i = 1; i < number_of_threads; i++ )
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
-
-
     // it computes  the triburary volume or area of each nodes.
     // only its valid for triangle and tetrahedra
     void CalculatetributaryFactor ( ModelPart& this_model_part,  const unsigned int& domain_size )
@@ -138,8 +126,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition( number_of_threads, pElements.size(), element_partition );
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pElements.size(), element_partition );
 
         switch(domain_size)
         {
@@ -246,10 +234,10 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition( number_of_threads, pElements.size(), element_partition );
-        vector<unsigned int> node_partition;
-        CreatePartition( number_of_threads, pNodes.size(), node_partition );
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pElements.size(), element_partition );
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
         const double fact   = 1.00/3.00;
         std::vector<TVariableType>   Variable_Value;
@@ -324,8 +312,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition( number_of_threads, pElements.size(), element_partition );
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pElements.size(), element_partition );
 
 
         const double fact   = 0.25;
@@ -350,8 +338,8 @@ public:
             }
         }
 
-        vector<unsigned int> node_partition;
-        CreatePartition( number_of_threads, pNodes.size(), node_partition );
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
         #pragma omp parallel for
         for ( int k = 0; k < number_of_threads; k++ )
@@ -390,8 +378,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition( number_of_threads, pNodes.size(), node_partition );
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
         // Variables Globales
         std::vector<TVariableType> Output_Values;
@@ -443,7 +431,7 @@ public:
                         for ( unsigned k = 0; k < num_of_elem_layer_one; k++ )
                         {
                             Aux_Poly[k].resize( size_Pol );
-                            Aux_b[k].resize( 1, size_2 );
+                            Aux_b[k].resize( 1, size_2, false );
                         }
                     }
 
@@ -476,7 +464,7 @@ public:
                         for ( unsigned k = 0; k < num_of_elem_layer_one; k++ )
                         {
                             Aux_Poly[k].resize( size_Pol );
-                            Aux_b[k].resize( 1, size_2 );
+                            Aux_b[k].resize( 1, size_2, false );
                         }
                     }
 
@@ -701,8 +689,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> node_partition;
-        CreatePartition( number_of_threads, pNodes.size(), node_partition );
+        std::vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
         switch(domain_size)
         {
@@ -761,6 +749,7 @@ public:
 
         Matrix A;
         Matrix A_inv;
+        double detA;
         Vector b;
         Vector a;
 
@@ -776,12 +765,7 @@ public:
             noalias( A ) = A + outer_prod( Aux_Poly[j], Aux_Poly[j] );
         }
 
-        int singular = SD_MathUtils<double>::InvertMatrix( A, A_inv );
-
-        if ( singular == 1 )
-        {
-            KRATOS_WATCH( "MATRIX SINGULAR: MORE POINTS FOR EXTRAPOLATIONS" )
-        }
+        MathUtils<double>::InvertMatrix( A, A_inv, detA );
 
         for ( unsigned i = 0; i < Aux_b[0].size2(); i++ ) // Numeros de Sigma
         {
@@ -800,20 +784,6 @@ public:
             b  =  ZeroVector( Aux_Poly[0].size() );
         }
 
-    }
-
-    int InvertMatrix( const Matrix& input, Matrix& inverse )
-    {
-        int singular = 0;
-
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A( input );
-        pmatrix pm( A.size1() );
-        singular = lu_factorize( A, pm );
-        inverse.assign( identity_matrix<double>( A.size1() ) );
-        lu_substitute( A, pm, inverse );
-        return singular;
     }
 
 
@@ -850,8 +820,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition( number_of_threads, pElements.size(), element_partition );
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition( number_of_threads, pElements.size(), element_partition );
 
 
 

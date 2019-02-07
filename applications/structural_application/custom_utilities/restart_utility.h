@@ -726,7 +726,7 @@ end_of_outer_loop://labeling outer loops end
                             if(c=='[') break;
                         }
                         if(ValuesOnIntPoint[point].size1()!=3|| ValuesOnIntPoint[point].size2()!=3)
-                            ValuesOnIntPoint[point].resize(3,3);
+                            ValuesOnIntPoint[point].resize(3,3,false);
                         for(int k=0; k<3; k++)
                         {
                             for(int l=0; l<3; l++)

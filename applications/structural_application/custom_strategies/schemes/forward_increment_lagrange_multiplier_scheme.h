@@ -32,6 +32,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
+#include "utilities/openmp_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
 
@@ -80,9 +81,8 @@ public:
     ///@{
 
     /// Default constructor.
-    ForwardIncrementLagrangeMultiplierScheme() {}
-    ForwardIncrementLagrangeMultiplierScheme(ModelPart& model_part, const unsigned int& dimension
-                                            ) : mr_model_part(model_part), mrdimension(dimension)
+    ForwardIncrementLagrangeMultiplierScheme(ModelPart& model_part, const unsigned int& dimension)
+    : mr_model_part(model_part), mrdimension(dimension)
     {
     }
 
@@ -114,10 +114,10 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         int distance   = std::distance(end_previos, end_actual);
 
-        CreatePartition(number_of_threads, distance, condition_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, distance, condition_partition);
 
         double Rigth_Term, Left_Term;
         double Old_Left_Term, Old_Rigth_Term;
@@ -253,7 +253,8 @@ public:
 
         InvAux.resize(Aux.size1(), Aux.size1(),false);
         InvAux        = ZeroMatrix(Aux.size1(), Aux.size1());
-        SD_MathUtils<double>::InvertMatrix(Aux,InvAux);
+        double detAux;
+        MathUtils<double>::InvertMatrix(Aux,InvAux,detAux);
 
         GetNodeDisplacement(rCond, Displ);
 
@@ -567,7 +568,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart  mr_model_part;
+    ModelPart&  mr_model_part;
     unsigned int  mrdimension;
 
 
@@ -595,16 +596,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
 
     /*
     /// Assignment operator.
