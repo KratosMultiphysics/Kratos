@@ -182,6 +182,12 @@ void MmgProcess<TMMGLibray>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
+    if( mRemoveRegions ){
+        // the conditions are re-creted in the process
+        mrThisModelPart.Conditions().clear();
+        KRATOS_INFO("MmgProcess") << "Conditions were cleared" << std::endl;
+    }
+
     /* We restart the MMG mesh and solution */
     InitMesh();
 
