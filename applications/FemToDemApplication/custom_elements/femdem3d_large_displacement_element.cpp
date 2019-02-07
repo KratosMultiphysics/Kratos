@@ -514,14 +514,13 @@ void FemDem3DLargeDisplacementElement::PerturbateDeformationGradient(
     const int ComponentJ
 )
 {
-    Matrix aux_perturbation_matrix = IdentityMatrix(rDeformationGradientGP.size1());
+    rPerturbedDeformationGradient = rDeformationGradientGP;
     if (ComponentI == ComponentJ) {
-        aux_perturbation_matrix(ComponentI, ComponentJ) += Perturbation;
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
     } else {
-        aux_perturbation_matrix(ComponentI, ComponentJ) += 0.5 * Perturbation;
-        aux_perturbation_matrix(ComponentJ, ComponentI) += 0.5 * Perturbation;
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += 0.5 * Perturbation;
+        rPerturbedDeformationGradient(ComponentJ, ComponentI) += 0.5 * Perturbation;
     }
-    noalias(rPerturbedDeformationGradient) = prod(aux_perturbation_matrix, rDeformationGradientGP);
 }
 
 void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
