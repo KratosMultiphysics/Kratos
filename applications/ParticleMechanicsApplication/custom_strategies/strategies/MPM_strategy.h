@@ -402,7 +402,6 @@ public:
         Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
         Vector MP_Almansi_Strain_Vector = ZeroVector(6);
         double MP_Pressure = 0.0;
-        double Aux_MP_Pressure = 0.0;
 
         double MP_Mass;
         double MP_Volume;
@@ -562,7 +561,6 @@ public:
                         if(IsMixedFormulation)
                         {
                             p_element->SetValue(MP_PRESSURE, MP_Pressure);
-                            p_element->SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
                         }
 
                         // Add the MP Element to the model part
