@@ -15,36 +15,32 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "model_part_name"      : "please_specify_model_part_name",
-                "variable_name"        : "BODY_FORCE",
-                "benchmark_name"       : "vortex",
-                "benchmark_parameters" : {},
-                "compute_nodal_error"  : true,
-                "print_point_output"   : false,
-                "output_parameters"    : {}
+                "model_part_name"          : "please_specify_model_part_name",
+                "variable_name"            : "BODY_FORCE",
+                "benchmark_name"           : "vortex",
+                "benchmark_parameters"     : {},
+                "compute_nodal_error"      : true,
+                "print_convergence_output" : false,
+                "output_parameters"        : {}
             }
             """
             )
 
-        settings.ValidateAndAssignDefaults(default_settings)
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = model[settings["model_part_name"].GetString()]
-        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        self.model_part = model[self.settings["model_part_name"].GetString()]
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        benchmark_module = __import__(settings["benchmark_name"].GetString(), fromlist=[None])
-        self.benchmark = benchmark_module.CreateManufacturedSolution(settings["benchmark_parameters"])
+        benchmark_module = __import__(self.settings["benchmark_name"].GetString(), fromlist=[None])
+        self.benchmark = benchmark_module.CreateManufacturedSolution(self.settings["benchmark_parameters"])
 
-        self.compute_error = settings["compute_nodal_error"].GetBool()
+        self.compute_error = self.settings["compute_nodal_error"].GetBool()
 
-        self.print_output = settings["print_point_output"].GetBool()
+        self.print_output = self.settings["print_convergence_output"].GetBool()
         if self.print_output:
             from custom_body_force.hdf5_output_tool import Hdf5OutputTool
-            self.output_process = Hdf5OutputTool(model, settings)
-
-    def ExecuteInitialize(self):
-        if self.print_output:
-            self.output_process.WriteDiscretizationAttributes()
-            self.output_process.WriteBodyForceAttributes()
+            self.output_process = Hdf5OutputTool(model, self.settings["output_parameters"])
 
     def ExecuteBeforeSolutionLoop(self):
         current_time = 0.0
@@ -66,9 +62,10 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         if self.compute_error:
-            err = self._SumNodalError()
+            rel_err = self._SumNodalError()
             if self.print_output:
-                self.output_process.WriteAverageRelativeError(err)
+                self.output_process.WriteBodyForceAttributes(self.settings["benchmark_parameters"])
+                self.output_process.WriteAverageRelativeError(rel_err)
 
     def _SetBodyForce(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
