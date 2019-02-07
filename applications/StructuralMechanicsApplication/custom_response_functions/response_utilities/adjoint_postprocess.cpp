@@ -220,19 +220,39 @@ namespace Kratos
         std::vector<Vector> adjoint_vector_0(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
         std::map<int, Vector> approximated_adjoint_vector;
+        
+        double LoadFactorRatio;
 
-        for (auto& cond_i : mrModelPart.Conditions())
+        // For follower load the ratio is only a double and same for all conditions
+        // This appraoch is a inexpensive approach to calculate the correction term
+        auto condition_pointer = mrModelPart.Conditions().begin();
+        auto cond = *condition_pointer;
+        Matrix ResidualGradient;
+        Vector ResponseGradient;
+        Vector adjoint_values;
+        mrResponseFunction.CalculateFirstDerivativesGradient(cond, ResidualGradient,
+                                                            ResponseGradient, r_process_info);
+        for (IndexType i = 0; i < ResponseGradient.size(); i++)
         {
-            Matrix ResidualGradient;
-            Vector ResponseGradient;
-            Vector adjoint_values;
-            mrResponseFunction.CalculateFirstDerivativesGradient(cond_i, ResidualGradient,
-                                                                ResponseGradient, r_process_info);
-            cond_i.GetValuesVector(adjoint_values, 1);
+            if( ResponseGradient[i] != 0 )
+            {
+                LoadFactorRatio = ResponseGradient[i];
+                break;
+            }
+        }
+        // commented out till I could figure what is wrong here
+        // for (auto& cond_i : mrModelPart.Conditions())
+        // {
+        //     Matrix ResidualGradient;
+        //     Vector ResponseGradient;
+        //     Vector adjoint_values;
+        //     mrResponseFunction.CalculateFirstDerivativesGradient(cond_i, ResidualGradient,
+        //                                                         ResponseGradient, r_process_info);
+        //     cond_i.GetValuesVector(adjoint_values, 1);
 
-            // TODO Mahmoud: I am not sure this is accurate or I should multiply by double only    
-            approximated_adjoint_vector[cond_i.Id()] = element_prod(ResponseGradient, adjoint_values); 
-        } 
+        //     // TODO Mahmoud: I am not sure this is accurate or I should multiply by double only    
+        //     approximated_adjoint_vector[cond_i.Id()] = element_prod(ResponseGradient, adjoint_values); 
+        // } 
 
         int k = 0;
         for (auto& elem_i : mrModelPart.Elements())
@@ -275,25 +295,25 @@ namespace Kratos
                 elem_i.GetValuesVector(adjoint_vector_0[k],1);
 
                 // TODO Mahmoud: This approach is too complex, should reduce the complexity
-                int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
-                int i = 0;
-                for (auto& node_i : elem_i.GetGeometry())
-                {
-                    // search for this node in all conditions
-                    for (auto& cond_i : mrModelPart.Conditions())
-                    {
-                        int j = 0;
-                        for (auto& node_j : cond_i.GetGeometry()) 
-                        {
-                            // get corresponding value from approximated adjoint vector
-                            if(node_j.Id() == node_i.Id())
-                                project(adjoint_vector_0[k],range( i * dimension,(i*dimension) + dimension)) = 
-                                                                subrange(approximated_adjoint_vector[cond_i.Id()], j, dimension);
-                            j++ ;
-                        }
-                    }
-                    i++ ;
-                }
+                // int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
+                // int i = 0;
+                // for (auto& node_i : elem_i.GetGeometry())
+                // {
+                //     // search for this node in all conditions
+                //     for (auto& cond_i : mrModelPart.Conditions())
+                //     {
+                //         int j = 0;
+                //         for (auto& node_j : cond_i.GetGeometry()) 
+                //         {
+                //             // get corresponding value from approximated adjoint vector
+                //             if(node_j.Id() == node_i.Id())
+                //                 project(adjoint_vector_0[k],range( i * dimension,(i*dimension) + dimension)) = 
+                //                                                 subrange(approximated_adjoint_vector[cond_i.Id()], j, dimension);
+                //             j++ ;
+                //         }
+                //     }
+                //     i++ ;
+                // }
                 // TODO Mahmoud: this is modified to work for nonlinear analysis
                 // It should be modified to work for both linear and non-linear
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
@@ -304,9 +324,13 @@ namespace Kratos
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
                 }   
                 else
-                {
+                {   
+                    // This is temporarily commented out
+                    // noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) - 
+                    //                                         prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
+                    // This approach is acceptable for non-follower loads
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) - 
-                                                            prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
+                                                           LoadFactorRatio*prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
                 }                
             }
 
@@ -364,8 +388,6 @@ namespace Kratos
             // contributions from the condition.
             cond_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-            std::cout << "condition sensitivity Matrix" << sensitivity_matrix[k] << std::endl;
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
@@ -444,8 +466,6 @@ namespace Kratos
             // Compute the pseudo load
             it->CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-            std::cout << "update element sensitivity Matrix" << sensitivity_matrix[k] << std::endl;
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.

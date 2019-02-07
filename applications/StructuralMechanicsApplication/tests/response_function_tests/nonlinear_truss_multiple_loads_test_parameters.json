@@ -1,0 +1,152 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Non_Linear_Truss",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.99,
+        "echo_level"      : 0,
+        "buffer_size"     : 2
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "compute_reactions"			   : true,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "response_function_tests/nonlinear_truss_structure_multiple_loads"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "response_function_tests/StructuralMaterials_truss.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z",
+            "PointLoad3D_BC_NEUMANN_1", "PointLoad3D_BC_NEUMANN_2", "PointLoad3D_BC_NEUMANN_3"],
+        "rotation_dofs"                      : false
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_X_Y_Z",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_Z",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [false,false,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "contact_process_list"     : [],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN_1",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "5.0*t",
+            "direction"       : [0.0,-1,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN_2",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "2.5*t",
+            "direction"       : [0.0,-1,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN_3",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "2.5*t",
+            "direction"       : [0.0,-1,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+],
+    "list_other_processes"     : [
+        {
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "Structure",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD", "REACTION"]
+                },
+                "output_time_settings" : {
+                    "output_step_frequency": 1,
+                    "file_name" : "primal_output_truss"
+                }
+            }
+        }       
+    ]},
+
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION", "POINT_LOAD","REACTION"],
+            "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
+        },
+        "point_data_configuration"  : []
+    }
+}
