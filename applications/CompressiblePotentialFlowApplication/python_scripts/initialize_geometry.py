@@ -233,58 +233,93 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 ##################
         # max_node=self.main_model_part.GetNode(7069,0)
 ##################
-        # for elem in self.main_model_part.Elements:
-        #     if (elem.Is(KratosMultiphysics.BOUNDARY)):
-        #         center_X=elem.GetGeometry().Center().X
-        #         touching_kutta=False
-        #         for node in elem.GetNodes():
-        #             if node.Id == max_node.Id:
-        #                 touching_kutta=True
-        #         if center_X<max_x and touching_kutta:
-        #             elem.Set(KratosMultiphysics.ACTIVE,False)
-        # self.main_model_part.GetElement(44592,0).Set(KratosMultiphysics.ACTIVE,False)
-        # self.main_model_part.GetElement(65224,0).Set(KratosMultiphysics.ACTIVE,False)
-
-        
-        
-        x0 = max_node.X
-        y0 = max_node.Y
-        direction = KratosMultiphysics.Vector(3)
-        angle=math.radians(self.geometry_parameter)
-        direction[0]=-math.cos(angle)
-        direction[1]=math.sin(angle)
-        n = KratosMultiphysics.Vector(3)
-        xn = KratosMultiphysics.Vector(3)
-        n[0] = -direction[1]
-        n[1] = direction[0]
-        n[2] = 0.0
-        for elem in self.boundary_model_part.Elements:         
-            distances = KratosMultiphysics.Vector(len(elem.GetNodes()))
-            '''with positive epsilon'''
-            counter = 0
-            pos_nodes=[]
-            npos = 0
-            nneg = 0
-            for elnode in elem.GetNodes():
-                xn[0] = elnode.X - x0
-                xn[1] = elnode.Y - y0
-                xn[2] = 0.0
-                d =  xn[0]*n[0] + xn[1]*n[1]
-                if(d < 0):
-                    nneg += 1
-                    pos_nodes.append(elnode.Id)
-                else:
-                    npos += 1
-
-                if(abs(d) < 1e-6):
-                    if d >= 0.0:
-                        d = 1e-6
-                    else:
-                        d = -1e-6
-                counter += 1
-
-            if(nneg>0 and npos>0):
-                center_X=elem.GetGeometry().Center().X
-                if (center_X>self.origin[0]):
-                    elem.Set(KratosMultiphysics.ACTIVE,False)
+        self.aux_model_part = self.main_model_part.CreateSubModelPart("aux_model_part")
+        for elem in self.boundary_model_part.Elements:
+            center_X=elem.GetGeometry().Center().X
+            touching_kutta=False    
+            for node in elem.GetNodes():
+                if node.Id == max_node.Id:
+                    touching_kutta=True
                     elem.Set(KratosMultiphysics.THERMAL,True)
+            if center_X<max_x and touching_kutta:
+                elem.Set(KratosMultiphysics.ACTIVE,False)
+                self.aux_model_part.Elements.append(elem)
+        node_list=[]
+        for elem in self.aux_model_part.Elements:
+            for node in elem.GetNodes():
+                if (not node in node_list):
+                    if (not node.Id==max_node.Id):
+                        node_list.append(node)
+                elif (not node.Id==max_node.Id):
+                    shared_node=node
+        self.aux_model_part2 = self.main_model_part.CreateSubModelPart("aux_model_part2")
+        for elem in self.boundary_model_part.Elements:
+            # center_X=elem.GetGeometry().Center().X
+            touching_shared=False    
+            for node in elem.GetNodes():
+                if node.Id == shared_node.Id:
+                    touching_shared=True
+            if touching_shared:
+                elem.Set(KratosMultiphysics.THERMAL,True)
+                elem.Set(KratosMultiphysics.ACTIVE,False)
+        #         self.aux_model_part2.Elements.append(elem)
+        # node_list=[]
+        # for element in self.aux_model_part2.Elements:
+        #     for node in element.GetNodes():
+        #         if not node.Id in node_list:
+        #             node_list.append(node.Id)
+        # for element in self.boundary_model_part.Elements:
+        #     counter=0
+        #     for node in element.GetNodes():
+        #         if node.Id in node_list:
+        #             counter +=1
+        #     if counter==2:
+        #         element.Set(KratosMultiphysics.ACTIVE,False)
+        #         elem.Set(KratosMultiphysics.THERMAL,True)
+
+        # self.main_model_part.GetElement(142868,0).Set(KratosMultiphysics.ACTIVE,False)
+        # self.main_model_part.GetElement(473307,0).Set(KratosMultiphysics.ACTIVE,False)
+
+        
+        
+        # x0 = max_node.X
+        # y0 = max_node.Y
+        # direction = KratosMultiphysics.Vector(3)
+        # angle=math.radians(self.geometry_parameter)
+        # direction[0]=-math.cos(angle)
+        # direction[1]=math.sin(angle)
+        # n = KratosMultiphysics.Vector(3)
+        # xn = KratosMultiphysics.Vector(3)
+        # n[0] = -direction[1]
+        # n[1] = direction[0]
+        # n[2] = 0.0
+        # for elem in self.boundary_model_part.Elements:         
+        #     distances = KratosMultiphysics.Vector(len(elem.GetNodes()))
+        #     '''with positive epsilon'''
+        #     counter = 0
+        #     pos_nodes=[]
+        #     npos = 0
+        #     nneg = 0
+        #     for elnode in elem.GetNodes():
+        #         xn[0] = elnode.X - x0
+        #         xn[1] = elnode.Y - y0
+        #         xn[2] = 0.0
+        #         d =  xn[0]*n[0] + xn[1]*n[1]
+        #         if(d < 0):
+        #             nneg += 1
+        #             pos_nodes.append(elnode.Id)
+        #         else:
+        #             npos += 1
+
+        #         if(abs(d) < 1e-6):
+        #             if d >= 0.0:
+        #                 d = 1e-6
+        #             else:
+        #                 d = -1e-6
+        #         counter += 1
+
+        #     if(nneg>0 and npos>0):
+        #         center_X=elem.GetGeometry().Center().X
+        #         if (center_X>self.origin[0]):
+        #             elem.Set(KratosMultiphysics.ACTIVE,False)
+        #             elem.Set(KratosMultiphysics.THERMAL,True)

@@ -242,7 +242,11 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             element.Set(KratosMultiphysics.INTERFACE,True)
             if (element.Is(KratosMultiphysics.MARKER)):
                 center_X=element.GetGeometry().Center().X
-                if center_X>max_X_center:
+                nneg=0
+                for node in element.GetNodes():
+                    if node.GetSolutionStepValue(CompressiblePotentialFlow.WAKE_DISTANCE)<0:
+                        nneg += 1
+                if center_X>max_X_center and nneg==1:
                     max_id=element.Id
                     max_X_center=center_X
         # print(max_id)
