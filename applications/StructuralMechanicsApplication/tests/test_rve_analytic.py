@@ -17,6 +17,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
 
         self._aux_rve_computation(parameters)
 
+    #@KratosUnittest.skip("Reactions and displacements not 100% accurate")
     def test_rve_computation_elimination_version(self):
         with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -32,8 +33,19 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
         simulation = RVEAnalysis.RVEAnalysis(model, parameters)
         simulation.Run()
 
-        Cestimated = model["Structure.computing_domain"].GetValue(
-            StructuralMechanicsApplication.ELASTICITY_TENSOR)
+        model_part = model["Structure.computing_domain"]
+        ## Generate reference
+        #counter = 0
+        #for node in model_part.Nodes:
+            #counter += 1
+            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_X), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)) +", 5)")
+            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_Y), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)) +", 5)")
+            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_Z), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)) +", 5)")
+
+        # Compare reactions
+
+        # Compare C
+        Cestimated = model_part.GetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR)
 
         Canalytic = KratosMultiphysics.Matrix(6, 6)
         Canalytic.fill(0.0)
