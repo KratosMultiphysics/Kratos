@@ -193,26 +193,28 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
+        Vector strain_vector;
+        this->CalculateGreenLagrangeStrainVector(strain_vector, F);
 		bool is_damaging = false;
 
 		// Loop over edges of the element
-        const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+        const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
-			Vector AverageStressVector, AverageStrainVector, IntegratedStressVectorOnEdge;
+			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
+			Vector average_stress_vector, average_strain_vector;
 
-			this->CalculateAverageStressOnEdge(AverageStressVector, EdgeNeighbours);
-			this->CalculateAverageStrainOnEdge(AverageStrainVector, EdgeNeighbours);
+			this->CalculateAverageStressOnEdge(average_stress_vector, p_edge_neighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_vector, p_edge_neighbours);
 
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
 
 			this->IntegrateStressDamageMechanics(threshold, 
 												 damage_edge,
-												 AverageStrainVector, 
-				                                 AverageStressVector, 
+												 average_strain_vector, 
+				                                 average_stress_vector, 
 												 edge, 
-												 characteristic_lengths[edge],
+												 r_characteristic_lengths[edge],
 											     is_damaging);
 			this->SetNonConvergedDamages(damage_edge, edge);
 			mNonConvergedDamages[edge] = damage_edge;
@@ -221,7 +223,8 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
+		Vector stress_vector = ZeroVector(6);
+        this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector)
         const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
         this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
@@ -467,6 +470,33 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddInternalForcesVector(
 {
     noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(rB), rStressVector);
 }
+
+// Methods to compute the tangent tensor by numerical derivation
+void FemDem3DElement::CalculateTangentTensor(
+	Matrix& TangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP,
+    const Matrix& rDeformationGradient,
+	const Matrix& rElasticMatrix
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	TangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+	
+	for (unsigned int component = 0; component < number_components; component++) {
+		double perturbation;
+		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
+		this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, component);
+	}
+}
+
+
 
 
 } // namespace Kratos
