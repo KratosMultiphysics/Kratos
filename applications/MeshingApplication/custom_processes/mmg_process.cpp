@@ -2587,8 +2587,8 @@ void MmgProcess<MMGLibray::MMG2D>::MMGLibCallIsoSurface()
     /**------------------- level set discretization ---------------------------*/
 
     /* debug mode ON (default value = OFF) */
-    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_debug, 1) != 1 )
-       exit(EXIT_FAILURE);
+    // if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_debug, 1) != 1 )
+    //    exit(EXIT_FAILURE);
 
     const int ier = MMG2D_mmg2dls(mmgMesh, mmgSol);
 
@@ -2717,8 +2717,8 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCallIsoSurface()
 
     /**------------------- level set discretization ---------------------------*/
     /* debug mode ON (default value = OFF) */
-    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_debug, 1) != 1 )
-       exit(EXIT_FAILURE);
+    // if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_debug, 1) != 1 )
+    //   exit(EXIT_FAILURE);
 
     const int ier = MMG3D_mmg3dls(mmgMesh, mmgSol);
 
@@ -2821,8 +2821,8 @@ void MmgProcess<MMGLibray::MMGS>::MMGLibCallIsoSurface()
 
     /**------------------- level set discretization ---------------------------*/
     /* debug mode ON (default value = OFF) */
-    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_debug, 1) != 1 )
-       exit(EXIT_FAILURE);
+    // if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_debug, 1) != 1 )
+    //    exit(EXIT_FAILURE);
 
     const int ier = MMGS_mmgsls(mmgMesh, mmgSol);
 
