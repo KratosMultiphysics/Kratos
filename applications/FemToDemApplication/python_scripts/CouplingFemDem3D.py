@@ -822,37 +822,51 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Print the general file
 		time = self.FEM_Solution.time
-		TotalReaction_x     = 0.0
-		TotalDisplacement_x = 0.0
-		TotalReaction_y     = 0.0
-		TotalDisplacement_y = 0.0
-		TotalReaction_z     = 0.0
-		TotalDisplacement_z = 0.0
+		total_reaction_x     = 0.0
+		total_displacement_x = 0.0
+		total_reaction_y     = 0.0
+		total_displacement_y = 0.0
+		total_reaction_z     = 0.0
+		total_displacement_z = 0.0
 		interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
 
 
 		if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
+			if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
+				for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+					IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
+					node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+					total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+					total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+					total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+			else:
+                for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+                    submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
+                    for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+                        total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                        total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+						total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
 
-			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
-				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
-				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-				TotalDisplacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-				TotalDisplacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-				TotalDisplacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
-
-			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
-				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
-				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-				TotalReaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
-				TotalReaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
-				TotalReaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+			if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
+				for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+					IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
+					node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+					total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+					total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+					total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+			else:
+                for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+                    submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
+                    for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+                        total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+                        total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+						total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)	
 
 			self.PlotFile = open("PlotFile.txt","a")
-			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_x).rjust(11) +
-				"    " + "{0:.4e}".format(TotalDisplacement_y).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_z).rjust(11) +
-				"    " + "{0:.4e}".format(TotalReaction_x).rjust(11) + "    " + "{0:.4e}".format(TotalReaction_y).rjust(11) + "    " +
-				"{0:.4e}".format(TotalReaction_z).rjust(11) + "\n")
-
+			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
+				"    " + "{0:.4e}".format(total_displacement_y).rjust(11) + "    " + "{0:.4e}".format(total_displacement_z).rjust(11) +
+				"    " + "{0:.4e}".format(total_reaction_x).rjust(11) + "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "    " +
+				"{0:.4e}".format(total_reaction_z).rjust(11) + "\n")
 			self.PlotFile.close()
 
 			# Print the selected nodes files
