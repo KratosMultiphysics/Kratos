@@ -498,7 +498,7 @@ void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
             this->CalculatePerturbation(rStrainVectorGP, perturbation, i_component);
             this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradientGP, perturbation, i_component, j_component);
             this->CalculateGreenLagrangeStrainVector(perturbed_strain, perturbed_deformation_gradient);
-            this->IntegratePerturbedDeformationGradient(perturbed_stress, perturbed_strain, rElasticMatrix, perturbed_deformation_gradient);
+            this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
             const Vector& delta_stress = perturbed_stress - rStressVectorGP;
             const int voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
             this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, voigt_index);
