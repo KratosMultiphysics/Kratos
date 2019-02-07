@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
+//  Collaborator:    Vicente Mataix
 //
 
 #include "custom_elements/femdem3d_large_displacement_element.hpp"
@@ -471,12 +472,14 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddInternalForcesVector(
     noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(rB), rStressVector);
 }
 
+
+
 // Methods to compute the tangent tensor by numerical derivation
-void FemDem3DElement::CalculateTangentTensor(
+void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
 	Matrix& TangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
-    const Matrix& rDeformationGradient,
+    const Matrix& rDeformationGradientGP,
 	const Matrix& rElasticMatrix
 	)
 {
@@ -485,18 +488,103 @@ void FemDem3DElement::CalculateTangentTensor(
 	Vector perturbed_stress, perturbed_strain;
 	perturbed_strain.resize(number_components);
 	perturbed_stress.resize(number_components);
+    Matrix perturbed_deformation_gradient;
+    const double size_1 = rDeformationGradientGP.size1();
+    const double size_2 = rDeformationGradientGP.size2();
 	
-	for (unsigned int component = 0; component < number_components; component++) {
-		double perturbation;
-		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
-		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
-		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
-		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
-		this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, component);
+	for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+	    for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+            double perturbation;
+            this->CalculatePerturbation(rStrainVectorGP, perturbation, i_component);
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradient, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrain(perturbed_strain, perturbed_deformation_gradient);
+            this->IntegratePerturbedDeformationGradient(perturbed_stress, perturbed_strain, rElasticMatrix);
+            const Vector& delta_stress = perturbed_stress - rStressVectorGP;
+            const int voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
+            this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, voigt_index);
+        }
 	}
 }
 
+void FemDem3DLargeDisplacementElement::PerturbateDeformationGradient(
+    Matrix& rPerturbedDeformationGradient,
+    const Matrix& rDeformationGradientGP,
+    const double Perturbation,
+    const IndexType IComponent,
+    const IndexType JComponent
+)
+{
 
+}
 
+IndexType FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
+    const SizeType VoigtSize,
+    const IndexType ComponentI,
+    const IndexType ComponentJ
+    )
+{
+    if (VoigtSize == 6) {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 5;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 4;
+                    default:
+                        return 0;
+                }
+            case 2:
+                switch(ComponentJ) {
+                    case 0:
+                        return 5;
+                    case 1:
+                        return 4;
+                    case 2:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    } else {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 2;
+                    case 1:
+                        return 1;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    }
+}
 
 } // namespace Kratos
