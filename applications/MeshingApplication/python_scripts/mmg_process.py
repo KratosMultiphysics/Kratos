@@ -75,7 +75,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "isosurface_parameters"                :
             {
                 "isosurface_variable"              : "DISTANCE",
-                "nonhistorical_variable"           : false
+                "nonhistorical_variable"           : false,
+                "remove_regions"                   : false
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
