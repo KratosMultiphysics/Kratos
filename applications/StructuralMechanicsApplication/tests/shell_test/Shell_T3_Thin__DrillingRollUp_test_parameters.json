@@ -32,7 +32,7 @@
             "residual_absolute_tolerance"        : 1e-12,
             "max_iteration"                      : 30,
             "linear_solver_settings"             : {
-                "solver_type": "SkylineLUFactorizationSolver"
+                "solver_type": "skyline_lu_factorization"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]

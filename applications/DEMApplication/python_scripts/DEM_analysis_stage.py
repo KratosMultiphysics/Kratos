@@ -542,6 +542,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
         self.CleanUpOperations()
 
+    def __SafeDeleteModelParts(self):
+        self.model.DeleteModelPart(self.cluster_model_part.Name)
+        self.model.DeleteModelPart(self.rigid_face_model_part.Name)
+        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.mapping_model_part.Name)
+        self.model.DeleteModelPart(self.spheres_model_part.Name)
+
     def CleanUpOperations(self):
 
         self.procedures.DeleteFiles()

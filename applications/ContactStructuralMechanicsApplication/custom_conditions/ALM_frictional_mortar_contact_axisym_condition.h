@@ -171,6 +171,12 @@ public:
     /******************************************************************/
 
     /**
+     * @brief This functions returns if the computation is axisymmetric or not
+     * @return If axisymmetric or not
+     */
+    bool IsAxisymmetric() const override;
+
+    /**
      * This functions computes the integration weight to consider
      * @param rVariables The kinematic variables
      */
