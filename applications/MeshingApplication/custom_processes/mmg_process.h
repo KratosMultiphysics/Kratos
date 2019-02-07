@@ -351,6 +351,7 @@ private:
     FrameworkEulerLagrange mFramework;                               /// The framework
 
     DiscretizationOption mDiscretization;                            /// The discretization option
+    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
 
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 

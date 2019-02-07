@@ -83,7 +83,8 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "isosurface_parameters"                :
         {
             "isosurface_variable"              : "DISTANCE",
-            "nonhistorical_variable"           : false
+            "nonhistorical_variable"           : false,
+            "remove_regions"                   : false
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        :
@@ -146,6 +147,12 @@ MmgProcess<TMMGLibray>::MmgProcess(
 
     // The discretization type
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
+
+    if ( mDiscretization == DiscretizationOption::ISOSURFACE ){
+        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
+    } else{
+        mRemoveRegions = false;
+    }
 
     mpRefElement.clear();
     mpRefCondition.clear();
@@ -1728,38 +1735,64 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
         exit(EXIT_FAILURE);
     }
 
-    Properties::Pointer p_prop = nullptr;
-    Element::Pointer p_base_element = nullptr;
+    if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
-    // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
-        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+        // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
+        if (mpRefElement[PropId] == nullptr) {
+            // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
+
         } else {
-            p_prop = mrThisModelPart.pGetProperties(0);
-            PointerVector<NodeType> dummy_nodes (3);
-            p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
+
+            // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+            if (vertex_0 == 0) SkipCreation = true;
+            if (vertex_1 == 0) SkipCreation = true;
+            if (vertex_2 == 0) SkipCreation = true;
+            if (SkipCreation == false) {
+                std::vector<NodeType::Pointer> element_nodes (3);
+                element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
+                element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
+                element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
+                p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
+            }
         }
+
     } else {
-        p_base_element = mpRefElement[PropId];
-        p_prop = p_base_element->pGetProperties();
+
+        // the existence of a _nullptr_ indicates a missing element. Two options are possible: error or replacement
+        Properties::Pointer p_prop = nullptr;
+        Element::Pointer p_base_element = nullptr;
+
+        // Sometimes MMG creates elements where there are not, then we skip
+        if (mpRefElement[PropId] == nullptr) {
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+                KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+                return p_element;
+            } else {
+                p_prop = mrThisModelPart.pGetProperties(0);
+                PointerVector<NodeType> dummy_nodes (3);
+                p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
+            }
+        } else {
+            p_base_element = mpRefElement[PropId];
+            p_prop = p_base_element->pGetProperties();
+        }
+
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex_0 == 0) SkipCreation = true;
+        if (vertex_1 == 0) SkipCreation = true;
+        if (vertex_2 == 0) SkipCreation = true;
+
+        if (SkipCreation == false) {
+            std::vector<NodeType::Pointer> element_nodes (3);
+            element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
+            element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
+            element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
+
+            p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
+        } else if (mEchoLevel > 2)
+            KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
     }
-
-    // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-    if (vertex_0 == 0) SkipCreation = true;
-    if (vertex_1 == 0) SkipCreation = true;
-    if (vertex_2 == 0) SkipCreation = true;
-
-    if (SkipCreation == false) {
-        std::vector<NodeType::Pointer> element_nodes (3);
-        element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
-        element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
-        element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
-
-        p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
-    } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
 
     return p_element;
 }
@@ -1782,40 +1815,68 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     if (MMG3D_Get_tetrahedron(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
-    Properties::Pointer p_prop = nullptr;
-    Element::Pointer p_base_element = nullptr;
+    if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
-    // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
-        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+        // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
+        if (mpRefElement[PropId] == nullptr) {
+            // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
+
         } else {
-            p_prop = mrThisModelPart.pGetProperties(0);
-            PointerVector<NodeType> dummy_nodes (4);
-            p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
+
+            if (vertex_0 == 0) SkipCreation = true;
+            if (vertex_1 == 0) SkipCreation = true;
+            if (vertex_2 == 0) SkipCreation = true;
+            if (vertex_3 == 0) SkipCreation = true;
+            if (SkipCreation == false) {
+                std::vector<NodeType::Pointer> element_nodes (4);
+                element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
+                element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
+                element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
+                element_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
+                p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
+            }
         }
+
     } else {
-        p_base_element = mpRefElement[PropId];
-        p_prop = p_base_element->pGetProperties();
+
+        // the existence of a _nullptr_ indicates a missing element. Two options are possible: error or replacement
+        Properties::Pointer p_prop = nullptr;
+        Element::Pointer p_base_element = nullptr;
+
+        // Sometimes MMG creates elements where there are not, then we skip
+        if (mpRefElement[PropId] == nullptr) {
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+                KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
+                return p_element;
+            } else {
+                p_prop = mrThisModelPart.pGetProperties(0);
+                PointerVector<NodeType> dummy_nodes (4);
+                p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
+            }
+        } else {
+            p_base_element = mpRefElement[PropId];
+            p_prop = p_base_element->pGetProperties();
+        }
+
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex_0 == 0) SkipCreation = true;
+        if (vertex_1 == 0) SkipCreation = true;
+        if (vertex_2 == 0) SkipCreation = true;
+        if (vertex_3 == 0) SkipCreation = true;
+
+        if (SkipCreation == false) {
+            std::vector<NodeType::Pointer> element_nodes (4);
+            element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
+            element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
+            element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
+            element_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
+
+            p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
+        } else if (mEchoLevel > 2)
+            KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
+
     }
-
-    // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-    if (vertex_0 == 0) SkipCreation = true;
-    if (vertex_1 == 0) SkipCreation = true;
-    if (vertex_2 == 0) SkipCreation = true;
-    if (vertex_3 == 0) SkipCreation = true;
-
-    if (SkipCreation == false) {
-        std::vector<NodeType::Pointer> element_nodes (4);
-        element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
-        element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
-        element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
-        element_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
-
-        p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
-    } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
 
     return p_element;
 }
