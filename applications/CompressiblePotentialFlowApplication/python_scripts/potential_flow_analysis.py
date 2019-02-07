@@ -43,7 +43,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         super(PotentialFlowAnalysis,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
-        import potential_flow_solver
+        import KratosMultiphysics.FullPotentialApp.potential_flow_solver as potential_flow_solver
         return potential_flow_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
 
     def _CreateProcesses(self, parameter_name, initialization_order):
