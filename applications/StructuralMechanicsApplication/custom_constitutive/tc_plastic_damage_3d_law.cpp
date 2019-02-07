@@ -12,15 +12,7 @@
 //
 //  Based on work of Tesser and Talledo (University of Padua)		 
 
-//  Send strains in following format :
-// 
-//     strain_vec = {   eps_00
-//                      eps_11
-//                    2 eps_01   }   <--- note the 2
-
 // System includes
-#include <iostream>
-// #include <math.h>		// probably not needed (ML)
 
 // External includes
 
@@ -83,20 +75,20 @@ namespace Kratos
 		m_beta = 0;			// method so far implemented neglected plastic strain (ML)
 
 		m_K = sqrt(2.0) * (m_f_02cc - m_f_01cc)/(2 * m_f_02cc - m_f_01cc);
-		usedEquivalentTensionDefinition = 2;
+		usedEquivalentEffectiveStressDefinition = 2;
 
 		// D+D- Damage Constitutive laws variables
-		if (usedEquivalentTensionDefinition == 1)
+		if (usedEquivalentEffectiveStressDefinition == 1)
 			{
 				m_r_0n = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3);
 				m_r_0p = sqrt(m_f_ct / sqrt(m_E));
 			}
-		else if (usedEquivalentTensionDefinition == 3)
+		else if (usedEquivalentEffectiveStressDefinition == 3)
 			{
 				m_r_0n = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3);
 				m_r_0p = sqrt(m_f_ct);
 			}
-		else if (usedEquivalentTensionDefinition == 2)
+		else if (usedEquivalentEffectiveStressDefinition == 2)
 			{
 				m_r_0n = sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3;
 				m_r_0p = m_f_ct;
@@ -260,21 +252,18 @@ namespace Kratos
 			tolerance);
 		
 		// 5.step: compute damage variables
-
 		ComputeDamageCompression();
 
 		ComputeDamageTension();
 
 		// 6.step: compute shear retention factors
-
 		ComputeSRF(rStrainVector);
 
-		// 7.step: update stiffness matrix (damaged)
+		// 7.step: update stiffness matrix (damaged system)
+		rConstitutiveLaw = prod(((1 - m_d_p) * PMatrixTension + (1 - m_d_n) * PMatrixCompression), m_D0);
 
-		ComputeStiffnessMatrix(rConstitutiveLaw,
-			PMatrixTension,
-			PMatrixCompression);
-
+		// 8.step: compute Cauchy stress (damaged system)
+		rStressVector = (1 - m_d_p) * StressVectorTension + (1 - m_d_n) * StressVectorCompression;
 	}
 
 	void TCPlasticDamage3DLaw::CalculateElasticityMatrix(
@@ -382,7 +371,7 @@ namespace Kratos
 		+ (dgn(0) - dgn(2)) * (dgn(0) - dgn(2)) 
 		+ (dgn(1) - dgn(2)) * (dgn(1) - dgn(2)))/3.0;
 	
-		if ((usedEquivalentTensionDefinition == 1)  || (usedEquivalentTensionDefinition == 3))
+		if ((usedEquivalentEffectiveStressDefinition == 1)  || (usedEquivalentEffectiveStressDefinition == 3))
 			{
 			rtau_n = sqrt(3.0) * (m_K * sigoct + tauoct);
 			if (rtau_n >= 0)
@@ -390,7 +379,7 @@ namespace Kratos
 			else
 				rtau_n = 0;
 			}
-		else if (usedEquivalentTensionDefinition == 2)
+		else if (usedEquivalentEffectiveStressDefinition == 2)
 			{
 			rtau_n = sqrt(3.0) * (m_K * sigoct + tauoct);
 			}
@@ -408,15 +397,15 @@ namespace Kratos
 				rtau_p += elastic_strain_diag_positive(i) * dgp(i);
 			}
 	
-		if (usedEquivalentTensionDefinition == 1)
+		if (usedEquivalentEffectiveStressDefinition == 1)
 			{
 			rtau_p = sqrt(rtau_p);
 			}
-		else if (usedEquivalentTensionDefinition == 3)
+		else if (usedEquivalentEffectiveStressDefinition == 3)
 			{
 			rtau_p = sqrt(sqrt(rtau_p * m_E));
 			}
-		else if (usedEquivalentTensionDefinition == 2)
+		else if (usedEquivalentEffectiveStressDefinition == 2)
 			{
 			rtau_p = sqrt(rtau_p * m_E);
 			}
@@ -493,9 +482,9 @@ namespace Kratos
         	rd_n = 0.0;
 		else
 			{
-				if ((usedEquivalentTensionDefinition == 1)  || (usedEquivalentTensionDefinition == 3))
+				if ((usedEquivalentEffectiveStressDefinition == 1)  || (usedEquivalentEffectiveStressDefinition == 3))
 					rd_n = 1 - m_r_0n/m_r_n1 * (1 - m_A_n) - m_A_n * exp(m_B_n * (1 - m_r_n1/m_r_0n));
-				else if (usedEquivalentTensionDefinition == 2)
+				else if (usedEquivalentEffectiveStressDefinition == 2)
 					rd_n = 1 - (sqrt(m_r_0n))/(sqrt(m_r_n1)) * (1 - m_A_n) - m_A_n * exp(m_B_n * (1 - (sqrt(m_r_n1)/(sqrt(m_r_0n)))));
     		    // limiting damage variable
 				rd_n = std::min(rd_n, 1.0 - 1e-7);		// maximum not equal to 1.0 since then the stiffness matrix would be equal to 0.0
@@ -512,9 +501,9 @@ namespace Kratos
         	rd_p = 0.0;
 		else
 			{
-				if ((usedEquivalentTensionDefinition == 1)  || (usedEquivalentTensionDefinition == 2))
+				if ((usedEquivalentEffectiveStressDefinition == 1)  || (usedEquivalentEffectiveStressDefinition == 2))
 					rd_p = 1 - ((m_r_0p * m_r_0p)/(m_r_p1 * m_r_p1)) * exp(m_A_p * (1 - (m_r_p1 * m_r_p1)/(m_r_0p * m_r_0p)));
-				else if (usedEquivalentTensionDefinition == 3)
+				else if (usedEquivalentEffectiveStressDefinition == 3)
 					rd_p = 1 - ((m_r_0p)/(m_r_p1)) * exp(m_A_p * (1 - (m_r_p1)/(m_r_0p)));
 				// limiting damage variable
 				rd_p = std::min(rd_p, 1.0 - 1e-7);
@@ -545,14 +534,6 @@ namespace Kratos
 			if (m_SRF23 <= 0.0)
 				m_SRF23 = 0.0;
 		}
-	}
-	
-	void TCPlasticDamage3DLaw::ComputeStiffnessMatrix(Matrix& rConstitutiveLaw,
-		const Matrix& rPMatrixTension,
-		const Matrix& rPMatrixCompression)
-	{
-		Matrix I = IdentityMatrix(6,6);
-		rConstitutiveLaw = prod((I - m_d_p * rPMatrixTension + m_d_n * rPMatrixCompression), m_D0);
 	}
 
 	//add formula such as "commitState" in Code from Padua (ML)

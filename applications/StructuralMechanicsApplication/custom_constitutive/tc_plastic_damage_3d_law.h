@@ -10,21 +10,12 @@
 //					 Tobias Teschemacher
 //					 Riccardo Rossi
 //
-//  Based on work of Tesser and Talledo (University of Padua)		 
-
-// Written: Tesser, Talledo
-
-//  Send strains in following format :
-// 
-//     strain_vec = {   eps_00
-//                      eps_11
-//                    2 eps_01   }   <--- note the 2
+//  Based on work of Tesser and Talledo (University of Padua)
 
 #if !defined (KRATOS_TC_PLASTIC_DAMAGE_3D_LAW_H_INCLUDED)
 #define  KRATOS_TC_PLASTIC_DAMAGE_3D_LAW_H_INCLUDED
 
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -140,7 +131,7 @@ namespace Kratos
 		virtual Matrix& GetValue(
 			const Variable<Matrix>& rThisVariable,
 			Matrix& rValue) override;
-
+		
 		void InitializeMaterial(
 			const Properties& rMaterialProperties,
 			const GeometryType& rElementGeometry,
@@ -248,6 +239,7 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
+			
 		double m_f_01cc, m_f_ct, m_f_02cc, m_E, m_nu, m_Gf;
 		
 		Matrix m_D0;
@@ -263,7 +255,7 @@ namespace Kratos
 		/** @brief distinction between three proposals for the damage surface
 		 * @detail 1=ORIGINAL, 2=COMPDYN/proposal A, 3=HOMOGENEOUS/proposal B
 		 */
-		int usedEquivalentTensionDefinition;
+		int usedEquivalentEffectiveStressDefinition;
 
 		/** @brief damage variables
 		 * @ m_d_n...negative damage variable
@@ -284,29 +276,6 @@ namespace Kratos
 		double m_SRF12, m_SRF13, m_SRF23;
 		// @brief reference value of the strain used for the evolution law of the shear retention factor
 		double m_strain_ref;
-
-		/** variables not used so far (ML)
-		  Matrix m_Di;
-
-		  double m_compressive_strength_plastic;
-		  double m_compressive_strength_elastic;
-
-		  Matrix m_eigen_vectors;
-		  Vector m_eigen_values;
-
-		  double m_gamma_C;
-
-		  int model;
-
-		//// Converged values
-		//Vector mPrevStressVector = ZeroVector(6);
-		//Vector mPrevInelasticStrainVector = ZeroVector(6);
-
-		//// Non Converged values
-		//Vector mNonConvPrevStressVector = ZeroVector(6);
-		//Vector mNonConvPrevInelasticStrainVector = ZeroVector(6);
-
-		*/
 
 		///@}
 		///@name Private Operators
@@ -329,7 +298,7 @@ namespace Kratos
 			* @details voigt notation, 
 			* note that the shear strains are considered as 2*strain_ij in the strain vector
 		 */ 
-		void TCPlasticDamage3DLaw::CalculateElasticityMatrix(
+		void CalculateElasticityMatrix(
     		Matrix& rElasticityMatrix);
 
 		/**
@@ -377,14 +346,42 @@ namespace Kratos
 		 * validation - Scotta(2001)
 		 */
 		void ComputeSRF(const Vector& rStrainVector);
+		///@}
+		///@name Private  Access
+		///@{
 
-		/** @brief method updates stiffness matrix
-		 * @param rConstitutiveLaw...stiffness matrix
-		 */
-		void ComputeStiffnessMatrix(Matrix& rConstitutiveLaw,
-			const Matrix& rPMatrixTension,
-			const Matrix& rPMatrixCompression);
-	};
-}
+		///@}
+		///@name Private Inquiry
+		///@{
 
+		///@}
+		///@name Un accessible methods
+		///@{
+
+		// Serialization
+
+		friend class Serializer;
+
+		void save(Serializer& rSerializer) const override
+		{
+			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+			//rSerializer.save("PrevStressVector", mPrevStressVector);
+			//rSerializer.save("PrevInelasticStrainVector", mPrevInelasticStrainVector);
+			//rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
+			//rSerializer.save("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
+		}
+
+		void load(Serializer& rSerializer) override
+		{
+			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+			//rSerializer.load("PrevStressVector", mPrevStressVector);
+			//rSerializer.load("PrevInelasticStrainVector", mPrevInelasticStrainVector);
+			//rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
+			//rSerializer.load("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
+		}
+
+		///@}
+
+	}; // Class TCPlasticDamage3DLaw
+} // namespace Kratos
 #endif
