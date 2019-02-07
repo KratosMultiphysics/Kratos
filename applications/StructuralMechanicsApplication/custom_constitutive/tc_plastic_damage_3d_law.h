@@ -123,20 +123,20 @@ namespace Kratos
 			double& rValue) override;
 
 		/**
-		* @brief Returns the value of a specified variable (Vector)
-		* @param rThisVariable the variable to be returned
-		* @param rValue a reference to the returned value
-		* @return rValue output: the value of the specified variable
-		*/
+			* @brief Returns the value of a specified variable (Vector)
+			* @param rThisVariable the variable to be returned
+			* @param rValue a reference to the returned value
+			* @return rValue output: the value of the specified variable
+			*/
 		virtual Vector& GetValue(
 			const Variable<Vector>& rThisVariable,
 			Vector& rValue) override;
 
 		/**
-		* @brief Returns the value of a specified variable (Matrix)
-		* @param rThisVariable the variable to be returned
-		* @return rValue output: the value of the specified variable
-		*/
+			* @brief Returns the value of a specified variable (Matrix)
+			* @param rThisVariable the variable to be returned
+			* @return rValue output: the value of the specified variable
+		 */
 		virtual Matrix& GetValue(
 			const Variable<Matrix>& rThisVariable,
 			Matrix& rValue) override;
@@ -248,50 +248,51 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-		double m_f_01cc;
-		double m_f_ct;
-		double m_f_02cc;
-
+		double m_f_01cc, m_f_ct, m_f_02cc, m_E, m_nu, m_Gf;
+		
+		Matrix m_D0;
+		
 		Vector m_elastic_strain;
 		Vector m_plastic_strain;
+		
+		double m_beta;
 
-		Matrix m_D0;
-
-		double m_E;
-		double m_nu;
-
+		// material property which accounts for the increase of compressive strength due to biaxial compression
 		double m_K;
-		std::string usedEquivalentTensionDefinition;
-		std::string COMPDYN;
-		std::string ORIGINAL;
-		std::string HOMOGENEOUS;
-		double d_n, d_p, r_0n, r_0p, r_n, r_p, r_n1, r_p1;
+		
+		/** @brief distinction between three proposals for the damage surface
+		 * @detail 1=ORIGINAL, 2=COMPDYN/proposal A, 3=HOMOGENEOUS/proposal B
+		 */
+		int usedEquivalentTensionDefinition;
+
+		/** @brief damage variables
+		 * @ m_d_n...negative damage variable
+		 * m_d_p...positive damage variable
+		 * m_r_0n...initial negative damage threshold
+		 * m_r_0p...initial positive damage threshold
+		 * m_r_n...current negative damage threshold
+		 * m_r_p...current positive damage threshold
+		 * m_r_n1...updated negative damage threshold
+		 * m_r_p1...updated positive damage threshold
+		 * m_A_n...compression parameter A
+		 * m_B_n...compression parameter B
+		 * m_A_p...tension parameter A
+		 */
+		double m_d_n, m_d_p, m_r_0n, m_r_0p, m_r_n, m_r_p, m_r_n1, m_r_p1, m_A_n, m_B_n, m_A_p;
+
+		// @brief shear retention factor
+		double m_SRF12, m_SRF13, m_SRF23;
+		// @brief reference value of the strain used for the evolution law of the shear retention factor
+		double m_strain_ref;
 
 		/** variables not used so far (ML)
 		  Matrix m_Di;
 
-		  double m_compression_parameter_A;
-		  double m_compression_parameter_B;
-
-		  double m_tension_parameter_A;
-
 		  double m_compressive_strength_plastic;
 		  double m_compressive_strength_elastic;
 
-		  double m_beta;
-		  double m_Gf_t;
-		  double m_Gf_c;
-
-		  double m_K;
-
 		  Matrix m_eigen_vectors;
 		  Vector m_eigen_values;
-
-		  double m_treshold_compression_initial;
-		  double m_treshold_tension_initial;
-
-		  double m_treshold_compression;
-		  double m_treshold_tension;
 
 		  double m_gamma_C;
 
@@ -315,37 +316,40 @@ namespace Kratos
 		///@name Private Operations
 		///@{
 
+		/**
+		 * @brief This method is the core of the constitutive law implementation which orders the single methods
+		 */
 		void CalculateMaterialResponseInternal(
 			const Vector& rStrainVector,
 			Vector& rStressVector,
 			Matrix& rConstitutiveLaw);
 
 		/**
-		* @brief This method calculates the 3D Elasticity Matrix
-		* @details voigt notation, 
-		* note that the shear strains are considered as 2*strain_ij in the strain vector
-		*/ 
+			* @brief This method calculates the 3D Elasticity Matrix
+			* @details voigt notation, 
+			* note that the shear strains are considered as 2*strain_ij in the strain vector
+		 */ 
 		void TCPlasticDamage3DLaw::CalculateElasticityMatrix(
     		Matrix& rElasticityMatrix);
 
 		/**
-        * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
-        * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
-        * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
-        * Materials" - M. Cervera and C. Tesei.
-        * @param rStressVector The Stress Vector
-        * @param rStressVectorTension The Tension Part of the Stress Vector
-        * @param rStressVectorCompression The Compression Part of the Stress Vector
-        * @param PMatrixTension The Tensile P Matrix
-        * @param PMatrixCompression The Compressive P Matrix
-        */
+        	* @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
+			* @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+			* Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+			* Materials" - M. Cervera and C. Tesei.
+			* @param rStressVector The Stress Vector
+			* @param rStressVectorTension The Tension Part of the Stress Vector
+			* @param rStressVectorCompression The Compression Part of the Stress Vector
+			* @param PMatrixTension The Tensile P Matrix
+			* @param PMatrixCompression The Compressive P Matrix
+         */
         void SpectralDecomposition(
 			const Vector& rStressVector,
 			Vector& rStressVectorTension,
 			Vector& rStressVectorCompression,
 			Vector& rStressEigenvalues,
-			Matrix& PMatrixTension,
-			Matrix& PMatrixCompression);
+			Matrix& rPMatrixTension,
+			Matrix& rPMatrixCompression);
 
 		void ComputeTau(
 			const Vector& rStressEigenvalues,
@@ -356,6 +360,30 @@ namespace Kratos
 			const double& rtau_n,
 			const double& rtau_p,
 			const double& rtolerance);
+
+		/** @brief method computes the negative damage variable m_d_n
+		 * @param rd_n...dummy for damage variable
+		 */
+		void ComputeDamageCompression();
+
+		/** @brief method computes the positive damage variable m_d_p
+		 * @param rd_p...dummy for damage variable
+		 */
+		void ComputeDamageTension();
+
+		/** @brief method computes the three shear retention factors based on an evolution law
+		 * @details see A scalar damage model with a shear retention factor for the
+		 * analysis of reinforced concrete structures: theory and
+		 * validation - Scotta(2001)
+		 */
+		void ComputeSRF(const Vector& rStrainVector);
+
+		/** @brief method updates stiffness matrix
+		 * @param rConstitutiveLaw...stiffness matrix
+		 */
+		void ComputeStiffnessMatrix(Matrix& rConstitutiveLaw,
+			const Matrix& rPMatrixTension,
+			const Matrix& rPMatrixCompression);
 	};
 }
 
