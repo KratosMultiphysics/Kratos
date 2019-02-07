@@ -44,7 +44,7 @@ class LaplacianSolver(PythonSolver):
                     "condition_name": "PotentialWallCondition2D2N"
             },
             "linear_solver_settings": {
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "max_iteration": 400,
                     "gmres_krylov_space_dimension": 100,
                     "smoother_type":"ilu0",

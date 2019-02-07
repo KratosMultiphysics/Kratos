@@ -1,20 +1,10 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.FluidDynamicsApplication
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-
-try:
-    import KratosMultiphysics.MeshMovingApplication
-    missing_external_dependencies = True
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = False
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
-
 import KratosMultiphysics.KratosUnittest as UnitTest
+
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+fluid_dynamics_is_available = kratos_utilities.IsApplicationAvailable("FluidDynamicsApplication")
+if fluid_dynamics_is_available:
+    from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import os
 
@@ -29,21 +19,30 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipUnless(missing_external_dependencies,"{} is not available".format(missing_application))
+@UnitTest.skipUnless(fluid_dynamics_is_available,"FluidDynamicsApplication is not available")
 class ALEFluidSolverTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = False
+        self.print_vtk_output = False
+        self.print_gid_output = False
 
     def test_ALEFluidSolver(self):
         work_folder = "test_ale_fluid_solver"
-        settings_file_name = "ProjectParameters.json"
+        settings_file_name = "ProjectParameters_laplacian_fract_step.json"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            kratos_utilities.DeleteFileIfExisting("ale_fluid_test.time")
+            kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")
+
+    def test_ALEFluidSolverOnSubdomains(self):
+        work_folder = "test_ale_fluid_solver"
+        settings_file_name = "ProjectParameters_ale_on_subdom_struct_sim_mono.json"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
             kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")
 
     def _runTest(self,settings_file_name):
@@ -52,14 +51,36 @@ class ALEFluidSolverTest(UnitTest.TestCase):
             settings = KM.Parameters(settings_file.read())
 
         # to check the results: add output settings block if needed
-        if self.print_output:
+        if self.print_vtk_output:
+            settings["output_processes"].AddValue("vtk_output", KM.Parameters(R'''[{
+                "python_module" : "vtk_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "VtkOutputProcess",
+                "help"          : "This process writes postprocessing files for Paraview",
+                "Parameters"    : {
+                    "model_part_name"                    : "FluidModelPart.domain",
+                    "output_control_type"                : "step",
+                    "output_frequency"                   : 1,
+                    "file_format"                        : "binary",
+                    "output_precision"                   : 7,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "vtk_output",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
+                    "nodal_data_value_variables"         : [],
+                    "element_data_value_variables"       : [],
+                    "condition_data_value_variables"     : []
+                }
+            }]'''))
+
+        if self.print_gid_output:
             settings["output_processes"].AddValue("gid_output", KM.Parameters(R'''[{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
+                "model_part_name"        : "FluidModelPart.domain",
                 "output_name"            : "ale_fluid_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
