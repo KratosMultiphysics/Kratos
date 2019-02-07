@@ -466,8 +466,19 @@ protected:
 
         Timer::Start("Build");
 
+        // We compute only once (or if cleared)
+        if (mCleared) {
+            mCleared = false;
+            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+        } else {
+            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
+        }
+
+        // We apply the master/slave realtionship before build
+        ApplyMasterSlaveRelation(pScheme, rModelPart, rA, rDx, rb);
+
         // We do the build (after that we resize the solution vector to avoid problems)
-        Build(pScheme, rModelPart, rA, rb);
+        BuildWithConstraints(pScheme, rModelPart, rA, rb);
 
         Timer::Stop("Build");
 
@@ -1539,6 +1550,60 @@ private:
         }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::SetUpSystemWithConstraints failed ..");
+    }
+
+    /**
+     * @brief This method initializes the DoF using the master/slave relationship
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
+    void ApplyMasterSlaveRelation(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
+    {
+        // Auxiliar values
+        const auto it_dof_begin = BaseType::mDofSet.begin();
+        TSystemVectorType current_solution(mDoFToSolveSystemSize);
+        TSystemVectorType updated_solution(BaseType::mEquationSystemSize);
+
+        // Get current values
+        IndexType counter = 0;
+        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
+            auto it_dof = BaseType::mDofSet.begin() + i;
+
+            auto it = mDoFSlaveSet.find(*it_dof);
+            if (it == mDoFSlaveSet.end()) {
+                current_solution[counter] = it_dof->GetSolutionStepValue();
+                counter += 1;
+            }
+        }
+
+        // Apply master slave constraints
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
+
+        if (mComputeConstantContribution) {
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
+        }
+
+        // Update database
+        #pragma omp parallel for
+        for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
+            auto it_dof = it_dof_begin + k;
+            const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
+            if (is_slave && it_dof->IsFree()) {
+                const IndexType equation_id = it_dof->EquationId();
+                it_dof->GetSolutionStepValue() = updated_solution[equation_id];
+            }
+        }
     }
 
     /**
