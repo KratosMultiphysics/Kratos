@@ -3,12 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
+# Importing the solvers
+import KratosMultiphysics.ExternalSolversApplication
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -43,7 +39,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         super(PotentialFlowAnalysis,self).__init__(model,project_parameters)
 
     def _CreateSolver(self):
-        import KratosMultiphysics.FullPotentialApp.potential_flow_solver as potential_flow_solver
+        import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver as potential_flow_solver
         return potential_flow_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
 
     def _CreateProcesses(self, parameter_name, initialization_order):
