@@ -33,6 +33,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     };
 
   public:
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNormalizedFreeEnergyOnNodesProcess);
 
@@ -113,6 +114,8 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
         const double density = rMatProps[DENSITY];
         double normalized_free_energy;
+        KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The Fracture Energy is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(density < tolerance) << "The density is null or not assigned" << std::endl;
 
         if (mDimension == 2) { // 2D version
             const double characteristic_length = this->CalculateCharacteristicLength2D(rGeometry);
