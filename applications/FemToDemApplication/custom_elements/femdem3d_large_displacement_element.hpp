@@ -51,63 +51,48 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
 							  ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
-  
 
-    int GetStrainSize(){return 6;}
-    double CalculateDerivativesOnReferenceConfiguration(Matrix& rJ0,
-                                                        Matrix& rInvJ0,
-                                                        Matrix& rDN_DX,
-                                                        const IndexType PointNumber,
-                                                        IntegrationMethod ThisIntegrationMethod);
-
-    void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,
-                                    const Matrix& B,
-                                    const Matrix& D,
-                                    const double IntegrationWeight,
-                                    const double Damage);
-
-    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix,
-                            const Matrix& DN_DX,
-                            const Vector& StressVector,
-                            const double IntegrationWeight);
-
-    void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& F);
-    
-    void CalculateStressVectorPredictor(Vector& rStressVector, 
-                                        const Matrix& rConstitutiveMAtrix, 
-                                        const Vector& rStrainVector);
-
-    void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, 
-                                            const Matrix& rB, 
-                                            const Vector& rStressVector, 
-                                            const double IntegrationWeight);
-
-    void PerturbateDeformationGradient(
-        Matrix& rPerturbedDeformationGradient,
-        const Matrix& rDeformationGradientGP,
-        const double Perturbation,
-        const int IComponent,
-        const int JComponent);
-
-    int CalculateVoigtIndex(
-      const SizeType VoigtSize,
-      const int ComponentI,
-      const int ComponentJ);
-
-    void CalculateTangentTensor(
-      Matrix& TangentTensor,
-      const Vector& rStrainVectorGP,
-      const Vector& rStressVectorGP,
-      const Matrix& rDeformationGradientGP,
-      const Matrix& rElasticMatrix);
-
-    void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
-      Vector& rPerturberStressVector,
-      const Vector& rPerturbedStrainVector,
-      const Matrix& rElasticMatrix,
-      const Matrix& rPerturbedDeformationGradient);
+  int GetStrainSize(){ return 6; }
+  double CalculateDerivativesOnReferenceConfiguration(Matrix& rJ0,
+                                                      Matrix& rInvJ0,
+                                                      Matrix& rDN_DX,
+                                                      const IndexType PointNumber,
+                                                      IntegrationMethod ThisIntegrationMethod);
+  void CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+  void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,
+                                  const Matrix& B,
+                                  const Matrix& D,
+                                  const double IntegrationWeight,
+                                  const double Damage);
+  void CalculateGeometricK(MatrixType& rLeftHandSideMatrix,
+                          const Matrix& DN_DX,
+                          const Vector& StressVector,
+                          const double IntegrationWeight);
+  void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& F);
+  void CalculateStressVectorPredictor(Vector& rStressVector, 
+                                      const Matrix& rConstitutiveMAtrix, 
+                                      const Vector& rStrainVector);
+  void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, 
+                                          const Matrix& rB, 
+                                          const Vector& rStressVector, 
+                                          const double IntegrationWeight);
+  void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient,
+                                    const Matrix& rDeformationGradientGP,
+                                    const double Perturbation,
+                                    const int IComponent,
+                                    const int JComponent);
+  int CalculateVoigtIndex(const SizeType VoigtSize,
+                          const int ComponentI,
+                          const int ComponentJ);
+  void CalculateTangentTensor(Matrix& TangentTensor,
+                              const Vector& rStrainVectorGP,
+                              const Vector& rStressVectorGP,
+                              const Matrix& rDeformationGradientGP,
+                              const Matrix& rElasticMatrix);
+  void IntegratePerturbedDeformationGradient(Vector& rPerturberStressVector,
+                                            const Vector& rPerturbedStrainVector,
+                                            const Matrix& rElasticMatrix,
+                                            const Matrix& rPerturbedDeformationGradient);
 
 }; // Class
 } // namespace Kratos
