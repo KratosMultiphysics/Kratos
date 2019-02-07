@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
-from potential_flow_analysis import PotentialFlowAnalysis
+from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
