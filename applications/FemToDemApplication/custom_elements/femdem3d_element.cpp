@@ -902,7 +902,7 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
+			rOutput[PointNumber] = mDamage;
 		}
 	} else if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
@@ -912,7 +912,7 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
+			rOutput[PointNumber] = mThreshold;
 		}
 	} else if (rVariable == EQUIVALENT_STRESS_VM) {
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
