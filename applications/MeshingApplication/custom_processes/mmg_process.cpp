@@ -302,6 +302,11 @@ void MmgProcess<TMMGLibray>::ExecuteFinalize()
     // We release the memory
     FreeMemory();
 
+    if( mRemoveRegions ){
+        // nodes not belonging to an element are removed
+        CleanSuperfluousNodes();
+    }
+
     KRATOS_CATCH("");
 }
 
@@ -3392,6 +3397,44 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::CleanSuperfluousNodes()
+{
+    const int initial_num = mrThisModelPart.Nodes().size();
+
+    auto& r_nodes_array = mrThisModelPart.Nodes();
+    const auto& r_elem_array = mrThisModelPart.Elements();
+
+    // marking all nodes as "superfluous"
+    #pragma omp parallel for
+    for( int i_node = 0; i_node < static_cast<int>(r_nodes_array.size()); ++i_node ){
+
+        auto node = r_nodes_array.begin() + i_node;
+        node->Set(TO_ERASE, true);
+    }
+
+    // saving the nodes that belong to an element
+    #pragma omp parallel for
+    for( int i_elem = 0; i_elem < static_cast<int>(r_elem_array.size()); ++i_elem ){
+
+        const auto elem = r_elem_array.begin() + i_elem;
+        auto& r_geom = elem->GetGeometry();
+
+        for (unsigned int i = 0; i < r_geom.size(); ++i){
+            r_geom[i].Set(TO_ERASE, false);
+        }
+    }
+
+    mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    const int final_num = mrThisModelPart.Nodes().size();
+    KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
+}
+
+
 
 /***********************************************************************************/
 /***********************************************************************************/

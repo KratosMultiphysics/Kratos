@@ -269,6 +269,11 @@ public:
      */
     void ExecuteFinalize() override;
 
+    /**
+     * @brief This function removes superfluous (defined by "not belonging to an element") nodes from the model part
+     */
+    void CleanSuperfluousNodes();
+
     ///@}
     ///@name Access
     ///@{
