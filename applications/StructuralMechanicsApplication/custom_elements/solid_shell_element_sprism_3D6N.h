@@ -72,6 +72,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( EAS_IMPLICIT_EXPLICIT );    // True means implicit
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_UPDATED_LAGRANGIAN ); // True means total lagrangian
     KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
+    KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;

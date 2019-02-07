@@ -71,7 +71,7 @@ namespace Kratos
 
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -114,7 +114,7 @@ namespace Kratos
 
         void Create3DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -451,7 +451,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
@@ -516,7 +516,7 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");

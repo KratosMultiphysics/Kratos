@@ -159,7 +159,6 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
-
     virtual void InterpolateSurfaceLoad(array_1d<double,3>& r_surface_load,
                                         const Matrix& n_container,
                                         const unsigned int& number_of_nodes,

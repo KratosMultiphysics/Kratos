@@ -52,7 +52,7 @@ namespace Kratos
 
         void Create2DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
             const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
@@ -98,7 +98,7 @@ namespace Kratos
 
         void Create3DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
             const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
@@ -230,8 +230,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
@@ -280,7 +280,7 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();

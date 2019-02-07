@@ -112,7 +112,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;

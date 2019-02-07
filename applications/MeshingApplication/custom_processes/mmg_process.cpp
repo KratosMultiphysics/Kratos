@@ -75,7 +75,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "filename"                             : "out",
         "framework"                            : "Eulerian",
@@ -126,7 +126,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "buffer_size"                          : 0
     })" );
 
-    mThisParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mStdStringFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
