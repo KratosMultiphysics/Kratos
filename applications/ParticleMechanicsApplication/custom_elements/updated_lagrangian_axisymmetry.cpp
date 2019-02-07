@@ -339,9 +339,10 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
 
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
     const double MP_Mass = this->GetValue(MP_MASS);
+
+    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
+    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
@@ -377,10 +378,6 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
         rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
         rGeom[i].UnSetLock();
     }
-
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
-
 }
 
 //*************************COMPUTE ALMANSI STRAIN*************************************

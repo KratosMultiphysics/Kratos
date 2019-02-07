@@ -380,12 +380,11 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
     const double & MP_Pressure = this->GetValue(MP_PRESSURE);
-
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
-    double AUX_MP_Pressure = this->GetValue(AUX_MP_PRESSURE);
-
     const double& MP_Mass = this->GetValue(MP_MASS);
+
+    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
+    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
+    double AUX_MP_Pressure = this->GetValue(AUX_MP_PRESSURE);
     array_1d<double,3> nodal_momentum;
     array_1d<double,3> nodal_inertia;
 
@@ -427,8 +426,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         rGeom[i].UnSetLock();
     }
 
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
     AUX_MP_Pressure = 0.0;
 
 }
