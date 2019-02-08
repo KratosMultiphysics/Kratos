@@ -14,7 +14,7 @@
 #include "utilities/math_utils.h"
 #include "geometries/triangle_3d_3.h"
 #include "custom_utilities/parallel_fill_communicator.h"
-#include "metis_application/custom_processes/set_mpi_communicator_process.h"
+#include "mpi/utilities/model_part_communicator_utilities.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
@@ -141,7 +141,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-			SetMPICommunicatorProcess(new_model_part).Execute();
+            ModelPartCommunicatorUtilities::SetMPICommunicator(new_model_part);
 			mMPICommSetup_is_defined=true;
 		}
 
@@ -438,7 +438,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-			SetMPICommunicatorProcess(mr_new_model_part).Execute();
+            ModelPartCommunicatorUtilities::SetMPICommunicator(mr_new_model_part);
 			mMPICommSetup_is_defined=true;
 		}
 
