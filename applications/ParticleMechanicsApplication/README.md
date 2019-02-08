@@ -70,7 +70,7 @@ The following features are currently available and subject to development within
     * Particle erase features - to delete particle outside the interest domain
     * Arbitrary slip boundary condition
 
-Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
+Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder, while some use-cases and validation examples are also available in the [Examples](https://github.com/KratosMultiphysics/Examples/tree/master/particle_mechanics) repository.
 
 ## Available Interfaces
 

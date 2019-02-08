@@ -90,8 +90,6 @@ public:
 		}
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
-
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -215,36 +213,7 @@ public:
 
 		}
 
-		if (mConsiderDiscretization)
-			this->ConsiderDiscretization();
-
 		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization()
-	{
-
-		std::cout<< "> Considering discretization size!" << std::endl;
-		for(auto& node_i : mrModelPart.Nodes())
-		{
-			// Get all neighbor elements of current node
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-
-			// Compute total mass of all neighbor elements before finite differencing
-			double scaling_factor = 0.0;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-
-				// Compute mass according to element dimension
-				scaling_factor += element_geometry.DomainSize();
-			}
-
-			// apply scaling
-			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
-		}
 	}
 
 	// ==============================================================================
@@ -326,7 +295,6 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
-	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

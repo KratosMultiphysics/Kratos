@@ -38,10 +38,10 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_part_slab","Parts_part_block"],
-        "processes_sub_model_part_list"      : ["Contact_Part","DISPLACEMENT_BC_fix", "DISPLACEMENT_BC_rolling_x", "LineLoad2D_load_press", "LineLoad2D_load_slide", "Parts_part_slab", "Parts_part_block"],
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_part_slab","Parts_part_block"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_BC_fix", "DISPLACEMENT_BC_rolling_x", "LineLoad2D_load_press", "LineLoad2D_load_slide", "Parts_part_slab", "Parts_part_block"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -71,7 +71,7 @@
             }
         },{
             "python_module"   : "impose_scalar_value_over_time_process",
-            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "process_name"          : "ImposeScalarValueOverTimeProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
@@ -85,7 +85,7 @@
         "loads_process_list"       : [
         {
             "python_module"   : "apply_vector_on_conditions_over_time_process",
-            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "This process sets a vector variable value over a condition",
             "check"                 : "DirectorVectorNonZero direction",
             "process_name"          : "ApplyVectorOnConditionsProcess",
@@ -103,7 +103,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {

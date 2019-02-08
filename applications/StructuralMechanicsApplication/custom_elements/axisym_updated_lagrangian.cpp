@@ -82,7 +82,7 @@ double AxisymUpdatedLagrangian::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber,
     const double detJ
-    )
+    ) const
 {
     // We calculate the axisymmetric coefficient
     Vector N;
@@ -99,7 +99,6 @@ double AxisymUpdatedLagrangian::GetIntegrationWeight(
 
 void AxisymUpdatedLagrangian::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymUpdatedLagrangian" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian );
 }
 

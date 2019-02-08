@@ -33,7 +33,7 @@
         "skin_parts"                   : ["NoSlip2D_cylinder"],
         "no_skin_parts"                : ["VelocityConstraints2D_inlet","VelocityConstraints2D_walls"],
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "verbosity"           : 0,
             "coarse_enough"       : 500,
             "tolerance"           : 1e-8
@@ -156,8 +156,8 @@
             "output_file_name"    : "cylinder_adjoint_test_probe1.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -168,8 +168,8 @@
             "output_file_name"    : "cylinder_adjoint_test_probe2.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-	        "decimal_places"      : 5
+            "remove_output_file"  : true,
+	        "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -180,8 +180,8 @@
             "output_file_name"    : "cylinder_adjoint_test_probe3.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe3.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-	        "decimal_places"      : 10
+            "remove_output_file"  : true,
+	        "tolerance"           : 1e-10
         }
     }]
 }

@@ -227,6 +227,16 @@ class MatrixStorage<TDataType, dynamic, dynamic> {
     }
 
     void swap(MatrixStorage& Other){
+        if(_size1 != Other._size1){
+            std::size_t temp_size1 = _size1;
+            _size1=Other.size1();
+            Other._size1 = temp_size1;
+        }
+        if(_size2 != Other._size2){
+            std::size_t temp_size2 = _size2;
+            _size2=Other.size2();
+            Other._size2 = temp_size2;
+        }
         TDataType* p_temp = _data;
         _data = Other._data;
         Other._data = p_temp;
@@ -406,6 +416,12 @@ class MatrixStorage<TDataType, TSize1, dynamic> {
 
     void swap(MatrixStorage& Other){
         TDataType* p_temp = _data;
+        if(_size2 != Other._size2){
+            std::size_t temp_size2 = _size2;
+            _size2=Other.size2();
+            Other._size2 = temp_size2;
+        }
+        
         _data = Other._data;
         Other._data = p_temp;
     }
@@ -583,6 +599,11 @@ class MatrixStorage<TDataType, dynamic, TSize2> {
     }
 
     void swap(MatrixStorage& Other){
+        if(_size1 != Other._size1){
+            std::size_t temp_size1 = _size1;
+            _size1=Other.size1();
+            Other._size1 = temp_size1;
+        }
         TDataType* p_temp = _data;
         _data = Other._data;
         Other._data = p_temp;
