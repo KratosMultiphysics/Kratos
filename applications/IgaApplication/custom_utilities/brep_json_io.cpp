@@ -161,10 +161,13 @@ namespace Kratos
                 }
 
                 std::vector<BrepTrimmingCurve> trimming_curves;
-                Parameters& embedded_edges_dict(brep_json["faces"][i]["embedded_edges"]);
-                for (int i = 0; i < embedded_edges_dict.size(); ++i)
+                if (brep_json["faces"][i].Has("embedded_edges"))
                 {
-                    ImportTrimmingCurve(embedded_edges_dict[i], trimming_curves);
+                    Parameters& embedded_edges_dict(brep_json["faces"][i]["embedded_edges"]);
+                    for (int i = 0; i < embedded_edges_dict.size(); ++i)
+                    {
+                        ImportTrimmingCurve(embedded_edges_dict[i], trimming_curves);
+                    }
                 }
 
                 std::vector<BrepFace::EmbeddedPoint> embedded_points;
@@ -240,7 +243,7 @@ namespace Kratos
     }
 
     void BrepJsonIO::ImportBrepEdges(
-        Parameters& rEdges,
+        const Parameters& rEdges,
         std::vector<BrepEdge>& rEdgesVector,
         ModelPart& rModelPart)
     {
@@ -349,7 +352,7 @@ namespace Kratos
     }
 
     void BrepJsonIO::ImportBrepVertices(
-        Parameters& rVertices,
+        const Parameters& rVertices,
         std::vector<BrepVertex>& rVerticesVector,
         ModelPart& rModelPart)
     {
@@ -396,7 +399,7 @@ namespace Kratos
 
 
     void BrepJsonIO::ImportTrimmingCurve(
-        Parameters& rTrimmingCurve,
+        const Parameters& rTrimmingCurve,
         std::vector<BrepTrimmingCurve>& rTrimmingCurves)
     {
         int trim_index = rTrimmingCurve["trim_index"].GetInt();

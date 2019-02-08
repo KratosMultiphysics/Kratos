@@ -2,6 +2,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
+# Import applications
+#import KratosMultiphysics.IgaApplication as IgaApplication
+import KratosMultiphysics.IgaApplication.iga_static_solver
+
+
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()

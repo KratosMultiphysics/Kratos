@@ -51,17 +51,17 @@ namespace Kratos
   private:
 
       void ImportBrepEdges(
-          Parameters& rEdges,
+          const Parameters& rEdges,
           std::vector<BrepEdge>& rEdgesVector,
           ModelPart& rModelPart);
 
       void ImportBrepVertices(
-          Parameters& rVertices,
+          const Parameters& rVertices,
           std::vector<BrepVertex>& rVerticesVector,
           ModelPart& rModelPart);
 
       void ImportTrimmingCurve(
-          Parameters& rTrimmingCurve,
+          const Parameters& rTrimmingCurve,
           std::vector<BrepTrimmingCurve>& rrTrimmingCurves);
 
       int mEchoLevel;
