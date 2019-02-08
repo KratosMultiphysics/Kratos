@@ -62,7 +62,9 @@
             "dynamic_tau": 0.001
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : []
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [],
+        "gravity"                          : []
+    }
 }

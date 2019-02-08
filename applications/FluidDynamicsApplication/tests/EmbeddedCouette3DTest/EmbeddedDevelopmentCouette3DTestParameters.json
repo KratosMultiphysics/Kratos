@@ -67,73 +67,75 @@
             "dynamic_tau": 1.0
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, 0.0],
-            "constrained"     : [false,true,true]
-        }
-    },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "PRESSURE",
-            "value"           : 0.0,
-            "constrained"     : true
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Sides",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, 0.0],
-            "constrained"     : [false,true,false]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Top",
-            "variable_name"   : "VELOCITY",
-            "value"           : [null, 0.0, 0.0],
-            "constrained"     : [false,true,true]
-        }
-    },{
-        "python_module" : "apply_distance_modification_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyDistanceModificationProcess",
-        "Parameters"    : {
-            "model_part_name"                        : "Parts_Fluid",
-            "check_at_each_time_step"                : false,
-            "avoid_almost_empty_elements"            : true,
-            "deactivate_full_negative_elements"      : true,
-            "recover_original_distance_at_each_step" : false
-        }
-    }],
-    "gravity"                          : [{
-        "python_module" : "process_factory",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_Fluid",
-            "variable_name"   : "BODY_FORCE",
-            "modulus"         : 0.0,
-            "direction"       : [0.0,0.0,-1.0]
-        }
-    }]
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "VELOCITY",
+                "value"           : [null, 0.0, 0.0],
+                "constrained"     : [false,true,true]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "PRESSURE",
+                "value"           : 0.0,
+                "constrained"     : true
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Sides",
+                "variable_name"   : "VELOCITY",
+                "value"           : [null, 0.0, 0.0],
+                "constrained"     : [false,true,false]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Top",
+                "variable_name"   : "VELOCITY",
+                "value"           : [null, 0.0, 0.0],
+                "constrained"     : [false,true,true]
+            }
+        },{
+            "python_module" : "apply_distance_modification_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyDistanceModificationProcess",
+            "Parameters"    : {
+                "model_part_name"                        : "Parts_Fluid",
+                "check_at_each_time_step"                : false,
+                "avoid_almost_empty_elements"            : true,
+                "deactivate_full_negative_elements"      : true,
+                "recover_original_distance_at_each_step" : false
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "process_factory",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ApplyConstantVectorValueProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Parts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 0.0,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        }]
+    }
 }

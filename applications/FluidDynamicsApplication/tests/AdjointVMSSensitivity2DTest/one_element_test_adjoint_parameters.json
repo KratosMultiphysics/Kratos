@@ -64,63 +64,65 @@
             "time_step"           : -1.0
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet",
-            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-            "value"           : [0.0, 0.0, 0.0]
-        }
-    },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "AssignScalarVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
-            "value"           : 0
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Boundary",
-            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-            "value"           : [0.0, 0.0, 0.0]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0, 0.0, 0.0]
-        }
-    }],
-    "gravity" : [],
-    "auxiliar_process_list" :[{
-        "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_temporal_input_process",
-        "help"          : "",
-        "process_name"  : "",
-        "Parameters" : {
-	        "model_part_name" : "MainModelPart",
-            "file_settings" : {
-                "file_access_mode" : "read_only"
-            },
-            "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Inlet",
+                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "value"           : [0.0, 0.0, 0.0]
             }
-        }
-    }]
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
+                "value"           : 0
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Boundary",
+                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "value"           : [0.0, 0.0, 0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0, 0.0, 0.0]
+            }
+        }],
+        "gravity" : [],
+        "auxiliar_process_list" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_input_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                }
+            }
+        }]
+    }
 }
