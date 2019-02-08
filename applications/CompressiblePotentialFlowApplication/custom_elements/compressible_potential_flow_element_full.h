@@ -450,10 +450,10 @@ public:
                                 rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
                                 rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
 
-                                rLaplacianMatrix(i,j)            =  laplacian_positive(i,j); 
+                                rLaplacianMatrix(i,j)            =  laplacian_positive(i,j)+laplacian_negative(i,j); 
                                 rLaplacianMatrix(i,j+NumNodes)   =  0.0; 
                                 
-                                rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
+                                rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_positive(i,j)+laplacian_negative(i,j); 
                                 rLaplacianMatrix(i+NumNodes,j) = 0.0;
                             }
                         }
@@ -463,11 +463,9 @@ public:
                             {
                                 for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
                                     rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
 
-                                    rLaplacianMatrix(i,j)          = laplacian_positive(i,j); 
-                                    rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
+                                    rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j)-laplacian_negative(i,j);
                                 }
                             }
                         }
@@ -479,11 +477,9 @@ public:
                             {   
                                 for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
                                     rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
 
-                                    rLaplacianMatrix(i+NumNodes,j+NumNodes) = laplacian_negative(i,j);
-                                    rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
+                                    rLaplacianMatrix(i+NumNodes,j) = -laplacian_positive(i,j)-laplacian_negative(i,j);
                                 }
                             }
                         }
