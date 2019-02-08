@@ -169,7 +169,6 @@ class LaplacianSolver(PythonSolver):
     def Clear(self):
         self.incompressible_solution_stratety.Clear()
 
-    @staticmethod
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 
