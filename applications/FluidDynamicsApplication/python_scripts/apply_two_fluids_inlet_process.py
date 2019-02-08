@@ -14,8 +14,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         # settings for inlet with interface between fluids and separate velocities
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id" : 0,
-            "model_part_name" : "user_provided_inlet_model_part_name",
+            "model_part_name" : "",
             "interface_settings": {
                 "interface_normal": [0.0,1.0,0.0],
                 "point_on_interface": [0.0,0.25,0.0],
