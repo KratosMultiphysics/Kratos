@@ -110,6 +110,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/generalized_influence_functions_extension.cpp
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp

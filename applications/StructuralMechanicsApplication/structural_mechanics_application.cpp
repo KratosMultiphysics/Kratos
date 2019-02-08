@@ -416,6 +416,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Variables for the method of generalized influence functions
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PSEUDO_FORCE);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PSEUDO_MOMENT);
+    KRATOS_REGISTER_VARIABLE(INFLUENCE_FUNCTIONS_EXTENSIONS)
 
     // Some variables related with CL
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)

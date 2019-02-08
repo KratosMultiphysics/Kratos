@@ -231,5 +231,18 @@ namespace Kratos
                 "Available is only 'SHAPE_X','SHAPE_Y' and 'SHAPE_Z' " << std::endl;
     }
 
+    void ElementFiniteDifferenceUtility::ComputeFiniteDifferences( array_1d<double, 3 >& rArrayUndisturbed, array_1d<double, 3 >& rArrayDisturbed, const double& rDelta)
+    {
+        KRATOS_TRY;
+
+        for(IndexType i = 0; i < 3; ++i)
+        {
+            rArrayDisturbed[i] -= rArrayUndisturbed[i];
+            rArrayDisturbed[i] /= rDelta;
+        }
+
+        KRATOS_CATCH("")
+    }
+
 }  // namespace Kratos.
 

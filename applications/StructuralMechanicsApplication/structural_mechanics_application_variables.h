@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "custom_utilities/shell_cross_section.hpp"
 #include "includes/mat_variables.h"
+#include "custom_response_functions/adjoint_elements/generalized_influence_functions_extension.h"
 
 namespace Kratos
 {
@@ -277,6 +278,7 @@ namespace Kratos
     // Variables for the method of generalized influence functions
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( STRUCTURAL_MECHANICS_APPLICATION, PSEUDO_FORCE );
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( STRUCTURAL_MECHANICS_APPLICATION, PSEUDO_MOMENT );
+    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, GeneralizedInfluenceFunctionsExtension::Pointer, INFLUENCE_FUNCTIONS_EXTENSIONS);
 
 }
 
