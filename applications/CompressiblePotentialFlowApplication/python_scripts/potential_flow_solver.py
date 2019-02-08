@@ -117,7 +117,7 @@ class PotentialSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        if self.settings["problem_type"].GetString() == "compressible":
+        if self.settings["problem_type"].GetString() == "compressible" or self.settings["problem_type"].GetString() == "compressible_full":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(), 
                 self.settings["absolute_tolerance"].GetDouble())
@@ -206,6 +206,16 @@ class PotentialSolver(PythonSolver):
                         """)
                 else:
                     raise Exception("Domain size is not 2 or 3!!")
+            elif (self.settings["problem_type"].GetString() == "compressible_full"):
+                if(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"CompressibleFullPotentialFlowElement2D3N",
+                        "condition_name": "CompressiblePotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2!!")
             elif (self.settings["problem_type"].GetString() == "incompressible_stresses"):
                 if(self.domain_size == 2):
                     self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""

@@ -38,6 +38,7 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     mIncompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mCompressibleFullPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressiblePotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mIncompressibleStressesPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mIncompressiblePotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -80,6 +81,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
         KRATOS_REGISTER_ELEMENT("CompressiblePotentialFlowElement2D3N",mCompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("CompressiblePotentialFlowElement3D4N",mCompressiblePotentialFlowElement3D4N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_ELEMENT("CompressibleFullPotentialFlowElement2D3N",mCompressibleFullPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
 
         //Register conditions
         KRATOS_REGISTER_CONDITION("IncompressiblePotentialWallCondition2D2N",mIncompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
@@ -89,6 +91,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
         KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition2D2N",mCompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition3D3N",mCompressiblePotentialWallCondition3D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition2D2N",mCompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
 
         
 
