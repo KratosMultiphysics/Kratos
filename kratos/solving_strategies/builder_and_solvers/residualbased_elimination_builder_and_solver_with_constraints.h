@@ -172,7 +172,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool CheckConstraintRelation = false,
+        const bool CheckConstraintRelation = true,
         const bool ResetRelationMatrixEachIteration = false
         )
         : BaseType(pNewLinearSystemSolver),
@@ -1621,11 +1621,14 @@ private:
 
         // Update database
         #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
-            auto it_dof = it_dof_begin + k;
-            const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
-            if (is_slave && it_dof->IsFree()) {
-                it_dof->GetSolutionStepValue() = updated_solution[k];
+        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
+            auto it_dof = it_dof_begin + i;
+            const IndexType equation_id = it_dof->EquationId();
+            if (equation_id < BaseType::mEquationSystemSize ) {
+                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
+                if (is_slave) {
+                    it_dof->GetSolutionStepValue() = updated_solution[equation_id];
+                }
             }
         }
 
@@ -1664,8 +1667,8 @@ private:
         // Get current values
         IndexType counter = 0;
         for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
-            auto it_dof = BaseType::mDofSet.begin() + i;
-            const bool equation_id = it_dof->EquationId();
+            auto it_dof = it_dof_begin + i;
+            const IndexType equation_id = it_dof->EquationId();
             if (equation_id < BaseType::mEquationSystemSize ) {
                 auto it = mDoFSlaveSet.find(*it_dof);
                 if (it == mDoFSlaveSet.end()) {
@@ -1676,9 +1679,12 @@ private:
         }
 
         #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
-            auto it_dof = it_dof_begin + k;
-            residual_solution[k] = it_dof->GetSolutionStepValue() + rDx[k];
+        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
+            auto it_dof = it_dof_begin + i;
+            const IndexType equation_id = it_dof->EquationId();
+            if (equation_id < BaseType::mEquationSystemSize ) {
+                residual_solution[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
+            }
         }
 
         // Apply master slave constraints
