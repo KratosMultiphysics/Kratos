@@ -138,27 +138,27 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // subdividing the inlet into two sub_model_part
     mrInletModelPart.CreateSubModelPart("fluid_1_inlet");
     mrInletModelPart.CreateSubModelPart("fluid_2_inlet");
-    ModelPart& rWaterInlet = mrInletModelPart.GetSubModelPart("fluid_1_inlet");
-    ModelPart& rAirInlet = mrInletModelPart.GetSubModelPart("fluid_2_inlet");
+    ModelPart& r_fluid_1_inlet = mrInletModelPart.GetSubModelPart("fluid_1_inlet");
+    ModelPart& r_fluid_2_inlet = mrInletModelPart.GetSubModelPart("fluid_2_inlet");
 
     // classifying nodes (no OMP parallel possible)
-    std::vector<IndexType> index_node_water;
-    std::vector<IndexType> index_node_air;
+    std::vector<IndexType> index_node_fluid1;
+    std::vector<IndexType> index_node_fluid2;
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
         auto it_node = mrInletModelPart.NodesBegin() + i_node;
         const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
         if (inlet_dist <= 0.0){
-            index_node_water.push_back( it_node->GetId() );
+            index_node_fluid1.push_back( it_node->GetId() );
         } else {
-            index_node_air.push_back( it_node->GetId() );
+            index_node_fluid2.push_back( it_node->GetId() );
         }
     }
-    rWaterInlet.AddNodes( index_node_water );
-    rAirInlet.AddNodes( index_node_air );
+    r_fluid_1_inlet.AddNodes( index_node_fluid1 );
+    r_fluid_2_inlet.AddNodes( index_node_fluid2 );
 
     // classifying conditions (no OMP parallel possible)
-    std::vector<IndexType> index_cond_water;
-    std::vector<IndexType> index_cond_air;
+    std::vector<IndexType> index_cond_fluid1;
+    std::vector<IndexType> index_cond_fluid2;
     for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
         auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
         unsigned int pos_counter = 0;
@@ -171,14 +171,14 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         }
         // the conditions cut by the interface are neither assigned to both the positive and the negative side
         if( pos_counter > 0 ){
-            index_cond_air.push_back( it_cond->GetId() );
+            index_cond_fluid2.push_back( it_cond->GetId() );
         }
         if( neg_counter > 0 ){
-            index_cond_water.push_back( it_cond->GetId() );
+            index_cond_fluid1.push_back( it_cond->GetId() );
         }
     }
-    rWaterInlet.AddConditions( index_cond_water );
-    rAirInlet.AddConditions( index_cond_air );
+    r_fluid_1_inlet.AddConditions( index_cond_fluid1 );
+    r_fluid_2_inlet.AddConditions( index_cond_fluid2 );
 
     r_root_model_part.GetCommunicator().Barrier();
 }
