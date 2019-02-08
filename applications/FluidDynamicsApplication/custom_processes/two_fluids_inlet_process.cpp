@@ -112,13 +112,14 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = r_root_model_part.NodesBegin() + i_node;
+        auto& r_dist = it_node->GetSolutionStepValue(DISTANCE, 0);
 
-        if ( (mInletRadius - it_node->GetSolutionStepValue(DISTANCE, 0)) >= 0 ){
+        if ( (mInletRadius - r_dist) >= 0 ){
             // inside the transition radius (from 1 to 0)
-            it_node->GetSolutionStepValue(DISTANCE, 0) = scaling_factor * (mInletRadius - it_node->GetSolutionStepValue(DISTANCE, 0));
+            r_dist = scaling_factor * (mInletRadius - r_dist);
         } else {
             // outside the transition radius
-            it_node->GetSolutionStepValue(DISTANCE, 0) = 0.0;
+            r_dist = 0.0;
         }
     }
 
