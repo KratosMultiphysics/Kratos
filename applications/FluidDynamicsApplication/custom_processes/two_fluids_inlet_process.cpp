@@ -50,7 +50,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     // finding the complete model of the inlet model part
-    ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
+    ModelPart& r_root_model_part = mrInletModelPart.GetRootModelPart();
 
     // setting the parameters to the private data members of the class
     mInterfaceNormal = rParameters["interface_normal"].GetVector();
@@ -87,9 +87,9 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        auto it_node = r_root_model_part.NodesBegin() + i_node;
         it_node->GetSolutionStepValue(DISTANCE, 2) = it_node->GetSolutionStepValue(DISTANCE, 0);
     }
 
@@ -97,9 +97,9 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // setting distance of inlet nodes to 0.0
     // setting rest of distances to 1.0
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        auto it_node = r_root_model_part.NodesBegin() + i_node;
         it_node->GetSolutionStepValue(DISTANCE, 0) = 1.0;
     }
 
@@ -116,9 +116,9 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        auto it_node = r_root_model_part.NodesBegin() + i_node;
 
         if ( (mInletRadius - it_node->GetSolutionStepValue(DISTANCE, 0)) >= 0 ){
             // inside the transition radius (from 1 to 0)
@@ -131,13 +131,13 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // saving the value of DISTANCE to the non-historical variable AUX_DISTANCE
     VariableUtils var_utils;
-    var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
+    var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, r_root_model_part.Nodes() );
 
     // (*) restoring the original distance field from its stored version
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        auto it_node = r_root_model_part.NodesBegin() + i_node;
         it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, 2);
     }
 
@@ -186,19 +186,19 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     rWaterInlet.AddConditions( index_cond_water );
     rAirInlet.AddConditions( index_cond_air );
 
-    rRootModelPart.GetCommunicator().Barrier();
+    r_root_model_part.GetCommunicator().Barrier();
 }
 
 
 
 void TwoFluidsInletProcess::SmoothDistanceField(){
 
-    ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
+    ModelPart& r_root_model_part = mrInletModelPart.GetRootModelPart();
 
     // #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        auto it_node = r_root_model_part.NodesBegin() + i_node;
 
         // check if node is inside "inlet_transition_radius"
         if ( std::abs(it_node->GetValue(AUX_DISTANCE)) > 1.0e-5 ){
