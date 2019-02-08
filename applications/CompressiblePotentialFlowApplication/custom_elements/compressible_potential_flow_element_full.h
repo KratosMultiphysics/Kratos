@@ -678,21 +678,8 @@ public:
                 //calculate shape functions
                 GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-                //gather nodal data
-                if (this->IsNot(STRUCTURE)){
-                    for(unsigned int i=0; i<NumNodes; i++)
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                }else{
-                    for(unsigned int i=0; i<NumNodes; i++){
-                        if (GetGeometry()[i].IsNot(STRUCTURE))
-                            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                        else
-                            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                    }
-
-                }   
-
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+                array_1d<double, Dim> v;
+                ComputeVelocityNormalElement(v);
 
                 const double v_norm2 = inner_prod(v,v);
 
@@ -726,28 +713,9 @@ public:
                 //calculate shape functions
                 GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-                array_1d<double,NumNodes> distances;
-                GetWakeDistances(distances);
 
-                //taking only positive part
-                // for (unsigned int i = 0; i < NumNodes; i++)
-                // {
-                //     if(distances[i] > 0)
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                //     else
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                // }
-
-                //negative part - sign is opposite to the previous case
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] < 0)                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);                    
-                    else                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);                    
-                }
-
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
+                array_1d<double, Dim> v;
+                ComputeVelocityLowerWakeElement(v);
 
                 const double v_norm2 = inner_prod(v,v);
                 const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
