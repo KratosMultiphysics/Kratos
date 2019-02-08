@@ -61,16 +61,6 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake")
 add_library(Common INTERFACE)
 add_library(VexCL::Common ALIAS Common)
 
-target_compile_features(Common INTERFACE
-    cxx_auto_type
-    cxx_nullptr
-    cxx_rvalue_references
-    cxx_right_angle_brackets
-    cxx_static_assert
-    cxx_variadic_templates
-    cxx_decltype
-)
-
 if (VEXCL_AMD_SI_WORKAROUND)
     target_compile_definitions(Common INTERFACE VEXCL_AMD_SI_WORKAROUND)
 endif()
