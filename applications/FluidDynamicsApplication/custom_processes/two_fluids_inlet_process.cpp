@@ -75,7 +75,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // Comment: The historical DISTANCE variable is used to compute a distance field that is then stored in a non-historical variable AUX_DISTANCE
     //          The functions for the distance computation do not work on non-historical variables - this is reason for the following procedure (*)
 
-    const int buffer_size = r_root_model_part.GetBufferSize()
+    const int buffer_size = r_root_model_part.GetBufferSize();
     KRATOS_ERROR_IF( buffer_size < 2 ) << "TwoFluidsInletProcess: There is no space for an intermediate storage" << std::endl;
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
@@ -89,19 +89,23 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // Preparation for variational distance calculation process
     // setting distance of inlet nodes to 0.0
     // setting rest of distances to 1.0
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
-        // iteration over all nodes
-        auto it_node = r_root_model_part.NodesBegin() + i_node;
-        it_node->GetSolutionStepValue(DISTANCE, 0) = 1.0;
-    }
+    VariableUtils().SetVariable( DISTANCE, 1.0, r_root_model_part.Nodes() );
+    VariableUtils().SetVariable( DISTANCE, -1.0e-7, mrInletModelPart.Nodes() );
 
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
-        // iteration over all nodes
-        auto it_node = mrInletModelPart.NodesBegin() + i_node;
-        it_node->GetSolutionStepValue(DISTANCE, 0) = -1.0e-7;
-    }
+
+    // #pragma omp parallel for
+    // for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
+    //     // iteration over all nodes
+    //     auto it_node = r_root_model_part.NodesBegin() + i_node;
+    //     it_node->GetSolutionStepValue(DISTANCE, 0) = 1.0;
+    // }
+
+    // #pragma omp parallel for
+    // for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
+    //     // iteration over all nodes
+    //     auto it_node = mrInletModelPart.NodesBegin() + i_node;
+    //     it_node->GetSolutionStepValue(DISTANCE, 0) = -1.0e-7;
+    // }
 
     // Variational distance calculation process is executed to calculate distance from inlet
     pDistanceProcess->Execute();
@@ -146,7 +150,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     std::vector<IndexType> index_node_fluid2;
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
         auto it_node = mrInletModelPart.NodesBegin() + i_node;
-        const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
+        const double inlet_dist = inner_prod( ( it_node->Coordinates() - mInterfacePoint ), mInterfaceNormal );
         if (inlet_dist <= 0.0){
             index_node_fluid1.push_back( it_node->GetId() );
         } else {
@@ -165,7 +169,9 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         unsigned int neg_counter = 0;
         for (int i_node = 0; i_node < static_cast<int>(it_cond->GetGeometry().PointsNumber()); i_node++){
             const Node<3>& rNode = (it_cond->GetGeometry())[i_node];
-            const double inlet_dist = ComputeNodalDistanceInInletDistanceField( rNode );
+            // const double inlet_dist = ComputeNodalDistanceInInletDistanceField( rNode );
+            const double inlet_dist = inner_prod( ( rNode.Coordinates() - mInterfacePoint ), mInterfaceNormal );
+
             if ( inlet_dist > 0 ){ pos_counter++; }
             if ( inlet_dist <= 0 ){ neg_counter++; }
         }
@@ -196,8 +202,11 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
 
         // check if node is inside "inlet_transition_radius"
         if ( std::abs(it_node->GetValue(AUX_DISTANCE)) > 1.0e-5 ){
+
             // finding distance value of the node in the inlet field
-            const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
+            // const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
+            const double inlet_dist = inner_prod( ( it_node->Coordinates() - mInterfacePoint ), mInterfaceNormal );
+
             // finding distance value for the node in the domain distance field
             const double domain_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
             // introducing a smooth transition based in the distance from the inlet stored in "AUX_DISTANCE"
@@ -211,27 +220,5 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
     }
 
 }
-
-
-/* Private functions ****************************************************/
-
-double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const ModelPart::NodesContainerType::iterator node ){
-    const array_1d<double,3> distance = node->Coordinates() - mInterfacePoint;
-    const array_1d<double,3>& normal = mInterfaceNormal;
-    const double inlet_distance =   distance[0]*normal[0] +
-                                    distance[1]*normal[1] +
-                                    distance[2]*normal[2];
-    return inlet_distance;
-}
-
-double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const Node<3>& node ){
-    const array_1d<double,3> distance = node.Coordinates() - mInterfacePoint;
-    const array_1d<double,3>& normal = mInterfaceNormal;
-    const double inlet_distance =   distance[0]*normal[0] +
-                                    distance[1]*normal[1] +
-                                    distance[2]*normal[2];
-    return inlet_distance;
-}
-
 
 };  // namespace Kratos.

@@ -153,24 +153,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Function to compute the distance of a node in terms of the distance field that is
-     * specified by the surface defined at the inlet
-     *
-     * @param node Node in the discretized domain
-     * @return double Distance in the inlet distance field
-     */
-    double ComputeNodalDistanceInInletDistanceField( const ModelPart::NodesContainerType::iterator node );
-
-    /**
-     * @brief Function to compute the distance of a node in terms of the distance field that is
-     * specified by the surface defined at the inlet
-     *
-     * @param node Node in the discretized domain
-     * @return double Distance in the inlet distance field
-     */
-    double ComputeNodalDistanceInInletDistanceField( const Node<3>& node );
-
     ///@}
     ///@name Private  Access
     ///@{
