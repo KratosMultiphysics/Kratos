@@ -22,7 +22,7 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
