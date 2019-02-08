@@ -116,7 +116,6 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
                 element_size = nodal_h;
         }
 
-        std::cout << it_node->Id() << "  "<<element_size<<" "<<ratio_reference<<std::endl;  //output to the file out.txt
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio);
 
