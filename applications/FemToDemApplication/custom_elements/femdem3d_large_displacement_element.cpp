@@ -226,18 +226,18 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
 		Vector stress_vector = ZeroVector(6);
 		this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector);
-        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * stress_vector;
         Matrix tangent_tensor;
 
         if (is_damaging == true) { // Tangent Tensor
-            this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, F, constitutive_matrix);
+            this->CalculateTangentTensor(tangent_tensor, strain_vector, r_integrated_stress_vector, F, constitutive_matrix);
             rLeftHandSideMatrix += integration_weigth * prod(trans(B), Matrix(prod(tangent_tensor, B)));
         } else { // Secant
             this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
         }
 
-        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
-        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
+        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
 } // CalculateLocalSystem
 
@@ -352,9 +352,9 @@ void FemDem3DLargeDisplacementElement::CalculateRightHandSide(VectorType& rRight
 
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
-        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
-        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
 }
 
