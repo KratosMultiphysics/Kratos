@@ -174,10 +174,6 @@ class IgaSolver(PythonSolver):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
         self._set_and_fill_buffer()
-
-        print(self.main_model_part)
-
-
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
@@ -301,17 +297,6 @@ class IgaSolver(PythonSolver):
             self.nurbs_brep_modeler.ImportGeometry(self.geometry_reader, geometry_parameters)
 
     def _execute_after_reading(self):
-        # """Prepare computing model part and import constitutive laws. """
-        # # Auxiliary parameters object for the CheckAndPepareModelProcess
-        # params = KratosMultiphysics.Parameters("{}")
-        # params.AddValue("model_part_name",self.settings["model_part_name"])
-        # params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        # params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        # params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # # Assign mesh entities from domain and process sub model parts to the computing model part.
-        # import check_and_prepare_model_process_structural
-        # check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
-
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
