@@ -18,6 +18,7 @@ class IgaAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
+        print('Create Solver')
         return solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):

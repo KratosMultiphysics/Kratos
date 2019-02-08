@@ -21,6 +21,7 @@ class StaticIgaSolver(IgaSolver):
 
     See iga_solver.py for more information.
     """
+
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
