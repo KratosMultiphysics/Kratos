@@ -164,7 +164,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-extern template class AdjointSolidElement<TotalLagrangian>;
+KRATOS_API_EXTERN template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
 
 /**
  * @class KratosStructuralMechanicsApplication
