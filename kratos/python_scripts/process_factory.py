@@ -9,22 +9,36 @@ class KratosProcessFactory(object):
         constructed_processes = []
         for i in range(0,process_list.size()):
             item = process_list[i]
-            # The kratos_module is the application where the script must be loaded. ex. KratosMultiphysics.StructuralMechanicsApplication
-            if(item.Has("kratos_module")):
+            if not item.Has("python_module"):
+                KratosMultiphysics.Logger.PrintWarning("Your list of processes: ", process_list)
+                raise NameError('"python_module" must be defined in your parameters. Check all your processes')
+
+            # python-script that contains the process
+            python_module_name = item["python_module"].GetString()
+
+            if item.Has("kratos_module"): # for Kratos-processes
+                '''Location of the process in Kratos; e.g.:
+                - KratosMultiphysics
+                - KratosMultiphysics.FluidDynamicsApplication
+                '''
                 kratos_module_name = item["kratos_module"].GetString()
                 if not kratos_module_name.startswith("KratosMultiphysics"):
                     kratos_module_name = "KratosMultiphysics." + kratos_module_name
-                __import__(kratos_module_name)
 
-            # The python_module is the actual script that must be launch
-            if(item.Has("python_module")):
-                python_module = __import__(item["python_module"].GetString())
+                try:
+                    full_module_name = kratos_module_name + "." + python_module_name
+                    python_module = __import__(full_module_name,fromlist=[python_module_name])
+                except ImportError: # old import mechanism for backwards-compatibility
+                    __import__(kratos_module_name)
+                    python_module = __import__(python_module_name)
+
                 p = python_module.Factory(item, self.Model)
                 constructed_processes.append( p )
-            else: # Otherwise an error is thrown
-                KratosMultiphysics.Logger.PrintWarning("Your list of processes: ", process_list)
-                raise NameError("python_module must be defined in your parameters. Check all your processes")
 
+            else: # for user-defined processes
+                python_module = __import__(python_module_name)
+                p = python_module.Factory(item, self.Model)
+                constructed_processes.append( p )
 
         return constructed_processes
 
