@@ -2576,17 +2576,13 @@ void MmgProcess<MMGLibray::MMG2D>::MMGLibCallIsoSurface()
     if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_iso, 1) != 1 )
        exit(EXIT_FAILURE);
 
-    // just to see if retrieved from Kratos correctly
-    if ( MMG2D_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
-        exit(EXIT_FAILURE);
-
-    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    /** (Not mandatory): check if the number of given entities match with mesh size */
     if ( MMG2D_Chk_meshData(mmgMesh,mmgSol) != 1 )
         exit(EXIT_FAILURE);
 
     /**------------------- level set discretization ---------------------------*/
 
-    /* debug mode ON (default value = OFF) */
+    /* Debug mode ON (default value = OFF) */
     // if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_debug, 1) != 1 )
     //    exit(EXIT_FAILURE);
 
@@ -2680,11 +2676,7 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCallIsoSurface()
     if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_iso, 1) != 1 )
        exit(EXIT_FAILURE);
 
-    // just to see if retrieved from Kratos correctly
-    if ( MMG3D_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
-        exit(EXIT_FAILURE);
-
-    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    /** (Not mandatory): check if the number of given entities match with mesh size */
     if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 )
         exit(EXIT_FAILURE);
 
@@ -2716,7 +2708,7 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCallIsoSurface()
     }
 
     /**------------------- level set discretization ---------------------------*/
-    /* debug mode ON (default value = OFF) */
+    /* Debug mode ON (default value = OFF) */
     // if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_debug, 1) != 1 )
     //   exit(EXIT_FAILURE);
 
@@ -2811,16 +2803,12 @@ void MmgProcess<MMGLibray::MMGS>::MMGLibCallIsoSurface()
     if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_iso, 1) != 1 )
        exit(EXIT_FAILURE);
 
-    // just to see if retrieved from Kratos correctly
-    if ( MMGS_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
-        exit(EXIT_FAILURE);
-
-    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    /** (Not mandatory): check if the number of given entities match with mesh size */
     if ( MMGS_Chk_meshData(mmgMesh,mmgSol) != 1 )
         exit(EXIT_FAILURE);
 
     /**------------------- level set discretization ---------------------------*/
-    /* debug mode ON (default value = OFF) */
+    /* Debug mode ON (default value = OFF) */
     // if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_debug, 1) != 1 )
     //    exit(EXIT_FAILURE);
 
