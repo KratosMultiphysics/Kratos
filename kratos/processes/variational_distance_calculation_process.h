@@ -451,7 +451,7 @@ protected:
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
 
-        r_distance_model_part.SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        r_distance_model_part.SetProcessInfo( base_model_part.pGetProcessInfo() );
         r_distance_model_part.SetBufferSize(base_model_part.GetBufferSize());
         r_distance_model_part.SetProperties(base_model_part.pProperties());
         r_distance_model_part.Tables() = base_model_part.Tables();
