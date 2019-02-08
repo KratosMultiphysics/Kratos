@@ -207,12 +207,15 @@ namespace Kratos
         Vector response_gradient_1;
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
-        rResponseGradient = ZeroVector(response_gradient_1.size());
+        rResponseGradient = ZeroVector(1);
 
         for (IndexType i = 0; i < response_gradient_1.size(); i++)
         {
             if( response_gradient_0[i] != 0 )
-                rResponseGradient[i] = response_gradient_1[i] / response_gradient_0[i];
+            {
+                rResponseGradient[0] = response_gradient_1[i] / response_gradient_0[i];
+                break;
+            }
         }
 
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;

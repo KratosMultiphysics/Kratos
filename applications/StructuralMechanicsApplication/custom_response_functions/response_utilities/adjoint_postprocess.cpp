@@ -232,14 +232,8 @@ namespace Kratos
         Vector adjoint_values;
         mrResponseFunction.CalculateFirstDerivativesGradient(cond, ResidualGradient,
                                                             ResponseGradient, r_process_info);
-        for (IndexType i = 0; i < ResponseGradient.size(); i++)
-        {
-            if( ResponseGradient[i] != 0 )
-            {
-                LoadFactorRatio = ResponseGradient[i];
-                break;
-            }
-        }
+        LoadFactorRatio = ResponseGradient[0];
+
         // commented out till I could figure what is wrong here
         // for (auto& cond_i : mrModelPart.Conditions())
         // {
@@ -294,7 +288,7 @@ namespace Kratos
                 elem_i.GetValuesVector(adjoint_vector[k]);
                 elem_i.GetValuesVector(adjoint_vector_0[k],1);
 
-                // TODO Mahmoud: This approach is too complex, should reduce the complexity
+                // // TODO Mahmoud: This approach is too complex, should reduce the complexity
                 // int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
                 // int i = 0;
                 // for (auto& node_i : elem_i.GetGeometry())
