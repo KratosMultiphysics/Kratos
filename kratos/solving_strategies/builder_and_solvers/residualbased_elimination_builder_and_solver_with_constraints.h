@@ -172,7 +172,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool CheckConstraintRelation = true,
+        const bool CheckConstraintRelation = false,
         const bool ResetRelationMatrixEachIteration = false
         )
         : BaseType(pNewLinearSystemSolver),
@@ -483,10 +483,10 @@ protected:
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution, false);
         } else {
             if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
-            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
+            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution, false);
         }
 
         // We apply the master/slave realtionship before build
@@ -1326,6 +1326,8 @@ protected:
         TSystemVectorType& rb
         ) override
     {
+        KRATOS_TRY;
+
         if (mDoFMasterFixedSet.size() > 0) {
             // We apply the same method as in the block builder and solver but instead of fixing the fixed Dofs, we just fix the master fixed Dofs
             std::vector<double> scaling_factors (mDoFToSolveSystemSize, 0.0);
@@ -1391,6 +1393,8 @@ protected:
                 }
             }
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -1585,6 +1589,8 @@ private:
         TSystemVectorType& rb
         )
     {
+        KRATOS_TRY
+
         // Auxiliar values
         const auto it_dof_begin = BaseType::mDofSet.begin();
         TSystemVectorType current_solution(mDoFToSolveSystemSize);
@@ -1592,13 +1598,15 @@ private:
 
         // Get current values
         IndexType counter = 0;
-        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
-            auto it_dof = BaseType::mDofSet.begin() + i;
-
-            auto it = mDoFSlaveSet.find(*it_dof);
-            if (it == mDoFSlaveSet.end()) {
-                current_solution[counter] = it_dof->GetSolutionStepValue();
-                counter += 1;
+        for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
+            auto it_dof = it_dof_begin + i;
+            const IndexType equation_id = it_dof->EquationId();
+            if (equation_id < BaseType::mEquationSystemSize ) {
+                auto it = mDoFSlaveSet.find(*it_dof);
+                if (it == mDoFSlaveSet.end()) {
+                    current_solution[counter] = it_dof->GetSolutionStepValue();
+                    counter += 1;
+                }
             }
         }
 
@@ -1627,6 +1635,8 @@ private:
             TSparseSpace::SetToZero(Dx_aux);
             KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_aux)) << "The relation between master/slave dofs is not respected" << std::endl;
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -1643,6 +1653,8 @@ private:
         TSystemVectorType& rDxSolved
         )
     {
+        KRATOS_TRY
+
         // Auxiliar values
         const auto it_dof_begin = BaseType::mDofSet.begin();
         TSystemVectorType current_solution(mDoFToSolveSystemSize);
@@ -1651,13 +1663,15 @@ private:
 
         // Get current values
         IndexType counter = 0;
-        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
+        for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
             auto it_dof = BaseType::mDofSet.begin() + i;
-
-            auto it = mDoFSlaveSet.find(*it_dof);
-            if (it == mDoFSlaveSet.end()) {
-                current_solution[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
-                counter += 1;
+            const bool equation_id = it_dof->EquationId();
+            if (equation_id < BaseType::mEquationSystemSize ) {
+                auto it = mDoFSlaveSet.find(*it_dof);
+                if (it == mDoFSlaveSet.end()) {
+                    current_solution[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
+                    counter += 1;
+                }
             }
         }
 
@@ -1672,13 +1686,12 @@ private:
         TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
 
         if (mComputeConstantContribution) {
+            ComputeConstraintContribution(pScheme, rModelPart, false, true, false);
             TSystemVectorType& rConstantVector = *mpConstantVector;
             TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
         }
 
         TSparseSpace::UnaliasedAdd(residual_solution, -1.0, updated_solution);
-
-        KRATOS_WATCH(residual_solution)
 
         // Check database
         for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
@@ -1686,6 +1699,8 @@ private:
         }
 
         return true;
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -2002,6 +2017,8 @@ private:
         TSystemVectorType& rb
         )
     {
+        KRATOS_TRY;
+
         if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
@@ -2018,6 +2035,8 @@ private:
                 }
             }
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -2032,9 +2051,12 @@ private:
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         const bool ComputeTranslationMatrix = false,
-        const bool ComputeConstantVector = false
+        const bool ComputeConstantVector = false,
+        const bool ComputeEffectiveConstant = true
         )
     {
+        KRATOS_TRY;
+
         // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
@@ -2144,7 +2166,7 @@ private:
         }
 
         // Compute the effective constant vector
-        if (ComputeConstantVector) {
+        if (ComputeConstantVector && ComputeEffectiveConstant) {
             TSystemVectorType u(BaseType::mEquationSystemSize);
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
@@ -2179,6 +2201,8 @@ private:
         }
 
         return aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
+
+        KRATOS_CATCH("");
     }
 
     ///@}
