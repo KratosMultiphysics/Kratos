@@ -158,15 +158,26 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "check_constraint_relation"            : true,
+            "reset_relation_matrix_each_iteration" : true
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
+        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
     }
 
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BaseType(pNewLinearSystemSolver)
+    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        const bool CheckConstraintRelation = true,
+        const bool ResetRelationMatrixEachIteration = false
+        )
+        : BaseType(pNewLinearSystemSolver),
+          mCheckConstraintRelation(CheckConstraintRelation),
+          mResetRelationMatrixEachIteration(ResetRelationMatrixEachIteration)
     {
     }
 
@@ -392,6 +403,9 @@ protected:
     SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
     IndexMapType mReactionEquationIdMap;              /// In order to know the corresponding EquaionId for each component of the reaction vector
 
+    bool mCheckConstraintRelation = false;            /// If we do a constraint check relation
+    bool mResetRelationMatrixEachIteration = false;   /// If we reset the relation matrix at each iteration
+
     bool mComputeConstantContribution = false;        /// If we compute the constant contribution of the MPC
     bool mCleared = true;                             /// If the system has been reseted
 
@@ -471,7 +485,8 @@ protected:
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
         } else {
-            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
+            if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
+            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
         }
 
         // We apply the master/slave realtionship before build
@@ -1086,7 +1101,8 @@ protected:
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
         } else {
-            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
+            if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
+            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1154,7 +1170,8 @@ protected:
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
         } else {
-            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
+            if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
+            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1600,10 +1617,75 @@ private:
             auto it_dof = it_dof_begin + k;
             const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
             if (is_slave && it_dof->IsFree()) {
-                const IndexType equation_id = it_dof->EquationId();
-                it_dof->GetSolutionStepValue() = updated_solution[equation_id];
+                it_dof->GetSolutionStepValue() = updated_solution[k];
             }
         }
+
+        // We check the solution
+        if (mCheckConstraintRelation) {
+            TSystemVectorType Dx_aux(mDoFToSolveSystemSize);
+            TSparseSpace::SetToZero(Dx_aux);
+            KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_aux)) << "The relation between master/slave dofs is not respected" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method checks that the master/slave relation is properly set
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rDx The vector of unkowns
+     * @param rDxSolved The vector of unkowns actually solved
+     */
+    bool CheckMasterSlaveRelation(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rDxSolved
+        )
+    {
+        // Auxiliar values
+        const auto it_dof_begin = BaseType::mDofSet.begin();
+        TSystemVectorType current_solution(mDoFToSolveSystemSize);
+        TSystemVectorType updated_solution(BaseType::mEquationSystemSize);
+        TSystemVectorType residual_solution(BaseType::mEquationSystemSize);
+
+        // Get current values
+        IndexType counter = 0;
+        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
+            auto it_dof = BaseType::mDofSet.begin() + i;
+
+            auto it = mDoFSlaveSet.find(*it_dof);
+            if (it == mDoFSlaveSet.end()) {
+                current_solution[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
+                counter += 1;
+            }
+        }
+
+        #pragma omp parallel for
+        for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
+            auto it_dof = it_dof_begin + k;
+            residual_solution[k] = it_dof->GetSolutionStepValue() + rDx[k];
+        }
+
+        // Apply master slave constraints
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
+
+        if (mComputeConstantContribution) {
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
+        }
+
+        TSparseSpace::UnaliasedAdd(residual_solution, -1.0, updated_solution);
+
+        KRATOS_WATCH(residual_solution)
+
+        // Check database
+        for(int k = 0; k < static_cast<int>(BaseType::mEquationSystemSize); ++k) {
+            if (std::abs(residual_solution[k]) > std::numeric_limits<double>::epsilon()) return false;
+        }
+
+        return true;
     }
 
     /**
@@ -1636,6 +1718,11 @@ private:
         // Add the constant vector
         if (mComputeConstantContribution) {
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
+        }
+
+        // We check the solution
+        if (mCheckConstraintRelation) {
+            KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_copy)) << "The relation between master/slave dofs is not respected" << std::endl;
         }
 
         // Simply restore old LHS
@@ -1887,6 +1974,19 @@ private:
                     r_b_value += rhs_value;
                 }
             }
+        }
+    }
+
+    /**
+     * @brief This method set to zero the relation matrix
+     */
+    void ResetRelationMatrix()
+    {
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        double *Tvalues = rTMatrix.value_data().begin();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
+            Tvalues[i] = 0.0;
         }
     }
 
