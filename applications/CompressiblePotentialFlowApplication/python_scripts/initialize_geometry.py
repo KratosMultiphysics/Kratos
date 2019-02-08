@@ -68,10 +68,10 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         for node in self.main_model_part.Nodes:
             node.SetValue(MeshingApplication.METRIC_TENSOR_2D, ZeroVector)
 
-        import linear_solver_factory #Linear solver for variational distance process
+        import python_linear_solver_factory #Linear solver for variational distance process
         linear_solver_settings=KratosMultiphysics.Parameters("""
         {
-            "solver_type": "AMGCL",
+            "solver_type": "amgcl",
             "max_iteration": 400,
             "gmres_krylov_space_dimension": 100,
             "smoother_type":"ilu0",
@@ -83,7 +83,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             "scaling": false
         }""")
         
-        self.linear_solver = linear_solver_factory.ConstructSolver(linear_solver_settings)
+        self.linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def Execute(self):
         print("Executing Initialize Geometry")

@@ -520,7 +520,7 @@ public:
 
         if (this->Is(MARKER) && active == true){
             CheckWakeCondition();
-            ComputePotentialJump(rCurrentProcessInfo);   
+            // ComputePotentialJump(rCurrentProcessInfo);   
         }   
     }
 
