@@ -49,45 +49,46 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerOutput, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
             LoggerMessage message("label");
             message << "Test message with number " << 12 << 'e' << "00";
 
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "label: Test message with number 12e00" : "";
+
             output.WriteMessage(message);
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "label: Test message with number 12e00");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStream, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
             Logger("TestLabel") << "Test message with number " << 12 << 'e' << "00";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestLabel: Test message with number 12e00" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 
             Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
                 << Logger::Category::CRITICAL << std::endl;
 
-            // The message has DETAIL severity and should not be written
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
+            // The message has DETAIL severity and should not be written (check that nothing was added to the buffer)
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(CheckPoint, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
             KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestCheckPoint: The value in check point is 3.14");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestCheckPoint: The value in check point is 3.14" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
 #else
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), ""); // should print noting
 #endif
@@ -95,19 +96,18 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfo, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
             KRATOS_INFO("TestInfo") << "Test info message";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIf, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -115,12 +115,12 @@ namespace Kratos {
             KRATOS_INFO_IF("TestInfo", true) << "Test info message";
             KRATOS_INFO_IF("TestInfo", false) << "This should not appear";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -129,12 +129,12 @@ namespace Kratos {
                 KRATOS_INFO_ONCE("TestInfo") << "Test info message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message - 0");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: Test info message - 0" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -143,24 +143,24 @@ namespace Kratos {
                 KRATOS_INFO_FIRST_N("TestInfo", 4) << ".";
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: .TestInfo: .TestInfo: .TestInfo: .");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestInfo: .TestInfo: .TestInfo: .TestInfo: ." : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarning, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
             KRATOS_WARNING("TestWarning") << "Test warning message";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningIf, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -168,12 +168,12 @@ namespace Kratos {
             KRATOS_WARNING_IF("TestWarning", true) << "Test warning message";
             KRATOS_WARNING_IF("TestWarning", false) << "This should not appear";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningOnce, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -182,12 +182,12 @@ namespace Kratos {
                 KRATOS_WARNING_ONCE("TestWarning") << "Test warning message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message - 0");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message - 0" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -196,12 +196,12 @@ namespace Kratos {
                 KRATOS_WARNING_FIRST_N("TestWarning", 4) << ".";
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: .TestWarning: .TestWarning: .TestWarning: .");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: .TestWarning: .TestWarning: .TestWarning: ." : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetail, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -209,12 +209,12 @@ namespace Kratos {
 
             KRATOS_DETAIL("TestDetail") << "Test detail message";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailIf, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -223,12 +223,12 @@ namespace Kratos {
             KRATOS_DETAIL_IF("TestDetail", true) << "Test detail message";
             KRATOS_DETAIL_IF("TestDetail", false) << "This should not appear";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailOnce, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -238,12 +238,12 @@ namespace Kratos {
                 KRATOS_DETAIL_ONCE("TestDetail") << "Test detail message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message - 0");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: Test detail message - 0" : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailFirst, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -253,12 +253,12 @@ namespace Kratos {
                 KRATOS_DETAIL_FIRST_N("TestDetail", 4) << ".";
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: .TestDetail: .TestDetail: .TestDetail: .");
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestDetail: .TestDetail: .TestDetail: .TestDetail: ." : "";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
         {
-            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
             Logger::AddOutput(p_output);
