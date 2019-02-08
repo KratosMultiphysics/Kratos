@@ -132,14 +132,14 @@ public:
             const Vector& globalDisplacements,
             size_t nodeid)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
     virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
             const Vector& globalDisplacements,
             const Vector& N)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
 public:

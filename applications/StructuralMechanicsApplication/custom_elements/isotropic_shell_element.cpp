@@ -1548,7 +1548,7 @@ void IsotropicShellElement::CalculateProjectionOperator(
     rho(14,0) = 1.0/y31;
 
     //completing the calculation of the projections
-    noalias(rProjOperator) = IdentityMatrix(18,18);
+    noalias(rProjOperator) = IdentityMatrix(18);
     //noalias(rProjOperator) -= prod(trans(psi),rho);
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
@@ -1620,7 +1620,7 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
 
         double temp = 1.0/(1.0 + 0.25*omega_scalar_2);
 
-        noalias(Ttilde) = IdentityMatrix(3,3);
+        noalias(Ttilde) = IdentityMatrix(3);
         noalias(Ttilde) += temp * Omega;
         noalias(Ttilde) += 0.5*temp * prod( Omega, Omega);
 
@@ -1655,9 +1655,9 @@ void IsotropicShellElement::SaveOriginalReference(
     }
 
     //initializing nodal triad matrices
-    noalias(mTs[0]) = IdentityMatrix(3,3);
-    noalias(mTs[1]) = IdentityMatrix(3,3);
-    noalias(mTs[2]) = IdentityMatrix(3,3);
+    noalias(mTs[0]) = IdentityMatrix(3);
+    noalias(mTs[1]) = IdentityMatrix(3);
+    noalias(mTs[2]) = IdentityMatrix(3);
 
 
     KRATOS_CATCH( "" )
@@ -1697,11 +1697,11 @@ void IsotropicShellElement::CalculatePureDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //extract pure rotations from Omega
@@ -1764,11 +1764,11 @@ void IsotropicShellElement::CalculatePureMembraneDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1827,11 +1827,11 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config

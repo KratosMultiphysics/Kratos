@@ -547,7 +547,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 
     const SizeType dimension = WorkingSpaceDimension();
 
-    stress_matrix = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( IdentityMatrix(dimension, dimension) - rInvCTensor );
+    stress_matrix = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( IdentityMatrix(dimension) - rInvCTensor );
 
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize() );
 }
@@ -567,7 +567,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(
 
     const SizeType dimension = WorkingSpaceDimension();
 
-    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension, dimension) + LameMu * ( rBTensor - IdentityMatrix(dimension, dimension) );
+    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension) + LameMu * ( rBTensor - IdentityMatrix(dimension) );
 
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
