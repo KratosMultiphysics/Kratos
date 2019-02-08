@@ -13,7 +13,7 @@ import os
 import math
 
 def Factory(settings, current_model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CompareTwoFilesCheckProcess(settings["Parameters"])
 
@@ -95,7 +95,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
-        if self.remove_output_file == True:
+        if self.remove_output_file:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
     def __GetFileLines(self):
@@ -349,10 +349,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             else:
                 tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
-            if (self.dimension == 2):
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+            if len(tmp1) == 1:
+                error += tmp1[0] - tmp2[0]
             else:
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
+                if (self.dimension == 2):
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+                else:
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
         self.assertTrue(error < self.tol, msg = self.info_msg)

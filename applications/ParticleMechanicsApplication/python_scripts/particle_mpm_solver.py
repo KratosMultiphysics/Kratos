@@ -22,7 +22,7 @@ class ParticleMPMSolver(PythonSolver):
         self._add_model_part_containers()
 
         # Default settings
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         # There is only a single rank in OpenMP, we always print
         self.is_printing_rank = True
