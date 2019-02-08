@@ -3,7 +3,6 @@
         "problem_name"    : "couette_3D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 3,
         "start_step"      : 0.0,
         "end_time"        : 0.2
     },
@@ -51,7 +50,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type": "SuperLUSolver",
+            "solver_type": "ExternalSolversApplication.super_lu",
             "verbosity": 0
         },
         "volume_model_part_name"       : "Parts_Fluid",

@@ -3,7 +3,6 @@
         "problem_name"    : "cavity_compressibility",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 2,
         "start_step"      : 0.0,
         "end_time"        : 20.0
     },
