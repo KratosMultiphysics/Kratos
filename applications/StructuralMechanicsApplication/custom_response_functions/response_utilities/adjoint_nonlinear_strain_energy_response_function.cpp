@@ -194,7 +194,6 @@ namespace Kratos
     // TODO Mahmoud: This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
     // Later this should be replaced with a more general approach that is suitable for follower loads
     // a scaling factor would give accurate results for non-follower loads, however it should be used carefully for follower loads
-    // Here it return 
     // frac{\partial E_i}{\partial u_i} / frac{\partial E_i-1}{\partial u_i-1}
     void AdjointNonlinearStrainEnergyResponseFunction::CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
@@ -208,7 +207,7 @@ namespace Kratos
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
         rResponseGradient = ZeroVector(1);
-
+        // Here a scalar value is calculated (lambda_1 / lambda_0)
         for (IndexType i = 0; i < response_gradient_1.size(); i++)
         {
             if( response_gradient_0[i] != 0 )

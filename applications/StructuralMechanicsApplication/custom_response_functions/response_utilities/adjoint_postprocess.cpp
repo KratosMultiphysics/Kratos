@@ -234,7 +234,7 @@ namespace Kratos
                                                             ResponseGradient, r_process_info);
         LoadFactorRatio = ResponseGradient[0];
 
-        // commented out till I could figure what is wrong here
+        // commented out till I could figure out what is wrong here
         // for (auto& cond_i : mrModelPart.Conditions())
         // {
         //     Matrix ResidualGradient;
@@ -308,8 +308,6 @@ namespace Kratos
                 //     }
                 //     i++ ;
                 // }
-                // TODO Mahmoud: this is modified to work for nonlinear analysis
-                // It should be modified to work for both linear and non-linear
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
                 //noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
                 // TODO Mahmoud: The scaling factor is hard coded and should be modified

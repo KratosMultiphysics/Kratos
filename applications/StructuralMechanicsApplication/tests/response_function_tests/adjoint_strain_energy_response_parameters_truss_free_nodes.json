@@ -3,7 +3,7 @@
         "problem_name"    : "Non_Linear_Truss",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 0.1,
+        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 4.99,
         "parallel_type"   : "OpenMP",
@@ -13,7 +13,7 @@
         "response_type"    : "adjoint_nonlinear_strain_energy",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-5,
-        "primal_settings"  : "single_truss_test_parameters.json",
-        "adjoint_settings"  : "single_truss_test_adjoint_parameters.json"
+        "primal_settings"  : "response_function_tests/nonlinear_truss_free_nodes_test_parameters.json",
+        "adjoint_settings"  : "response_function_tests/nonlinear_truss_free_nodes_test_adjoint_parameters.json"
     }
 }
