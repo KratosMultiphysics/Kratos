@@ -100,15 +100,9 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.complete_model, 10, 10)
         self.neighbour_search.Execute()
 
-        if ( self.complete_model.GetCommunicator().TotalProcesses() == 1 ):
-            # operation for serial or OpenMP
-            self.variational_distance_process = self._set_variational_distance_process_serial()
-            self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
+        self.variational_distance_process = self.set_variational_distance_process()
+        self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
-        elif ( self.complete_model.GetCommunicator().TotalProcesses() > 1 ):
-            # operation for MPI (based on Trilinos)
-            self.variational_distance_process = self._set_variational_distance_process_mpi()
-            self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
 
         import assign_vector_by_direction_process
@@ -130,7 +124,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.two_fluid_inlet_process.SmoothDistanceField()
 
 
-    def _set_variational_distance_process_serial(self):
+    def set_variational_distance_process(self):
         # Construct the variational distance calculation process
         maximum_iterations = 5
 
@@ -154,45 +148,6 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                 "distance_from_inlet_2D")
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                self.complete_model,
-                self.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
-                "distance_from_inlet_3D")
-
-        return variational_distance_process
-
-
-
-    def _set_variational_distance_process_mpi(self):
-        # Construct the variational distance calculation process
-        import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-        self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
-        maximum_iterations = 5
-
-        ### for MPI
-        trilinos_settings = KratosMultiphysics.Parameters("""
-        {
-            "linear_solver_settings"   : {
-                "solver_type" : "amgcl"
-            }
-        }
-        """)
-
-        import trilinos_linear_solver_factory
-        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver( trilinos_settings["linear_solver_settings"] )
-
-        if self.complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
-                self.EpetraCommunicator,
-                self.complete_model,
-                self.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
-                "distance_from_inlet_2D")
-        else:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
-                self.EpetraCommunicator,
                 self.complete_model,
                 self.linear_solver,
                 maximum_iterations,
