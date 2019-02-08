@@ -78,7 +78,7 @@ class ArtificialCompressibilityTest(UnitTest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
-            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["solver_settings"]["model_part_name"].GetString())
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):

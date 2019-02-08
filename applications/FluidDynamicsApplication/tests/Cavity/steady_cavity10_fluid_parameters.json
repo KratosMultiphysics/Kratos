@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cavity10",
-        "model_part_name" : "Cavity",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -15,7 +13,9 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                 : "Monolithic",
+        "solver_type": "Monolithic",
+        "model_part_name": "Cavity",
+        "domain_size": 2,
         "model_import_settings"       : {
             "input_type"     : "mdpa",
             "input_filename" : "square10"
