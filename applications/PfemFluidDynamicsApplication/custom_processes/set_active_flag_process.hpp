@@ -49,8 +49,9 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-  typedef  std::vector<Node<3>*>             NodePointerVectorType;
-  typedef  std::vector<Element*>          ElementPointerVectorType;
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -122,11 +123,11 @@ namespace Kratos
 	      	for(unsigned int i=0; i<numNodes; i++)
 	      	  {
 	      	    if(itElem->GetGeometry()[i].Is(RIGID)  && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
-	      	      ElementPointerVectorType& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOR_ELEMENTS);
+	      	      ElementWeakPtrVectorType& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
 	      	      bool doNotSetNullPressure=false;
-	      	      for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	      	      for(ElementWeakPtrVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 	      		{
-	      		  if((*ne)->Is(ACTIVE)){
+	      		  if((ne)->Is(ACTIVE)){
 	      		    doNotSetNullPressure=true;
 	      		    break;
 	      		  }
@@ -221,11 +222,11 @@ namespace Kratos
       bool foundedIsolatedWall=false;
       for(unsigned int i=0; i<numNodes; i++)
 	{
-	  NodePointerVectorType& rN = wallElementNodes[i].GetValue(NEIGHBOR_NODES);
+	  NodeWeakPtrVectorType& rN = wallElementNodes[i].GetValue(NEIGHBOUR_NODES);
 	  bool localIsolatedWallNode=true;
 	  for(unsigned int j = 0; j < rN.size(); j++)
 	    {
-	      if(rN[j]->IsNot(RIGID)){
+	      if(rN[j].IsNot(RIGID)){
 		localIsolatedWallNode=false;
 		break;
 	      }

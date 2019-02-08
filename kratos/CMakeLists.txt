@@ -7,6 +7,7 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
@@ -33,6 +34,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_linear_solver_factory.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_preconditioner_factory.cpp;
@@ -63,6 +65,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/parallel_environment.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/data_communicator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
@@ -85,6 +88,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
 )
 
 ## Kratos python interface code
@@ -161,6 +165,7 @@ target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
         cotire(KratosTests)

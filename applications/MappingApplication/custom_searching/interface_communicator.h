@@ -75,7 +75,7 @@ public:
           mrMapperLocalSystems(rMapperLocalSystems),
           mSearchSettings(SearchSettings)
     {
-        // mEchoLevel = mSearchSettings["echo_level"].GetInt();
+        mEchoLevel = mSearchSettings["echo_level"].GetInt();
         mMapperInterfaceInfosContainer.resize(1);
     }
 
@@ -88,8 +88,7 @@ public:
 
     void ExchangeInterfaceData(const Communicator& rComm,
                                const Kratos::Flags& rOptions,
-                               const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+                               const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     ///@}
     ///@name Input and output
@@ -136,8 +135,7 @@ protected:
     ///@{
 
     virtual void InitializeSearch(const Kratos::Flags& rOptions,
-                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     virtual void FinalizeSearch();
 
@@ -158,7 +156,7 @@ private:
 
     void ConductLocalSearch();
 
-    void CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+    void CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     void UpdateInterfaceObjectsOrigin();
 

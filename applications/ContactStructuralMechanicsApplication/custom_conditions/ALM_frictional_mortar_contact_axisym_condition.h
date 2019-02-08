@@ -66,7 +66,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> MortarBaseType;
+    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> MortarBaseType;
 
     typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
 
@@ -169,6 +169,12 @@ public:
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
+
+    /**
+     * @brief This functions returns if the computation is axisymmetric or not
+     * @return If axisymmetric or not
+     */
+    bool IsAxisymmetric() const override;
 
     /**
      * This functions computes the integration weight to consider

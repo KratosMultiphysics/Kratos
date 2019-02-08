@@ -49,7 +49,7 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-9,
             "provide_coordinates" : false,

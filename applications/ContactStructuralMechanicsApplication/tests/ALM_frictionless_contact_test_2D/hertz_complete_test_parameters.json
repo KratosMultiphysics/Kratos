@@ -37,10 +37,10 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_body_lower","Parts_body_upper"],
-        "processes_sub_model_part_list"      : ["Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_friction","LinePressure2D_bc_pressure","Parts_body_lower","Parts_body_upper"],
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_body_lower","Parts_body_upper"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_friction","LinePressure2D_bc_pressure","Parts_body_lower","Parts_body_upper"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -86,7 +86,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
