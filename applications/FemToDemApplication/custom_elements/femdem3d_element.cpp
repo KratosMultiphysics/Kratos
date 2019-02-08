@@ -1610,14 +1610,14 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 
 // Methods to compute the tangent tensor by numerical derivation
 void FemDem3DElement::CalculateTangentTensor(
-	Matrix& TangentTensor,
+	Matrix& rTangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
 	const Matrix& rElasticMatrix
 	)
 {
 	const double number_components = rStrainVectorGP.size();
-	TangentTensor.resize(number_components, number_components);
+	rTangentTensor.resize(number_components, number_components);
 	Vector perturbed_stress, perturbed_strain;
 	perturbed_strain.resize(number_components);
 	perturbed_stress.resize(number_components);
@@ -1628,7 +1628,7 @@ void FemDem3DElement::CalculateTangentTensor(
 		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
 		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
 		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
-		this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, component);
+		this->AssignComponentsToTangentTensor(rTangentTensor, delta_stress, perturbation, component);
 	}
 }
 

@@ -93,6 +93,18 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
                                             const Vector& rPerturbedStrainVector,
                                             const Matrix& rElasticMatrix,
                                             const Matrix& rPerturbedDeformationGradient);
+  void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
+                                    std::vector<Vector> &rOutput,
+                                    const ProcessInfo &rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable,
+                                    std::vector<Matrix> &rOutput,
+                                    const ProcessInfo &rCurrentProcessInfo) override;
+  void GetValueOnIntegrationPoints(const Variable<Matrix> &rVariable,
+                                  std::vector<Matrix> &rValues,
+                                  const ProcessInfo &rCurrentProcessInfo) override;
+  void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
+                                  std::vector<Vector> &rValues,
+                                  const ProcessInfo &rCurrentProcessInfo) override;
 
 }; // Class
 } // namespace Kratos

@@ -227,8 +227,15 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 		Vector stress_vector = ZeroVector(6);
 		this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector);
         const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+        Matrix tangent_tensor;
 
-        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
+        if (is_damaging == true) { // Tangent Tensor
+            this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, F, constitutive_matrix);
+            rLeftHandSideMatrix += integration_weigth * prod(trans(B), Matrix(prod(tangent_tensor, B)));
+        } else { // Secant
+            this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
+        }
+
         this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
     }
@@ -474,7 +481,7 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddInternalForcesVector(
 
 // Methods to compute the tangent tensor by numerical derivation
 void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
-	Matrix& TangentTensor,
+	Matrix& rTangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
     const Matrix& rDeformationGradientGP,
@@ -482,7 +489,7 @@ void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
 	)
 {
 	const double number_components = rStrainVectorGP.size();
-	TangentTensor.resize(number_components, number_components);
+	rTangentTensor.resize(number_components, number_components);
 	Vector perturbed_stress, perturbed_strain;
 	perturbed_strain.resize(number_components);
 	perturbed_stress.resize(number_components);
@@ -499,7 +506,7 @@ void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
             this->CalculateGreenLagrangeStrainVector(perturbed_strain, perturbed_deformation_gradient);
             this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
             const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
-            this->AssignComponentsToTangentTensor(TangentTensor, r_delta_stress, perturbation, component_voigt_index);
+            this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component_voigt_index);
         }
 	}
 }
@@ -528,7 +535,6 @@ void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
     const Matrix& rPerturbedDeformationGradient
     )
 {
-    
 }
 
 
@@ -600,6 +606,83 @@ int FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
                 return 0;
         }
     }
+}
+
+// 	VECTOR VARIABLES
+void FemDem3DLargeDisplacementElement::CalculateOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRESS_VECTOR || rVariable == CAUCHY_STRESS_VECTOR) {
+		rOutput[0] = this->GetValue(STRESS_VECTOR);
+	} else if (rVariable == STRAIN_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+		rOutput[0] = this->GetValue(STRAIN_VECTOR);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		rOutput[0] = (1.0 - mDamage) * (this->GetValue(STRESS_VECTOR));
+	}
+}
+
+// 	TENSOR VARIABLES
+void FemDem3DLargeDisplacementElement::CalculateOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+	if (rOutput[0].size2() != dimension)
+		rOutput[0].resize(dimension, dimension, false);
+
+	if (rVariable == STRESS_TENSOR ) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
+	} else if (rVariable == STRAIN_TENSOR) {
+		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * (this->GetValue(STRESS_VECTOR)));
+	} else if (rVariable == CAUCHY_STRESS_TENSOR) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
+    }
+}
+
+// Vector Values
+void FemDem3DLargeDisplacementElement::GetValueOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == CAUCHY_STRESS_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
+
+// Tensor variables
+void FemDem3DLargeDisplacementElement::GetValueOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == CAUCHY_STRESS_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
 }
 
 } // namespace Kratos
