@@ -158,13 +158,15 @@ target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LI
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 if (${AMGCL_GPGPU} MATCHES ON)
-    find_package(VexCL)
+    add_subdirectory(
+        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
+        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
 
     if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
-        target_link_libraries(KratosCore VexCL::OpenCL)
+        target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)
         add_definitions(-DAMGCL_GPGPU)
     elseif ("${AMGCL_GPGPU_BACKEND}" STREQUAL "CUDA" AND TARGET VexCL::CUDA)
-        target_link_libraries(KratosCore VexCL::CUDA)
+        target_link_libraries(KratosCore PUBLIC VexCL::CUDA)
         add_definitions(-DAMGCL_GPGPU)
     else()
         message(WARNING "AMGCL GPGPU backend not found")
