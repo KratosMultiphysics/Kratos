@@ -197,6 +197,7 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
 
     // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
+
         // iteration over all nodes
         auto it_node = r_root_model_part.NodesBegin() + i_node;
 
@@ -204,17 +205,15 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
         if ( std::abs(it_node->GetValue(AUX_DISTANCE)) > 1.0e-5 ){
 
             // finding distance value of the node in the inlet field
-            // const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
-            const double inlet_dist = inner_prod( ( it_node->Coordinates() - mInterfacePoint ), mInterfaceNormal );
+            const double& r_inlet_dist = inner_prod( ( it_node->Coordinates() - mInterfacePoint ), mInterfaceNormal );
 
             // finding distance value for the node in the domain distance field
-            const double domain_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
+            double& r_domain_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
             // introducing a smooth transition based in the distance from the inlet stored in "AUX_DISTANCE"
-            const double weighting_factor_inlet_field = it_node->GetValue(AUX_DISTANCE);
-            const double weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field;
+            const double& r_weighting_factor_inlet_field = it_node->GetValue(AUX_DISTANCE);
 
-            const double smoothed_dist = weighting_factor_inlet_field * inlet_dist + weighting_factor_domain_field * domain_dist;
-            it_node->FastGetSolutionStepValue( DISTANCE, 0 ) = smoothed_dist;
+            // setting the smoothed distance field
+            r_domain_dist = r_weighting_factor_inlet_field * r_inlet_dist + ( 1.0 - r_weighting_factor_inlet_field ) * r_domain_dist;
         }
 
     }
