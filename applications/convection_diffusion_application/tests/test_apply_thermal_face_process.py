@@ -36,7 +36,7 @@ class ApplyThermalFaceProcessTest(UnitTest.TestCase):
             "add_ambient_convection": true,
             "convection_coefficient": 0.0
         }''')
-        thermal_int_proc = apply_thermal_face_process.ApplyThermalFaceProcess(self.model, settings)
+        apply_thermal_face_process.ApplyThermalFaceProcess(self.model, settings)
 
     def checkResults(self):
         # Check the interface properties
