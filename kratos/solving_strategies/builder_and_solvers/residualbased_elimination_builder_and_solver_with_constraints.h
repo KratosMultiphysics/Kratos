@@ -1755,13 +1755,6 @@ private:
         rb.resize(BaseType::mEquationSystemSize, false);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
 
-        // Adding constant contribution
-        if (mComputeConstantContribution) {
-            TSystemVectorType rigid_rb_copy = rb;
-            TSparseSpace::Mult(rA, rConstantVector, rigid_rb_copy);
-            TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
-        }
-
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
     }
 
