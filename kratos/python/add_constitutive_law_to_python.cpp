@@ -91,10 +91,16 @@ void DeprecatedInitializeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     // function wrapper to issue a deprecation-warning when called from python
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"InitializeSolutionStep\" "
         << "is deprecated, please don't use it" << std::endl;
+
+    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+
     rThisConstitutiveLaw.InitializeSolutionStep(rMaterialProperties,
                                                 rElementGeometry,
                                                 rShapeFunctionsValues,
                                                 rCurrentProcessInfo);
+
+    KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
 }
 
 void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
@@ -106,10 +112,15 @@ void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     // function wrapper to issue a deprecation-warning when called from python
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"FinalizeSolutionStep\" "
         << "is deprecated, please don't use it.\nUse \"FinalizeMaterialResponse\" instead" << std::endl;
+
+    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+
     rThisConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,
                                               rElementGeometry,
                                               rShapeFunctionsValues,
                                               rCurrentProcessInfo);
+
+   KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 }
 
 void  AddConstitutiveLawToPython(pybind11::module& m)

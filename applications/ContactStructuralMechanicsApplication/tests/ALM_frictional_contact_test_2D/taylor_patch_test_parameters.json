@@ -34,7 +34,7 @@
         "max_iteration"                      : 20,
         "buffer_size"                        : 3,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
         "problem_domain_sub_model_part_list" : ["Structure","Parts_foundation","Parts_punch"],
         "processes_sub_model_part_list"      : ["Structure","Contact_Part",

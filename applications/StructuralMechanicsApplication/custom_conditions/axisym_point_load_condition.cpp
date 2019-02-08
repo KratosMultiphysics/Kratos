@@ -19,91 +19,109 @@
 
 namespace Kratos
 {
-    //******************************* CONSTRUCTOR ****************************************
-    //************************************************************************************
+//******************************* CONSTRUCTOR ****************************************
+//************************************************************************************
 
-    AxisymPointLoadCondition::AxisymPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        )
-            : PointLoadCondition( NewId, pGeometry )
-    {
-        //DO NOT ADD DOFS HERE!!!
-    }
+AxisymPointLoadCondition::AxisymPointLoadCondition(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry
+    )
+        : PointLoadCondition( NewId, pGeometry )
+{
+    //DO NOT ADD DOFS HERE!!!
+}
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    AxisymPointLoadCondition::AxisymPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
-        )
-            : PointLoadCondition( NewId, pGeometry, pProperties )
-    {
-    }
+AxisymPointLoadCondition::AxisymPointLoadCondition(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties
+    )
+        : PointLoadCondition( NewId, pGeometry, pProperties )
+{
+}
 
-    //********************************* CREATE *******************************************
-    //************************************************************************************
+//********************************* CREATE *******************************************
+//************************************************************************************
 
-    Condition::Pointer AxisymPointLoadCondition::Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const
-    {
-        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
-    }
+Condition::Pointer AxisymPointLoadCondition::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties
+    ) const
+{
+    return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
+}
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    Condition::Pointer AxisymPointLoadCondition::Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const
-    {
-        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
-    }
+Condition::Pointer AxisymPointLoadCondition::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties
+    ) const
+{
+    return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+}
 
-    //******************************* DESTRUCTOR *****************************************
-    //************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
-    AxisymPointLoadCondition::~AxisymPointLoadCondition()
-    {
-    }
+Condition::Pointer AxisymPointLoadCondition::Clone (
+    IndexType NewId,
+    NodesArrayType const& ThisNodes
+    ) const
+{
+    KRATOS_TRY
 
-    //************************************************************************************
-    //********************************* PROTECTED ****************************************
-    //************************************************************************************
+    Condition::Pointer p_new_cond = Kratos::make_shared<AxisymPointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
+    return p_new_cond;
 
-    double AxisymPointLoadCondition::GetPointLoadIntegrationWeight() const
-    {
-        // We calculate the axisymmetric coefficient
-        const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
-        const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-        const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
+    KRATOS_CATCH("");
+}
 
-        return AxiSymCoefficient;
-    }
+//******************************* DESTRUCTOR *****************************************
+//************************************************************************************
+
+AxisymPointLoadCondition::~AxisymPointLoadCondition()
+{
+}
+
+//************************************************************************************
+//********************************* PROTECTED ****************************************
+//************************************************************************************
+
+double AxisymPointLoadCondition::GetPointLoadIntegrationWeight() const
+{
+    // We calculate the axisymmetric coefficient
+    const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
+    const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
+    const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
+
+    return AxiSymCoefficient;
+}
 
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    void AxisymPointLoadCondition::save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoadCondition );
-    }
+void AxisymPointLoadCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoadCondition );
+}
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    void AxisymPointLoadCondition::load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoadCondition );
-    }
+void AxisymPointLoadCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoadCondition );
+}
 
 } // Namespace Kratos
 

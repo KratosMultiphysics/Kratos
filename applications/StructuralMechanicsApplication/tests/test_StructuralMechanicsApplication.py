@@ -159,7 +159,6 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticStructH
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
-from structural_mechanics_test_factory import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityMCTest as TSimpleSmallDeformationPlasticityMCTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityVMTest as TSimpleSmallDeformationPlasticityVMTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityDPTest as TSimpleSmallDeformationPlasticityDPTest
@@ -181,6 +180,8 @@ from structural_mechanics_test_factory import SprismPanTests              as TSp
 # Pendulus Tests with Solid Elements
 from structural_mechanics_test_factory import PendulusTLTest              as TPendulusTLTest
 from structural_mechanics_test_factory import PendulusULTest              as TPendulusULTest
+# Rayleigh Tests with Solid Elements
+from structural_mechanics_test_factory import RayleighProcessTest         as TRayleighProcessTest
 # Pendulus Tests with Shell Elements
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusTests as TShellT3AndQ4NonLinearDynamicStructPendulusTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests
@@ -347,7 +348,6 @@ def AssembleTestSuites():
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
-    # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
@@ -377,6 +377,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+
+    # Rayleigh process test
+    nightSuite.addTest(TRayleighProcessTest('test_execution'))
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))

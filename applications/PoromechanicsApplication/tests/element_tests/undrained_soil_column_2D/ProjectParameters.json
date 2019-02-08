@@ -47,7 +47,7 @@
         "nonlocal_damage":                    false,
         "characteristic_length":              0.05,
         "linear_solver_settings":             {
-            "solver_type":   "SuperLUSolver"
+            "solver_type":   "ExternalSolversApplication.super_lu"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],

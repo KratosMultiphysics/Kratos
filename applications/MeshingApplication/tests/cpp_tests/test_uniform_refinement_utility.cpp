@@ -48,7 +48,7 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
-            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+            Properties::Pointer p_properties = this_model_part.CreateNewProperties(0);
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
@@ -183,7 +183,7 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+            Properties::Pointer p_properties = this_model_part.CreateNewProperties(0);
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
@@ -278,7 +278,7 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+            Properties::Pointer p_properties = this_model_part.CreateNewProperties(0);
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
@@ -347,7 +347,7 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+            Properties::Pointer p_properties = this_model_part.CreateNewProperties(0);
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");

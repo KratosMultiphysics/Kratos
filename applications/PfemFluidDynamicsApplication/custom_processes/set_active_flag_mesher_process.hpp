@@ -48,8 +48,9 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-  typedef  std::vector<Node<3>*>             NodePointerVectorType;
-  typedef  std::vector<Element*>          ElementPointerVectorType;
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -195,14 +196,14 @@ namespace Kratos
 				break;
 			      }else{
 				// I will not unactive the element if the free-surface node is sorrounded by rigd nodes only
-				NodePointerVectorType& rN = itElem->GetGeometry()[j].GetValue(NEIGHBOR_NODES);
+				NodeWeakPtrVectorType& rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
 				unsigned int rigidNodes=0;
 				unsigned int freeSurfaceNodes=0;
 				for(unsigned int i = 0; i < rN.size(); i++)
 				  {
-				    if(rN[i]->Is(RIGID) && rN[i]->IsNot(SOLID))
+				    if(rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
 				      rigidNodes += 1;
-				    if(rN[i]->Is(FREE_SURFACE) && rN[i]->IsNot(RIGID))
+				    if(rN[i].Is(FREE_SURFACE) && rN[i].IsNot(RIGID))
 				      freeSurfaceNodes += 1;
 				  }
 				if(dimension==2){
