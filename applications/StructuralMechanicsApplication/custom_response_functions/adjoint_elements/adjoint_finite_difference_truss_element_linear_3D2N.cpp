@@ -71,9 +71,20 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateOnIntegrationPoints(con
     }
     else if (rVariable == PSEUDO_FORCE)
     {
-        // MFusseder TODO: delete setvalue
-        this->SetValue(DESIGN_VARIABLE_NAME, "CROSS_AREA");
-        this->CalculatePartialDesignVariableDerivative(FORCE, rOutput, rCurrentProcessInfo);
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
+        {
+            GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
+            my_extension.CalculatePseudoQuantityOnIntegrationPoints(*pGetPrimalElement(), rVariable, rOutput, rCurrentProcessInfo);
+        }
+        else
+            KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;
+        /*{
+            const SizeType  write_points_number = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+            if (rOutput.size() != write_points_number)
+                rOutput.resize(write_points_number);
+            for(IndexType i = 0; i < write_points_number; ++i)
+                rOutput[i].clear();
+        }*/
     }
     else
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);

@@ -214,6 +214,16 @@ void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Va
         for(IndexType i = 0; i < write_points_number; ++i)
             rValues[i] = output_value;
     }
+    else if (rVariable == VARIATIONAL_SENSITIVITY)
+    {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
+        {
+            GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
+            my_extension.CalculateSensitivityOnIntegrationPoints(*pGetPrimalElement(), *this, rValues, rCurrentProcessInfo);
+        }
+        else
+            KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute VARIATIONAL_SENSITIVITY!" << std::endl;
+    }
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
 

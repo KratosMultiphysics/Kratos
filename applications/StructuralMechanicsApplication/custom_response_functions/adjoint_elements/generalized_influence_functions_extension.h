@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-//#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 
 
 namespace Kratos
@@ -39,23 +38,43 @@ class GeneralizedInfluenceFunctionsExtension
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GeneralizedInfluenceFunctionsExtension);
 
-    GeneralizedInfluenceFunctionsExtension();
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    GeneralizedInfluenceFunctionsExtension()
+    {
+    }
+
+    GeneralizedInfluenceFunctionsExtension(Parameters AnalysisSettings);
 
     virtual ~GeneralizedInfluenceFunctionsExtension();
 
     void CalculatePseudoQuantityOnIntegrationPoints(Element& rElement, const Variable<array_1d<double, 3>>& rPseudoQuantityVariable,
-                                            std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+                                            std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+
+
+    void CalculateSensitivityOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+
 
 private:
+     std::string mDesignVariableName;
+     double mDelta;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const
     {
+        rSerializer.save("DesignVariableName",mDesignVariableName);
+        rSerializer.save("Delta",mDelta);
     }
 
     void load(Serializer& rSerializer)
     {
+        rSerializer.load("DesignVariableName",mDesignVariableName);
+        rSerializer.load("Delta",mDelta);
     }
+
 };
 
 ///@} // Kratos Classes
