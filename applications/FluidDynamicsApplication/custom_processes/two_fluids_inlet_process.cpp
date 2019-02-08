@@ -69,28 +69,21 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // setting flags for the inlet on nodes and conditions
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
-        // iteration over all nodes
-        auto it_nodes = mrInletModelPart.NodesBegin() + i_node;
-        it_nodes->Set( INLET, true );
-    }
-    #pragma omp parallel for
-    for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
-        // iteration over all conditions
-        auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
-        it_cond->Set( INLET, true );
-    }
+    VariableUtils().SetFlag( INLET, true, mrInletModelPart.Nodes() );
+    VariableUtils().SetFlag( INLET, true, mrInletModelPart.Conditions() );
 
     // Comment: The historical DISTANCE variable is used to compute a distance field that is then stored in a non-historical variable AUX_DISTANCE
     //          The functions for the distance computation do not work on non-historical variables - this is reason for the following procedure (*)
+
+    const int buffer_size = r_root_model_part.GetBufferSize()
+    KRATOS_ERROR_IF( buffer_size < 2 ) << "TwoFluidsInletProcess: There is no space for an intermediate storage" << std::endl;
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = r_root_model_part.NodesBegin() + i_node;
-        it_node->GetSolutionStepValue(DISTANCE, 2) = it_node->GetSolutionStepValue(DISTANCE, 0);
+        it_node->GetSolutionStepValue(DISTANCE, (buffer_size-1) ) = it_node->GetSolutionStepValue(DISTANCE, 0);
     }
 
     // Preparation for variational distance calculation process
@@ -138,7 +131,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = r_root_model_part.NodesBegin() + i_node;
-        it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, 2);
+        it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, (buffer_size-1) );
     }
 
     // subdividing the inlet into two sub_model_part
