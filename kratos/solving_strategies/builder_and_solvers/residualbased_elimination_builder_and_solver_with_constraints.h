@@ -483,10 +483,12 @@ protected:
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution, false);
+            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         } else {
             if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
-            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution, false);
+            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         }
 
         // We apply the master/slave realtionship before build
@@ -555,7 +557,7 @@ protected:
         ApplyDirichletConditionsRHS(pScheme, rModelPart, rb);
 
         // We get the global T matrix
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
 
         // Reconstruct the RHS
         TSystemVectorType rb_copy = rb;
@@ -1093,16 +1095,18 @@ protected:
         const double start_build = OpenMPUtils::GetCurrentTime();
 
         // We build the global T matrix and the g constant vector
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         } else {
             if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
             ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1162,16 +1166,18 @@ protected:
         const double start_build = OpenMPUtils::GetCurrentTime();
 
         // We build the global T matrix and the g constant vector
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         } else {
             if (mResetRelationMatrixEachIteration) ResetRelationMatrix();
             ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
+            ComputeEffectiveConstant(pScheme, rModelPart);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1611,11 +1617,11 @@ private:
         }
 
         // Apply master slave constraints
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
 
         if (mComputeConstantContribution) {
-            TSystemVectorType& rConstantVector = *mpConstantVector;
+            const TSystemVectorType& rConstantVector = *mpConstantVector;
             TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
         }
 
@@ -1688,12 +1694,12 @@ private:
         }
 
         // Apply master slave constraints
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
 
         if (mComputeConstantContribution) {
-            ComputeConstraintContribution(pScheme, rModelPart, false, true, false);
-            TSystemVectorType& rConstantVector = *mpConstantVector;
+            ComputeConstraintContribution(pScheme, rModelPart, false, true);
+            const TSystemVectorType& rConstantVector = *mpConstantVector;
             TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
         }
 
@@ -1728,22 +1734,25 @@ private:
         KRATOS_TRY
 
         // We get the global T matrix and the constant vector
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSystemVectorType& rConstantVector = *mpConstantVector;
+        const TSystemMatrixType& rTMatrix = *mpTMatrix;
+        const TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // We reconstruct the complete vector of Unknowns
         TSystemVectorType Dx_copy = rDx;
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
 
-        // Add the constant vector
-        if (mComputeConstantContribution) {
-            TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
-        }
-
         // We check the solution
         if (mCheckConstraintRelation) {
             KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_copy)) << "The relation between master/slave dofs is not respected" << std::endl;
+        }
+
+        // We compute the effective constant vector
+        ComputeEffectiveConstant(pScheme, rModelPart, rDx, Dx_copy);
+
+        // Add the constant vector
+        if (mComputeConstantContribution) {
+            TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
         }
 
         // Simply restore old LHS
@@ -2042,16 +2051,15 @@ private:
      * @brief This method computes the absolute constant contribution of the MPC
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param rA The LHS matrix
-     * @param rb The RHS vector
+     * @param ComputeTranslationMatrix If the translation matrix will be assembled
+     * @param ComputeConstantVector If the constant vector will be assembled
      * @return If there are constant constraints
      */
     bool ComputeConstraintContribution(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         const bool ComputeTranslationMatrix = false,
-        const bool ComputeConstantVector = false,
-        const bool ComputeEffectiveConstant = true
+        const bool ComputeConstantVector = false
         )
     {
         KRATOS_TRY;
@@ -2164,19 +2172,111 @@ private:
             }
         }
 
-        // Compute the effective constant vector
-        if (ComputeConstantVector && ComputeEffectiveConstant) {
+        return aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
 
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method computes the efective constant
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     */
+    void ComputeEffectiveConstant(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        TSystemVectorType dummy_Dx(BaseType::mEquationSystemSize);
+        TSparseSpace::SetToZero(dummy_Dx);
+        TSystemVectorType dummy_Dx_solved(mDoFToSolveSystemSize);
+        TSparseSpace::SetToZero(dummy_Dx_solved);
+        ComputeEffectiveConstant(pScheme, rModelPart, dummy_Dx, dummy_Dx_solved);
+    }
+
+    /**
+     * @brief This method computes the efective constant
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rDx The vector of unkowns
+     * @param rDxSolved The vector of unkowns actually solved
+     */
+    void ComputeEffectiveConstant(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rDxSolved
+        )
+    {
+        if (mComputeConstantContribution) {
+            // We get
+            const TSystemMatrixType& rTMatrix = *mpTMatrix;
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+
+            // The current process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // Contributions to the system
+            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+
+            // Vector containing the localization in the system of the different terms
+            EquationIdVectorType slave_equation_id, master_equation_id;
+
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+            std::unordered_set<IndexType> auxiliar_constant_equations_ids;
+
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
+            {
+                std::unordered_set<IndexType> auxiliar_temp_constant_equations_ids;
+                auxiliar_temp_constant_equations_ids.reserve(2000);
+
+                #pragma omp for schedule(guided, 512)
+                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                    // It is active by default
+                    bool constraint_is_active = true;
+                    if (it_const->IsDefined(ACTIVE))
+                        constraint_is_active = it_const->Is(ACTIVE);
+
+                    if (constraint_is_active) {
+                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                        it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+
+                        for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
+                            const IndexType i_global = slave_equation_id[i];
+                            if (i_global < BaseType::mEquationSystemSize) {
+                                const double constant_value = constant_vector[i];
+                                if (std::abs(constant_value) > 0.0) {
+                                    auxiliar_temp_constant_equations_ids.insert(i_global);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // We merge all the sets in one thread
+                #pragma omp critical
+                {
+                    auxiliar_constant_equations_ids.insert(auxiliar_temp_constant_equations_ids.begin(), auxiliar_temp_constant_equations_ids.end());
+                }
+            }
+
+            // Compute the effective constant vector
             // Auxiliar initial dof iterator
             const auto it_dof_begin = BaseType::mDofSet.begin();
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
+
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
                 auto it_dof = it_dof_begin + i;
                 const IndexType equation_id = it_dof->EquationId();
                 if (equation_id < BaseType::mEquationSystemSize ) {
-                    u[equation_id] = it_dof->GetSolutionStepValue();
+                    u[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
                 }
             }
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
@@ -2188,14 +2288,14 @@ private:
 
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
-                        u_bar[counter] = it_dof->GetSolutionStepValue();
+                        u_bar[counter] = it_dof->GetSolutionStepValue() + rDxSolved[counter];
                         counter += 1;
                     }
                 }
             }
-            TSystemVectorType u_bar_translated(BaseType::mEquationSystemSize);
-            TSparseSpace::Mult(rTMatrix, u_bar, u_bar_translated);
-            TSparseSpace::UnaliasedAdd(u, -1.0, u_bar_translated);
+            TSystemVectorType u_bar_complete(BaseType::mEquationSystemSize);
+            TSparseSpace::Mult(rTMatrix, u_bar, u_bar_complete);
+            TSparseSpace::UnaliasedAdd(u, -1.0, u_bar_complete);
 
             TSystemVectorType effective_delta_u(BaseType::mEquationSystemSize);
             TSparseSpace::SetToZero(effective_delta_u);
@@ -2205,10 +2305,6 @@ private:
 
             TSparseSpace::UnaliasedAdd(rConstantVector, -1.0, u);
         }
-
-        return aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
-
-        KRATOS_CATCH("");
     }
 
     ///@}
