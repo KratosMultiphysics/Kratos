@@ -87,25 +87,10 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // Preparation for variational distance calculation process
-    // setting distance of inlet nodes to 0.0
+    // setting distance of inlet nodes to 0.0 (bit below)
     // setting rest of distances to 1.0
     VariableUtils().SetVariable( DISTANCE, 1.0, r_root_model_part.Nodes() );
     VariableUtils().SetVariable( DISTANCE, -1.0e-7, mrInletModelPart.Nodes() );
-
-
-    // #pragma omp parallel for
-    // for (int i_node = 0; i_node < static_cast<int>( r_root_model_part.NumberOfNodes() ); ++i_node){
-    //     // iteration over all nodes
-    //     auto it_node = r_root_model_part.NodesBegin() + i_node;
-    //     it_node->GetSolutionStepValue(DISTANCE, 0) = 1.0;
-    // }
-
-    // #pragma omp parallel for
-    // for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
-    //     // iteration over all nodes
-    //     auto it_node = mrInletModelPart.NodesBegin() + i_node;
-    //     it_node->GetSolutionStepValue(DISTANCE, 0) = -1.0e-7;
-    // }
 
     // Variational distance calculation process is executed to calculate distance from inlet
     pDistanceProcess->Execute();

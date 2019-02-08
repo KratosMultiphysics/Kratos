@@ -120,7 +120,6 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
             self.aux_process_fluid_2 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_2_settings"])
 
 
-
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
         if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
@@ -128,22 +127,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
             self.aux_process_fluid_2.ExecuteInitializeSolutionStep()
 
-        # Not sure if appropriate here...
-        # PROBLEM: Could distort the physical properties
-        # BUT: It could make sense to stabilize cases with CFL >> 1
         self.two_fluid_inlet_process.SmoothDistanceField()
-
-
-
-    def ExecuteFinalizeSolutionStep(self):
-        # Call the base process ExecuteFinalizeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
-            self.aux_process_fluid_1.ExecuteInitializeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
-            self.aux_process_fluid_2.ExecuteInitializeSolutionStep()
-
-        self.two_fluid_inlet_process.SmoothDistanceField()
-
 
 
     def _set_variational_distance_process_serial(self):
