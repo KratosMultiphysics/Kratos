@@ -313,7 +313,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
-            rOutput.resize(dimension * number_of_nodes, local_size);
+            rOutput.resize(dimension * number_of_nodes, local_size, false);
 
         IndexType index = 0;
 
@@ -357,9 +357,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
         StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
     else
         StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
-    rOutput.resize(num_dofs, stress_derivatives_vector.size() );
+    rOutput.resize(num_dofs, stress_derivatives_vector.size(), false);
     rOutput.clear();
-    initial_state_variables.resize(num_dofs);
+    initial_state_variables.resize(num_dofs, false);
 
     // Build vector of variables containing the DOF-variables of the primal problem
     std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
@@ -440,7 +440,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
     const double delta = this->GetPerturbationSize(rDesignVariable);
 
     const SizeType stress_vector_size = stress_vector_undist.size();
-    rOutput.resize(1, stress_vector_size);
+    rOutput.resize(1, stress_vector_size, false);
 
     if( mpPrimalElement->GetProperties().Has(rDesignVariable) )
     {
@@ -501,7 +501,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
             StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
         const SizeType stress_vector_size = stress_vector_undist.size();
-        rOutput.resize(dimension * number_of_nodes, stress_vector_size);
+        rOutput.resize(dimension * number_of_nodes, stress_vector_size, false);
 
         IndexType index = 0;
         //TODO: look that this works also for parallel computing

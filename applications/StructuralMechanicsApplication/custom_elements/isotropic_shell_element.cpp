@@ -1864,7 +1864,7 @@ void IsotropicShellElement::InvertMatrix(const BoundedMatrix<double,3,3>& InputM
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
+        InvertedMatrix.resize(3,3, false);
 
     //filling the inverted matrix with the algebraic complements
     //first column

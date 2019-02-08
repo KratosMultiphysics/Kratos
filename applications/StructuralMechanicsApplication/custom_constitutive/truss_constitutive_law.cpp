@@ -141,7 +141,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponse(
     const double axial_strain = rStrainVector[0];
     const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
 
-    if (rStressVector.size() != 1) rStressVector.resize(1);
+    if (rStressVector.size() != 1) rStressVector.resize(1, false);
     rStressVector[0] = youngs_modulus*axial_strain;
 }
 

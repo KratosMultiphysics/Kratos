@@ -235,7 +235,7 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponse(
     const double elastic_trial_strain = axial_strain-current_plastic_strain;
     const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
 
-    if (rStressVector.size() != 1) rStressVector.resize(1);
+    if (rStressVector.size() != 1) rStressVector.resize(1, false);
     rStressVector[0] = youngs_modulus*elastic_trial_strain;
 
     if (SaveInternalVariables)

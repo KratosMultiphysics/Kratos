@@ -37,7 +37,7 @@ namespace Kratos
             Vector RHS_perturbed;
 
             if ( (rOutput.size1() != 1) || (rOutput.size2() != rRHS.size() ) )
-                rOutput.resize(1, rRHS.size());
+                rOutput.resize(1, rRHS.size(), false);
 
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
@@ -141,7 +141,7 @@ namespace Kratos
                 Vector dummy;
 
                 if ( (rOutput.size1() != rLHS.size1()) || (rOutput.size2() != rLHS.size2() ) )
-                    rOutput.resize(rLHS.size1(), rLHS.size2());
+                    rOutput.resize(rLHS.size1(), rLHS.size2(), false);
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -191,7 +191,7 @@ namespace Kratos
                 Matrix perturbed_mass_matrix;
 
                 if ( (rOutput.size1() != rMassMatrix.size1()) || (rOutput.size2() != rMassMatrix.size2() ) )
-                    rOutput.resize(rMassMatrix.size1(), rMassMatrix.size2());
+                    rOutput.resize(rMassMatrix.size1(), rMassMatrix.size2(), false);
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
