@@ -37,10 +37,10 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
-         "problem_domain_sub_model_part_list" : ["Parts_Lower","Parts_Middle","Parts_Upper"],
-        "processes_sub_model_part_list"      : ["Parts_Lower","Parts_Middle","Parts_Upper","DISPLACEMENT_Imposed","DISPLACEMENT_Fix","DISPLACEMENT_Control","GENERIC_TopMiddle","GENERIC_BottomMiddle","GENERIC_TopLower","GENERIC_BottomUpper"],
+         "problem_domain_sub_model_part_list" : ["Structure","Parts_Lower","Parts_Middle","Parts_Upper"],
+        "processes_sub_model_part_list"      : ["Structure","Parts_Lower","Parts_Middle","Parts_Upper","DISPLACEMENT_Imposed","DISPLACEMENT_Fix","DISPLACEMENT_Control","GENERIC_TopMiddle","GENERIC_BottomMiddle","GENERIC_TopLower","GENERIC_BottomUpper"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -78,7 +78,7 @@
         "loads_process_list"       : [],
         "contact_process_list" :[{
             "python_module" : "alm_contact_process",
-            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"          : "This process computes the contact between different surfaces",
             "process_name"  : "ALMContactProcess",
             "Parameters"            : {
@@ -96,7 +96,7 @@
         }],
         "list_other_processes" : [{
             "python_module"  :"sprism_process",
-            "kratos_module":"StructuralMechanicsApplication",
+            "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{
@@ -104,7 +104,7 @@
             }
         },{
             "python_module"  :"sprism_process",
-            "kratos_module":"StructuralMechanicsApplication",
+            "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{
@@ -112,7 +112,7 @@
             }
         },{
             "python_module"  :"sprism_process",
-            "kratos_module":"StructuralMechanicsApplication",
+            "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{

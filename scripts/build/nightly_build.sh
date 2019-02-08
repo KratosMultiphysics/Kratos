@@ -21,7 +21,7 @@ while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
 done
 
 # Download additional dependencies
-sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl python3-numpy python3-scipy
 
 # We move to home directory
 cd ${HOME}
@@ -34,7 +34,7 @@ tar xzf eigen.tar.gz
 mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
 # ANurbs library
 # a specific commit is specified, this has to be tested before updating
-ANUBS_COMMIT_HASH=dada39e26909bee36f1fdee8f5a282ea563cf00a
+ANUBS_COMMIT_HASH=aa59b9ea2ff2c8e2fec321807e3eaf43c4394070
 wget https://github.com/oberbichler/ANurbs/archive/${ANUBS_COMMIT_HASH}.tar.gz -O AnurbsLibrary.tar.gz
 tar xzf AnurbsLibrary.tar.gz
 mv ${HOME}/ANurbs-${ANUBS_COMMIT_HASH} ${HOME}/ANurbs
@@ -64,7 +64,7 @@ make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2>&1
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2>&1
+python3 run_tests.py -l nightly -c python3 > ${LOG_DIR}/unittest_gcc.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
@@ -121,7 +121,7 @@ make install -j2 -k > ${LOG_DIR}/compile_clang.log 2>&1
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2>&1
+python3 run_tests.py -l nightly -c python3 > ${LOG_DIR}/unittest_clang.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking

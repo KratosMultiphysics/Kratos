@@ -19,6 +19,7 @@
 #include "custom_utilities/static_condensation_utility.h"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 
@@ -209,9 +210,9 @@ void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-double CrBeamElementLinear2D2N::CalculateLength() {
+double CrBeamElementLinear2D2N::CalculateLength() const {
   KRATOS_TRY;
-  return this->CalculateReferenceLength();
+  return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
   KRATOS_CATCH("")
 }
 

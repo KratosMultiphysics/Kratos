@@ -47,11 +47,11 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
  
   {}
 
-void KratosCompressiblePotentialFlowApplication::Register() 
+void KratosCompressiblePotentialFlowApplication::Register()
 {
  	// calling base class register to register Kratos components
  	KratosApplication::Register();
- 	std::cout << "Initializing KratosCompressiblePotentialFlowApplication... " << std::endl;
+ 	KRATOS_INFO("") << "Initializing KratosCompressiblePotentialFlowApplication..." << std::endl;
 
         // Register Variables (defined in compressible_potential_flow_application_variables.h)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY); 
@@ -93,9 +93,9 @@ void KratosCompressiblePotentialFlowApplication::Register()
         KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition3D3N",mCompressiblePotentialWallCondition3D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition2D2N",mCompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
 
-        
 
-        
+
+
 }
 
 }  // namespace Kratos.
