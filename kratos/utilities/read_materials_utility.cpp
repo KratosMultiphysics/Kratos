@@ -33,6 +33,8 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Model& rModel
     ) : mrModel(rModel)
 {
+    KRATOS_TRY;
+
     Parameters default_parameters(R"(
     {
         "Parameters" : {
@@ -52,6 +54,8 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters materials(buffer.str());
 
     GetPropertyBlock(materials);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -62,10 +66,14 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Model& rModel
     ) : mrModel(rModel)
 {
+    KRATOS_TRY;
+
     // Receive json string with materials properties, create Parameters
     Parameters materials(rParametersName);
 
     GetPropertyBlock(materials);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -80,7 +88,11 @@ ReadMaterialsUtility::~ReadMaterialsUtility()
 
 void ReadMaterialsUtility::ReadMaterials(Parameters MaterialData)
 {
+    KRATOS_TRY;
+
     GetPropertyBlock(MaterialData);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -88,6 +100,8 @@ void ReadMaterialsUtility::ReadMaterials(Parameters MaterialData)
 
 void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 {
+    KRATOS_TRY;
+
     KRATOS_INFO("Read materials") << "Started" << std::endl;
 
     CheckUniqueMaterialAssignment(Materials);
@@ -109,16 +123,23 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
     }
 
     KRATOS_INFO("Read materials") << "Finished" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::TrimComponentName(std::string& rLine){
+void ReadMaterialsUtility::TrimComponentName(std::string& rLine)
+{
+    KRATOS_TRY;
+
     std::stringstream ss(rLine);
     std::size_t counter = 0;
     while (std::getline(ss, rLine, '.')){++counter;}
     KRATOS_WARNING_IF("Read materials", counter > 1) << "Ignoring module information for component " << rLine << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -129,49 +150,11 @@ void ReadMaterialsUtility::CreateProperty(
     Properties::Pointer& pNewProperty
     )
 {
-    // Get the properties for the specified model part.
-    ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
-    const IndexType property_id = Data["properties_id"].GetInt();
-    const IndexType mesh_id = 0;
-    Properties::Pointer p_prop;
-    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id << " in mesh ID: " << mesh_id << " is already defined. " << "This will overwrite the existing values" << std::endl;
-        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
-
-        // Compute the size using the iterators
-        std::size_t variables_size = 0;
-        for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
-            ++variables_size;
-
-        std::size_t tables_size = 0;
-        for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
-            ++tables_size;
-
-        KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables()) << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
-        KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables()) << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
-    } else {
-        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
-    }
-
-    // Assign the p_properties to the model part's elements and conditions.
-    auto& r_elements_array = r_model_part.Elements();
-    auto& r_conditions_array = r_model_part.Conditions();
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-        it_elem->SetProperties(p_prop);
-    }
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        it_cond->SetProperties(p_prop);
-    }
+    KRATOS_TRY;
 
     // Set the CONSTITUTIVE_LAW for the current p_properties.
-    if (Data["Material"].Has("constitutive_law")) {
-        Parameters cl_parameters = Data["Material"]["constitutive_law"];
+    if (Data.Has("constitutive_law")) {
+        Parameters cl_parameters = Data["constitutive_law"];
         std::string constitutive_law_name = cl_parameters["name"].GetString();
         TrimComponentName(constitutive_law_name);
         cl_parameters["name"].SetString(constitutive_law_name);
@@ -183,7 +166,7 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override the values of material parameters in the p_properties
-    Parameters variables = Data["Material"]["Variables"];
+    Parameters variables = Data["Variables"];
     for (auto iter = variables.begin(); iter != variables.end(); ++iter) {
         const Parameters value = variables.GetValue(iter.name());
 
@@ -231,7 +214,7 @@ void ReadMaterialsUtility::CreateProperty(
     }
 
     // Add / override tables in the p_properties
-    Parameters tables = Data["Material"]["Tables"];
+    Parameters tables = Data["Tables"];
     for (auto iter = tables.begin(); iter != tables.end(); ++iter) {
         auto table_param = tables.GetValue(iter.name());
         // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
@@ -250,6 +233,8 @@ void ReadMaterialsUtility::CreateProperty(
         }
         pNewProperty->SetTable(input_var, output_var, table);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -261,6 +246,8 @@ void ReadMaterialsUtility::CreateSubProperties(
     Properties::Pointer& pNewProperty
     )
 {
+    KRATOS_TRY;
+
     if (Data.Has("sub_properties")) {
 
         PointerVectorSet<Properties, IndexedObject> list_sub_properties;
@@ -303,6 +290,8 @@ void ReadMaterialsUtility::CreateSubProperties(
 
         pNewProperty->SetSubProperties(list_sub_properties);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -310,27 +299,31 @@ void ReadMaterialsUtility::CreateSubProperties(
 
 void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 {
+    KRATOS_TRY;
+
     // Get the properties for the specified model part.
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
-    Properties::Pointer p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    const IndexType mesh_id = 0;
+    Properties::Pointer p_prop;
+    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
+        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id << " in mesh ID: " << mesh_id << " is already defined. " << "This will overwrite the existing values" << std::endl;
+        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
 
-    // Compute the size using the iterators
-    std::size_t variables_size = 0;
-    for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
-        ++variables_size;
+        // Compute the size using the iterators
+        std::size_t variables_size = 0;
+        for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
+            ++variables_size;
 
-    std::size_t tables_size = 0;
-    for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
-        ++tables_size;
+        std::size_t tables_size = 0;
+        for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
+            ++tables_size;
 
-    KRATOS_WARNING_IF("Read materials", variables_size > 0 && p_prop->HasVariables())
-        << "Property " << std::to_string(property_id) << " already has variables." << std::endl;
-    KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
-        << "Property " << std::to_string(property_id) << " already has tables." << std::endl;
-
-    // Assign the property to the model part
-    r_model_part.AddProperties(p_prop);
+        KRATOS_WARNING_IF("ReadMaterialsUtility", variables_size > 0 && p_prop->HasVariables()) << "WARNING:: The properties ID: " << property_id << " already has variables." << std::endl;
+        KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables()) << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
+    } else {
+        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
+    }
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& r_elements_array = r_model_part.Elements();
@@ -353,13 +346,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     // We create the new property
     CreateProperty(Data["Material"], p_prop);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-  
+
 void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
 {
+    KRATOS_TRY;
+
     const std::size_t num_props = Materials["properties"].size();
 
     // save all ModelPartNames in a vector
@@ -396,6 +393,8 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
                 << parent_model_part_name << "\"!" << std::endl;
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 }  // namespace Kratos.
