@@ -2166,21 +2166,31 @@ private:
 
         // Compute the effective constant vector
         if (ComputeConstantVector && ComputeEffectiveConstant) {
+
+            // Auxiliar initial dof iterator
+            const auto it_dof_begin = BaseType::mDofSet.begin();
+
             TSystemVectorType u(BaseType::mEquationSystemSize);
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                auto it_dof = BaseType::mDofSet.begin() + i;
-                u[i] = it_dof->GetSolutionStepValue();
+            for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
+                auto it_dof = it_dof_begin + i;
+                const IndexType equation_id = it_dof->EquationId();
+                if (equation_id < BaseType::mEquationSystemSize ) {
+                    u[equation_id] = it_dof->GetSolutionStepValue();
+                }
             }
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
             IndexType counter = 0;
-            for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
-                auto it_dof = BaseType::mDofSet.begin() + i;
+            for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
+                auto it_dof = it_dof_begin + i;
+                const IndexType equation_id = it_dof->EquationId();
+                if (equation_id < BaseType::mEquationSystemSize ) {
 
-                auto it = mDoFSlaveSet.find(*it_dof);
-                if (it == mDoFSlaveSet.end()) {
-                    u_bar[counter] = it_dof->GetSolutionStepValue();
-                    counter += 1;
+                    auto it = mDoFSlaveSet.find(*it_dof);
+                    if (it == mDoFSlaveSet.end()) {
+                        u_bar[counter] = it_dof->GetSolutionStepValue();
+                        counter += 1;
+                    }
                 }
             }
             TSystemVectorType u_bar_translated(BaseType::mEquationSystemSize);
@@ -2188,10 +2198,7 @@ private:
             TSparseSpace::UnaliasedAdd(u, -1.0, u_bar_translated);
 
             TSystemVectorType effective_delta_u(BaseType::mEquationSystemSize);
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                effective_delta_u[i] = 0.0;
-            }
+            TSparseSpace::SetToZero(effective_delta_u);
             for (IndexType equation_id : auxiliar_constant_equations_ids) {
                 effective_delta_u[equation_id] = u[equation_id];
             }
