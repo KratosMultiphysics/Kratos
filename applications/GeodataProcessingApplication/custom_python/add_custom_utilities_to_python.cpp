@@ -59,6 +59,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<CleaningUtilities>(m,"CleaningUtilities")
         .def(py::init< ModelPart& >())
         .def("CleanIsolatedNodes", &CleaningUtilities::CleanIsolatedNodes)
+        .def("ReBuildModelPart", &CleaningUtilities::ReBuildModelPart)
         ;
 
 }

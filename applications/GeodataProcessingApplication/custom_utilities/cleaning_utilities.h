@@ -90,7 +90,7 @@ namespace Kratos
      * @brief Function to completely (!) eliminate the model and rebuild it from scatch
      *
      */
-    void ReBuildModelPart();
+    ModelPart& ReBuildModelPart();
 
     ///@}
     ///@name Access
