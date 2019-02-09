@@ -54,7 +54,6 @@ class IgaSolver(PythonSolver):
                 "input_type": "json",
                 "input_filename": "geometry"
             },
-            "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
                 "materials_filename": "materials.json"
             },
@@ -73,13 +72,7 @@ class IgaSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "solver_type": "static",
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
+            "linear_solver_settings":{ },
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
@@ -100,7 +93,7 @@ class IgaSolver(PythonSolver):
             self.main_model_part = self.model.CreateModelPart(model_part_name)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
-                raise Exception('Please specify a "domain_size" >= 0!')
+                raise Exception('Please specify a "domain_size" > 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Construction finished")
@@ -169,7 +162,6 @@ class IgaSolver(PythonSolver):
         physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
         self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
 
-
     def PrepareModelPart(self):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
@@ -220,9 +212,7 @@ class IgaSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        # if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-        #     raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part#.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -272,7 +262,7 @@ class IgaSolver(PythonSolver):
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            import read_materials_process
+            import read_materials_process # TODO update this, it is deprecated!!!
             read_materials_process.Factory(material_settings,self.model)
             #KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
@@ -369,7 +359,7 @@ class IgaSolver(PythonSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):        
+    def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
