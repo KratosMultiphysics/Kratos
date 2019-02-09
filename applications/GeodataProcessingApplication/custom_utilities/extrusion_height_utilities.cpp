@@ -17,7 +17,6 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "extrusion_height_utilities.h"
