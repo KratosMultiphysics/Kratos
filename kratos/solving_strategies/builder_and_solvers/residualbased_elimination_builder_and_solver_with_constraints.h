@@ -493,6 +493,11 @@ protected:
         // We apply the master/slave realtionship before build
         ApplyMasterSlaveRelation(pScheme, rModelPart, rA, rDx, rb);
 
+        // We compute the effective constant vector
+        TSystemVectorType dummy_Dx(mDoFToSolveSystemSize);
+        TSparseSpace::SetToZero(dummy_Dx);
+        ComputeEffectiveConstant(pScheme, rModelPart, dummy_Dx);
+
         // We do the build (after that we resize the solution vector to avoid problems)
         BuildWithConstraints(pScheme, rModelPart, rA, rb);
 
@@ -1098,7 +1103,7 @@ protected:
 
         // We build the global T matrix and the g constant vector
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSystemVectorType& rConstantVector = *mpConstantVector;
+        TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
 
         // We compute only once (or if cleared)
         if (mCleared) {
@@ -1116,8 +1121,8 @@ protected:
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
-            TSystemVectorType aux_constant_vector(rConstantVector);
-            TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
+            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
+            TSparseSpace::Mult(rA, rDeltaConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
