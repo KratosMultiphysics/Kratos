@@ -34,7 +34,7 @@ void KratosGeodataProcessingApplication::Register()
      KratosApplication::Register();
      KRATOS_INFO("") << "Initializing KratosGeodataProcessingApplication..." << std::endl;
 
-  KRATOS_REGISTER_VARIABLE( DOF_1 )
+  KRATOS_REGISTER_VARIABLE( EXTRUSION_HEIGHT )
   KRATOS_REGISTER_VARIABLE( DOF_2 )
   KRATOS_REGISTER_VARIABLE( ScalarVariable )
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VectorVariable )
