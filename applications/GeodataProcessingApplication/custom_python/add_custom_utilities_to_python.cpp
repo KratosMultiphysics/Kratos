@@ -27,6 +27,8 @@
 
 #include "custom_utilities/hello.h"
 
+#include "custom_utilities/extrusion_height_utilities.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -35,16 +37,26 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+/*     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType; */
 
+    // for testing --- delete ---
     py::class_<Hello>(m,"Hello")
         .def(py::init<>())
         .def("Greet",&Hello::Greet)
         ;
 
+    // to set the extrusion height of the ground terrain
+    py::class_<ExtrusionHeightUtilities>(m,"ExtrusionHeightUtilities")
+        .def(py::init< ModelPart& >())
+        .def("SetExtrusionHeight", &ExtrusionHeightUtilities::SetExtrusionHeight)
+        .def("SmoothExtrusionHeight", &ExtrusionHeightUtilities::SmoothExtrusionHeight)
+        ;
+
+
 }
 
 } // namespace Python.
+
 } // Namespace Kratos

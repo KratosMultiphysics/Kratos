@@ -15,17 +15,10 @@ set( KRATOS_GEODATA_PROCESSING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/geodata_processing_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
-
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_test_element.cpp
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_test_condition.cpp
-
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hello.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/extrusion_height_utilities.cpp
 )
 
 # define library Kratos which defines the basic python interface
