@@ -27,6 +27,7 @@
 
 #include "custom_utilities/hello.h"
 
+#include "custom_utilities/cleaning_utilities.h"
 #include "custom_utilities/extrusion_height_utilities.h"
 
 
@@ -54,6 +55,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SmoothExtrusionHeight", &ExtrusionHeightUtilities::SmoothExtrusionHeight)
         ;
 
+    // to keep the model part in a good qulity state
+    py::class_<CleaningUtilities>(m,"CleaningUtilities")
+        .def(py::init< ModelPart& >())
+        .def("CleanIsolatedNodes", &CleaningUtilities::CleanIsolatedNodes)
+        ;
 
 }
 
