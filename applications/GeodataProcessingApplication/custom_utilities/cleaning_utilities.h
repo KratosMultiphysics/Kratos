@@ -87,10 +87,10 @@ namespace Kratos
     void CleanIsolatedNodes();
 
     /**
-     * @brief Function to completely (!) eliminate the model and rebuild it from scatch
+     * @brief Hard copy the content between model parts
      *
      */
-    ModelPart& ReBuildModelPart();
+    ModelPart& HardCopyContent( ModelPart& OriginalModelPart, ModelPart& NewModelPart, bool deleteOrig );
 
     ///@}
     ///@name Access
