@@ -65,6 +65,7 @@ class GeoImporter( GeoProcessor ):
         self.ModelPart.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
 
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.IS_FLUID)
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.IS_FREE_SURFACE)

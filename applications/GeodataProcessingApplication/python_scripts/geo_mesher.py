@@ -5,6 +5,7 @@ import KratosMultiphysics.MeshingApplication as KratosMesh
 from geo_processor import GeoProcessor
 import triangle
 import numpy as np
+import math
 from meshpy.tet import MeshInfo, build
 
 class GeoMesher( GeoProcessor ):
@@ -155,54 +156,38 @@ class GeoMesher( GeoProcessor ):
 
         # build the mesh
         mesh = build(mesh_info)
+        self.ModelPart.Nodes.clear()
+        self.ModelPart.Elements.clear()
+        self.ModelPart.Conditions.clear()
 
-        # output (requries some vtk module, do you know more, Nicola?)
-        # vtk_file_out = "mesh.vtk"
-        # mesh.write_vtk(vtk_file_out)
-
-		## create a new model part
-        current_model = KratosMultiphysics.Model()
-        main_model_part = current_model.CreateModelPart("MainModelPart")
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
-
-        # We add the variables needed (needed for the mmg process)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_BOUNDARY)
-
-        lateral_model_part = main_model_part.CreateSubModelPart("LateralModelPart")
-        bottom_model_part = main_model_part.CreateSubModelPart("BottomModelPart")
-        top_model_part = main_model_part.CreateSubModelPart("TopModelPart")
-
-        properties = main_model_part.Properties[0]
+        lateral_model_part = self.ModelPart.CreateSubModelPart("LateralModelPart")
+        bottom_model_part = self.ModelPart.CreateSubModelPart("BottomModelPart")
+        top_model_part = self.ModelPart.CreateSubModelPart("TopModelPart")
+        properties = self.ModelPart.Properties[0]
 
         bottom_cond = []; bottom_points = []
         top_cond = []; top_points = []
         lateral_cond = []; lateral_points = []
 
         # AWARE: Shift by 1 in index!!!
-
         ### Nodes
         for i in range( 0, len( mesh.points ) ):
         	# node id is shifted up by 1
         	coords = mesh.points[i]
-        	node = main_model_part.CreateNewNode( (i+1), coords[0], coords[1], coords[2] )
+        	node = self.ModelPart.CreateNewNode( (i+1), coords[0], coords[1], coords[2] )
 
         ### Conditions and Nodes in SubModelParts
         for j in range( 0, len( mesh.faces ) ):
         	points = mesh.faces[j]
         	marker = mesh.face_markers[j]
         	if ( marker == 1 ):
-        		cond = main_model_part.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+        		cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
         		bottom_cond.append( j+1 )
         	elif ( marker == 2 ):
-        		cond = main_model_part.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+        		cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
         		top_cond.append( j+1 )
         	elif ( marker == 3 ):
-        		cond = main_model_part.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+        		cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
         		lateral_cond.append( j+1 )
 
         bottom_model_part.AddConditions( bottom_cond )
@@ -226,20 +211,117 @@ class GeoMesher( GeoProcessor ):
         ### Elements
         for k in range( 0, len( mesh.elements ) ):
         	points = mesh.elements[k]
-        	elem = main_model_part.CreateNewElement("Element3D4N", (k+1), [ points[0]+1, points[1]+1, points[2]+1, points[3]+1 ], properties )
-
-        print( bottom_model_part )
-        print( top_model_part )
-        print( lateral_model_part )
-
-        self.ModelPart = main_model_part
+        	elem = self.ModelPart.CreateNewElement("Element3D4N", (k+1), [ points[0]+1, points[1]+1, points[2]+1, points[3]+1 ], properties )
 
 
+    def ComputeDistanceFieldFromGround( self ):
+
+        if( self.ModelPart.HasSubModelPart("BottomModelPart") ):
+
+            for node in self.ModelPart.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)
+
+            for node in self.ModelPart.GetSubModelPart("BottomModelPart").Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -1.0e-7)
+
+        else:
+
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.ModelPart.Conditions, 3)
+            # assigning the initial distances
+            for node in self.ModelPart.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 1.0)
+
+            for cond in self.ModelPart.Conditions:
+                n = cond.GetValue(KratosMultiphysics.NORMAL)
+                if( n[2] / math.sqrt(n[0]**2 + n[1]**2 + n[2]**2) < -0.0001 ):
+                    for node in cond.GetNodes():
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -1.0e-7)
 
 
+        # computing the distance field
+        variational_distance_process = self._set_variational_distance_process_serial( self.ModelPart, "DistanceFromGround1" )
+        variational_distance_process.Execute()
+
+
+
+
+    def RefineMeshNearGround( self, single_parameter ):
+
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess( self.ModelPart )
+        find_nodal_h.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.ModelPart.Nodes)
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.ModelPart, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        # We set to zero the metric
+        ZeroVector = KratosMultiphysics.Vector(6)
+        ZeroVector[0] = 1.0; ZeroVector[1] = 1.0; ZeroVector[2] = 1.0
+        ZeroVector[3] = 0.0; ZeroVector[4] = 0.0; ZeroVector[5] = 0.0
+
+        for node in self.ModelPart.Nodes:
+        	node.SetValue(KratosMesh.METRIC_TENSOR_3D, ZeroVector)
+
+        min_size = single_parameter
+        max_dist = 1.5 * single_parameter
+        # We define a metric using the ComputeLevelSetSolMetricProcess
+        level_set_param = KratosMultiphysics.Parameters("""
+        	{
+        		"minimal_size"                         : """ + str(min_size) + """,
+        		"enforce_current"                      : false,
+        		"anisotropy_remeshing"                 : true,
+        		"anisotropy_parameters": {
+        			"hmin_over_hmax_anisotropic_ratio"      : 1.0,
+        			"boundary_layer_max_distance"           : """ + str(max_dist) + """,
+        			"interpolation"                         : "Linear" }
+        	}
+        	""")
+        metric_process = KratosMesh.ComputeLevelSetSolMetricProcess3D(self.ModelPart, KratosMultiphysics.DISTANCE_GRADIENT, level_set_param)
+        metric_process.Execute()
+
+        # We create the remeshing process
+        remesh_param = KratosMultiphysics.Parameters("""{ }""")
+        MmgProcess = KratosMesh.MmgProcess3D(self.ModelPart, remesh_param)
+        MmgProcess.Execute()
 
 
 
     def MeshCircleWithTerrainPoints( self ):
 
         print("Not interfereing here, Nicola - you are the expert!")
+
+
+
+
+
+############################ --- Auxiliary functions --- ###########################################
+
+    def _set_variational_distance_process_serial(self, complete_model, aux_name):
+        # Construct the variational distance calculation process
+
+        serial_settings = KratosMultiphysics.Parameters("""
+            {
+                "linear_solver_settings"   : {
+                    "solver_type" : "AMGCL"
+                }
+            }
+        """)
+        import linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
+
+        maximum_iterations = 5
+        if complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+                complete_model,
+                linear_solver,
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        		aux_name )
+        else:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+                complete_model,
+                linear_solver,
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        		aux_name )
+        return variational_distance_process

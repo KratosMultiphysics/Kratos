@@ -13,7 +13,7 @@ class GeoProcessor:
         if self.HasModelPart:
             Kratos.Logger.PrintWarning("GeoProcessor", "Model part was over-written")
         self.ModelPart = modelPartIn
-        self.HasModelPart
+        self.HasModelPart = True
 
 
     # get geo model part
