@@ -417,7 +417,7 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double factor 
             // iteration over all 3 or 6 integration points
             for ( unsigned int i_gauss = 0; i_gauss < w_gauss_interface.size(); i_gauss++)
             {
-                const double weight = w_gauss_interface[i_gauss];
+                const double& r_weight = w_gauss_interface[i_gauss];
                 const auto& N = row(shape_functions, i_gauss);
 
                 auto& normal = normal_vectors[i_gauss];
@@ -429,10 +429,11 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double factor 
                     noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                 }
 
+                const double& r_orthogonal_flow = inner_prod( normal, interpolated_velocity );
                 // checking if it is really an outflow towards the air domain
-                if ( 0.0 < inner_prod( normal, interpolated_velocity ) ){
+                if ( 0.0 < r_orthogonal_flow ){
 
-                    outflow += weight * inner_prod( normal, interpolated_velocity );
+                    outflow += r_weight * r_orthogonal_flow;
 
                 }
             }
