@@ -438,6 +438,7 @@ void RingElement3D::CalculateRightHandSide(
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -455,6 +456,7 @@ void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -649,6 +651,70 @@ int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
 
     return 0;
 
+    KRATOS_CATCH("")
+}
+
+bool RingElement3D::HasSelfWeight() const
+{
+    const double norm_self_weight =
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]+
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]+
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2];
+
+    if (norm_self_weight<=std::numeric_limits<double>::epsilon()) return false;
+    else return true;
+}
+
+Vector RingElement3D::CalculateBodyForces() {
+    KRATOS_TRY;
+
+    const int points_number = GetGeometry().PointsNumber();
+    const int dimension = 3;
+    const SizeType local_size = dimension*points_number;
+
+    // creating necessary values
+    const double A = this->GetProperties()[CROSS_AREA];
+    const Vector l_array = this->GetCurrentLengthArray();
+    const double l = this->GetCurrentLength();
+    const double L = this->GetRefLength();
+    const double rho = this->GetProperties()[DENSITY];
+
+    double total_mass = A * L * rho;
+    Vector body_forces_node = ZeroVector(dimension);
+    Vector body_forces_global = ZeroVector(local_size);
+
+
+
+    // for testing purposes
+    bool add_dead_load = true;
+    if (this->GetProperties().Has(USE_DEAD_LOAD)) {
+      add_dead_load = this->GetProperties()[USE_DEAD_LOAD];
+    }
+
+    if (add_dead_load)
+    {
+      // assemble global Vector
+      for (int i = 0; i < points_number; ++i) {
+
+        const SizeType node_i = i;
+        SizeType node_j = i-1;
+        if (i==0) node_j = points_number-1;
+        const double weight_fraction = (l_array[node_i]+l_array[node_j])/l;
+
+        body_forces_node = total_mass *
+          this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+          weight_fraction * 0.5;
+
+        for (unsigned int j = 0; j < dimension; ++j) {
+          body_forces_global[(i * dimension) + j] = body_forces_node[j];
+        }
+      }
+    }
+
+    return body_forces_global;
     KRATOS_CATCH("")
 }
 

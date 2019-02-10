@@ -169,6 +169,15 @@ namespace Kratos
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+        /**
+         * @brief This function checks if self weight is present
+         */
+        bool HasSelfWeight() const;
+
+        /**
+         * @brief This function calculates self-weight forces
+         */
+        Vector CalculateBodyForces();
 
     private:
 

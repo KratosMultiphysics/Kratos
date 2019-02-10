@@ -425,6 +425,8 @@ void SlidingCableElement3D::CalculateRightHandSide(
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
+
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -442,6 +444,8 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
+
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -635,6 +639,72 @@ int SlidingCableElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_CATCH("")
 }
+
+bool SlidingCableElement3D::HasSelfWeight() const
+{
+    const double norm_self_weight =
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]+
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]+
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2]*
+    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2];
+
+    if (norm_self_weight<=std::numeric_limits<double>::epsilon()) return false;
+    else return true;
+}
+
+
+
+Vector SlidingCableElement3D::CalculateBodyForces() {
+    KRATOS_TRY;
+
+    const int points_number = GetGeometry().PointsNumber();
+    const int dimension = 3;
+    const SizeType local_size = dimension*points_number;
+
+    // creating necessary values
+    const double A = this->GetProperties()[CROSS_AREA];
+    const Vector l_array = this->GetCurrentLengthArray();
+    const double l = this->GetCurrentLength();
+    const double L = this->GetRefLength();
+    const double rho = this->GetProperties()[DENSITY];
+
+    double total_mass = A * L * rho;
+    Vector body_forces_node = ZeroVector(dimension);
+    Vector body_forces_global = ZeroVector(local_size);
+
+
+
+    // for testing purposes
+    bool add_dead_load = true;
+    if (this->GetProperties().Has(USE_DEAD_LOAD)) {
+      add_dead_load = this->GetProperties()[USE_DEAD_LOAD];
+    }
+
+    if (add_dead_load)
+    {
+      // assemble global Vector
+      for (int i = 0; i < points_number; ++i) {
+        double weight_fraction = 0.0;
+        if (i==0) weight_fraction = l_array[i]/l;
+        else if (i==points_number-1) weight_fraction = l_array[i-1]/l;
+        else weight_fraction = (l_array[i]+l_array[i-1])/l;
+
+        body_forces_node = total_mass *
+          this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+          weight_fraction * 0.5;
+
+        for (unsigned int j = 0; j < dimension; ++j) {
+          body_forces_global[(i * dimension) + j] = body_forces_node[j];
+        }
+      }
+    }
+
+    return body_forces_global;
+    KRATOS_CATCH("")
+}
+
 
 void SlidingCableElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
