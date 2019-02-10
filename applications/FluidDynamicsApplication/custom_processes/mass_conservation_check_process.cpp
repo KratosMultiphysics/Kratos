@@ -204,15 +204,15 @@ void MassConservationCheckProcess::ApplyLocalCorrection( Variable<double>& rAuxD
             // iteration over all nodes
             auto it_node = mrModelPart.NodesBegin() + i_node;
 
-            const double original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
-            const double aux_dist = it_node->GetValue( rAuxDistVar );
+            double& r_original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
+            const double& r_aux_dist = it_node->GetValue( rAuxDistVar );
 
             if ( mAddWater ){
                 // choosing minimum to extend water domain
-                it_node->FastGetSolutionStepValue(DISTANCE, 0) = std::min( original_dist, aux_dist );
+                r_original_dist = std::min( r_original_dist, r_aux_dist );
             } else {
                 // choosing maximum to extend water domain
-                it_node->FastGetSolutionStepValue(DISTANCE, 0) = std::max( original_dist, aux_dist );
+                r_original_dist = std::max( r_original_dist, r_aux_dist );
             }
         }
     }
