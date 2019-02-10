@@ -1103,7 +1103,6 @@ protected:
 
         // We build the global T matrix and the g constant vector
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
 
         // We compute only once (or if cleared)
         if (mCleared) {
@@ -1121,8 +1120,9 @@ protected:
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
-            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
-            TSparseSpace::Mult(rA, rDeltaConstantVector, aux_constant_vector);
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+            TSystemVectorType aux_constant_vector(rConstantVector);
+            TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
@@ -1759,7 +1759,6 @@ private:
 
         // We get the global T matrix and the constant vector
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        const TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
 
         // We reconstruct the complete vector of Unknowns
         TSystemVectorType Dx_copy = rDx;
@@ -1768,6 +1767,7 @@ private:
 
         // Add the constant vector
         if (mComputeConstantContribution) {
+            const TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rDeltaConstantVector);
         }
 
