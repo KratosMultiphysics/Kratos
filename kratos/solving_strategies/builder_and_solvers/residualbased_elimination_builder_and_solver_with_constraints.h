@@ -1362,15 +1362,20 @@ protected:
 
             // NOTE: Dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
-            #pragma omp parallel for
-            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                auto it_dof = it_dof_begin + k;
-                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
-                    auto it = mDoFSlaveSet.find(*it_dof);
-                    if (it == mDoFSlaveSet.end()) {
-                        if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
-                            scaling_factors[k] = 1.0;
+            IndexType counter = 0;
+            for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
+                auto it_dof = it_dof_begin + i;
+                const IndexType equation_id = it_dof->EquationId();
+                if (equation_id < BaseType::mEquationSystemSize ) {
+                    auto it_first_check = mDoFSlaveSet.find(*it_dof);
+                    if (it_first_check == mDoFSlaveSet.end()) {
+                        auto it_second_check = mDoFSlaveSet.find(*it_dof);
+                        if (it_second_check == mDoFSlaveSet.end()) {
+                            if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
+                                scaling_factors[counter] = 1.0;
+                            }
                         }
+                        counter += 1;
                     }
                 }
             }
