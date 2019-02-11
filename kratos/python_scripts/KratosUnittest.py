@@ -76,21 +76,22 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-
+    from KratosMultiphysics import Logger
     for l in lines:
-        print(l)
+        Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
+    level_values = ['all', 'small', 'nightly', 'validation']
 
     verbosity = 1
     level = 'all'
+    is_mpi = False
 
     # Parse Commandline
     try:
@@ -99,7 +100,8 @@ def runTests(tests):
             'hv:l:', [
                 'help',
                 'verbose=',
-                'level='
+                'level=',
+                'using-mpi'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -124,8 +126,13 @@ def runTests(tests):
                 print('Error: {} is not a valid level.'.format(a))
                 Usage()
                 sys.exit()
+        elif o in ('--using-mpi'):
+            is_mpi = True
         else:
             assert False, 'unhandled option'
+
+    if is_mpi:
+        level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
         print(
