@@ -118,21 +118,12 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-         // Auxiliar stress vector
-        Vector auxiliar_stress_vector = ZeroVector(voigt_size);
-        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor = mCombinationFactors[i];
 
-             rValues.SetMaterialProperties(r_prop);
-            p_law->CalculateMaterialResponseKirchhoff(rValues);
 
-             noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
-        }
 
-         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
-        rValues.SetMaterialProperties(r_material_properties);
+
+
+        // noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
          // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
