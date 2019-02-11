@@ -443,7 +443,7 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1126,7 +1126,7 @@ void UpdatedLagrangian::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1166,7 +1166,7 @@ void UpdatedLagrangian::CalculateGreenLagrangeStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
