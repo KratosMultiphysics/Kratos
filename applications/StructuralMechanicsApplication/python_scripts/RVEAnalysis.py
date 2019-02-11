@@ -62,6 +62,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             averaging_mp, strain, self.min_corner, self.max_corner)
 
         self.ChangeMaterialProperties()  # this is normally empty
+
         self._GetSolver().InitializeSolutionStep()
 
         if self.is_printing_rank:
@@ -95,14 +96,14 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     def _DetectBoundingBox(self, mp):
         min_corner = KratosMultiphysics.Array3()
-        min_corner[0] = 0.0
-        min_corner[1] = 0.0
-        min_corner[2] = 0.0
+        min_corner[0] = 1e20
+        min_corner[1] = 1e20
+        min_corner[2] = 1e20
 
         max_corner = KratosMultiphysics.Array3()
-        max_corner[0] = 0.0
-        max_corner[1] = 0.0
-        max_corner[2] = 0.0
+        max_corner[0] = -1e20
+        max_corner[1] = -1e20
+        max_corner[2] = -1e20
 
         for node in mp.Nodes:
             x = node.X
@@ -252,7 +253,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         f.close()
 
     def _ComputeEquivalentStress(self, i, j, perturbation, boundary_mp, averaging_mp):
-
         # Here use a pseudotime for output
         self.time = self.time + 1.0
         averaging_mp.GetRootModelPart().CloneTimeStep(self.time)
@@ -301,11 +301,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         KratosMultiphysics.Logger.PrintInfo(
             self._GetSimulationName(), "Measured volume = ", measured_volume)
 
-        if abs(measured_volume - self.averaging_volume)/self.averaging_volume > 1e-5:
-            raise Exception("Too large difference between volume before deformation : ", self.averaging_volume,
-                            " and volume measured after deformation :", measured_volume)
-
-        avg_stress /= measured_volume
+        avg_stress /= self.averaging_volume
 
         KratosMultiphysics.Logger.PrintInfo(
             self._GetSimulationName(), "Applied strain = ", strain_vector)
@@ -325,11 +321,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         zero[1] = 0.0
         zero[2] = 0.0
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.DISPLACEMENT, zero, averaging_mp.Nodes)
-
         return avg_stress, strain_vector
 
     def _ApplyPeriodicity(self, strain, volume_mp, boundary_mp):
-
         # clear
         for constraint in volume_mp.GetRootModelPart().MasterSlaveConstraints:
             constraint.Set(KratosMultiphysics.TO_ERASE)
@@ -356,5 +350,4 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             x[1] = node.Y0
             x[2] = node.Z0
             d = strain*x
-            d.fill(0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, d)
