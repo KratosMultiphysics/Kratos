@@ -80,7 +80,7 @@ Begin Nodes
 72 1.000000e+00 1.000000e+00 1.000000e+00
 End Nodes
 
-Begin Elements VMS3D
+Begin Elements Element3D4N
 1 0 8 43 38 44
 2 0 8 43 37 38
 3 0 7 37 8 43
@@ -233,7 +233,7 @@ Begin Elements VMS3D
 150 0 36 29 30 65
 End Elements
 
-Begin Conditions WallCondition3D //Front
+Begin Conditions SurfaceCondition3D3N //Front
 1 0 7 1 37
 2 0 7 37 43
 3 0 13 7 43
@@ -246,7 +246,7 @@ Begin Conditions WallCondition3D //Front
 10 0 31 61 67
 End Conditions
 
-Begin Conditions WallCondition3D //Back
+Begin Conditions SurfaceCondition3D3N //Back
 11 0 12 42 6
 12 0 12 48 42
 13 0 18 48 12
@@ -259,7 +259,7 @@ Begin Conditions WallCondition3D //Back
 20 0 36 72 66
 End Conditions
 
-Begin Conditions WallCondition3D //Right
+Begin Conditions SurfaceCondition3D3N //Right
 21 0 2 38 37
 22 0 37 1 2
 23 0 3 39 38
@@ -272,7 +272,7 @@ Begin Conditions WallCondition3D //Right
 30 0 41 5 6
 End Conditions
 
-Begin Conditions WallCondition3D //Left
+Begin Conditions SurfaceCondition3D3N //Left
 31 0 32 67 68
 32 0 32 31 67
 33 0 33 68 69
@@ -285,7 +285,7 @@ Begin Conditions WallCondition3D //Left
 40 0 36 35 71
 End Conditions
 
-Begin Conditions WallCondition3D //Bottom
+Begin Conditions SurfaceCondition3D3N //Bottom
 41 0 7 8 1
 42 0 8 2 1
 43 0 8 9 2
@@ -338,7 +338,7 @@ Begin Conditions WallCondition3D //Bottom
 90 0 36 30 29
 End Conditions
 
-Begin Conditions WallCondition3D //Top
+Begin Conditions SurfaceCondition3D3N //Top
 91 0 43 37 38
 92 0 43 38 44
 93 0 44 38 39
@@ -704,4 +704,3 @@ Begin SubModelPartConditions
 End SubModelPartConditions
 
 End SubModelPart
-

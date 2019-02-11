@@ -971,7 +971,16 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                              ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
+
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+  this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+
+  KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::CalculateRightHandSide(
+    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       ZeroMatrix(msElementSize);
@@ -995,18 +1004,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // add bodyforces
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
   this->mIterationCount++;
-  KRATOS_CATCH("")
-}
 
-void CrBeamElement3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  rRightHandSideVector = ZeroVector(msElementSize);
-  // this is why mNodalForces is saved -> correct reaction forces
-
-  noalias(rRightHandSideVector) -= this->mNodalForces;
-  // add bodyforces
-  noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 

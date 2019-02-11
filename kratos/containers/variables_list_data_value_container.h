@@ -86,7 +86,7 @@ public:
     ///@{
 
     /// Default constructor.
-    VariablesListDataValueContainer(SizeType NewQueueSize = 1)
+    explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(&GetDefaultVariablesList())
     {

@@ -71,6 +71,13 @@ class MmgProcess(KratosMultiphysics.Process):
                 "perform_nodal_h_averaging"           : false,
                 "max_iterations"                      : 3
             },
+            "discretization_type"                  : "Standard",
+            "isosurface_parameters"                :
+            {
+                "isosurface_variable"              : "DISTANCE",
+                "nonhistorical_variable"           : false,
+                "remove_regions"                   : false
+            },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
             {
@@ -265,6 +272,8 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters = KratosMultiphysics.Parameters("""{"force_sizes":{}}""")
         mmg_parameters.AddValue("filename",self.settings["filename"])
         mmg_parameters.AddValue("framework",self.settings["framework"])
+        mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
+        mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
