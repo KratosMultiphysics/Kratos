@@ -149,12 +149,23 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
     std::vector<double>& Dns_analytic = SwimmingParticle<AnalyticSphericParticle>::mDns;
     std::vector<double>& Ens_analytic = SwimmingParticle<AnalyticSphericParticle>::mEns;
 
-    Ajs_analytic = Ajs;
-    Bns_analytic = Bns;
-    Cns_analytic = Cns;
-    Dns_analytic = Dns;
-    Ens_analytic = Ens;
-    KRATOS_INFO("SwimmingDEM") << "...Finished filling up vectors of coefficients." << std::endl;
+    std::vector<double>& Ajs_hydro = BoussinesqBassetHistoryForceLaw::mAjs;
+    std::vector<double>& Bns_hydro = BoussinesqBassetHistoryForceLaw::mBns;
+    std::vector<double>& Cns_hydro = BoussinesqBassetHistoryForceLaw::mCns;
+    std::vector<double>& Dns_hydro = BoussinesqBassetHistoryForceLaw::mDns;
+    std::vector<double>& Ens_hydro = BoussinesqBassetHistoryForceLaw::mEns;
+
+    Ajs_hydro.resize(n_steps_per_quad_step * N);
+    Bns_hydro.resize(n_steps_per_quad_step * N);
+    Cns_hydro.resize(n_steps_per_quad_step * N);
+    Dns_hydro.resize(n_steps_per_quad_step * N);
+    Ens_hydro.resize(n_steps_per_quad_step * N);
+    Ajs_hydro = Ajs;
+    Bns_hydro = Bns;
+    Cns_hydro = Cns;
+    Cns_hydro = Dns;
+    Cns_hydro = Ens;
+    KRATOS_INFO("SwimmingDEM") << "...Finished fCns.size()oefficients." << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -484,17 +495,33 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     // Filling up the static variables of other versions of swimming particle, since each template instance has their own variables
 
-     double & t_win_analytic = SwimmingParticle<AnalyticSphericParticle>::mTimeWindow;
-     std::vector<double>& As_analytic = SwimmingParticle<AnalyticSphericParticle>::mAs;
-     std::vector<double>& Ts_analytic = SwimmingParticle<AnalyticSphericParticle>::mTs;
-     std::vector<double>& Alphas_analytic = SwimmingParticle<AnalyticSphericParticle>::mAlphas;
-     std::vector<double>& Betas_analytic = SwimmingParticle<AnalyticSphericParticle>::mBetas;
+    //  double & t_win_analytic = SwimmingParticle<AnalyticSphericParticle>::mTimeWindow;
+    //  std::vector<double>& As_analytic = SwimmingParticle<AnalyticSphericParticle>::mAs;
+    //  std::vector<double>& Ts_analytic = SwimmingParticle<AnalyticSphericParticle>::mTs;
+    //  std::vector<double>& Alphas_analytic = SwimmingParticle<AnalyticSphericParticle>::mAlphas;
+    //  std::vector<double>& Betas_analytic = SwimmingParticle<AnalyticSphericParticle>::mBetas;
 
-     t_win_analytic = t_win;
-     As_analytic = As;
-     Ts_analytic = Ts;
-     Alphas_analytic = Alphas;
-     Betas_analytic = Betas;
+     double & t_win_hydro = BoussinesqBassetHistoryForceLaw::mTimeWindow;
+     std::vector<double>& As_hydro = BoussinesqBassetHistoryForceLaw::mAs;
+     std::vector<double>& Ts_hydro = BoussinesqBassetHistoryForceLaw::mTs;
+     std::vector<double>& Alphas_hydro = BoussinesqBassetHistoryForceLaw::mAlphas;
+     std::vector<double>& Betas_hydro = BoussinesqBassetHistoryForceLaw::mBetas;
+
+    //  t_win_analytic = t_win;
+    //  As_analytic = As;
+    //  Ts_analytic = Ts;
+    //  Alphas_analytic = Alphas;
+    //  Betas_analytic = Betas;
+
+     As_hydro.resize(m);
+     Ts_hydro.resize(m);
+     Alphas_hydro.resize(m);
+     Betas_hydro.resize(m);
+     t_win_hydro = t_win;
+     As_hydro = As;
+     Ts_hydro = Ts;
+     Alphas_hydro = Alphas;
+     Betas_hydro = Betas;
 
     // Filling up the particles' individual vectors
 

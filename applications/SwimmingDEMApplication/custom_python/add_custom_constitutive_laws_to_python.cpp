@@ -30,6 +30,9 @@
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
 #include "../custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
 
+// history force laws
+#include "../custom_constitutive/history_force_laws/history_force_law.h"
+#include "../custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -39,6 +42,7 @@ namespace py = pybind11;
 typedef BuoyancyLaw BaseBuoyancyLawType;
 typedef DragLaw BaseDragLawType;
 typedef InviscidForceLaw BaseInviscidForceLawType;
+typedef HistoryForceLaw BaseHistoryForceLaw;
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
@@ -51,6 +55,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("SetBuoyancyLaw", &HydrodynamicInteractionLaw::SetBuoyancyLaw)
         .def("SetDragLaw", &HydrodynamicInteractionLaw::SetDragLaw)
         .def("SetInviscidForceLaw", &HydrodynamicInteractionLaw::SetInviscidForceLaw)
+        .def("SetHistoryForceLaw", &HydrodynamicInteractionLaw::SetHistoryForceLaw)
         ;
 
     // Buoyancy laws
@@ -111,6 +116,18 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<AutonHuntPrudhommeInviscidForceLaw, AutonHuntPrudhommeInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "AutonHuntPrudhommeInviscidForceLaw")
+        .def(py::init<>())
+        ;
+
+    // History force laws
+    py::class_<HistoryForceLaw, HistoryForceLaw::Pointer>(m, "HistoryForceLaw")
+        .def(py::init<>())
+        .def("Clone", &HistoryForceLaw::Clone)
+        .def("SetDragLawInProperties", &HistoryForceLaw::SetHistoryForceLawInProperties)
+        .def("GetTypeOfLaw", &HistoryForceLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<BoussinesqBassetHistoryForceLaw, BoussinesqBassetHistoryForceLaw::Pointer, BaseHistoryForceLaw>(m, "BoussinesqBassetHistoryForceLaw")
         .def(py::init<>())
         ;
   }

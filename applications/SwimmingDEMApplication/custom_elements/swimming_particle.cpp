@@ -51,7 +51,7 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
     mInitialTime = rOther.mInitialTime;
     mOldDaitchePresentCoefficient = rOther.mOldDaitchePresentCoefficient;
     mLastVirtualMassAddedMass = rOther.mLastVirtualMassAddedMass;
-    mLastBassetForceAddedMass = rOther.mLastBassetForceAddedMass;
+    mLastHistoryForceAddedMass = rOther.mLastHistoryForceAddedMass;
     noalias(mSlipVel) = rOther.mSlipVel;
     noalias(mOldBassetTerm) = rOther.mOldBassetTerm;
 
@@ -134,10 +134,19 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       virtual_mass_plus_undisturbed_flow_force,
                                                       r_current_process_info);
 
+
+
     ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
+    mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
+                                                     mRadius,
+                                                     mFluidDensity,
+                                                     mKinematicViscosity,
+                                                     mSlipVel,
+                                                     basset_force,
+                                                     r_current_process_info);
     ComputeBassetForce(node, basset_force, r_current_process_info);
 
     // Adding all forces except Basset's, since they might get averaged in time in a different way
@@ -153,7 +162,12 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                                                           mFluidDensity,
                                                                                           r_current_process_info);
 
-    const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + mLastBassetForceAddedMass);
+    const double history_force_added_mass =  mHydrodynamicInteractionLaw->GetHistoryForceAddedMass(GetGeometry(),
+                                                                                                   r_current_process_info);
+
+    const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + history_force_added_mass);
+
+    //const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + mLastHistoryForceAddedMass);
 
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 
@@ -824,7 +838,7 @@ void SwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, array_1d
             noalias(fractional_derivative_of_slip_vel) -= old_basset_term;
 
             mOldDaitchePresentCoefficient = present_coefficient;
-            mLastBassetForceAddedMass = basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
+            mLastHistoryForceAddedMass = basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
 
             noalias(basset_force) = basset_force_coeff * sqrt_of_quad_h_q / delta_time * fractional_derivative_of_slip_vel;
         }
@@ -1104,7 +1118,7 @@ void SwimmingParticle<TBaseElement>::Calculate(const Variable<array_1d<double, 3
 
     else if (rVariable == BASSET_FORCE) {
         const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-        Output -= mLastBassetForceAddedMass / mRealMass * total_forces;
+        Output -= mLastHistoryForceAddedMass / mRealMass * total_forces;
     }
 
     else {
@@ -1714,7 +1728,7 @@ void SwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_inf
     mHasDragCoefficientVar       = node.SolutionStepsDataHas(DRAG_COEFFICIENT);
     mHasOldAdditionalForceVar    = node.SolutionStepsDataHas(ADDITIONAL_FORCE_OLD);
     mLastVirtualMassAddedMass    = 0.0;
-    mLastBassetForceAddedMass    = 0.0;
+    mLastHistoryForceAddedMass   = 0.0;
 
 }
 //**************************************************************************************************************************************************

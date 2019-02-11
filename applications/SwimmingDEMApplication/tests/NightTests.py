@@ -18,6 +18,11 @@ class candelier_with_history_test(TF.TestFactory):
      file_name = "candelier_tests/candelier"
      file_parameters = "candelier_tests/ProjectParametersDEMWithHistory.json"
 
+class candelier_with_history_hinsberg_test(TF.TestFactory):
+     file_name = "candelier_tests/candelier"
+     file_parameters = "candelier_tests/ProjectParametersDEMWithHistoryHinsberg.json"
+
+
 # This test is ready to run but the implementation is not complete
 # (it is non-trivial), so the result is not correct
 class candelier_with_history_non_inertial_test(TF.TestFactory):
@@ -31,7 +36,8 @@ def SetTestSuite(suites):
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             candelier_no_history_test,
             candelier_no_history_non_inertial_test,
-            candelier_with_history_test
+            candelier_with_history_test,
+            candelier_with_history_hinsberg_test
             ])
     )
 

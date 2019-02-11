@@ -26,7 +26,8 @@
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 #include "custom_constitutive/buoyancy_laws/buoyancy_law.h"
 #include "custom_constitutive/drag_laws/drag_law.h"
-#include "custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
+#include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
+#include "custom_constitutive/history_force_laws/history_force_law.h"
 
 namespace Kratos
 {
@@ -39,9 +40,11 @@ KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_IN
 KRATOS_CREATE_VARIABLE(std::string, SDEM_BUOYANCY_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_INVISCID_FORCE_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_HISTORY_FORCE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(BuoyancyLaw::Pointer, SDEM_BUOYANCY_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(InviscidForceLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(HistoryForceLaw::Pointer, SDEM_HISTORY_FORCE_LAW_POINTER)
 
 
 
@@ -90,9 +93,11 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_BUOYANCY_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_BUOYANCY_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_POINTER)
 
   /* Define In Global variables.cpp */
 
