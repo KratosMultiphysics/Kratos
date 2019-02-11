@@ -53,7 +53,7 @@
             "python_module" : "apply_mpm_particle_dirichlet_condition_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "Parameters"    : {
-                "model_part_name" : "PENALTY_Condition_Auto1",
+                "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
                 "particles_per_condition" : 7,
                 "penalty_factor"  : 1e15,
                 "constrained"     : "fixed"
