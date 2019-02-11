@@ -414,3 +414,11 @@ class GeoPreprocessor( GeoProcessor ):
             return True
         except ValueError:
             return False
+
+    def _remove_duplicate(self, point_list):
+        no_duplicate = []        # point_list without duplicates
+        for point in point_list:
+            if (point not in no_duplicate):
+                no_duplicate.append(point)
+
+        return no_duplicate
