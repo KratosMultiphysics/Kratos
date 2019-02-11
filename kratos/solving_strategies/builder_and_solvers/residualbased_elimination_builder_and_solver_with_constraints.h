@@ -183,7 +183,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
     /** Destructor.
      */
-    ~ResidualBasedEliminationBuilderAndSolverWithConstraints()
+    ~ResidualBasedEliminationBuilderAndSolverWithConstraints() override
     {
     }
 
