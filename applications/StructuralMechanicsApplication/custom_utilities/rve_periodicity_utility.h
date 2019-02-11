@@ -234,7 +234,7 @@ private:
      * @param rRelationMatrix The relation matrix between master slave dofs
      * @param rTranslationVector The rigid motion vector of the dofs
      */
-    void GenerateConstraint(
+    MasterSlaveConstraint::Pointer  GenerateConstraint(
         IndexType& rConstraintId,
         const VariableComponentType& rVar,
         NodeType::Pointer pSlaveNode,

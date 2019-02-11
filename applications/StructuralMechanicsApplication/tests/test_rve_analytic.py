@@ -34,15 +34,6 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
         simulation.Run()
 
         model_part = model["Structure.computing_domain"]
-        ## Generate reference
-        #counter = 0
-        #for node in model_part.Nodes:
-            #counter += 1
-            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_X), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)) +", 5)")
-            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_Y), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)) +", 5)")
-            #print("self.assertAlmostEqual(model_part.Nodes["+str(counter)+"].GetSolutionStepValue(KratosMultiphysics.REACTION_Z), "+ str(node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)) +", 5)")
-
-        # Compare reactions
 
         # Compare C
         Cestimated = model_part.GetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR)

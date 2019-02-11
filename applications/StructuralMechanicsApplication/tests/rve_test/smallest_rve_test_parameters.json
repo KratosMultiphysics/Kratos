@@ -9,7 +9,7 @@
     "rve_settings"     : {
         "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
         "averaging_mp_name" : "Structure.computing_domain",
-        "print_rve_post"    : false,
+        "print_rve_post"    : true,
         "perturbation"      : 1e-6  
     },
     "solver_settings"  : {
@@ -34,14 +34,14 @@
         "processes_sub_model_part_list"      : ["SurfacePressure3D_Pressure_on_surfaces_Auto2"]
     },
     "output_processes" : {
-        "gid_output" : [{
+        "all_output_processes" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "Structure.computing_domain",
-                "output_name"            : "smallest_rve_test",
+                "output_name"            : "rve_test/smallest_rve_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -57,7 +57,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT"],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION"],
                         "gauss_point_results" : ["PK2_STRESS_TENSOR"]
                     },
                     "point_data_configuration"  : []
