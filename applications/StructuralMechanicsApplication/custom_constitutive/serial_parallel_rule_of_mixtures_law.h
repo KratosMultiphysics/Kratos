@@ -223,6 +223,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue);
 
+    void IntegrateStrainSerialParallelBehaviour(
+        const Vector& rStrainVector,
+        Vector& FiberStressVector,
+        Vector& MatrixStressVector,
+        const Properties& rMaterialProperties);
     ///@}
     ///@name Access
     ///@{

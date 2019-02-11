@@ -69,7 +69,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
      // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
-     // Previous flags saved
+    // Previous flags saved
     const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
@@ -115,8 +115,16 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // total strain vector
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
+                                                    fiber_stress_vector,
+                                                    matrix_stress_vector,
+                                                    r_material_properties);
 
 
 
@@ -126,12 +134,24 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         // noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
          // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
 } // End CalculateMaterialResponseCauchy
+
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
+    const Vector& rStrainVector,
+    Vector& FiberStressVector,
+    Vector& MatrixStressVector,
+    const Properties& rMaterialProperties
+)
+{
+    
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
