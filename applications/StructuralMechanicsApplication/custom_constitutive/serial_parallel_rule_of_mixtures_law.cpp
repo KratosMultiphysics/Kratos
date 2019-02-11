@@ -25,8 +25,7 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
-    const std::string name = "SmallStrainIsotropicPlasticity";
-    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+    return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>();
 }
 
 /***********************************************************************************/
@@ -175,5 +174,27 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
 {
     return this->GetValue(rThisVariable, rValue);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues)
+{
+	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+	const auto props_matrix_cl = *(it_cl_begin);
+    const auto props_fiber_cl  = *(it_cl_begin + 1);
+
+    KRATOS_ERROR_IF_NOT(props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(props_fiber_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
+
+    mpMatrixConstitutiveLaw = props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
+    mpFiberConstitutiveLaw  = props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
+    mpMatrixConstitutiveLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+    mpFiberConstitutiveLaw ->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+}
+
 
 } // namespace Kratos

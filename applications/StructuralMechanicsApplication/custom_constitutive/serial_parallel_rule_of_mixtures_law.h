@@ -56,6 +56,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     ///@name Type Definitions
     ///@{
 
+
+    /// The node definition
+    typedef Node<3> NodeType;
+
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of the machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
     /// Counted pointer of SerialParallelRuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION(SerialParallelRuleOfMixturesLaw);
 
@@ -73,24 +82,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     /**
     * Constructor.
     */
-    SerialParallelRuleOfMixturesLaw(
-        ConstitutiveLaw::Pointer pMatrixConstitutiveLaw,
-        ConstitutiveLaw::Pointer pFiberConstitutiveLaw) 
-        : mpMatrixConstitutiveLaw(pMatrixConstitutiveLaw), mpFiberConstitutiveLaw(pFiberConstitutiveLaw)
-    {
-    }
+    // SerialParallelRuleOfMixturesLaw()
+    // {
+    // }
 
     /**
     * Clone.
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        auto p_law = Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(*this);
-
-        p_law->SetPlasticityConstitutiveLaw(mpMatrixConstitutiveLaw->Clone());
-        p_law->SetViscousConstitutiveLaw(mpFiberConstitutiveLaw->Clone());
-
-        return p_law;
+        return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(*this);
     }
 
     // Copy constructor
@@ -210,6 +211,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Variable<double>& rThisVariable,
         double& rValue) override;
 
+    void InitializeMaterial(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues);
+
     ///@}
     ///@name Access
     ///@{
@@ -240,24 +246,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     ///@name Protected Operators
     ///@{
 
-    ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
+    ConstitutiveLaw::Pointer GetMatrixConstitutiveLaw()
     {
         return mpMatrixConstitutiveLaw;
     }
 
-    void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw)
+    void SetMatrixConstitutiveLaw(ConstitutiveLaw::Pointer pMatrixConstitutiveLaw)
     {
-        mpMatrixConstitutiveLaw = pPlasticityConstitutiveLaw;
+        mpMatrixConstitutiveLaw = pMatrixConstitutiveLaw;
     }
 
-    ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
+    ConstitutiveLaw::Pointer GetFiberConstitutiveLaw()
     {
         return mpFiberConstitutiveLaw;
     }
 
-    void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
+    void SetFiberConstitutiveLaw(ConstitutiveLaw::Pointer pFiberConstitutiveLaw)
     {
-        mpFiberConstitutiveLaw = pViscousConstitutiveLaw;
+        mpFiberConstitutiveLaw = pFiberConstitutiveLaw;
     }
 
     ///@}
