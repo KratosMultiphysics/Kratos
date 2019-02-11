@@ -34,7 +34,7 @@ double CalculateDeltaTime(
     {
         "time_step_prediction_level" : 2.0,
         "max_delta_time"             : 1.0e-3,
-        "safety_factor"              : 0.55,
+        "safety_factor"              : 0.60,
         "mass_factor"                : 1.0,
         "desired_delta_time"         : -1.0,
         "max_number_of_iterations"   : 10

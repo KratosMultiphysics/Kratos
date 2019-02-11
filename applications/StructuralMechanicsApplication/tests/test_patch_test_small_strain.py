@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
-       
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -469,7 +469,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         # Testing explicit utilities
         empty_param = KratosMultiphysics.Parameters("""{}""")
         max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, empty_param)
-        self.assertAlmostEqual(max_delta_time,4.764516014904737e-07)
+        self.assertAlmostEqual(max_delta_time,5.201533840161235e-07)
 
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
