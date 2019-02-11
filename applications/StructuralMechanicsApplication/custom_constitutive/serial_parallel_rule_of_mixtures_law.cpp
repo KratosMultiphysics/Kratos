@@ -150,8 +150,36 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     const Properties& rMaterialProperties
 )
 {
+    const int voigt_size = this->GetStrainSize();
     Matrix parallel_projector, serial_projector;
     this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+    Vector matrix_stress_vector_serial, fiber_stress_vector_serial;
+    matrix_stress_vector_serial.resize(voigt_size);
+    fiber_stress_vector_serial.resize(voigt_size);
+    bool is_converged = false;
+
+    while (is_converged == false) {
+        this->CalculateStrainsOnEachComponent(rStrainVector,
+                                              mPreviousStrainVector, 
+                                              rMaterialProperties, 
+                                              parallel_projector, 
+                                              serial_projector);
+    }
+
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
+    const Vector& rStrainVector,
+    const Vector& rPreviousStrainVector,
+    const Properties& rMaterialProperties,
+    Matrix& rParallelProjector,
+    Matrix& rSerialProjector
+)
+{
 
 }
 
