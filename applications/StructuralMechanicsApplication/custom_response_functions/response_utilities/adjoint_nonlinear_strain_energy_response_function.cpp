@@ -100,8 +100,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // TODO Mahmoud: Removing const Condition& rAdjointCondition from the base function
-    // TODO Mahmoud: derivativ calculation for backward analysis
     // \frac{1}{2} (f_{ext}_i - f_{ext}_i-1) + frac{1}{2} (u^T_i - u^T_i-1) \cdot ( \frac{\partial f_{ext}_i}{\partial u} + frac{\partial f_{ext}_i-1}{\partial u})
     void AdjointNonlinearStrainEnergyResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
                                     const Matrix& rResidualGradient,
@@ -185,13 +183,15 @@ namespace Kratos
         // storing the partial derivative partial f_{ext}_i}{\partial u}
         mExternalForceDisplacementDerivative = partial_derivative_matrix;
 
-        // TODO Mahmoud: This stores rResponseGradient values which is called in adjoint_postprocess.cpp
+        // This stores rResponseGradient values for each condition
         mResponseGradient_1[rAdjointCondition.Id()] = rResponseGradient;
 
         KRATOS_CATCH("");
     }
 
-    // TODO Mahmoud: This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
+    // TODO Mahmoud: This is not the correct place to implement the scaling factor, another function should be added 
+    // to the base class to be used for calculating the scaling factor
+    // This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
     // Later this should be replaced with a more general approach that is suitable for follower loads
     // a scaling factor would give accurate results for non-follower loads, however it should be used carefully for follower loads
     // frac{\partial E_i}{\partial u_i} / frac{\partial E_i-1}{\partial u_i-1}
@@ -311,7 +311,6 @@ namespace Kratos
 
         // TODO, use rVariable instead of the nodal degrees of freedom
         int i_2 = 0;
-        // TODO Mahmoud: perturbe the current coordinates also
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
             Vector perturbed_RHS = Vector(0);

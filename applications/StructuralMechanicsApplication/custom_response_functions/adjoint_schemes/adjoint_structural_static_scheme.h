@@ -306,8 +306,6 @@ public:
         mpResponseFunction->CalculateGradient(
              *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        std::cout << "condition rRHS_Contribution" << rRHS_Contribution << ":" << std::endl;
-
         // TODO Mahmoud: check the reason for this negative value
        // noalias(rRHS_Contribution) = -rRHS_Contribution;
 

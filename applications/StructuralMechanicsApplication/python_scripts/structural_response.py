@@ -445,9 +445,6 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         # This runs the whole solution loop for adjoint analysis
         self.adjoint_analysis.RunSolutionLoop()
 
-    # TODO Mahmoud: this function is implemented to avoid the calling CalculateValue() twice for the last step    
-    # this is a temporary fix that should be amended later on 
-
     def CalculateResponseIncrement(self):
         startTime = timer.time()
         incremental_response_value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
