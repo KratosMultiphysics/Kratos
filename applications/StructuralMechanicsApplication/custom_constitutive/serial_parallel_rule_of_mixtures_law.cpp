@@ -193,9 +193,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     Vector& rStrainVectorFiber
 )
 {
-    const Vector total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
-    const Vector total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
-    const Vector total_strain_increment = rStrainVector - rPreviousStrainVector;
+    const int voigt_size = this->GetStrainSize();
+    // const Vector total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
+    // const Vector total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
+    const Matrix total_strain_increment_serial = prod(trans(rSerialProjector), rStrainVector) - prod(trans(rSerialProjector),rPreviousStrainVector);
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
     Matrix constitutive_tensor_matrix, constitutive_tensor_fiber;
@@ -206,6 +207,20 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
     this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
     this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
+
+    const Matrix& r_constitutive_tensor_matrix_ss = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, rSerialProjector)));
+    const Matrix& r_constitutive_tensor_fiber_ss  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, rSerialProjector)));
+
+    const Matrix& r_constitutive_tensor_matrix_sp = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, trans(rParallelProjector))));
+    const Matrix& r_constitutive_tensor_fiber_sp  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, trans(rParallelProjector))));
+
+    Matrix A, aux;
+    aux = matrix_vol_participation * r_constitutive_tensor_fiber_ss + fiber_vol_participation * r_constitutive_tensor_matrix_ss;
+    double det_aux = 0.0;
+    MathUtils<double>::InvertMatrix(aux, A, det_aux);
+
+    Matrix matrix_strain_serial_increment, auxiliar;
+    auxiliar = prod(r_constitutive_tensor_fiber_ss, total_strain_increment_serial);
 
 
 
