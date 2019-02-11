@@ -89,7 +89,7 @@ public:
             noalias(rRotationMatrix) = IdentityMatrix(Dimension);
 
             double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1];
-            aux = sqrt(aux);
+            aux = std::sqrt(aux);
             if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
 
             rRotationMatrix(0,0) =  rNormalVector[0]/aux;
@@ -103,7 +103,7 @@ public:
             noalias(rRotationMatrix) = IdentityMatrix(Dimension);
 
             double aux = rNormalVector[0]*rNormalVector[0] + rNormalVector[1]*rNormalVector[1] + rNormalVector[2]*rNormalVector[2];
-            aux = sqrt(aux);
+            aux = std::sqrt(aux);
             if (std::abs(aux) < std::numeric_limits<double>::epsilon()) aux = std::numeric_limits<double>::epsilon();
 
             rRotationMatrix(0,0) = rNormalVector[0]/aux;
@@ -120,7 +120,7 @@ public:
 
             // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
             // If this is the case, repeat the procedure using (0,1,0)
-            if ( fabs(dot) > 0.99 )
+            if ( std::abs(dot) > 0.99 )
             {
                 rT1(0) = 0.0;
                 rT1(1) = 1.0;
@@ -145,7 +145,7 @@ public:
             rRotationMatrix(2,2) = rRotationMatrix(0,0)*rT1[1] - rRotationMatrix(0,1)*rT1[0];
         }
         else{
-            KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: GetRotationMatrix" << std::endl;
+            KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
         }
     }
 

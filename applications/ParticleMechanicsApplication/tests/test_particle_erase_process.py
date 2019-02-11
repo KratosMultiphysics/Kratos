@@ -87,7 +87,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         material_model_part = current_model.GetModelPart("dummy_name")
 
         # Check initial total number of element
-        particle_counter = len(material_model_part.Elements)
+        particle_counter = material_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 8)
 
         # Move particle
@@ -108,7 +108,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         process.Execute()
 
         # Check total number of element
-        particle_counter = len(material_model_part.Elements)
+        particle_counter = material_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 1)
         expected_id = 9
         for mpm in material_model_part.Elements:
@@ -122,7 +122,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         material_model_part = current_model.GetModelPart("dummy_name")
 
         # Check initial total number of element
-        particle_counter = len(material_model_part.Elements)
+        particle_counter = material_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 8)
 
         # Move particle
@@ -140,7 +140,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         process.Execute()
 
         # Check total number of element
-        particle_counter = len(material_model_part.Elements)
+        particle_counter = material_model_part.NumberOfElements()
         self.assertEqual(particle_counter, 1)
         expected_id = 9
         for mpm in material_model_part.Elements:
@@ -154,7 +154,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         material_model_part = current_model.GetModelPart("dummy_name")
 
         # Check initial number of condition
-        particle_counter = len(material_model_part.Conditions)
+        particle_counter = material_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 4)
 
         # Move particle
@@ -175,7 +175,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         process.Execute()
 
         # Check total number of condition
-        particle_counter = len(material_model_part.Conditions)
+        particle_counter = material_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 1)
         expected_id = 11
         for mpc in material_model_part.Conditions:
@@ -189,7 +189,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         material_model_part = current_model.GetModelPart("dummy_name")
 
         # Check initial number of condition
-        particle_counter = len(material_model_part.Conditions)
+        particle_counter = material_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 4)
 
         # Move particle
@@ -207,7 +207,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         process.Execute()
 
         # Check total number of condition
-        particle_counter = len(material_model_part.Conditions)
+        particle_counter = material_model_part.NumberOfConditions()
         self.assertEqual(particle_counter, 1)
         expected_id = 11
         for mpc in material_model_part.Conditions:
