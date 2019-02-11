@@ -31,14 +31,14 @@ class DEMAnalysisStage(AnalysisStage):
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
 
-    def GetInputParameters(self):   # TODO: deprecated
-        print ("WARNING: Calls to this method (GetInputParameters) will become deprecated in the near future.")
+    def GetInputParameters(self):
+        Logger.PrintWarning("DEM_analysis_stage.py", "Calls to this method (GetInputParameters) will become deprecated in the near future.")
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
-    def LoadParametersFile(self):   # TODO: deprecated
-        print ("WARNING: Calls to this method (LoadParametersFile) will become deprecated in the near future.")
+    def LoadParametersFile(self):
+        Logger.PrintWarning("DEM_analysis_stage.py", "Calls to this method (LoadParametersFile) will become deprecated in the near future.")
         self.DEM_parameters = self.GetInputParameters()
         self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
