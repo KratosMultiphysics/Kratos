@@ -22,7 +22,7 @@ class ParticleMPMSolver(PythonSolver):
         self._add_model_part_containers()
 
         # Default settings
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         # There is only a single rank in OpenMP, we always print
         self.is_printing_rank = True
@@ -65,7 +65,7 @@ class ParticleMPMSolver(PythonSolver):
                 "searching_tolerance"            : 1.0E-5
             },
             "linear_solver_settings"             : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"damped_jacobi",
                 "krylov_type": "cg",
                 "coarsening_type": "aggregation",
@@ -103,7 +103,8 @@ class ParticleMPMSolver(PythonSolver):
 
         # Construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):
+        linear_solver_type = self.settings["linear_solver_settings"]["solver_type"].GetString()
+        if(linear_solver_type == "amgcl" or linear_solver_type == "AMGCL"):
             self.block_builder = True
         else:
             self.block_builder = False
@@ -304,8 +305,6 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Add variables for arbitrary slope with slip

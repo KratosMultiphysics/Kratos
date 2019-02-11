@@ -228,7 +228,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle3D3( const PointsArrayType& ThisPoints )
+    explicit Triangle3D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -261,7 +261,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -364,8 +364,18 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         rResult.resize( 3, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );

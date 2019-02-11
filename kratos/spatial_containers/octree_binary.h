@@ -1329,12 +1329,12 @@ namespace Kratos {
         Point &rBoxHalfSize,
         std::vector<Point> &rVertices)
     {
-        const Point box_min_point = rBoxCenter - rBoxHalfSize; // Bounding box min point
-        const Point box_max_point = rBoxCenter + rBoxHalfSize; // Bounding box max point
+        const auto box_min_point = rBoxCenter - rBoxHalfSize; // Bounding box min point
+        const auto box_max_point = rBoxCenter + rBoxHalfSize; // Bounding box max point
        
         const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
-            box_min_point.Coordinates(),
-            box_max_point.Coordinates(),
+            box_min_point,
+            box_max_point,
             rVertices[0].Coordinates(),
             rVertices[1].Coordinates());
 
