@@ -153,7 +153,7 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
   const double A = this->GetProperties()[CROSS_AREA];
   const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-  bool use_consistent_mass_matrix = false;
+  bool use_consistent_mass_matrix = true;
   if (this->GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
     use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
   }
@@ -197,7 +197,7 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
   else
   {
     const double lumped_mass = A * L * rho;
-    
+
      // w.r.t. Felippa - Chapter 31: LUMPED AND CONSISTENT MASS MATRICES - p.31–10
     double alpha = 0.00;
     if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEFFICIENT)) {
@@ -254,8 +254,20 @@ void CrBeamElement2D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 void CrBeamElement2D2N::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
+  // t
+  this->mDeformationForces = this->CalculateInternalStresses_DeformationModes();
+
+  // qe
+  Vector nodal_forces = ZeroVector(msElementSize);
+  nodal_forces = this->ReturnElementForces_Local();
+  // q
+  this->GlobalizeVector(nodal_forces);
+  this->mInternalGlobalForces = nodal_forces;
+
+  // residual >>> r = f_ext - f_int
   rRightHandSideVector = ZeroVector(msElementSize);
-  noalias(rRightHandSideVector) -= this->mInternalGlobalForces;
+  noalias(rRightHandSideVector) -= nodal_forces;
+
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
