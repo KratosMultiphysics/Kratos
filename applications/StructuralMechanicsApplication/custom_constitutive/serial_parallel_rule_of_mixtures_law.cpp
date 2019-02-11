@@ -82,10 +82,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
     }
     // In case the element has not computed the Strain
-    if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
 
-         Matrix F_deformation_gradient;
+        Matrix F_deformation_gradient;
         this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
         const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
         // Doing resize in case is needed
@@ -101,15 +101,43 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
             }
         }
 
-         // Calculating the inverse of the left Cauchy tensor
+        // Calculating the inverse of the left Cauchy tensor
         Matrix inverse_B_tensor ( dimension, dimension );
         double aux_det_b = 0;
         MathUtils<double>::InvertMatrix( B_matrix, inverse_B_tensor, aux_det_b);
 
-         // Calculate E matrix
+        // Calculate E matrix
         const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
         // Almansi Strain Calculation
         r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+    }
+
+    if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+         // Auxiliar stress vector
+        Vector auxiliar_stress_vector = ZeroVector(voigt_size);
+        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
+            const double factor = mCombinationFactors[i];
+
+             rValues.SetMaterialProperties(r_prop);
+            p_law->CalculateMaterialResponseKirchhoff(rValues);
+
+             noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
+        }
+
+         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+        rValues.SetMaterialProperties(r_material_properties);
+
+         // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -236,8 +264,6 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
 {
-    KRATOS_WATCH(rMaterialProperties)
-    // mFiberVolumetricParticipation = rMaterialProperties
 	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
 	const auto props_matrix_cl = *(it_cl_begin);
     const auto props_fiber_cl  = *(it_cl_begin + 1);
