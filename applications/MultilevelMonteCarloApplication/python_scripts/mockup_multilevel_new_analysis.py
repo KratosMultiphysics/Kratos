@@ -26,10 +26,15 @@ def GenerateSample():
 def EvaluateQuantityOfInterest(simulation):
     return QoI
 
-def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,current_analysis_stage):
+def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,
+                                        pickled_coarse_model,
+                                        pickled_coarse_parameters,
+                                        size_meshes,
+                                        pickled_settings_metric_refinement,
+                                        pickled_settings_remesh_refinement,
+                                        current_analysis_stage):
     sample = GenerateSample() # <--------------- SAMPLE GENERATION
     mlmc_results_class = mlmc.MultilevelMonteCarloResults()
-    #TODO: create a function inside mlmc result class doing this list initialization
     if (current_MLMC_level == 0):
         mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_MLMC_level,mlmc_results_class,current_analysis_stage)
     else:
