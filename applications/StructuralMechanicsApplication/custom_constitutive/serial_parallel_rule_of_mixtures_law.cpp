@@ -157,6 +157,11 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Vector matrix_stress_vector_serial, fiber_stress_vector_serial;
     matrix_stress_vector_serial.resize(voigt_size);
     fiber_stress_vector_serial.resize(voigt_size);
+
+    Vector matrix_strain_vector, fiber_strain_vector;
+    matrix_strain_vector.resize(voigt_size);
+    fiber_strain_vector.resize(voigt_size);
+
     bool is_converged = false;
 
     while (is_converged == false) {
@@ -164,7 +169,9 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
                                               mPreviousStrainVector, 
                                               rMaterialProperties, 
                                               parallel_projector, 
-                                              serial_projector);
+                                              serial_projector,
+                                              matrix_strain_vector,
+                                              fiber_strain_vector);
     }
 
 
@@ -176,10 +183,18 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector& rStrainVector,
     const Vector& rPreviousStrainVector,
     const Properties& rMaterialProperties,
-    Matrix& rParallelProjector,
-    Matrix& rSerialProjector
+    const Matrix& rParallelProjector,
+    const Matrix& rSerialProjector,
+    Vector& rStrainVectorMatrix,
+    Vector& rStrainVectorFiber
 )
 {
+    const Vector total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
+    const Vector total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
+    const Vector total_strain_increment = rStrainVector - rPreviousStrainVector;
+    const double fiber_vol_participation = mFiberVolumetricParticipation;
+    const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
+
 
 }
 
