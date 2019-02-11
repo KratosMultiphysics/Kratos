@@ -44,3 +44,12 @@ tool3 = GeoBuilding()
 tool3.SetGeoModelPart( model_part )
 
 tool3.ImportBuildingHullMDPA( "/data/toy_house_skin" )
+# 1st iteration
+tool3.ComputeDistanceFieldFromHull()
+tool3.RefineMeshNearBuilding( 0.2 )
+# 2nd iteration
+tool3.ComputeDistanceFieldFromHull()
+tool3.RefineMeshNearBuilding( 0.05 )
+
+tool3.ComputeDistanceFieldFromHull()
+tool3.CreateGidControlOutput( "out_of_pipeline_2" )
