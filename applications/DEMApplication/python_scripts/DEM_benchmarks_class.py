@@ -252,7 +252,19 @@ def PrintResultsMessage(test_number, it_is_success, error, elapsed_time, error_f
         else:
             error_file.write(' KO!........ Test ' + name + ' FAILED (error: ' + str(error) + ')\n')
 
-def GetDisplacement(node): return node.X-node.X0, node.Y-node.Y0, node.Z-node.Z0
+def GetDisplacement(node):
+    displacement = [0]*3
+    displacement[0] = node.X-node.X0
+    displacement[1] = node.Y-node.Y0
+    displacement[2] = node.Z-node.Z0
+    return displacement
+
+def MeasureError(node, variable):
+    return sqrt(sum([node.GetSolutionStepValue(variable)[i]**2 for i in range(3)]))
+
+def GetNodeDisplacement(node):
+    return sqrt(sum([GetDisplacement(node)[i]**2 for i in range(3)]))
+
 
 class Benchmark1:
 
@@ -2916,8 +2928,7 @@ class Benchmark24:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3065,8 +3076,7 @@ class Benchmark25:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3272,8 +3282,7 @@ class Benchmark27:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3579,8 +3588,7 @@ class Benchmark28:   #pendulo3D
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -4243,28 +4251,21 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 10:           ### stage 0 - simple dem
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=0
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
                     data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
                     data.flush()
 
-
             for node in modelpart.Nodes:
                 if node.Id == 42:           ### stage 1
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=1
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4274,12 +4275,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 71:           ### stage 2
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=2
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4289,12 +4287,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1354:           ### stage 3
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=3
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4305,12 +4300,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1534:           ### stage 4 - particle injected by inlet
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=4
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4321,12 +4313,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1416:           ### stage 5 - inlet movement
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=5
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4336,12 +4325,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1337:           ### stage 6 - dem with initial velocity
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=6
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4352,12 +4338,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 663:           ### stage 8 - gravity on sphere of spheres
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=7
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4367,12 +4350,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 758:           ### stage 9 - dem with reduced degrees of freedom
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=8
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4382,12 +4362,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 789:           ### stage 10 - dem falling pink
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=9
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4397,12 +4374,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 913:           ### stage 13 - dem falling green fem
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=10
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4413,12 +4387,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 974:           ### stage 14 - dem falling  orange
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=11
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4428,12 +4399,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1061:           ### stage 15 - dem imposed period
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=12
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4445,12 +4413,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1180:           ### stage 16 - dem initial
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=13
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4461,12 +4426,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1290:           ### stage 17 - dem contra fem rotatori force
 
-                    displacement = [0]*3
-                    displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-
-                    force_node = sqrt(sum([node.GetSolutionStepValue(TOTAL_FORCES)[i]**2 for i in range(3)]))
-                    angular_node = sqrt(sum([node.GetSolutionStepValue(ANGULAR_VELOCITY)[i]**2 for i in range(3)]))
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=14
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4487,12 +4449,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
-
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name  # beware
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4507,10 +4465,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
                     for node in mesh_nodes:
 
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4525,11 +4481,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4544,11 +4497,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4563,11 +4513,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4582,11 +4529,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4601,11 +4545,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4620,11 +4561,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node += sqrt(sum([node.GetSolutionStepValue(ELASTIC_FORCES)[i]**2 for i in range(3)]))
-                        displacement = [0]*3
-                        displacement[0], displacement[1], displacement[2] = GetDisplacement(node)
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
