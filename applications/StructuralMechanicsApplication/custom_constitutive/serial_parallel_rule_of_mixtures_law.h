@@ -12,8 +12,8 @@
 //  Collaborator:    Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED
+#if !defined(KRATOS_SERIAL_PARALLEL_RULE_OF_MIXTURES_H_INCLUDED)
+#define KRATOS_SERIAL_PARALLEL_RULE_OF_MIXTURES_H_INCLUDED
 
 // System includes
 
@@ -75,7 +75,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     */
     SerialParallelRuleOfMixturesLaw(
         ConstitutiveLaw::Pointer pPlasticityLaw,
-        ConstitutiveLaw::Pointer pViscousLaw) : mpPlasticityConstitutiveLaw(pPlasticityLaw), mpViscousConstitutiveLaw(pViscousLaw)
+        ConstitutiveLaw::Pointer pViscousLaw) : mpMatrixConstitutiveLaw(pPlasticityLaw), mpFiberConstitutiveLaw(pViscousLaw)
     {
     }
 
@@ -86,15 +86,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     {
         auto p_law = Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(*this);
 
-        p_law->SetPlasticityConstitutiveLaw(mpPlasticityConstitutiveLaw->Clone());
-        p_law->SetViscousConstitutiveLaw(mpViscousConstitutiveLaw->Clone());
+        p_law->SetPlasticityConstitutiveLaw(mpMatrixConstitutiveLaw->Clone());
+        p_law->SetViscousConstitutiveLaw(mpFiberConstitutiveLaw->Clone());
 
         return p_law;
     }
 
     // Copy constructor
     SerialParallelRuleOfMixturesLaw(SerialParallelRuleOfMixturesLaw const &rOther)
-        : ConstitutiveLaw(rOther), mpPlasticityConstitutiveLaw(rOther.mpPlasticityConstitutiveLaw), mpViscousConstitutiveLaw(rOther.mpViscousConstitutiveLaw)
+        : ConstitutiveLaw(rOther), mpMatrixConstitutiveLaw(rOther.mpMatrixConstitutiveLaw), mpFiberConstitutiveLaw(rOther.mpFiberConstitutiveLaw)
     {
     }
 
@@ -241,22 +241,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
     {
-        return mpPlasticityConstitutiveLaw;
+        return mpMatrixConstitutiveLaw;
     }
 
     void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw)
     {
-        mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
+        mpMatrixConstitutiveLaw = pPlasticityConstitutiveLaw;
     }
 
     ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
     {
-        return mpViscousConstitutiveLaw;
+        return mpFiberConstitutiveLaw;
     }
 
     void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
     {
-        mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
+        mpFiberConstitutiveLaw = pViscousConstitutiveLaw;
     }
 
     ///@}
@@ -284,8 +284,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     ///@name Member Variables
     ///@{
 
-    ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
-    ConstitutiveLaw::Pointer mpViscousConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
@@ -323,20 +323,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
-        rSerializer.save("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+        rSerializer.save("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
+        rSerializer.save("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
-        rSerializer.load("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+        rSerializer.load("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
+        rSerializer.load("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
     }
 
     ///@}
 
-}; // Class GenericYieldSurface
+}; // Class SerialParallelRuleOfMixturesLaw
 
 } // namespace Kratos
 

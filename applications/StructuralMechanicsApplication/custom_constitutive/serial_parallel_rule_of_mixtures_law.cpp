@@ -19,6 +19,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
+#include "serial_parallel_rule_of_mixtures_law.h"
 
 namespace Kratos
 {
@@ -57,27 +58,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
-    ConstitutiveLaw::Pointer plaw     = this->GetPlasticityConstitutiveLaw();
-    ConstitutiveLaw::Pointer viscolaw = this->GetViscousConstitutiveLaw();
 
-    Vector plastic_strain = ZeroVector(6);
-    plaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
-
-    Vector& strain_vector = rValues.GetStrainVector();
-    const Vector strain_for_visco = strain_vector - plastic_strain;
-    const Vector initial_strain_vector = strain_vector;
-
-    strain_vector = strain_for_visco;
-    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    viscolaw->CalculateMaterialResponseCauchy(rValues); // Viscous Process
-
-    strain_vector = initial_strain_vector;
-    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    // Flag to tell the plasticity to take the predictor from the viscous law
-    rValues.GetOptions().Set(ConstitutiveLaw::U_P_LAW, true);
-
-    plaw->CalculateMaterialResponseCauchy(rValues); // Plastic Process
 
 } // End CalculateMaterialResponseCauchy
 
@@ -153,8 +134,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
-    mpViscousConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
-    mpPlasticityConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
+
 }
 
 /***********************************************************************************/
@@ -164,12 +144,7 @@ double &SerialParallelRuleOfMixturesLaw::GetValue(
     const Variable<double> &rThisVariable,
     double &rValue)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        rValue = mpPlasticityConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
-        rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
-    }
-    return rValue;
+
 }
 
 /***********************************************************************************/
@@ -179,10 +154,7 @@ Vector &SerialParallelRuleOfMixturesLaw::GetValue(
     const Variable<Vector> &rThisVariable,
     Vector &rValue)
 {
-    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
-    }
-    return rValue;
+
 }
 
 /***********************************************************************************/
@@ -190,12 +162,7 @@ Vector &SerialParallelRuleOfMixturesLaw::GetValue(
 
 bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double> &rThisVariable)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
-        return true;
-    }
-    return false;
+
 }
 
 /***********************************************************************************/

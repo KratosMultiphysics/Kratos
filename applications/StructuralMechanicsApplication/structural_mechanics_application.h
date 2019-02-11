@@ -101,6 +101,7 @@
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2d.h"
 
 // Advanced Constitutive laws
+#include "custom_constitutive/serial_parallel_rule_of_mixtures_law.h"
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
@@ -459,6 +460,7 @@ private:
     const LinearIsotropicDamagePlaneStrain2D mLinearIsotropicDamagePlaneStrain2D;
 
     // Damage and plasticity laws
+    const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
     const SmallStrainIsotropicDamageFactory mSmallStrainIsotropicDamageFactory;
