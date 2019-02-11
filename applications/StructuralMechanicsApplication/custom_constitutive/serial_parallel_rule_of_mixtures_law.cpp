@@ -124,7 +124,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
                                                     fiber_stress_vector,
                                                     matrix_stress_vector,
-                                                    r_material_properties);
+                                                    r_material_properties,
+                                                    rValues);
 
 
 
@@ -147,7 +148,8 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     const Vector& rStrainVector,
     Vector& rFiberStressVector,
     Vector& rMatrixStressVector,
-    const Properties& rMaterialProperties
+    const Properties& rMaterialProperties,
+    ConstitutiveLaw::Parameters& rValues
 )
 {
     const int voigt_size = this->GetStrainSize();
@@ -165,7 +167,8 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     bool is_converged = false;
 
     while (is_converged == false) {
-        this->CalculateStrainsOnEachComponent(rStrainVector,
+        this->CalculateStrainsOnEachComponent(rValues,
+											  rStrainVector,
                                               mPreviousStrainVector, 
                                               rMaterialProperties, 
                                               parallel_projector, 
@@ -180,6 +183,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
+    ConstitutiveLaw::Parameters& rValues,
     const Vector& rStrainVector,
     const Vector& rPreviousStrainVector,
     const Properties& rMaterialProperties,
@@ -194,6 +198,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector total_strain_increment = rStrainVector - rPreviousStrainVector;
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
+    Matrix constitutive_matrix, constitutive_fiber;
+
+    mpMatrixConstitutiveLaw->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+
 
 
 }

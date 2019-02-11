@@ -227,7 +227,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Vector& rStrainVector,
         Vector& FiberStressVector,
         Vector& MatrixStressVector,
-        const Properties& rMaterialProperties);
+        const Properties& rMaterialProperties,
+        ConstitutiveLaw::Parameters& rValues);
 
     void CalculateSerialParallelProjectionMatrices(
         Matrix& rFiberStressVector,
@@ -236,6 +237,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     void InitializeMaterialResponsePK2(Parameters& rValues);  
 
     void CalculateStrainsOnEachComponent(
+        ConstitutiveLaw::Parameters& rValues,
         const Vector& rStrainVector,
         const Vector& rPreviousStrainVector,
         const Properties& rMaterialProperties,
