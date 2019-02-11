@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 import apply_two_fluids_inlet_process
