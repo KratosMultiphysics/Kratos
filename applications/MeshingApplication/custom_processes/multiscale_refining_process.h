@@ -356,10 +356,6 @@ public:
     ///@{
 
     /**
-     * @brief Perform a check with the parameters
-     */
-
-    /**
      * @brief
      */
     void InterpolateLevelBoundaryValuesAtSubStep(const int& rSubStep, const int& rSubSteps);
