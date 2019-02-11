@@ -256,7 +256,7 @@ if __name__ == '__main__':
     mc_class = mc.MonteCarlo(settings_MC_simulation)
     mc_class.SetAnalysis(MonteCarloAnalysis)
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/PoissonSquareTest/parameters_poisson_finer.json"
+    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''evaluate the exact expected value of Q (sample = 1.0)'''
