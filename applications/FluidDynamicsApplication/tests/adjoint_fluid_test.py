@@ -84,25 +84,37 @@ class AdjointFluidTest(UnitTest.TestCase):
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings["adjoint_settings"].AddValue("output_configuration", km.Parameters(r'''{
-                "result_file_configuration" : {
-                    "gidpost_flags" : {
-                        "GiDPostMode"           : "GiD_PostBinary",
-                        "WriteDeformedMeshFlag" : "WriteUndeformed",
-                        "WriteConditionsFlag"   : "WriteConditions",
-                        "MultiFileFlag"         : "SingleFile"
-                    },
-                    "file_label"          : "time",
-                    "output_control_type" : "step",
-                    "output_frequency"    : 1,
-                    "body_output"         : true,
-                    "node_output"         : false,
-                    "skin_output"         : false,
-                    "plane_output"        : [],
-                    "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_FLUID_VECTOR_1","ADJOINT_FLUID_SCALAR_1","SHAPE_SENSITIVITY"],
-                    "gauss_point_results" : []
-                },
-                "point_data_configuration"  : []
+            settings["adjoint_settings"].AddValue("output_processes", km.Parameters(r'''{
+                "gid_output" : [{
+                    "python_module" : "gid_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "GiDOutputProcess",
+                    "help"          : "This process writes postprocessing files for GiD",
+                    "Parameters"    : {
+                        "model_part_name"        : "MainModelPart",
+                        "output_name"            : "interface_test",
+                        "postprocess_parameters" : {
+                            "result_file_configuration" : {
+                                "gidpost_flags" : {
+                                    "GiDPostMode"           : "GiD_PostBinary",
+                                    "WriteDeformedMeshFlag" : "WriteUndeformed",
+                                    "WriteConditionsFlag"   : "WriteElementsOnly",
+                                    "MultiFileFlag"         : "SingleFile"
+                                },
+                                "file_label"          : "time",
+                                "output_control_type" : "step",
+                                "output_frequency"    : 1,
+                                "body_output"         : true,
+                                "node_output"         : false,
+                                "skin_output"         : false,
+                                "plane_output"        : [],
+                                "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_FLUID_VECTOR_1","ADJOINT_FLUID_SCALAR_1","SHAPE_SENSITIVITY"],
+                                "gauss_point_results" : []
+                            },
+                            "point_data_configuration"  : []
+                        }
+                    }
+                }]
             }'''))
 
         primal_analysis = FluidDynamicsAnalysis(model,settings["primal_settings"])
