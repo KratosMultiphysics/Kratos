@@ -268,6 +268,84 @@ class GeoPreprocessor( GeoProcessor ):
         self._write_qgis_xyz( point_list, xyz_out_file )
 
 
+    ########################################################################
+    # for stl files
+    #########################################################################
+    
+    def read_stl(self, stl_file_name_input):
+
+        with open (stl_file_name_input) as read_file:
+
+            for row in read_file.readlines():
+                row = row.split()
+
+                if (row[0] == "vertex" and all(self._isfloat(n) for n in row[1:])):
+                    # row[0] = "vertex"; row[1] = x coordinate; row[2] = y coordinate; row[3] = z coordinate
+                    X_coord, Y_coord, Z_coord = [float(coord) for coord in row[1:]]
+
+                    self.point_list.append([X_coord, Y_coord, Z_coord])
+    
+
+    def shift_stl(self, stl_file_name_output=""):
+        # function to move global axes in the centre of the geometry
+
+        x_coords = []
+        y_coords = []
+        for coord in self.point_list:
+            x_coords.append(coord[0])
+            y_coords.append(coord[1])
+        
+        x_shift = max(x_coords)/2
+        y_shift = max(y_coords)/2
+
+        for id, _ in enumerate(self.point_list):
+            self.point_list[id][0] -= x_shift
+            self.point_list[id][1] -= y_shift
+        
+        self.write_stl(stl_file_name_output)
+    
+
+    def write_stl(self, list_to_write=[], stl_file_name_output=""):
+        # function to write a stl file from a list of points
+
+        if (stl_file_name_output == ""):
+            out_name = "_shifted.stl"
+        else:
+            filename_out, extension_out = os.path.splitext(stl_file_name_output)
+            out_name = filename_out + "_shifted" + extension_out
+        
+        if (list_to_write):
+            # list_to_write is full
+            self.point_list = list_to_write
+        
+        if ((len(self.point_list)%3) != 0):
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "There are some free points.")
+
+        string_out = "solid model\n"        # start of the stl file
+        pointer = 0
+        num_points = len(self.point_list)
+        while (pointer < num_points-2):        # to avoid "out of range"
+            p1 = self.point_list[pointer]
+            p2 = self.point_list[pointer+1]
+            p3 = self.point_list[pointer+2]
+
+            nx, ny, nz = self._normal_triangle(p1, p2, p3)
+
+            pointer += 3
+
+            string_out += "\tfacet normal {} {} {}\n".format(nx, ny, nz)
+            string_out += "\t\touter loop\n"
+            string_out += "\t\t\tvertex {} {} {}\n".format(p1[0], p1[1], p1[2])
+            string_out += "\t\t\tvertex {} {} {}\n".format(p2[0], p2[1], p2[2])
+            string_out += "\t\t\tvertex {} {} {}\n".format(p3[0], p3[1], p3[2])
+            string_out += "\t\tendloop\n"
+            string_out += "\tendfacet\n"
+        
+        string_out += "endsolid model\n"    # end of file stl
+        
+        with open(out_name, "w") as fout:
+            fout.write(string_out)
+
 
     ########################################################################
     # auxiliary functions
@@ -286,7 +364,6 @@ class GeoPreprocessor( GeoProcessor ):
                 point_list.append( (x,y,z) )
 
         return point_list
-
 
 
     def _iteration_goes_on( self, dict_active_points, list_visited_points ):
@@ -414,6 +491,23 @@ class GeoPreprocessor( GeoProcessor ):
             return True
         except ValueError:
             return False
+
+
+    def _normal_triangle(self, P1, P2, P3):
+        # function to calc the normal of the triangle
+        
+        nx = (P2[1]-P1[1])*(P3[2]-P1[2]) - (P3[1]-P1[1])*(P2[2]-P1[2])
+        ny = (P2[2]-P1[2])*(P3[0]-P1[0]) - (P2[0]-P1[0])*(P3[2]-P1[2])
+        nz = (P2[0]-P1[0])*(P3[1]-P1[1]) - (P3[0]-P1[0])*(P2[1]-P1[1])
+
+        sum_n = abs(nx) + abs(ny) + abs(nz)
+
+        nx = nx / sum_n
+        ny = ny / sum_n
+        nz = nz / sum_n
+
+        return (nx, ny, nz)
+
 
     def _remove_duplicate(self, point_list):
         no_duplicate = []        # point_list without duplicates
