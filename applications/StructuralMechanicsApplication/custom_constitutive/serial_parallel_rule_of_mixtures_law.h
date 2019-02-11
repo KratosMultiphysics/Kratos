@@ -47,7 +47,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo&  Lucia Barbu
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
@@ -74,8 +74,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     * Constructor.
     */
     SerialParallelRuleOfMixturesLaw(
-        ConstitutiveLaw::Pointer pPlasticityLaw,
-        ConstitutiveLaw::Pointer pViscousLaw) : mpMatrixConstitutiveLaw(pPlasticityLaw), mpFiberConstitutiveLaw(pViscousLaw)
+        ConstitutiveLaw::Pointer pMatrixConstitutiveLaw,
+        ConstitutiveLaw::Pointer pFiberConstitutiveLaw) 
+        : mpMatrixConstitutiveLaw(pMatrixConstitutiveLaw), mpFiberConstitutiveLaw(pFiberConstitutiveLaw)
     {
     }
 
@@ -93,7 +94,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     }
 
     // Copy constructor
-    SerialParallelRuleOfMixturesLaw(SerialParallelRuleOfMixturesLaw const &rOther)
+    SerialParallelRuleOfMixturesLaw(SerialParallelRuleOfMixturesLaw const& rOther)
         : ConstitutiveLaw(rOther), mpMatrixConstitutiveLaw(rOther.mpMatrixConstitutiveLaw), mpFiberConstitutiveLaw(rOther.mpFiberConstitutiveLaw)
     {
     }
@@ -140,25 +141,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * to be called at the end of each solution step
@@ -169,45 +170,45 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * @param the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    Vector &GetValue(const Variable<Vector> &rThisVariable, Vector &rValue) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
-    double &GetValue(const Variable<double> &rThisVariable, double &rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
-    bool Has(const Variable<double> &rThisVariable) override;
+    bool Has(const Variable<double>& rThisVariable) override;
 
-    double &CalculateValue(
-        Parameters &rParameterValues,
-        const Variable<double> &rThisVariable,
-        double &rValue) override;
+    double& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
 
     ///@}
     ///@name Access
@@ -301,8 +302,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * @param rMaterialProperties The material properties
      */
     void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties);
+        Matrix& rElasticityTensor,
+        const Properties& rMaterialProperties);
 
     ///@}
     ///@name Private  Access
@@ -320,14 +321,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     friend class Serializer;
 
-    void save(Serializer &rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);
         rSerializer.save("FiberConstitutiveLaw", mpFiberConstitutiveLaw);
     }
 
-    void load(Serializer &rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("MatrixConstitutiveLaw", mpMatrixConstitutiveLaw);

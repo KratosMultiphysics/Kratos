@@ -38,7 +38,7 @@
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 // Plastic, damage laws and viscosities
-#include "serial_parallel_rule_of_mixtures_law.h"
+#include "custom_constitutive/serial_parallel_rule_of_mixtures_law.h"
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strain_isotropic_damage_factory.h"
