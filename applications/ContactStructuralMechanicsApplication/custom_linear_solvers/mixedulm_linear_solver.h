@@ -106,6 +106,9 @@ public:
     /// The node type
     typedef Node<3> NodeType;
 
+    /// The definition of the dof type
+    typedef typename ModelPart::DofType DofType;
+
     /// The array containing the dofs
     typedef typename ModelPart::DofsArrayType DofsArrayType;
 
@@ -497,22 +500,44 @@ public:
         SizeType n_master_dofs = 0;
         SizeType n_slave_inactive_dofs = 0, n_slave_active_dofs = 0;
         SizeType tot_active_dofs = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    tot_active_dofs++;
+                    if (IsLMDof(i_dof)) {
+                        if (node.Is(ACTIVE))
+                            n_lm_active_dofs++;
+                        else
+                            n_lm_inactive_dofs++;
+                    } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (node.Is(MASTER)) {
+                            n_master_dofs++;
+                        } else if (node.Is(SLAVE)) {
+                            if (node.Is(ACTIVE))
+                                n_slave_active_dofs++;
+                            else
+                                n_slave_inactive_dofs++;
+                        }
+                    }
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
                 tot_active_dofs++;
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
+                } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
                     if (node.Is(MASTER)) {
                         n_master_dofs++;
                     } else if (node.Is(SLAVE)) {
@@ -525,7 +550,7 @@ public:
             }
         }
 
-        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map" << std::endl;
+        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map: " << tot_active_dofs << " vs " << rA.size1() << std::endl;
 
         // Resize arrays as needed
         if (mMasterIndices.size() != n_master_dofs)
@@ -561,14 +586,66 @@ public:
         SizeType slave_inactive_counter = 0, slave_active_counter = 0;
         SizeType other_counter = 0;
         IndexType global_pos = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                    if (node.Is(ACTIVE)) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    if (IsLMDof(i_dof)) {
+                        if (r_node.Is(ACTIVE)) {
+                            mLMActiveIndices[lm_active_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_active_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                            ++lm_active_counter;
+                        } else {
+                            mLMInactiveIndices[lm_inactive_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                            ++lm_inactive_counter;
+                        }
+                    } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (r_node.Is(MASTER)) {
+                            mMasterIndices[master_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = master_counter;
+                            mWhichBlockType[global_pos] = BlockType::MASTER;
+                            ++master_counter;
+                        } else if (r_node.Is(SLAVE)) {
+                            if (r_node.Is(ACTIVE)) {
+                                mSlaveActiveIndices[slave_active_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_active_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                                ++slave_active_counter;
+                            } else {
+                                mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
+                                ++slave_inactive_counter;
+                            }
+                        } else { // We need to consider always an else to ensure that the system size is consistent
+                            mOtherIndices[other_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = other_counter;
+                            mWhichBlockType[global_pos] = BlockType::OTHER;
+                            ++other_counter;
+                        }
+                    } else {
+                        mOtherIndices[other_counter] = global_pos;
+                        mGlobalToLocalIndexing[global_pos] = other_counter;
+                        mWhichBlockType[global_pos] = BlockType::OTHER;
+                        ++other_counter;
+                    }
+                    ++global_pos;
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (IsLMDof(i_dof)) {
+                    if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
@@ -579,17 +656,14 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if ( node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
-                    if (node.Is(MASTER)) {
+                } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                    if (r_node.Is(MASTER)) {
                         mMasterIndices[master_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = master_counter;
                         mWhichBlockType[global_pos] = BlockType::MASTER;
                         ++master_counter;
-                    } else if (node.Is(SLAVE)) {
-                        if (node.Is(ACTIVE)) {
+                    } else if (r_node.Is(SLAVE)) {
+                        if (r_node.Is(ACTIVE)) {
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
@@ -1934,6 +2008,40 @@ private:
         delete[] ptr;
         delete[] aux_index2;
         delete[] aux_val;
+    }
+
+    /**
+     * @brief Checks if the degree of freedom belongs to a displacement DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a displacement dof
+     */
+    static inline bool IsDisplacementDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == DISPLACEMENT_X ||
+            r_variable == DISPLACEMENT_Y ||
+            r_variable == DISPLACEMENT_Z) {
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Checks if the degree of freedom belongs to a LM DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a LM dof
+     */
+    static inline bool IsLMDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == VECTOR_LAGRANGE_MULTIPLIER_X ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Y ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                return true;
+        }
+
+        return false;
     }
 
     /**
