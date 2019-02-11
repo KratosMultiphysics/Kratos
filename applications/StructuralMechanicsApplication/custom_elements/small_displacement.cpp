@@ -215,7 +215,7 @@ void SmallDisplacement::CalculateKinematicVariables(
     Vector displacements(mat_size);
     GetValuesVector(displacements);
     Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
-    rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
+    ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
@@ -315,29 +315,29 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
+void SmallDisplacement::ComputeEquivalentF(
+    Matrix& rF,
+    const Vector& rStrainTensor
+    ) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
-    Matrix F(dim,dim);
 
     if(dim == 2) {
-        F(0,0) = 1.0+rStrainTensor(0);
-        F(0,1) = 0.5*rStrainTensor(2);
-        F(1,0) = 0.5*rStrainTensor(2);
-        F(1,1) = 1.0+rStrainTensor(1);
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(2);
+        rF(1,0) = 0.5*rStrainTensor(2);
+        rF(1,1) = 1.0+rStrainTensor(1);
     } else {
-        F(0,0) = 1.0+rStrainTensor(0);
-        F(0,1) = 0.5*rStrainTensor(3);
-        F(0,2) = 0.5*rStrainTensor(5);
-        F(1,0) = 0.5*rStrainTensor(3);
-        F(1,1) = 1.0+rStrainTensor(1);
-        F(1,2) = 0.5*rStrainTensor(4);
-        F(2,0) = 0.5*rStrainTensor(5);
-        F(2,1) = 0.5*rStrainTensor(4);
-        F(2,2) = 1.0+rStrainTensor(2);
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(3);
+        rF(0,2) = 0.5*rStrainTensor(5);
+        rF(1,0) = 0.5*rStrainTensor(3);
+        rF(1,1) = 1.0+rStrainTensor(1);
+        rF(1,2) = 0.5*rStrainTensor(4);
+        rF(2,0) = 0.5*rStrainTensor(5);
+        rF(2,1) = 0.5*rStrainTensor(4);
+        rF(2,2) = 1.0+rStrainTensor(2);
     }
-
-    return F;
 }
 
 /***********************************************************************************/
