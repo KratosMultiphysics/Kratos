@@ -109,7 +109,7 @@ void RVEPeriodicityUtility::AppendIdsAndWeights(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RVEPeriodicityUtility::GenerateConstraint(
+MasterSlaveConstraint::Pointer RVEPeriodicityUtility::GenerateConstraint(
     IndexType& rConstraintId,
     const VariableComponentType& rVar,
     NodeType::Pointer pSlaveNode,
@@ -125,8 +125,10 @@ void RVEPeriodicityUtility::GenerateConstraint(
     for (IndexType i = 0; i < rMasterIds.size(); ++i)
         master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
 
-    mrModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
+    auto pconstraint = Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
+    //mrModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
     rConstraintId += 1;
+    return pconstraint;
 }
 
 /***********************************************************************************/
@@ -169,7 +171,6 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
         it_node->Set(SLAVE, false);
         it_node->Set(MASTER, false);
     }
-
     // Compute the max id of the constraint
     IndexType ConstraintId = 0;
     if (mrModelPart.MasterSlaveConstraints().size() != 0)
@@ -180,6 +181,8 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
     Vector xtranslation(1);
     Vector ytranslation(1);
     Vector ztranslation(1);
+
+    ModelPart::MasterSlaveConstraintContainerType constraints;
 
     for (const auto& r_data : mAuxPairings) {
         const IndexType slave_id = r_data.first;
@@ -213,14 +216,16 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
             relation_matrix(0, i) = r_master_weights[i];
 
         xtranslation[0] = r_T[0];
-        GenerateConstraint(ConstraintId,rVar_x, pslave_node, r_master_ids, relation_matrix, xtranslation);
+        constraints.push_back(GenerateConstraint(ConstraintId,rVar_x, pslave_node, r_master_ids, relation_matrix, xtranslation));
 
         ytranslation[0] = r_T[1];
-        GenerateConstraint(ConstraintId,rVar_y, pslave_node, r_master_ids, relation_matrix, ytranslation);
+        constraints.push_back(GenerateConstraint(ConstraintId,rVar_y, pslave_node, r_master_ids, relation_matrix, ytranslation));
 
         ztranslation[0] = r_T[2];
-        GenerateConstraint(ConstraintId,rVar_z, pslave_node, r_master_ids, relation_matrix, ztranslation);
+        constraints.push_back(GenerateConstraint(ConstraintId,rVar_z, pslave_node, r_master_ids, relation_matrix, ztranslation));
     }
+
+    mrModelPart.AddMasterSlaveConstraints(constraints.begin(), constraints.end());
 }
 
 }  // namespace Kratos.
