@@ -195,9 +195,14 @@ void SmallDisplacement::CalculateKinematicVariables(
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
     // Shape functions
-    rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
+    rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
 
     rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
 
@@ -207,7 +212,7 @@ void SmallDisplacement::CalculateKinematicVariables(
     CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
 
     // Compute equivalent F
-    Vector displacements;
+    Vector displacements(mat_size);
     GetValuesVector(displacements);
     Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
     rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
@@ -225,8 +230,13 @@ void SmallDisplacement::SetConstitutiveVariables(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints
     )
 {
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+
     // Displacements vector
-    Vector displacements;
+    Vector displacements(mat_size);
     GetValuesVector(displacements);
 
     // Compute strain
