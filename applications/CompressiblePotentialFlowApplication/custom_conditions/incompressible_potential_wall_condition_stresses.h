@@ -351,10 +351,10 @@ public:
         else
         {
             // Check that all required variables have been registered
-            if(POSITIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "POSITIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
-            if(NEGATIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "NEGATIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
 
@@ -362,10 +362,10 @@ public:
             for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
 
-                if(this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing POSITIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(NEGATIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing NEGATIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(AUXILIARY_VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
 
 
                 return Check;
@@ -390,7 +390,7 @@ public:
                     rResult.resize(TNumNodes, false);
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
             }
             else {
                 if (rResult.size() != 2*TNumNodes)
@@ -403,18 +403,18 @@ public:
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] > 0)
-                        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                     else
-                        rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
                 }
 
                 //negative part - sign is opposite to the previous case
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] < 0)
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                     else
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
                 }  
             }
         }
@@ -433,7 +433,7 @@ public:
                 ConditionDofList.resize(TNumNodes);
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
-                    ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
             }
             else {
                  if (ConditionDofList.size() != 2*TNumNodes)
@@ -446,18 +446,18 @@ public:
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] > 0)
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                     else
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
                 }
 
                 //negative part - sign is opposite to the previous case
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] < 0)
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                     else
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
                 }
             }
         }

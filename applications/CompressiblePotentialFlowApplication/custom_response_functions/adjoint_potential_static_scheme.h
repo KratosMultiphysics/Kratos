@@ -134,8 +134,8 @@ public:
         for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k)
         {
             auto it_node = rModelPart.NodesBegin() + k;
-            it_node->FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL) = 0.0;
-            it_node->FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL) = 0.0;
+            it_node->FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL) = 0.0;
+            it_node->FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL) = 0.0;
 
         }
 
@@ -217,8 +217,8 @@ public:
         KRATOS_ERROR_IF(domain_size != working_space_dimension) << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
         // for(auto& rnode : rModelPart.Nodes()){
-        //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_POSITIVE_POTENTIAL, rnode)
-        //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_NEGATIVE_POTENTIAL, rnode)
+        //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_VELOCITY_POTENTIAL, rnode)
+        //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, rnode)
         // }
 
         return BaseType::Check(rModelPart); // check elements and conditions

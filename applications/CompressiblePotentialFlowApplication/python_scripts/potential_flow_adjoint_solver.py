@@ -37,8 +37,8 @@ class PotentialAdjointSolver(PotentialSolver):
 
     def AddVariables(self):
         super(PotentialAdjointSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
 
@@ -46,8 +46,8 @@ class PotentialAdjointSolver(PotentialSolver):
         
     def AddDofs(self):
         super(PotentialAdjointSolver, self).AddDofs()
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
         
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """

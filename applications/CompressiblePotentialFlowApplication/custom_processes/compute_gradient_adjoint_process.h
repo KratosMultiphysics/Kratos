@@ -132,7 +132,7 @@ public:
             if(NumDof==NumNodes){
                 array_1d<double,3> phis;  
                 for(unsigned int i = 0; i<NumNodes; i++){   
-                    phis(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
+                    phis(i) = geom[i].GetSolutionStepValue(VELOCITY_POTENTIAL);
                 }
                 dFdu_elemental=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis)+trans(prod(phis,Matrix(prod(DN_DX, trans(DN_DX))))));
             }else{
@@ -144,12 +144,12 @@ public:
 
                 for(unsigned int i = 0; i<NumNodes; i++){
                     if (geom[i].GetSolutionStepValue(LEVEL_SET_DISTANCE)>0){
-                        phis_pos(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
-                        phis_neg(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
+                        phis_pos(i) = geom[i].GetSolutionStepValue(VELOCITY_POTENTIAL);
+                        phis_neg(i) = geom[i].GetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
                     }
                     else{
-                        phis_pos(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        phis_neg(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
+                        phis_pos(i) = geom[i].GetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                        phis_neg(i) = geom[i].GetSolutionStepValue(VELOCITY_POTENTIAL);
                     }
                 }
                 dFdu_elemental_pos=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis_pos)+trans(prod(phis_pos,Matrix(prod(DN_DX, trans(DN_DX))))));

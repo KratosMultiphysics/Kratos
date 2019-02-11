@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlow
-import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 import math
 

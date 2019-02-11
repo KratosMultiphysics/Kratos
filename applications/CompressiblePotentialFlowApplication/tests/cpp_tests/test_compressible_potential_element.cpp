@@ -2,7 +2,7 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-POSITIVE_POTENTIALhysics
+//                   Multi-VELOCITY_POTENTIALhysics
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
@@ -37,8 +37,8 @@ namespace Kratos {
     void GenerateElement(ModelPart& rModelPart)
     {
 		// Variables addition
-		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
-		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
 		// Set the element properties
 		Properties::Pointer pProp = rModelPart.pGetProperties(0);
@@ -58,8 +58,8 @@ namespace Kratos {
     void GenerateElementStresses(ModelPart& rModelPart)
     {
 		// Variables addition
-		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
-		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
 
 		// Set the element properties
@@ -79,8 +79,8 @@ namespace Kratos {
 	void GenerateElementStressesMix(ModelPart& rModelPart)
     {
 		// Variables addition
-		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
-		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
 
 		// Set the element properties
@@ -100,8 +100,8 @@ namespace Kratos {
 	void GenerateElementAlpha(ModelPart& rModelPart)
     {
 		// Variables addition
-		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
-		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
 
 		// Set the element properties
@@ -121,8 +121,8 @@ namespace Kratos {
 	void GenerateElementStressesHexagon(ModelPart& rModelPart)
     {
 		// Variables addition
-		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
-		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
 
 		// Set the element properties
@@ -178,18 +178,18 @@ namespace Kratos {
 
 		for (unsigned int i = 0; i < 3; i++){
       	if(distances[i] > 0)
-      	 	pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i];      	
+      	 	pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= potential[i];      	
       	else
-        	pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i];
+        	pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= potential[i];
 		
       	pElement->GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE) = distances(i);
     	}
 		//negative part - sign is opposite to the previous case
 		for (unsigned int i = 0; i < 3; i++){
 			if(distances[i] < 0)
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i]+5;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= potential[i]+5;
 			else
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i]+5;			
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= potential[i]+5;			
 		}
 		pElement -> GetValue(ELEMENTAL_DISTANCES) = distances;
 		pElement -> Set(MARKER);
@@ -320,10 +320,10 @@ namespace Kratos {
 
 			for (unsigned int i = 0; i < NumNodes; i++){
 				if(distances[i] > 0){
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i];
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= potential[i];
 				}
 				else{
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i];
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= potential[i];
 				}
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE) = distances(i);
 			}
@@ -331,10 +331,10 @@ namespace Kratos {
 				//negative part - sign is opposite to the previous case
 			for (unsigned int i = 0; i < NumNodes; i++){
 				if(distances[i] < 0){
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i]+5;
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= potential[i]+5;
 				}
 				else{
-					pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i]+5;
+					pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= potential[i]+5;
 				}
 			}
 
@@ -418,18 +418,18 @@ namespace Kratos {
 
 		for (unsigned int i = 0; i < 3; i++){
       	if(distances[i] > 0)
-      	 	pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i];      	
+      	 	pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= potential[i];      	
       	else
-        	pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i];
+        	pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= potential[i];
 		
       	pElement->GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE) = distances(i);
     	}
 		//negative part - sign is opposite to the previous case
 		for (unsigned int i = 0; i < 3; i++){
 			if(distances[i] < 0)
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= 0.0;
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL)= 0.0;
 			else
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= 6.0;			
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL)= 6.0;			
 		}
 		pElement -> GetValue(ELEMENTAL_DISTANCES) = distances;
 		pElement -> Set(MARKER);
@@ -500,7 +500,7 @@ namespace Kratos {
 		vinf(0)=1.0;
 		vinf(1)=+1.0;
 		for (unsigned int i = 0; i < 3; i++)
-			pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) = potential(i);
+			pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
 
 		// Compute RHS and LHS
 		Vector RHS = ZeroVector(3);
@@ -546,7 +546,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].AddDof(POSITIVE_POTENTIAL);
+        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
       pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
@@ -583,8 +583,8 @@ namespace Kratos {
       pElement->SetValue(ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].AddDof(POSITIVE_POTENTIAL);
-        pElement->GetGeometry()[i].AddDof(NEGATIVE_POTENTIAL);
+        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
       }
 
       Element::DofsVectorType ElementalDofList;

@@ -66,11 +66,11 @@ namespace Kratos
                 {        
                     if (pElem->GetGeometry()[i].IsNot(STRUCTURE)){
                         Vector resultForce(3);
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
                         std::vector <double> cp;
                         pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                         rResponseGradient(i) = normal(1)*(cp[0]-cp_ini[0])/epsilon;
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
                     }
                 }
             }else{
@@ -80,32 +80,32 @@ namespace Kratos
                 {   
                     if (pElem->GetGeometry()[i].IsNot(STRUCTURE)){
                         if(distances[i] > 0){
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
                             std::vector <double> cp;
                             pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                             rResponseGradient(i) = normal(1)*(cp[0]-cp_ini[0])/epsilon;
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
                         }
                         else{
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
                             std::vector <double> cp;
                             pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                             rResponseGradient(i) = normal(1)*(cp[0]-cp_ini[0])/epsilon;
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
                         }
                         if(distances[i] < 0){
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
                             std::vector <double> cp;
                             pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                             rResponseGradient(i+NumNodes) = normal(1)*(cp[0]-cp_ini[0])/epsilon;
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
                         }
                         else{
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
                             std::vector <double> cp;
                             pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                             rResponseGradient(i+NumNodes) = normal(1)*(cp[0]-cp_ini[0])/epsilon;
-                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon; 
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon; 
                         }
                     }
                 }
@@ -121,13 +121,13 @@ namespace Kratos
         //     GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
         //     if (rAdjointElement.IsNot(STRUCTURE)){
         //         for(unsigned int i=0; i<NumNodes; i++)
-        //             phis[i] = geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+        //             phis[i] = geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         //     }else{
         //         for(unsigned int i=0; i<NumNodes; i++){
         //             if (geom[i].IsNot(STRUCTURE))
-        //                 phis[i] = geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+        //                 phis[i] = geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         //             else
-        //                 phis[i] = geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+        //                 phis[i] = geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         //         }
         //     }
         //     noalias(rResponseGradient)=-normal(1)/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis)+trans(prod(phis,Matrix(prod(DN_DX, trans(DN_DX))))));

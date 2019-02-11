@@ -94,10 +94,8 @@ class PotentialSolver(PythonSolver):
         print("Construction of LaplacianSolver finished")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -110,8 +108,8 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LEVEL_SET_DISTANCE)
         
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
         
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
