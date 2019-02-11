@@ -26,14 +26,62 @@ class GeoPreprocessor( GeoProcessor ):
     # for xyz files
     #########################################################################
 
-    def xyz_cut( self, xyz_in_file, xyz_out_file, bounding_box = (-999999999.0, -999999999.0, 999999999.0, 999999999.0) ):
+    def read_xyz(self, xyz_in_file):
 
-        filename_in, extension_in = os.path.splitext( xyz_in_file )
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
+        filename_in, extension_in = os.path.splitext(xyz_in_file)
 
-        print( "Reading from file " + filename_in + extension_in)
+        print("Reading from file " + filename_in + extension_in)
 
-        if ( extension_in.upper() != ".XYZ" or extension_out.upper() != ".XYZ" ):
+        if (extension_in.upper() != ".XYZ"):
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "This function operates on XYZ files only.")
+
+        with open(xyz_in_file) as read_file:
+            for line in read_file.readlines():
+                items = line.split()
+                if (all(self._isfloat(n) for n in items)):
+                    x = float(items[0])
+                    y = float(items[1])
+                    z = float(items[2])
+
+                    self.point_list.append([x,y,z])
+
+
+    def write_xyz(self, xyz_out_file, type_file="standard"):
+        # function to write a xyz file from a list of points
+
+        filename_out, extension_out = os.path.splitext(xyz_out_file)
+
+        if (type_file == "standard"):
+            out_name = filename_out + "_standard" + extension_out
+
+        elif (type_file == "qgis"):
+            out_name = filename_out + "_qgis" + extension_out
+
+            # sorting the list to enable output of the selected points in QGIS (Formatted ASCII-XYZ)
+            # here with a lambda function
+            # result:   y-value as primary sorting parameter
+            #           x-value as secondary sorting parameter
+            num_nodes = len(self.point_list)
+            self.point_list.sort(key=lambda x: float( x[1] * (num_nodes+1) + x[0]))
+        
+        else:
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: type_data not valid. Please insert \"standard\" or \"qgis\".")
+
+
+        with open(out_name, 'w+') as fout:
+            for i in range(0, len(self.point_list), 1):
+                x_string = str((self.point_list[i])[0])
+                y_string = str((self.point_list[i])[1])
+                z_string = str((self.point_list[i])[2])
+                line = x_string + " " + y_string + " " + z_string + "\n"
+                fout.write(line)
+
+
+    def xyz_cut( self, xyz_out_file, bounding_box=(-999999999.0, -999999999.0, 999999999.0, 999999999.0)):
+
+        filename_out, extension_out = os.path.splitext(xyz_out_file)
+
+        if (extension_out.upper() != ".XYZ"):
             print("This function operates on XYZ files only.")
 
         x_min = bounding_box[0]
@@ -47,68 +95,46 @@ class GeoPreprocessor( GeoProcessor ):
         print( "y_max = " + str(y_max) )
         # num_lines = sum(1 for line in open( xyz_in_file ))
         num_nodes = 0
-        point_list = []
 
-        # reading all points into a single list out of tuples (x,y,z)
         # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        with open( xyz_in_file ) as f:
-            lines = f.readlines()
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
             counter = 0
-            for line in lines:
-                items = line.split()
-                if ( all( self._isfloat(n) for n in items) ):
-                    if ( ( x_min <= float(items[0]) <= x_max ) and ( y_min <= float(items[1]) <= y_max ) ):
-                        # to avoid numerical inaccuracy, the value are already
-                        x = float(items[0]) - x_min
-                        y = float(items[1]) - y_min
-                        z = float(items[2])
-                        point_list.append( (x,y,z) )
-                        counter = counter + 1
-            num_nodes = counter
+            if ((x_min <= coord[0] <= x_max) and (y_min <= coord[1] <= y_max)):
+                coord[0] -= x_min
+                coord[1] -= y_min
+                self.point_list[num] = coord
+
+                counter += 1
+        num_nodes = counter
 
         if num_nodes == 0:
-            print( "WARNING: No points inside the given bounding box!")
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given bounding box!")
 
-        # writing to files
-        self._write_standard_xyz( point_list, xyz_out_file )
-        self._write_qgis_xyz( point_list, xyz_out_file )
+        self.write_xyz(xyz_out_file, "standard")
+        self.write_xyz(xyz_out_file, "qgis")
 
 
-    def xyz_shift( self, xyz_in_file, xyz_out_file, x_shift, y_shift ):
+    def xyz_shift( self, xyz_out_file, x_shift, y_shift ):
 
-        filename_in, extension_in = os.path.splitext( xyz_in_file )
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
+        filename_out, extension_out = os.path.splitext(xyz_out_file)
 
-        print( "Reading from file " + filename_in + extension_in)
-
-        if ( extension_in.upper() != ".XYZ" or extension_out.upper() != ".XYZ" ):
+        if (extension_out.upper() != ".XYZ"):
             print("This function operates on XYZ files only.")
 
         print( "Shift defined as " )
         print( "x_shift = " + str(x_shift) )
         print( "y_shift = " + str(y_shift) )
 
-        # num_lines = sum(1 for line in open( xyz_in_file ))
-        point_list = []
-
-        # reading all points into a single list out of tuples (x,y,z)
         # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        with open( xyz_in_file ) as f:
-            lines = f.readlines()
-            counter = 0
-            for line in lines:
-                items = line.split()
-                if ( all( self._isfloat(n) for n in items) ):
-                    x = float(items[0]) + x_shift
-                    y = float(items[1]) + y_shift
-                    z = float(items[2])
-                    point_list.append( (x,y,z) )
-                    counter = counter + 1
-            num_nodes = counter
-
-        # writing to files
-        self._write_standard_xyz( point_list, xyz_out_file )
-        self._write_qgis_xyz( point_list, xyz_out_file )
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
+            coord[0] += x_shift
+            coord[1] += y_shift
+            self.point_list[num] = coord
+        
+        self.write_xyz(xyz_out_file, "standard")
+        self.write_xyz(xyz_out_file, "qgis")
 
 
     def xyz_valley( self, xyz_in_file, xyz_out_file, max_height ):
@@ -274,11 +300,16 @@ class GeoPreprocessor( GeoProcessor ):
     
     def read_stl(self, stl_file_name_input):
 
-        with open (stl_file_name_input) as read_file:
+        filename_in, extension_in = os.path.splitext(stl_file_name_input)
 
+        print("Reading from file " + filename_in + extension_in)
+
+        if (extension_in.upper() != ".STL"):
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "This function operates on STL files only.")
+
+        with open (stl_file_name_input) as read_file:
             for row in read_file.readlines():
                 row = row.split()
-
                 if (row[0] == "vertex" and all(self._isfloat(n) for n in row[1:])):
                     # row[0] = "vertex"; row[1] = x coordinate; row[2] = y coordinate; row[3] = z coordinate
                     X_coord, Y_coord, Z_coord = [float(coord) for coord in row[1:]]
@@ -447,42 +478,6 @@ class GeoPreprocessor( GeoProcessor ):
     def _dist( self, x_start, y_start, x, y ):
         squares = (x - x_start)**2 + (y - y_start)**2
         return math.sqrt( squares )
-
-
-    def _write_standard_xyz( self, point_list, xyz_out_file ):
-
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
-        out_name = filename_out + "_standard" + extension_out
-
-        with open( out_name, 'w+') as fout:
-            for i in range(0, len(point_list), 1):
-                x_string = str( (point_list[i])[0] )
-                y_string = str( (point_list[i])[1] )
-                z_string = str( (point_list[i])[2] )
-                line = x_string + " " + y_string + " " + z_string + "\n"
-                fout.write(line)
-
-
-    def _write_qgis_xyz( self, point_list, xyz_out_file ):
-
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
-        out_name = filename_out + "_qgis" + extension_out
-
-        # sorting the list to enable output of the selected points in QGIS (Formatted ASCII-XYZ)
-        # here with a lambda function
-        # result:   y-value as primary sorting parameter
-        #           x-value as secondary sorting parameter
-        num_nodes = len(point_list)
-        point_list.sort( key=lambda x: float( x[1] * (num_nodes+1) + x[0] ) )
-
-        # writing out the preprocessed xyz file
-        with open( out_name, 'w+') as fout:
-            for i in range(0, len(point_list), 1):
-                x_string = str( point_list[i][0] )
-                y_string = str( (point_list[i])[1] )
-                z_string = str( (point_list[i])[2] )
-                line = x_string + " " + y_string + " " + z_string + "\n"
-                fout.write(line)
 
 
     def _isfloat( self, value):
