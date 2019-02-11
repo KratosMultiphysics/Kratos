@@ -317,11 +317,12 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void SystemSolve(
+    void SystemSolveWithPhysics(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
+        TSystemVectorType& b,
+        ModelPart& rModelPart
+    )
     {
         KRATOS_TRY
 
@@ -336,6 +337,9 @@ public:
         {
             if (this->GetEchoLevel()>1)
                 if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
+
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
             this->mpLinearSystemSolver->Solve(A,Dx,b);
 
@@ -394,7 +398,7 @@ public:
 
         boost::timer solve_time;
 
-        SystemSolve(A,Dx,b);
+        SystemSolveWithPhysics(A,Dx,b, r_model_part);
 
         if (BaseType::GetEchoLevel()>0)
         {
@@ -426,7 +430,7 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme,r_model_part,b);
-        SystemSolve(A,Dx,b);
+        SystemSolveWithPhysics(A,Dx,b, r_model_part);
 
         KRATOS_CATCH("")
     }
