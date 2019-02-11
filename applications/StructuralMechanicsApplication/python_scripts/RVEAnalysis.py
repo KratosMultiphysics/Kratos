@@ -57,6 +57,12 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             "should use the _CustomInitializeSolutionStep instead of this")
 
     def __CustomInitializeSolutionStep(self, strain, boundary_mp, averaging_mp):
+        #reset position
+        for node in averaging_mp.Nodes:
+            node.X = node.X0
+            node.Y = node.Y0
+            node.Z = node.Z0
+
         self.ApplyBoundaryConditions()  # here the processes are called
 
         # construct MPCs according to the provided strain
@@ -325,7 +331,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             Agauss = A/ngauss
             for item in tmp:
                 avg_stress = avg_stress + item*Agauss
-
+        
         self._GetSolver().Clear()
 
         KratosMultiphysics.Logger.PrintInfo(
@@ -391,4 +397,5 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             x[1] = node.Y0
             x[2] = node.Z0
             d = strain*x
+            d.fill(0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, d)
