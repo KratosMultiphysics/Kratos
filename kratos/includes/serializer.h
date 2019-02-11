@@ -160,7 +160,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
         mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
     }

@@ -61,7 +61,7 @@ namespace Kratos
 			///@name Life Cycle
 			///@{
 
-			LoggerOutput(std::ostream& rOutputStream) 
+			explicit LoggerOutput(std::ostream& rOutputStream) 
 				: mrStream(rOutputStream), mMaxLevel(1), mSeverity(LoggerMessage::Severity::INFO), mCategory(LoggerMessage::Category::STATUS) {}
 
 			LoggerOutput(LoggerOutput const& Other) 
