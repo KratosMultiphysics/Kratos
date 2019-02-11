@@ -21,14 +21,14 @@ def Usage():
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used'
+        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
+        '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-
+    from KratosMultiphysics import Logger
     for l in lines:
-        print(l)
+        Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 
 def handler(signum, frame):
@@ -178,12 +178,13 @@ def main():
     cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
 
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
+    level_values = ['all', 'nightly', 'small', 'validation']
 
     # Set default values
     applications = KtsUtls.GetListOfAvailableApplications()
     verbosity = 1
     level = 'all'
+    is_mpi = False
 
     # Keep the worst exit code
     exit_code = 0
@@ -197,7 +198,8 @@ def main():
                 'applications=',
                 'verbose=',
                 'level=',
-                'command='
+                'command=',
+                'using-mpi'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -248,8 +250,14 @@ def main():
                 Usage()
                 sys.exit()
 
+        elif o in ('--using-mpi'):
+            is_mpi = True
+
         else:
             assert False, 'unhandled option'
+
+    if is_mpi:
+        level = "mpi_" + level
 
     # Set timeout of the different levels
     signalTime = None
