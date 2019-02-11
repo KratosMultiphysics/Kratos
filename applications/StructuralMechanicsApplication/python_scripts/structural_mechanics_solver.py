@@ -410,14 +410,8 @@ class MechanicalSolver(PythonSolver):
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
-                    "Constructing a complex linear solver")
-                return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
-            else:
-                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
-                    "Constructing a regular (non-complex) linear solver")
-                return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
             # using a default linear solver (selecting the fastest one available)
             import KratosMultiphysics.kratos_utilities as kratos_utils
@@ -427,11 +421,11 @@ class MechanicalSolver(PythonSolver):
                 from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
-                "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
-                "SparseLUSolver",  # EigenSolversApplication
-                "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
-                "SuperLUSolver",   # ExternalSolversApplication
-                "SkylineLUFactorizationSolver" # in Core, always available, but slow
+                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
+                "sparse_lu",  # EigenSolversApplication
+                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
+                "super_lu",   # ExternalSolversApplication
+                "skyline_lu_factorization" # in Core, always available, but slow
             ]
 
             for solver_name in linear_solvers_by_speed:

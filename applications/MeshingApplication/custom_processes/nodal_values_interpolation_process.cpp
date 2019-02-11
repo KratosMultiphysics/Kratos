@@ -310,7 +310,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
                 PointType projected_point_global;
 
                 GeometryType& r_geom = p_cond_origin->GetGeometry();
-                GeometricalProjectionUtilities::FastProjectDirection( r_geom, p_node->Coordinates(), projected_point_global, p_cond_origin->GetValue(NORMAL), -(p_node->GetValue(NORMAL)));
+                GeometricalProjectionUtilities::FastProjectDirection( r_geom, *p_node, projected_point_global, p_cond_origin->GetValue(NORMAL), -(p_node->GetValue(NORMAL)));
 
                 GeometryType::CoordinatesArrayType projected_point_local;
 

@@ -24,8 +24,7 @@ Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << KRATOS_VERSION << std::endl;
 
-    if (!IsImported("KratosMultiphysics")) {
-        mpKratosCoreApplication->RegisterVariables();
+    if (!IsImported("KratosMultiphysics")) {      
         this->ImportApplication(mpKratosCoreApplication);
     }
 }

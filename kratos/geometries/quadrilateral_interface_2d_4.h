@@ -383,15 +383,6 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 4)
-           rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
-
     ///@}
     ///@name Information
     ///@{
@@ -1122,7 +1113,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 

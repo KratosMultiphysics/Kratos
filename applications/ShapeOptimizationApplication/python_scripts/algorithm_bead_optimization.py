@@ -102,9 +102,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.Initialize()
         self.model_part_controller.SetMinimalBufferSize(2)
-        self.model_part_controller.InitializeMeshController()
         self.model_part_controller.ComputeUnitSurfaceNormals()
 
         self.analyzer.InitializeBeforeOptimizationLoop()

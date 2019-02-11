@@ -179,6 +179,11 @@ public:
      */
     enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
 
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -264,6 +269,11 @@ public:
      */
     void ExecuteFinalize() override;
 
+    /**
+     * @brief This function removes superfluous (defined by "not belonging to an element") nodes from the model part
+     */
+    void CleanSuperfluousNodes();
+
     ///@}
     ///@name Access
     ///@{
@@ -345,6 +355,9 @@ private:
 
     FrameworkEulerLagrange mFramework;                               /// The framework
 
+    DiscretizationOption mDiscretization;                            /// The discretization option
+    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
     std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
@@ -360,88 +373,110 @@ private:
 
     /**
      * @brief This converts the framework string to an enum
-     * @param Str The string
+     * @param rString The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-
-    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
     {
-        if(Str == "Lagrangian" || Str == "LAGRANGIAN")
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
             return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(Str == "Eulerian" || Str == "EULERIAN")
+        else if(rString == "Eulerian" || rString == "EULERIAN")
             return FrameworkEulerLagrange::EULERIAN;
-        else if(Str == "ALE")
+        else if(rString == "ALE")
             return FrameworkEulerLagrange::ALE;
         else
             return FrameworkEulerLagrange::EULERIAN;
     }
 
     /**
+     * @brief This converts the discretization string to an enum
+     * @param rString The string
+     * @return DiscretizationOption: The equivalent enum
+     */
+    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return DiscretizationOption::LAGRANGIAN;
+        else if(rString == "Standard" || rString == "STANDARD")
+            return DiscretizationOption::STANDARD;
+        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
+            return DiscretizationOption::ISOSURFACE;
+        else
+            return DiscretizationOption::STANDARD;
+    }
+
+    /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
-
     void InitializeMeshData();
 
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
+    void InitializeSolDataMetric();
 
-    void InitializeSolData();
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    void InitializeSolDataDistance();
 
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
-
     void ExecuteRemeshing();
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      */
-
     void ReorderAllIds();
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
-
     void InitializeElementsAndConditions();
 
     /**
      * @brief It checks if the nodes are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckNodes();
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckConditions0();
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-
     IndexVectorType CheckConditions1();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-
     IndexVectorType CheckElements0();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-
     IndexVectorType CheckElements1();
 
     /**
      * @brief It blocks certain nodes before remesh the model
-     * @param iNode The index of the noode
+     * @param iNode The index of the node
      */
-
     void BlockNode(IndexType iNode);
+
+    /**
+     * @brief It blocks certain conditions before remesh the model
+     * @param iCondition The index of the condition
+     */
+    void BlockCondition(IndexType iCondition);
+
+    /**
+     * @brief It blocks certain elements before remesh the model
+     * @param iElement The index of the element
+     */
+    void BlockElement(IndexType iElement);
 
     /**
      * @brief It creates the new node
@@ -450,7 +485,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pNode The pointer to the new node created
      */
-
     NodeType::Pointer CreateNode(
         IndexType iNode,
         int& Ref,
@@ -464,7 +498,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-
     ConditionType::Pointer CreateCondition0(
         const IndexType CondId,
         int& PropId,
@@ -479,7 +512,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-
     ConditionType::Pointer CreateCondition1(
         const IndexType CondId,
         int& PropId,
@@ -494,7 +526,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-
     ElementType::Pointer CreateElement0(
         const IndexType ElemId,
         int& PropId,
@@ -509,7 +540,6 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-
     ElementType::Pointer CreateElement1(
         const IndexType ElemId,
         int& PropId,
@@ -521,13 +551,11 @@ private:
      * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param PostOutput If the file to save is after or before remeshing
      */
-
     void SaveSolutionToFile(const bool PostOutput);
 
     /**
      * @brief It frees the memory used during all the process
      */
-
     void FreeMemory();
 
     /**
@@ -539,20 +567,17 @@ private:
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
-
     void InitMesh();
 
     /**
      * @brief Here the verbosity is set
      */
-
     void InitVerbosity();
 
     /**
      * @brief Here the verbosity is set using the API
      * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
-
     void InitVerbosityParameter(const IndexType VerbosityMMG);
 
     /**
@@ -561,7 +586,6 @@ private:
      * @param NumArrayElements Number of Elements
      * @param NumArrayConditions Number of Conditions
      */
-
     void SetMeshSize(
         const SizeType NumNodes,
         const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
@@ -572,27 +596,23 @@ private:
      * @brief This sets the size of the solution for the scalar case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeScalar(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the vector case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeVector(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param NumNodes Number of nodes
      */
-
     void SetSolSizeTensor(const SizeType NumNodes);
 
     /**
      * @brief This checks the mesh data and prints if it is OK
      */
-
     void CheckMeshData();
 
     /**
@@ -600,7 +620,6 @@ private:
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-
     void OutputMesh(
         const bool PostOutput,
         const IndexType Step
@@ -624,7 +643,12 @@ private:
     /**
      * @brief This loads the solution
      */
-    void MMGLibCall();
+    void MMGLibCallMetric();
+
+    /**
+     * @brief This loads the solution
+     */
+    void MMGLibCallIsoSurface();
 
     /**
      * @brief This frees the MMG structures
