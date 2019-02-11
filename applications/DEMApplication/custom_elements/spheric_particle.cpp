@@ -1535,6 +1535,10 @@ void SphericParticle::ComputeReactions() {
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
 
+    if (this->GetGeometry()[0].SolutionStepsDataHas(IS_STICKY)) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(IS_STICKY) = this->Is(DEMFlags::STICKY);
+    }
+
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
     }
@@ -1944,8 +1948,11 @@ void SphericParticle::Move(const double delta_t, const bool rotation_option, con
 }
 
 void SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
-    delete mpTranslationalIntegrationScheme;
+    if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) {
+        delete mpTranslationalIntegrationScheme;
+    }
     mpTranslationalIntegrationScheme = new GluedToWallScheme(p_wall, this);
+    delete mpRotationalIntegrationScheme;
     mpRotationalIntegrationScheme = mpTranslationalIntegrationScheme;
 }
 
