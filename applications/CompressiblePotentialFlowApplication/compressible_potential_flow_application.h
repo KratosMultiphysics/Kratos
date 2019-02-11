@@ -16,18 +16,15 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
+#include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
 
 namespace Kratos {
@@ -185,6 +182,8 @@ private:
         const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
         const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
         const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
+
+		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
 
 
 	///@}

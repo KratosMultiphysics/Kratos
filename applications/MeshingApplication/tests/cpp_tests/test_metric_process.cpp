@@ -71,7 +71,7 @@ namespace Kratos
 
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -114,7 +114,7 @@ namespace Kratos
 
         void Create3DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -437,7 +437,6 @@ namespace Kratos
         * Checks the correct work of the SPR metric process
         * Test triangle
         */
-
         KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             Model this_model;
@@ -451,16 +450,20 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
+
+            Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
+
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
+            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
-            Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
             for (auto& ielem : this_model_part.Elements()) {
                 ielem.Initialize();
                 ielem.InitializeSolutionStep(process_info);
@@ -502,7 +505,6 @@ namespace Kratos
         * Checks the correct work of the nodal SPR compute
         * Test tetrahedra
         */
-
         KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             Model this_model;
@@ -516,16 +518,20 @@ namespace Kratos
             process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
+
+            Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
+
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
+            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
 
-            Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
             for (auto& ielem : this_model_part.Elements()) {
                 ielem.Initialize();
                 ielem.InitializeSolutionStep(process_info);

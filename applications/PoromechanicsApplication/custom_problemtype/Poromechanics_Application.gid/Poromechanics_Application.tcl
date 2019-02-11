@@ -158,6 +158,8 @@ proc Poromechanics_Application::PropagateFractures3D { } {
 
 proc Poromechanics_Application::CreateContactEntity { } {
 
+    ## This proc can be called from the command line of GiD as "-np- Poromechanics_Application::CreateContactEntity"
+
     set LayerName "Layer0"
 
     ## Contact Surface:

@@ -33,7 +33,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "input_filename": "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "MultiLevelSolver"
+                "solver_type" : "multi_level"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],

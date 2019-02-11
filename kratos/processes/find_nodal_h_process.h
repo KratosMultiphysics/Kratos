@@ -92,7 +92,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& rModelPart) 
+    explicit FindNodalHProcess(ModelPart& rModelPart) 
         : mrModelPart(rModelPart)
     {
     }

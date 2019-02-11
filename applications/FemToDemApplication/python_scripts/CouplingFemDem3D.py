@@ -67,7 +67,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			if is_remeshing:
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
-				KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+				# KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
 				# we eliminate the nodal DEM forces
 				self.RemoveDummyNodalForces()
