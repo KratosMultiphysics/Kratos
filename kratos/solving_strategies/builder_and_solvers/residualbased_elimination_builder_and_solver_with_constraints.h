@@ -1101,7 +1101,7 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // We build the global T matrix and the g constant vector
+        // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
 
         // We compute only once (or if cleared)
@@ -1120,9 +1120,10 @@ protected:
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
-            TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSystemVectorType aux_constant_vector(rConstantVector);
-            TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
+            // We get the g constant vector
+            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
+            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
+            TSparseSpace::Mult(rA, rDeltaConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
@@ -1170,9 +1171,8 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // We build the global T matrix and the g constant vector
+        // We get the global T matrix
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // We compute only once (or if cleared)
         if (mCleared) {
@@ -1200,8 +1200,10 @@ protected:
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
-            TSystemVectorType aux_constant_vector(rConstantVector);
-            TSparseSpace::Mult(A, rConstantVector, aux_constant_vector);
+            // We get the g constant vector
+            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
+            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
+            TSparseSpace::Mult(A, rDeltaConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
