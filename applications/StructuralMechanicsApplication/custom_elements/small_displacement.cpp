@@ -196,9 +196,6 @@ void SmallDisplacement::CalculateKinematicVariables(
     )
 {
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    const SizeType mat_size = number_of_nodes * dimension;
 
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
     // Shape functions
@@ -212,9 +209,8 @@ void SmallDisplacement::CalculateKinematicVariables(
     CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
 
     // Compute equivalent F
-    Vector displacements(mat_size);
-    GetValuesVector(displacements);
-    Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
+    GetValuesVector(rThisKinematicVariables.Displacements);
+    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
     ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }

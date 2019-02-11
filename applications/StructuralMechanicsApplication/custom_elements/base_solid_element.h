@@ -77,6 +77,7 @@ protected:
         Matrix  J0;
         Matrix  InvJ0;
         Matrix  DN_DX;
+        Vector Displacements;
 
         /**
          * The default constructor
@@ -98,6 +99,7 @@ protected:
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
         }
     };
 

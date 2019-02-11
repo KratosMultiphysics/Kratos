@@ -229,6 +229,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
+
     /**
      * @brief This functions updates the data structure passed to the CL
      * @param rThisKinematicVariables The kinematic variables to be calculated
