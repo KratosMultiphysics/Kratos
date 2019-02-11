@@ -145,14 +145,41 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     const Vector& rStrainVector,
-    Vector& FiberStressVector,
-    Vector& MatrixStressVector,
+    Vector& rFiberStressVector,
+    Vector& rMatrixStressVector,
     const Properties& rMaterialProperties
 )
 {
-    
+    Matrix parallel_projector, serial_projector;
+    this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
+    Matrix& rParallelProjector,
+    Matrix& rSerialProjector
+)
+{
+    const int voigt_size = this->GetStrainSize();
+    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    KRATOS_ERROR_IF(num_parallel_components == 0) << "There is no parallel direction!" << std::endl;
+    const int num_serial_components = voigt_size - num_parallel_components;
+    rParallelProjector = ZeroMatrix(voigt_size, num_parallel_components);
+    rSerialProjector = ZeroMatrix(num_serial_components, voigt_size);
+
+    int parallel_counter = 0, serial_counter = 0;
+    for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
+        if (mParallelDirections[i_comp] == 1) {
+            rParallelProjector(i_comp, parallel_counter) = 1;
+            parallel_counter++;
+        } else {
+            rSerialProjector(serial_counter, i_comp) = 1;
+            serial_counter++; 
+        }
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -349,6 +376,10 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         // rParameterValues.SetMaterialProperties(material_properties);
     }
     return(rValue);
+}
+
+void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
+{
 }
 
 } // namespace Kratos
