@@ -431,21 +431,11 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis._GetSolver().SolveSolutionStep()
             self.primal_analysis.FinalizeSolutionStep()
             self.primal_analysis.OutputSolutionStep()
-            self.CalculateResponseIncrement()
+            self._CalculateResponseIncrement()
 
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
-        # TODO the response value calculation for stresses currently only works on the adjoint modelpart
-        # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
-        
-        # This is temporarily commented out
-        #self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
-        #self.adjoint_analysis.InitializeSolutionStep()
-
-        # This runs the whole solution loop for adjoint analysis
-        self.adjoint_analysis.RunSolutionLoop()
-
-    def CalculateResponseIncrement(self):
+    def _CalculateResponseIncrement(self):
         startTime = timer.time()
         incremental_response_value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
@@ -461,9 +451,9 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-        ## Commented out because adjoint analysis have been already implemented in InitializeSolutionStep()
-       ## self.adjoint_analysis._GetSolver().Predict()
-       ## self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        
+        # runs the full loop for adjoint analysis
+        self.adjoint_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):
