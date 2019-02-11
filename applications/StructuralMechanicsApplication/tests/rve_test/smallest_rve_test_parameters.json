@@ -9,7 +9,7 @@
     "rve_settings"     : {
         "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
         "averaging_mp_name" : "Structure.computing_domain",
-        "print_rve_post"    : false,
+        "print_rve_post"    : true,
         "perturbation"      : 1e-6  
     },
     "solver_settings"  : {
