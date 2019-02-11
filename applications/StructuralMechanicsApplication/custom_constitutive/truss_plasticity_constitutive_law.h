@@ -218,7 +218,7 @@ private:
     //the following members are vectors where
     //[0] is the current non_linear iteration step
     //[1] is the previous non_linear iteration step
-    BoundedVector<bool, 2> mInElasticFlagVector = ZeroVector(2); /// This flags tells if we are in a elastic or ineslastic regime
+    std::vector<bool> mInElasticFlagVector = {false, false}; /// This flags tells if we are in a elastic or ineslastic regime
     BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
     BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
 

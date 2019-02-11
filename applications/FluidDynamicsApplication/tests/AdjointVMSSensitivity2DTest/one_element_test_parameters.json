@@ -61,79 +61,81 @@
             "dynamic_tau"              : 1.0
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 1.4142135623730951,
-            "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
-        }
-    },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignScalarVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "PRESSURE",
-            "value"           : 0
-        }
-    },{
-        "python_module" : "apply_noslip_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyNoSlipProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Boundary"
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
-            "variable_name"   : "VELOCITY",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0, 0.0, 0.0]
-        }
-    }],
-    "gravity" : [],
-    "auxiliar_process_list" :[{
-        "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_output_process",
-        "help"          : "",
-        "process_name"  : "",
-        "Parameters" : {
-            "model_part_name" : "MainModelPart",
-            "file_settings" : {
-                "file_access_mode" : "truncate"
-            },
-            "model_part_output_settings" : {
-                "prefix" : "/ModelData"
-            },
-            "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-            },
-            "output_time_settings" : {
-                "output_step_frequency": 1
-            }
-        }
-    },{
-        "python_module" : "compute_body_fitted_drag_process",
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "assign_vector_by_direction_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "ComputeBodyFittedDragProcess",
-            "Parameters" : {
-                "model_part_name"           : "Structure",
-                "interval"                  : [0.0, 1e30],
-                "write_drag_output_file"    : true,
-                "print_drag_to_screen"      : false,
-                "print_format"              : "22.15e"
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 1.4142135623730951,
+                "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
             }
-    }]
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "PRESSURE",
+                "value"           : 0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Boundary"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0, 0.0, 0.0]
+            }
+        }],
+        "gravity" : [],
+        "auxiliar_process_list" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "model_part_output_settings" : {
+                    "prefix" : "/ModelData"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                },
+                "output_time_settings" : {
+                    "output_step_frequency": 1
+                }
+            }
+        },{
+            "python_module" : "compute_body_fitted_drag_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "ComputeBodyFittedDragProcess",
+                "Parameters" : {
+                    "model_part_name"           : "Structure",
+                    "interval"                  : [0.0, 1e30],
+                    "write_drag_output_file"    : true,
+                    "print_drag_to_screen"      : false,
+                    "print_format"              : "22.15e"
+                }
+        }]
+    }
 }
