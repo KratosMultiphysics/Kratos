@@ -198,9 +198,15 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector total_strain_increment = rStrainVector - rPreviousStrainVector;
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
-    Matrix constitutive_matrix, constitutive_fiber;
+    Matrix constitutive_tensor_matrix, constitutive_tensor_fiber;
 
-    mpMatrixConstitutiveLaw->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+	const auto props_matrix_cl = *(it_cl_begin);
+    const auto props_fiber_cl  = *(it_cl_begin + 1);
+
+    this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
+    this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
+
 
 
 
