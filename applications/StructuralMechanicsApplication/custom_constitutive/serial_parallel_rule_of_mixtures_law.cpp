@@ -25,7 +25,12 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
-    return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>();
+    const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
+    Vector parallel_directions = ZeroVector(6);
+    for (IndexType i_comp = 0; i_comp < 6; ++i_comp) {
+        parallel_directions[i_comp] = NewParameters["parallel_behaviour_directions"][i_comp].GetInt();
+    }
+    return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(fiber_volumetric_participation, parallel_directions);
 }
 
 /***********************************************************************************/
@@ -57,7 +62,55 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
 
+     // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+
+     // Previous flags saved
+    const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+    const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+    const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+     const Properties& r_material_properties  = rValues.GetMaterialProperties();
+
+     // The deformation gradient
+    if (rValues.IsSetDeterminantF()) {
+        const double determinant_f = rValues.GetDeterminantF();
+        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    }
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+
+         Matrix F_deformation_gradient;
+        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
+        const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
+        // Doing resize in case is needed
+        if (r_strain_vector.size() != voigt_size)
+            r_strain_vector.resize(voigt_size);
+
+         // Identity matrix
+        Matrix identity_matrix(dimension, dimension);
+        for (IndexType i = 0; i < dimension; ++i) {
+            for (IndexType j = 0; j < dimension; ++j) {
+                if (i == j) identity_matrix(i, j) = 1.0;
+                else identity_matrix(i, j) = 0.0;
+            }
+        }
+
+         // Calculating the inverse of the left Cauchy tensor
+        Matrix inverse_B_tensor ( dimension, dimension );
+        double aux_det_b = 0;
+        MathUtils<double>::InvertMatrix( B_matrix, inverse_B_tensor, aux_det_b);
+
+         // Calculate E matrix
+        const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
+        // Almansi Strain Calculation
+        r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+    }
 
 } // End CalculateMaterialResponseCauchy
 
@@ -183,6 +236,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues)
 {
+    KRATOS_WATCH(rMaterialProperties)
+    // mFiberVolumetricParticipation = rMaterialProperties
 	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
 	const auto props_matrix_cl = *(it_cl_begin);
     const auto props_fiber_cl  = *(it_cl_begin + 1);
@@ -196,5 +251,67 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     mpFiberConstitutiveLaw ->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    )
+{
+    // We do some special operations for constitutive matrices
+    if (rThisVariable == CONSTITUTIVE_MATRIX ||
+        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
+        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+         // Previous flags saved
+        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+
+         // We compute the constitutive matrix
+        if (rThisVariable == CONSTITUTIVE_MATRIX) {
+            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+        } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        }
+
+         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
+
+         // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
+        noalias(rValue) = rParameterValues.GetDeformationGradientF();
+    } else {
+        // const Properties& material_properties  = rParameterValues.GetMaterialProperties();
+
+        // // We combine the value of each layer
+        // rValue.clear();
+        // for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
+        //     const double factor = mCombinationFactors[i];
+        //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
+        //     Properties& r_prop = material_properties.GetSubProperty(i + 1);
+
+        //     rParameterValues.SetMaterialProperties(r_prop);
+        //     Matrix aux_value;
+        //     p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+        //     noalias(rValue) += factor * aux_value;
+        // }
+        //  // Reset properties
+        // rParameterValues.SetMaterialProperties(material_properties);
+    }
+    return(rValue);
+}
 
 } // namespace Kratos

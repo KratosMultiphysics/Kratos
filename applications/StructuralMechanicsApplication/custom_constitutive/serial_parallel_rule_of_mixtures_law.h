@@ -82,9 +82,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     /**
     * Constructor.
     */
-    // SerialParallelRuleOfMixturesLaw()
-    // {
-    // }
+    SerialParallelRuleOfMixturesLaw(double FiberVolParticipation, const Vector& rParallelDirections)
+        : mFiberVolumetricParticipation(FiberVolParticipation), mParallelDirections(rParallelDirections)
+    {
+    }
 
     /**
     * Clone.
@@ -216,6 +217,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues);
 
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue);
+
     ///@}
     ///@name Access
     ///@{
@@ -293,6 +299,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     ConstitutiveLaw::Pointer mpMatrixConstitutiveLaw;
     ConstitutiveLaw::Pointer mpFiberConstitutiveLaw;
+    double mFiberVolumetricParticipation;
+    Vector mParallelDirections = ZeroVector(6);
+    Vector mPreviousStrainVector = ZeroVector(6);
 
     ///@}
     ///@name Private Operators
