@@ -561,9 +561,9 @@ public:
 
         if(!(is_converged))
         {
-            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
-            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"rMaxIteration exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
-            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
+            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
+            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"rMaxIteration exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
+            KRATOS_WARNING("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
         }
 
         for(unsigned int i=0; i< Help.size1(); i++)

@@ -39,7 +39,7 @@ namespace Kratos
 /// Rigid Body Element for 3D space dimension
 
 /**
- * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, DELTA_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
+ * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
@@ -60,6 +60,8 @@ public:
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type for size
     typedef GeometryData::SizeType                              SizeType;
+    ///Type of vector
+    typedef array_1d<double,3>                                 ArrayType;
 
     /// Counted pointer of RigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
@@ -94,12 +96,12 @@ protected:
       const ProcessInfo* pProcessInfo;
 
      public:
-      
+
       //section properties
       RigidBodyProperties RigidBody;
-      Vector VolumeForce;
+      ArrayType VolumeForce;
       Matrix DeltaPosition;
-      
+
       void SetProcessInfo(const ProcessInfo& rProcessInfo)
       {
         pProcessInfo=&rProcessInfo;
@@ -109,16 +111,15 @@ protected:
       {
         return *pProcessInfo;
       }
-      
+
       void Initialize(const unsigned int& dimension, const ProcessInfo& rProcessInfo)
       {
-        VolumeForce.resize(dimension);
-        noalias(VolumeForce) = ZeroVector(dimension);
+        noalias(VolumeForce) = ZeroVector(3);
         DeltaPosition.resize(1,dimension,false);
         noalias(DeltaPosition) = ZeroMatrix(1, dimension);
         pProcessInfo=&rProcessInfo;
       }
-      
+
     };
 
 
@@ -349,9 +350,6 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    //************************************************************************************
-    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -420,7 +418,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    
+
     /**
      * Calculates the elemental dynamic contributions
      */
@@ -437,18 +435,7 @@ protected:
     /**
      * Transform Vector Variable from Global Frame to the Spatial Local Frame
      */
-    Vector& MapToInitialLocalFrame(Vector& rVariable);
-
-
-    /**
-     * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
-
-    /**
-     * Get Previous Value, buffer 1 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+    ArrayType& MapToInitialLocalFrame(ArrayType& rVariable);
 
 
     /**
@@ -468,7 +455,7 @@ protected:
       */
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                     ElementVariables& rVariables);
-    
+
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
@@ -493,17 +480,17 @@ protected:
       */
     virtual void GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2,
                                               const ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce);
+    virtual ArrayType& CalculateVolumeForce(ArrayType& rVolumeForce);
 
 
     /**
      * Calculation Complementary Method : Inertial Matrix Calculation Part 1
      */
-    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
+    virtual void CalculateRotationLinearPartTensor(ArrayType& rRotationVector, Matrix& rRotationTensor);
 
 
     /**
@@ -516,7 +503,11 @@ protected:
      */
     virtual SizeType GetDofsSize();
 
-
+    /**
+     * Map Local To Global system
+     */
+    virtual void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem);
+    
     ///@}
     ///@name Protected  Access
     ///@{

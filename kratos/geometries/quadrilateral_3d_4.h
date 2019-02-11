@@ -232,7 +232,7 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    Quadrilateral3D4( const PointsArrayType& ThisPoints )
+    explicit Quadrilateral3D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
@@ -265,7 +265,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -367,14 +367,6 @@ public:
         rResult( 2, 1 ) =  1.0;
         rResult( 3, 0 ) = -1.0;
         rResult( 3, 1 ) =  1.0;
-        return rResult;
-    }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4) rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
         return rResult;
     }
 

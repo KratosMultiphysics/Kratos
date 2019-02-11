@@ -1,18 +1,25 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+
+# Importing the Kratos Library
 import KratosMultiphysics
 from python_solver import PythonSolver
 import time
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) 
 
+import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
+
+# Importing the base class
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 def CreateSolver(model, custom_settings):
-    return PotentialSolver(model, custom_settings["solver_settings"])
+    return LaplacianSolver(model, custom_settings)
 
-class PotentialSolver(PythonSolver):
+
+class LaplacianSolver(PythonSolver):
     def __init__(self, model, custom_settings):
-        self.MoveMeshFlag = False
+        self.move_mesh_flag = False
  
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -39,8 +46,12 @@ class PotentialSolver(PythonSolver):
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
+            "element_replace_settings": {
+                    "element_name":"CompressiblePotentialFlowElement2D3N",
+                    "condition_name": "PotentialWallCondition2D2N"
+            },
             "linear_solver_settings": {
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "max_iteration": 400,
                     "gmres_krylov_space_dimension": 500,
                     "smoother_type":"ilu0",
@@ -59,24 +70,27 @@ class PotentialSolver(PythonSolver):
     #         }
         
          
+        # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-
+        super(LaplacianSolver, self).__init__(model, custom_settings)
         model_part_name = self.settings["model_part_name"].GetString()
-        super(PotentialSolver,self).__init__(model, self.settings)
 
         if model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
+        # This will be changed once the Model is fully supported!
         if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
             self.first_simulation=False
+            self.main_model_part = self.model[model_part_name]
         else:
-            self.main_model_part = model.CreateModelPart(model_part_name)
             self.first_simulation=True
-        
-        self.domain_size = custom_settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
+            self.domain_size = self.settings["domain_size"].GetInt()
+            if self.domain_size < 0:
+                raise Exception('Please specify a "domain_size" >= 0!')
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2)#n_parameter
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,self.settings["penalty"].GetDouble())# alpha penalty
@@ -85,17 +99,14 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
-                    
-        #construct the linear solvers
-        import linear_solver_factory
+        # Construct the linear solvers
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         self.perturbate_model_part=False
 
         print("Construction of LaplacianSolver finished")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -106,14 +117,22 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LEVEL_SET_DISTANCE)
-        
+ 
+        # Degrees of freedom
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+
+        # Kratos variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
-        
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+
     def Initialize(self):
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         if self.settings["problem_type"].GetString() == "compressible":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
@@ -129,7 +148,7 @@ class PotentialSolver(PythonSolver):
                 max_iterations,
                 self.settings["compute_reactions"].GetBool(), 
                 self.settings["reform_dofs_at_each_step"].GetBool(), 
-                move_mesh_flag)
+                self.move_mesh_flag)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
@@ -140,7 +159,7 @@ class PotentialSolver(PythonSolver):
                 self.settings["compute_reactions"].GetBool(), 
                 self.settings["reform_dofs_at_each_step"].GetBool(), 
                 self.settings["calculate_solution_norm"].GetBool(), 
-                move_mesh_flag)
+                self.move_mesh_flag)
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
@@ -270,19 +289,17 @@ class PotentialSolver(PythonSolver):
             else :
                 raise("dimension error")
 
-
-
     def GetMinimumBufferSize(self):
-        return 2;
+        return 1
 
     def GetComputingModelPart(self):
         return self.main_model_part
 
-    def GetOutputVariables(self):
-        pass
+    def InitializeSolutionStep(self):
+        self.solver.InitializeSolutionStep()
 
-    def ComputeDeltaTime(self):
-        pass
+    def Predict(self):
+        self.solver.Predict()
 
     def SaveRestart(self):
         pass #one should write the restart file here
@@ -299,9 +316,8 @@ class PotentialSolver(PythonSolver):
     def InitializeSolutionStep(self):        
         self.solver.InitializeSolutionStep()
 
-
     def SolveSolutionStep(self):
-        (self.solver).Solve() 
+        self.solver.SolveSolutionStep() 
 
     def FinalizeSolutionStep(self):        
         self.solver.FinalizeSolutionStep()
@@ -309,11 +325,12 @@ class PotentialSolver(PythonSolver):
     def Predict(self):
         self.solver.Predict()
 
-    #
     def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
+        self.solver.SetEchoLevel(level)
 
-    #
     def Clear(self):
-        (self.solver).Clear()
+        self.solver.Clear()
+
+    # def AdvanceInTime(self, current_time):
+        # raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 

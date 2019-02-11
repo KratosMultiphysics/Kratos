@@ -8,6 +8,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
+import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
@@ -73,7 +74,8 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
         return settings
 
     def __init__(self, model, custom_settings):
-        super(NavierStokesMPITwoFluidsSolver, self).__init__(model,custom_settings)
+        # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
+        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
@@ -226,12 +228,14 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
                 self.EpetraCommunicator,
                 self.computing_model_part,
                 self.trilinos_linear_solver,
-                maximum_iterations)
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
                 self.EpetraCommunicator,
                 self.computing_model_part,
                 self.trilinos_linear_solver,
-                maximum_iterations)
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process

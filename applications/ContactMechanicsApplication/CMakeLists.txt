@@ -14,15 +14,15 @@ endif(NOT (${DELAUNAY_MESHING_APPLICATION} MATCHES "ON"))
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
-  include_directories( ${TRIANGLE_INSTALL_DIR} )
+  set(TRIANGLE_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+  include_directories( ${TRIANGLE_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_modules/tetgen/)
-  include_directories( ${TETGEN_INSTALL_DIR} )
-  link_directories( ${TETGEN_INSTALL_DIR} )
+  set(TETGEN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication/external_libraries/tetgen)
+  include_directories( ${TETGEN_DIR} )
+  link_directories( ${TETGEN_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 # Generate variables with the sources
@@ -69,13 +69,15 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_conctact/beam_point_pressure_condition.cpp
 
 	## rigid body links
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_link_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_links/rigid_body_point_link_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.cpp
 
 	##elements
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_segregated_V_element.cpp
-        
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_segregated_V_element.cpp
+
 	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/friction_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/coulomb_adhesion_friction_law.cpp
@@ -140,4 +142,4 @@ install(TARGETS KratosContactMechanicsCore DESTINATION libs )
 install(TARGETS KratosContactMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactMechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactMechanicsApplication.py" DESTINATION "KratosMultiphysics/ContactMechanicsApplication" RENAME "__init__.py")

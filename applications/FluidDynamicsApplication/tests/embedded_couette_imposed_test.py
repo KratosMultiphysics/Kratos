@@ -79,7 +79,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
-            if self.slip_flag and self.solver.settings.Has("is_slip"):
+            if self.slip_flag and self.solver.settings["formulation"].Has("is_slip"):
                 self.ProjectParameters["solver_settings"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
@@ -96,8 +96,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
 
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
@@ -296,6 +296,7 @@ if __name__ == '__main__':
     test.setUp()
     test.distance = 1.65
     test.embedded_velocity = 2.56
+    test.slip_flag = False
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedCouetteImposed2DTest"

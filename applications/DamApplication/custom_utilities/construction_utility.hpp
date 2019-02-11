@@ -48,8 +48,7 @@ class ConstructionUtility
         // Getting values
         mGravityDirection = rParameters["gravity_direction"].GetString();
         mReferenceCoordinate = mHighestBlockHeight = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
-        mHeight = rParameters["height_dam"].GetDouble();
-        mPhases = rParameters["number_of_phases"].GetInt();
+        mLiftHeight = rParameters["lift_height"].GetDouble();
         mSourceType = rParameters["source_type"].GetString();
         mAging = rParameters["aging"].GetBool();
         mH0 = rParameters["h_0"].GetDouble();
@@ -243,7 +242,7 @@ class ConstructionUtility
             if (mAging == false)
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -253,7 +252,7 @@ class ConstructionUtility
             else
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -285,8 +284,8 @@ class ConstructionUtility
         {
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
 
-            double current_height = mReferenceCoordinate + (mHeight / mPhases) * (phase);
-            double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
+            double current_height = mReferenceCoordinate + mLiftHeight * (phase);
+            double previous_height = mReferenceCoordinate + mLiftHeight * (phase - 1);
 
             #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
@@ -303,7 +302,7 @@ class ConstructionUtility
                         if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
                         {
                             it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
-                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = it_thermal->GetGeometry()[i].FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) = initial_temperature;
                         }
                     }
                 }
@@ -330,7 +329,7 @@ class ConstructionUtility
             direction = 2;
 
         // Getting the value of the table and computing the current height
-        double current_height = mReferenceCoordinate + (mHeight / mPhases) * current_number_of_phase;
+        double current_height = mReferenceCoordinate + mLiftHeight * current_number_of_phase;
 
         if (current_height > mHighestBlockHeight) mHighestBlockHeight = current_height;
 
@@ -347,7 +346,7 @@ class ConstructionUtility
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                 array_1d<double, 3> central_position = it->GetGeometry().Center();
 
-                if ((central_position(direction) >= (mReferenceCoordinate - (mHeight / mPhases))) && (central_position(direction) <= current_height))
+                if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
                 {
                     it->Set(ACTIVE, true);
                     it_thermal->Set(ACTIVE, true);
@@ -356,6 +355,7 @@ class ConstructionUtility
                     for (unsigned int i = 0; i < number_of_points; i++)
                     {
                         it->GetGeometry()[i].Set(ACTIVE, true);
+                        it->GetGeometry()[i].Set(SOLID, false);
                     }
                 }
             }
@@ -416,6 +416,61 @@ class ConstructionUtility
         KRATOS_CATCH("");
     }
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CheckTemperature(Parameters &CheckTemperatureParameters)
+    {
+        KRATOS_TRY;
+
+        const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+
+        // Getting CheckTemperature Values
+        const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
+        const double maximum_temperature_aux = CheckTemperatureParameters["maximum_temperature"].GetDouble();
+        const double minimum_temperature_aux = CheckTemperatureParameters["minimum_temperature"].GetDouble();
+
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+            if (it->Is(ACTIVE) && it->IsNot(SOLID))
+            {
+                double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, maximum_temperature_aux);
+                double minimum_temperature = std::min(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE), minimum_temperature_aux);
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
+                }
+                else if (current_temperature < minimum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
+                }
+            }
+            else if (it->Is(ACTIVE) && it->Is(SOLID))
+            {
+                double maximum_temperature = maximum_temperature_aux;
+                double minimum_temperature = minimum_temperature_aux;
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
+                }
+                else if (current_temperature < minimum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AfterOutputStep()
@@ -452,7 +507,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
+                        if (central_position(direction) <= mHighestBlockHeight + mLiftHeight)
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
@@ -493,7 +548,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
+                        if (central_position(direction) <= mHighestBlockHeight + mLiftHeight)
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
@@ -566,7 +621,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
+                        if (central_position(direction) <= mHighestBlockHeight + mLiftHeight)
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
@@ -608,7 +663,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
+                        if (central_position(direction) <= mHighestBlockHeight + mLiftHeight)
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
@@ -661,11 +716,12 @@ class ConstructionUtility
         const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Noorzai Values
-        double density = NoorzaiParameters["density"].GetDouble();
-        double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
-        double alpha = NoorzaiParameters["alpha"].GetDouble();
-        double t_max = NoorzaiParameters["t_max"].GetDouble();
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double density = NoorzaiParameters["density"].GetDouble();
+        const double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
+        const double alpha = NoorzaiParameters["alpha"].GetDouble();
+        const double t_max = NoorzaiParameters["t_max"].GetDouble();
+        const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -677,7 +733,7 @@ class ConstructionUtility
             if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
             {
                 // Computing the value of heat flux according the time
-                double value = density * specific_heat * alpha * t_max * (exp(-alpha * current_activation_time));
+                double value = density * specific_heat * alpha * t_max * (exp(-alpha * (current_activation_time + 0.5 * delta_time)));
                 it->FastGetSolutionStepValue(HEAT_FLUX) = value;
             }
         }
@@ -696,18 +752,18 @@ class ConstructionUtility
             const int nnodes = mrThermalModelPart.Nodes().size();
 
             // Getting Azenha Values
-            double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
-            double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
-            double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
-            double q_total = AzenhaParameters["q_total"].GetDouble();
-            double a_coef = AzenhaParameters["A"].GetDouble();
-            double b_coef = AzenhaParameters["B"].GetDouble();
-            double c_coef = AzenhaParameters["C"].GetDouble();
-            double d_coef = AzenhaParameters["D"].GetDouble();
+            const double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
+            const double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
+            const double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
+            const double q_total = AzenhaParameters["q_total"].GetDouble();
+            const double a_coef = AzenhaParameters["A"].GetDouble();
+            const double b_coef = AzenhaParameters["B"].GetDouble();
+            const double c_coef = AzenhaParameters["C"].GetDouble();
+            const double d_coef = AzenhaParameters["D"].GetDouble();
 
             // Temporal variables
-            double time = mrThermalModelPart.GetProcessInfo()[TIME];
-            double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+            const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+            const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
             #pragma omp parallel for
@@ -764,8 +820,7 @@ class ConstructionUtility
     bool mActivateExistingPart;
     double mReferenceCoordinate;
     double mHighestBlockHeight;
-    double mHeight;
-    int mPhases;
+    double mLiftHeight;
     double mH0;
     double mTimeUnitConverter;
     double mAlphaInitial;

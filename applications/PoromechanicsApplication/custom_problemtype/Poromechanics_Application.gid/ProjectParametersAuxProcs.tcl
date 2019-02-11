@@ -53,21 +53,20 @@ proc WriteConstraintVectorProcess {FileVar GroupNum Groups EntityType VarName Ta
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
-            puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
-            puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $MyFileVar "            \"variable_name\":   \"$VarName\","
-            puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
-            puts $MyFileVar "            \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
-            puts $MyFileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
-            puts $MyFileVar "            \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
-            puts $MyFileVar "        \}"
+            puts $MyFileVar "            \"python_module\": \"apply_vector_constraint_table_process\","
+            puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $MyFileVar "            \"Parameters\":    \{"
+            puts $MyFileVar "                \"model_part_name\": \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"variable_name\":   \"$VarName\","
+            puts $MyFileVar "                \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
+            puts $MyFileVar "                \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
+            puts $MyFileVar "                \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
+            puts $MyFileVar "                \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
+            puts $MyFileVar "            \}"
             if {$MyGroupNum < $NumGroups} {
-                puts $MyFileVar "    \},\{"
+                puts $MyFileVar "        \},\{"
             } else {
-                puts $MyFileVar "    \}\],"
+                puts $MyFileVar "        \}\],"
             }
         }
     }
@@ -83,21 +82,20 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
-            puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
-            puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-            puts $MyFileVar "            \"variable_name\":        \"$VarName\","
-            puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
-            puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 4],"
-            puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
+            puts $MyFileVar "            \"python_module\": \"apply_scalar_constraint_table_process\","
+            puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $MyFileVar "            \"Parameters\":    \{"
+            puts $MyFileVar "                \"model_part_name\":      \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"variable_name\":        \"$VarName\","
+            puts $MyFileVar "                \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
+            puts $MyFileVar "                \"value\":                [lindex [lindex $Groups $i] 4],"
+            puts $MyFileVar "                \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
             if {[lindex [lindex $Groups $i] 3] eq "Hydrostatic"} {
                 set PutStrings true
             } else {
                 set PutStrings false
             }
-            puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
+            puts $MyFileVar "                \"hydrostatic\":          $PutStrings,"
             if {[lindex [lindex $Groups $i] 5] eq "Y"} {
                 set PutStrings 1
             } elseif {[lindex [lindex $Groups $i] 5] eq "Z"} {
@@ -105,14 +103,14 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
             } else {
                 set PutStrings 0
             }
-            puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
-            puts $MyFileVar "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
-            puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
-            puts $MyFileVar "        \}"
+            puts $MyFileVar "                \"gravity_direction\":    $PutStrings,"
+            puts $MyFileVar "                \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
+            puts $MyFileVar "                \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
+            puts $MyFileVar "            \}"
             if {$MyGroupNum < $NumGroups} {
-                puts $MyFileVar "    \},\{"
+                puts $MyFileVar "        \},\{"
             } else {
-                puts $MyFileVar "    \}\],"
+                puts $MyFileVar "        \}\],"
             }
         }
     }
@@ -126,24 +124,23 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
-        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
-        puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-        puts $MyFileVar "            \"variable_name\":   \"$VarName\","
-        puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
-        puts $MyFileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
+        puts $MyFileVar "            \"python_module\": \"apply_vector_constraint_table_process\","
+        puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+        puts $MyFileVar "            \"Parameters\":    \{"
+        puts $MyFileVar "                \"model_part_name\": \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
+        puts $MyFileVar "                \"variable_name\":   \"$VarName\","
+        puts $MyFileVar "                \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
+        puts $MyFileVar "                \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
         if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
-            puts $MyFileVar "            \"table\":           \[0,0,0\]"
+            puts $MyFileVar "                \"table\":           \[0,0,0\]"
         } else {
-            puts $MyFileVar "            \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
+            puts $MyFileVar "                \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
         }
-        puts $MyFileVar "        \}"
+        puts $MyFileVar "            \}"
         if {$MyGroupNum < $NumGroups} {
-            puts $MyFileVar "    \},\{"
+            puts $MyFileVar "        \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "        \}\],"
         }
     }
 }
@@ -156,25 +153,24 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_normal_load_table_process\","
-        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyNormalLoadTableProcess\","
-        puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-        puts $MyFileVar "            \"variable_name\":        \"$VarName\","
-        puts $MyFileVar "            \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
-        puts $MyFileVar "            \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
+        puts $MyFileVar "            \"python_module\": \"apply_normal_load_table_process\","
+        puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+        puts $MyFileVar "            \"Parameters\":    \{"
+        puts $MyFileVar "                \"model_part_name\":      \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
+        puts $MyFileVar "                \"variable_name\":        \"$VarName\","
+        puts $MyFileVar "                \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
+        puts $MyFileVar "                \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
         if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
-            puts $MyFileVar "            \"table\":                \[0,0\],"
+            puts $MyFileVar "                \"table\":                \[0,0\],"
         } else {
-            puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
+            puts $MyFileVar "                \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
         }
         if {[lindex [lindex $Groups $i] 4] eq "Hydrostatic"} {
             set PutStrings true
         } else {
             set PutStrings false
         }
-        puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
+        puts $MyFileVar "                \"hydrostatic\":          $PutStrings,"
         if {[lindex [lindex $Groups $i] 6] eq "Y"} {
             set PutStrings 1
         } elseif {[lindex [lindex $Groups $i] 6] eq "Z"} {
@@ -182,14 +178,14 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         } else {
             set PutStrings 0
         }
-        puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
-        puts $MyFileVar "            \"reference_coordinate\": [lindex [lindex $Groups $i] 7],"
-        puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 8]"
-        puts $MyFileVar "        \}"
+        puts $MyFileVar "                \"gravity_direction\":    $PutStrings,"
+        puts $MyFileVar "                \"reference_coordinate\": [lindex [lindex $Groups $i] 7],"
+        puts $MyFileVar "                \"specific_weight\":      [lindex [lindex $Groups $i] 8]"
+        puts $MyFileVar "            \}"
         if {$MyGroupNum < $NumGroups} {
-            puts $MyFileVar "    \},\{"
+            puts $MyFileVar "        \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "        \}\],"
         }
     }
 }
@@ -202,23 +198,22 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
-        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
-        puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-        puts $MyFileVar "            \"variable_name\":   \"$VarName\","
-        puts $MyFileVar "            \"value\":           [lindex [lindex $Groups $i] 3],"
+        puts $MyFileVar "            \"python_module\": \"apply_scalar_constraint_table_process\","
+        puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+        puts $MyFileVar "            \"Parameters\":    \{"
+        puts $MyFileVar "                \"model_part_name\": \"PorousModelPart.[lindex [lindex $Groups $i] 1]\","
+        puts $MyFileVar "                \"variable_name\":   \"$VarName\","
+        puts $MyFileVar "                \"value\":           [lindex [lindex $Groups $i] 3],"
         if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
-            puts $MyFileVar "            \"table\":           0"
+            puts $MyFileVar "                \"table\":           0"
         } else {
-            puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
+            puts $MyFileVar "                \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
         }
-        puts $MyFileVar "        \}"
+        puts $MyFileVar "            \}"
         if {$MyGroupNum < $NumGroups} {
-            puts $MyFileVar "    \},\{"
+            puts $MyFileVar "        \},\{"
         } else {
-            puts $MyFileVar "    \}\]"
+            puts $MyFileVar "        \}\],"
         }
     }
 }
@@ -232,18 +227,17 @@ proc WritePeriodicInterfaceProcess {FileVar GroupNum Groups NumGroups} {
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         if {[lindex [lindex $Groups $i] 20] eq true} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"periodic_interface_activation_process\","
-            puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"PeriodicInterfaceActivationProcess\","
-            puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
-            puts $MyFileVar "            \"dimension\":       [GiD_AccessValue get gendata Domain_Size],"
-            puts $MyFileVar "            \"stress_limit\": [lindex [lindex $Groups $i] 21]"
-            puts $MyFileVar "        \}"
+            puts $MyFileVar "            \"python_module\": \"periodic_interface_activation_process\","
+            puts $MyFileVar "            \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $MyFileVar "            \"Parameters\":    \{"
+            puts $MyFileVar "                \"model_part_name\": \"PorousModelPart.Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"dimension\":       [GiD_AccessValue get gendata Domain_Size],"
+            puts $MyFileVar "                \"stress_limit\": [lindex [lindex $Groups $i] 21]"
+            puts $MyFileVar "            \}"
             if {$MyGroupNum < $NumGroups} {
-                puts $MyFileVar "    \},\{"
+                puts $MyFileVar "        \},\{"
             } else {
-                puts $MyFileVar "    \}\]"
+                puts $MyFileVar "        \}\]"
             }
         }
     }

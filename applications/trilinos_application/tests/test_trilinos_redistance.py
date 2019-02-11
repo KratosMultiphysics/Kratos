@@ -30,7 +30,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : "coarse_sphere"
+                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\"
             }
         } """
 
@@ -38,8 +38,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
         # Remove the .time file
-        if (my_pid == 0):
-            KratosUtils.DeleteFileIfExisting("coarse_sphere.time")
+        KratosUtils.DeleteFileIfExisting("coarse_sphere.time")
 
         # Remove the Metis partitioning files
         KratosUtils.DeleteFileIfExisting("coarse_sphere_" + str(my_pid) + ".time")
@@ -52,7 +51,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
     def testTrilinosRedistance(self):
         # Set the model part
         current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("RedistanceCalculationPart")
+        self.model_part = current_model.CreateModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -76,14 +75,15 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
         # Set the utility and compute the variational distance values
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "AmesosSolver" }""")
+            KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
         )
 
         epetra_comm = TrilinosApplication.CreateCommunicator()
 
         max_iterations = 2
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
-            epetra_comm, self.model_part, trilinos_linear_solver, max_iterations).Execute()
+            epetra_comm, self.model_part, trilinos_linear_solver, max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
 
         # Check the obtained values
         max_distance = -1.0
@@ -107,7 +107,7 @@ class TestTrilinosRedistanceInMemory(TestTrilinosRedistance):
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : "coarse_sphere",
+                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
                 "partition_in_memory" : true
             }
         } """

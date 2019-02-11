@@ -8,49 +8,13 @@
 #if !defined(KRATOS_TRILINOS_LOCAL_CUTTING_APP)
 #define  KRATOS_TRILINOS_LOCAL_CUTTING_APP
 
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
-
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/dof.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-
-
-// #include "containers/array_1d.h"
-// #include "processes/find_nodal_neighbours_process.h"
-// #include "processes/find_elements_neighbours_process.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
 #include "utilities/math_utils.h"
-//#include "utilities/split_triangle.h"
-#include "utilities/split_triangle.c"
-#include "utilities/split_tetrahedra.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-//#include "processes/node_erase_process.h"
 #include "custom_utilities/parallel_fill_communicator.h"
-// #include "spatial_containers/spatial_containers.h"
-#include "metis_application/custom_processes/set_mpi_communicator_process.h"
+#include "mpi/utilities/model_part_communicator_utilities.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
@@ -63,7 +27,6 @@
 
 #include "Epetra_Import.h"
 #include "Epetra_MpiComm.h"
-#include "parallel_fill_communicator.h"
 
 
 
@@ -178,7 +141,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-			SetMPICommunicatorProcess(new_model_part).Execute();
+            ModelPartCommunicatorUtilities::SetMPICommunicator(new_model_part);
 			mMPICommSetup_is_defined=true;
 		}
 
@@ -475,7 +438,7 @@ public:
 
         if (mMPICommSetup_is_defined==false)
 		{
-			SetMPICommunicatorProcess(mr_new_model_part).Execute();
+            ModelPartCommunicatorUtilities::SetMPICommunicator(mr_new_model_part);
 			mMPICommSetup_is_defined=true;
 		}
 

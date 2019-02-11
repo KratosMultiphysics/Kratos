@@ -371,7 +371,7 @@ public:
         {   
             if(this->Is(BOUNDARY)) std::cout<<"Element with both embedded Wake & LevelSet functions:"<<this->Id()<<std::endl;
             GetWakeDistances(data.distances);
-            
+
             //note that the lhs and rhs have double the size!!
             if(rLeftHandSideMatrix.size1() != 2*NumNodes || rLeftHandSideMatrix.size2() != 2*NumNodes)
                 rLeftHandSideMatrix.resize(2*NumNodes,2*NumNodes,false);
@@ -426,7 +426,7 @@ public:
             Matrix K_uu = ZeroMatrix(NumNodes*2,NumNodes*2);
 
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(WAKE_DISTANCE);               
+                elemental_distance[i_node] = data.distances[i_node];               
                 
             const Vector& r_elemental_distances=elemental_distance;
                 

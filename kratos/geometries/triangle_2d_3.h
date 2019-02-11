@@ -226,7 +226,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle2D3( const PointsArrayType& ThisPoints )
+    explicit Triangle2D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -259,7 +259,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -360,8 +360,18 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 3)
             rResult.resize( 3, false );
@@ -435,8 +445,7 @@ public:
     bool HasIntersection( const BaseType& rThisGeometry ) override {
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
-        return  NoDivTriTriIsect(geom_1[0].Coordinates(), geom_1[1].Coordinates() , geom_1[2].Coordinates(),
-                                 geom_2[0].Coordinates(), geom_2[1].Coordinates(),  geom_2[2].Coordinates());
+        return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
     }
 
     /**

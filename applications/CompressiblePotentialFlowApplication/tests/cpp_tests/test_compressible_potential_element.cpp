@@ -193,7 +193,7 @@ namespace Kratos {
 		}
 		pElement -> GetValue(ELEMENTAL_DISTANCES) = distances;
 		pElement -> Set(MARKER);
-
+	pElement -> SetValue(WAKE,true);
 		// Compute RHS and LHS
 		Vector RHS = ZeroVector(6);
     	Vector RHS_cond = ZeroVector(6);
@@ -202,9 +202,11 @@ namespace Kratos {
 		Vector vinf = ZeroVector(3);
 		vinf(0)=1.0;
     	vinf(1)=1.0;
-		
+		std::cout<<"hey"<<std::endl;
 		pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
-
+		KRATOS_WATCH(LHS);
+		KRATOS_WATCH(RHS);
+std::cout<<"hey2 	"<<std::endl;
 		for (unsigned int i_cond=1; i_cond<4;i_cond++){			
 			Condition::Pointer pCondition = model_part.pGetCondition(i_cond);
 			Matrix lhs = ZeroMatrix(2,2);
@@ -231,9 +233,7 @@ namespace Kratos {
 				}
      		}
 		}
-		KRATOS_WATCH(LHS);
 
-		KRATOS_WATCH(RHS);
 	
     	KRATOS_WATCH(RHS_cond);
 

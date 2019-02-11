@@ -272,10 +272,20 @@ public:
     //     return p_clone;
     // }
     
-    //lumping factors for the calculation of the lumped mass matrix
-    //    virtual Vector& LumpingFactors(Vector& rResult) const
-    //	{
-    //	}
+//     /**
+//      * @brief Lumping factors for the calculation of the lumped mass matrix
+//      * @param rResult Vector containing the lumping factors
+//      * @param LumpingMethod The lumping method considered. The three methods available are:
+//      *      - The row sum method
+//      *      - Diagonal scaling
+//      *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+//      */
+//     Vector& LumpingFactors(
+//         Vector& rResult,
+//         const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+//         )  const override
+//	{
+//	}
 
     ///@}
     ///@name Informations

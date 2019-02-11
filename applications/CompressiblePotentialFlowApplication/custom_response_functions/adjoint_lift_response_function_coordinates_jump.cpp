@@ -262,7 +262,7 @@ namespace Kratos
 
         for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
         {   
-            if ((*elem_it)->Is(MARKER) && (*elem_it)->Is(STRUCTURE)){
+            if (((*elem_it)->Is(MARKER) && (*elem_it)->Is(STRUCTURE)) || ((*elem_it)->Is(THERMAL))){
                 mpNeighboringElement = (*elem_it);
                 return;
             }

@@ -52,24 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_METIS_SEPARATE_PARTITION_WITH_INTERFACE_PROCESS_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
-#include <defs.h>
-#include <struct.h>
-#include <macros.h>
-#include <rename.h>
-
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 
 
@@ -77,7 +65,6 @@ extern "C" {
 
     extern int METIS_PartMeshNodal(int*, int*, int*, int*, int*, int*, int*, int*, int*);
 };
-
 
 
 namespace Kratos

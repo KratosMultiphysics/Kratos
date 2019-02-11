@@ -3,13 +3,13 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
-from potential_flow_solver import PotentialSolver
+from potential_flow_solver import LaplacianSolver
 # import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
-    return PotentialAdjointSolver(model, custom_settings["solver_settings"])
+    return PotentialAdjointSolver(model, custom_settings)
 
-class PotentialAdjointSolver(PotentialSolver):
+class PotentialAdjointSolver(LaplacianSolver):
     def __init__(self, model, custom_settings):
         adjoint_settings = KratosMultiphysics.Parameters("""
         {

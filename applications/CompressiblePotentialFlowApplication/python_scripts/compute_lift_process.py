@@ -20,7 +20,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
                 "reference_area": 1,
-                "problem_name": "please specify problem name"
+                "problem_name": "please specify problem name",
+                "create_output_file": true
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -42,6 +43,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         NormalLower.CalculateOnSimplex(self.lower_surface_model_part,2)
         # self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftProcess(self.fluid_model_part,self.result_force)
 
+        self.create_output_file = settings["create_output_file"].GetBool()
+
+    def ExecuteFinalizeSolutionStep(self):
+         print('COMPUTE LIFT')
 
     def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE LIFT')
@@ -88,16 +93,19 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         for i in range(0,len(x_lower)):
             x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x) 
 
-        print('RZ = ', RZ)
+        self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
 
         print('Cl = ', Cl)
         print('Cd = ', Cd)
+        print('RZ = ', RZ)
         print('Mach = ', self.velocity_infinity[0]/340)
 
-        self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
-        plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
-        title="Cl: %.5f, Cd: %.5f" % (Cl,Cd)
-        plt.title(title)
-        plt.gca().invert_yaxis()
-        plt.savefig(self.problem_name+'.png', bbox_inches='tight')
-        plt.close('all')
+        if self.create_output_file:
+            plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
+            title="Cl: %.5f, Cd: %.5f" % (Cl,Cd)
+            plt.title(title)
+            plt.gca().invert_yaxis()
+            plt.savefig(self.problem_name+'.png', bbox_inches='tight')
+            plt.close('all')
+            with open("cl.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(Cl))
