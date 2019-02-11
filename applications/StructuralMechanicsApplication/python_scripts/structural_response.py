@@ -390,9 +390,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             ProjectParametersPrimal = Parameters( parameter_file.read() )
 
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
-
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
-
         self.response_value = 0
 
         # Create the adjoint solver
@@ -446,15 +444,6 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
         # This runs the whole solution loop for adjoint analysis
         self.adjoint_analysis.RunSolutionLoop()
-
-        ## trial to test performing backward sensitivity calculation
-        # while self.primal_analysis.time > self.primal_analysis.end_time:
-        #     self.adjoint_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-        #     self.adjoint_analysis.InitializeSolutionStep()
-        #     self.adjoint_analysis._GetSolver().Predict()
-        #     self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        #     self.adjoint_analysis.FinalizeSolutionStep()
-        #     self.adjoint_analysis.OutputSolutionStep()
 
     # TODO Mahmoud: this function is implemented to avoid the calling CalculateValue() twice for the last step    
     # this is a temporary fix that should be amended later on 
