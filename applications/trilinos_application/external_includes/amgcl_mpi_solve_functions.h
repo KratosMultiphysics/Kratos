@@ -14,11 +14,7 @@
 
 #include <amgcl/mpi/util.hpp>
 #include <amgcl/mpi/make_solver.hpp>
-#include <amgcl/mpi/amg.hpp>
-#include <amgcl/mpi/coarsening/runtime.hpp>
-#include <amgcl/mpi/relaxation/runtime.hpp>
-#include <amgcl/mpi/direct_solver/runtime.hpp>
-#include <amgcl/mpi/partition/runtime.hpp>
+#include <amgcl/mpi/preconditioner.hpp>
 
 namespace Kratos
 {
@@ -40,13 +36,7 @@ AMGCLScalarSolve(
 
     typedef
         amgcl::mpi::make_solver<
-            amgcl::mpi::amg<
-                Backend,
-                amgcl::runtime::mpi::coarsening::wrapper<Backend>,
-                amgcl::runtime::mpi::relaxation::wrapper<Backend>,
-                amgcl::runtime::mpi::direct::solver<double>,
-                amgcl::runtime::mpi::partition::wrapper<Backend>
-                >,
+            amgcl::runtime::mpi::preconditioner<Backend>,
             amgcl::runtime::solver::wrapper
             >
         Solver;
@@ -74,7 +64,10 @@ AMGCLBlockSolve(
     int verbosity_level
     )
 {
-    amgclParams.put("precond.coarsening.aggr.block_size",1);
+    if(amgclParams.get<std::string>("precond.class") != "amg")
+        amgclParams.erase("precond.coarsening");
+    else
+        amgclParams.put("precond.coarsening.aggr.block_size",1);
 
     typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> val_type;
     typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
@@ -84,13 +77,7 @@ AMGCLBlockSolve(
 
     typedef
         amgcl::mpi::make_solver<
-            amgcl::mpi::amg<
-                Backend,
-                amgcl::runtime::mpi::coarsening::wrapper<Backend>,
-                amgcl::runtime::mpi::relaxation::wrapper<Backend>,
-                amgcl::runtime::mpi::direct::solver<val_type>,
-                amgcl::runtime::mpi::partition::wrapper<Backend>
-                >,
+            amgcl::runtime::mpi::preconditioner<Backend>,
             amgcl::runtime::solver::wrapper
             >
         Solver;

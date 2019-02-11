@@ -51,6 +51,8 @@ namespace Kratos
  * @class ComputeHessianSolMetricProcess
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with an Hessian approach
+ * @details References:
+ *         [1] F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Numerical Analysis Summer School. CEA, Cadarache, France
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(MESHING_APPLICATION) ComputeHessianSolMetricProcess

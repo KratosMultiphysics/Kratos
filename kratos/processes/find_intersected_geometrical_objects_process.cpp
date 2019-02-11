@@ -147,9 +147,12 @@ namespace Kratos
 			}
 		}
 
-    for(int i = 0 ; i < 3; i++){
-			low[i] -= std::numeric_limits<double>::epsilon();
-			high[i] += std::numeric_limits<double>::epsilon();
+		// Slightly increase the bounding box size to avoid problems with geometries in the borders
+		// Note that std::numeric_limits<double>::double() is added for the 2D cases. Otherwise, the
+		// third component will be 0, breaking the octree behaviour.
+    		for(int i = 0 ; i < 3; i++) {
+			low[i] -= std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
+			high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
 		}
 
 
@@ -182,7 +185,7 @@ namespace Kratos
 		Point int_pt(0.0,0.0,0.0);
 		for (auto& edge : edges) {
         	const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Node<3>>>(
-				edge, 
+				Line2D2<Node<3>>{edge},
 				rSecondGeometry[0].Coordinates(), 
 				rSecondGeometry[1].Coordinates(), 
 				int_pt.Coordinates());

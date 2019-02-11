@@ -221,7 +221,7 @@ namespace Kratos
                                     rDerivativeData.ResetDerivatives();
 
                                     // We compute the local coordinates
-                                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                                    const PointType local_point_decomp = PointType{integration_points_slave[point_number].Coordinates()};
                                     PointType local_point_parent;
                                     PointType gp_global;
 
@@ -242,7 +242,7 @@ namespace Kratos
 
                                     GeometryType::CoordinatesArrayType slave_gp_global;
                                     slave_geometry_0.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_0, PointType{slave_gp_global}, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
 
                                     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -268,7 +268,7 @@ namespace Kratos
                                     gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, slave_geometry_1);
 
                                     slave_geometry_1.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_1, PointType{slave_gp_global}, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
 
                                     master_geometry_1.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
@@ -468,7 +468,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -556,7 +556,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -644,7 +644,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -731,7 +731,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -818,7 +818,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -906,7 +906,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -994,7 +994,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1081,7 +1081,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1168,7 +1168,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1255,7 +1255,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1342,7 +1342,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1436,7 +1436,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1530,7 +1530,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1632,7 +1632,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1726,7 +1726,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1820,7 +1820,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1914,7 +1914,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2008,7 +2008,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2110,7 +2110,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2212,7 +2212,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2313,7 +2313,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2407,7 +2407,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2501,7 +2501,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2602,7 +2602,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2696,7 +2696,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2790,7 +2790,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2886,7 +2886,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -2984,7 +2984,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -3078,7 +3078,7 @@ namespace Kratos
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
 
-            Properties::Pointer p_cond_prop = r_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = r_model_part.CreateNewProperties(0);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

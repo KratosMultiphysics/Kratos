@@ -14,10 +14,10 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
 
     def __init__(self, main_model_part, custom_settings):
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part          
+        self.main_model_part = main_model_part
         ##settings string in json format
         explicit_solver_settings = KratosMultiphysics.Parameters("""
-        {  
+        {
             "echo_level": 1,
             "buffer_size": 3,
             "solver_type": "pfem_fluid_explicit_solver",
@@ -78,7 +78,7 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
             ],
             "problem_domain_sub_model_part_list": ["fluid_model_part"],
             "processes_sub_model_part_list": [""]
-        } 
+        }
         """)
 
 
@@ -108,7 +108,7 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
                                                                          1.0,
                                                                          0,
                                                                          0)
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
         #self.fluid_solver = KratosPfemFluid.ExplicitStrategy(self.computing_model_part,
         #                                                     mechanical_scheme,
@@ -122,7 +122,7 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
                                                              linear_solver,
                                                              False,
                                                              True,
-                                                             True)   
+                                                             True)
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
