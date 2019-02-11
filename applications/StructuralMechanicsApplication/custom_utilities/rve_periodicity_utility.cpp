@@ -17,6 +17,7 @@
 // Project includes
 #include "rve_periodicity_utility.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
+#include "includes/linear_master_slave_constraint.h"
 
 namespace Kratos
 {
