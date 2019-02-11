@@ -61,7 +61,7 @@ class AdjointFluidTest(UnitTest.TestCase):
             settings.AddValue("adjoint_settings", km.Parameters(adjoint_parameter_file.read()))
 
         # Add hdf5 output to the primal problem
-        settings["primal_settings"]["auxiliar_process_list"].Append(km.Parameters(r'''{
+        settings["primal_settings"]["processes"]["auxiliar_process_list"].Append(km.Parameters(r'''{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
             "python_module" : "single_mesh_primal_output_process",
             "Parameters" : {
