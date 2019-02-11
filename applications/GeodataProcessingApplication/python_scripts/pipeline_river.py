@@ -51,5 +51,11 @@ tool3.RefineMeshNearBuilding( 0.2 )
 tool3.ComputeDistanceFieldFromHull()
 tool3.RefineMeshNearBuilding( 0.05 )
 
+tool3.ShowModelPartQuality()
+
 tool3.ComputeDistanceFieldFromHull()
+tool3.SubtractBuilding()
+
 tool3.CreateGidControlOutput( "out_of_pipeline_2" )
+
+print( "CP - final" )
