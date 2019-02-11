@@ -118,7 +118,7 @@ public:
     /// Constructor.
     /** @param NewId Index number of the new condition (optional)
      */
-    PeriodicCondition(IndexType NewId = 0);
+    explicit PeriodicCondition(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     /**

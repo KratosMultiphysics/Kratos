@@ -1,13 +1,13 @@
 # Particle Mechanics Application
 
-This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanics phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
+This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanical phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
 <p align="center">
   <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/ParticleMechanicsApplication.gif" width="618" height="280"/>
 </p>
 
 
-The recent research and development have been focused solely on the Material Point Method (MPM. However, the implementation of other continuum-based methods, e.g. the Smoothed Particle Hydrodynamics (SPH), the Galerkin Meshfree Method (GMM), etc, is planned to be done within the same application in the future.
+The recent research and development have been focused solely on the Material Point Method (MPM). However, the implementation of other continuum-based methods, e.g. the Smoothed Particle Hydrodynamics (SPH), the Galerkin Meshfree Method (GMM), etc, is planned to be done within the same application in the future.
 
 ## Getting Started
 
@@ -47,9 +47,10 @@ The following features are currently available and subject to development within
         * Neumann: Point load
         * Neumann: Line load (a distributed load applied over a line)
         * Neumann: Surface load (a distributed load applied over a face)
+        * Dirichlet: Fixed and roller support for arbitrary inclination and boundary shape.
     * Particle-Based Conditions: applied in moveable boundary particles
-        * Dirichlet: Penalty imposition of displacements (homogeneous and inhomogeneous)
-        
+        * Dirichlet: Imposition of displacements (homogeneous and inhomogeneous) using penalty method
+
 - Solid (background) elements:
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
     * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, with Mixed Variational Methods of displacement and pressure
@@ -70,7 +71,6 @@ The following features are currently available and subject to development within
 
 - Other features:
     * Particle erase features - to delete particle outside the interest domain
-    * Arbitrary slip boundary condition
 
 Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder, while some use-cases and validation examples are also available in the [Examples](https://github.com/KratosMultiphysics/Examples/tree/master/particle_mechanics) repository.
 
