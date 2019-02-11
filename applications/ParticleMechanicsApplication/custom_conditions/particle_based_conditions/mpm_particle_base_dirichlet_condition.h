@@ -117,28 +117,10 @@ public:
     ///@{
 
     /**
-     * Called to initialize the element.
-     * Must be called before any calculation is done
-     */
-    void Initialize() override;
-
-    /**
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
@@ -299,8 +281,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    bool mFinalizedStep;
 
     ///@}
     ///@name Protected Operators

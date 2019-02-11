@@ -20,43 +20,6 @@
 
 namespace Kratos
 {
-    void MPMBaseLoadCondition::Initialize()
-    {
-        // TODO: Add something if necessary
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void MPMBaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add something if necessary
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void MPMBaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add something if necessary
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void MPMBaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add something if necessary
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    void MPMBaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
-    {
-        // TODO: Add something if necessary
-    }
-
     //************************************************************************************
     //************************************************************************************
 
