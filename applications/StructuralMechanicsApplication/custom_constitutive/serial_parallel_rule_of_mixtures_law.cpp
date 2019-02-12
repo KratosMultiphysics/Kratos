@@ -196,7 +196,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const int voigt_size = this->GetStrainSize();
     // const Vector total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
     // const Vector total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
-    const Matrix total_strain_increment_serial = prod(trans(rSerialProjector), rStrainVector) - prod(trans(rSerialProjector),rPreviousStrainVector);
+    const Vector total_strain_increment_serial = prod(trans(rSerialProjector), rStrainVector) - prod(trans(rSerialProjector), rPreviousStrainVector);
+    const Vector total_strain_increment_parallel = prod(rParallelProjector, rStrainVector) - prod(rParallelProjector, rPreviousStrainVector);
+
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
     Matrix constitutive_tensor_matrix, constitutive_tensor_fiber;
@@ -215,12 +217,15 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Matrix& r_constitutive_tensor_fiber_sp  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, trans(rParallelProjector))));
 
     Matrix A, aux;
-    aux = matrix_vol_participation * r_constitutive_tensor_fiber_ss + fiber_vol_participation * r_constitutive_tensor_matrix_ss;
+    noalias(aux) = matrix_vol_participation * r_constitutive_tensor_fiber_ss + fiber_vol_participation * r_constitutive_tensor_matrix_ss;
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
-    Matrix matrix_strain_serial_increment, auxiliar;
-    auxiliar = prod(r_constitutive_tensor_fiber_ss, total_strain_increment_serial);
+    Vector auxiliar, serial_strain_matrix_increment_0;
+    noalias(auxiliar) = prod(r_constitutive_tensor_fiber_ss, total_strain_increment_serial) +
+        fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), total_strain_increment_parallel);
+        
+    noalias(serial_strain_matrix_increment_0) = prod(A, auxiliar);
 
 
 
