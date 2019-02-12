@@ -237,23 +237,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     void InitializeMaterialResponsePK2(Parameters& rValues);  
 
     void CalculateStrainsOnEachComponent(
-        ConstitutiveLaw::Parameters& rValues,
         const Vector& rStrainVector,
-        const Vector& rPreviousStrainVector,
         const Properties& rMaterialProperties,
         const Matrix& rParallelProjector,
         const Matrix& rSerialProjector,
+        const Vector& rSerialStrainMatrix,
         Vector& rStrainVectorMatrix,
         Vector& rStrainVectorFiber);
 
     void CalculateInitialApproximationSerialStrainMatrix(
-        ConstitutiveLaw::Parameters& rValues,
         const Vector& rStrainVector,
         const Vector& rPreviousStrainVector,
         const Properties& rMaterialProperties,
         const Matrix& rParallelProjector,
         const Matrix& rSerialProjector,
-        Vector& rInitialSpproximationSerialStrainMatrix);
+        Vector& rInitialApproximationSerialStrainMatrix);
     ///@}
     ///@name Access
     ///@{
@@ -334,6 +332,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     double mFiberVolumetricParticipation;
     Vector mParallelDirections = ZeroVector(6);
     Vector mPreviousStrainVector = ZeroVector(6);
+    Vector mPreviousSerialStrainMatrix = ZeroVector(6);
 
     ///@}
     ///@name Private Operators
