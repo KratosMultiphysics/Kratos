@@ -80,12 +80,8 @@ namespace Kratos
     void ReplaceElementsAndConditionsAdjointProcess::ReplaceToAdjoint()
     {
 
-                    // constexpr int NumNodes = it->GetGeometry().size();
-                    // constexpr int Dim = it->GetGeometry().Dimension();
-        const Element& rReferenceElement = IncompressibleAdjointPotentialFlowElement<2,3>();
         const Condition& rReferenceCondition = IncompressibleAdjointPotentialWallCondition<2,2>();
 
-        
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
@@ -97,13 +93,11 @@ namespace Kratos
             {
                 if (element_name == "IncompressibleAdjointPotentialFlowElement2D3N")
                 {   
-                    // auto p_element = rReferenceElement.Create(*it.base());
                     Element::Pointer p_element= Kratos::make_shared<IncompressibleAdjointPotentialFlowElement<2,3>>(*it.base());
                     // Deep copy elemental data and flags                
                     p_element->Data() = it->Data();
                     p_element->Set(Flags(*it));
                     (*it.base()) = p_element;
-
                 }                
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
@@ -121,7 +115,8 @@ namespace Kratos
             {
                 if (condition_name == "IncompressibleAdjointPotentialWallCondition2D2N")
                 {
-                    auto p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+                    Condition::Pointer p_condition= Kratos::make_shared<IncompressibleAdjointPotentialWallCondition<2,2>>(*it.base());
+                    // auto p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
                     p_condition->Data() = it->Data();
                     p_condition->Set(Flags(*it));
                     (*it.base()) = p_condition;
@@ -188,8 +183,11 @@ namespace Kratos
         // Add here all new adjoint elements or elements which should be ignored by the replacement process
         if(name_current_element == "IncompressiblePotentialFlowElement2D3N")
             rName = "IncompressibleAdjointPotentialFlowElement2D3N";
-        else
-        {
+        else if(name_current_element == "IncompressibleFullPotentialFlowElement2D3N")
+            rName = "IncompressibleAdjointPotentialFlowElement2D3N";
+        else if(name_current_element == "IncompressibleAlphaPotentialFlowElement2D3N")
+            rName = "IncompressibleAdjointPotentialFlowElement2D3N";
+        else {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
              " because there is no equivalent adjoint/primal element available." << std::endl;
         }
@@ -211,6 +209,8 @@ namespace Kratos
 
         // Add here all new adjoint conditions or conditions which should be ignored by the replacement process
         if(name_current_condition == "IncompressiblePotentialWallCondition2D2N")
+            rName = "IncompressibleAdjointPotentialWallCondition2D2N";
+        else if(name_current_condition == "IncompressibleStressesPotentialWallCondition2D2N")
             rName = "IncompressibleAdjointPotentialWallCondition2D2N";
         else
         {

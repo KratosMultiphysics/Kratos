@@ -28,6 +28,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
+#include "custom_elements/compressible_potential_flow_element_full.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/incompressible_adjoint_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element_stresses.h"
@@ -202,6 +203,7 @@ private:
         const IncompressiblePotentialFlowElement<3,4> mIncompressiblePotentialFlowElement3D4N;
         const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
         const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
+		const CompressibleFullPotentialFlowElement<2,3> mCompressibleFullPotentialFlowElement2D3N;
 		const IncompressiblePotentialWallCondition<2,2> mIncompressiblePotentialWallCondition2D2N;
 		const IncompressibleAdjointPotentialWallCondition<2,2> mIncompressibleAdjointPotentialWallCondition2D2N;
 		const IncompressibleStressesPotentialWallCondition<2,2> mIncompressibleStressesPotentialWallCondition2D2N;

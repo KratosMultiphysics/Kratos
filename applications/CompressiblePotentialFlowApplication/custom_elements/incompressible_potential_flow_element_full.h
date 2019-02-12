@@ -361,10 +361,10 @@ public:
 
                         noalias(rLeftHandSideMatrix) += aux_matrix;                       
                     }
-                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             }
             else //if (this->Is(FLUID) || this->IsNotDefined(FLUID)){
-                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);          
+                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
+                         
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
         }
         else //it is a wake element
@@ -504,6 +504,13 @@ public:
         Matrix tmp;
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
+    
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        //TODO: improve speed
+        Vector tmp;
+        CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
+    }
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
@@ -511,8 +518,10 @@ public:
         if ((this)->IsDefined(ACTIVE))
             active = (this)->Is(ACTIVE);
 
-        if (this->Is(MARKER) && active == true)
-            CheckWakeCondition();      
+        if (this->Is(MARKER) && active == true){
+            CheckWakeCondition();
+            // ComputePotentialJump(rCurrentProcessInfo);   
+        }   
     }
 
     /**
@@ -640,10 +649,7 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        for (unsigned int i=0;i<NumNodes;i++){
-            distances[i]=GetGeometry()[i].GetSolutionStepValue(WAKE_DISTANCE);
-        }
-        // noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(
@@ -773,6 +779,31 @@ protected:
         if (std::abs(vupnorm - vlownorm) > 0.1 && this-> IsNot(INTERFACE)){
             std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() <<"    " <<std::abs(vupnorm - vlownorm)<<std::endl;
             this->Set(BLOCKED);
+        }
+    }
+
+    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
+    {
+        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+        const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
+
+        array_1d<double, NumNodes> distances;
+        GetWakeDistances(distances);
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            double aux_potential = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+            double potential = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+            double potential_jump = aux_potential - potential;
+
+            if (distances[i] > 0)
+            {
+                GetGeometry()[i].SetValue(TEMPERATURE, -2.0 / vinfinity_norm * (potential_jump));
+            }
+            else
+            {
+                GetGeometry()[i].SetValue(TEMPERATURE, 2.0 / vinfinity_norm * (potential_jump));
+            }
         }
     }
 

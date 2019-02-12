@@ -159,9 +159,9 @@ public:
                 Rz += cpressure*cut_unit_normal[0][2];
 
           
-                // it->SetValue(PRESSURE,cp[0]);
-                // it->SetValue(NORMAL,cut_unit_normal[0]);
-                // it->SetValue(BODY_FORCE,gp_wall); //provisional name for cp application point
+                it->SetValue(PRESSURE,cp[0]);
+                it->SetValue(NORMAL,cut_unit_normal[0]);
+                it->SetValue(BODY_FORCE,gp_wall); //provisional name for cp application point
                 
                 
             }

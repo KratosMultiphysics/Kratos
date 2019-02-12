@@ -297,8 +297,6 @@ public:
         
         //TEST:
         bool kutta_element = false;
-        if (this->Is(INTERFACE))
-            kutta_element = true;
 
         for(unsigned int i=0; i<NumNodes; ++i)
             if(GetGeometry()[i].Is(STRUCTURE))
@@ -425,7 +423,7 @@ public:
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
                 if(kutta_element)
-                { std::cout<<"SOLVING KUTTA ELEMENT"<<std::endl;
+                { std::cout<<"SOLVING KUTTA ELEMENT: "<<this ->Id()<<std::endl;
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
@@ -675,10 +673,7 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        for (unsigned int i=0;i<NumNodes;i++){
-            distances[i]=GetGeometry()[i].GetSolutionStepValue(WAKE_DISTANCE);
-        }
-        // noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(

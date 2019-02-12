@@ -27,20 +27,32 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.problem_name=settings["problem_name"].GetString()
         self.upper_surface_model_part =Model.GetModelPart(settings["upper_surface_model_part_name"].GetString())
         self.lower_surface_model_part =Model.GetModelPart(settings["lower_surface_model_part_name"].GetString())
+        for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
+            cond.Set(KratosMultiphysics.SOLID)
         self.fluid_model_part=self.upper_surface_model_part.GetRootModelPart()
         self.velocity_infinity = [0,0,0]
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
+<<<<<<< HEAD
 
+=======
+        self.result_force=KratosMultiphysics.Vector(3)  
+>>>>>>> CompressiblePotentialFlow/feature-embedded-mesh-implementation
         NormalUpper=KratosMultiphysics.NormalCalculationUtils()
         NormalUpper.CalculateOnSimplex(self.upper_surface_model_part,2)
         NormalLower=KratosMultiphysics.NormalCalculationUtils()
         NormalLower.CalculateOnSimplex(self.lower_surface_model_part,2)
+        # self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftProcess(self.fluid_model_part,self.result_force)
 
 
     def ExecuteFinalizeSolutionStep(self):
+<<<<<<< HEAD
+=======
+        print('COMPUTE LIFT')
+        # self.process.Execute()
+>>>>>>> CompressiblePotentialFlow/feature-embedded-mesh-implementation
         rx = 0.0
         ry = 0.0
         rz = 0.0

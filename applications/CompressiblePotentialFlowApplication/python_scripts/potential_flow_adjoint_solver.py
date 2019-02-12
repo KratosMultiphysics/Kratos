@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
 from potential_flow_solver import PotentialSolver
 # import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -40,6 +39,7 @@ class PotentialAdjointSolver(PotentialSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
         
@@ -52,6 +52,14 @@ class PotentialAdjointSolver(PotentialSolver):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift":
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates_global":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftGlobalCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_potential_coordinates":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
@@ -89,9 +97,6 @@ class PotentialAdjointSolver(PotentialSolver):
     def FinalizeSolutionStep(self):
         super(PotentialAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
-        for node in self.main_model_part.Nodes:
-            if not (node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)==0.0):
-                print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()

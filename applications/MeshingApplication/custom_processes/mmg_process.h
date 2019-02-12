@@ -179,6 +179,11 @@ public:
      */
     enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
 
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -264,6 +269,11 @@ public:
      */
     void ExecuteFinalize() override;
 
+    /**
+     * @brief This function removes superfluous (defined by "not belonging to an element") nodes from the model part
+     */
+    void CleanSuperfluousNodes();
+
     ///@}
     ///@name Access
     ///@{
@@ -345,6 +355,9 @@ private:
 
     FrameworkEulerLagrange mFramework;                               /// The framework
 
+    DiscretizationOption mDiscretization;                            /// The discretization option
+    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
     std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
@@ -360,19 +373,36 @@ private:
 
     /**
      * @brief This converts the framework string to an enum
-     * @param Str The string
+     * @param rString The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
     {
-        if(Str == "Lagrangian" || Str == "LAGRANGIAN")
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
             return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(Str == "Eulerian" || Str == "EULERIAN")
+        else if(rString == "Eulerian" || rString == "EULERIAN")
             return FrameworkEulerLagrange::EULERIAN;
-        else if(Str == "ALE")
+        else if(rString == "ALE")
             return FrameworkEulerLagrange::ALE;
         else
             return FrameworkEulerLagrange::EULERIAN;
+    }
+
+    /**
+     * @brief This converts the discretization string to an enum
+     * @param rString The string
+     * @return DiscretizationOption: The equivalent enum
+     */
+    static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
+    {
+        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+            return DiscretizationOption::LAGRANGIAN;
+        else if(rString == "Standard" || rString == "STANDARD")
+            return DiscretizationOption::STANDARD;
+        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
+            return DiscretizationOption::ISOSURFACE;
+        else
+            return DiscretizationOption::STANDARD;
     }
 
     /**
@@ -383,7 +413,12 @@ private:
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
-    void InitializeSolData();
+    void InitializeSolDataMetric();
+
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    void InitializeSolDataDistance();
 
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
@@ -608,7 +643,12 @@ private:
     /**
      * @brief This loads the solution
      */
-    void MMGLibCall();
+    void MMGLibCallMetric();
+
+    /**
+     * @brief This loads the solution
+     */
+    void MMGLibCallIsoSurface();
 
     /**
      * @brief This frees the MMG structures
