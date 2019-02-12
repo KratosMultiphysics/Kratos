@@ -63,7 +63,7 @@ namespace Kratos
         std::vector<std::vector<double>> PrintTriangulationPoints_xyz(); 
 
         // std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
-        // std::vector<std::vector<double>> PrintGaussPoints();
+        std::vector<std::vector<double>> PrintGaussPoints();
         // std::vector<std::vector<double>> PrintMappedGaussPoints(); 
 
 

@@ -159,6 +159,7 @@ namespace Kratos
          * Map Points generated in the triangulation of the patch from the 
          * parametric space into the geometric space
         */
+       
         std::vector<Matrix> triangulation_uv;  
         TriangulateCurveOnSurface(triangulation_uv);
 
@@ -270,21 +271,29 @@ namespace Kratos
     //     return coords;
     // }
 
-    // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPoints()
-    // {
-    //     std::vector<Matrix> triangles = TriangulateEmpire(); 
-    //     EmbeddedIgaErrorEstimation error_estimator(triangles); 
-    //     std::vector<array_1d<double, 2> > gp_pos; 
-    //     error_estimator.InsertGaussPoints(gp_pos);
+    
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPoints()
+    {
+        std::vector<Matrix> triangulation_uv;
+        TriangulateCurveOnSurface(triangulation_uv); 
 
-    //     std::vector<std::vector<double>> gp_coords(gp_pos.size(), std::vector<double>(2,0)); 
+        EmbeddedIgaErrorEstimation error_estimator(triangulation_uv); 
+        std::vector<Matrix> gp_uv;
+        error_estimator.InsertGaussPoints(gp_uv);
+
+        KRATOS_WATCH(gp_uv.size())
         
-    //     for (unsigned int i = 0; i < gp_pos.size(); ++i)
-    //     {
-    //         for (unsigned int j = 0; j < 2; ++j)    gp_coords[i][j] = gp_pos[i][j];
-    //     }
-    //     return gp_coords; 
-    // }
+        KRATOS_WATCH(gp_uv[0].size1())
+        KRATOS_WATCH(gp_uv[0].size2())
+
+        std::vector<std::vector<double>> gp_coords;
+        
+        // for (unsigned int i = 0; i < gp_pos.size(); ++i)
+        // {
+        //     for (unsigned int j = 0; j < 2; ++j)    gp_coords[i][j] = gp_pos[i][j];
+        // }
+        return gp_coords; 
+    }
 
     // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedGaussPoints()
     // {
