@@ -103,7 +103,7 @@ def EvaluateQuantityOfInterest(simulation):
 '''
 function called in the main returning a future object (the result class) and an integer (the finer level)
 input:
-        current_MLMC_level        : current Multilevel MOnte Carlo level we are solving
+        current_MLMC_level        : current Multilevel Monte Carlo level we are solving
         pickled_coarse_model      : pickled model
         pickled_coarse_parameters : pickled parameters
         size_meshes               : mesh sizes for all levels
