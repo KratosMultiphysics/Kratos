@@ -10,16 +10,14 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-try:
-    from KratosMultiphysics.HDF5Application import *
+if kratos_utils.IsApplicationAvailable("HDF5Application"):
     has_hdf5_application = True
-except ImportError:
+else:
     has_hdf5_application = False
 
-try:
-    from KratosMultiphysics.EigenSolversApplication import *
+if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
     has_eigensolvers_application = True
-except ImportError:
+else:
     has_eigensolvers_application = False
 
 # This utility will control the execution scope in case we need to access files or we depend
