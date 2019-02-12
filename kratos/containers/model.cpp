@@ -113,7 +113,7 @@ namespace Kratos
                             msg << "." << model_part_names[1];
                         }
 
-                        KRATOS_WARNING("Model") << "DEPREATION_WARNING: The ModelPart \"" // TODO make a warning at some point
+                        KRATOS_INFO("Model") << "DEPREATION_WARNING: The ModelPart \"" // TODO make a warning at some point
                             << subparts_list[0] << "\"\nis retrieved from the Model by using the "
                             << "flat-map!\nPlease prepend the Parent-ModelPart-Names like this:\n\""
                             << msg.str() << "\"" << std::endl;
