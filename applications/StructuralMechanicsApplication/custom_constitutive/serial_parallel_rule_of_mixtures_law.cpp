@@ -568,7 +568,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 
 double& SerialParallelRuleOfMixturesLaw::GetValue(
     const Variable<double>& rThisVariable,
-    double& rValue)
+    double& rValue
+    )
 {
     return rValue;
 }
@@ -578,7 +579,8 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
 
 Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     const Variable<Vector>& rThisVariable,
-    Vector& rValue)
+    Vector& rValue
+    )
 {
     return rValue;
 }
@@ -664,6 +666,17 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Vector& SerialParallelRuleOfMixturesLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -698,7 +711,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
 
-         // Previous flags saved
+        // Previous flags saved
         const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
@@ -716,13 +729,15 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
 
-         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
+        noalias(rValue) = rParameterValues.GetConstitutiveMatrix();
 
-         // Previous flags restored
+        // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     } else if (rThisVariable == DEFORMATION_GRADIENT) { // TODO: Make in the future modifications for take into account different layers combinations
+        noalias(rValue) = rParameterValues.GetDeformationGradientF();
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR_FIBER) { // TODO: Make in the future modifications for take into account different layers combinations
         noalias(rValue) = rParameterValues.GetDeformationGradientF();
     } else {
         // const Properties& material_properties  = rParameterValues.GetMaterialProperties();

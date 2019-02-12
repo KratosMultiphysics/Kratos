@@ -221,15 +221,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Variable<double>& rThisVariable,
         double& rValue) override;
 
+    Vector& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue) override;
+
+    Matrix& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue) override;
+
     void InitializeMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues);
 
-    Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue);
 
     void IntegrateStrainSerialParallelBehaviour(
         const Vector& rStrainVector,
