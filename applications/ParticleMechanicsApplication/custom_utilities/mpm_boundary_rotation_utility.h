@@ -238,6 +238,7 @@ public:
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
 		// Otherwise, do the following modification
+		else
 		{
 			const unsigned int LocalSize = rLocalVector.size();
 
