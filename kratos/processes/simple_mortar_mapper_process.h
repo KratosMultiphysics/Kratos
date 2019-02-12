@@ -761,6 +761,16 @@ private:
     }
 
     /**
+     * @brief Reset the database
+     * This method resets the mapping database saved in the destination database.
+     * Note that this needs to be done if such modelpart has changed its number
+     * of nodes or conditions. This needs to be done even though the mapping
+     * instance is deleted since such information is saved in the destination
+     * nodes and conditions.
+     */
+    void ResetDatabase();
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     Parameters GetDefaultParameters();
