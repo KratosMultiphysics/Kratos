@@ -557,9 +557,7 @@ class ExplicitStrategy(object):
     def ModifyProperties(self, properties, param = 0):
 
         if not param:
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+            DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
 
             coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
@@ -589,6 +587,8 @@ class ExplicitStrategy(object):
                 self.Procedures.KRATOSprint(properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
+
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
