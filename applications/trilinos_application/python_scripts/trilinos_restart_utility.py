@@ -18,14 +18,15 @@ class TrilinosRestartUtility(RestartUtility):
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
         self.set_mpi_communicator = settings["set_mpi_communicator"].GetBool()
+        self.rank = Kratos.DataCommunicator.GetDefault().Rank()
 
     #### Protected functions ####
 
     def _GetFileLabelLoad(self):
-        return str(Kratos.DataCommunicator.GetDefault().Rank()) + '_' + self.input_file_label
+        return str(self.rank) + '_' + self.input_file_label
 
     def _GetFileLabelSave(self, file_label):
-        return str(Kratos.DataCommunicator.GetDefault().Rank()) + '_' + str(file_label)
+        return str(self.rank) + '_' + str(file_label)
 
     def _ExecuteAfterLoad(self):
         if self.set_mpi_communicator:
