@@ -52,26 +52,8 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         self.restart_utility = Restart(model_part, self.params)
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
     def IsOutputStep(self):
         return self.restart_utility.IsRestartOutputStep()
 
     def PrintOutput(self):
         self.restart_utility.SaveRestart()
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteFinalize(self):
-        pass
