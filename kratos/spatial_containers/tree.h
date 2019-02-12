@@ -181,7 +181,7 @@ public:
     class Partitions
     {
     public:
-        Partitions( const std::size_t NumPartitions ) : mNumPartitions(NumPartitions) {}
+        explicit Partitions( const std::size_t NumPartitions ) : mNumPartitions(NumPartitions) {}
         ~Partitions() {};
         std::size_t mNumPartitions;
     };
