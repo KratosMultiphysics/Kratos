@@ -38,7 +38,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
 
         g = [0,0,0]

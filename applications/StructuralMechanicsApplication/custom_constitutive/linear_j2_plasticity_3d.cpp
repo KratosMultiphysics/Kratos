@@ -277,7 +277,7 @@ void LinearJ2Plasticity3D::CalculateStressResponse(
         Vector& r_stress_vector = rValues.GetStressVector();
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double hardening_modulus = r_material_properties[ISOTROPIC_HARDENING_MODULUS];
-        const double delta_k = r_material_properties[INFINITY_HARDENING_MODULUS] - r_material_properties[YIELD_STRESS];
+        const double delta_k = r_material_properties[EXPONENTIAL_SATURATION_YIELD_STRESS] - r_material_properties[YIELD_STRESS];
         const double hardening_exponent = r_material_properties[HARDENING_EXPONENT];
         const double E = r_material_properties[YOUNG_MODULUS];
         const double poisson_ratio = r_material_properties[POISSON_RATIO];
@@ -427,7 +427,7 @@ double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialP
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS] - yield_stress;
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - yield_stress;
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
 
     const double k_new = yield_stress + (hardening_modulus * accumulated_plastic_strain) +
@@ -442,7 +442,7 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
     const double accumulated_plastic_strain)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS] - rMaterialProperties[YIELD_STRESS];
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - rMaterialProperties[YIELD_STRESS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
 
     // perfect plasticity energy value
@@ -474,7 +474,7 @@ double LinearJ2Plasticity3D::GetDeltaGamma(
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS] - yield_stress;
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - yield_stress;
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double tolerance = 1e-6 * yield_stress;
     const double mu = E / (2. * (1. + poisson_ratio));
@@ -509,7 +509,7 @@ double LinearJ2Plasticity3D::YieldFunction(
     const double sqrt_two_thirds = std::sqrt(2. / 3.);
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS] - yield_stress;
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - yield_stress;
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double k_old = yield_stress + (hardening_modulus * AccumulatedPlasticStrain) +
         (delta_k) * (1. - std::exp(-hardening_exponent * AccumulatedPlasticStrain));
@@ -558,7 +558,7 @@ void LinearJ2Plasticity3D::CalculateTangentMatrix(
         Matrix &rTMatrix)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS] - rMaterialProperties[YIELD_STRESS];
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - rMaterialProperties[YIELD_STRESS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -649,7 +649,7 @@ int LinearJ2Plasticity3D::Check(
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
-    KRATOS_CHECK(rMaterialProperties.Has(INFINITY_HARDENING_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(EXPONENTIAL_SATURATION_YIELD_STRESS));
     KRATOS_CHECK(rMaterialProperties.Has(HARDENING_EXPONENT));
 
     return 0;

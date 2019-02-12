@@ -819,14 +819,14 @@ class LinearJ2Plasticity(LinearElastic):
         self.poisson_ratio = 0.3
         self.yield_stress = 5.5
         self.isotropic_hardening_modulus = 0.12924
-        self.infinity_hardening_modulus = 5.5
+        self.exponential_saturation_yield_stress = 5.5
         self.hardening_exponent = 1.0
 
     def create_properties(self, model_part):
         properties = LinearElastic.create_properties(self, model_part)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
         properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
-        properties.SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, self.infinity_hardening_modulus)
+        properties.SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, self.exponential_saturation_yield_stress)
         properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, self.hardening_exponent)
         return properties
 

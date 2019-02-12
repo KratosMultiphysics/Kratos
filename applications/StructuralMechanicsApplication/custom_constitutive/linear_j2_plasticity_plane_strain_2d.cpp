@@ -78,7 +78,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
         Vector& r_stress_vector = rValues.GetStressVector();
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         const double hardening_modulus = r_material_properties[ISOTROPIC_HARDENING_MODULUS];
-        const double delta_k = r_material_properties[INFINITY_HARDENING_MODULUS];
+        const double delta_k = r_material_properties[EXPONENTIAL_SATURATION_YIELD_STRESS] - r_material_properties[YIELD_STRESS];
         const double hardening_exponent = r_material_properties[HARDENING_EXPONENT];
         const double E = r_material_properties[YOUNG_MODULUS];
         const double poisson_ratio = r_material_properties[POISSON_RATIO];
@@ -205,7 +205,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaG
                                                              Matrix &rElasticityTensor)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - rMaterialProperties[YIELD_STRESS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];

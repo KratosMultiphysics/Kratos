@@ -51,7 +51,7 @@ namespace Kratos
  * - POISSON_RATIO
  * - YIELD_STRESS
  * - ISOTROPIC_HARDENING_MODULUS
- * - INFINITY_HARDENING_MODULUS (saturation hardening modulus)
+ * - EXPONENTIAL_SATURATION_YIELD_STRESS
  * - HARDENING_EXPONENT
  * @warning Valid for small strains, linear hexahedra
  * @note Requires B-bar element
