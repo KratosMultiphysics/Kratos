@@ -25,7 +25,7 @@
         "relative_pressure_tolerance" : 1e-7,
         "absolute_pressure_tolerance" : 1e-9,
         "linear_solver_settings"      : {
-            "solver_type": "SkylineLUFactorizationSolver"
+            "solver_type": "skyline_lu_factorization"
         },
         "volume_model_part_name"      : "Parts_Fluid",
         "skin_parts"                  : ["Outlet3D_Top","NoSlip3D_Walls","NoSlip3D_Bottom"],
