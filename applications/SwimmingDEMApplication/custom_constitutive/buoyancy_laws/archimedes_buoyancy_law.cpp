@@ -2,23 +2,23 @@
 // Date: February 2019
 
 #include "swimming_DEM_application.h"
-#include "standard_buoyancy_law.h"
+#include "archimedes_buoyancy_law.h"
 
 namespace Kratos {
 
-    BuoyancyLaw::Pointer StandardBuoyancyLaw::Clone() const {
-        StandardBuoyancyLaw::Pointer p_clone(new StandardBuoyancyLaw(*this));
+    BuoyancyLaw::Pointer ArchimedesBuoyancyLaw::Clone() const {
+        ArchimedesBuoyancyLaw::Pointer p_clone(new ArchimedesBuoyancyLaw(*this));
         return p_clone;
     }
 
-    void StandardBuoyancyLaw::Initialize(const ProcessInfo& r_process_info){}
+    void ArchimedesBuoyancyLaw::Initialize(const ProcessInfo& r_process_info){}
 
-    std::string StandardBuoyancyLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Standard Buoyancy Force Law";
+    std::string ArchimedesBuoyancyLaw::GetTypeOfLaw() {
+        std::string type_of_law = "Archimedes Buoyancy Law";
         return type_of_law;
     }
 
-    void StandardBuoyancyLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void ArchimedesBuoyancyLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
                                            const double fluid_density,
                                            const double displaced_volume,
                                            const array_1d<double, 3>& body_force,
