@@ -20,6 +20,8 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "serial_parallel_rule_of_mixtures_law.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+
 
 namespace Kratos
 {
@@ -70,11 +72,11 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-    const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
 
-     const Properties& r_material_properties  = rValues.GetMaterialProperties();
+    const Properties& r_material_properties  = rValues.GetMaterialProperties();
 
      // The deformation gradient
     if (rValues.IsSetDeterminantF()) {
@@ -112,7 +114,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
     }
 
-    if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -126,18 +128,18 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
                                                     matrix_stress_vector,
                                                     r_material_properties,
                                                     rValues);
-
-
-
-
-
-
-        // noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+        Vector& r_integrated_stress_vector = rValues.GetStressVector();
+        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
+                                     + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            this->CalculateTangentTensor(rValues);
+        }
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -162,8 +164,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 
     bool is_converged = false;
     int iteration = 0, max_iterations = 100;
-    Vector serial_strain_matrix, parallel_strain_matrix;
-    Vector matrix_stress_vector, fiber_stress_vector, stress_residual;
+    Vector serial_strain_matrix, parallel_strain_matrix, stress_residual;
 	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
 
     // Iterative procedure unitl the equilibrium is reached in the serial stresses
@@ -179,10 +180,10 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         this->CalculateStrainsOnEachComponent(rStrainVector, rMaterialProperties, parallel_projector, serial_projector, 
                                               serial_strain_matrix, matrix_strain_vector, fiber_strain_vector);
         // This method integrates the stress according to each simple material CL
-        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, matrix_stress_vector, fiber_stress_vector);
+        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(rStrainVector, serial_projector, matrix_stress_vector, fiber_stress_vector, 
+        this->CheckStressEquilibrium(rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
                                      stress_residual, is_converged, constitutive_tensor_matrix_ss, 
                                      constitutive_tensor_fiber_ss);
         if (is_converged == true) {
@@ -241,7 +242,7 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     double det_jacobian;
 
     MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
-    
+
     rSerialStrainMatrix = rSerialStrainMatrix - prod(inv_jacobian, rResidualStresses);
 
     // Previous flags restored
@@ -610,6 +611,24 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
 void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
+}
+
+void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    }
 }
 
 } // namespace Kratos

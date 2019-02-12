@@ -277,6 +277,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Vector& rResidualStresses,
         Vector& rSerialStrainMatrix,
         const Matrix& rSerialProjector);
+
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
     ///@}
     ///@name Access
     ///@{
