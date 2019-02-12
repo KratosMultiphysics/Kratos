@@ -2,10 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class StructuralMechanicsAnalysis(AnalysisStage):
     """
@@ -117,8 +117,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_structural
-        return python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
+        return structural_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -130,20 +129,24 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                info_msg  = "Using the old way to create the processes, this will be removed!\n"
-                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                deprecation_warning_issued = False
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+                    if self.project_parameters.Has(process_name):
+                        if not deprecation_warning_issued:
+                            info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                            info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                            info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                            info_msg += "for a description of the new format"
+                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
+                            deprecation_warning_issued = True
+
+                            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
+                    if self.project_parameters.Has(process_name):
                         raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
@@ -163,9 +166,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         self.__CheckForDeprecatedGiDSettings()
         if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
         gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,
