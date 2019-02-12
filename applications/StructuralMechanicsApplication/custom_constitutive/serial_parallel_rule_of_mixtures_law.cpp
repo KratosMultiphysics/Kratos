@@ -901,6 +901,25 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
             return MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
         }
+    } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        rValue = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+		return rValue;
     } else {
         Matrix aux_value;
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
