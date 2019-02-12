@@ -136,8 +136,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
 
          // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -168,21 +168,38 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     int iteration = 0;
     int max_iterations = 100;
     Vector serial_strain_matrix, parallel_strain_matrix;
-    Vector serial_strain_fiber, parallel_strain_fiber;
+    // Vector serial_strain_fiber, parallel_strain_fiber;
+    Vector matrix_stress_vector, fiber_stress_vector;
 
     while (is_converged == false || iteration >= max_iterations) {
         if (iteration == 0) {
+            // Computes an initial approximation of the independent var: serial_strain_matrix
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
                                                                   rMaterialProperties,  parallel_projector,  serial_projector, 
                                                                   serial_strain_matrix);
         }
+        // This method computes the strain vector for the matrix & fiber
         this->CalculateStrainsOnEachComponent(rStrainVector, rMaterialProperties, parallel_projector, serial_projector, 
-                                              serial_strain_matrix ,matrix_strain_vector, fiber_strain_vector);
+                                              serial_strain_matrix, matrix_strain_vector, fiber_strain_vector);
+        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, matrix_stress_vector, fiber_stress_vector);
 
 
         iteration++;
     }
 
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
+    ConstitutiveLaw::Parameters& rValues,
+    const Vector& rMatrixStrainVector,
+    const Vector& rFiberStrainVector,
+    Vector& rMatrixStressVector,
+    Vector& rFiberStressVector
+)
+{
 
 }
 
@@ -251,7 +268,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector& r_total_serial_strain_vector   = prod(trans(rSerialProjector), rStrainVector);
 
     rStrainVectorMatrix = r_total_parallel_strain_vector + rSerialStrainMatrix;
-    rStrainVectorFiber = r_total_parallel_strain_vector + (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix);
+    rStrainVectorFiber  = r_total_parallel_strain_vector + (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix);
 }
 
 /***********************************************************************************/

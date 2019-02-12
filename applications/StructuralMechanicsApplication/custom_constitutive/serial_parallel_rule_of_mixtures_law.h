@@ -252,6 +252,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Matrix& rParallelProjector,
         const Matrix& rSerialProjector,
         Vector& rInitialApproximationSerialStrainMatrix);
+
+    void IntegrateStressesOfFiberAndMatrix(
+        ConstitutiveLaw::Parameters& rValues,
+        const Vector& rMatrixStrainVector,
+        const Vector& rFiberStrainVector,
+        Vector& rMatrixStressVector,
+        Vector& rFiberStressVector);
     ///@}
     ///@name Access
     ///@{
