@@ -181,6 +181,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         // This method computes the strain vector for the matrix & fiber
         this->CalculateStrainsOnEachComponent(rStrainVector, rMaterialProperties, parallel_projector, serial_projector, 
                                               serial_strain_matrix, matrix_strain_vector, fiber_strain_vector);
+        // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, matrix_stress_vector, fiber_stress_vector);
 
 
@@ -200,7 +201,21 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector& rFiberStressVector
 )
 {
+    Vector original_strain_vector_gp = rValues.GetStrainVector();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
+    // Integrate Stress of the matrix
+    r_strain_vector = rMatrixStrainVector;
+    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+    rMatrixStressVector = rValues.GetStressVector();
+
+    // Integrate Stress of the fiber
+    r_strain_vector = rFiberStrainVector;
+    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+    rFiberStressVector = rValues.GetStressVector();
+
+    // Return the original value
+    r_strain_vector = original_strain_vector_gp;
 }
 
 /***********************************************************************************/
