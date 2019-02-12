@@ -98,11 +98,28 @@ namespace Kratos
             }
             else //let's also search it as a flat name - a feature that SHOULD BE DEPRECATED
             {
+
                 for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
                 {
-                     ModelPart* pmodel_part = RecursiveSearchByName(subparts_list[0], (it->second.get()));
-                     if(pmodel_part != nullptr) //give back the first one that was found
-                         return *pmodel_part;
+                    ModelPart* pmodel_part = RecursiveSearchByName(subparts_list[0], (it->second.get()));
+                    if (pmodel_part != nullptr) { //give back the first one that was found
+                        // Get the names of the parent-modelparts to print them in the warning
+                        std::vector<std::string> model_part_names;
+                        RecursiveGetFullName(*pmodel_part, model_part_names);
+
+                        std::stringstream msg;
+                        msg << model_part_names[0];
+                        for (std::size_t i=1; i<model_part_names.size(); ++i) {
+                            msg << "." << model_part_names[1];
+                        }
+
+                        KRATOS_WARNING("Model") << "DEPREATION_WARNING: The ModelPart \"" // TODO make a warning at some point
+                            << subparts_list[0] << "\"\nis retrieved from the Model by using the "
+                            << "flat-map!\nPlease prepend the Parent-ModelPart-Names like this:\n\""
+                            << msg.str() << "\"" << std::endl;
+
+                        return *pmodel_part;
+                    }
                 }
 
                 //if we are here we did not find it
@@ -300,9 +317,14 @@ namespace Kratos
             rSerializer.load(aux_names[i], pmodel_part);
             mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
         }
-
-
     }
 
+    void Model::RecursiveGetFullName(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const
+    {
+        rModelPartNames.insert(rModelPartNames.begin(), rModelPart.Name()); // "push_front"
+        if (rModelPart.IsSubModelPart()) {
+            RecursiveGetFullName(*rModelPart.GetParentModelPart(), rModelPartNames);
+        }
+    }
 
 }  // namespace Kratos.

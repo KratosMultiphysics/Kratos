@@ -258,6 +258,14 @@ private:
         return mListOfVariablesLists;
     }
 
+    /**
+     * @brief This method gets the names of all parent-modelparts given a submodelpart-name
+     * @param rModelPart The SubModelPart for which the parents-modelpart-names are to be extracted
+     * @param rModelPartNames The names of the ModelParts
+     * @TODO remove this function when the flat-map is removed
+     */
+    void RecursiveGetFullName(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const;
+
     ///@}
     ///@name Private  Access
     ///@{
