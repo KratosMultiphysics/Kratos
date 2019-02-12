@@ -2,13 +2,13 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 from python_solver import PythonSolver
-from potential_flow_solver import PotentialSolver
+from potential_flow_solver import LaplacianSolver
 # import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
-    return PotentialAdjointSolver(model, custom_settings["solver_settings"])
+    return PotentialAdjointSolver(model, custom_settings)
 
-class PotentialAdjointSolver(PotentialSolver):
+class PotentialAdjointSolver(LaplacianSolver):
     def __init__(self, model, custom_settings):
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
@@ -36,8 +36,8 @@ class PotentialAdjointSolver(PotentialSolver):
 
     def AddVariables(self):
         super(PotentialAdjointSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
 
@@ -45,8 +45,8 @@ class PotentialAdjointSolver(PotentialSolver):
         
     def AddDofs(self):
         super(PotentialAdjointSolver, self).AddDofs()
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
         
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """

@@ -56,12 +56,12 @@ namespace Kratos
                     geom[i].Set(VISITED);
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                     ComputeLiftProcess(mrModelPart,resultForce).Execute();
                     perturbated_lift=resultForce(1);
                     rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
                 }else{
                     rResponseGradient(i) = 0.0;
                 }
@@ -76,39 +76,39 @@ namespace Kratos
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
                     if(distances[i] > 0){
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
                     }
                     else{
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
         
                         rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
                     }
                     if(distances[i] < 0){
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i+NumNodes) = -(mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
                     }
                     else{
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i+NumNodes) = -(mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
                     }
                 }else{
                     rResponseGradient(i) = 0.0;

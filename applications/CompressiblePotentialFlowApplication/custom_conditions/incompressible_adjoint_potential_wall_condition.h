@@ -251,12 +251,12 @@ public:
         for(unsigned int i=0; i<TNumNodes; i++){
             if(is_kutta){
                 if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
-                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
                 else
-                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
+                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
             }
             else
-                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
         }
 
         KRATOS_CATCH("");
@@ -310,10 +310,10 @@ public:
         else
         {
             // Check that all required variables have been registered
-            if(ADJOINT_POSITIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "ADJOINT_POSITIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
-            if(ADJOINT_NEGATIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "ADJOINT_NEGATIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(ADJOINT_VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "ADJOINT_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "ADJOINT_AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
 
@@ -321,10 +321,10 @@ public:
             for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
 
-                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_POSITIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing ADJOINT_POSITIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_NEGATIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing ADJOINT_NEGATIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing ADJOINT_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing ADJOINT_AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
 
 
                 return Check;
@@ -356,12 +356,12 @@ public:
             for(unsigned int i=0; i<TNumNodes; i++){
                 if(is_kutta){
                     if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                     else
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
                 }
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             }
         }
 
@@ -387,12 +387,12 @@ public:
             for(unsigned int i=0; i<TNumNodes; i++){
                 if(is_kutta){
                     if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                     else
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
                 }
                 else
-                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             }
         }
 

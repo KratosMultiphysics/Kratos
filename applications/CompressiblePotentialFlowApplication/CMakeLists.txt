@@ -7,20 +7,19 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 # generate variables with the sources
 set( KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application.cpp
-    	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/compressible_potential_flow_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
-
-
-## RESPONSE UTILITIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_structural_response_function.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_global.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function_coordinates.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_postprocess.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_structural_response_function.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_global.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function_coordinates.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_postprocess.cpp
 )
 ## define compressible potential application test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)

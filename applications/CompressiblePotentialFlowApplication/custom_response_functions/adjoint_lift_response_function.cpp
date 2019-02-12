@@ -56,12 +56,12 @@ namespace Kratos
                 {   
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                     ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
                     perturbated_lift=resultForce(1);
                     rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                    mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
                 }
             }else{
@@ -72,22 +72,22 @@ namespace Kratos
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
                     if(distances[i] > 0){
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
                     }
                     else{
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon;
                         ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
         
                         rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
                     }
                 }
                 for (unsigned int i=0;i<NumNodes;i++)
@@ -95,21 +95,21 @@ namespace Kratos
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
                     if(distances[i] < 0){
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
                     }
                     else{
-                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
                         rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
-                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                        mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
                     }
                 }
             }
@@ -159,14 +159,14 @@ namespace Kratos
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal_ini,mrModelPart.GetProcessInfo());
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp_ini,mrModelPart.GetProcessInfo());
     //                 // Vector normal_initial = 
-    //                 double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-    //                 mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+    //                 double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+    //                 mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
     //                 std::vector <double> cp;
     //                 std::vector< array_1d<double,3>> normal;
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal,mrModelPart.GetProcessInfo());
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());;
     //                 rResponseGradient(i) = (cp_ini[0]*normal_ini[0][1]-cp[0]*normal[0][1])/epsilon;
-    //                 mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+    //                 mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
     //                 KRATOS_WATCH(normal_ini)
     //                 KRATOS_WATCH(normal)
 
@@ -184,25 +184,25 @@ namespace Kratos
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal_ini,mrModelPart.GetProcessInfo());
 
     //                 if(distances[i] > 0){
-    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
     //                     std::vector <double> cp;
     //                     std::vector< array_1d<double,3>> normal;
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal,mrModelPart.GetProcessInfo());
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());;
     //                     rResponseGradient(i) = (cp_ini[0]*normal_ini[0][1]-cp[0]*normal[0][1])/epsilon;
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
     //                 }
     //                 else{
-    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
+    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon;
     //                     std::vector <double> cp;
     //                     std::vector< array_1d<double,3>> normal;
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal,mrModelPart.GetProcessInfo());
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());;
     //                     rResponseGradient(i) = (cp_ini[0]*normal_ini[0][1]-cp[0]*normal[0][1])/epsilon;
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
     //                 }
     //             }
     //             for (unsigned int i=0;i<NumNodes;i++)
@@ -215,25 +215,25 @@ namespace Kratos
     //                 mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal_ini,mrModelPart.GetProcessInfo());
 
     //                 if(distances[i] < 0){
-    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential + epsilon ;
     //                     std::vector <double> cp;
     //                     std::vector< array_1d<double,3>> normal;
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal,mrModelPart.GetProcessInfo());
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());;
     //                     rResponseGradient(i) = (cp_ini[0]*normal_ini[0][1]-cp[0]*normal[0][1])/epsilon;
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(VELOCITY_POTENTIAL) = unperturbed_potential;
 
     //                 }
     //                 else{
-    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
+    //                     double unperturbed_potential=geom[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential + epsilon;
     //                     std::vector <double> cp;
     //                     std::vector< array_1d<double,3>> normal;
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(NORMAL,normal,mrModelPart.GetProcessInfo());
     //                     mrModelPart.pGetElement(rAdjointElement.Id(),0) -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());;
     //                     rResponseGradient(i) = (cp_ini[0]*normal_ini[0][1]-cp[0]*normal[0][1])/epsilon;
-    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+    //                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = unperturbed_potential;
     //                 }
     //             }
     //         }

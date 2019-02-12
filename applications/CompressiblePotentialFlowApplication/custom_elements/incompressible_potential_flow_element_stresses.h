@@ -187,7 +187,7 @@ public:
                 rResult.resize(NumNodes, false);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 
         }
         else//wake element
@@ -202,18 +202,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
         }
 
@@ -234,7 +234,7 @@ public:
                 rElementalDofList.resize(NumNodes);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         }
         else//wake element
         {
@@ -248,18 +248,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
         }
     }
@@ -291,7 +291,7 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
 
         
         //TEST:
@@ -652,8 +652,8 @@ public:
 
         for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
         {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_POTENTIAL) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_POTENTIAL on node ", this->GetGeometry()[i].Id())
+            if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable VELOCITY_POTENTIAL on node ", this->GetGeometry()[i].Id())
         }
 
         return 0;
@@ -784,44 +784,6 @@ public:
             for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             rValues[0] = v;
         }
-        else if (rVariable == SIGMA)
-        {
-            if (this->Is(MARKER)){
-                array_1d<double,3> sigma(3,0.0);
-                sigma(0) = this->GetValue(Y1);
-                sigma(1) = this->GetValue(Y2);
-                rValues[0] = sigma;
-            }else{
-                array_1d<double,3> v(3,0.0);
-                rValues[0] = v;
-            }  
-        }
-        else if (rVariable == POSITIVE_GRADIENT)
-        {   
-            if (this->Is(MARKER)){
-                array_1d<double,3> v(3,0.0);
-                array_1d<double,Dim> vaux;
-                ComputeVelocityUpperWakeElement(vaux);
-                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];            
-                rValues[0] = v;
-            }else{
-                array_1d<double,3> v(3,0.0);
-                rValues[0] = v;
-            }        
-        }
-        else if (rVariable == NEGATIVE_GRADIENT)
-        {
-            if (this->Is(MARKER)){
-                array_1d<double,3> v(3,0.0);
-                array_1d<double,Dim> vaux;
-                ComputeVelocityLowerWakeElement(vaux);
-                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
-                rValues[0] = v;
-            }else{
-                array_1d<double,3> v(3,0.0);
-                rValues[0] = v;
-            }
-        }
     }
 
 
@@ -909,18 +871,18 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] > 0)
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
         //negative part - sign is opposite to the previous case
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] < 0)
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
     }
 
@@ -942,7 +904,7 @@ protected:
     {
         ElementalData<NumNodes, Dim> data;
         for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
 
@@ -960,9 +922,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
         
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
@@ -981,9 +943,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] < 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
             
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
