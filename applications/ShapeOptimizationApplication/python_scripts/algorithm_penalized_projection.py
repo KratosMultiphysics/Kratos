@@ -90,6 +90,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
 
+        self.model_part_controller.InitializeProcesses()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -128,6 +130,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
         self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
+        self.model_part_controller.AfterMeshUpdate()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
