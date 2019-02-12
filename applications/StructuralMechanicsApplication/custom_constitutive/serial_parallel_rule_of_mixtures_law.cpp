@@ -169,12 +169,15 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Vector serial_strain_matrix, parallel_strain_matrix;
     // Vector serial_strain_fiber, parallel_strain_fiber;
     Vector matrix_stress_vector, fiber_stress_vector;
+    Vector stress_residual;
+	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
 
     while (is_converged == false || iteration >= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: serial_strain_matrix
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
-                                                                  rMaterialProperties,  parallel_projector,  serial_projector, 
+                                                                  rMaterialProperties,  parallel_projector,  serial_projector,
+                                                                  constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss,
                                                                   serial_strain_matrix);
         }
         // This method computes the strain vector for the matrix & fiber
@@ -183,13 +186,35 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, matrix_stress_vector, fiber_stress_vector);
 
+        // Here we check the convergence of the loop -> serial stresses equilibrium
+        this->CheckStressEquilibrium(serial_projector, matrix_stress_vector, fiber_stress_vector, stress_residual, is_converged);
+        if (is_converged == true) {
+            break;
+        } else {
+            // We correct the independent var: serial_strain_matrix
 
-        iteration++;
+
+
+            iteration++;
+        }
     }
 
 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
+    const Matrix& rSerialProjector,
+    const Vector& rMatrixStressVector,
+    const Vector& rFiberStressVector,
+    Vector& rStressResidual,
+    bool& rIsConverged
+)
+{
+    Vector serial_stress_matrix = prod(trans(rSerialProjector), rMatrixStressVector);
+    Vector serial_stress_fiber  = prod(trans(rSerialProjector), rFiberStressVector);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
@@ -228,6 +253,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const Properties& rMaterialProperties,
     const Matrix& rParallelProjector,
     const Matrix& rSerialProjector,
+    Matrix& rConstitutiveTensorMatrixSS,
+    Matrix& rConstitutiveTensorFiberSS,
     Vector& rInitialApproximationSerialStrainMatrix
 )
 {
@@ -249,19 +276,19 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
     this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
 
-    const Matrix& r_constitutive_tensor_matrix_ss = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, rSerialProjector)));
-    const Matrix& r_constitutive_tensor_fiber_ss  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, rSerialProjector)));
+    rConstitutiveTensorMatrixSS = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, rSerialProjector)));
+    rConstitutiveTensorFiberSS  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, rSerialProjector)));
 
     const Matrix& r_constitutive_tensor_matrix_sp = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, trans(rParallelProjector))));
     const Matrix& r_constitutive_tensor_fiber_sp  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, trans(rParallelProjector))));
 
     Matrix A, aux;
-    noalias(aux) = matrix_vol_participation * r_constitutive_tensor_fiber_ss + fiber_vol_participation * r_constitutive_tensor_matrix_ss;
+    noalias(aux) = matrix_vol_participation * rConstitutiveTensorFiberSS + fiber_vol_participation * rConstitutiveTensorMatrixSS;
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
     Vector auxiliar;
-    noalias(auxiliar) = prod(r_constitutive_tensor_fiber_ss, r_total_strain_increment_serial) +
+    noalias(auxiliar) = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) +
         fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), r_total_strain_increment_parallel);
 
     noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
