@@ -141,12 +141,9 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Y
                     aux_vel = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+                    node.Fix(KratosMultiphysics.VELOCITY_Z)
         else:
             for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -154,12 +151,9 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Z
                     aux_vel = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                else:
-                    aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
+                    node.Fix(KratosMultiphysics.VELOCITY_X)
+                    node.Fix(KratosMultiphysics.VELOCITY_Y)
+                    node.Fix(KratosMultiphysics.VELOCITY_Z)
 
     def setUpNoSlipInitialCondition(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -170,6 +164,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Y
                     init_v = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2, init_v)
         else:
             for node in self.main_model_part.Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -177,6 +173,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     vel_x = (self.embedded_velocity/self.distance)*node.Z
                     init_v = KratosMultiphysics.Vector([vel_x,0.0,0.0])
                     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, init_v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 2, init_v)
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
