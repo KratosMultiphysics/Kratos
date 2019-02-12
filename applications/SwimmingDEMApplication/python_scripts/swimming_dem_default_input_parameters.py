@@ -103,6 +103,8 @@ def GetDefaultInputParameters():
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
             "basset_force_type"                      : 0,
+            "time_window"                            : 0.04,
+            "number_of_exponentials"                 : 2,
             "frame_of_reference_type"                : 0,
             "angular_velocity_of_frame_Z"            : 0.0,
 

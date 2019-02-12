@@ -56,6 +56,10 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
 
+    # History Force Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/history_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.cpp
+
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled_weak.cpp

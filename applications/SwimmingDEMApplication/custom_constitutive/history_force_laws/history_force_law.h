@@ -1,8 +1,8 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 // Date: February 2019
 
-#if !defined(SDEM_DRAG_LAW_H_INCLUDED)
-#define SDEM_DRAG_LAW_H_INCLUDED
+#if !defined(SDEM_HISTORY_FORCE_LAW_H_INCLUDED)
+#define SDEM_HISTORY_FORCE_LAW_H_INCLUDED
 
 #include <string>
 #include <iostream>
@@ -13,23 +13,23 @@
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) DragLaw : public Flags {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) HistoryForceLaw : public Flags {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(DragLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(HistoryForceLaw);
 
-        DragLaw(){}
+        HistoryForceLaw(): mLastHistoryForceAddedMass(0.0){}
 
-        DragLaw(Parameters& r_parameters){}
+        HistoryForceLaw(Parameters& r_parameters): mLastHistoryForceAddedMass(0.0){}
 
-        ~DragLaw(){}
+        ~HistoryForceLaw(){}
 
-        virtual DragLaw::Pointer Clone() const;
+        virtual HistoryForceLaw::Pointer Clone() const;
 
         virtual void Initialize(const ProcessInfo& r_process_info);
 
-        void SetDragLawInProperties(Properties::Pointer pProp) const;
+        void SetHistoryForceLawInProperties(Properties::Pointer pProp) const;
 
         virtual std::string GetTypeOfLaw();
 
@@ -39,8 +39,15 @@ namespace Kratos {
                                   double fluid_density,
                                   double fluid_kinematic_viscosity,
                                   array_1d<double, 3>& slip_velocity,
-                                  array_1d<double, 3>& drag_force,
-                                  const ProcessInfo& r_current_process_info);
+                                  array_1d<double, 3>& history_force,
+                                  const ProcessInfo& r_current_process_info){}
+
+        virtual double GetAddedMass(Geometry<Node<3> >& r_geometry,
+                                    const ProcessInfo& r_current_process_info){return mLastHistoryForceAddedMass;}
+
+    protected:
+
+        double mLastHistoryForceAddedMass;
 
     private:
 
@@ -54,10 +61,10 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
         }
 
-    }; //class DragLaw
+    }; //class HistoryForceLaw
 
-KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
+KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, HistoryForceLaw::Pointer, SDEM_HISTORY_FORCE_LAW_POINTER)
 
 } // Namespace Kratos
 
-#endif /* SDEM_DRAG_LAW_H_INCLUDED  defined */
+#endif /* SDEM_HISTORY_FORCE_LAW_H_INCLUDED  defined */

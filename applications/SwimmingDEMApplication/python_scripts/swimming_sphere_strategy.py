@@ -7,6 +7,9 @@ import sphere_strategy
 BaseStrategy = sphere_strategy.ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
+        self.project_parameters = parameters
+        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters, procedures)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -68,16 +71,33 @@ class SwimmingStrategy(BaseStrategy):
     def ModifyProperties(self, properties, param = 0):
 
         super(SwimmingStrategy,self).ModifyProperties(properties, param)
-        HydrodynamicInteractionLawString = properties[SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME]
-        buoyancy_law = ArchimedesBuoyancyLaw()
-        drag_law = StokesDragLaw()
+
+        buoyancy_parameters = Parameters("{}")
+        buoyancy_law = ArchimedesBuoyancyLaw(buoyancy_parameters)
+
+        drag_parameters = Parameters("{}")
+        drag_law = StokesDragLaw(drag_parameters)
+
+        inviscid_parameters = Parameters("{}")
+        inviscid_force_law = AutonHuntPrudhommeInviscidForceLaw(inviscid_parameters)
+
+        history_force_parameters = Parameters("{}")
+        basset_force_type = self.project_parameters["basset_force_type"].GetInt()
+        quadrature_order = self.project_parameters["quadrature_order"].GetInt()
+        history_force_parameters.AddEmptyValue("basset_force_type").SetInt(basset_force_type)
+        history_force_parameters.AddEmptyValue("quadrature_order").SetInt(quadrature_order)
+        history_force_law = BoussinesqBassetHistoryForceLaw(history_force_parameters)
+
         hydrodynamic_parameters = Parameters("{}")
-        inviscid_force_law = AutonHuntPrudhommeInviscidForceLaw()
+        HydrodynamicInteractionLawString = properties[SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME]
         HydrodynamicInteractionLawString = 'HydrodynamicInteractionLaw'
         HydrodynamicInteractionLaw = globals().get(HydrodynamicInteractionLawString)(properties, hydrodynamic_parameters)
         HydrodynamicInteractionLaw.SetBuoyancyLaw(buoyancy_law)
         HydrodynamicInteractionLaw.SetDragLaw(drag_law)
         HydrodynamicInteractionLaw.SetInviscidForceLaw(inviscid_force_law)
+
+        if basset_force_type:
+            HydrodynamicInteractionLaw.SetHistoryForceLaw(history_force_law)
         HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)
 
         if not param:

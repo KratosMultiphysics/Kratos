@@ -17,6 +17,8 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         AutonHuntPrudhommeInviscidForceLaw(): mDoApplyFaxenCorrections(false){}
 
+        AutonHuntPrudhommeInviscidForceLaw(Parameters& r_parameters);
+
         ~AutonHuntPrudhommeInviscidForceLaw(){}
 
         InviscidForceLaw::Pointer Clone() const override;

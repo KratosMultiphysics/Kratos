@@ -216,8 +216,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         DEM_dt = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         Add("delta_time_quadrature").SetDouble(time_steps_per_quadrature_step * DEM_dt)
         Add("quadrature_order").SetInt(2)
-        Add("time_window").SetDouble(0.8)
-        Add("number_of_exponentials").SetInt(2)
         time_window = self.pp.CFD_DEM["time_window"].GetDouble()
         quadrature_dt = self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()
         Add("number_of_quadrature_steps_in_window").SetInt(int(time_window / quadrature_dt))

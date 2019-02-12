@@ -233,7 +233,7 @@ namespace Kratos
       double mInitialTime;
       double mOldDaitchePresentCoefficient;
       double mLastVirtualMassAddedMass;
-      double mLastBassetForceAddedMass;
+      double mLastHistoryForceAddedMass;
       array_1d<double, 3> mSlipVel;
       array_1d<double, 3> mOldBassetTerm;
       HydrodynamicInteractionLaw::Pointer mHydrodynamicInteractionLaw;

@@ -19,7 +19,9 @@ namespace Kratos {
         typedef Node <3> NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(BuoyancyLaw);
 
-        BuoyancyLaw(): mLastVirtualMassAddedMass(0.0){}
+        BuoyancyLaw(){}
+
+        BuoyancyLaw(Parameters& r_hydrodynamic_parameters){}
 
         ~BuoyancyLaw(){}
 
@@ -38,13 +40,7 @@ namespace Kratos {
                                   array_1d<double, 3>& buoyancy,
                                   const ProcessInfo& r_current_process_info) {}
 
-        virtual double GetAddedMass(Geometry<Node<3> >& r_geometry,
-                                    double fluid_density,
-                                    const ProcessInfo& r_current_process_info){return mLastVirtualMassAddedMass;}
-
     protected:
-
-        double mLastVirtualMassAddedMass;
 
     private:
 
