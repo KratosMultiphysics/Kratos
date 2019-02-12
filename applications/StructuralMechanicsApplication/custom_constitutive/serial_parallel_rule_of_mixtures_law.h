@@ -246,6 +246,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         Vector& rStrainVectorMatrix,
         Vector& rStrainVectorFiber);
 
+    void CalculateInitialApproximationSerialStrainMatrix(
+        ConstitutiveLaw::Parameters& rValues,
+        const Vector& rStrainVector,
+        const Vector& rPreviousStrainVector,
+        const Properties& rMaterialProperties,
+        const Matrix& rParallelProjector,
+        const Matrix& rSerialProjector,
+        Vector& rInitialSpproximationSerialStrainMatrix);
     ///@}
     ///@name Access
     ///@{

@@ -165,8 +165,17 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     fiber_strain_vector.resize(voigt_size);
 
     bool is_converged = false;
+    int iteration = 0;
+    int max_iterations = 100;
+    Vector serial_strain_matrix, parallel_strain_matrix;
+    Vector serial_strain_fiber, parallel_strain_fiber;
 
-    while (is_converged == false) {
+    while (is_converged == false || iteration >= max_iterations) {
+        if (iteration == 0) {
+            this->CalculateInitialApproximationSerialStrainMatrix(rValues, rStrainVector, mPreviousStrainVector,  
+                                                                  rMaterialProperties,  parallel_projector,  serial_projector, 
+                                                                  serial_strain_matrix);
+        }
         this->CalculateStrainsOnEachComponent(rValues,
 											  rStrainVector,
                                               mPreviousStrainVector, 
@@ -175,11 +184,61 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
                                               serial_projector,
                                               matrix_strain_vector,
                                               fiber_strain_vector);
+
+
+        iteration++;
     }
 
 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainMatrix(
+    ConstitutiveLaw::Parameters& rValues,
+    const Vector& rStrainVector,
+    const Vector& rPreviousStrainVector,
+    const Properties& rMaterialProperties,
+    const Matrix& rParallelProjector,
+    const Matrix& rSerialProjector,
+    Vector& rInitialSpproximationSerialStrainMatrix
+)
+{
+    const int voigt_size = this->GetStrainSize();
+    const Vector& r_total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
+    const Vector& r_total_strain_vector_serial   = prod(trans(rSerialProjector), rStrainVector);
+
+    const Vector& r_total_strain_increment_serial = r_total_strain_vector_serial - prod(trans(rSerialProjector), rPreviousStrainVector);
+    const Vector& r_total_strain_increment_parallel = r_total_strain_vector_parallel - prod(rParallelProjector, rPreviousStrainVector);
+
+    const double fiber_vol_participation = mFiberVolumetricParticipation;
+    const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
+    Matrix constitutive_tensor_matrix, constitutive_tensor_fiber;
+
+	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+	const auto props_matrix_cl = *(it_cl_begin);
+    const auto props_fiber_cl  = *(it_cl_begin + 1);
+
+    this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
+    this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
+
+    const Matrix& r_constitutive_tensor_matrix_ss = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, rSerialProjector)));
+    const Matrix& r_constitutive_tensor_fiber_ss  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, rSerialProjector)));
+
+    const Matrix& r_constitutive_tensor_matrix_sp = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, trans(rParallelProjector))));
+    const Matrix& r_constitutive_tensor_fiber_sp  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, trans(rParallelProjector))));
+
+    Matrix A, aux;
+    noalias(aux) = matrix_vol_participation * r_constitutive_tensor_fiber_ss + fiber_vol_participation * r_constitutive_tensor_matrix_ss;
+    double det_aux = 0.0;
+    MathUtils<double>::InvertMatrix(aux, A, det_aux);
+
+    Vector auxiliar;
+    noalias(auxiliar) = prod(r_constitutive_tensor_fiber_ss, r_total_strain_increment_serial) +
+        fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), r_total_strain_increment_parallel);
+        
+    noalias(rInitialSpproximationSerialStrainMatrix) = prod(A, auxiliar);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
@@ -194,10 +253,11 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 )
 {
     const int voigt_size = this->GetStrainSize();
-    // const Vector total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
-    // const Vector total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
-    const Vector total_strain_increment_serial = prod(trans(rSerialProjector), rStrainVector) - prod(trans(rSerialProjector), rPreviousStrainVector);
-    const Vector total_strain_increment_parallel = prod(rParallelProjector, rStrainVector) - prod(rParallelProjector, rPreviousStrainVector);
+    const Vector& r_total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
+    const Vector& r_total_strain_vector_serial   = prod(trans(rSerialProjector), rStrainVector);
+
+    const Vector& r_total_strain_increment_serial = r_total_strain_vector_serial - prod(trans(rSerialProjector), rPreviousStrainVector);
+    const Vector& r_total_strain_increment_parallel = r_total_strain_vector_parallel - prod(rParallelProjector, rPreviousStrainVector);
 
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
@@ -222,10 +282,14 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
     Vector auxiliar, serial_strain_matrix_increment_0;
-    noalias(auxiliar) = prod(r_constitutive_tensor_fiber_ss, total_strain_increment_serial) +
-        fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), total_strain_increment_parallel);
+    noalias(auxiliar) = prod(r_constitutive_tensor_fiber_ss, r_total_strain_increment_serial) +
+        fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), r_total_strain_increment_parallel);
         
     noalias(serial_strain_matrix_increment_0) = prod(A, auxiliar);
+
+
+
+
 
 
 
