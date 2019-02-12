@@ -658,14 +658,14 @@ class MultilevelMonteCarlo(object):
 
 class MultilevelMonteCarloResults(object):
     '''The base class for the MultilevelMonteCarloResults-classes'''
-    def __init__(self):
+    def __init__(self,number_levels):
         '''constructor of the MultilevelMonteCarloResults-Object
         Keyword arguments:
         self : an instance of a class
         '''
         '''Quantity of Interest'''
-        self.QoI = []
+        self.QoI = [[] for _ in range (number_levels+1)]
         '''time cost'''
-        self.time_ML = []
+        self.time_ML = [[] for _ in range (number_levels+1)]
         '''level of QoI and time_ML'''
-        self.finer_level = 0
+        self.finer_level = number_levels

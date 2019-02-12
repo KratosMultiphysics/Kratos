@@ -103,7 +103,7 @@ def EvaluateQuantityOfInterest(simulation):
 '''
 function called in the main returning a future object (the result class) and an integer (the finer level)
 input:
-        current_MLMC_level        : current Multilevel MOnte Carlo level we are solving
+        current_MLMC_level        : current Multilevel Monte Carlo level we are solving
         pickled_coarse_model      : pickled model
         pickled_coarse_parameters : pickled parameters
         size_meshes               : mesh sizes for all levels
@@ -115,9 +115,7 @@ def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,
     '''generate the sample'''
     sample = GenerateSample()
     '''initialize the MultilevelMonteCarloResults class'''
-    mlmc_results_class = mlmc.MultilevelMonteCarloResults()
-    mlmc_results_class.QoI = [[] for _ in range (current_MLMC_level+1)]
-    mlmc_results_class.time_ML = [[] for _ in range (current_MLMC_level+1)]
+    mlmc_results_class = mlmc.MultilevelMonteCarloResults(current_MLMC_level)
     if (current_MLMC_level == 0):
         mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_MLMC_level,mlmc_results_class)
     else:
@@ -127,7 +125,6 @@ def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,
             pickled_coarse_model = pickled_current_model
             pickled_coarse_parameters = pickled_current_parameters
             del(pickled_current_model,pickled_current_parameters)
-    mlmc_results_class.finer_level = current_MLMC_level
     return mlmc_results_class,current_MLMC_level
 
 
@@ -135,7 +132,7 @@ def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,
 function evaluating the QoI and the cost of simulation, computing the mesh of level current_MLMC_level
 refining recursively from the coarsest mesh
 input:
-        current_MLMC_level        : current Multilevel MOnte Carlo level we are solving
+        current_MLMC_level        : current Multilevel Monte Carlo level we are solving
         pickled_coarse_model      : pickled model
         pickled_coarse_parameters : pickled parameters
         size_meshes               : mesh sizes for all levels

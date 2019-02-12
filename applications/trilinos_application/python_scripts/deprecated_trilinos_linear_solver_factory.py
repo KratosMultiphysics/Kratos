@@ -47,6 +47,10 @@ def ConstructPreconditioner(configuration):
 #
 def ConstructSolver(configuration):
 
+    depr_msg  = '"applications/trilinos_application/deprecated_trilinos_linear_solver_factory.py" is deprecated and will be removed\n'
+    depr_msg += 'Please use "applications/trilinos_application/trilinos_linear_solver_factory.py" instead!'
+    Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+
     ##############################################################
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
     ###TODO: clean this up!!

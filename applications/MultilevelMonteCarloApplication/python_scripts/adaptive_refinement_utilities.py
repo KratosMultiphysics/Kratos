@@ -55,4 +55,4 @@ def compute_refinement_hessian_metric(model_coarse,parameters_coarse,minimal_siz
     current_model_refined = model_coarse
     current_parameters_refined = parameters_coarse
 
-    return current_model_refined,parameters_coarse
+    return current_model_refined,current_parameters_refined

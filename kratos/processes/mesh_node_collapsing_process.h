@@ -60,7 +60,7 @@ namespace Kratos
       ///@{
 
 	  ///Constructor to be used.
-	  MeshNodeCollapsingProcess(ModelPart& rModelPart);
+	  explicit MeshNodeCollapsingProcess(ModelPart& rModelPart);
 
 	  /// Default constructor deleted.
 	  MeshNodeCollapsingProcess() = delete;
