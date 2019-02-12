@@ -84,6 +84,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
 
+        self.model_part_controller.InitializeProcesses()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -160,6 +162,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.model_part_controller.UpdateTimeStep(self.opt_iteration)
         self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
+        self.model_part_controller.AfterMeshUpdate()
 
     # --------------------------------------------------------------------------
     def __AnalyzeShape(self):

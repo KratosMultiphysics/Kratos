@@ -97,6 +97,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
 
+        self.model_part_controller.InitializeProcesses()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -140,6 +142,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
         self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
+        self.model_part_controller.AfterMeshUpdate()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):

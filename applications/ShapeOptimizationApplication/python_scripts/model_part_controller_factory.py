@@ -41,7 +41,8 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            }
+            },
+            "shell_thickness_adaption": true
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -65,6 +66,14 @@ class ModelPartController:
         self.damping_regions = {}
         self.damping_utility = None
 
+        self.shell_thickness_adaptor = None
+        if self.model_settings["shell_thickness_adaption"].GetBool():
+            import shell_thickness_adaptor
+            adaptor_settings = Parameters("""{
+                "model_part_name" : \""""+self.optimization_model_part.Name+"""\"
+            }""")
+            self.shell_thickness_adaptor = shell_thickness_adaptor.ShellThicknessAdaptor(self.model, adaptor_settings)
+
     # --------------------------------------------------------------------------
     def Initialize(self):
         self.__ImportOptimizationModelPart()
@@ -75,6 +84,11 @@ class ModelPartController:
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
             self.damping_utility = KSO.DampingUtilities(self.design_surface, self.damping_regions, self.model_settings["damping"])
+
+    # --------------------------------------------------------------------------
+    def InitializeProcesses(self):
+        if self.shell_thickness_adaptor:
+            self.shell_thickness_adaptor.Initialize()
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
@@ -89,6 +103,11 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
         self.mesh_controller.UpdateMeshAccordingInputVariable(InputVariable)
+
+    # --------------------------------------------------------------------------
+    def AfterMeshUpdate(self):
+        if self.shell_thickness_adaptor:
+            self.shell_thickness_adaptor.AfterMeshUpdate()
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):

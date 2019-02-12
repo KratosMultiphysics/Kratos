@@ -179,6 +179,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         else:
             raise RuntimeError("Wrong definition of bead direction. Options are: 1) [] -> takes surface normal, 2) [x.x,x.x,x.x] -> takes specified vector.")
 
+        self.model_part_controller.InitializeProcesses()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -218,6 +220,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
                 self.model_part_controller.SetReferenceMeshToMesh()
+                self.model_part_controller.AfterMeshUpdate()
 
                 # Analyze shape
                 self.communicator.initializeCommunication()
