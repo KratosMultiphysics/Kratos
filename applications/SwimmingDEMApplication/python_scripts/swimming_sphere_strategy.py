@@ -71,6 +71,7 @@ class SwimmingStrategy(BaseStrategy):
     def ModifyProperties(self, properties, param = 0):
 
         super(SwimmingStrategy,self).ModifyProperties(properties, param)
+
         buoyancy_parameters = Parameters("{}")
         buoyancy_law = ArchimedesBuoyancyLaw(buoyancy_parameters)
 

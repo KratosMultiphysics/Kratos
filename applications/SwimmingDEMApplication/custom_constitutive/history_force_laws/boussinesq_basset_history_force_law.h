@@ -28,8 +28,6 @@ namespace Kratos {
 
         HistoryForceLaw::Pointer Clone() const override;
 
-        void Initialize(const ProcessInfo& r_process_info) override;
-
         std::string GetTypeOfLaw() override;
 
         void ComputeForce(Geometry<Node<3> >& r_geometry,

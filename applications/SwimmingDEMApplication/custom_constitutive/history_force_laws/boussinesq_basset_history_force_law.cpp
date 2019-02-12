@@ -27,15 +27,6 @@ namespace Kratos {
         mOldDaitchePresentCoefficient = 0.0;
     }
 
-
-    void BoussinesqBassetHistoryForceLaw::Initialize(const ProcessInfo& r_process_info)
-    {
-        mBassetForceType = r_process_info[BASSET_FORCE_TYPE];
-        mQuadratureOrder = r_process_info[QUADRATURE_ORDER];
-        mOldBassetTerm = ZeroVector(3);
-        mOldDaitchePresentCoefficient = 0.0;
-    }
-
     std::string BoussinesqBassetHistoryForceLaw::GetTypeOfLaw() {
         std::string type_of_law = "Boussinesq-Basset History Force Law";
         return type_of_law;
