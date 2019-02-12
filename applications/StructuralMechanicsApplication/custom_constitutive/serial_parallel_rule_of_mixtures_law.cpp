@@ -102,9 +102,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         }
 
         // Calculating the inverse of the left Cauchy tensor
-        Matrix inverse_B_tensor ( dimension, dimension );
+        Matrix inverse_B_tensor (dimension, dimension);
         double aux_det_b = 0;
-        MathUtils<double>::InvertMatrix( B_matrix, inverse_B_tensor, aux_det_b);
+        MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
 
         // Calculate E matrix
         const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
@@ -190,14 +190,10 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         } else {
             // We correct the independent var: serial_strain_matrix
             this->CorrectSerialStrainMatrix(rValues, stress_residual, serial_strain_matrix, serial_projector);
-
-
-
             iteration++;
         }
     }
-
-
+    KRATOS_WARNING_IF("MaxIteration in SP-RoM", iteration == max_iterations);
 }
 
 /***********************************************************************************/
@@ -241,10 +237,11 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
     const double constant = (1.0 - mFiberVolumetricParticipation) / mFiberVolumetricParticipation;
     const Matrix jacobian_matrix = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
-    Matrix inv_jacobian,
-    double det_jacobian = 0.0;
+	Matrix inv_jacobian;
+    double det_jacobian;
 
     MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
+    
     rSerialStrainMatrix = rSerialStrainMatrix - prod(inv_jacobian, rResidualStresses);
 
     // Previous flags restored
