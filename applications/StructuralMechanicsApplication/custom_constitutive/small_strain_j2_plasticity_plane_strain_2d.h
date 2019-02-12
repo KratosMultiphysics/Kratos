@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "linear_j2_plasticity_3d.h"
+#include "small_strain_j2_plasticity_3d.h"
 
 namespace Kratos
 {

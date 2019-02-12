@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "linear_j2_plasticity_3d.h"
+#include "small_strain_j2_plasticity_3d.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/checks.h"
