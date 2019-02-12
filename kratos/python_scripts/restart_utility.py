@@ -91,8 +91,8 @@ class RestartUtility(object):
             restart_path = restart_file_name
 
         # Check path
-        if (os.path.exists(restart_path+".rest") == False):
-            raise Exception("Restart file not found: " + restart_path + ".rest")
+        if not os.path.exists(restart_path+".rest"):
+            raise FileNotFoundError("Restart file not found: " + restart_path + ".rest")
         self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
