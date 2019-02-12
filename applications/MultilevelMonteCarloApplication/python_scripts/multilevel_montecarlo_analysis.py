@@ -303,7 +303,7 @@ if __name__ == '__main__':
     mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
     ''''start screening phase'''
     for level in range(mlmc_class.current_number_levels+1):
-        for instance in range (mlmc_class.number_samples[level]):
+        for instance in range (mlmc_class.difference_number_samples[level]):
             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
     '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
