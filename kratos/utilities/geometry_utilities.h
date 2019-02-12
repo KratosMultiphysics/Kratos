@@ -720,6 +720,38 @@ public:
      * @param rJ0 Jacobian on the initial configuration.
      */
     template<class TMatrix>
+    static void DirectJacobianOnCurrentConfiguration(
+        GeometryType const& rGeometry,
+        GeometryType::CoordinatesArrayType const& rCoords,
+        TMatrix& rJ
+        )
+    {
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType points_number = rGeometry.PointsNumber();
+
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
+        rGeometry.ShapeFunctionsLocalGradients( shape_functions_gradients, rCoords );
+
+        rJ.clear();
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = rGeometry[i].Coordinates();
+            for(IndexType j = 0; j< working_space_dimension; ++j) {
+                const double value = r_coordinates[j];
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rJ(j,m) += value * shape_functions_gradients(i,m);
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Calculate the Jacobian on the initial configuration.
+     * @param rGeom element geometry.
+     * @param rCoords local coordinates of the current integration point.
+     * @param rJ0 Jacobian on the initial configuration.
+     */
+    template<class TMatrix>
     static void DirectJacobianOnInitialConfiguration(
         GeometryType const& rGeometry,
         GeometryType::CoordinatesArrayType const& rCoords,
