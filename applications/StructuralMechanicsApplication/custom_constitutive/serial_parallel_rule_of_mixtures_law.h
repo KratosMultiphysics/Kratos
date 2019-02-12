@@ -271,6 +271,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         bool& rIsConverged,
         const Matrix& rConstitutiveTensorMatrixSS,
         const Matrix& rConstitutiveTensorFiberSS);
+
+    void CorrectSerialStrainMatrix(
+        ConstitutiveLaw::Parameters& rValues,
+        const Vector& rResidualStresses,
+        Vector& rSerialStrainMatrix,
+        const Matrix& rSerialProjector);
     ///@}
     ///@name Access
     ///@{
