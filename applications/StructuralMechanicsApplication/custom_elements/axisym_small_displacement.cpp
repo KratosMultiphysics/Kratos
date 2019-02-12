@@ -114,21 +114,20 @@ void AxisymSmallDisplacement::CalculateB(
 //************************************************************************************
 //************************************************************************************
 
-Matrix AxisymSmallDisplacement::ComputeEquivalentF(const Vector& rStrainVector) const
+void AxisymSmallDisplacement::ComputeEquivalentF(
+    Matrix& rF,
+    const Vector& rStrainVector
+    ) const
 {
-    Matrix F(3, 3);
-
-    F(0,0) = 1.0 + rStrainVector[0];
-    F(0,1) = 0.5 * rStrainVector[3];
-    F(0,2) = 0.0;
-    F(1,0) = 0.5 * rStrainVector[3];
-    F(1,1) = 1.0 + rStrainVector[1];
-    F(1,2) = 0.0;
-    F(2,0) = 0.0;
-    F(2,1) = 0.0;
-    F(2,2) = 1.0 + rStrainVector[2];
-
-    return F;
+    rF(0,0) = 1.0 + rStrainVector[0];
+    rF(0,1) = 0.5 * rStrainVector[3];
+    rF(0,2) = 0.0;
+    rF(1,0) = 0.5 * rStrainVector[3];
+    rF(1,1) = 1.0 + rStrainVector[1];
+    rF(1,2) = 0.0;
+    rF(2,0) = 0.0;
+    rF(2,1) = 0.0;
+    rF(2,2) = 1.0 + rStrainVector[2];
 }
 
 //************************************************************************************

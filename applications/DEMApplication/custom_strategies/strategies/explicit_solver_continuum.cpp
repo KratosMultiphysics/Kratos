@@ -13,12 +13,12 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        SendProcessInfoToClustersModelPart();
 
         if (r_model_part.GetCommunicator().MyPID() == 0) {
             KRATOS_INFO("DEM") << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         BaseType::DisplayThreadInfo();
 
@@ -42,24 +42,19 @@ namespace Kratos {
 
         BaseType::InitializeDEMElements();
         BaseType::InitializeFEMElements();
-        BaseType::InitializeSolutionStep();
-        BaseType::ApplyInitialConditions();
+        UpdateMaxIdOfCreatorDestructor();
+        InitializeClusters(); // This adds elements to the balls modelpart
+
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
-        // 0. Set search radius.
-        unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
-        if (BaseType::GetResults().size() != number_of_elements) BaseType::GetResults().resize(number_of_elements);
-        BaseType::GetResultsDistances().resize(number_of_elements);
-        if (fem_model_part.Nodes().size() > 0) {
-            BaseType::GetRigidFaceResults().resize(number_of_elements);
-            BaseType::GetRigidFaceResultsDistances().resize(number_of_elements);
-        }
+        BaseType::InitializeSolutionStep();
+        BaseType::ApplyInitialConditions();
 
-        // 3. Search Neighbors with tolerance (after first repartition process)
+        // Search Neighbors with tolerance (after first repartition process)
         BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT], 1.0);
         SearchNeighbours();
         MeshRepairOperations();
@@ -89,7 +84,7 @@ namespace Kratos {
             //RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's
         }
 
-        // 4. Set Initial Contacts
+        // Set Initial Contacts
         if (r_process_info[CASE_OPTION] != 0) {
             SetInitialDemContacts();
         }
@@ -102,11 +97,29 @@ namespace Kratos {
         ComputeNewNeighboursHistoricalData();
 
         if (fem_model_part.Nodes().size() > 0) {
-            BaseType::SetSearchRadiiWithFemOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
+            BaseType::SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             BaseType::SearchRigidFaceNeighbours();
             SetInitialFemContacts();
             BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
         }
+
+        if (mRemoveBallsInitiallyTouchingWallsOption) {
+            MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
+            mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
+            // Search Neighbours and related operations
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SearchNeighbours();
+            ComputeNewNeighboursHistoricalData();
+
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
+            SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
+            ComputeNewRigidFaceNeighboursHistoricalData();
+        }
+
+        AttachSpheresToStickyWalls();
 
         if (r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
@@ -121,9 +134,6 @@ namespace Kratos {
             CalculateMaxSearchDistance();
         }
         BaseType::ComputeNodalArea();
-
-        // 5. Finalize Solution Step
-        //BaseType::FinalizeSolutionStep();
 
         KRATOS_CATCH("")
     }// Initialize()
@@ -158,7 +168,7 @@ namespace Kratos {
         const bool is_time_to_search_neighbours = (time_step + 1) % BaseType::GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
 
         if (is_time_to_search_neighbours) {
-            BaseType::SetSearchRadiiWithFemOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
+            BaseType::SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             BaseType::SearchRigidFaceNeighbours();
             BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
         }

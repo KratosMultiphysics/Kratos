@@ -486,6 +486,10 @@ class Procedures(object):
             if self.DEM_parameters["PostSkinSphere"].GetBool():
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
+        if "PostGluedSphere" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGluedSphere"].GetBool():
+                model_part.AddNodalSolutionStepVariable(IS_STICKY)
+
         # LOCAL AXIS
         if DEM_parameters["PostEulerAngles"].GetBool():
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
@@ -1354,6 +1358,7 @@ class DEMIo(object):
         self.PostRadius = self.DEM_parameters["PostRadius"].GetBool()
         self.PostExportId = self.DEM_parameters["PostExportId"].GetBool()
         self.PostSkinSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostSkinSphere")
+        self.PostGluedSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostGluedSphere")
         self.PostAngularVelocity = self.DEM_parameters["PostAngularVelocity"].GetBool()
         self.PostParticleMoment = self.DEM_parameters["PostParticleMoment"].GetBool()
         self.PostEulerAngles = self.DEM_parameters["PostEulerAngles"].GetBool()
@@ -1532,6 +1537,10 @@ class DEMIo(object):
         if "PostBrokenRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio, NEIGHBOUR_RATIO, self.spheres_variables)
+
+        if "PostGluedSphere" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGluedSphere"].GetBool():
+                self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":

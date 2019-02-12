@@ -175,7 +175,7 @@ public:
         BaseType::Points().push_back( pThirdPoint );
     }
 
-    Line2D3( const PointsArrayType& ThisPoints )
+    explicit Line2D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 3 )
@@ -204,7 +204,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Line2D3( Line2D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Line2D3( Line2D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }

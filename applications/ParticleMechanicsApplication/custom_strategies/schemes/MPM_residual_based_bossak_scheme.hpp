@@ -271,7 +271,6 @@ public:
             const array_1d<double, 3 > & previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
             array_1d<double, 3 > & current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
             {
@@ -412,145 +411,77 @@ public:
 		#pragma omp parallel for
 		for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 		{
-
 			auto i = mr_grid_model_part.NodesBegin() + iter;
-			if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
-            {
-                array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                array_1d<double, 3 > & nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
-                double & nodal_density = (i)->FastGetSolutionStepValue(DENSITY);
+            // Variables to be cleaned
+            double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
+            double & nodal_density  = (i)->FastGetSolutionStepValue(DENSITY);
+            array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3 > & nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
-                nodal_momentum.clear();
-                nodal_inertia.clear();
-                nodal_mass= 0.0;
-                nodal_pressure = 0.0;
+            array_1d<double, 3 > & nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
 
-                nodal_density = 0.0;
+            double & nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+            double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
+            if(i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                nodal_mpressure = 0.0;
             }
 
-            if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
-            {
-                array_1d<double, 3 > & nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
-                array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY);
-                array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION);
+            // Clear
+            nodal_mass = 0.0;
+            nodal_density = 0.0;
+            nodal_momentum.clear();
+            nodal_inertia.clear();
 
-                nodal_displacement.clear();
-                nodal_pressure = 0.0;
-                nodal_velocity.clear();
-                nodal_acceleration.clear();
-                delta_nodal_velocity.clear();
-                delta_nodal_acceleration.clear();
-            }
+            nodal_displacement.clear();
+            nodal_velocity.clear();
+            nodal_acceleration.clear();
+            nodal_old_pressure = 0.0;
+            nodal_pressure = 0.0;
 		}
 
-        double norm_velocity = 1.0;
-        double norm_acceleration = 1.0;
-        double norm_pressure = 1.0;
-        double norm_delta_velocity = 1.0;
-        double norm_delta_acceleration = 1.0;
-        double norm_delta_pressure = 1.0;
+        // Extrapolate from Material Point Elements and Conditions
+        Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
-        int it_num = 1;
-
-        while (it_num <2)
+        // Assign nodal variables after extrapolation
+        #pragma omp parallel for
+        for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
         {
-            #pragma omp parallel for
-			for( int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
-			{
-                auto i = mr_grid_model_part.NodesBegin() + iter;
-                if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
+            auto i = mr_grid_model_part.NodesBegin() + iter;
+            const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+
+            if (nodal_mass > std::numeric_limits<double>::epsilon())
+            {
+                const array_1d<double, 3 > & nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d<double, 3 > & nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+
+                array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+                double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+
+                double delta_nodal_pressure = 0.0;
+
+                // For mixed formulation
+                if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
                 {
-                    array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 > & nodal_inertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    array_1d<double, 3 > & delta_nodal_velocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
-
-                    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                    nodal_momentum.clear();
-                    nodal_inertia.clear();
-                    delta_nodal_velocity.clear();
-                    delta_nodal_acceleration.clear();
-
-                    nodal_mass = 0.0;
-
-                    if(i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                        double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
-                        nodal_mpressure = 0.0;
-                    }
+                    double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    delta_nodal_pressure = nodal_mpressure/nodal_mass;
                 }
-			}
 
-            norm_velocity = 0.0;
-            norm_acceleration = 0.0;
-            norm_pressure = 0.0;
-            norm_delta_velocity = 0.0;
-            norm_delta_acceleration = 0.0;
-            norm_delta_pressure = 0.0;
+                const array_1d<double, 3 > delta_nodal_velocity = nodal_momentum/nodal_mass;
+                const array_1d<double, 3 > delta_nodal_acceleration = nodal_inertia/nodal_mass;
 
-            Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
+                nodal_velocity += delta_nodal_velocity;
+                nodal_acceleration += delta_nodal_acceleration;
 
-			#pragma omp parallel for reduction(+:norm_velocity,norm_acceleration,norm_pressure,norm_delta_velocity,norm_delta_acceleration,norm_delta_pressure)
-			for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
-			{
-
-			    auto i = mr_grid_model_part.NodesBegin() + iter;
-			    const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-
-                if (nodal_mass > 1.0e-16 )
-                {
-                    array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
-
-                    const array_1d<double, 3 > & nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    const array_1d<double, 3 > & nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-
-                    array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                    array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                    double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
-
-                    double delta_nodal_pressure = 0.0;
-
-                    if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
-                    {
-                        double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
-                        delta_nodal_pressure = nodal_mpressure/nodal_mass;
-                    }
-
-                    delta_nodal_velocity = nodal_momentum/nodal_mass;
-                    delta_nodal_acceleration = nodal_inertia/nodal_mass;
-
-                    nodal_velocity += delta_nodal_velocity;
-                    nodal_acceleration += delta_nodal_acceleration;
-
-                    nodal_pressure += delta_nodal_pressure;
-
-                    norm_delta_velocity += (delta_nodal_velocity[0]*delta_nodal_velocity[0]+delta_nodal_velocity[1]*delta_nodal_velocity[1]+delta_nodal_velocity[2]*delta_nodal_velocity[2]);
-                    norm_delta_acceleration += (delta_nodal_acceleration[0]*delta_nodal_acceleration[0]+delta_nodal_acceleration[1]*delta_nodal_acceleration[1]+delta_nodal_acceleration[2]*delta_nodal_acceleration[2]);
-                    norm_delta_pressure += (delta_nodal_pressure * delta_nodal_pressure);
-
-                    norm_velocity += (nodal_velocity[0]*nodal_velocity[0]+nodal_velocity[1]*nodal_velocity[1]+nodal_velocity[2]*nodal_velocity[2]);
-                    norm_acceleration += (nodal_acceleration[0]*nodal_acceleration[0]+nodal_acceleration[1]*nodal_acceleration[1]+nodal_acceleration[2]*nodal_acceleration[2]);
-                    norm_pressure += (nodal_pressure * nodal_pressure);
-                }
+                nodal_pressure += delta_nodal_pressure;
             }
-
-            norm_velocity     = std::sqrt(norm_velocity);
-            norm_acceleration = std::sqrt(norm_acceleration);
-            norm_pressure     = std::sqrt(norm_pressure);
-
-            norm_delta_velocity     = std::sqrt(norm_delta_velocity);
-            norm_delta_acceleration = std::sqrt(norm_delta_acceleration);
-            norm_delta_pressure     = std::sqrt(norm_delta_pressure);
-
-            ++it_num;
         }
 
+        // Check delta time
         double delta_time = CurrentProcessInfo[DELTA_TIME];
         KRATOS_ERROR_IF(delta_time == 0) << "Detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part" << std::endl;
 

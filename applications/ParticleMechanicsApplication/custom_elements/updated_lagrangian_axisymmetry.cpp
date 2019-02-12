@@ -269,7 +269,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationGradient" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -317,72 +317,6 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSide
     KRATOS_CATCH( "" )
 }
 
-//*******************************************************************************************
-//*******************************************************************************************
-
-void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    /* NOTE:
-    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
-    This function is called by the base scheme class.*/
-
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-    GeneralVariables Variables;
-
-    // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
-
-    mFinalizedStep = false;
-
-    const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-    const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
-    const double MP_Mass = this->GetValue(MP_MASS);
-    array_1d<double,3> nodal_momentum = ZeroVector(3);
-    array_1d<double,3> nodal_inertia  = ZeroVector(3);
-
-    //TODO: To be confirmed: do we need the second loop of "l" to interpolate the aux_mp_velocity?
-    for (unsigned int j=0;j<number_of_nodes;j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        for (unsigned int l=0;l<number_of_nodes;l++)
-        {
-            const array_1d<double, 3 > & NodalAcceleration = rGeom[l].FastGetSolutionStepValue(ACCELERATION,1);
-            const array_1d<double, 3 > & NodalVelocity = rGeom[l].FastGetSolutionStepValue(VELOCITY,1);
-
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                AUX_MP_Velocity[k] += Variables.N[j] *Variables.N[l] * NodalVelocity[k];
-                AUX_MP_Acceleration[k] += Variables.N[j] *Variables.N[l] * NodalAcceleration[k];
-            }
-        }
-    }
-
-    // Here MP contribution in terms of momentum, inertia and mass are added
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        for (unsigned int j = 0; j < dimension; j++)
-        {
-            nodal_momentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
-            nodal_inertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
-        }
-
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-        rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-        rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-        rGeom[i].UnSetLock();
-    }
-
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
-
-}
-
 //*************************COMPUTE ALMANSI STRAIN*************************************
 //************************************************************************************
 void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
@@ -409,7 +343,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
 
@@ -440,7 +374,7 @@ void UpdatedLagrangianAxisymmetry::CalculateGreenLagrangeStrain(const Matrix& rF
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -518,7 +452,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: MPMJacobian" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     return rResult;
@@ -565,7 +499,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const a
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: MPMJacobianDelta" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     return rResult;
