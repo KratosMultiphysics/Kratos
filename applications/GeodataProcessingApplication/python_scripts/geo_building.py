@@ -103,7 +103,7 @@ class GeoBuilding( GeoProcessor ):
             return
 
         if not self.HasDistanceField:
-            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Refinement around the building not possible ")
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Refinement around the building not possible. Please compute the distance field from the hull.")
             return
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess( self.ModelPart )
@@ -145,10 +145,14 @@ class GeoBuilding( GeoProcessor ):
 
 
 
-    def SubtractBuilding( self ):
+    def SubtractBuilding( self, min_size, max_size, hausdorff_value ):
 
         if not self.HasModelPart:
             KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Model part has to be set, first.")
+            return
+
+        if not self.HasDistanceField:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Building subtraction not possible. Please compute the distance field from the hull.")
             return
 
         ### moving procedure to another model part
@@ -158,17 +162,17 @@ class GeoBuilding( GeoProcessor ):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         properties_0 = main_model_part.GetProperties()[0]
         properties_1 = main_model_part.GetProperties()[1]
-        main_model_part.CreateSubModelPart("Parts_Fluid")
+        main_model_part.CreateSubModelPart("AuxSubModelPart")
 
+        # Copying the content of the model
         for node in self.ModelPart.Nodes:
             n = main_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
-            main_model_part.GetSubModelPart("Parts_Fluid").AddNode( n, 0 )
-
+            main_model_part.GetSubModelPart("AuxSubModelPart").AddNode( n, 0 )
         for elem in self.ModelPart.Elements:
             nodes = elem.GetNodes()
             e = main_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
-            main_model_part.GetSubModelPart("Parts_Fluid").AddElement( e, 0 )
-
+            main_model_part.GetSubModelPart("AuxSubModelPart").AddElement( e, 0 )
+        # coping (only!) the distance field
         for node in self.ModelPart.Nodes:
             receiver = main_model_part.GetNode( node.Id )
             receiver.SetSolutionStepValue( KratosMultiphysics.DISTANCE, node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) )
@@ -180,15 +184,12 @@ class GeoBuilding( GeoProcessor ):
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
         local_gradient.Execute()
 
-        # We set to zero the metric
         ZeroVector = KratosMultiphysics.Vector(6)
-        ZeroVector[0] = 1.0; ZeroVector[1] = 1.0; ZeroVector[2] = 1.0
+        ZeroVector[0] = 0.0; ZeroVector[1] = 0.0; ZeroVector[2] = 0.0
         ZeroVector[3] = 0.0; ZeroVector[4] = 0.0; ZeroVector[5] = 0.0
 
         for node in main_model_part.Nodes:
         	node.SetValue(KratosMesh.METRIC_TENSOR_3D, ZeroVector)
-
-        print("CP3")
 
         # We define a metric using the ComputeLevelSetSolMetricProcess
         level_set_param = KratosMultiphysics.Parameters("""
@@ -205,16 +206,14 @@ class GeoBuilding( GeoProcessor ):
         metric_process = KratosMesh.ComputeLevelSetSolMetricProcess3D(main_model_part, KratosMultiphysics.DISTANCE_GRADIENT, level_set_param)
         metric_process.Execute()
 
-        print("CP4")
-
-        # The Huasdorff parameter is an important parameter to decrease the mesh size
+        # The Hausdorff parameter is an important parameter to decrease the mesh size
         remesh_param = KratosMultiphysics.Parameters("""{
             "advanced_parameters": {
                 "deactivate_detect_angle": false,
-                "force_gradation_value": false,
+                "force_gradation_value": true,
                 "force_hausdorff_value": true,
                 "gradation_value": 1.3,
-                "hausdorff_value": 0.3,
+                "hausdorff_value": """ + str( hausdorff_value ) + """,
                 "no_insert_mesh": false,
                 "no_move_mesh": false,
                 "no_surf_mesh": false,
@@ -230,8 +229,8 @@ class GeoBuilding( GeoProcessor ):
             "force_sizes": {
                 "force_max": true,
                 "force_min": true,
-                "maximal_size": 0.5,
-                "minimal_size": 0.1
+                "maximal_size": """ + str(max_size) + """,
+                "minimal_size": """ + str(min_size) + """
             },
             "framework": "Eulerian",
             "initialize_entities": true,
@@ -263,17 +262,36 @@ class GeoBuilding( GeoProcessor ):
         MmgProcess = KratosMesh.MmgProcess3D(main_model_part, remesh_param)
         MmgProcess.Execute()
 
-        self._test_output_dist( main_model_part, "Terrain_new_ISOmesh_final1" )
-
         for node in main_model_part.Nodes:
-            node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, 0.0 )
+            node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, 1.0 )
         for cond in main_model_part.Conditions:
             nodes = cond.GetNodes()
             for node in nodes:
                 if ( node in main_model_part.Nodes ):
-                    node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, 1.0 )
+                    node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, -1.0e-7 )
 
-        self._test_output_dist( main_model_part, "Terrain_new_ISOmesh_final2" )
+        self.ModelPart.Nodes.clear()
+        self.ModelPart.Conditions.clear()
+        self.ModelPart.Elements.clear()
+        self.ModelPart.CreateSubModelPart("Parts_Fluid")
+        self.ModelPart.CreateSubModelPart("Complete_Boundary")
+
+        # Copying the content of the model
+        for node in main_model_part.Nodes:
+            n = self.ModelPart.CreateNewNode( node.Id, node.X, node.Y, node.Z )
+            self.ModelPart.GetSubModelPart("Parts_Fluid").AddNode( n, 0 )
+        for elem in main_model_part.Elements:
+            nodes = elem.GetNodes()
+            e = self.ModelPart.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
+            self.ModelPart.GetSubModelPart("Parts_Fluid").AddElement( e, 0 )
+        for cond in main_model_part.Conditions:
+            nodes = cond.GetNodes()
+            c = self.ModelPart.CreateNewCondition("Condition3D3N", cond.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id], properties_0)
+            self.ModelPart.GetSubModelPart("Complete_Boundary").AddCondition( c, 0 )
+            for node in c.GetNodes():
+                self.ModelPart.GetSubModelPart("Complete_Boundary").AddNode( node, 0 )
+
+
 
 ### --- auxiliary functions --- ### -------------------------------------
 
@@ -285,39 +303,12 @@ class GeoBuilding( GeoProcessor ):
         self.building_hull_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
 
-    def _test_output_dist( self, model_part, name ):
-
-        from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(model_part,
-                                    name,
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE","DISTANCE_GRADIENT"],
-                                                "nodal_nonhistorical_results": [],
-                                                "nodal_flags_results": []
-                                            }
-                                        }
-                                        """)
-                                    )
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
-
-
     def _set_variational_distance_process_serial(self, complete_model, aux_name):
         # Construct the variational distance calculation process
         serial_settings = KratosMultiphysics.Parameters("""
             {
                 "linear_solver_settings"   : {
-                    "solver_type" : "AMGCL"
+                    "solver_type" : "amgcl"
                 }
             }
         """)
@@ -340,59 +331,3 @@ class GeoBuilding( GeoProcessor ):
         		aux_name )
 
         return variational_distance_process
-
-
-    def _clear_superfluous_nodes( self, main_model_part ):
-
-        current_model = main_model_part.GetModel()
-
-        if current_model.HasModelPart( "NewModelPart" ):
-            # clear the existing model part
-            new_model_part = current_model.GetModelPart( "NewModelPart" )
-            new_model_part.Elements.clear()
-            new_model_part.Conditions.clear()
-            new_model_part.Nodes.clear()
-
-        else:
-            new_model_part = current_model.CreateModelPart("NewModelPart")
-            new_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-            new_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-
-        prop = new_model_part.Properties[0]
-
-        # finding only nodes that belong to an element
-        required_node_list = []
-        for elem in main_model_part.Elements:
-            nodes = elem.GetNodes()
-            required_node_list.extend( [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id] )
-
-        # avoiding redundancies
-        required_node_list = list( set( required_node_list ) )
-
-        for n_id in required_node_list:
-            node = main_model_part.GetNode( n_id )
-            n = new_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
-
-        for elem in main_model_part.Elements:
-            nodes = elem.GetNodes()
-            e = new_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], prop)
-
-        for cond in main_model_part.Conditions:
-            nodes = cond.GetNodes()
-            c = new_model_part.CreateNewCondition("Condition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id] ,prop)
-
-        # clearing the original model part
-        main_model_part.Elements.clear()
-        main_model_part.Conditions.clear()
-        main_model_part.Nodes.clear()
-
-        for node in new_model_part.Nodes:
-            n = main_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
-
-        for elem in new_model_part.Elements:
-            nodes = elem.GetNodes()
-            e = main_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], prop)
-
-        for cond in new_model_part.Conditions:
-            nodes = cond.GetNodes()
-            c = main_model_part.CreateNewCondition("Condition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id] ,prop)

@@ -302,7 +302,7 @@ class GeoMesher( GeoProcessor ):
         serial_settings = KratosMultiphysics.Parameters("""
             {
                 "linear_solver_settings"   : {
-                    "solver_type" : "AMGCL"
+                    "solver_type" : "amgcl"
                 }
             }
         """)

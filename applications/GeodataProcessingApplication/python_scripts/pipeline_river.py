@@ -31,11 +31,10 @@ tool2.RefineMeshNearGround( 7.0 )
 # 2nd iteration
 tool2.ComputeDistanceFieldFromGround()
 tool2.RefineMeshNearGround( 5.0 )
-
+# Ready
 tool2.CreateGidControlOutput( "out_of_pipeline_1" )
 tool2.CleanIsolatedNodes()
 tool2.ShowModelPartQuality()
-
 model_part = tool2.GetGeoModelPart()
 
 ### BUILDING MESHING ### ------------------------------------------
@@ -48,14 +47,19 @@ tool3.ImportBuildingHullMDPA( "/data/toy_house_skin" )
 tool3.ComputeDistanceFieldFromHull()
 tool3.RefineMeshNearBuilding( 0.2 )
 # 2nd iteration
-tool3.ComputeDistanceFieldFromHull()
-tool3.RefineMeshNearBuilding( 0.05 )
-
+# tool3.ComputeDistanceFieldFromHull()
+# tool3.RefineMeshNearBuilding( 0.05 )
+# 3rd iteration
+# tool3.ComputeDistanceFieldFromHull()
+# tool3.RefineMeshNearBuilding( 0.03 )
+# Ready
 tool3.ShowModelPartQuality()
-
 tool3.ComputeDistanceFieldFromHull()
-tool3.SubtractBuilding()
+tool3.SubtractBuilding( 0.1, 0.5, 0.1)
 
 tool3.CreateGidControlOutput( "out_of_pipeline_2" )
+model_part = tool3.GetGeoModelPart()
+
+print( model_part )
 
 print( "CP - final" )
