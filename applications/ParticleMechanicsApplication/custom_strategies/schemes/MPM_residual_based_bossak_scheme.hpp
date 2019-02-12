@@ -437,15 +437,11 @@ public:
                 double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
                 array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
                 array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY);
-                array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION);
 
                 nodal_displacement.clear();
                 nodal_pressure = 0.0;
                 nodal_velocity.clear();
                 nodal_acceleration.clear();
-                delta_nodal_velocity.clear();
-                delta_nodal_acceleration.clear();
             }
 		}
 
@@ -468,14 +464,10 @@ public:
                 {
                     array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & nodal_inertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    array_1d<double, 3 > & delta_nodal_velocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
 
                     double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
                     nodal_momentum.clear();
                     nodal_inertia.clear();
-                    delta_nodal_velocity.clear();
-                    delta_nodal_acceleration.clear();
 
                     nodal_mass = 0.0;
 
@@ -504,9 +496,6 @@ public:
 
                 if (nodal_mass > 1.0e-16 )
                 {
-                    array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
-
                     const array_1d<double, 3 > & nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     const array_1d<double, 3 > & nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
@@ -522,8 +511,8 @@ public:
                         delta_nodal_pressure = nodal_mpressure/nodal_mass;
                     }
 
-                    delta_nodal_velocity = nodal_momentum/nodal_mass;
-                    delta_nodal_acceleration = nodal_inertia/nodal_mass;
+                    array_1d<double, 3 > delta_nodal_velocity = nodal_momentum/nodal_mass;
+                    array_1d<double, 3 > delta_nodal_acceleration = nodal_inertia/nodal_mass;
 
                     nodal_velocity += delta_nodal_velocity;
                     nodal_acceleration += delta_nodal_acceleration;

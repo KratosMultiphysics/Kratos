@@ -57,7 +57,7 @@ public:
 
     /// Default constructor.
     Process() : Flags() {}
-    Process(Flags options) : Flags( options ) {}
+    explicit Process(Flags options) : Flags( options ) {}
 
     /// Destructor.
     ~Process() override {}
