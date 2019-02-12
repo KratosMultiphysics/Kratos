@@ -819,7 +819,7 @@ class LinearJ2Plasticity(LinearElastic):
         self.poisson_ratio = 0.3
         self.yield_stress = 5.5
         self.isotropic_hardening_modulus = 0.12924
-        self.infinity_hardening_modulus = 0.0
+        self.infinity_hardening_modulus = 5.5
         self.hardening_exponent = 1.0
 
     def create_properties(self, model_part):
