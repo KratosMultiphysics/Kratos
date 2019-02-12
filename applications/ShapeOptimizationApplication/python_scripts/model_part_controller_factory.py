@@ -43,7 +43,7 @@ class ModelPartController:
                 "solver_settings" : { },
                 "boundary_conditions_process_list" : []
             },
-            "shell_thickness_adaption": true
+            "shell_thickness_adaption": false
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
