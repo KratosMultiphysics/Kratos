@@ -184,7 +184,7 @@ class StatisticalVariable(object):
     '''
     function initializing variables of the Statistical Variable class given number of levels
     '''
-    def InitializeStatisticalVariableVariables(self,number_levels):
+    def InitializeLists(self,number_levels):
         self.values = [[] for _ in range (number_levels)]
         self.mean = [[] for _ in range (number_levels)]
         self.moment_2 = [[] for _ in range (number_levels)]
