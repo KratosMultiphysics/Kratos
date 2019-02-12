@@ -240,13 +240,14 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 			
-		double m_f_01cc, m_f_ct, m_f_02cc, m_E, m_nu, m_Gf;
+		double m_uniaxial_compressive_strength, m_tensile_strength, m_biaxial_compressive_strength, m_E, m_nu, m_Gf;
 		
 		Matrix m_D0;
 		
 		Vector m_elastic_strain;
 		Vector m_plastic_strain;
 		
+		// rate intensity of plastic strain
 		double m_beta;
 
 		// material property which accounts for the increase of compressive strength due to biaxial compression
@@ -258,19 +259,21 @@ namespace Kratos
 		int usedEquivalentEffectiveStressDefinition;
 
 		/** @brief damage variables
-		 * @ m_d_n...negative damage variable
-		 * m_d_p...positive damage variable
-		 * m_r_0n...initial negative damage threshold
-		 * m_r_0p...initial positive damage threshold
-		 * m_r_n...current negative damage threshold
-		 * m_r_p...current positive damage threshold
-		 * m_r_n1...updated negative damage threshold
-		 * m_r_p1...updated positive damage threshold
-		 * m_A_n...compression parameter A
-		 * m_B_n...compression parameter B
-		 * m_A_p...tension parameter A
+		 * @ m_damage_compression...negative damage variable
+		 * m_damage_tension...positive damage variable
+		 * m_initial_damage_threshold_compression...initial negative damage threshold
+		 * m_initial_damage_threshold_tension...initial positive damage threshold
+		 * m_damage_threshold_compression...current negative damage threshold
+		 * m_damage_threshold_tension...current positive damage threshold
+		 * m_damage_threshold_compression1...updated negative damage threshold
+		 * m_damage_threshold_tension1...updated positive damage threshold
+		 * m_compression_parameter_A...compression parameter A
+		 * m_compression_parameter_B...compression parameter B
+		 * m_tension_parameter_A...tension parameter A
 		 */
-		double m_d_n, m_d_p, m_r_0n, m_r_0p, m_r_n, m_r_p, m_r_n1, m_r_p1, m_A_n, m_B_n, m_A_p;
+		double m_damage_compression, m_damage_tension, m_initial_damage_threshold_compression, m_initial_damage_threshold_tension, 
+		m_damage_threshold_compression, m_damage_threshold_tension, m_damage_threshold_compression1, m_damage_threshold_tension1, 
+		m_compression_parameter_A, m_compression_parameter_B, m_tension_parameter_A;
 
 		// @brief shear retention factor
 		double m_SRF12, m_SRF13, m_SRF23;
@@ -322,20 +325,20 @@ namespace Kratos
 
 		void ComputeTau(
 			const Vector& rStressEigenvalues,
-			double& rtau_n,
-			double& rtau_p);
+			double& rEquEffStressCompression,
+			double& rEquEffStressTension);
 
 		void DamageCriterion(
-			const double& rtau_n,
-			const double& rtau_p,
+			const double& rEquEffStressCompression,
+			const double& rEquEffStressTension,
 			const double& rtolerance);
 
-		/** @brief method computes the negative damage variable m_d_n
+		/** @brief method computes the negative damage variable m_damage_compression
 		 * @param rd_n...dummy for damage variable
 		 */
 		void ComputeDamageCompression();
 
-		/** @brief method computes the positive damage variable m_d_p
+		/** @brief method computes the positive damage variable m_damage_tension
 		 * @param rd_p...dummy for damage variable
 		 */
 		void ComputeDamageTension();
