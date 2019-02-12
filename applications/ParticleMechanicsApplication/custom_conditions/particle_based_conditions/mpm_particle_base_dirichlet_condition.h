@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED )
+#define      KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -45,36 +45,66 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMBaseLoadCondition
+class MPMParticleBaseDirichletCondition
     : public Condition
 {
+
+protected:
+
+    /**
+     * Parameters to be used in the Conditions as they are. Direct interface to Parameters Struct
+     */
+
+    struct GeneralVariables
+    {
+    public:
+
+        // For axisymmetric use only
+        double  CurrentRadius;
+        double  ReferenceRadius;
+
+        // General variables for large displacement use
+        double  detF0;
+        double  detF;
+        double  detFT;
+        Vector  N;
+        Matrix  F0;
+        Matrix  F;
+        Matrix  FT;
+        Matrix  DN_DX;
+        Matrix  DN_De;
+
+        // Variables including all integration points
+        Matrix  CurrentDisp;
+    };
+
 public:
 
     ///@name Type Definitions
     typedef std::size_t SizeType;
     ///@{
 
-    // Counted pointer of MPMBaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMBaseLoadCondition );
+    // Counted pointer of MPMParticleBaseDirichletCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    MPMBaseLoadCondition()
+    MPMParticleBaseDirichletCondition()
     {};
 
     // Constructor using an array of nodes
-    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
-    ~MPMBaseLoadCondition() override
+    ~MPMParticleBaseDirichletCondition() override
     {};
 
     ///@}
@@ -85,6 +115,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -181,20 +223,6 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
-      * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(const VectorType& rRHS,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -279,16 +307,20 @@ protected:
         );
 
     /**
-     * This functions computes the integration weight to consider
-     * @param IntegrationPoints: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
-     * @param detJ: The determinant of the jacobian of the element
+     * This functions returns the integration weight to consider, which is the MPC_Area
      */
-    virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
-        const double detJ
-        );
+    virtual double GetIntegrationWeight();
+
+    /**
+     * Calculate Shape Function Values in a given point
+     */
+
+    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
+
+    /**
+     * Calculation of the Current Displacement
+     */
+    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access
@@ -347,7 +379,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class MPMBaseLoadCondition.
+}; // class MPMParticleBaseDirichletCondition.
 
 ///@}
 ///@name Type Definitions
@@ -360,4 +392,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED  defined
