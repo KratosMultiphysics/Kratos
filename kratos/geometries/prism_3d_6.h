@@ -217,7 +217,7 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    Prism3D6( const PointsArrayType& ThisPoints )
+    explicit Prism3D6( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
@@ -249,7 +249,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Prism3D6( Prism3D6<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Prism3D6( Prism3D6<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -333,17 +333,6 @@ public:
 
     //     return p_clone;
     // }
-
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 6)
-           rResult.resize( 6, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
-        return rResult;
-    }
-
 
     /**
      * Informations
@@ -435,7 +424,7 @@ public:
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
 
     /**

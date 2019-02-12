@@ -32,7 +32,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : "levelset_convection_process_mesh"
+                "input_filename" : \"""" + GetFilePath("levelset_convection_process_mesh") + """\"
             }
         } """
 
@@ -40,8 +40,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
         # Remove the .time file
-        if (my_pid == 0):
-            KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh.time")
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh.time")
 
         # Remove the Metis partitioning files
         KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh_" + str(my_pid) + ".time")
@@ -80,7 +79,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
         # Set the Trilinos linear solver and Epetra communicator
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "AmesosSolver" }""")
+            KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }""")
         )
 
         epetra_comm = TrilinosApplication.CreateCommunicator()
@@ -117,7 +116,7 @@ class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
             "echo_level" : 0,
             "model_import_settings" : {
                 "input_type" : "mdpa",
-                "input_filename" : "levelset_convection_process_mesh",
+                "input_filename" : \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : true
             }
         } """

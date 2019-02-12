@@ -46,7 +46,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
             "linear_solver_settings"       : {
-                "solver_type"                        : "MultiLevelSolver",
+                "solver_type"                        : "multi_level",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-8,
                 "max_levels"                         : 3,

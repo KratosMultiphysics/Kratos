@@ -60,6 +60,9 @@ void ConstitutiveLawUtilities<6>::CalculateI2Invariant(
             -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
     const BoundedVectorType& rStressVector,
@@ -92,7 +95,7 @@ void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
     double& rI3
     )
 {
-    KRATOS_ERROR << "I3 invariant not available in 2D!" << std::endl;
+    rI3 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -171,9 +174,12 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 template<>
 void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
-    rFirstVector = ZeroVector(6);
-    for (IndexType i = 0; i < Dimension; ++i)
-        rFirstVector[i] = 1.0;
+    rFirstVector[0] = 1.0;
+    rFirstVector[1] = 1.0;
+    rFirstVector[2] = 1.0;
+    rFirstVector[3] = 0.0;
+    rFirstVector[4] = 0.0;
+    rFirstVector[5] = 0.0;
 }
 
 /***********************************************************************************/
@@ -182,9 +188,9 @@ void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirst
 template<>
 void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
-    rFirstVector = ZeroVector(3);
-	rFirstVector[0] = 1.0;
-	rFirstVector[1] = 1.0;
+    rFirstVector[0] = 1.0;
+    rFirstVector[1] = 1.0;
+    rFirstVector[2] = 0.0;
 }
 
 /***********************************************************************************/
@@ -197,8 +203,6 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
 
     if (twosqrtJ2 > tolerance) {
@@ -224,8 +228,6 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 3)
-        rSecondVector.resize(3);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
     for (IndexType i = 0; i < 3; ++i) {
         rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
@@ -243,9 +245,6 @@ void ConstitutiveLawUtilities<6>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector.resize(6);
-
     const double J2thirds = J2 / 3.0;
 
     rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
@@ -266,9 +265,6 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 3)
-        rThirdVector = ZeroVector(3);
-
     const double J2thirds = J2 / 3.0;
 
     rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
@@ -560,9 +556,6 @@ void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
     const BoundedVectorType& rStressVector
     )
 {
-    if (rPrincipalStressVector.size() != Dimension)
-            rPrincipalStressVector.resize(Dimension);
-
     rPrincipalStressVector[0] = 0.5 * (rStressVector[0] + rStressVector[1]) + 
         std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2)  +
         std::pow(rStressVector[2], 2));

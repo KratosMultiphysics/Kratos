@@ -1,14 +1,4 @@
 {
-    "problem_data"             : {
-        "problem_name"    : "structure",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
-        "echo_level"      : 1
-    },
     "optimization_settings" : {
         "model_settings" : {
             "domain_size"           : 3,
@@ -34,8 +24,7 @@
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-6,
-                "traced_eigenfrequencies": [2],
-                "consider_discretization": false
+                "traced_eigenfrequencies": [2]
             },
             "project_gradient_on_surface_normals" : true
         }],

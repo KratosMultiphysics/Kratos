@@ -91,7 +91,7 @@ public:
 
     typedef Quaternion<double> QuaternionType;
 
-    typedef std::vector<Element*> ElementPointerVectorType;
+    typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
 
     /*@} */
     /**@name Life Cycle
@@ -530,7 +530,7 @@ public:
 
 	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
 
-	ElementPointerVectorType& rE = pNode->GetValue(NEIGHBOR_ELEMENTS);
+	ElementWeakPtrVectorType& nElements = pNode->GetValue(NEIGHBOUR_ELEMENTS);
 
 	//std::cout<<" node ("<<(pNode)->Id()<<"): "<<rE.size()<<std::endl;
 
@@ -541,14 +541,14 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-	for(ElementPointerVectorType::iterator ie = rE.begin(); ie!=rE.end(); ++ie)
-	  {
-            //calculate elemental contribution
-            pScheme->CalculateSystemContributions(Element::Pointer( *(ie.base()) ), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
+	for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+        {
+          //calculate elemental contribution
+          pScheme->CalculateSystemContributions(*i_nelem.base(), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(Element::Pointer( *(ie.base()) ));
-	  }
+          // clean local elemental memory
+          pScheme->CleanMemory(*i_nelem.base());
+        }
 
 
 

@@ -85,7 +85,7 @@ namespace Kratos
         // Calling base class register to register Kratos components
         KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
-                        << "              _ |  \\ |  _ |_   _| |/   | | | ___|\n"
+                        << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
                         << "           |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____|MECHANICS\n"
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
@@ -129,7 +129,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
-        KRATOS_REGISTER_VARIABLE( AUX_MP_PRESSURE )
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
@@ -145,32 +144,17 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE_RESIDUAL )
         KRATOS_REGISTER_VARIABLE( SHAPE_FUNCTION_BETA )
 
-
-        // Nodal DOFs
-        KRATOS_REGISTER_VARIABLE( AUX_R )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
-
         // Registering condition variables
         // Nodal load variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
 
-        // Condition load variables
-        KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
-        KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)
-        KRATOS_REGISTER_VARIABLE(SURFACE_LOADS_VECTOR)
-
         // Registering MP element variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_COORD )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_VELOCITY )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_ACCELERATION )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
         KRATOS_REGISTER_VARIABLE( MP_CAUCHY_STRESS_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )

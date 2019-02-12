@@ -397,26 +397,18 @@ public:
         array_1d<double,3> MP_Displacement = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
         array_1d<double,3> MP_Acceleration = ZeroVector(3);
-        array_1d<double,3> Aux_MP_Velocity = ZeroVector(3);
-        array_1d<double,3> Aux_MP_Acceleration = ZeroVector(3);
         array_1d<double,3> MP_Volume_Acceleration = ZeroVector(3);
 
         Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
         Vector MP_Almansi_Strain_Vector = ZeroVector(6);
         double MP_Pressure = 0.0;
-        double Aux_MP_Pressure = 0.0;
 
         double MP_Mass;
         double MP_Volume;
 
         // Determine element index
         const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
-        const unsigned int number_nodes = mr_grid_model_part.NumberOfNodes();
-        unsigned int last_element_id;
-        if (number_nodes>number_elements)
-            last_element_id = number_nodes + 1;
-        else
-            last_element_id = number_elements + 1;
+        unsigned int last_element_id = number_elements + 1;
 
         // Loop over the submodelpart of mr_initial_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = mr_initial_model_part.SubModelPartsBegin();
@@ -562,8 +554,6 @@ public:
                         p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
                         p_element->SetValue(MP_VELOCITY, MP_Velocity);
                         p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
-                        p_element->SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
-                        p_element->SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
                         p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
                         p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
                         p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
@@ -571,7 +561,6 @@ public:
                         if(IsMixedFormulation)
                         {
                             p_element->SetValue(MP_PRESSURE, MP_Pressure);
-                            p_element->SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
                         }
 
                         // Add the MP Element to the model part

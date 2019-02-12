@@ -20,6 +20,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/discrete_particle_configure.h"
+#include "custom_strategies/schemes/glued_to_wall_scheme.h"
 
 
 namespace Kratos
@@ -87,10 +88,12 @@ SphericParticle::~SphericParticle(){
         mSymmStressTensor = NULL;
     }
     if (mpTranslationalIntegrationScheme!=NULL) {
-        delete mpTranslationalIntegrationScheme;
+        if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) delete mpTranslationalIntegrationScheme;
+        mpTranslationalIntegrationScheme = NULL;
     }
     if (mpRotationalIntegrationScheme!=NULL) {
         delete mpRotationalIntegrationScheme;
+        mpRotationalIntegrationScheme = NULL;
     }
 }
 
@@ -1281,9 +1284,7 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
     if (wall->GetGeometry().size()>2){
         array_1d<double, 3> normal_to_wall;
 
-    wall->CalculateNormal(normal_to_wall);
-
-    array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
+        wall->CalculateNormal(normal_to_wall);
 
         double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
 
@@ -1533,6 +1534,10 @@ void SphericParticle::ComputeReactions() {
 }
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
+
+    if (this->GetGeometry()[0].SolutionStepsDataHas(IS_STICKY)) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(IS_STICKY) = this->Is(DEMFlags::STICKY);
+    }
 
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
@@ -1940,6 +1945,15 @@ void SphericParticle::Move(const double delta_t, const bool rotation_option, con
     if (rotation_option) {
         GetRotationalIntegrationScheme().Rotate(GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
     }
+}
+
+void SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
+    if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) {
+        delete mpTranslationalIntegrationScheme;
+    }
+    mpTranslationalIntegrationScheme = new GluedToWallScheme(p_wall, this);
+    delete mpRotationalIntegrationScheme;
+    mpRotationalIntegrationScheme = mpTranslationalIntegrationScheme;
 }
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
