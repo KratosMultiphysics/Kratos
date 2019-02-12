@@ -33,18 +33,15 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         model_part = model[params["model_part_name"].GetString()]
 
-        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
-
-        if is_mpi_execution:
-            import KratosMultiphysics.TrilinosApplication
-            from trilinos_restart_utility import TrilinosRestartUtility as Restart
+        if model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
+            from KratosMultiphysics.TrilinosApplication.trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
         else:
-            from restart_utility import RestartUtility as Restart
+            from KratosMultiphysics.restart_utility import RestartUtility
 
-        self.params.AddValue("input_filename", self.params["model_part_name"])
-        self.params.RemoveValue("model_part_name")
+        params.AddValue("input_filename", params["model_part_name"])
+        params.RemoveValue("model_part_name")
 
-        self.restart_utility = Restart(model_part, self.params)
+        self.restart_utility = RestartUtility(model_part, params)
 
     def IsOutputStep(self):
         return self.restart_utility.IsRestartOutputStep()
