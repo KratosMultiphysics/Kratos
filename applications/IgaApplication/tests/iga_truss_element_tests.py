@@ -93,7 +93,7 @@ class IgaTrussElementTests(KratosUnittest.TestCase):
         time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         linear_solver = linear_solver_factory.ConstructSolver(Parameters(
-            r'{"solver_type": "SkylineLUFactorizationSolver"}'))
+            r'{"solver_type": "skyline_lu_factorization"}'))
 
         relative_tolerance = 1e-7
         absolute_tolerance = 1e-7
