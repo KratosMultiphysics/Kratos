@@ -76,7 +76,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.FixParametersInconsistencies()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
-        self.solver_strategy = self.SetSolverStrategy()
+        # self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
@@ -228,36 +228,53 @@ class DEMAnalysisStage(AnalysisStage):
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
-    def SetSolverStrategy(self):
+    # def SetSolverStrategy(self):    # TODO should be deleted as soon as posible. check compatibilities
 
-        # TODO: Ugly fix. Change it. I don't like this to be in the main...
-        # Strategy object
-        if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
-            import sphere_strategy as SolverStrategy
-        elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-            import continuum_sphere_strategy as SolverStrategy
-        elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
-            import thermal_sphere_strategy as SolverStrategy
-        elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
-            import ice_continuum_sphere_strategy as SolverStrategy
-        else:
-            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
+    #     # TODO: Ugly fix. Change it. I don't like this to be in the main...
+    #     # Strategy object
+    #     if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
+    #         import sphere_strategy as SolverStrategy
+    #     elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+    #         import continuum_sphere_strategy as SolverStrategy
+    #     elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
+    #         import thermal_continuum_sphere_strategy as SolverStrategy
+    #     elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
+    #         import thermal_sphere_strategy as SolverStrategy
+    #     elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
+    #         import thermal_continuum_sphere_strategy as SolverStrategy
+    #     elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
+    #         import ice_continuum_sphere_strategy as SolverStrategy
+    #     else:
+    #         self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
 
-        return SolverStrategy
+    #     return SolverStrategy
 
-    def SetSolver(self):
+    def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()
 
     def _CreateSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+        # TODO. maybe SetSolverStrategy should be moved here and change json writing strategy instead of elementType(get rid of awful IF-tree)
+        def SetSolverStrategy():
+            strategy = self.DEM_parameters["strategy_parameters"]["strategy"].GetString()
+            filename = __import__(strategy)
+            ## Alternative option
+            #from importlib import import_module
+            #filename = import_module(str(strategy))
+            return filename
+
+        return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
                                                      self.DEM_parameters,
                                                      self.procedures)
+
+    # def _CreateSolver(self):
+    #     # TODO. should be deleted as soon as json writing is modified to write strategy instead of elementType(get rid of awful IF-tree)
+    #     return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
+    #                                                  self.creator_destructor,
+    #                                                  self.dem_fem_search,
+    #                                                  self.DEM_parameters,
+    #                                                  self.procedures)
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -657,7 +674,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)
 
-    def _GetSolver(self):
+    def _GetSolver(self):    # TODO (why not) use parent GetSolver method instead.
         if not hasattr(self, 'solver'):
             self.solver = self._CreateSolver()
         return self.solver

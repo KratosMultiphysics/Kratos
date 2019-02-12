@@ -40,6 +40,7 @@ def GetDefaultInputParameters():
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
             "strategy_parameters" :{
+                "strategy"                 : "deprecated_key.invalid_strategy",
                 "RemoveBallsInitiallyTouchingWalls": false
             },
             "echo_level"                  : 1,

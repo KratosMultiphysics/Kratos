@@ -1307,6 +1307,23 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 
 	puts $fileid "\"strategy_parameters\" : {"
 
+    # Write dem strategy
+	set ElementType [::wkcf::GetElementType]
+	if {$ElementType eq "SphericPartDEMElement3D" || $ElementType eq "CylinderPartDEMElement2D"} {
+	    set dem_strategy "sphere_strategy"
+	} elseif {$ElementType eq "SphericContPartDEMElement3D" || $ElementType eq "CylinderContPartDEMElement3D"} {
+	    set dem_strategy "continuum_sphere_strategy"
+	} elseif {$ElementType eq "ThermalSphericPartDEMElement3D"} {
+	   set dem_strategy "thermal_sphere_strategy"
+	} elseif {$ElementType eq "ThermalSphericContPartDEMElement3D"} {
+	   set dem_strategy "thermal_continuum_sphere_strategy"
+	} elseif {$ElementType eq "SinteringSphericConPartDEMElement3D"} {
+	   set dem_strategy "thermal_continuum_sphere_strategy"
+	} elseif {$ElementType eq "IceContPartDEMElement3D"} {
+	   set dem_strategy "ice_continuum_sphere_strategy"
+	}
+	puts $fileid "\"strategy\"                   : \"$dem_strategy\","
+
 	# Remove initially indented balls with walls
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInitiallyTouchingWalls"
     set RemoveBallsInitiallyTouchingWallsOption [::xmlutils::setXml $cxpath $cproperty]
@@ -1471,9 +1488,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     }
 
     puts $fileid "\"ElementType\"                      : \"[::wkcf::GetElementType]\","
-    ######################################################################################
-
-    puts $fileid ""
+	puts $fileid ""
 
     # Translational Integration Scheme
     set cxpath "$rootid//c.DEM-SolutionStrategy//i.DEM-TimeTranslationalIntegrationScheme"

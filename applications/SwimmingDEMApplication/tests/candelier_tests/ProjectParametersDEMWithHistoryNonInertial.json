@@ -279,6 +279,11 @@
         "RotationOption"                   : true,
         "CleanIndentationsOption"          : false,
         "RemoveBallsInEmbeddedOption"      : true,
+        "strategy_parameters" : {
+                "strategy"                 : "swimming_sphere_strategy",
+                "RemoveBallsInitiallyTouchingWalls"          : false
+        },
+
 
         "DeltaOption"                      : "Absolute",
         "SearchTolerance"                  : 0.0001,

@@ -100,6 +100,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.ModifyInputParametersForCoherence()
 
+        # self.project_parameters = self.pp.CFD_DEM  # seems not to be necessary
+
         self.SetDispersePhaseAlgorithm()
 
         self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
@@ -142,7 +144,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetDispersePhaseAlgorithm(self):
         import fluid_coupled_DEM_analysis as DEM_analysis
-        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.pp)
+        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 

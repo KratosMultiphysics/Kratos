@@ -31,5 +31,4 @@ if __name__ == "__main__":
         project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = DEMAnalysisStageWithFlush(model, project_parameters)
-    simulation.Run()
+    DEMAnalysisStageWithFlush(model, project_parameters).Run()

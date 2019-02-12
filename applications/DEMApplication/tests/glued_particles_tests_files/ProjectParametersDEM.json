@@ -23,8 +23,10 @@
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : true,
 "strategy_parameters" : {
+    "strategy"                 : "sphere_strategy",
     "RemoveBallsInitiallyTouchingWalls"          : false
 },
+
 "RemoveBallsInEmbeddedOption"      : true,
 
 "DeltaOption"                      : "Absolute",

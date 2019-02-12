@@ -8,12 +8,13 @@ BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
 class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
-    def __init__(self, model, pp):
-        self.pp = pp
-        super(FluidCoupledDEMAnalysisStage, self).__init__(model, pp)
+    def __init__(self, model, project_parameters):
+        self.project_parameters = project_parameters
+        self.DEM_parameters = self.project_parameters['dem_parameters']
+        super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
 
     def LoadParametersFile(self):
-        self.DEM_parameters = self.pp.CFD_DEM['dem_parameters']
+        self.DEM_parameters = self.project_parameters['dem_parameters']
 
     def GetDefaultInputParameters(self):
         import dem_default_input_parameters
@@ -32,15 +33,21 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         return SolverStrategy
 
     def _CreateSolver(self):
-        return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
+
+        def SetSolverStrategy():
+            strategy = self.DEM_parameters["strategy_parameters"]["strategy"].GetString()
+            filename = __import__(strategy)
+            return filename
+
+        return SetSolverStrategy().SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
-                                                     self.pp.CFD_DEM,
+                                                     self.project_parameters,
                                                      self.procedures)
 
     def SelectTranslationalScheme(self):
         translational_scheme = BaseAnalysis.SelectTranslationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
+        translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
         if translational_scheme is None:
             if translational_scheme_name == 'Hybrid_Bashforth':
@@ -54,8 +61,8 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
     def SelectRotationalScheme(self):
         rotational_scheme = BaseAnalysis.SelectRotationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-        rotational_scheme_name = self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString()
+        translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+        rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
 
         if rotational_scheme is None:
             if rotational_scheme_name == 'Direct_Integration':
@@ -79,7 +86,8 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         self.coupling_analysis.ReadDispersePhaseModelParts()
 
     def GetParticleHistoryWatcher(self):
-        watcher_type = self.pp.CFD_DEM["full_particle_history_watcher"].GetString()
+        #watcher_type = self.project_parameters["full_particle_history_watcher"].GetString()
+        watcher_type = 'Empty'
 
         if watcher_type == 'Empty':
             return None
