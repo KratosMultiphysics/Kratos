@@ -193,7 +193,8 @@ class MonteCarlo(object):
         '''pickled_project_parameters : serialization of project parameters Kratos object of the problem'''
         self.pickled_project_parameters = None
         '''construct the pickled model and pickled project parameters of the problem'''
-        self.is_project_parameters_serialized = False
+        self.is_project_parameters_pickled = False
+        self.is_model_pickled = False
         self.SerializeModelParameters()
 
     '''
@@ -258,7 +259,8 @@ class MonteCarlo(object):
         pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2)
         self.pickled_model = pickled_model
         self.pickled_project_parameters = pickled_project_parameters
-        self.is_project_parameters_serialized = True
+        self.is_project_parameters_pickled = True
+        self.is_model_pickled = True
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
 
     '''
