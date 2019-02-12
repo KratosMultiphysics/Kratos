@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as IgaApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 
 def Factory(settings, model):

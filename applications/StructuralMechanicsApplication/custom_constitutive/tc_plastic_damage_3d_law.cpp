@@ -58,41 +58,43 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
-		const double blabla=1;         // (ML)
-    	KRATOS_WATCH(blabla)        // (ML)
-		m_uniaxial_compressive_strength = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
+		// 
+		m_elastic_uniaxial_compressive_strength = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
+		KRATOS_WATCH(m_elastic_uniaxial_compressive_strength)
 		m_tensile_strength = rMaterialProperties[UNIAXIAL_STRESS_TENSION];
-		m_biaxial_compressive_strength = rMaterialProperties[BIAXIAL_STRESS_COMPRESSION];
+		m_elastic_biaxial_compressive_strength = rMaterialProperties[BIAXIAL_STRESS_COMPRESSION];
 		m_E = rMaterialProperties[YOUNG_MODULUS];
 		m_nu = rMaterialProperties[POISSON_RATIO];
 		m_Gf = rMaterialProperties[FRACTURE_ENERGY_TENSION];
 
 		CalculateElasticityMatrix(m_D0);
+		KRATOS_WATCH(m_D0)
 
 		m_elastic_strain = ZeroVector(6);
 		m_plastic_strain = ZeroVector(6);
 		
 		m_beta = 0;			// method so far implemented neglected plastic strain (ML)
 
-		m_K = sqrt(2.0) * (m_biaxial_compressive_strength - m_uniaxial_compressive_strength)/(2 * m_biaxial_compressive_strength - m_uniaxial_compressive_strength);
+		m_K = sqrt(2.0) * (m_elastic_biaxial_compressive_strength - m_elastic_uniaxial_compressive_strength)/(2 * m_elastic_biaxial_compressive_strength - m_elastic_uniaxial_compressive_strength);
 		usedEquivalentEffectiveStressDefinition = 2;
 
 		// D+D- Damage Constitutive laws variables
 		if (usedEquivalentEffectiveStressDefinition == 1)
 			{
-				m_initial_damage_threshold_compression = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_uniaxial_compressive_strength / 3);
+				m_initial_damage_threshold_compression = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_elastic_uniaxial_compressive_strength / 3);
 				m_initial_damage_threshold_tension = sqrt(m_tensile_strength / sqrt(m_E));
 			}
 		else if (usedEquivalentEffectiveStressDefinition == 3)
 			{
-				m_initial_damage_threshold_compression = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_uniaxial_compressive_strength / 3);
+				m_initial_damage_threshold_compression = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_elastic_uniaxial_compressive_strength / 3);
 				m_initial_damage_threshold_tension = sqrt(m_tensile_strength);
 			}
 		else if (usedEquivalentEffectiveStressDefinition == 2)
 			{
-				m_initial_damage_threshold_compression = sqrt(3.0)*(m_K - sqrt(2.0))*m_uniaxial_compressive_strength / 3;
+				m_initial_damage_threshold_compression = sqrt(3.0)*(m_K - sqrt(2.0))*m_elastic_uniaxial_compressive_strength / 3;
 				m_initial_damage_threshold_tension = m_tensile_strength;
 			}
+		KRATOS_WATCH(m_initial_damage_threshold_compression)
 		m_damage_compression = 0.0;
 		m_damage_tension = 0.0;
 		m_damage_threshold_compression = m_initial_damage_threshold_compression;
@@ -102,9 +104,8 @@ namespace Kratos
 		m_compression_parameter_A = rMaterialProperties[COMPRESSION_PARAMETER_A];
 		m_compression_parameter_B = rMaterialProperties[COMPRESSION_PARAMETER_B];
 		/** be aware: area-function generally not perfectly implemented, returns volume for 3D-elements 
-		and is not defined in IGA-Application (ML) */
+		and is not defined in IGA-Application (ML)*/
 		double l_c = rElementGeometry.Area();
-		KRATOS_WATCH(l_c)
 		m_tension_parameter_A = 1 / ((1 - m_beta)*((m_Gf * m_E / (l_c * m_tensile_strength * m_tensile_strength)) - 0.5));
 
 		m_strain_ref = rMaterialProperties[STRAIN_REFERENCE];
@@ -146,34 +147,92 @@ namespace Kratos
 		this->CalculateMaterialResponseInternal(rStrainVector, rStressVector, rConstitutiveLaw);
 	}
 
-/***********************************************************************************/
+	/***********************************************************************************/
+	/***********************************************************************************/
+
+	void TCPlasticDamage3DLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+	{
+		// Small deformation so we can call the Cauchy method
+		InitializeMaterialResponseCauchy(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+
+	void TCPlasticDamage3DLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+	{
+		// Small deformation so we can call the Cauchy method
+		InitializeMaterialResponseCauchy(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+
+	void TCPlasticDamage3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+	{
+		// TODO: Add if necessary
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+
+	void TCPlasticDamage3DLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+	{
+		// Small deformation so we can call the Cauchy method
+		InitializeMaterialResponseCauchy(rValues);
+	}
+
+	/***********************************************************************************/
 	/***********************************************************************************/
 	void TCPlasticDamage3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 	{
-		BaseType::FinalizeMaterialResponsePK1(rValues);
+		FinalizeMaterialResponseCauchy(rValues);
 	}
 
 	/***********************************************************************************/
 	/***********************************************************************************/
 	void TCPlasticDamage3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 	{
-		BaseType::FinalizeMaterialResponsePK2(rValues);
+		FinalizeMaterialResponseCauchy(rValues);
 	}
 
 	/***********************************************************************************/
 	/***********************************************************************************/
 	void TCPlasticDamage3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 	{
-		BaseType::FinalizeMaterialResponseKirchhoff(rValues);
+		FinalizeMaterialResponseCauchy(rValues);
 	}
 
 	/***********************************************************************************/
 	/***********************************************************************************/
 	void TCPlasticDamage3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 	{
-		BaseType::FinalizeMaterialResponseCauchy(rValues);
+		// BaseType::FinalizeMaterialResponseCauchy(rValues);
 	}
 
+	int TCPlasticDamage3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+	{
+		KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+		KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
+
+		KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
+		const double& nu = rMaterialProperties[POISSON_RATIO];
+		const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+		KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
+
+		KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+		KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
+
+		return 0;
+	}
+
+	/** this function could be designed as in "elastic_isotropic_3d.cpp" 
+	with flags checking the respective options whether strain, stress and stiffness matrix 
+	should be computed here or in the element (ML)*/
 	void TCPlasticDamage3DLaw::CalculateMaterialResponseInternal(
 		const Vector& rStrainVector,
 		Vector& rStressVector,
@@ -183,8 +242,7 @@ namespace Kratos
 		{
 			rStressVector.resize(6, false);
 		}
-		const double tolerance = (1.0e-14)* m_uniaxial_compressive_strength;		//move to function "DamageCriterion" if only used once (ML)
-		KRATOS_WATCH(tolerance)
+		const double tolerance = (1.0e-14)* m_elastic_uniaxial_compressive_strength;		//move to function "DamageCriterion" if only used once (ML)
 		// 1.step: elastic stress tensor
 		noalias(rStressVector) = prod(trans(m_D0), (rStrainVector - m_plastic_strain));
 
@@ -392,7 +450,7 @@ namespace Kratos
 				} 
 			else 
 				{
-				thetaQ=std::atan(1)*4/2.0;		//atan(1)*4=Pi -> replace maybe (ML)
+				thetaQ=std::atan(1)*4/2.0;		//atan(1)*4=Pi
 				}
 			double rhoP = m_damage_threshold_tension*m_damage_threshold_compression*sqrt((rEquEffStressCompression*rEquEffStressCompression+rEquEffStressTension*rEquEffStressTension)/((rEquEffStressCompression*m_damage_threshold_tension)*(rEquEffStressCompression*m_damage_threshold_tension)+(rEquEffStressTension*m_damage_threshold_compression)*(rEquEffStressTension*m_damage_threshold_compression)));
 			if (m_damage_threshold_compression >= m_damage_threshold_tension)
@@ -499,7 +557,4 @@ namespace Kratos
 				m_SRF23 = 0.0;
 		}
 	}
-
-	//add formula such as "commitState" in Code from Padua (ML)
-
 } // namespace Kratos
