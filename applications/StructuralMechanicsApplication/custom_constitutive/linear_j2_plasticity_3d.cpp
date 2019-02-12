@@ -325,7 +325,8 @@ void LinearJ2Plasticity3D::CalculateStressResponse(
             Vector yield_function_normal_vector = trial_stress_dev / norm_trial_stress_dev;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential hardening
-                accum_plastic_strain_rate = GetDeltaGamma(norm_trial_stress_dev, r_material_properties, mAccumulatedPlasticStrain);
+                accum_plastic_strain_rate = GetAccumPlasticStrainRate(norm_trial_stress_dev, r_material_properties,
+                                                                      mAccumulatedPlasticStrain);
             }
             else {
                 // Linear hardening
@@ -464,11 +465,11 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
 //************************************************************************************
 //************************************************************************************
 
-double LinearJ2Plasticity3D::GetDeltaGamma(
-    const double NormStressTrial,
-    const Properties &rMaterialProperties,
-    const double AccumulatedPlasticStrainOld
-    )
+double LinearJ2Plasticity3D::GetAccumPlasticStrainRate(
+        const double NormStressTrial,
+        const Properties &rMaterialProperties,
+        const double AccumulatedPlasticStrainOld
+)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];

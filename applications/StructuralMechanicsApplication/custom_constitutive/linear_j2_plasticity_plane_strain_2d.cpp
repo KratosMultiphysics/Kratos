@@ -125,7 +125,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential hardening
-                dgamma = GetDeltaGamma(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
+                dgamma = GetAccumPlasticStrainRate(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
             }
             else {
                 // Linear hardening

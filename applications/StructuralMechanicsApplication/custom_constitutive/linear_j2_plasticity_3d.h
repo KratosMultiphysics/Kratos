@@ -369,7 +369,8 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @return The increment of Gamma computed
      */
-    double GetDeltaGamma(const double NormStressTrial, const Properties &rMaterialProperties, const double);
+    double GetAccumPlasticStrainRate(const double NormStressTrial, const Properties &rMaterialProperties,
+                                     const double AccumulatedPlasticStrainOld);
 
     /**
      * @brief This method gets the saturation hardening parameter
