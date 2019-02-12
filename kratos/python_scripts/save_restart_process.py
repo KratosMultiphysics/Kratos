@@ -43,6 +43,9 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         self.restart_utility = RestartUtility(model_part, params)
 
+        # already create the folder now to avoid problems on slow file-systems
+        self.restart_utility.CreateOutputFolder()
+
     def IsOutputStep(self):
         return self.restart_utility.IsRestartOutputStep()
 
