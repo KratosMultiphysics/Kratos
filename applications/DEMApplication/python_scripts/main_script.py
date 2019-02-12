@@ -694,12 +694,12 @@ class Solution(object):
 
 
     def SolveSingleTemporalLoop(self):
-        self.BeforeSolveOperations(self.time)
+        self._BeforeSolveOperations(self.time)
         self.SolverSolve()
         self.AfterSolveOperations()
 
     def SolveSingleTemporalLoopCustom(self,step):
-        if step==0: self.BeforeSolveOperations(self.time)
+        if step==0: self._BeforeSolveOperations(self.time)
         self.SolverSolveCustom(step)
         if step==3:self.AfterSolveOperations()
 
