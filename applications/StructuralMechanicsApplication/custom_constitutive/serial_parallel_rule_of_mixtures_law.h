@@ -64,7 +64,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     typedef Geometry<NodeType> GeometryType;
 
     /// Definition of the machine precision tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
     /// Counted pointer of SerialParallelRuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION(SerialParallelRuleOfMixturesLaw);
 
@@ -263,11 +263,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         Vector& rFiberStressVector);
 
     void CheckStressEquilibrium(
+        const Vector& rStrainVector,
         const Matrix& rSerialProjector,
         const Vector& rMatrixStressVector,
         const Vector& rFiberStressVector,
         Vector& rStressResidual,
-        bool& rIsConverged);
+        bool& rIsConverged,
+        const Matrix& rConstitutiveTensorMatrixSS,
+        const Matrix& rConstitutiveTensorFiberSS);
     ///@}
     ///@name Access
     ///@{

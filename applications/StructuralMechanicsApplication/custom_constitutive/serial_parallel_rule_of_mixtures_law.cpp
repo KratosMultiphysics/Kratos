@@ -156,10 +156,6 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Matrix parallel_projector, serial_projector;
     this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
-    Vector matrix_stress_vector_serial, fiber_stress_vector_serial;
-    matrix_stress_vector_serial.resize(voigt_size);
-    fiber_stress_vector_serial.resize(voigt_size);
-
     Vector matrix_strain_vector, fiber_strain_vector;
     matrix_strain_vector.resize(voigt_size);
     fiber_strain_vector.resize(voigt_size);
@@ -167,9 +163,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     bool is_converged = false;
     int iteration = 0, max_iterations = 100;
     Vector serial_strain_matrix, parallel_strain_matrix;
-    // Vector serial_strain_fiber, parallel_strain_fiber;
-    Vector matrix_stress_vector, fiber_stress_vector;
-    Vector stress_residual;
+    Vector matrix_stress_vector, fiber_stress_vector, stress_residual;
 	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
 
     while (is_converged == false || iteration >= max_iterations) {
@@ -187,7 +181,9 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, matrix_stress_vector, fiber_stress_vector);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(serial_projector, matrix_stress_vector, fiber_stress_vector, stress_residual, is_converged);
+        this->CheckStressEquilibrium(rStrainVector, serial_projector, matrix_stress_vector, fiber_stress_vector, 
+                                     stress_residual, is_converged, constitutive_tensor_matrix_ss, 
+                                     constitutive_tensor_fiber_ss);
         if (is_converged == true) {
             break;
         } else {
@@ -205,15 +201,37 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
+    const Vector& rStrainVector,
     const Matrix& rSerialProjector,
     const Vector& rMatrixStressVector,
     const Vector& rFiberStressVector,
-    Vector& rStressResidual,
-    bool& rIsConverged
+    Vector& rStressSerialResidual,
+    bool& rIsConverged,
+    const Matrix& rConstitutiveTensorMatrixSS,
+    const Matrix& rConstitutiveTensorFiberSS
 )
 {
-    Vector serial_stress_matrix = prod(trans(rSerialProjector), rMatrixStressVector);
-    Vector serial_stress_fiber  = prod(trans(rSerialProjector), rFiberStressVector);
+    const Vector& r_serial_total_strain  = prod(trans(rSerialProjector), rStrainVector);
+    const Vector& r_serial_stress_matrix = prod(trans(rSerialProjector), rMatrixStressVector);
+    const Vector& r_serial_stress_fiber  = prod(trans(rSerialProjector), rFiberStressVector);
+
+    const double norm_serial_stress_matrix = MathUtils<double>::Norm(r_serial_stress_matrix);
+    const double norm_serial_stress_fiber  = MathUtils<double>::Norm(r_serial_stress_fiber);
+    double ref = std::min(norm_serial_stress_matrix, norm_serial_stress_fiber);
+
+    // Here we compute the tolerance
+    double tolerance;
+    if (ref <= 0.0) {
+        const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, r_serial_total_strain));
+        const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, r_serial_total_strain));
+        ref = std::min(norm_product_matrix, norm_product_fiber);
+    }
+    if (ref < machine_tolerance) ref = 1e-9;
+    tolerance = 1e-4 * ref;
+
+    rStressSerialResidual = r_serial_stress_matrix - r_serial_stress_fiber;
+    const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
+    if (norm_residual < tolerance) rIsConverged = true;
 }
 /***********************************************************************************/
 /***********************************************************************************/
