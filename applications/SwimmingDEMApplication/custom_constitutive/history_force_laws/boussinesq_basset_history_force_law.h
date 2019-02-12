@@ -15,7 +15,14 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(BoussinesqBassetHistoryForceLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
-        BoussinesqBassetHistoryForceLaw(): mDoApplyFaxenCorrections(false){}
+        BoussinesqBassetHistoryForceLaw():
+            mDoApplyFaxenCorrections(false),
+            mBassetForceType(4),
+            mQuadratureOrder(2),
+            mOldDaitchePresentCoefficient(0.0),
+            mOldBassetTerm(ZeroVector(3)){}
+
+        BoussinesqBassetHistoryForceLaw(Parameters& r_parameters);
 
         ~BoussinesqBassetHistoryForceLaw(){}
 

@@ -16,6 +16,8 @@ namespace Kratos {
 
         StokesDragLaw(){}
 
+        StokesDragLaw(Parameters& r_parameters){}
+
         ~StokesDragLaw(){}
 
         DragLaw::Pointer Clone() const override;

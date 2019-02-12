@@ -17,6 +17,8 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         ArchimedesBuoyancyLaw(){}
 
+        ArchimedesBuoyancyLaw(Parameters& r_hydrodynamic_parameters){}
+
         ~ArchimedesBuoyancyLaw(){}
 
         BuoyancyLaw::Pointer Clone() const override;

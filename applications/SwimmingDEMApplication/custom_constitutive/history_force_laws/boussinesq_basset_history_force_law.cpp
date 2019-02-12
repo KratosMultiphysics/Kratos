@@ -11,6 +11,23 @@ namespace Kratos {
         return p_clone;
     }
 
+    BoussinesqBassetHistoryForceLaw::BoussinesqBassetHistoryForceLaw(Parameters& r_parameters)
+    {
+        Parameters default_parameters( R"(
+            {
+                "basset_force_type": 4,
+                "quadrature_order": 2
+            }  )" );
+
+        r_parameters.ValidateAndAssignDefaults(default_parameters);
+
+        mBassetForceType = r_parameters["basset_force_type"].GetInt();
+        mQuadratureOrder = r_parameters["quadrature_order"].GetInt();
+        mOldBassetTerm = ZeroVector(3);
+        mOldDaitchePresentCoefficient = 0.0;
+    }
+
+
     void BoussinesqBassetHistoryForceLaw::Initialize(const ProcessInfo& r_process_info)
     {
         mBassetForceType = r_process_info[BASSET_FORCE_TYPE];
@@ -311,7 +328,6 @@ namespace Kratos {
             }
         }
         present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
-        KRATOS_WATCH(present_coefficient)
         noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY));
         SWIMMING_ADD_SECOND_TO_FIRST(fractional_derivative, fast_fractional_derivative)
     }

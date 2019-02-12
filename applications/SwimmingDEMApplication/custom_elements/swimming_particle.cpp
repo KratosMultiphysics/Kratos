@@ -147,7 +147,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                      mSlipVel,
                                                      basset_force,
                                                      r_current_process_info);
-    ComputeBassetForce(node, basset_force, r_current_process_info);
+    // ComputeBassetForce(node, basset_force, r_current_process_info);
 
     // Adding all forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += drag_force

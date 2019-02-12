@@ -21,6 +21,8 @@ namespace Kratos {
 
         DragLaw(){}
 
+        DragLaw(Parameters& r_parameters){}
+
         ~DragLaw(){}
 
         virtual DragLaw::Pointer Clone() const;

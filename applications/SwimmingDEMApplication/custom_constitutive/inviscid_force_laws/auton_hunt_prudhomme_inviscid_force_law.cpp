@@ -11,6 +11,12 @@ namespace Kratos {
         return p_clone;
     }
 
+    AutonHuntPrudhommeInviscidForceLaw::AutonHuntPrudhommeInviscidForceLaw(Parameters& r_parameters)
+        :mDoApplyFaxenCorrections(false)
+    {
+
+    }
+
     void AutonHuntPrudhommeInviscidForceLaw::Initialize(const ProcessInfo& r_process_info){}
 
     std::string AutonHuntPrudhommeInviscidForceLaw::GetTypeOfLaw() {
