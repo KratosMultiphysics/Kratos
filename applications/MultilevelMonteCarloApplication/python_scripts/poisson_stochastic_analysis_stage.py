@@ -71,7 +71,7 @@ if __name__ == '__main__':
         "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
     }
     """)
-    '''contruct MonteCarlo class'''
+    '''contruct MonteCarlo or MultilevelMonteCarlo class'''
     mc_solver = mc.MonteCarlo(settings_MC_simulation,project_parameters_path,SimulationScenario)
-    '''execute Monte Carlo algorithm'''
+    '''execute algorithm'''
     mc_solver.Run()
