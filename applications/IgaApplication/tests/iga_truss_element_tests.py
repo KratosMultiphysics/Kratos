@@ -54,9 +54,9 @@ class IgaTrussElementTests(KratosUnittest.TestCase):
             for i in range(shapes.NumberOfNonzeroPoles):
                 n_0[i] = shapes(0, i)
 
-            n_1 = Matrix(shapes.NumberOfNonzeroPoles, 1)
+            n_1 = Matrix(1, shapes.NumberOfNonzeroPoles)
             for i in range(shapes.NumberOfNonzeroPoles):
-                n_1[i, 0] = shapes(1, i)
+                n_1[0, i] = shapes(1, i)
 
             element.SetValue(INTEGRATION_WEIGHT, weight)
             element.SetValue(SHAPE_FUNCTION_VALUES, n_0)
