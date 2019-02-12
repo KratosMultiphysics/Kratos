@@ -124,6 +124,14 @@ class RestartUtility(object):
         else:
             control_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
+        if not os.path.isdir(self.__GetFolderPathSave()):
+            err_msg  = 'The directory for saving the restart-files of modelpart "'
+            err_msg += self.model_part_name + '" does not exist!\n'
+            if self.save_restart_files_in_folder:
+                err_msg += 'Something went wrong with the creation of the folder "'
+                err_msg += self.__GetFolderPathSave()+ '"!'
+            raise Exception(err_msg)
+
         file_name = self.__GetFileNameSave(control_label)
 
         # Save the ModelPart
