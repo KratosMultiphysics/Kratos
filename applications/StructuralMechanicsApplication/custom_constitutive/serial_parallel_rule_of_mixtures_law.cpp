@@ -165,8 +165,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     fiber_strain_vector.resize(voigt_size);
 
     bool is_converged = false;
-    int iteration = 0;
-    int max_iterations = 100;
+    int iteration = 0, max_iterations = 100;
     Vector serial_strain_matrix, parallel_strain_matrix;
     // Vector serial_strain_fiber, parallel_strain_fiber;
     Vector matrix_stress_vector, fiber_stress_vector;
@@ -204,18 +203,21 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector original_strain_vector_gp = rValues.GetStrainVector();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
+    ConstitutiveLaw::Parameters values_fiber  = rValues;
+    ConstitutiveLaw::Parameters values_matrix = rValues;
+    
+    Vector& r_strain_fiber = values_fiber.GetStrainVector();
+    Vector& r_strain_matrix = values_matrix.GetStrainVector();
+    r_strain_fiber  = rFiberStrainVector;
+    r_strain_matrix = rMatrixStrainVector;
+
     // Integrate Stress of the matrix
-    r_strain_vector = rMatrixStrainVector;
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
-    rMatrixStressVector = rValues.GetStressVector();
+    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    rMatrixStressVector = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
-    r_strain_vector = rFiberStrainVector;
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
-    rFiberStressVector = rValues.GetStressVector();
-
-    // Return the original value
-    r_strain_vector = original_strain_vector_gp;
+    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    rFiberStressVector = values_fiber.GetStressVector();
 }
 
 /***********************************************************************************/
