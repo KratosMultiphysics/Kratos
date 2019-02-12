@@ -1,23 +1,11 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-try:
-    from KratosMultiphysics.ConvectionDiffusionApplication import *
-    have_convection_diffusion = True
-except ImportError as e:
-    have_convection_diffusion = False
-
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+have_convection_diffusion = KratosUtilities.IsApplicationAvailable("ConvectionDiffusionApplication")
+if have_convection_diffusion:
+    import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
 @UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")
 class VolumeSourceTest(UnitTest.TestCase):
@@ -37,13 +25,8 @@ class VolumeSourceTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
-
-        import os
-        with WorkFolderScope("BuoyancyTest"):
-            try:
-                os.remove(self.input_file+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope("BuoyancyTest", __file__):
+            KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
     def testEulerian(self):
         self.convection_diffusion_solver = "eulerian"
@@ -63,8 +46,7 @@ class VolumeSourceTest(UnitTest.TestCase):
         self.testBuoyancy()
 
     def testBuoyancy(self):
-
-        with WorkFolderScope("BuoyancyTest"):
+        with UnitTest.WorkFolderScope("BuoyancyTest", __file__):
             self.setUpModel()
             self.setUpSolvers()
             self.setUpProblem()
@@ -103,9 +85,9 @@ class VolumeSourceTest(UnitTest.TestCase):
         vms_monolithic_solver.AddVariables(self.model_part)
 
         if self.convection_diffusion_solver == 'bfecc':
-            import bfecc_convection_diffusion_solver as thermal_solver
+            import KratosMultiphysics.ConvectionDiffusionApplication.bfecc_convection_diffusion_solver as thermal_solver
         elif self.convection_diffusion_solver == 'eulerian':
-            import eulerian_convection_diffusion_solver as thermal_solver
+            import KratosMultiphysics.ConvectionDiffusionApplication.eulerian_convection_diffusion_solver as thermal_solver
         else:
             raise Exception("Unsupported convection-diffusion solver option: {0}".format(self.convection_diffusion_solver))
 
