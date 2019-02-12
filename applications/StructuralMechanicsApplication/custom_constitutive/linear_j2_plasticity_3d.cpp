@@ -282,7 +282,7 @@ void LinearJ2Plasticity3D::CalculateStressResponse(
         const double E = r_material_properties[YOUNG_MODULUS];
         const double poisson_ratio = r_material_properties[POISSON_RATIO];
         const double mu = E / (2. + 2. * poisson_ratio);
-        const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
+        const double bulk_modulus = E / (3. * (1. - 2. * poisson_ratio));
         const double sqrt_two_thirds = std::sqrt(2. / 3.); // = 0.8164965809277260
         double trial_yield_function;
 
@@ -292,28 +292,28 @@ void LinearJ2Plasticity3D::CalculateStressResponse(
         Matrix elastic_tensor;
         elastic_tensor.resize(6, 6, false);
         CalculateElasticMatrix(r_material_properties, elastic_tensor);
-        Vector yield_tension(6);
-        noalias(yield_tension) = prod(elastic_tensor, r_strain_vector - mPlasticStrain);
+        Vector trial_stress(6);
+        noalias(trial_stress) = prod(elastic_tensor, r_strain_vector - mPlasticStrain);
 
-        // stress_trial_dev = sigma - 1/3 tr(sigma) * I
-        Vector stress_trial_dev = yield_tension;
-        const double trace = 1. / 3. * (yield_tension(0) + yield_tension(1) + yield_tension(2));
-        stress_trial_dev(0) -= trace;
-        stress_trial_dev(1) -= trace;
-        stress_trial_dev(2) -= trace;
-        const double norm_dev_stress = std::sqrt(stress_trial_dev(0) * stress_trial_dev(0) +
-                                        stress_trial_dev(1) * stress_trial_dev(1) +
-                                        stress_trial_dev(2) * stress_trial_dev(2) +
-                                        2. * stress_trial_dev(3) * stress_trial_dev(3) +
-                                        2. * stress_trial_dev(4) * stress_trial_dev(4) +
-                                        2. * stress_trial_dev(5) * stress_trial_dev(5));
-        trial_yield_function = this->YieldFunction(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
+        // trial_stress_dev = sigma - 1/3 tr(sigma) * I
+        Vector trial_stress_dev = trial_stress;
+        const double trace = 1. / 3. * (trial_stress(0) + trial_stress(1) + trial_stress(2));
+        trial_stress_dev(0) -= trace;
+        trial_stress_dev(1) -= trace;
+        trial_stress_dev(2) -= trace;
+        const double norm_trial_stress_dev = std::sqrt(trial_stress_dev(0) * trial_stress_dev(0) +
+                                        trial_stress_dev(1) * trial_stress_dev(1) +
+                                        trial_stress_dev(2) * trial_stress_dev(2) +
+                                        2. * trial_stress_dev(3) * trial_stress_dev(3) +
+                                        2. * trial_stress_dev(4) * trial_stress_dev(4) +
+                                        2. * trial_stress_dev(5) * trial_stress_dev(5));
+        trial_yield_function = this->YieldFunction(norm_trial_stress_dev, r_material_properties, mAccumulatedPlasticStrain);
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
             mInelasticFlag = false;
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-                r_stress_vector = yield_tension;
+                r_stress_vector = trial_stress;
             }
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
                 r_constitutive_matrix = elastic_tensor;
@@ -321,47 +321,47 @@ void LinearJ2Plasticity3D::CalculateStressResponse(
         } else {
             // INELASTIC
             mInelasticFlag = true;
-            double dgamma = 0;
-            Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
+            double accum_plastic_strain_rate = 0;
+            Vector yield_function_normal_vector = trial_stress_dev / norm_trial_stress_dev;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential hardening
-                dgamma = GetDeltaGamma(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
+                accum_plastic_strain_rate = GetDeltaGamma(norm_trial_stress_dev, r_material_properties, mAccumulatedPlasticStrain);
             }
             else {
                 // Linear hardening
-                dgamma = trial_yield_function /
+                accum_plastic_strain_rate = trial_yield_function /
                         (2. * mu * (1. + (hardening_modulus / (3. * mu))));
             }
             // We update the stress
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
                 r_stress_vector(0) =
-                    volumetric_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
-                    stress_trial_dev(0) - 2. * mu * dgamma * yield_function_normal_vector(0);
+                    bulk_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
+                    trial_stress_dev(0) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(0);
                 r_stress_vector(1) =
-                    volumetric_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
-                    stress_trial_dev(1) - 2. * mu * dgamma * yield_function_normal_vector(1);
+                    bulk_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
+                    trial_stress_dev(1) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(1);
                 r_stress_vector(2) =
-                    volumetric_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
-                    stress_trial_dev(2) - 2. * mu * dgamma * yield_function_normal_vector(2);
+                    bulk_modulus * (r_strain_vector(0) + r_strain_vector(1) + r_strain_vector(2)) +
+                    trial_stress_dev(2) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(2);
                 r_stress_vector(3) =
-                    stress_trial_dev(3) - 2. * mu * dgamma * yield_function_normal_vector(3);
+                    trial_stress_dev(3) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(3);
                 r_stress_vector(4) =
-                    stress_trial_dev(4) - 2. * mu * dgamma * yield_function_normal_vector(4);
+                    trial_stress_dev(4) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(4);
                 r_stress_vector(5) =
-                    stress_trial_dev(5) - 2. * mu * dgamma * yield_function_normal_vector(5);
+                    trial_stress_dev(5) - 2. * mu * accum_plastic_strain_rate * yield_function_normal_vector(5);
             }
 
-            rPlasticStrain(0) += dgamma * yield_function_normal_vector(0);
-            rPlasticStrain(1) += dgamma * yield_function_normal_vector(1);
-            rPlasticStrain(2) += dgamma * yield_function_normal_vector(2);
-            rPlasticStrain(3) += dgamma * yield_function_normal_vector(3) * 2;
-            rPlasticStrain(4) += dgamma * yield_function_normal_vector(4) * 2;
-            rPlasticStrain(5) += dgamma * yield_function_normal_vector(5) * 2;
-            rAccumulatedPlasticStrain += sqrt_two_thirds * dgamma;
+            rPlasticStrain(0) += accum_plastic_strain_rate * yield_function_normal_vector(0);
+            rPlasticStrain(1) += accum_plastic_strain_rate * yield_function_normal_vector(1);
+            rPlasticStrain(2) += accum_plastic_strain_rate * yield_function_normal_vector(2);
+            rPlasticStrain(3) += accum_plastic_strain_rate * yield_function_normal_vector(3) * 2;
+            rPlasticStrain(4) += accum_plastic_strain_rate * yield_function_normal_vector(4) * 2;
+            rPlasticStrain(5) += accum_plastic_strain_rate * yield_function_normal_vector(5) * 2;
+            rAccumulatedPlasticStrain += sqrt_two_thirds * accum_plastic_strain_rate;
 
             // We update the tangent tensor
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-                CalculateTangentMatrix(dgamma, norm_dev_stress, yield_function_normal_vector,
+                CalculateTangentMatrix(accum_plastic_strain_rate, norm_trial_stress_dev, yield_function_normal_vector,
                                        r_material_properties, rAccumulatedPlasticStrain, r_constitutive_matrix);
             }
         }
