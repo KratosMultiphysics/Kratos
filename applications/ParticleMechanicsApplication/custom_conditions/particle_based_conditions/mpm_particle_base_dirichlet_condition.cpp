@@ -20,11 +20,6 @@
 
 namespace Kratos
 {
-void MPMParticleBaseDirichletCondition::Initialize()
-{
-    // TODO: Add something if necessary
-}
-
 //************************************************************************************
 //************************************************************************************
 
@@ -33,8 +28,6 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
-    mFinalizedStep = false;
-
     // Here MPC_DISPLACEMENT is updated in terms of velocity and acceleration is added
     array_1d<double,3>& MPC_Displacement = this->GetValue(MPC_DISPLACEMENT);
     array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
@@ -43,22 +36,6 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
     MPC_Displacement += (MPC_Velocity * delta_time) + (0.5 * MPC_Acceleration * delta_time * delta_time);
     MPC_Velocity += (MPC_Acceleration * delta_time);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMParticleBaseDirichletCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add something if necessary
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add something if necessary
 }
 
 //************************************************************************************
@@ -76,8 +53,6 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
 
     // Set displacement to zero (NOTE: to use incremental displacement, use MPC_VELOCITY)
     displacement.clear();
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
