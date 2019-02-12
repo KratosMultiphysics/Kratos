@@ -169,7 +169,7 @@ namespace  Kratos
         for(int i = 0; i < num_nodes; ++i)
         {
             auto it_node = rNodes.begin() + i;
-            it_node->SetIntermediatePosition(it_node->Coordinates());
+            it_node->SetIntermediatePosition(Point(it_node->Coordinates()));
         }
 
         KRATOS_CATCH("")

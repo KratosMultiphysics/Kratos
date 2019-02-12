@@ -98,6 +98,10 @@ namespace Kratos
          */
         void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces) override;
 
+        BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
+            const ProcessInfo& rCurrentProcessInfo,
+            const bool rSaveInternalVariables) override;
+
     private:
         // boolean for the cable --> does not resist to compression
         bool mIsCompressed;

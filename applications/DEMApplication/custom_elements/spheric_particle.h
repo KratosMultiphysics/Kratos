@@ -59,7 +59,7 @@ array_1d<double, 3 > mVelOld                       = ZeroVector(3);
 array_1d<double, 3 > mDispOld                      = ZeroVector(3);
 array_1d<double, 3 > mDeltaDispOld                 = ZeroVector(3);
 array_1d<double, 3 > mCoordOld                     = ZeroVector(3);
-array_1d<double, 3 > mCoordInitOld                 = ZeroVector(3);
+Point mCoordInitOld;
 array_1d<double, 3 > mForceOld                     = ZeroVector(3);
 array_1d<double, 3 > mPARTICLE_MOMENT              = ZeroVector(3);
 array_1d<double, 3 > mCONTACT_FORCES               = ZeroVector(3);
