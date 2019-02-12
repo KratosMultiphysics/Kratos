@@ -28,8 +28,8 @@ if __name__ == "__main__":
     from KratosMultiphysics import Logger
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
     with open("ProjectParametersDEM.json",'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = DEMAnalysisStageWithFlush(model,parameters)
+    simulation = DEMAnalysisStageWithFlush(model, project_parameters)
     simulation.Run()
