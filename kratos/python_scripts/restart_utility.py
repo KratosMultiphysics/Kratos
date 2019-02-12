@@ -112,17 +112,13 @@ class RestartUtility(object):
         This function saves the restart file. It should be called at the end of a time-step.
         Use "IsRestartOutputStep" to check if a restart file should be written in this time-step
         """
-        if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().Barrier()
-
         if self.restart_control_type_is_time:
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             control_label = self.__GetPrettyTime(time)
         else:
             control_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        self.CreateOutputFolder()
 
         if not os.path.isdir(self.__GetFolderPathSave()):
             err_msg  = 'The directory for saving the restart-files of modelpart "'
@@ -153,6 +149,14 @@ class RestartUtility(object):
             return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
         else:
             return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
+
+    def CreateOutputFolder(self):
+        if self.save_restart_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
+                os.makedirs(folder_path)
+            self.model_part.GetCommunicator().Barrier()
+
 
     #### Protected functions ####
 
