@@ -132,7 +132,7 @@ def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,
 function evaluating the QoI and the cost of simulation, computing the mesh of level current_MLMC_level
 refining recursively from the coarsest mesh
 input:
-        current_MLMC_level        : current Multilevel MOnte Carlo level we are solving
+        current_MLMC_level        : current Multilevel Monte Carlo level we are solving
         pickled_coarse_model      : pickled model
         pickled_coarse_parameters : pickled parameters
         size_meshes               : mesh sizes for all levels
