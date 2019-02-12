@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -37,7 +37,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)

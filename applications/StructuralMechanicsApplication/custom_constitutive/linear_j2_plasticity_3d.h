@@ -50,7 +50,6 @@ namespace Kratos
  * - YOUNG_MODULUS
  * - POISSON_RATIO
  * - YIELD_STRESS
- * - REFERENCE_HARDENING_MODULUS (kinematic hardening modulus)
  * - ISOTROPIC_HARDENING_MODULUS
  * - INFINITY_HARDENING_MODULUS (saturation hardening modulus)
  * - HARDENING_EXPONENT

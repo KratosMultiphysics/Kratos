@@ -139,7 +139,6 @@ def _apply_material_properties(mp, constitutive_law_type = "LinearJ2Plasticity3D
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 9.0)
 
     if constitutive_law_type == "LinearJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)

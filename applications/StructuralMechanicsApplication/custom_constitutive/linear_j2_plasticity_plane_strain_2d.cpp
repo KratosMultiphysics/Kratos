@@ -205,7 +205,6 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaG
                                                              Matrix &rElasticityTensor)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double E = rMaterialProperties[YOUNG_MODULUS];
@@ -213,7 +212,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaG
     const double mu = E / (2. + 2. * poisson_ratio);
     const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
 
-    const double kp_new = (theta * hardening_modulus) +
+    const double kp_new = hardening_modulus +
                     delta_k * (hardening_exponent *
                                std::exp(-hardening_exponent * AccumulatedPlasticStrain));
 
