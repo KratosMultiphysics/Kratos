@@ -571,7 +571,13 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
     double& rValue
     )
 {
-    return rValue;
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else {
+        return rValue;
+    }
 }
 
 /***********************************************************************************/
@@ -582,7 +588,13 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     Vector& rValue
     )
 {
-    return rValue;
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else {
+        return rValue;
+    }
 }
 
 /***********************************************************************************/
@@ -593,7 +605,13 @@ Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
     Matrix& rValue
     )
 {
-    return rValue;
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else {
+        return rValue;
+    }
 }
 
 /***********************************************************************************/
