@@ -42,7 +42,7 @@ class ModelPartController:
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             },
-            "shell_thickness_adaption": true
+            "shell_thickness_adaption": false
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)

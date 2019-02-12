@@ -18,6 +18,7 @@ class ShellThicknessAdaptor():
         self.response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility(self.model_part, dummy_parameters)
         self.initial_mass = None
         self.initial_thickness_dict = {}
+        self.current_thickness_dict = {}
 
     def Initialize(self):
         """ This function relies on already read properties by the analyzer"""
@@ -34,6 +35,7 @@ class ShellThicknessAdaptor():
 
             thickness = prop.GetValue(THICKNESS)
             self.initial_thickness_dict[prop.Id] = thickness
+            self.current_thickness_dict[prop.Id] = thickness
 
         if len(self.initial_thickness_dict) == 0:
             raise RuntimeError("ShellThicknessAdaptor: The model part does not have any THICKNESS property!")
@@ -50,18 +52,18 @@ class ShellThicknessAdaptor():
 
         for prop_id, initial_thickness in self.initial_thickness_dict.items():
 
-            new_thickness = initial_thickness * self.initial_mass/mass
+            current_thickness = self.current_thickness_dict[prop_id]
+            new_thickness = current_thickness * self.initial_mass/mass
+            self.current_thickness_dict[prop_id] = new_thickness
             prop = self.model_part.GetProperties(prop_id, 0)
             prop.SetValue(THICKNESS, new_thickness)
 
             print("> -----------------------------------------")
             print(">  Property {}".format(prop_id))
-            print(">    initial_thickness:", initial_thickness)
+            print(">    initial thickness:", initial_thickness)
+            print(">    current thickness:", current_thickness)
             print(">    new thickness:    ", new_thickness)
 
         print("> -----------------------------------------")
         print(">    new mass:          ", self.response_function_utility.CalculateValue())
         print("> -----------------------------------------\n")
-
-
-
