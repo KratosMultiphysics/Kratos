@@ -13,6 +13,7 @@ class GeoMesher( GeoProcessor ):
     def __init__( self ):
         super(GeoMesher, self).__init__()
 
+        self.HasModelPart = False
         self.HasExtrusionHeight = False
 
     ### --- functions to determine an extrusion height --- ###

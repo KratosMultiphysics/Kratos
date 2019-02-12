@@ -36,6 +36,21 @@ class GeoBuilding( GeoProcessor ):
         self.HasBuildingHull = True
 
 
+    def ShiftBuildingHull( self, dx, dy, dz ):
+
+        if not self.HasModelPart:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Model part has to be set, first.")
+            return
+
+        if not self.HasBuildingHull:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Function SiftBuildingHull requires to import a building hull, first.")
+            return
+
+        for node in self.building_hull_model_part.Nodes:
+            node.X += dx
+            node.Y += dy
+            node.Z += dz
+
 
     def ComputeDistanceFieldFromHull( self, invert_distance_field = False, size_reduction = 0.0 ):
 
