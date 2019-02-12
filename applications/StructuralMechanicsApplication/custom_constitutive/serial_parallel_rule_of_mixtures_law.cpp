@@ -491,8 +491,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
     mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
     mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(rValues);
 
-
-    // Some auxiliar values
+    // Recalculation to obtain the serial_strain_matrix and store de value
     const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
@@ -557,10 +556,6 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
                                                     r_material_properties,
                                                     rValues,
                                                     mPreviousSerialStrainMatrix);
-        Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
-                                     + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
-
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
