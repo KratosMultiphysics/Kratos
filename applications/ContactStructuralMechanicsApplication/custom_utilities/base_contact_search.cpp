@@ -423,7 +423,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
 
             if (type_search == SearchTreeType::KdtreeInRadius) {
                 GeometryType& r_geometry = it_cond->GetGeometry();
-                const Point& r_center = dynamic ? ContactUtilities::GetHalfJumpCenter(r_geometry) : r_geometry.Center(); // NOTE: Center in half delta time or real center
+                const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
 
                 const double search_radius = search_factor * Radius(it_cond->GetGeometry());
 

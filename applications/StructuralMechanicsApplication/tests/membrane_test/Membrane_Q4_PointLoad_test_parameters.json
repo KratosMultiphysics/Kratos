@@ -31,7 +31,7 @@
         "max_iteration"                      : 100,
 		"move_mesh_flag"					 : true,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false,
             "verbosity"   : 0
         },

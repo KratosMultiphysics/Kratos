@@ -95,6 +95,7 @@ public:
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
      */
+
     template <class TGeometryType>
     static int ComputeTriangleLineIntersection(
         const TGeometryType& rTriangleGeometry,
@@ -105,6 +106,7 @@ public:
 
         // This is the adaption of the implemnetation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
+
 
         // Get triangle edge vectors and plane normal
         const array_1d<double,3> u = rTriangleGeometry[1] - rTriangleGeometry[0];
@@ -175,12 +177,14 @@ public:
      * 2 (overlap)
      * 3 (intersect in one endpoint)
      */
+
     template <class TGeometryType>
     static int ComputeLineLineIntersection(
         const TGeometryType& rLineGeometry,
         const array_1d<double,3>& rLinePoint0,
         const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
+
         const double epsilon = 1e-12) {
 
         const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
@@ -309,7 +313,8 @@ private:
      * @param b Second vector
      * @return The 2D cross product value
      */
-    static inline double CrossProd2D(const array_1d<double,3> &a, const array_1d<double,3> &b){
+
+  static inline double CrossProd2D(const array_1d<double,3> &a, const array_1d<double,3> &b){
         return (a(0)*b(1) - a(1)*b(0));
     }
 

@@ -791,97 +791,7 @@ void UpdatedLagrangian::CalculateLocalSystem( std::vector< MatrixType >& rLeftHa
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
-
-////***********************************************************************************
-////***********************************************************************************
-void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
-                                  double& Output,
-                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (rVariable == DENSITY)
-    {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-        GeneralVariables Variables;
-
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
-        const double & MP_Mass = this->GetValue(MP_MASS);
-
-        for (unsigned int i=0; i<number_of_nodes; i++)
-        {
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(AUX_R) += Variables.N[i] * (MP_Mass);
-            rGeom[i].UnSetLock();
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                                  array_1d<double, 3 > & Output,
-                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if(rVariable == VELOCITY)
-    {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-        GeneralVariables Variables;
-
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
-        const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-        const double & MP_Mass = this->GetValue(MP_MASS);
-
-        array_1d<double,3> NodalAuxRVel;
-        for (unsigned int i=0; i<number_of_nodes; i++)
-
-        {
-            for (unsigned int j = 0; j < dimension; j++)
-            {
-                NodalAuxRVel[j] = Variables.N[i] * MP_Mass * MP_Velocity[j];
-            }
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(AUX_R_VEL) += NodalAuxRVel;
-            rGeom[i].UnSetLock();
-        }
-    }
-
-    if(rVariable == ACCELERATION)
-    {
-        GeometryType& rGeom = GetGeometry();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
-        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-        GeneralVariables Variables;
-
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
-        const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-        const double & MP_Mass = this->GetValue(MP_MASS);
-
-        array_1d<double,3> NodalAuxRAcc;
-        for (unsigned int i=0; i<number_of_nodes; i++)
-
-        {
-            for (unsigned int j = 0; j < dimension; j++)
-            {
-                NodalAuxRAcc[j] = Variables.N[i] * MP_Mass * MP_Acceleration[j];
-            }
-            rGeom[i].SetLock();
-            rGeom[i].FastGetSolutionStepValue(AUX_R_ACC) += NodalAuxRAcc;
-            rGeom[i].UnSetLock();
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
+//*******************************************************************************************
 //*******************************************************************************************
 
 
@@ -903,10 +813,10 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
     const double & MP_Mass = this->GetValue(MP_MASS);
 
+    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
+    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
@@ -941,10 +851,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
         rGeom[i].UnSetLock();
 
     }
-
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
-
 }
 
 ////************************************************************************************

@@ -409,6 +409,82 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
+
+
+
+
+
+
+    /** Checks if the min dihedral angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinDihedralAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MIN_DIHEDRAL_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
+    }
+    
+     /** Checks if the max dihedral angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MaxDihedralAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MAX_DIHEDRAL_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
+    }
+
+
+    /** Checks if the min solid angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinSolidAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MIN_SOLID_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
+    }
+
+
+    /** Checks if the dihedral angles are correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AllDihedralAngles, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      Vector dihedral_angles(6);
+      geomTriRect->ComputeDihedralAngles(dihedral_angles); 
+
+      KRATOS_CHECK_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[2],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[3],  0.955316618, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[4],  0.955316618, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
+
+    }
+
+
+    /** Checks if the solid angles are correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AllSolidAngles, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      Vector solid_angles(6);
+      geomTriRect->ComputeSolidAngles(solid_angles); 
+
+      KRATOS_CHECK_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[2],  0.339836909, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
+    }
+
+
     /**
      * This test performs the check of the box intersection method
      */
@@ -427,7 +503,7 @@ namespace Kratos {
       //tetrahedron not intersects the box
       KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
     }
-    
+
     /** Checks the inside test for a given point respect to the tetrahedra
     * Checks the inside test for a given point respect to the tetrahedra
     * It performs 4 tests:
@@ -445,7 +521,7 @@ namespace Kratos {
         Point PointInEdge(0.33, 0.33, 0.33);
 
         Point LocalCoords;
-        
+
         KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
         KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
         KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
@@ -461,7 +537,7 @@ namespace Kratos {
 
         // Compute the global coordinates of the baricentre
         auto points = geom->Points();
-        Point baricentre = points[0] + points[1] + points[2] + points[3];
+        auto baricentre = Point{points[0] + points[1] + points[2] + points[3]};
         baricentre /= 3.0;
 
         // Compute the baricentre local coordinates
@@ -471,7 +547,7 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords(2), 1.0/3.0, TOLERANCE);
-        
+
         Point baricentre_face_1;
         baricentre_face_1.Coordinates()[0] = 0.5;
         baricentre_face_1.Coordinates()[1] = 0.5;
@@ -480,11 +556,11 @@ namespace Kratos {
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords_face_1;
         geom->PointLocalCoordinates(baricentre_local_coords_face_1, baricentre_face_1);
-        
+
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(0), 0.5, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(1), 0.5, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(2), 0.0, TOLERANCE);
-        
+
         Point baricentre_face_2;
         baricentre_face_2.Coordinates()[0] = 0.5;
         baricentre_face_2.Coordinates()[1] = 0.0;
@@ -493,11 +569,11 @@ namespace Kratos {
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords_face_2;
         geom->PointLocalCoordinates(baricentre_local_coords_face_2, baricentre_face_2);
-        
+
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(0), 0.5, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(1), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(2), 0.5, TOLERANCE);
-        
+
         Point baricentre_face_3;
         baricentre_face_3.Coordinates()[0] = 0.0;
         baricentre_face_3.Coordinates()[1] = 0.5;

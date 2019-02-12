@@ -94,7 +94,7 @@ void SmallDisplacementBbar::CalculateAll(
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = (dimension == 3) ? 6 : 4; // necessary include component zz in the computation of kinematic variables
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
@@ -137,10 +137,14 @@ void SmallDisplacementBbar::CalculateAll(
     // compute Hydrostatic B-Matrix
     this->SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(this_kinematic_variables);
 
-    for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ )
-    {
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+
+    // Computing in all integrations points
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
-        const Vector body_force = this->GetBodyForce(integration_points, point_number);
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
@@ -151,7 +155,7 @@ void SmallDisplacementBbar::CalculateAll(
                                        GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
-        double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
                                                               this_kinematic_variables.detJ0);
 
         if ( dimension == 2 && GetProperties().Has( THICKNESS ))
@@ -215,10 +219,10 @@ void SmallDisplacementBbar::CalculateKinematicVariables(
 //************************************************************************************
 
 void SmallDisplacementBbar::CalculateKinematicVariablesBbar(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-)
+    KinematicVariablesBbar& rThisKinematicVariables,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    )
 {
     // Shape functions
     rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(
@@ -440,15 +444,14 @@ void SmallDisplacementBbar::CalculateBbar(
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVariables& rVariables)
+void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVariablesBbar& rVariables)
 {
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
     rVariables.Bh.resize(dimension * number_of_nodes, false);
     noalias(rVariables.Bh) = ZeroVector(dimension * number_of_nodes);
 
@@ -536,7 +539,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
@@ -575,7 +578,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
@@ -652,7 +655,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
@@ -710,7 +713,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
@@ -802,7 +805,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
@@ -847,7 +850,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Read integration points
@@ -886,12 +889,12 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
 //************************************************************************************
 
 void SmallDisplacementBbar::CalculateAndAddResidualVector(
-        VectorType& rRightHandSideVector,
-        const KinematicVariables& rThisKinematicVariables,
-        const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
-        const Vector& rStressVector,
-        const double IntegrationWeight
+    VectorType& rRightHandSideVector,
+    const KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rCurrentProcessInfo,
+    const array_1d<double, 3>& rBodyForce,
+    const Vector& rStressVector,
+    const double IntegrationWeight
     ) const
 {
     KRATOS_TRY
@@ -920,7 +923,7 @@ void SmallDisplacementBbar::FinalizeSolutionStep( ProcessInfo& rCurrentProcessIn
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    KinematicVariablesBbar this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Create constitutive law parameters:
