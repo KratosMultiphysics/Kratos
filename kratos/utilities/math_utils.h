@@ -10,7 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Collaborators:    Vicente Mataix Ferrandiz , pbecker
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -279,19 +279,13 @@ public:
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
             const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
-            const TDataType Tolerance = ZeroTolerance
+            const TDataType MaxCondNumber = (1.0/std::numeric_limits<double>::epsilon()) * 1.0e-4 // we want at least 4 significant digits.
             )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
 
         /* Compute Determinant of the matrix */
         InputMatrixDet = DetMat(InputMatrix);
-
-        if (std::abs(InputMatrixDet) < Tolerance)
-        {
-            KRATOS_WATCH(InputMatrix);
-            KRATOS_ERROR << " Determinant of the matrix is zero or almost zero!!!, InputMatrixDet = " << InputMatrixDet << std::endl;
-        }
 
         if (TDim == 1)
         {
@@ -355,6 +349,28 @@ public:
         else
         {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
+        }
+
+        //Find the condition number to define is inverse is OK
+        double input_matrix_norm = 0.0;
+        double inverted_matrix_norm = 0.0;
+        for(unsigned int i = 0; i < TDim; i++)
+        {
+            for(unsigned int j = 0; j < TDim; j++)
+            {
+                input_matrix_norm += std::pow(InputMatrix(i,j),2);
+                inverted_matrix_norm += std::pow(InvertedMatrix(i,j),2);
+            }
+        }
+        input_matrix_norm = std::sqrt(input_matrix_norm);
+        inverted_matrix_norm = std::sqrt(inverted_matrix_norm);
+        //now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ; 
+        //finally check if the condition number is low enough
+        if (cond_number > MaxCondNumber)
+        {
+            KRATOS_WATCH(InputMatrix);
+            KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
         }
 
         return InvertedMatrix;
