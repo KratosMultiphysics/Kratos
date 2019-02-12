@@ -54,7 +54,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (this->IsNot(MARKER))//(wake == 0) // Normal element (non-wake) - eventually an embedded
+    if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
         CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
@@ -76,14 +76,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (this->IsNot(MARKER))//(wake == 0) // Normal element
+    if (wake == 0) // Normal element
     {
         if (rResult.size() != NumNodes)
             rResult.resize(NumNodes, false);
 
         const int kutta = r_this.GetValue(KUTTA);
 
-        if (this->IsNot(STRUCTURE))// (kutta == 0)
+        if (kutta == 0)
             GetEquationIdVectorNormalElement(rResult);
         else
             GetEquationIdVectorKuttaElement(rResult);
@@ -104,14 +104,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorTyp
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (this->IsNot(MARKER))//(wake == 0) // Normal element
+    if (wake == 0) // Normal element
     {
         if (rElementalDofList.size() != NumNodes)
             rElementalDofList.resize(NumNodes);
 
         const int kutta = r_this.GetValue(KUTTA);
 
-        if (this->IsNot(STRUCTURE))// (kutta == 0)
+        if (kutta == 0)
             GetDofListNormalElement(rElementalDofList);
         else
             GetDofListKuttaElement(rElementalDofList);
@@ -291,7 +291,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKutta
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (GetGeometry()[i].IsNot(STRUCTURE))//(!GetGeometry()[i].GetValue(TRAILING_EDGE))
+        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
             rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -339,7 +339,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(D
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (GetGeometry()[i].IsNot(STRUCTURE))//(!GetGeometry()[i].GetValue(TRAILING_EDGE))
+        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
             rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else
             rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
@@ -496,7 +496,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
         
-        if (GetGeometry()[i].Is(STRUCTURE))//(GetGeometry()[i].GetValue(TRAILING_EDGE))
+        if (GetGeometry()[i].GetValue(TRAILING_EDGE))
         {
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
@@ -607,12 +607,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElem
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
 
-    if (this->IsNot(STRUCTURE))//(kutta == 0)
+    if (kutta == 0)
         for (unsigned int i = 0; i < NumNodes; i++)
             phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
     else
         for (unsigned int i = 0; i < NumNodes; i++)
-            if (GetGeometry()[i].IsNot(STRUCTURE))// (!GetGeometry()[i].GetValue(TRAILING_EDGE))
+            if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
                 phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
                 phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
