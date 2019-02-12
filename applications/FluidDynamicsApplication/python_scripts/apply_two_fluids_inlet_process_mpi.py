@@ -1,8 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-import apply_two_fluids_inlet_process
-import trilinos_linear_solver_factory
+import KratosMultiphysics.FluidDynamicsApplication.apply_two_fluids_inlet_process as apply_two_fluids_inlet_process
+import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as trilinos_linear_solver_factory
 
 
 def Factory(settings, Model):
