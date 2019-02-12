@@ -447,11 +447,20 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
 
-    const double wp_new = 0.5*(theta * hardening_modulus
-                    * std::pow(accumulated_plastic_strain, 2.0)) + delta_k
-                    * (accumulated_plastic_strain - (1/hardening_exponent)
-                    * (1- std::exp(-hardening_exponent * accumulated_plastic_strain)));
-    return wp_new;
+    // perfect plasticity energy value
+    double plastic_free_energy = 0.;
+
+    // linear hardening contribution
+    if (hardening_modulus != 0.){
+        plastic_free_energy += 0.5 *( hardening_modulus * std::pow(accumulated_plastic_strain, 2.0));
+    }
+
+    // exponential hardening contribution
+    if (hardening_exponent != 0.) {
+        plastic_free_energy += delta_k * (accumulated_plastic_strain
+            + (1 / hardening_exponent) * std::exp( -hardening_exponent * accumulated_plastic_strain));
+    }
+    return plastic_free_energy;
 }
 
 //************************************************************************************
