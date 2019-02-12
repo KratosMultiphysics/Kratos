@@ -1,39 +1,16 @@
 import KratosMultiphysics as km
-import KratosMultiphysics.FluidDynamicsApplication as kfd
-have_required_applications = True
-missing_applications_message = ["Missing required application(s):",]
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("ExternalSolversApplication")
 
-try:
-    import KratosMultiphysics.HDF5Application as kh5
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("HDF5Application")
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+hdf5_is_available = kratos_utilities.IsApplicationAvailable("HDF5Application")
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.currentPath)
-
-@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
+@UnitTest.skipUnless(hdf5_is_available, "HDF5Application is not available")
 class AdjointFluidTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -45,7 +22,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         primal_settings_file_name = "cylinder_fluid_parameters.json"
         adjoint_settings_file_name = "cylinder_adjoint_parameters.json"
 
-        with WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(primal_settings_file_name,adjoint_settings_file_name)
 
             kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
