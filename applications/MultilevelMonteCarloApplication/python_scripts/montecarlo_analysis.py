@@ -100,6 +100,20 @@ def EvaluateQuantityOfInterest(simulation):
 
 
 '''
+function called in the main returning a future object (the result class) and an integer (the finer level)
+input:
+        pickled_coarse_model      : pickled model
+        pickled_coarse_parameters : pickled parameters
+output:
+        MonteCarloResults class   : class of the simulation results
+        current_MC_level          : level of the current MLMC simulation
+'''
+def ExecuteMonteCarloAnalysis(pickled_model, pickled_parameters):
+    current_MC_level = 0 # MC has only level 0
+    return (ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters),current_MC_level)
+
+
+'''
 function executing the problem
 input:
         model       : serialization of the model
@@ -119,11 +133,15 @@ def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     current_parameters = KratosMultiphysics.Parameters()
     serialized_parameters.Load("ParametersSerialization",current_parameters)
     del(serialized_parameters)
+    '''initialize the MonteCarloResults class'''
+    current_level = 0 # always 0 for MC
+    mc_results_class = mc.MonteCarloResults(current_level)
     sample = GenerateSample()
     simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
     simulation.Run()
     QoI = EvaluateQuantityOfInterest(simulation)
-    return QoI
+    mc_results_class.QoI[current_level].append(QoI) # saving results in the corresponding list, for MC only list of level 0
+    return mc_results_class
 
 
 '''
@@ -182,7 +200,7 @@ if __name__ == '__main__':
         mc_class.InitializeMCPhase()
         mc_class.ScreeningInfoInitializeMCPhase()
         for instance in range (mc_class.difference_number_samples[0]):
-            mc_class.AddResults(ExecuteMonteCarloAnalysis_Task(pickled_model,pickled_parameters))
+            mc_class.AddResults(ExecuteMonteCarloAnalysis(pickled_model,pickled_parameters))
         mc_class.FinalizeMCPhase()
         mc_class.ScreeningInfoFinalizeMCPhase()
 
