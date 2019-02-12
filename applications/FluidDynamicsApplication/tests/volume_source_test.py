@@ -4,8 +4,6 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 have_convection_diffusion = KratosUtilities.IsApplicationAvailable("ConvectionDiffusionApplication")
-if have_convection_diffusion:
-    import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
 @UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")
 class VolumeSourceTest(UnitTest.TestCase):
