@@ -753,7 +753,7 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mRotationTool.RotateRHS(RHS_Contribution,rCurrentCondition->GetGeometry());
         mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
 
         KRATOS_CATCH( "" )
