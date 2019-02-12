@@ -17,6 +17,17 @@ namespace Kratos {
     void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM_Rankine::Check(Properties::Pointer pProp) const {
+        DEM_KDEM::Check(pProp);
+        if(!pProp->Has(CONTACT_SIGMA_MIN)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONTACT_SIGMA_MIN should be present in the properties when using DEM_KDEM_Rankine. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(CONTACT_SIGMA_MIN) = 0.0;
+        }
     }
 
     void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){

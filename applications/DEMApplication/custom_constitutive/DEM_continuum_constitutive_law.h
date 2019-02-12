@@ -37,6 +37,8 @@ namespace Kratos {
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
 
+        virtual void Check(Properties::Pointer pProp) const;
+
         virtual std::string GetTypeOfLaw();
 
         virtual ~DEMContinuumConstitutiveLaw();

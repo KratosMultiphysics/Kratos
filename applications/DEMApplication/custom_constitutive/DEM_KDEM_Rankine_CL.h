@@ -18,6 +18,7 @@ namespace Kratos {
         }
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM_Rankine() {
         }
