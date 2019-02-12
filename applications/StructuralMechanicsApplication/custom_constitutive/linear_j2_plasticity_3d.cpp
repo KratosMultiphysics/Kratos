@@ -71,7 +71,7 @@ bool LinearJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
 
 bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 {
-    if(rThisVariable == PLASTIC_STRAIN){
+    if(rThisVariable == ACCUMULATED_PLASTIC_STRAIN){
         return true;
     }
     return false;
@@ -86,7 +86,7 @@ void LinearJ2Plasticity3D::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if(rThisVariable == PLASTIC_STRAIN){
+    if(rThisVariable == ACCUMULATED_PLASTIC_STRAIN){
         mAccumulatedPlasticStrain = rValue;
     }
 }
@@ -98,7 +98,7 @@ bool& LinearJ2Plasticity3D::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
-{
+{ //TODO: Eliminate. Use AccumulatedPlasticStrain > 0 instead
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
     }
@@ -114,7 +114,7 @@ double& LinearJ2Plasticity3D::GetValue(
     double& rValue
     )
 {
-    if(rThisVariable == PLASTIC_STRAIN){
+    if(rThisVariable == ACCUMULATED_PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
     }
 
@@ -493,7 +493,9 @@ double LinearJ2Plasticity3D::GetDeltaGamma(
         accumulated_plastic_strain = AccumulatedPlasticStrainOld + sqrt_two_thirds * dgamma;
         norm_yieldfunction = std::abs(yieldfunction);
     }
-    // TODO(@marandra): handle the case when no convergence is achieved.
+    // TODO(@marandra): handle the case when no convergence is achieved:
+    // limit the number of iterations and throw a warning/error
+
     return dgamma;
 }
 
