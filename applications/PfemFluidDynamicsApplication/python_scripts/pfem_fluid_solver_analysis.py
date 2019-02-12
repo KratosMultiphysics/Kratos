@@ -3,28 +3,24 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+from python_solver import PythonSolver
 
-def CreateSolver(model, project_parameters):
-    return PfemFluidSolver(model, project_parameters)
 
-class PfemFluidSolver:
+def CreateSolver(model, parameters):
+    return PfemFluidSolver(model, parameters)
 
-    def __init__(self, model, project_parameters):
+class PfemFluidSolver(PythonSolver):
+
+    def __init__(self, model, parameters):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = model
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "echo_level": 1,
             "buffer_size": 3,
-            "solver_type": "pfem_fluid_solver",
-             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
+            "solver_type": "pfem_fluid_solver_analysis",
             "dofs"                : [],
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
@@ -67,32 +63,62 @@ class PfemFluidSolver:
                "rayleigh_alpha": 0.0,
                "rayleigh_beta" : 0.0
             },
-            "bodies_list": [
-                {"body_name":"body1",
-                "parts_list":["Part1"]
-                },
-                {"body_name":"body2",
-                "parts_list":["Part2","Part3"]
-                }
-            ],
-            "problem_domain_sub_model_part_list": ["fluid_model_part"],
-            "processes_sub_model_part_list": [""]
+        "bodies_list": [],
+        "problem_domain_sub_model_part_list": [],
+        "processes_sub_model_part_list": [],
+        "constraints_process_list": [],
+        "loads_process_list"       : [],
+        "output_process_list"      : [],
+        "output_configuration"     : {},
+        "problem_data"             : {},
+        "problem_process_list"     : [],
+        "solver_settings"          : {
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "input_file_label": 0
+            }
+        },
+        "time_stepping"            : {},
+        "processes"                : {},
+        "output_processes"         : {}
         }
         """)
 
         ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
+        self.settings = parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import linear_solver_factory
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
+        import python_linear_solver_factory
+        self.pressure_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["solver_settings"]["pressure_linear_solver_settings"])
+        self.velocity_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["solver_settings"]["velocity_linear_solver_settings"])
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
-
         print("Construction of 2-step Pfem Fluid Solver finished.")
+        super(PfemFluidSolver, self).__init__(model, parameters)
 
+        model_part_name = self.settings["problem_data"]["model_part_name"].GetString()
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
+
+    def PrepareModelPart(self):
+
+        super(PfemFluidSolver, self).PrepareModelPart()
+
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.parameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.ProjectParameters["problem_data"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.ProjectParameters["problem_data"]["start_time"].GetDouble())
+        if( self.parameters["problem_data"].Has("gravity_vector") ):
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, self.ProjectParameters["problem_data"]["gravity_vector"][0].GetDouble())
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, self.ProjectParameters["problem_data"]["gravity_vector"][1].GetDouble())
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, self.ProjectParameters["problem_data"]["gravity_vector"][2].GetDouble())
 
     def GetMinimumBufferSize(self):
         return 2;
@@ -101,9 +127,10 @@ class PfemFluidSolver:
 
         print("::[Pfem Fluid Solver]:: -START-")
 
+        print(self.main_model_part.SetBufferSize(self.settings["buffer_size"].GetInt()))
+
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
-
 
         self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
                                                               self.velocity_linear_solver,
@@ -137,6 +164,7 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 
@@ -207,11 +235,11 @@ class PfemFluidSolver:
 
         self.computing_model_part_name = "fluid_computing_domain"
 
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if(self.settings["solver_settings"]["model_import_settings"]["input_type"].GetString() == "mdpa"):
 
             print("    Importing input model part...")
 
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.ModelPartIO(self.settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
 
 
@@ -227,10 +255,6 @@ class PfemFluidSolver:
             import pfem_check_and_prepare_model_process_fluid
             pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
-            # Set Properties to nodes : Deprecated
-            #self.SetProperties()
-
-             # Set buffer size
             self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
 
             current_buffer_size = self.main_model_part.GetBufferSize()
@@ -253,6 +277,8 @@ class PfemFluidSolver:
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
+            # Set Properties to nodes : Deprecated
+            #self.SetProperties()
 
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
 
@@ -283,6 +309,15 @@ class PfemFluidSolver:
 
         print ("::[Pfem Fluid Solver]:: Model reading finished.")
 
+    def _ComputeDeltaTime(self):
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
+        # User-defined delta time
+        else:
+            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return delta_time
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
@@ -298,6 +333,15 @@ class PfemFluidSolver:
 
     # solve :: sequencial calls
 
+    def AdvanceInTime(self, current_time):
+        dt = self._ComputeDeltaTime()
+        new_time = current_time + dt
+
+        self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        return new_time
+
     def InitializeStrategy(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -306,18 +350,20 @@ class PfemFluidSolver:
 
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            self.fluid_solver.InitializeSolutionStep()
 
-        #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        #adaptive_time_interval.Execute()
+        adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        adaptive_time_interval.Execute()
 
-        pass
+        #pass
         #unactive_peak_elements = False
         #unactive_sliver_elements = False
         #set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         #set_active_flag.Execute()
 
-        #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        #split_elements.ExecuteInitialize()
+        split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        split_elements.ExecuteInitialize()
 
     def Predict(self):
         pass
@@ -354,7 +400,9 @@ class PfemFluidSolver:
     def Check(self):
         self.fluid_solver.Check()
 #
-
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step (step 0, read from input)
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
 #   Extra methods:: custom AFranci...
 #
     def SetProperties(self):

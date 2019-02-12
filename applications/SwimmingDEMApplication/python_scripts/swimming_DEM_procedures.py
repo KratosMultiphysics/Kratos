@@ -237,7 +237,8 @@ class IOTools:
                                     "VELOCITY": VELOCITY,
                                     "BUOYANCY": BUOYANCY,
                                     "DRAG_FORCE": DRAG_FORCE,
-                                    "MU": MU}
+                                    "MU": MU,
+                                    "LIFT_FORCE": LIFT_FORCE}
 
             for node in model_part.Nodes:
                 Results_value = node.GetSolutionStepValue(variables_dictionary[variablename])

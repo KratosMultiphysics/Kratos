@@ -19,7 +19,7 @@ import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
 import embedded
 import variables_management as vars_man
-
+import define_output
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
@@ -203,7 +203,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Add("store_fluid_pressure_option").SetBool(False)
         Add("laplacian_calculation_type").SetInt(0)
         Add("faxen_terms_type").SetInt(0)
-        Add("material_acceleration_calculation_type").SetInt(1)
+        Add("material_acceleration_calculation_type").SetInt(8)
         Add("faxen_force_type").SetInt(0)
         Add("vorticity_calculation_type").SetInt(5)
         Add("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
@@ -661,6 +661,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _Print(self):
         os.chdir(self.post_path)
+
+        self.drag_list = define_output.DefineDragList()
+        self.drag_file_output_list = []
 
         if self.particles_results_counter.Tick():
             self.io_tools.PrintParticlesResults(

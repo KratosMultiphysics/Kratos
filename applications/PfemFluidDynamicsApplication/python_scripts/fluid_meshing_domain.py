@@ -223,7 +223,7 @@ class FluidMeshingDomain(object):
         self.MeshingParameters.Initialize()
 
         self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
-
+        print(self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString()))
         if(self.active_remeshing):
 
             self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())

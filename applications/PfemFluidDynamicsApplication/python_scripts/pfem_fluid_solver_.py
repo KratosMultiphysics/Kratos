@@ -3,93 +3,28 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+from python_solver import PythonSolver
 
-def CreateSolver(model, project_parameters):
-    return PfemFluidSolver(model, project_parameters)
+def CreateSolver(model, custom_settings):
+    return PFEMFluidSolverAnalysis(model, custom_settings)
 
-class PfemFluidSolver:
+class PFEMFluidSolverAnalysis(PythonSolver):
 
-    def __init__(self, model, project_parameters):
-
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = model
+    def __init__(self, model, custom_settings):
 
         ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "echo_level": 1,
-            "buffer_size": 3,
-            "solver_type": "pfem_fluid_solver",
-             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
-            "dofs"                : [],
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "clear_storage": false,
-            "component_wise": false,
-            "move_mesh_flag": true,
-            "predictor_corrector": true,
-            "time_order": 2,
-            "maximum_velocity_iterations": 1,
-            "maximum_pressure_iterations": 7,
-            "velocity_tolerance": 1e-5,
-            "pressure_tolerance": 1e-5,
-            "pressure_linear_solver_settings":  {
-                "solver_type"                    : "AMGCL",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "provide_coordinates"            : false,
-                "scaling"                        : false,
-                "smoother_type"                  : "damped_jacobi",
-                "krylov_type"                    : "cg",
-                "coarsening_type"                : "aggregation",
-                "verbosity"                      : 0
-            },
-            "velocity_linear_solver_settings": {
-                "solver_type"                    : "BICGSTABSolver",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "preconditioner_type"            : "None",
-                "scaling"                        : false
-            },
-            "solving_strategy_settings":{
-               "time_step_prediction_level": 0,
-               "max_delta_time": 1.0e-5,
-               "fraction_delta_time": 0.9,
-               "rayleigh_damping": false,
-               "rayleigh_alpha": 0.0,
-               "rayleigh_beta" : 0.0
-            },
-            "bodies_list": [
-                {"body_name":"body1",
-                "parts_list":["Part1"]
-                },
-                {"body_name":"body2",
-                "parts_list":["Part2","Part3"]
-                }
-            ],
-            "problem_domain_sub_model_part_list": ["fluid_model_part"],
-            "processes_sub_model_part_list": [""]
-        }
-        """)
+        settings = self._ValidateSettings(custom_settings)
 
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        super(PFEMFluidSolverAnalysis,self).__init__(model, settings)
 
         #construct the linear solver
-        import linear_solver_factory
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
+        import python_linear_solver_factory
+        self.pressure_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
+        self.velocity_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
+
+
 
         print("Construction of 2-step Pfem Fluid Solver finished.")
 
@@ -354,7 +289,75 @@ class PfemFluidSolver:
     def Check(self):
         self.fluid_solver.Check()
 #
+    def _ValidateSettings(self, settings):
 
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "echo_level": 1,
+            "buffer_size": 3,
+            "solver_type": "pfem_fluid_solver",
+             "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "input_file_label": 0
+            },
+            "dofs"                : [],
+            "stabilization_factor": 1.0,
+            "reform_dofs_at_each_step": false,
+            "line_search": false,
+            "compute_reactions": true,
+            "compute_contact_forces": false,
+            "block_builder": false,
+            "clear_storage": false,
+            "component_wise": false,
+            "move_mesh_flag": true,
+            "predictor_corrector": true,
+            "time_order": 2,
+            "maximum_velocity_iterations": 1,
+            "maximum_pressure_iterations": 7,
+            "velocity_tolerance": 1e-5,
+            "pressure_tolerance": 1e-5,
+            "pressure_linear_solver_settings":  {
+                "solver_type"                    : "AMGCL",
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "provide_coordinates"            : false,
+                "scaling"                        : false,
+                "smoother_type"                  : "damped_jacobi",
+                "krylov_type"                    : "cg",
+                "coarsening_type"                : "aggregation",
+                "verbosity"                      : 0
+            },
+            "velocity_linear_solver_settings": {
+                "solver_type"                    : "BICGSTABSolver",
+                "max_iteration"                  : 5000,
+                "tolerance"                      : 1e-9,
+                "preconditioner_type"            : "None",
+                "scaling"                        : false
+            },
+            "solving_strategy_settings":{
+               "time_step_prediction_level": 0,
+               "max_delta_time": 1.0e-5,
+               "fraction_delta_time": 0.9,
+               "rayleigh_damping": false,
+               "rayleigh_alpha": 0.0,
+               "rayleigh_beta" : 0.0
+            },
+            "bodies_list": [
+                {"body_name":"body1",
+                "parts_list":["Part1"]
+                },
+                {"body_name":"body2",
+                "parts_list":["Part2","Part3"]
+                }
+            ],
+            "problem_domain_sub_model_part_list": ["fluid_model_part"],
+            "processes_sub_model_part_list": [""]
+        }
+        """)
+
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 #   Extra methods:: custom AFranci...
 #
     def SetProperties(self):
