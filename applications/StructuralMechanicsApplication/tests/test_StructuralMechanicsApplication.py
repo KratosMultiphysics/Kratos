@@ -349,6 +349,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
 
     if has_external_solvers_application:
+        import KratosMultiphysics.ExternalSolversApplication
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
             # Eigenvalues tests
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
