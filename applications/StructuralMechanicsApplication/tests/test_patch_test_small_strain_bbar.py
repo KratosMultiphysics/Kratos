@@ -45,9 +45,9 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         if(dim == 2):
-            cl = StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
+            cl = StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+            cl = StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):

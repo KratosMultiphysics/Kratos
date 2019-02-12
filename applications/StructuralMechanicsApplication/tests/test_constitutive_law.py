@@ -272,14 +272,14 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
     def test_J2_Plasticity_3D(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
-        deformation_test = DeformationLinearJ2Plasticity3D()
+        deformation_test = DeformationSmallStrainJ2Plasticity3D()
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_J2_Plasticity_Plane_Strain_2D(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
-        deformation_test = DeformationLinearJ2PlasticityPlaneStrain2D()
+        deformation_test = DeformationSmallStrainJ2PlasticityPlaneStrain2D()
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
@@ -567,7 +567,7 @@ class ShearPlusStrechLinearElastic3D(ShearPlusStrechDeformation):
         self.reference_stress[5] = -c1 * x1beta
         return self.reference_stress
 
-class DeformationLinearJ2Plasticity(Deformation):
+class DeformationSmallStrainJ2Plasticity(Deformation):
     def __init__(self):
         Deformation.__init__(self)
         self.nr_timesteps = 10
@@ -576,10 +576,10 @@ class DeformationLinearJ2Plasticity(Deformation):
         self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
         cl_params.SetStrainVector(self.strain)
 
-class DeformationLinearJ2Plasticity3D(DeformationLinearJ2Plasticity):
+class DeformationSmallStrainJ2Plasticity3D(DeformationSmallStrainJ2Plasticity):
     def __init__(self):
-        DeformationLinearJ2Plasticity.__init__(self)
-        self.cl = LinearJ2Plasticity3D()
+        DeformationSmallStrainJ2Plasticity.__init__(self)
+        self.cl = SmallStrainJ2Plasticity3D()
 
     def initialize_reference_stress(self, strain_size):
         self.initial_strain = KratosMultiphysics.Vector(strain_size)
@@ -608,10 +608,10 @@ class DeformationLinearJ2Plasticity3D(DeformationLinearJ2Plasticity):
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
-class DeformationLinearJ2PlasticityPlaneStrain2D(DeformationLinearJ2Plasticity):
+class DeformationSmallStrainJ2PlasticityPlaneStrain2D(DeformationSmallStrainJ2Plasticity):
     def __init__(self):
-        DeformationLinearJ2Plasticity.__init__(self)
-        self.cl = LinearJ2PlasticityPlaneStrain2D()
+        DeformationSmallStrainJ2Plasticity.__init__(self)
+        self.cl = SmallStrainJ2PlasticityPlaneStrain2D()
 
     def initialize_reference_stress(self, strain_size):
         self.initial_strain = KratosMultiphysics.Vector(strain_size)
@@ -813,7 +813,7 @@ class ElasticPlaneStressUncoupledShear2D(LinearElasticPlaneStress2D):
     def create_constitutive_Law():
         return StructuralMechanicsApplication.ElasticPlaneStressUncoupledShear2DLaw()
 
-class LinearJ2Plasticity(LinearElastic):
+class SmallStrainJ2Plasticity(LinearElastic):
     def __init__(self):
         self.young_modulus = 21000
         self.poisson_ratio = 0.3
@@ -830,23 +830,23 @@ class LinearJ2Plasticity(LinearElastic):
         properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, self.hardening_exponent)
         return properties
 
-class LinearJ2Plasticity3D(LinearJ2Plasticity):
+class SmallStrainJ2Plasticity3D(SmallStrainJ2Plasticity):
     def __init__(self):
-        LinearJ2Plasticity.__init__(self)
+        SmallStrainJ2Plasticity.__init__(self)
         self.dim = 3
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+        return StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
 
-class LinearJ2PlasticityPlaneStrain2D(LinearJ2Plasticity):
+class SmallStrainJ2PlasticityPlaneStrain2D(SmallStrainJ2Plasticity):
     def __init__(self):
-        LinearJ2Plasticity.__init__(self)
+        SmallStrainJ2Plasticity.__init__(self)
         self.dim = 2
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
+        return StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
 
 class LinearIsotropicDamage(LinearElastic):
     def __init__(self):

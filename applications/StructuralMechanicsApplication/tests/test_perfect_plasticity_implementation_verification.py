@@ -81,8 +81,8 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
 
-    def test_PerfectPlasticityLinearJ2Plasticity3DLaw(self):
-        self._base_test("LinearJ2Plasticity3DLaw")
+    def test_PerfectPlasticitySmallStrainJ2Plasticity3DLaw(self):
+        self._base_test("SmallStrainJ2Plasticity3DLaw")
 
     def test_PerfectPlasticityPlasticityIsotropicKinematicJ2Law(self):
         self._base_test("PlasticityIsotropicKinematicJ2Law")
@@ -132,13 +132,13 @@ def _apply_fix(mp):
     for node in mp.Nodes:
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
-def _apply_material_properties(mp, constitutive_law_type = "LinearJ2Plasticity3DLaw"):
+def _apply_material_properties(mp, constitutive_law_type = "SmallStrainJ2Plasticity3DLaw"):
     # Define properties
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 2.0e11)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 9.0)
 
-    if constitutive_law_type == "LinearJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
+    if constitutive_law_type == "SmallStrainJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.0)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 9.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
