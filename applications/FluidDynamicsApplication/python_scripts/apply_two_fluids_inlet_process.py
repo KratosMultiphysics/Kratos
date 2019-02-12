@@ -107,9 +107,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.variational_distance_process = self.set_variational_distance_process()
         self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
-
-
-        import assign_vector_by_direction_process
+        import KratosMultiphsics.assign_vector_by_direction_process as assign_vector_by_direction_process
 
         if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
             self.aux_process_fluid_1 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_1_settings"])
@@ -136,11 +134,11 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         serial_settings = KratosMultiphysics.Parameters("""
         {
             "linear_solver_settings"   : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "amgcl"
             }
         }
         """)
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
 
         if self.complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
