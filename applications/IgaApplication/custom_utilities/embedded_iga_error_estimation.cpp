@@ -30,12 +30,12 @@ namespace Kratos
             for (unsigned int gp_i = 0; gp_i < gp_canonical_tri.size(); ++gp_i)
             {
                 rGP_uv[tri_i](gp_i,0) =  mTriangles[tri_i](0,0) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) + 
-                                        mTriangles[tri_i](1,0) * gp_canonical_tri[gp_i][0] + 
-                                        mTriangles[tri_i](2,0) * gp_canonical_tri[gp_i][1];
+                                         mTriangles[tri_i](1,0) * gp_canonical_tri[gp_i][0] + 
+                                         mTriangles[tri_i](2,0) * gp_canonical_tri[gp_i][1];
 
                 rGP_uv[tri_i](gp_i,1) =  mTriangles[tri_i](0,1) * (1 - gp_canonical_tri[gp_i][0] - gp_canonical_tri[gp_i][1]) + 
-                                        mTriangles[tri_i](1,1) * gp_canonical_tri[gp_i][0] + 
-                                        mTriangles[tri_i](2,1) * gp_canonical_tri[gp_i][1]; 
+                                         mTriangles[tri_i](1,1) * gp_canonical_tri[gp_i][0] + 
+                                         mTriangles[tri_i](2,1) * gp_canonical_tri[gp_i][1]; 
             }
         }
     }

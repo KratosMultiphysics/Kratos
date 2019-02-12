@@ -169,7 +169,7 @@ namespace Kratos
         {
             for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
             {
-                auto geometry_surface = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface(); 
+                const auto geometry_surface = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface(); 
 
                 for (unsigned int tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i)
                 {    
@@ -254,6 +254,34 @@ namespace Kratos
         }
         return coords; 
     }
+    
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPoints_uv()
+    {
+        std::vector<Matrix> triangulation_uv;
+        TriangulateCurveOnSurface(triangulation_uv); 
+
+        EmbeddedIgaErrorEstimation error_estimator(triangulation_uv); 
+        std::vector<Matrix> gp_uv;
+        error_estimator.InsertGaussPoints(gp_uv);
+
+        const auto number_triangles = gp_uv.size(); 
+        const auto number_gp = gp_uv[0].size1(); 
+        
+        std::vector<std::vector<double>> gp_coords_uv(
+            number_triangles * number_gp, std::vector<double>(2,0));
+
+        unsigned int index = 0; 
+        for (unsigned int i = 0; i < number_triangles; ++i) 
+        {
+            for (unsigned int j = 0; j < number_gp; ++j)
+            {
+                gp_coords_uv[index][0] = gp_uv[i](j,0); 
+                gp_coords_uv[index][1] = gp_uv[i](j,1); 
+                index += 1; 
+            }
+        }       
+        return gp_coords_uv; 
+    }
 
 
     // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParameterCurveTessellationPoints()
@@ -271,29 +299,6 @@ namespace Kratos
     //     return coords;
     // }
 
-    
-    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPoints()
-    {
-        std::vector<Matrix> triangulation_uv;
-        TriangulateCurveOnSurface(triangulation_uv); 
-
-        EmbeddedIgaErrorEstimation error_estimator(triangulation_uv); 
-        std::vector<Matrix> gp_uv;
-        error_estimator.InsertGaussPoints(gp_uv);
-
-        KRATOS_WATCH(gp_uv.size())
-        
-        KRATOS_WATCH(gp_uv[0].size1())
-        KRATOS_WATCH(gp_uv[0].size2())
-
-        std::vector<std::vector<double>> gp_coords;
-        
-        // for (unsigned int i = 0; i < gp_pos.size(); ++i)
-        // {
-        //     for (unsigned int j = 0; j < 2; ++j)    gp_coords[i][j] = gp_pos[i][j];
-        // }
-        return gp_coords; 
-    }
 
     // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedGaussPoints()
     // {
