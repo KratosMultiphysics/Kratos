@@ -586,9 +586,68 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    )
+{
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 {
-    return true;
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /***********************************************************************************/
@@ -686,9 +745,15 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
     return(rValue);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
@@ -707,5 +772,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Pa
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
     }
 }
-
+/***********************************************************************************/
+/***********************************************************************************/
 } // namespace Kratos

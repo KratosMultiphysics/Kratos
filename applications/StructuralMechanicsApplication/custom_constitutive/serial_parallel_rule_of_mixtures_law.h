@@ -21,6 +21,8 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+
 
 namespace Kratos
 {
@@ -45,9 +47,9 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegrator
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief This CL implements the serial-parallel rule of mixtures developed by F.Rastellini 
  * @details
- * @author Alejandro Cornejo&  Lucia Barbu
+ * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesLaw
     : public ConstitutiveLaw
@@ -67,6 +69,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
     /// Counted pointer of SerialParallelRuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION(SerialParallelRuleOfMixturesLaw);
+
+    /// Definition of the base class
+    typedef typename ElasticIsotropic3D BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -203,10 +208,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
-
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
+    bool Has(const Variable<bool>& rThisVariable) override;
     bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<Matrix>& rThisVariable) override;
 
     double& CalculateValue(
         Parameters& rParameterValues,
