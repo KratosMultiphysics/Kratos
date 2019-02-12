@@ -127,73 +127,6 @@ def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
 
 
 '''
-function executing the problem for sample = 1.0
-input:
-        model       : serialization of the model
-        parameters  : serialization of the Project Parameters
-output:
-        ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
-OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
-'''
-@ExaquteTask(returns=1)
-def ExecuteExactMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
-    '''overwrite the old model serializer with the unpickled one'''
-    model_serializer = pickle.loads(pickled_model)
-    current_model = KratosMultiphysics.Model()
-    model_serializer.Load("ModelSerialization",current_model)
-    del(model_serializer)
-    '''overwrite the old parameters serializer with the unpickled one'''
-    serialized_parameters = pickle.loads(pickled_parameters)
-    current_parameters = KratosMultiphysics.Parameters()
-    serialized_parameters.Load("ParametersSerialization",current_parameters)
-    del(serialized_parameters)
-    sample = 1.0
-    simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
-    simulation.Run()
-    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
-    return ExactExpectedValueQoI
-
-
-'''
-function executing the refinement of the problem
-input:
-        pickled_model_coarse : serialization of the model with coarser model part
-        pickled_parameters   : serialization of the Project Parameters
-        min_size             : minimum size of the refined model part
-        max_size             : maximum size of the refined mesh
-output:
-        QoI                   : Quantity of Interest
-        pickled_model_refined : serialization of the model with refined model part
-'''
-@ExaquteTask(returns=2)
-def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
-    sample = GenerateSample()
-    '''overwrite the old model serializer with the unpickled one'''
-    model_serializer_coarse = pickle.loads(pickled_model_coarse)
-    model_coarse = KratosMultiphysics.Model()
-    model_serializer_coarse.Load("ModelSerialization",model_coarse)
-    del(model_serializer_coarse)
-    '''overwrite the old parameters serializer with the unpickled one'''
-    serialized_parameters = pickle.loads(pickled_parameters)
-    parameters_refinement = KratosMultiphysics.Parameters()
-    serialized_parameters.Load("ParametersSerialization",parameters_refinement)
-    del(serialized_parameters)
-    simulation_coarse = MonteCarloAnalysis(model_coarse,parameters_refinement,sample)
-    simulation_coarse.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation_coarse)
-    '''refine'''
-    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)
-    '''initialize'''
-    simulation = MonteCarloAnalysis(model_refined,parameters_refinement,sample)
-    simulation.Initialize()
-    '''serialize model and pickle it'''
-    serialized_model = KratosMultiphysics.StreamSerializer()
-    serialized_model.Save("ModelSerialization",simulation.model)
-    pickled_model_refined = pickle.dumps(serialized_model, 2)
-    return QoI,pickled_model_refined
-
-
-'''
 function serializing and pickling the model and the parameters of the problem
 the idea is the following:
 i)   from Model/Parameters Kratos object to StreamSerializer Kratos object
@@ -227,28 +160,12 @@ def SerializeModelParameters_Task(parameter_file_name):
     return pickled_model,pickled_parameters
 
 
-'''
-function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
-input :
-        AveragedMeanQoI       : Multilevel Monte Carlo expected value
-        ExactExpectedValueQoI : exact expected value
-output :
-        relative_error        : relative error
-'''
-@ExaquteTask(returns=1)
-def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
-    relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
-    return relative_error
-
-
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
     parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
-    '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactMonteCarloAnalysis_Task(pickled_model,pickled_parameters)
     '''customize setting parameters of the ML simulation'''
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
@@ -270,10 +187,7 @@ if __name__ == '__main__':
         mc_class.ScreeningInfoFinalizeMCPhase()
 
     mc_class.QoI.mean = get_value_from_remote(mc_class.QoI.mean)
-    ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
-    print("\nMC mean = ",mc_class.QoI.mean,"exact mean = ",ExactExpectedValueQoI)
-    relative_error = (mc_class.QoI.mean[0]-ExactExpectedValueQoI)/ExactExpectedValueQoI
-    print("relative error = ",relative_error)
+    print("\nMC mean = ",mc_class.QoI.mean)
 
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
