@@ -64,7 +64,7 @@ class MonteCarloAnalysis(AnalysisStage):
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
-            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
+            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents the below commented analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
 
