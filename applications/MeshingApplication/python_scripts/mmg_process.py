@@ -71,6 +71,13 @@ class MmgProcess(KratosMultiphysics.Process):
                 "perform_nodal_h_averaging"           : false,
                 "max_iterations"                      : 3
             },
+            "discretization_type"                  : "Standard",
+            "isosurface_parameters"                :
+            {
+                "isosurface_variable"              : "DISTANCE",
+                "nonhistorical_variable"           : false,
+                "remove_regions"                   : false
+            },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
             {
@@ -265,6 +272,8 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters = KratosMultiphysics.Parameters("""{"force_sizes":{}}""")
         mmg_parameters.AddValue("filename",self.settings["filename"])
         mmg_parameters.AddValue("framework",self.settings["framework"])
+        mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
+        mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
@@ -272,7 +281,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
         mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
-        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
+        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["minimal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
         mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])

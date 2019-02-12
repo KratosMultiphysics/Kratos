@@ -41,6 +41,10 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
+    // Setting MODIFIED flag
+    const bool using_average_nodal_normal = mThisParameters["using_average_nodal_normal"].GetBool();
+    this->Set(MODIFIED, !using_average_nodal_normal);
+
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
@@ -68,6 +72,10 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // Setting MODIFIED flag
+    const bool using_average_nodal_normal = mThisParameters["using_average_nodal_normal"].GetBool();
+    this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -318,7 +326,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
-                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                const PointType local_point_decomp{integration_points_slave[point_number].Coordinates()};
                 PointType local_point_parent;
                 PointType gp_global;
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -332,7 +340,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
                 /// MASTER CONDITION ///
                 PointType projected_gp_global;
-                const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rThisKinematicVariables.NSlave, rSlaveGeometry);
+                array_1d<double,3> gp_normal;
+                if (this->IsNot(MODIFIED)) {
+                    noalias(gp_normal) = MortarUtilities::GaussPointUnitNormal(rThisKinematicVariables.NSlave, rSlaveGeometry);
+                } else {
+                    noalias(gp_normal) = rSlaveGeometry.UnitNormal(local_point_decomp);
+                }
 
                 GeometryType::CoordinatesArrayType slave_gp_global;
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
@@ -388,7 +401,7 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
 
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
-                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                const PointType local_point_decomp{integration_points_slave[point_number].Coordinates()};
                 PointType local_point_parent;
                 PointType gp_global;
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -876,6 +889,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
     Parameters default_parameters = Parameters(R"(
     {
         "echo_level"                       : 0,
+        "using_average_nodal_normal"       : true,
         "absolute_convergence_tolerance"   : 1.0e-9,
         "relative_convergence_tolerance"   : 1.0e-4,
         "max_number_iterations"            : 10,

@@ -71,7 +71,7 @@ public:
     ///@{
 
     /// Default constructor.
-    BruteForcePointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
+    explicit BruteForcePointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
     /// Destructor.
     virtual ~BruteForcePointLocator() {}
