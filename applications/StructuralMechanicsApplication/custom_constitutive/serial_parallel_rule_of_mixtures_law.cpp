@@ -239,15 +239,18 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     matrix_tangent_tensor_ss = prod(trans(rSerialProjector), Matrix(prod(matrix_tangent_tensor, rSerialProjector)));
     fiber_tangent_tensor_ss  = prod(trans(rSerialProjector), Matrix(prod(fiber_tangent_tensor, rSerialProjector)));
 
+    const double constant = (1.0 - mFiberVolumetricParticipation) / mFiberVolumetricParticipation;
+    const Matrix jacobian_matrix = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
+    Matrix inv_jacobian,
+    double det_jacobian = 0.0;
 
-
-
+    MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
+    rSerialStrainMatrix = rSerialStrainMatrix - prod(inv_jacobian, rResidualStresses);
 
     // Previous flags restored
     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-
 }
 
 /***********************************************************************************/
