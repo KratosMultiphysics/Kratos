@@ -23,7 +23,7 @@ os.chdir(path)
 if "OMP_NUM_THREADS" in os.environ:
     max_available_threads = int(os.environ['OMP_NUM_THREADS'])
 else:
-    max_available_threads = mp.cpu_count() - 1
+    max_available_threads = mp.cpu_count()
 
 
 #initial_number_of_threads = os.environ['OMP_NUM_THREADS']
