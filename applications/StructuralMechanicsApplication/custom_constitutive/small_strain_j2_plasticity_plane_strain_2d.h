@@ -11,8 +11,8 @@
 //                   Alfredo Huespe
 //  Collaborator:    Vicente Mataix Ferrandiz
 
-#if !defined(KRATOS_LINEAR_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED)
-#define KRATOS_LINEAR_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED
 
 // System includes
 
@@ -60,8 +60,8 @@ namespace Kratos
  * @author Manuel Caicedo
  * @author Alfredo Huespe
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearJ2PlasticityPlaneStrain2D
-    : public LinearJ2Plasticity3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainJ2PlasticityPlaneStrain2D
+    : public SmallStrainJ2Plasticity3D
 {
 public:
 
@@ -69,11 +69,11 @@ public:
     ///@{
 
     typedef ProcessInfo ProcessInfoType;
-    typedef LinearJ2Plasticity3D BaseType;
+    typedef SmallStrainJ2Plasticity3D BaseType;
     typedef std::size_t SizeType;
 
     // Counted pointer
-    KRATOS_CLASS_POINTER_DEFINITION(LinearJ2PlasticityPlaneStrain2D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainJ2PlasticityPlaneStrain2D);
 
     ///@}
     ///@name Lyfe Cycle
@@ -82,17 +82,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearJ2PlasticityPlaneStrain2D();
+    SmallStrainJ2PlasticityPlaneStrain2D();
 
     /**
      * @brief Copy constructor.
      */
-    LinearJ2PlasticityPlaneStrain2D(const LinearJ2PlasticityPlaneStrain2D& rOther);
+    SmallStrainJ2PlasticityPlaneStrain2D(const SmallStrainJ2PlasticityPlaneStrain2D& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~LinearJ2PlasticityPlaneStrain2D() override;
+    ~SmallStrainJ2PlasticityPlaneStrain2D() override;
 
     /**
      * @brief Clone function
@@ -235,6 +235,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class LinearJ2PlasticityPlaneStrain2D
+}; // Class SmallStrainJ2PlasticityPlaneStrain2D
 } // namespace Kratos.
 #endif

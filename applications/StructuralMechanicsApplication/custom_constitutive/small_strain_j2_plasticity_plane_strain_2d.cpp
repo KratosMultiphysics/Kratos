@@ -25,38 +25,38 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D()
-    : LinearJ2Plasticity3D()
+SmallStrainJ2PlasticityPlaneStrain2D::SmallStrainJ2PlasticityPlaneStrain2D()
+    : SmallStrainJ2Plasticity3D()
 {
 }
 
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D(const LinearJ2PlasticityPlaneStrain2D &rOther)
-    : LinearJ2Plasticity3D(rOther)
+SmallStrainJ2PlasticityPlaneStrain2D::SmallStrainJ2PlasticityPlaneStrain2D(const SmallStrainJ2PlasticityPlaneStrain2D &rOther)
+    : SmallStrainJ2Plasticity3D(rOther)
 {
 }
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearJ2PlasticityPlaneStrain2D::Clone() const
+ConstitutiveLaw::Pointer SmallStrainJ2PlasticityPlaneStrain2D::Clone() const
 {
-    return Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>(LinearJ2PlasticityPlaneStrain2D(*this));
+    return Kratos::make_shared<SmallStrainJ2PlasticityPlaneStrain2D>(SmallStrainJ2PlasticityPlaneStrain2D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::~LinearJ2PlasticityPlaneStrain2D()
+SmallStrainJ2PlasticityPlaneStrain2D::~SmallStrainJ2PlasticityPlaneStrain2D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateStressResponse(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rPlasticStrain,
         double& rAccumulatedPlasticStrain)
@@ -165,7 +165,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor)
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -198,7 +198,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &r
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
                                                              const Vector &YieldFunctionNormalVector,
                                                              const Properties &rMaterialProperties,
                                                              const double AccumulatedPlasticStrain,
@@ -252,7 +252,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaG
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
+void SmallStrainJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -265,17 +265,17 @@ void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
+void SmallStrainJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainJ2Plasticity3D);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
+void SmallStrainJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainJ2Plasticity3D);
 }
 
 } /* namespace Kratos.*/

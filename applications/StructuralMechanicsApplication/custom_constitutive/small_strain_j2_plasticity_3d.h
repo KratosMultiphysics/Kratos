@@ -11,8 +11,8 @@
 //                   Alfredo Huespe
 //  Collaborator:    Vicente Mataix Ferrandiz
 
-#if !defined(KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED)
-#define KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_J2_PLASTIC_3D_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_J2_PLASTIC_3D_H_INCLUDED
 
 // System includes
 
@@ -59,7 +59,7 @@ namespace Kratos
  * @author Manuel Caicedo
  * @author Alfredo Huespe
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearJ2Plasticity3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainJ2Plasticity3D
     : public ConstitutiveLaw
 {
 public:
@@ -71,8 +71,8 @@ public:
     typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
 
-    // Counted pointer of LinearJ2Plasticity3D
-    KRATOS_CLASS_POINTER_DEFINITION(LinearJ2Plasticity3D);
+    // Counted pointer of SmallStrainJ2Plasticity3D
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainJ2Plasticity3D);
 
     ///@}
     ///@name Lyfe Cycle
@@ -81,17 +81,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearJ2Plasticity3D();
+    SmallStrainJ2Plasticity3D();
 
     /**
      * @brief Copy constructor.
      */
-    LinearJ2Plasticity3D(const LinearJ2Plasticity3D& rOther);
+    SmallStrainJ2Plasticity3D(const SmallStrainJ2Plasticity3D& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~LinearJ2Plasticity3D() override;
+    ~SmallStrainJ2Plasticity3D() override;
 
     /**
      * @brief Clone function
@@ -454,6 +454,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class LinearJ2Plasticity3D
+}; // Class SmallStrainJ2Plasticity3D
 } // namespace Kratos.
 #endif
