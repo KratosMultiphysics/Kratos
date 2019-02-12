@@ -22,17 +22,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.currentPath)
-
 @UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
 class AdjointFluidTest(UnitTest.TestCase):
 
@@ -45,7 +34,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         primal_settings_file_name = "cylinder_fluid_parameters.json"
         adjoint_settings_file_name = "cylinder_adjoint_parameters.json"
 
-        with WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._run_test(primal_settings_file_name,adjoint_settings_file_name)
 
             kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
