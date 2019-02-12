@@ -1,13 +1,12 @@
+import KratosMultiphysics
 from geo_processor import GeoProcessor
 
-import numpy as np
 import os
 import math
 
 # one class for Preprocessor (no derived classes intended)
 class GeoPreprocessor( GeoProcessor ):
 
-#### NOT YET IN STRUCTURE
 
 # read_functions (pattern: read_FILENAME)
 
@@ -15,6 +14,7 @@ class GeoPreprocessor( GeoProcessor ):
 
 # write_functions (pattern: write_FILENAME)
 
+#### NOT YET IN STRUCTURE
 # handling_functions ( clear(), statistics() )
 
 
@@ -46,10 +46,17 @@ class GeoPreprocessor( GeoProcessor ):
                     self.point_list.append([x,y,z])
 
 
-    def write_xyz(self, xyz_out_file, type_file="standard"):
+    def write_xyz(self, type_file="standard", xyz_file_name_output="", list_to_write=[]):
         # function to write a xyz file from a list of points
 
-        filename_out, extension_out = os.path.splitext(xyz_out_file)
+        filename_out, extension_out = os.path.splitext(xyz_file_name_output)
+        if not extension_out:
+            # extension_out is empty
+            extension_out = ".xyz"
+        
+        if (list_to_write):
+            # list_to_write is full
+            self.point_list = list_to_write
 
         if (type_file == "standard"):
             out_name = filename_out + "_standard" + extension_out
@@ -100,14 +107,14 @@ class GeoPreprocessor( GeoProcessor ):
                     self.point_list.append([X_coord, Y_coord, Z_coord])
    
 
-    def write_stl(self, list_to_write=[], stl_file_name_output=""):
+    def write_stl(self, stl_file_name_output="", list_to_write=[]):
         # function to write a stl file from a list of points
 
         if (stl_file_name_output == ""):
-            out_name = "_shifted.stl"
+            out_name = "_new.stl"
         else:
             filename_out, extension_out = os.path.splitext(stl_file_name_output)
-            out_name = filename_out + "_shifted" + extension_out
+            out_name = filename_out + "_new" + extension_out
         
         if (list_to_write):
             # list_to_write is full
@@ -163,7 +170,6 @@ class GeoPreprocessor( GeoProcessor ):
         # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
         for num in range(len(self.point_list)):
             coord = self.point_list[num]
-            num_nodes = 0
             if ((x_min <= coord[0] <= x_max) and (y_min <= coord[1] <= y_max)):
                 coord[0] -= x_min
                 coord[1] -= y_min
@@ -177,10 +183,10 @@ class GeoPreprocessor( GeoProcessor ):
 
     def shift(self, x_shift, y_shift, z_shift=0):
 
-        print("Shift defined as\n")
-        print("x_shift = {}\n".format(x_shift))
-        print("y_shift = {}\n".format(y_shift))
-        print("z_shift = {}\n".format(z_shift))
+        print("Shift defined as")
+        print("x_shift = ", x_shift)
+        print("y_shift = ", y_shift)
+        print("z_shift = ", z_shift)
 
         for num in range(len(self.point_list)):
             coord = self.point_list[num]
@@ -188,30 +194,12 @@ class GeoPreprocessor( GeoProcessor ):
             coord[1] += y_shift
             coord[2] += z_shift
             self.point_list[num] = coord
-
-    '''
-    def shift_stl(self):
-        # function to move global axes in the centre of the geometry
-
-        x_coords = []
-        y_coords = []
-        for coord in self.point_list:
-            x_coords.append(coord[0])
-            y_coords.append(coord[1])
-        
-        x_shift = max(x_coords)/2
-        y_shift = max(y_coords)/2
-
-        for id, _ in enumerate(self.point_list):
-            self.point_list[id][0] -= x_shift
-            self.point_list[id][1] -= y_shift
-    '''
     
 
     def valley(self, max_height):
 
-        print("Maximal height defined as\n" )
-        print("max_height = {}\n".format(max_height))
+        print("Maximal height defined as")
+        print("max_height = ", max_height)
 
         # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
         del_list = []
@@ -230,8 +218,8 @@ class GeoPreprocessor( GeoProcessor ):
 
     def mountain(self, min_height):
 
-        print("Minimal height defined as\n")
-        print("min_height = {}\n".format(min_height))
+        print("Minimal height defined as")
+        print("min_height = ", min_height)
 
         # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
         del_list = []
@@ -254,7 +242,7 @@ class GeoPreprocessor( GeoProcessor ):
         previous_center = (0.0, 0.0)
 
         print("Starting identification of the river bed")
-        print(" - starting point at {}\n".format(current_center))
+        print(" - starting point at ", current_center)
 
         num_points = 0                              # used for checks
         dict_all_points = {}                        # key = id, value = ( x, y, z )
@@ -275,7 +263,8 @@ class GeoPreprocessor( GeoProcessor ):
         #             dict_all_points[num_points] = [x,y,z]
         #             num_points += 1
 
-        for coord in range(len(self.point_list)):
+        for pnt_id in range(len(self.point_list)):
+            coord = self.point_list[pnt_id]
             dict_all_points[num_points] = [coord[0], coord[1], coord[2]]
             num_points += 1
         
@@ -327,10 +316,24 @@ class GeoPreprocessor( GeoProcessor ):
         self.point_list = self._create_list_of_visited_points( list_visited_points, dict_all_points )
 
 
+    def centroid_rect2D(self):
+        # function to compute the centroid in a rectangle in 2D
+
+        x_coords = []
+        y_coords = []
+        for coord in self.point_list:
+            x_coords.append(coord[0])
+            y_coords.append(coord[1])
+        
+        x_centr = max(x_coords)/2
+        y_centr = max(y_coords)/2
+
+        return (x_centr, y_centr)
+
+
     ########################################################################
     # auxiliary functions
     #########################################################################
-
 
     def _create_list_of_visited_points( self, list_visited_points, dict_all_points ):
 
@@ -446,9 +449,12 @@ class GeoPreprocessor( GeoProcessor ):
 
         sum_n = abs(nx) + abs(ny) + abs(nz)
 
-        nx = nx / sum_n
-        ny = ny / sum_n
-        nz = nz / sum_n
+        if sum_n == 0.0:
+            nx = ny = nz = 0.0
+        else:
+            nx = nx / sum_n
+            ny = ny / sum_n
+            nz = nz / sum_n
 
         return (nx, ny, nz)
 
