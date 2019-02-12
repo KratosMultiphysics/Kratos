@@ -68,11 +68,11 @@ class ModelPartController:
 
         self.shell_thickness_adaptor = None
         if self.model_settings["shell_thickness_adaption"].GetBool():
-            import shell_thickness_adaptor
+            from shell_thickness_adaptor import ShellThicknessAdaptor
             adaptor_settings = Parameters("""{
                 "model_part_name" : \""""+self.optimization_model_part.Name+"""\"
             }""")
-            self.shell_thickness_adaptor = shell_thickness_adaptor.ShellThicknessAdaptor(self.model, adaptor_settings)
+            self.shell_thickness_adaptor = ShellThicknessAdaptor(self.model, adaptor_settings)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
