@@ -36,7 +36,7 @@ namespace Kratos {
                           double fluid_density,
                           double fluid_kinematic_viscosity,
                           array_1d<double, 3>& slip_velocity,
-                          array_1d<double, 3>& drag_force,
+                          array_1d<double, 3>& history_force,
                           const ProcessInfo& r_current_process_info) override;
 
         // variables for Daitche's method
