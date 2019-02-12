@@ -34,8 +34,3 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
     def _ExecuteAfterLoad(self):
         if self.set_mpi_communicator:
             KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
-
-    def _PrintOnRankZero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))

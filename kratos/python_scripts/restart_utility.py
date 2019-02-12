@@ -93,7 +93,7 @@ class RestartUtility(object):
         # Check path
         if not os.path.exists(restart_path+".rest"):
             raise FileNotFoundError("Restart file not found: " + restart_path + ".rest")
-        self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
         serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
@@ -105,7 +105,7 @@ class RestartUtility(object):
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        self._PrintOnRankZero("::[Restart Utility]::", "Finished loading model part from restart file.")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
@@ -134,7 +134,7 @@ class RestartUtility(object):
         serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
-            self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")
+            KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Saved restart file", file_name + ".rest")
 
         # Schedule next output
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -169,10 +169,6 @@ class RestartUtility(object):
     def _ExecuteAfterLoad(self):
         """This function creates the communicators in MPI/trilinos"""
         pass
-
-    def _PrintOnRankZero(self, *args):
-        # This function will be overridden in the trilinos-version
-        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
