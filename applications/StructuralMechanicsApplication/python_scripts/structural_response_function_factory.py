@@ -24,8 +24,8 @@ def CreateResponseFunction(response_id, response_settings, model):
 
     elif response_type == "adjoint_local_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
-    
-    elif response_type == "adjoint_nonlinear_strain_energy":
+
+    elif response_type == "adjoint_non_linear_strain_energy":
         return structural_response.NonlinearAdjointStrainEnergy(response_id, response_settings, model)
 
     else:

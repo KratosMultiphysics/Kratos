@@ -408,7 +408,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
-        self.reponse_value = 0  
+        self.reponse_value = 0.0
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
@@ -422,7 +422,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         startTime = timer.time()
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
-        
+
         ## run the solution loop
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
@@ -445,13 +445,13 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def CalculateValue(self):
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = self.response_value
-        
+
         print("> nonlinear strain energy response = " , self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE])
 
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-        
+
         # runs the full loop for adjoint analysis
         self.adjoint_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")

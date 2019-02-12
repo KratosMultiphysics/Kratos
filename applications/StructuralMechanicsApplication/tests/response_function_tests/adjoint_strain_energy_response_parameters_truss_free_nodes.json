@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "kratos_response_settings":{
-        "response_type"    : "adjoint_nonlinear_strain_energy",
+        "response_type"    : "adjoint_non_linear_strain_energy",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-5,
         "primal_settings"  : "response_function_tests/nonlinear_truss_free_nodes_test_parameters.json",

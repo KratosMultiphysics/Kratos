@@ -17,25 +17,19 @@
 // Project includes
 #include "adjoint_nonlinear_strain_energy_response_function.h"
 
-namespace Kratos 
+namespace Kratos
 {
     AdjointNonlinearStrainEnergyResponseFunction::AdjointNonlinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        // initializing mConditionsRHS 
-        for(auto& cond_i : rModelPart.Conditions())
+        for(auto cond_it = rModelPart.ConditionsBegin(); cond_it != rModelPart.ConditionsEnd(); ++cond_it)
         {
-            SizeType number_of_nodes = cond_i.GetGeometry().size();
-            SizeType dimension = cond_i.GetGeometry().WorkingSpaceDimension();
+            mConditions[cond_it->Id()] = cond_it;
+            SizeType number_of_nodes = cond_it->GetGeometry().size();
+            SizeType dimension = cond_it->GetGeometry().WorkingSpaceDimension();
             SizeType vec_size = number_of_nodes * dimension;
-          
-            mConditionsRHS[cond_i.Id()] = ZeroVector(vec_size);
-
-            // This stores a vector of pointers to the model condition as a member variable because I can not use const condition in 
-            mConditions[cond_i.Id()] = rModelPart.pGetCondition(cond_i.Id());
-
-            // initializes a vector that stores the gradient vectors for the last step
-            mResponseGradient_0[cond_i.Id()] = ZeroVector(vec_size);
+            mConditionsRHS[cond_it->Id()] = ZeroVector(vec_size);
+            mResponseGradient_0[cond_it->Id()] = ZeroVector(vec_size);
         }
     }
 
@@ -57,6 +51,13 @@ namespace Kratos
         << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
         // sum all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
+
+
+        //const int num_elem = static_cast<int> (rModelPart.NumberOfElements());
+
+        // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
+        #pragma omp parallel
+        {
         Matrix LHS;
         Vector RHS;
         Vector disp;
@@ -67,12 +68,13 @@ namespace Kratos
         Vector disp_increment;
         Vector average_load;
 
-        // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
-        for (auto& elem_i : rModelPart.Elements())
+        #pragma omp for reduction(+:response_increment_value)
+        for (int i = 0; i< static_cast<int> (rModelPart.NumberOfElements()); i++)
         {
-            elem_i.GetValuesVector(disp,0);
-            elem_i.GetValuesVector(disp_previous_step, 1);
-            elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
+            auto elem_it = rModelPart.ElementsBegin() + i;
+            elem_it->GetValuesVector(disp,0);
+            elem_it->GetValuesVector(disp_previous_step, 1);
+            elem_it->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
             disp_increment = disp - disp_previous_step;
             external_force = -1.0 * RHS;
@@ -80,6 +82,7 @@ namespace Kratos
             average_load = 0.5 * (external_force + external_force_previous_step);
 
             response_increment_value += inner_prod(average_load , disp_increment);
+        }
         }
         return response_increment_value;
         KRATOS_CATCH("");
@@ -124,12 +127,12 @@ namespace Kratos
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
             project(displacement, range(i, dimension)) = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT);
-            project(displacement_previous_step , range(i , dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1);   
+            project(displacement_previous_step , range(i , dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1);
             i += 3;
         }
 
         mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(RHS, process_info);
-        
+
         //calculation of partial f_{ext}_i}{\partial u}
         Matrix partial_derivative_matrix = ZeroMatrix(vec_size, vec_size);
         int i_2 = 0;
@@ -138,13 +141,13 @@ namespace Kratos
             Vector perturbed_RHS = Vector(0);
 
             // Pertubation, gradient analysis and recovery of x
-            node_i.X() += delta; 
+            node_i.X() += delta;
             node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
             mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
             row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / delta;
             node_i.X() -= delta;
             node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
-                
+
             // Reset the pertubed vector
             perturbed_RHS = Vector(0);
 
@@ -155,7 +158,7 @@ namespace Kratos
             row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / delta;
             node_i.Y() -= delta;
             node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
-            
+
             // Reset the pertubed vector
             perturbed_RHS = Vector(0);
 
@@ -172,11 +175,11 @@ namespace Kratos
 
         if(mExternalForceDisplacementDerivative.size1() == 0)
             mExternalForceDisplacementDerivative = ZeroMatrix(vec_size, vec_size);
-        
+
         // Summing up the partial derivative terms
-        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()] + 
+        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()] +
                             prod(displacement - displacement_previous_step, mExternalForceDisplacementDerivative + partial_derivative_matrix));
-        
+
         // storing the RHS for each condition
         mConditionsRHS[rAdjointCondition.Id()] = RHS;
 
@@ -189,7 +192,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // TODO Mahmoud: This is not the correct place to implement the scaling factor, another function should be added 
+    // TODO Mahmoud: This is not the correct place to implement the scaling factor, another function should be added
     // to the base class to be used for calculating the scaling factor
     // This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
     // Later this should be replaced with a more general approach that is suitable for follower loads
@@ -201,17 +204,20 @@ namespace Kratos
                                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
-        
+
         Vector response_gradient_0;
         Vector response_gradient_1;
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
         rResponseGradient = ZeroVector(1);
+        const double tolerance = 1e-5;
+
         // Here a scalar value is calculated (lambda_1 / lambda_0)
         for (IndexType i = 0; i < response_gradient_1.size(); i++)
         {
-            if( response_gradient_0[i] != 0 )
+            if( std::abs(response_gradient_0[i]) > tolerance )
             {
+                KRATOS_WATCH(response_gradient_0[i])
                 rResponseGradient[0] = response_gradient_1[i] / response_gradient_0[i];
                 break;
             }
@@ -256,13 +262,13 @@ namespace Kratos
                                                 Vector& rSensitivityGradient,
                                                 const ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY;   
+        KRATOS_TRY;
 
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
-        
-        
-        
+
+
+
         KRATOS_CATCH("");
     }
 
@@ -276,6 +282,7 @@ namespace Kratos
                                                 const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
+        // TODO Mahmoud: remove this assignment
         ProcessInfo process_info = rProcessInfo;
 
         const SizeType number_of_nodes = rAdjointCondition.GetGeometry().size();
@@ -303,8 +310,8 @@ namespace Kratos
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
             project(displacement, range(i_1 , i_1 + dimension)) = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT);
-            project(displacement_previous_step , range(i_1 , i_1 + dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1); 
-            i_1 += 3; 
+            project(displacement_previous_step , range(i_1 , i_1 + dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            i_1 += 3;
         }
 
         rAdjointCondition.CalculateRightHandSide(RHS, process_info);
