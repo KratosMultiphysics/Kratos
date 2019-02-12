@@ -77,223 +77,6 @@ class GeoPreprocessor( GeoProcessor ):
                 fout.write(line)
 
 
-    def xyz_cut( self, xyz_out_file, bounding_box=(-999999999.0, -999999999.0, 999999999.0, 999999999.0)):
-
-        filename_out, extension_out = os.path.splitext(xyz_out_file)
-
-        if (extension_out.upper() != ".XYZ"):
-            print("This function operates on XYZ files only.")
-
-        x_min = bounding_box[0]
-        y_min = bounding_box[1]
-        x_max = bounding_box[2]
-        y_max = bounding_box[3]
-        print( "Bounding box defined as " )
-        print( "x_min = " + str(x_min) )
-        print( "y_min = " + str(y_min) )
-        print( "x_max = " + str(x_max) )
-        print( "y_max = " + str(y_max) )
-        # num_lines = sum(1 for line in open( xyz_in_file ))
-        num_nodes = 0
-
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        for num in range(len(self.point_list)):
-            coord = self.point_list[num]
-            counter = 0
-            if ((x_min <= coord[0] <= x_max) and (y_min <= coord[1] <= y_max)):
-                coord[0] -= x_min
-                coord[1] -= y_min
-                self.point_list[num] = coord
-
-                counter += 1
-        num_nodes = counter
-
-        if num_nodes == 0:
-            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given bounding box!")
-
-        self.write_xyz(xyz_out_file, "standard")
-        self.write_xyz(xyz_out_file, "qgis")
-
-
-    def xyz_shift( self, xyz_out_file, x_shift, y_shift ):
-
-        filename_out, extension_out = os.path.splitext(xyz_out_file)
-
-        if (extension_out.upper() != ".XYZ"):
-            print("This function operates on XYZ files only.")
-
-        print( "Shift defined as " )
-        print( "x_shift = " + str(x_shift) )
-        print( "y_shift = " + str(y_shift) )
-
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        for num in range(len(self.point_list)):
-            coord = self.point_list[num]
-            coord[0] += x_shift
-            coord[1] += y_shift
-            self.point_list[num] = coord
-        
-        self.write_xyz(xyz_out_file, "standard")
-        self.write_xyz(xyz_out_file, "qgis")
-
-
-    def xyz_valley( self, xyz_in_file, xyz_out_file, max_height ):
-
-        filename_in, extension_in = os.path.splitext( xyz_in_file )
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
-
-        print( "Reading from file " + filename_in + extension_in)
-
-        if ( extension_in.upper() != ".XYZ" or extension_out.upper() != ".XYZ" ):
-            print("This function operates on XYZ files only.")
-
-        print( "Maximal height defined as " )
-        print( "max_height = " + str(max_height) )
-
-        # num_lines = sum(1 for line in open( xyz_in_file ))
-        num_nodes = 0
-        point_list = []
-
-        # reading all points into a single list out of tuples (x,y,z)
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        with open( xyz_in_file ) as f:
-            lines = f.readlines()
-            counter = 0
-            for line in lines:
-                items = line.split()
-                if ( all( self._isfloat(n) for n in items) ):
-                    if ( float(items[2]) <= max_height ):
-                        x = float(items[0])
-                        y = float(items[1])
-                        z = float(items[2])
-                        point_list.append( (x,y,z) )
-                        counter = counter + 1
-            num_nodes = counter
-
-        if num_nodes == 0:
-            print( "WARNING: No points inside the given valley!")
-
-        # writing to files
-        self._write_standard_xyz( point_list, xyz_out_file )
-        self._write_qgis_xyz( point_list, xyz_out_file )
-
-
-    def xyz_mountain( self, xyz_in_file, xyz_out_file, min_height ):
-
-        filename_in, extension_in = os.path.splitext( xyz_in_file )
-        filename_out, extension_out = os.path.splitext( xyz_out_file )
-
-        print( "Reading from file " + filename_in + extension_in)
-
-        if ( extension_in.upper() != ".XYZ" or extension_out.upper() != ".XYZ" ):
-            print("This function operates on XYZ files only.")
-
-        print( "Minimal height defined as " )
-        print( "min_height = " + str(min_height) )
-
-        # num_lines = sum(1 for line in open( xyz_in_file ))
-        num_nodes = 0
-        point_list = []
-
-        # reading all points into a single list out of tuples (x,y,z)
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        with open( xyz_in_file ) as f:
-            lines = f.readlines()
-            counter = 0
-            for line in lines:
-                items = line.split()
-                if ( all( self._isfloat(n) for n in items) ):
-                    if ( float(items[2]) >= min_height ):
-                        x = float(items[0])
-                        y = float(items[1])
-                        z = float(items[2])
-                        point_list.append( (x,y,z) )
-                        counter = counter + 1
-            num_nodes = counter
-
-        if num_nodes == 0:
-            print( "WARNING: No points inside the given valley!")
-
-        # writing to files
-        self._write_standard_xyz( point_list, xyz_out_file )
-        self._write_qgis_xyz( point_list, xyz_out_file )
-
-
-    def xyz_river( self, xyz_in_file, xyz_out_file, radius, start_x_y ):
-
-        current_center = start_x_y                  # starting point for the search
-        previous_center = (0.0, 0.0)
-
-        print("Starting identification of the river bed")
-        print( " - starting point at " + str( current_center ) )
-
-        num_points = 0                              # used for checks
-        dict_all_points = {}                        # key = id, value = ( x, y, z )
-        dict_active_points = {}                     # key = id, value = z
-        list_visited_points = []                    # all points that have ever been active (index only)
-                                                    # always extend( list_active_points )
-
-        # reading all points into a single list out of tuples (x,y,z)
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
-        with open( xyz_in_file ) as f:
-            lines = f.readlines()
-            for line in lines:
-                items = line.split()
-                if ( all( self._isfloat(n) for n in items) ):
-                    x = float(items[0])
-                    y = float(items[1])
-                    z = float(items[2])
-                    dict_all_points[num_points] = [x,y,z]
-                    num_points += 1
-
-        if num_points == 0:
-            print( "WARNING: No points inside the given valley!")
-
-        num = 5                 # number of points for the search of minimal terrain height
-        dist = radius / 4.0     # distance to shift the search circle
-        length = 100000.0       # maximal length of the track (safety measure)
-        generation = 1
-
-        current_length = 0.0    # length of the track
-
-        # Iteration shifting the search circle
-        while current_length < length:
-
-            print( " --- Generation " + str(generation) + " --- ")
-
-            # points inside the current search circle are set acitve
-            dict_active_points = self._find_points_within_radius( dict_all_points, current_center, radius )
-
-            # Check if still new unvisited points are found
-            if not self._iteration_goes_on( dict_active_points, list_visited_points ):
-                print( " - No more unvisited points found - Assembly of the output in progress")
-                break
-
-            # keeping track of the already visite points
-            # these points mark the relevant terrain parts
-            list_visited_points = self._add_ids_of_active_points( list_visited_points, dict_active_points )
-            print( " - " + str( len(dict_active_points) ) + " active points" )
-
-            # find the active points with the minimal terrain height
-            list_lowest_points = self._find_lowest_points( dict_active_points, num )
-
-            # moving the circle forward
-            previous_center = current_center
-            current_center = self._compute_new_center( dict_all_points, list_lowest_points, dist, previous_center )
-            print( " - new center at " + str( current_center ) )
-
-            # proceeding to the new generation
-            generation += 1
-            current_length += dist
-
-        # extracting the "relevant part" marked by the visited points
-        point_list = self._create_list_of_visited_points( list_visited_points, dict_all_points )
-
-        # writing to files
-        self._write_standard_xyz( point_list, xyz_out_file )
-        self._write_qgis_xyz( point_list, xyz_out_file )
-
-
     ########################################################################
     # for stl files
     #########################################################################
@@ -315,26 +98,7 @@ class GeoPreprocessor( GeoProcessor ):
                     X_coord, Y_coord, Z_coord = [float(coord) for coord in row[1:]]
 
                     self.point_list.append([X_coord, Y_coord, Z_coord])
-    
-
-    def shift_stl(self, stl_file_name_output=""):
-        # function to move global axes in the centre of the geometry
-
-        x_coords = []
-        y_coords = []
-        for coord in self.point_list:
-            x_coords.append(coord[0])
-            y_coords.append(coord[1])
-        
-        x_shift = max(x_coords)/2
-        y_shift = max(y_coords)/2
-
-        for id, _ in enumerate(self.point_list):
-            self.point_list[id][0] -= x_shift
-            self.point_list[id][1] -= y_shift
-        
-        self.write_stl(stl_file_name_output)
-    
+   
 
     def write_stl(self, list_to_write=[], stl_file_name_output=""):
         # function to write a stl file from a list of points
@@ -379,6 +143,191 @@ class GeoPreprocessor( GeoProcessor ):
 
 
     ########################################################################
+    # general functions
+    #########################################################################
+
+    def cut(self, bounding_box=(-999999999.0, -999999999.0, 999999999.0, 999999999.0)):
+
+        x_min = bounding_box[0]
+        y_min = bounding_box[1]
+        x_max = bounding_box[2]
+        y_max = bounding_box[3]
+        print( "Bounding box defined as " )
+        print( "x_min = " + str(x_min) )
+        print( "y_min = " + str(y_min) )
+        print( "x_max = " + str(x_max) )
+        print( "y_max = " + str(y_max) )
+        # num_lines = sum(1 for line in open( xyz_in_file ))
+        num_nodes = 0
+
+        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
+            num_nodes = 0
+            if ((x_min <= coord[0] <= x_max) and (y_min <= coord[1] <= y_max)):
+                coord[0] -= x_min
+                coord[1] -= y_min
+                self.point_list[num] = coord
+
+                num_nodes += 1
+
+        if num_nodes == 0:
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given bounding box!")
+
+
+    def shift(self, x_shift, y_shift, z_shift=0):
+
+        print("Shift defined as\n")
+        print("x_shift = {}\n".format(x_shift))
+        print("y_shift = {}\n".format(y_shift))
+        print("z_shift = {}\n".format(z_shift))
+
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
+            coord[0] += x_shift
+            coord[1] += y_shift
+            coord[2] += z_shift
+            self.point_list[num] = coord
+
+    '''
+    def shift_stl(self):
+        # function to move global axes in the centre of the geometry
+
+        x_coords = []
+        y_coords = []
+        for coord in self.point_list:
+            x_coords.append(coord[0])
+            y_coords.append(coord[1])
+        
+        x_shift = max(x_coords)/2
+        y_shift = max(y_coords)/2
+
+        for id, _ in enumerate(self.point_list):
+            self.point_list[id][0] -= x_shift
+            self.point_list[id][1] -= y_shift
+    '''
+    
+
+    def valley(self, max_height):
+
+        print("Maximal height defined as\n" )
+        print("max_height = {}\n".format(max_height))
+
+        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
+        del_list = []
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
+            if (coord[2] > max_height):
+                del_list.append(coord)
+        
+        for coord in del_list:
+            self.point_list.remove(coord)
+        
+        if not self.point_list:
+            # if self.point_list is empty
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given valley!")
+
+
+    def mountain(self, min_height):
+
+        print("Minimal height defined as\n")
+        print("min_height = {}\n".format(min_height))
+
+        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
+        del_list = []
+        for num in range(len(self.point_list)):
+            coord = self.point_list[num]
+            if (coord[2] < min_height):
+                del_list.append(coord)
+        
+        for coord in del_list:
+            self.point_list.remove(coord)
+        
+        if not self.point_list:
+            # if self.point_list is empty
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given valley!")
+
+
+    def river(self, radius, start_x_y):
+
+        current_center = start_x_y                  # starting point for the search
+        previous_center = (0.0, 0.0)
+
+        print("Starting identification of the river bed")
+        print(" - starting point at {}\n".format(current_center))
+
+        num_points = 0                              # used for checks
+        dict_all_points = {}                        # key = id, value = ( x, y, z )
+        dict_active_points = {}                     # key = id, value = z
+        list_visited_points = []                    # all points that have ever been active (index only)
+                                                    # always extend( list_active_points )
+
+        # # reading all points into a single list out of tuples (x,y,z)
+        # # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
+        # with open( xyz_in_file ) as f:
+        #     lines = f.readlines()
+        #     for line in lines:
+        #         items = line.split()
+        #         if ( all( self._isfloat(n) for n in items) ):
+        #             x = float(items[0])
+        #             y = float(items[1])
+        #             z = float(items[2])
+        #             dict_all_points[num_points] = [x,y,z]
+        #             num_points += 1
+
+        for coord in range(len(self.point_list)):
+            dict_all_points[num_points] = [coord[0], coord[1], coord[2]]
+            num_points += 1
+        
+        if num_points == 0:
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "WARNING: No points inside the given valley!")
+
+        num = 5                 # number of points for the search of minimal terrain height
+        dist = radius / 4.0     # distance to shift the search circle
+        length = 100000.0       # maximal length of the track (safety measure)
+        generation = 1
+
+        current_length = 0.0    # length of the track
+
+        # Iteration shifting the search circle
+        while current_length < length:
+
+            print( " --- Generation " + str(generation) + " --- ")
+
+            # points inside the current search circle are set acitve
+            dict_active_points = self._find_points_within_radius( dict_all_points, current_center, radius )
+
+            # Check if still new unvisited points are found
+            if not self._iteration_goes_on( dict_active_points, list_visited_points ):
+                print( " - No more unvisited points found - Assembly of the output in progress")
+                break
+
+            # keeping track of the already visite points
+            # these points mark the relevant terrain parts
+            list_visited_points = self._add_ids_of_active_points( list_visited_points, dict_active_points )
+            print( " - " + str( len(dict_active_points) ) + " active points" )
+
+            # find the active points with the minimal terrain height
+            list_lowest_points = self._find_lowest_points( dict_active_points, num )
+
+            # moving the circle forward
+            previous_center = current_center
+            current_center = self._compute_new_center( dict_all_points, list_lowest_points, dist, previous_center )
+            print( " - new center at " + str( current_center ) )
+
+            # proceeding to the new generation
+            generation += 1
+            current_length += dist
+
+        # # extracting the "relevant part" marked by the visited points
+        # point_list = self._create_list_of_visited_points( list_visited_points, dict_all_points )
+
+        ### CHECK THIS PART ###
+        # HERE WE FILLED (AGAIN) self.point_list
+        self.point_list = self._create_list_of_visited_points( list_visited_points, dict_all_points )
+
+
+    ########################################################################
     # auxiliary functions
     #########################################################################
 
@@ -392,7 +341,7 @@ class GeoPreprocessor( GeoProcessor ):
                 x = coords[0]
                 y = coords[1]
                 z = coords[2]
-                point_list.append( (x,y,z) )
+                point_list.append([x,y,z])
 
         return point_list
 
