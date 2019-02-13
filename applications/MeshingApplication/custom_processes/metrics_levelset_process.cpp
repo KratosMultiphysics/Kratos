@@ -107,7 +107,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         if (it_node->SolutionStepsDataHas(reference_var)) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
             element_size = CalculateElementSize(ratio_reference, nodal_h);
-            ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
+            ratio = CalculateAnisotropicRatio(ratio_reference);
             if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
                 element_size = nodal_h;
         } else {
@@ -202,22 +202,19 @@ array_1d<double, 6> ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTen
 
 template<SizeType TDim>
 double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
-    const double Distance,
-    const double AnisotropicRatio,
-    const double BoundLayer,
-    const Interpolation& rInterpolation
+    const double Distance
     )
 {
     const double tolerance = 1.0e-12;
     double ratio = 1.0; // NOTE: Isotropic mesh
-    if (AnisotropicRatio < 1.0) {
-        if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Interpolation::CONSTANT)
-                ratio = AnisotropicRatio;
-            else if (rInterpolation == Interpolation::LINEAR)
-                ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Interpolation::EXPONENTIAL) {
-                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
+    if (mAnisotropicRatio < 1.0) {
+        if (std::abs(Distance) <= mBoundLayer) {
+            if (mInterpolation == Interpolation::CONSTANT)
+                ratio = mAnisotropicRatio;
+            else if (mInterpolation == Interpolation::LINEAR)
+                ratio = mAnisotropicRatio + (std::abs(Distance)/mBoundLayer) * (1.0 - mAnisotropicRatio);
+            else if (mInterpolation == Interpolation::EXPONENTIAL) {
+                ratio = - std::log(std::abs(Distance)/mBoundLayer) * mAnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
         }
