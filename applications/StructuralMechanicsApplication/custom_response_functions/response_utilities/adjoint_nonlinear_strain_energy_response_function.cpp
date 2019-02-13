@@ -24,6 +24,7 @@ namespace Kratos
     {
         for(auto cond_it = rModelPart.ConditionsBegin(); cond_it != rModelPart.ConditionsEnd(); ++cond_it)
         {
+            // ToDO Mahmoud: the size of condition RHS is going to change for some condtion
             mConditions[cond_it->Id()] = cond_it;
             SizeType number_of_nodes = cond_it->GetGeometry().size();
             SizeType dimension = cond_it->GetGeometry().WorkingSpaceDimension();
@@ -217,12 +218,10 @@ namespace Kratos
         {
             if( std::abs(response_gradient_0[i]) > tolerance )
             {
-                KRATOS_WATCH(response_gradient_0[i])
                 rResponseGradient[0] = response_gradient_1[i] / response_gradient_0[i];
                 break;
             }
         }
-
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
         KRATOS_CATCH("");
     }
@@ -273,6 +272,8 @@ namespace Kratos
     }
 
 
+    // ToDo Mahmoud: this function only work for shape sensitivities, it should modified to work in general for
+    // other types of sensitivity
     // Calculates the derivate of the response function with respect to the design parameters
     // Computation of \frac{1}{2} (u^T_i - u^T_i-1)  \cdot ( \frac{\partial f_{ext}_i}{\partial x} + frac{\partial f_{ext}_i-1}{\partial x})
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
@@ -282,7 +283,11 @@ namespace Kratos
                                                 const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-        // TODO Mahmoud: remove this assignment
+
+        KRATOS_ERROR_IF( rVariable != SHAPE )
+            << "Calculation of nonlinear strain energy sensitivity is available only for shape variables!" << std::endl;
+
+        // TODO Mahmoud: This copy assignment is expensive
         ProcessInfo process_info = rProcessInfo;
 
         const SizeType number_of_nodes = rAdjointCondition.GetGeometry().size();

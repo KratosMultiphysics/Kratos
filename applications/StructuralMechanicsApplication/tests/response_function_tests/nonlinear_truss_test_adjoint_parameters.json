@@ -25,7 +25,7 @@
         "nodal_sensitivity_variables"  : ["SHAPE"],
         "element_sensitivity_variables"  : [],
         "condition_sensitivity_variables"  : [],
-        "build_mode": "static-non-linear"
+        "build_mode": "static-non-linear-strain-energy"
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
