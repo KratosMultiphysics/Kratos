@@ -588,6 +588,7 @@ public:
         array_1d<double,3> MPC_Displacement = ZeroVector(3);
         array_1d<double,3> MPC_Velocity = ZeroVector(3);
         array_1d<double,3> MPC_Acceleration = ZeroVector(3);
+        array_1d<double,3> MPC_Contact_Force = ZeroVector(3);
 
         double MPC_Area = 0.0;
         double MPC_Penalty_Factor = 0.0;
@@ -869,7 +870,10 @@ public:
                             if (is_contact)
                                 p_condition->Set(CONTACT);
                             if (is_interface)
+                            {
                                 p_condition->Set(INTERFACE);
+                                p_condition->SetValue(MPC_CONTACT_FORCE, MPC_Contact_Force);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -912,7 +916,10 @@ public:
                             if (is_contact)
                                 p_condition->Set(CONTACT);
                             if (is_interface)
+                            {
                                 p_condition->Set(INTERFACE);
+                                p_condition->SetValue(MPC_CONTACT_FORCE, MPC_Contact_Force);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
