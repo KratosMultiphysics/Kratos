@@ -34,7 +34,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         {
             "reference_variable_name"          : "DISTANCE",
             "boundary_layer_max_distance"      : 1.0,
-            "interpolation"                    : "Constant"
+            "interpolation"                    : "constant"
         },
         "enforce_current"                      : true,
         "anisotropy_remeshing"                 : true,
@@ -43,7 +43,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
             "reference_variable_name"              : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"      : 1.0,
             "boundary_layer_max_distance"           : 1.0,
-            "interpolation"                         : "Linear"
+            "interpolation"                         : "linear"
         }
     })" );
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);

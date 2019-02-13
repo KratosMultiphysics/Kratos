@@ -239,11 +239,11 @@ private:
 
     Interpolation ConvertInter(const std::string& Str)
     {
-        if(Str == "Constant" || Str == "CONSTANT")
+        if(Str == "Constant" || Str == "CONSTANT" || Str == 'constant')
             return Interpolation::CONSTANT;
-        else if(Str == "Linear" || Str == "LINEAR")
+        else if(Str == "Linear" || Str == "LINEAR"  || Str == 'linear')
             return Interpolation::LINEAR;
-        else if(Str == "Exponential" || Str == "EXPONENTIAL")
+        else if(Str == "Exponential" || Str == "EXPONENTIAL"  || Str == 'exponential')
             return Interpolation::EXPONENTIAL;
         else
             return Interpolation::LINEAR;
