@@ -15,7 +15,7 @@
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/test_examples/poisson_square_2d/problem_settings/square_finer_2d"
+                "input_filename": "problem_settings/square_finer_2d"
             },
             "time_stepping" : {
                 "time_step": 1.1
