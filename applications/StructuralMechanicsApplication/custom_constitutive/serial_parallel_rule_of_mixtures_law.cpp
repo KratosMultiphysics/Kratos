@@ -381,11 +381,13 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const double kf = mFiberVolumetricParticipation;
     const double km = 1.0 - kf;
 
-    const Vector& r_total_parallel_strain_vector = prod(rParallelProjector, rStrainVector);
-    const Vector& r_total_serial_strain_vector   = prod(trans(rSerialProjector), rStrainVector);
+    const Vector& r_total_parallel_strain_vector = prod(trans(rParallelProjector), rStrainVector);
+    const Vector& r_total_serial_strain_vector   = prod(rSerialProjector, rStrainVector);
 
-    rStrainVectorMatrix = r_total_parallel_strain_vector + rSerialStrainMatrix;
-    rStrainVectorFiber  = r_total_parallel_strain_vector + (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix);
+    // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
+    rStrainVectorMatrix = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
+    rStrainVectorFiber  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
+                               (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
 }
 
 /***********************************************************************************/
