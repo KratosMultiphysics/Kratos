@@ -142,6 +142,8 @@ void AssignBCs(ModelPart* pAdjointModelPart, const ModelPart& rPrimalModelPart)
             r_adjoint_node.Fix(ADJOINT_DISPLACEMENT_X);
         if (r_primal_node.IsFixed(DISPLACEMENT_Y))
             r_adjoint_node.Fix(ADJOINT_DISPLACEMENT_Y);
+        if (r_primal_node.IsFixed(DISPLACEMENT_Z))
+            r_adjoint_node.Fix(ADJOINT_DISPLACEMENT_Z);
     }
 }
 
