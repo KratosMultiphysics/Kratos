@@ -200,12 +200,19 @@ private:
     ModelPart& mThisModelPart;                            /// The model part to compute
     const Variable<array_1d<double,3>> mVariableGradient; /// The gradient variable
     std::string mRatioReferenceVariable = "DISTANCE";     /// Variable used to compute the anisotropic ratio
+    std::string mSizeReferenceVariable = "DISTANCE";      /// Variable used to compute the element size
     double mMinSize;                                      /// The minimal size of the elements
+<<<<<<< HEAD
     double mMaxSize;                                      /// The minimal size of the elements
+=======
+    double mMaxSize;                                      /// The maximal size of the elements
+>>>>>>> origin/meshing-app/feature-defining-size-levelset-metric
     bool mEnforceCurrent;                                 /// With this we choose if we inforce the current nodal size (NODAL_H)
     double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                                   /// The boundary layer limit Distance
-    Interpolation mInterpolation;                         /// The interpolation type
+    double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
+    double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
+    Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
+    Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
 
     ///@}
     ///@name Private Operators
@@ -255,10 +262,12 @@ private:
      */
 
     double CalculateAnisotropicRatio(
+        const double Distance
+        );
+
+    double CalculateElementSize(
         const double Distance,
-        const double AnisotropicRatio,
-        const double BoundLayer,
-        const Interpolation& rInterpolation
+        const double NodalH
         );
 
     double CalculateElementSize(

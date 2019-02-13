@@ -3,9 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
-import os
-
-class ApplyThermalInterfaceProcessTest(UnitTest.TestCase):
+class ApplyThermalFaceProcessTest(UnitTest.TestCase):
     def runTest(self):
         # Create a model part containing some properties
         self.model = KratosMultiphysics.Model()
@@ -23,31 +21,38 @@ class ApplyThermalInterfaceProcessTest(UnitTest.TestCase):
         root_model_part.CreateNewCondition("ThermalFace2D2N", 2, [2,3], root_model_part.GetProperties()[2])
 
         # Create a fake interface model part
-        interface_model_part = root_model_part.CreateSubModelPart("InterfaceModelPart")
+        interface_model_part = root_model_part.CreateSubModelPart("FaceModelPart")
         interface_model_part.AddCondition(root_model_part.GetCondition(1))
         interface_model_part.AddCondition(root_model_part.GetCondition(2))
 
         # Call the apply_thermal_interface_process
-        interface_model_part = self.model.GetModelPart("InterfaceModelPart")
-        import apply_thermal_interface_process
+        interface_model_part = self.model.GetModelPart("FaceModelPart")
+        import apply_thermal_face_process
         settings = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "InterfaceModelPart"
+            "model_part_name": "FaceModelPart",
+            "ambient_temperature": 300.0,
+            "add_ambient_radiation": true,
+            "emissivity": 0.1,
+            "add_ambient_convection": true,
+            "convection_coefficient": 0.0
         }''')
-        thermal_int_proc = apply_thermal_interface_process.ApplyThermalInterfaceProcess(self.model, settings)
+        apply_thermal_face_process.ApplyThermalFaceProcess(self.model, settings)
 
     def checkResults(self):
         # Check the interface properties
-        interface_model_part = self.model.GetModelPart("InterfaceModelPart")
-        self.assertEqual(interface_model_part.NumberOfProperties(), 1)
-        self.assertEqual(interface_model_part.GetRootModelPart().NumberOfProperties(), 6)
-        self.assertAlmostEqual(interface_model_part.GetCondition(1).Properties.GetValue(KratosMultiphysics.EMISSIVITY), 0.0, 1e-12)
-        self.assertAlmostEqual(interface_model_part.GetCondition(1).Properties.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT), 0.0, 1e-12)
+        face_model_part = self.model.GetModelPart("FaceModelPart")
+        face_properties = face_model_part.GetCondition(1).Properties
+        self.assertEqual(face_model_part.NumberOfProperties(), 1)
+        self.assertEqual(face_model_part.GetRootModelPart().NumberOfProperties(), 6)
+        self.assertAlmostEqual(face_properties.GetValue(KratosMultiphysics.EMISSIVITY), 0.1, 1e-12)
+        self.assertAlmostEqual(face_properties.GetValue(KratosMultiphysics.AMBIENT_TEMPERATURE), 300.0, 1e-12)
+        self.assertAlmostEqual(face_properties.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT), 0.0, 1e-12)
 
-    def testThermalInterfaceProcess(self):
+    def testThermalFaceProcess(self):
         self.runTest()
         self.checkResults()
 
 if __name__ == '__main__':
-    test = ApplyThermalInterfaceProcessTest()
+    test = ApplyThermalFaceProcessTest()
     test.runTest()
     test.checkResults()

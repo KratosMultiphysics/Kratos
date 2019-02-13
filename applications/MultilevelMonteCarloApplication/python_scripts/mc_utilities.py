@@ -28,14 +28,15 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stopping criteria in Monte Carlo simulations; avaiable at  SIAM Journal on Scientific Computing, 2014, Vol. 36, No. 2 : pp. A869-A885
 '''
 
-
 '''
 auxiliary function of AddResults of the MonteCarlo class
 '''
 @ExaquteTask(returns=1)
 def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
-        QoI_value = simulation_results
+        '''each value is inside the relative level list, and only one value per level is computed
+        i.e. results = [[value_level_0],[value_level_1],...]'''
+        QoI_value = simulation_results.QoI[level][0]
     else:
         raise Exception("level not equal to 0, in MC we should have only level zero")
     return QoI_value
@@ -153,11 +154,13 @@ class MonteCarlo(object):
     function adding QoI values to the corresponding level
     '''
     def AddResults(self,simulation_results):
-        '''simulation_results = [MultilevelMonteCarloResults class, level (integer type, not compss.future)]'''
-        level = 0
-        QoI_value = AddResultsAux_Task(simulation_results,level)
-        '''update values of QoI'''
-        self.QoI.values[level] = np.append(self.QoI.values[level],QoI_value)
+        '''simulation_results = [MonteCarloResults class, level (integer type, not compss.future)]'''
+        simulation_results_class = simulation_results[0]
+        level = simulation_results[1]
+        for lev in range (level+1):
+            QoI_value = AddResultsAux_Task(simulation_results_class,lev)
+            '''update values of difference QoI and time ML per each level'''
+            self.QoI.values[lev] = np.append(self.QoI.values[lev],QoI_value)
 
     '''
     function initializing the MC phase
@@ -233,3 +236,18 @@ function computing the cumulative distribution function for the standard normal 
 def _ComputeCDFStandardNormalDistribution(x):
     'cumulative distribution function (CDF) for the standard normal distribution'
     return (1.0 + erf(x / sqrt(2.0))) / 2.0
+
+
+class MonteCarloResults(object):
+    '''The base class for the MonteCarloResults-classes'''
+    def __init__(self,number_levels):
+        '''constructor of the MonteCarloResults-Object
+        Keyword arguments:
+        self : an instance of a class
+        '''
+        '''Quantity of Interest'''
+        self.QoI = [[] for _ in range (number_levels+1)]
+        '''time cost'''
+        self.time_ML = [[] for _ in range (number_levels+1)]
+        '''level of QoI and time_ML'''
+        self.finer_level = number_levels

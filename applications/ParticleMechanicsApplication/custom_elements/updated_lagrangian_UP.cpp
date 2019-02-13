@@ -170,7 +170,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > 1e-16)
+        if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
         {
             const array_1d<double, 3 > & nodal_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
 
@@ -351,7 +351,7 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
+        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -380,14 +380,13 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
     const double & MP_Pressure = this->GetValue(MP_PRESSURE);
-
-    array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
-    array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
-    double AUX_MP_Pressure = this->GetValue(AUX_MP_PRESSURE);
-
     const double& MP_Mass = this->GetValue(MP_MASS);
+
+    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
+    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum;
     array_1d<double,3> nodal_inertia;
+    double AUX_MP_Pressure = 0.0;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
@@ -426,11 +425,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
         rGeom[i].UnSetLock();
     }
-
-    AUX_MP_Velocity.clear();
-    AUX_MP_Acceleration.clear();
-    AUX_MP_Pressure = 0.0;
-
 }
 //************************************************************************************
 //************************************************************************************

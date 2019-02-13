@@ -59,7 +59,7 @@ MAPcond::~MAPcond()
 
 void MAPcond::Initialize()
 {
-  
+
 }
 
 //***********************************************************************************
@@ -69,10 +69,10 @@ void MAPcond::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& r_process_info)
 {
-    
+
  }
 
-  
+
  void MAPcond::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
                          Variable<array_1d<double,3> >& rDestinationVariable,
@@ -83,21 +83,5 @@ void MAPcond::CalculateRightHandSide(
 
     KRATOS_CATCH( "" )
 }
-
- 
- 
-
-void MAPcond::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
-{
-    
-}
-
-void MAPcond::FinalizeSolutionStep(ProcessInfo& r_process_info)   
-{  
-  
-}
-
-//***********************************************************************************
-//***********************************************************************************
 
 } // Namespace Kratos.
