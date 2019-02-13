@@ -147,8 +147,23 @@ KratosSuites = {
     'mpi_validation': TestSuite(),
 }
 
+
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     '''Same implementation as math.isclose
     self-implemented bcs msth.isclose was only introduced in python3.5
     '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+
+class WorkFolderScope:
+    """Helper-class to execute test in a specific path"""
+    def __init__(self, rel_path_work_folder, file_path):
+        """file_path is the __file__ argument"""
+        self.currentPath = os.getcwd()
+        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)

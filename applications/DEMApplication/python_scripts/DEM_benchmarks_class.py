@@ -3,7 +3,7 @@ from KratosMultiphysics import *                                  # importing th
 from KratosMultiphysics.DEMApplication import *
 import shutil
 from glob import glob
-from math import pi, sin, cos, tan, atan, fabs, sqrt
+from math import pi, sin, cos, tan, atan, sqrt
 
 from os import system
 import os, sys
@@ -252,6 +252,20 @@ def PrintResultsMessage(test_number, it_is_success, error, elapsed_time, error_f
         else:
             error_file.write(' KO!........ Test ' + name + ' FAILED (error: ' + str(error) + ')\n')
 
+def GetDisplacement(node):
+    displacement = [0]*3
+    displacement[0] = node.X-node.X0
+    displacement[1] = node.Y-node.Y0
+    displacement[2] = node.Z-node.Z0
+    return displacement
+
+def MeasureError(node, variable):
+    return sqrt(sum([node.GetSolutionStepValue(variable)[i]**2 for i in range(3)]))
+
+def GetNodeDisplacement(node):
+    return sqrt(sum([GetDisplacement(node)[i]**2 for i in range(3)]))
+
+
 class Benchmark1:
 
     def __init__(self):
@@ -307,7 +321,7 @@ class Benchmark1:
                 parts = line.split()
                 DEM_data.append(float(parts[7]))
 
-        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+        error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
         print("Error in restitution numbers =", 100*error,"%")
 
@@ -370,7 +384,7 @@ class Benchmark2:
                 parts = line.split()
                 DEM_data.append(float(parts[9]))
 
-        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+        error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
         print("Error in restitution numbers =", 100*error,"%")
 
@@ -476,7 +490,7 @@ class Benchmark3:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
         print("Error in restitution numbers =", 100*generated_data_error,"%")
@@ -621,7 +635,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_tangential_restitution_coefficient_error+=fabs(i-j)
+            final_tangential_restitution_coefficient_error+=abs(i-j)
         final_tangential_restitution_coefficient_error/=summation_of_Chung_data
         print("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
 
@@ -646,7 +660,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_angular_vel_total_error+=fabs(i-j)
+            final_angular_vel_total_error+=abs(i-j)
         final_angular_vel_total_error/=summation_of_Chung_data
         print("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
 
@@ -671,7 +685,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_rebound_angle_error+=fabs(i-j)
+            final_rebound_angle_error+=abs(i-j)
         final_rebound_angle_error/=summation_of_Chung_data
         print("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
 
@@ -794,7 +808,7 @@ class Benchmark5:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_mu_per_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_mu_per_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_mu_per_Vcn_prima_error/=summation_of_Chung_data
 
@@ -821,7 +835,7 @@ class Benchmark5:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_r_w1_prima_div_mu_per_Vcn_error+=fabs(i-j)
+            final_r_w1_prima_div_mu_per_Vcn_error+=abs(i-j)
 
         final_r_w1_prima_div_mu_per_Vcn_error/=summation_of_Chung_data
         print("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
@@ -951,7 +965,7 @@ class Benchmark6:
 
         DEM_data.reverse()
         for i, j in zip(DEM_data, Chung_data):
-            final_beta_list_outfile_name_error+=fabs(i-j)
+            final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
@@ -979,7 +993,7 @@ class Benchmark6:
 
 
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
@@ -1104,7 +1118,7 @@ class Benchmark7:
         final_tangential_center_vel_error = 0
 
         for i, j in zip(DEM_data, Chung_data):
-            final_tangential_center_vel_error+=fabs(i-j)
+            final_tangential_center_vel_error+=abs(i-j)
         print("Error in final tangential center vel =", final_tangential_center_vel_error)
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -1128,7 +1142,7 @@ class Benchmark7:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_angular_vel_error+=fabs(i-j)
+            final_angular_vel_error+=abs(i-j)
 
         final_angular_vel_error/=summation_of_Chung_data
         print("Error in final angular vel =", 100*final_angular_vel_error,"%")
@@ -1259,7 +1273,7 @@ class Benchmark8:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_beta_list_outfile_name_error+=fabs(i-j)
+            final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
@@ -1289,7 +1303,7 @@ class Benchmark8:
 
         DEM_data.reverse()
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
@@ -1404,7 +1418,7 @@ class Benchmark9:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
         print("Error in restitution numbers =", 100*generated_data_error,"%")
@@ -1597,7 +1611,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_tangential_surface_vel_error+=fabs(i-j)
+            final_normalized_rebound_tangential_surface_vel_error+=abs(i-j)
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
@@ -1626,7 +1640,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_angular_velocity_error+=fabs(i-j)
+            final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
         print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
@@ -1654,7 +1668,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_tangential_coefficient_of_restitution_error+=fabs(i-j)
+            final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
         print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
@@ -1854,7 +1868,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_tangential_surface_vel_error+=fabs(i-j)
+            final_normalized_rebound_tangential_surface_vel_error+=abs(i-j)
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
@@ -1883,7 +1897,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_angular_velocity_error+=fabs(i-j)
+            final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
         print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
@@ -1911,7 +1925,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_tangential_coefficient_of_restitution_error+=fabs(i-j)
+            final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
         print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
@@ -2009,7 +2023,7 @@ class Benchmark12: ########## ROLLING FRICTION
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2377,15 +2391,15 @@ class Benchmark16: ########## DEM-FEM Grid
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_1_error+=fabs(i-j)
+            final_velocity_1_error+=abs(i-j)
         final_velocity_1_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_velocity_2_error+=fabs(k-l)
+            final_velocity_2_error+=abs(k-l)
         final_velocity_2_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_velocity_3_error+=fabs(m-n)
+            final_velocity_3_error+=abs(m-n)
         final_velocity_3_error/=summation_of_ref_data3
 
         #for t, v1,v2,v3 in zip(times, DEM_data1, DEM_data2, DEM_data3):
@@ -2582,7 +2596,7 @@ class Benchmark20:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2681,7 +2695,7 @@ class Benchmark21:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2768,7 +2782,7 @@ class Benchmark22:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2857,7 +2871,7 @@ class Benchmark23:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2914,10 +2928,7 @@ class Benchmark24:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3008,7 +3019,7 @@ class Benchmark24:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -3065,10 +3076,7 @@ class Benchmark25:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3160,7 +3168,7 @@ class Benchmark25:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -3274,10 +3282,7 @@ class Benchmark27:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3430,7 +3435,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error1+=fabs(i-j)
+            dem_error1+=abs(i-j)
         dem_error1/=summation_of_analytics_data
 
         print("Error in total force at the reference particle =", 100*dem_error1,"%")
@@ -3455,7 +3460,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error2+=fabs(i-j)
+            dem_error2+=abs(i-j)
         dem_error2/=summation_of_analytics_data
 
         print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
@@ -3481,7 +3486,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error3+=fabs(i-j)
+            dem_error3+=abs(i-j)
         dem_error3/=summation_of_analytics_data
 
         print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
@@ -3516,7 +3521,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(FEM_data, analytics_data):
-            final_error+=fabs(i-j)
+            final_error+=abs(i-j)
         final_error/=summation_of_analytics_data
 
         print("Error in FEM axial force =", 100*final_error,"%")
@@ -3583,10 +3588,7 @@ class Benchmark28:   #pendulo3D
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3713,7 +3715,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error1+=fabs(i-j)
+            dem_error1+=abs(i-j)
         dem_error1/=summation_of_analytics_data
 
         print("Error in total force at the reference particle =", 100*dem_error1,"%")
@@ -3738,7 +3740,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error2+=fabs(i-j)
+            dem_error2+=abs(i-j)
         dem_error2/=summation_of_analytics_data
 
         print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
@@ -3764,7 +3766,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error3+=fabs(i-j)
+            dem_error3+=abs(i-j)
         dem_error3/=summation_of_analytics_data
 
         print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
@@ -3875,15 +3877,15 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_local_angular_velocity_x_error+=fabs(i-j)
+            final_local_angular_velocity_x_error+=abs(i-j)
         final_local_angular_velocity_x_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_local_angular_velocity_y_error+=fabs(k-l)
+            final_local_angular_velocity_y_error+=abs(k-l)
         final_local_angular_velocity_y_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_local_angular_velocity_z_error+=fabs(m-n)
+            final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
         print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
@@ -3990,15 +3992,15 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_local_angular_velocity_x_error+=fabs(i-j)
+            final_local_angular_velocity_x_error+=abs(i-j)
         final_local_angular_velocity_x_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_local_angular_velocity_y_error+=fabs(k-l)
+            final_local_angular_velocity_y_error+=abs(k-l)
         final_local_angular_velocity_y_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_local_angular_velocity_z_error+=fabs(m-n)
+            final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
         print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
@@ -4097,11 +4099,11 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
             summation_of_ref_data2+=abs(k)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_z_error+=fabs(i-j)
+            final_velocity_z_error+=abs(i-j)
         final_velocity_z_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_angular_velocity_y_error+=fabs(k-l)
+            final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
         print("Error in velocity Z =", 100*final_velocity_z_error,"%")
@@ -4196,11 +4198,11 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
             summation_of_ref_data2+=abs(k)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_z_error+=fabs(i-j)
+            final_velocity_z_error+=abs(i-j)
         final_velocity_z_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_angular_velocity_y_error+=fabs(k-l)
+            final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
         print("Error in velocity Z =", 100*final_velocity_z_error,"%")
@@ -4249,48 +4251,21 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 10:           ### stage 0 - simple dem
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=0
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
                     data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
                     data.flush()
 
-
             for node in modelpart.Nodes:
                 if node.Id == 42:           ### stage 1
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=1
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4300,22 +4275,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 71:           ### stage 2
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=2
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4325,22 +4287,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1354:           ### stage 3
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=3
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4351,22 +4300,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1534:           ### stage 4 - particle injected by inlet
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=4
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4377,22 +4313,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1416:           ### stage 5 - inlet movement
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=5
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4402,22 +4325,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1337:           ### stage 6 - dem with initial velocity
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=6
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4428,22 +4338,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 663:           ### stage 8 - gravity on sphere of spheres
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=7
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4453,22 +4350,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 758:           ### stage 9 - dem with reduced degrees of freedom
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=8
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4478,22 +4362,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 789:           ### stage 10 - dem falling pink
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=9
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4503,22 +4374,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 913:           ### stage 13 - dem falling green fem
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=10
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4529,22 +4387,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 974:           ### stage 14 - dem falling  orange
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=11
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4554,22 +4399,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1061:           ### stage 15 - dem imposed period
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=12
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4581,22 +4413,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1180:           ### stage 16 - dem initial
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=13
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4607,22 +4426,9 @@ class Benchmark40: # multiple benchmarks for general code verification.
             for node in modelpart.Nodes:
                 if node.Id == 1290:           ### stage 17 - dem contra fem rotatori force
 
-                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
-                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
-
-                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
-                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
-                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
-
-                    displacement = [0]*3
-                    displacement[0] = node.X - node.X0
-                    displacement[1] = node.Y - node.Y0
-                    displacement[2] = node.Z - node.Z0
-
-                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
 
                     i=14
                     data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
@@ -4643,18 +4449,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
-
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name  # beware
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4669,16 +4465,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
                     for node in mesh_nodes:
 
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4693,17 +4481,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4718,17 +4497,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4743,17 +4513,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4768,17 +4529,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4793,17 +4545,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4818,17 +4561,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     force_node = 0.0
 
                     for node in mesh_nodes:
-
-                        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                        force_node += sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
-
-                        displacement = [0]*3
-                        displacement[0] = node.X - node.X0
-                        displacement[1] = node.Y - node.Y0
-                        displacement[2] = node.Z - node.Z0
-                        displacement_node += sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
 
                     i=name
                     data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
@@ -4893,7 +4627,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 summation_of_analytics_data+=abs(j)
 
             for i, j in zip(DEM_data, analytics_data):
-                dem_error1+=fabs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+                dem_error1+=abs(i-j)                               # (test_data[0]-reference_data[0]) + ...
             dem_error1/=summation_of_analytics_data                 # relative error of the above against sum of reference data
 
             print("Error in total force at the reference particle =", 100*dem_error1,"%")
@@ -4918,7 +4652,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 summation_of_analytics_data+=abs(j)
 
             for i, j in zip(DEM_data, analytics_data):
-                dem_error2+=fabs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+                dem_error2+=abs(i-j)                               # (test_data[0]-reference_data[0]) + ...
             dem_error2/=summation_of_analytics_data                 # relative error of the above against sum of reference data
 
             print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
@@ -4944,7 +4678,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 summation_of_analytics_data+=abs(j)
 
             for i, j in zip(DEM_data, analytics_data):
-                dem_error3+=fabs(i-j)
+                dem_error3+=abs(i-j)
             dem_error3/=summation_of_analytics_data
 
             print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
@@ -4984,7 +4718,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 summation_of_analytics_data+=abs(j)
 
             for i, j in zip(DEM_data, analytics_data):
-                dem_error1+=fabs(i-j)
+                dem_error1+=abs(i-j)
             if summation_of_analytics_data!=0.0:                     # (test_data[0]-reference_data[0]) + ...
                 dem_error1/=summation_of_analytics_data              # relative error of the above against sum of reference data
 
@@ -5011,7 +4745,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                 summation_of_analytics_data+=abs(j)
 
             for i, j in zip(DEM_data, analytics_data):
-                dem_error2+=fabs(i-j)
+                dem_error2+=abs(i-j)
             dem_error2/=summation_of_analytics_data
 
             print("Error in delta displacement at the reference FEM subpart =", 100*dem_error2,"%")
@@ -5026,18 +4760,17 @@ class Benchmark40: # multiple benchmarks for general code verification.
         pass
 
 
-
-
-
-
 def delete_archives():
 
     #.......................Removing extra files
     files_to_delete_list = glob('*.time')
-    # files_to_delete_list.extend(glob('*.dat'))
+    files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.lst'))
+    files_to_delete_list.extend(glob('*.info'))
+    files_to_delete_list.extend(glob('*.err'))
+    files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
