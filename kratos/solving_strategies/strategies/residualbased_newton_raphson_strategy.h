@@ -421,6 +421,17 @@ class ResidualBasedNewtonRaphsonStrategy
 
         GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
 
+        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
+        {
+
+            GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
+            
+            //the following is needed since we need to eventually compute time derivatives after applying 
+            //Master slave relations
+            TSparseSpace::SetToZero(rDx);
+            p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        }
+
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
             BaseType::MoveMesh();

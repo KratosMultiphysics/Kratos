@@ -358,7 +358,12 @@ public:
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
-        GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
+        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
+        {
+            TSparseSpace::SetToZero(rDx);
+            p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+            GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
+        }
 
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
