@@ -266,7 +266,7 @@ protected:
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
             "destination_variable_historical"  : true,
-            "reset_database"                   : false,
+            "update_interface"                 : false,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,

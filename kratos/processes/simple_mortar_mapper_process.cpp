@@ -122,9 +122,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
     KRATOS_TRY;
 
     // We reset the database if needed
-    const bool reset_database = mThisParameters["reset_database"].GetBool();
-    if (reset_database) {
-        this->ResetDatabase();
+    const bool update_interface = mThisParameters["update_interface"].GetBool();
+    if (update_interface) {
+        this->UpdateInterface();
     }
 
     if (mpThisLinearSolver == nullptr)
@@ -890,7 +890,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
-void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ResetDatabase()
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::UpdateInterface()
 {
     // Iterate in the conditions
     auto &r_destination_conditions_array = mDestinationModelPart.Conditions();
@@ -929,7 +929,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "destination_variable"             : "",
         "origin_variable_historical"       : true,
         "destination_variable_historical"  : true,
-        "reset_database"                   : false,
+        "update_interface"                 : false,
         "search_parameters"                : {
             "allocation_size"                  : 1000,
             "bucket_size"                      : 4,
