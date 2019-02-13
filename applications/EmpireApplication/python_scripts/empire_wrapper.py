@@ -37,7 +37,7 @@ class EmpireWrapper:
         def __init__(self, echo_level, call_empire):
             self.model_parts = {}
             self.echo_level = echo_level
-            self.call_empire = call_empire
+            self.call_empire = call_empire # only for debugging to set-up cases without having to execute EMPIRE
             if self.call_empire:
                 self._load_empire_library()
             else:
