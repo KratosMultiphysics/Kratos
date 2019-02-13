@@ -299,7 +299,9 @@ public:
         }
 
         // Checking condition number
-        CheckConditionNumber(rInputMatrix, inverted_matrix, Tolerance);
+        if (Tolerance > 0.0) { // Check is skipped for negative tolerances
+            CheckConditionNumber(rInputMatrix, inverted_matrix, Tolerance);
+        }
 
         return inverted_matrix;
     }
@@ -318,7 +320,7 @@ public:
         )
     {
         // We want at least 4 significant digits
-        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
+        const TDataType max_condition_number = 1.0/(Tolerance * 1.0e4);
 
         // Find the condition number to define is inverse is OK
         const double input_matrix_norm = norm_frobenius(rInputMatrix);
@@ -329,7 +331,7 @@ public:
         // Finally check if the condition number is low enough
         if (cond_number > max_condition_number) {
             KRATOS_WATCH(rInputMatrix);
-            KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
+            KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << " compared to the maximum condition number: " << max_condition_number << std::endl;
         }
     }
 
@@ -465,7 +467,9 @@ public:
        }
 
        // Checking condition number
-        CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
+       if (Tolerance > 0.0) { // Check is skipped for negative tolerances
+            CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
+       }
     }
 
     /**
