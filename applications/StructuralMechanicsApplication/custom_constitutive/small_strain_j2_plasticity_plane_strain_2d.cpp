@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "linear_j2_plasticity_plane_strain_2d.h"
+#include "small_strain_j2_plasticity_plane_strain_2d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -25,38 +25,38 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D()
-    : LinearJ2Plasticity3D()
+SmallStrainJ2PlasticityPlaneStrain2D::SmallStrainJ2PlasticityPlaneStrain2D()
+    : SmallStrainJ2Plasticity3D()
 {
 }
 
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D(const LinearJ2PlasticityPlaneStrain2D &rOther)
-    : LinearJ2Plasticity3D(rOther)
+SmallStrainJ2PlasticityPlaneStrain2D::SmallStrainJ2PlasticityPlaneStrain2D(const SmallStrainJ2PlasticityPlaneStrain2D &rOther)
+    : SmallStrainJ2Plasticity3D(rOther)
 {
 }
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearJ2PlasticityPlaneStrain2D::Clone() const
+ConstitutiveLaw::Pointer SmallStrainJ2PlasticityPlaneStrain2D::Clone() const
 {
-    return Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>(LinearJ2PlasticityPlaneStrain2D(*this));
+    return Kratos::make_shared<SmallStrainJ2PlasticityPlaneStrain2D>(SmallStrainJ2PlasticityPlaneStrain2D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearJ2PlasticityPlaneStrain2D::~LinearJ2PlasticityPlaneStrain2D()
+SmallStrainJ2PlasticityPlaneStrain2D::~SmallStrainJ2PlasticityPlaneStrain2D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateStressResponse(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rPlasticStrain,
         double& rAccumulatedPlasticStrain)
@@ -78,7 +78,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
         Vector& r_stress_vector = rValues.GetStressVector();
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         const double hardening_modulus = r_material_properties[ISOTROPIC_HARDENING_MODULUS];
-        const double delta_k = r_material_properties[INFINITY_HARDENING_MODULUS];
+        const double delta_k = r_material_properties[EXPONENTIAL_SATURATION_YIELD_STRESS] - r_material_properties[YIELD_STRESS];
         const double hardening_exponent = r_material_properties[HARDENING_EXPONENT];
         const double E = r_material_properties[YOUNG_MODULUS];
         const double poisson_ratio = r_material_properties[POISSON_RATIO];
@@ -125,7 +125,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential hardening
-                dgamma = GetDeltaGamma(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
+                dgamma = GetAccumPlasticStrainRate(norm_dev_stress, r_material_properties, mAccumulatedPlasticStrain);
             }
             else {
                 // Linear hardening
@@ -165,7 +165,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor)
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -198,22 +198,21 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &r
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
+void SmallStrainJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
                                                              const Vector &YieldFunctionNormalVector,
                                                              const Properties &rMaterialProperties,
                                                              const double AccumulatedPlasticStrain,
                                                              Matrix &rElasticityTensor)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    const double delta_k = rMaterialProperties[EXPONENTIAL_SATURATION_YIELD_STRESS] - rMaterialProperties[YIELD_STRESS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
     const double mu = E / (2. + 2. * poisson_ratio);
     const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
 
-    const double kp_new = (theta * hardening_modulus) +
+    const double kp_new = hardening_modulus +
                     delta_k * (hardening_exponent *
                                std::exp(-hardening_exponent * AccumulatedPlasticStrain));
 
@@ -253,7 +252,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaG
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
+void SmallStrainJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -266,17 +265,17 @@ void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
+void SmallStrainJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainJ2Plasticity3D);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
+void SmallStrainJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainJ2Plasticity3D);
 }
 
 } /* namespace Kratos.*/

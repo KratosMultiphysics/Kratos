@@ -4,7 +4,7 @@
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
         "start_step"      : 0.0,
-        "end_time"        : 200.0
+        "end_time"        : 199.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -40,6 +40,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "couette_imposed_3D"
         },
+        "echo_level": 0,
+        "maximum_iterations": 10,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
