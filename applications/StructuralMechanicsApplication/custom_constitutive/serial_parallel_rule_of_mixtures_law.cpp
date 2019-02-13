@@ -171,7 +171,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
 	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
 
     // Iterative procedure unitl the equilibrium is reached in the serial stresses
-    while (is_converged == false || iteration < max_iterations) {
+    while (is_converged == false && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: serial_strain_matrix
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
@@ -197,7 +197,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
             iteration++;
         }
     }
-    KRATOS_WARNING_IF("MaxIteration in SP-RoM", iteration == max_iterations);
+    KRATOS_WARNING_IF("MaxIteration in SP-RoM", iteration > max_iterations);
 }
 
 /***********************************************************************************/
