@@ -100,13 +100,16 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 self.CalculateDistance()
             else:
                 print("Executing first refinement ")
+                import time
+                ini_time=time.time()
                 self.RefineMesh()
+                print("Elapsed time: ",time.time()-ini_time)
                 self.CalculateDistance()
-                self.MetricParameters["enforce_current"].SetBool(True)
-                # self.MetricParameters["minimal_size"].SetDouble(1e-4)
-                print("Executing second refinement ")
-                self.RefineMesh()
-                self.CalculateDistance()
+                # self.MetricParameters["enforce_current"].SetBool(True)
+                # self.MetricParameters["minimal_size"].SetDouble(5e-4)
+                # print("Executing second refinement ")
+                # self.RefineMesh()
+                # self.CalculateDistance()
 
         self.ApplyFlags()
         print("Level Set geometry initialized")
@@ -319,7 +322,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             for node in elem.GetNodes():
                 if node.Id == max_node.Id:
                     touching_kutta=True
-                    elem.Set(KratosMultiphysics.THERMAL,True)
             if center_X<max_x and touching_kutta:
                 elem.Set(KratosMultiphysics.ACTIVE,False)
                 self.aux_model_part.Elements.append(elem)
@@ -339,7 +341,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 if node.Id == shared_node.Id:
                     touching_shared=True
             if touching_shared:
-                elem.Set(KratosMultiphysics.THERMAL,True)
                 elem.Set(KratosMultiphysics.ACTIVE,False)
         #         self.aux_model_part2.Elements.append(elem)
         # node_list=[]
@@ -354,7 +355,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         #             counter +=1
         #     if counter==2:
         #         element.Set(KratosMultiphysics.ACTIVE,False)
-        #         elem.Set(KratosMultiphysics.THERMAL,True)
 
         # self.main_model_part.GetElement(142868,0).Set(KratosMultiphysics.ACTIVE,False)
         # self.main_model_part.GetElement(473307,0).Set(KratosMultiphysics.ACTIVE,False)
