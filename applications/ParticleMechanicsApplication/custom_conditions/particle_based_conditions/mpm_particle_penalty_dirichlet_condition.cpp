@@ -67,6 +67,38 @@ MPMParticlePenaltyDirichletCondition::~MPMParticlePenaltyDirichletCondition()
 //************************************************************************************
 //************************************************************************************
 
+void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
+
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
+        GeneralVariables Variables;
+
+        // Calculating shape function
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+
+        // Normal Vector
+        const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
+
+        // Here MPC contribution of normal vector are added
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            rGeom[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
+            rGeom[i].UnSetLock();
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void MPMParticlePenaltyDirichletCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo,
@@ -179,6 +211,33 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
+
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+
+        // Here MPC normal vector and IS_STRUCTURE are reset
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            rGeom[i].FastGetSolutionStepValue(NORMAL).clear();
+            rGeom[i].UnSetLock();
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
 
 } // Namespace Kratos
 
