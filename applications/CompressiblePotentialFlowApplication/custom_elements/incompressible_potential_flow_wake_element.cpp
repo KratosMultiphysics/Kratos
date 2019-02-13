@@ -54,6 +54,8 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
     const IncompressiblePotentialFlowWakeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
+    std::cout << this->Id() << std::endl;
+
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
@@ -208,7 +210,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
     else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == WAKE)
-        rValues[0] = this->GetValue(WAKE);
+        rValues[0] = 5.0;//this->GetValue(WAKE);
     else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == TRAILING_EDGE_ELEMENT)

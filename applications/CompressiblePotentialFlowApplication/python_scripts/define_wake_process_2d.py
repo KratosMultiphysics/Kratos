@@ -57,7 +57,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.lower_surface_model_part = Model[self.settings["lower_surface_model_part_name"].GetString(
         )]
 
-        self.fluid_model_part = Model[self.settings["fluid_part_name"].GetString()]
+        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
 
@@ -66,7 +66,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
+        '''
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
@@ -74,6 +74,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.fluid_model_part, AvgElemNum, AvgNodeNum)
         # Find neighbours
         nodal_neighbour_search.Execute()
+        '''
 
     def ExecuteInitialize(self):
         # Save the trailing edge for further computations
@@ -91,9 +92,20 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #for elem in self.wake_model_part.Elements:
         #    print(elem.Id)
 
-        process = KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.fluid_model_part, self.settings["wake_element_replace_settings"])
-        #process.Execute()
+        process = KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.wake_model_part, self.settings["wake_element_replace_settings"])
+        process.Execute()
         KratosMultiphysics.Logger.PrintInfo('...DefineWakeProcess finished...')
+
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
+                                                                       self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
+        # Neigbour search tool instance
+        AvgElemNum = 10
+        AvgNodeNum = 10
+        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(
+            self.fluid_model_part, AvgElemNum, AvgNodeNum)
+        # Find neighbours
+        nodal_neighbour_search.Execute()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations

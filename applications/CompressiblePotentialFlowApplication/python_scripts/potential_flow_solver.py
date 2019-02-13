@@ -40,7 +40,7 @@ class LaplacianSolver(PythonSolver):
                     "input_filename": "unknown_name"
             },
             "element_replace_settings": {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
+                    "element_name":"IncompressiblePotentialFlowElement2D3N",
                     "condition_name": "PotentialWallCondition2D2N"
             },
             "linear_solver_settings": {
@@ -135,6 +135,7 @@ class LaplacianSolver(PythonSolver):
                 raise Exception("Domain size is not 2 or 3!!")
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            KratosMultiphysics.Logger.PrintInfo('...ReplaceElementsAndConditionsProcess finished...')
 
         else:
             raise Exception("other input options are not yet implemented")

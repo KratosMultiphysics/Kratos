@@ -208,7 +208,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == WAKE)
-        rValues[0] = this->GetValue(WAKE);
+        rValues[0] = 3.0;//this->GetValue(WAKE);
     else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == TRAILING_EDGE_ELEMENT)
@@ -438,6 +438,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
+
+    Vector split_element_values(2*NumNodes);
+    GetPotentialOnWakeElement(split_element_values,data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
