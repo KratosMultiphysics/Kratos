@@ -358,6 +358,10 @@ public:
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
+        GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
+
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
         KRATOS_CATCH("")
     }
 
