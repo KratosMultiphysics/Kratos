@@ -3,11 +3,10 @@ import KratosMultiphysics
 import os
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 import structural_response_function_factory
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import time as timer
 
 class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
 
@@ -24,7 +23,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
         model_part_adjoint = response_function.adjoint_model_part
         response_function.RunCalculation(calculate_gradient=True)
-        
+
         node_sensitivity = []
         for i in range(1,4):
             node_sensitivity.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY) )
@@ -36,9 +35,9 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[1][1], 2.6497931858493473, 1)
         self.assertAlmostEqual(node_sensitivity[2][0], -1.57271274847659, 2)
         self.assertAlmostEqual(node_sensitivity[2][1], 0.6297830440260554, 3)
-        
+
         self._removeH5Files("primal_output_truss")
-    
+
     def testStructureWithFreeNodes(self):
         with open("response_function_tests/adjoint_strain_energy_response_parameters_truss_multiple_loads.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters( parameter_file.read())
@@ -47,7 +46,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
         model_part_adjoint = response_function.adjoint_model_part
         response_function.RunCalculation(calculate_gradient=True)
-        
+
         node_sensitivity = []
         for i in range(1,6):
             node_sensitivity.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY) )
@@ -59,7 +58,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[1][1], -1.9382867385342448, 2)
         self.assertAlmostEqual(node_sensitivity[2][0], -2.5592816343511515, 2)
         self.assertAlmostEqual(node_sensitivity[2][1], 1.9672906711676317, 1)
-        
+
         self._removeH5Files("primal_output_truss")
 
     def testThreeDimensionalStructure(self):
@@ -70,7 +69,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
         model_part_adjoint = response_function.adjoint_model_part
         response_function.RunCalculation(calculate_gradient=True)
-        
+
         node_sensitivity = []
         for i in range(1,6):
             node_sensitivity.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY) )
@@ -96,7 +95,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
         model_part_adjoint = response_function.adjoint_model_part
         response_function.RunCalculation(calculate_gradient=True)
-        
+
         node_sensitivity = []
         for i in range(1,4):
             node_sensitivity.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY) )
@@ -108,7 +107,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[1][0], -14.449074176425823, 1)
         self.assertAlmostEqual(node_sensitivity[1][1], 3.0951781273103047, 0)
         self.assertAlmostEqual(node_sensitivity[1][2], 0.00014498642286753238, 6)
-        
+
         self._removeH5Files("primal_output_truss")
 
 if __name__ == '__main__':

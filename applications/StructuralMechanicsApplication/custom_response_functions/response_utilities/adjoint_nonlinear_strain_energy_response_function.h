@@ -52,23 +52,23 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef AdjointStructuralResponseFunction BaseType;  
+    typedef AdjointStructuralResponseFunction BaseType;
 
     ///@}
     ///@name Pointer Definitions
     ///@{
 
     /// Pointer definition of AdjointNonlinearStrainEnergyResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointNonlinearStrainEnergyResponseFunction);  
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointNonlinearStrainEnergyResponseFunction);
 
-    
+
 
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     AdjointNonlinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
-   
+
     /// Destructor.
     ~AdjointNonlinearStrainEnergyResponseFunction();
 
@@ -79,7 +79,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     double CalculateValue(ModelPart& rModelPart) override;
 
     //void CalculateResponseIncrement(ModelPart& rModelPart);
@@ -118,7 +118,7 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
-    
+
     void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
@@ -180,15 +180,15 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    double m_response_value = 0;
-   
+
+    double m_response_value = 0.0;
+
     Matrix mExternalForceDisplacementDerivative;
     Matrix mExternalForceDesignVariableDerivative;
 
 
     std::map<int, Vector> mConditionsRHS;
-    std::map<int, Condition::Pointer> mConditions;
+    std::map<int,  ModelPart::ConditionsContainerType::iterator> mConditions;
     std::map<int, Vector> mResponseGradient_1;
     std::map<int, Vector> mResponseGradient_0;
 

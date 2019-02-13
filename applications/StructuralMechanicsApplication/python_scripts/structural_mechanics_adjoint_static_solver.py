@@ -69,7 +69,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_nonlinear_strain_energy":
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_non_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointNonlinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
@@ -85,11 +85,12 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
 
         # TODO Armin: hdf5 is reading the displacement but not updating the coordinates
+        # TODO Mahmoud: check why KratosMultiphysics.VariableUtils().UpdateInitialToCurrentConfiguration update the nodal position here?
         for node in self.main_model_part.Nodes:
             node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[0]
             node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
             node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
-        
+
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -97,7 +98,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.response_function.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        KratosMultiphysics.Logger.PrintInfo("ADJOINT::SolveSolutionStep")
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
         else:

@@ -25,15 +25,15 @@
         "nodal_sensitivity_variables"  : ["SHAPE"],
         "element_sensitivity_variables"  : [],
         "condition_sensitivity_variables"  : [],
-        "build_mode": "static-non-linear"
-        },            
+        "build_mode": "static-non-linear-strain-energy"
+        },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Y","PointLoad3D_BC_NEUMANN"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : false,
         "linear_solver_settings"       : {
-            "solver_type"         : "Super_LU"
+            "solver_type"         : "ExternalSolversApplication.Super_LU"
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
