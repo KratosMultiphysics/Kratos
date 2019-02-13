@@ -150,7 +150,7 @@ class MultilevelMonteCarlo(object):
         '''number_samples : total number of samples of current iteration'''
         self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''
-        self.difference_number_samples = None
+        self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''previous_number_samples : total number of samples of previous iteration'''
         self.previous_number_samples = None
         '''rates_error : dictionary containing the values of the parameters
