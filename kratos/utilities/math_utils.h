@@ -278,10 +278,10 @@ public:
 
     template<unsigned int TDim>
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
-            const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
-            TDataType& InputMatrixDet,
-            const TDataType MaxCondNumber = (1.0/std::numeric_limits<double>::epsilon()) * 1.0e-4 // we want at least 4 significant digits.
-            )
+        const BoundedMatrix<TDataType, TDim, TDim>& rInputMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
 
@@ -352,29 +352,50 @@ public:
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
         }
 
-        //Find the condition number to define is inverse is OK
+        // Checking condition number
+        CheckConditionNumber(rInputMatrix, InvertedMatrix, Tolerance);
+
+        return inverted_matrix;
+    }
+
+    /**
+     * @brief This method checks the condition number of  amtrix
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     */
+    template<class TMatrix1, class TMatrix2>
+    static inline void CheckConditionNumber(
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        // We want at least 4 significant digits
+        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
+
+        // Sizes
+        const SizeType size_1 = rInputMatrix.size1();
+        const SizeType size_2 = rInputMatrix.size2();
+
+        // Find the condition number to define is inverse is OK
         double input_matrix_norm = 0.0;
         double inverted_matrix_norm = 0.0;
-        for(unsigned int i = 0; i < TDim; i++)
-        {
-            for(unsigned int j = 0; j < TDim; j++)
-            {
-                input_matrix_norm += std::pow(InputMatrix(i,j),2);
-                inverted_matrix_norm += std::pow(InvertedMatrix(i,j),2);
+        for(IndexType i = 0; i < size_1; ++i) {
+            for(IndexType j = 0; j < size_2; ++j) {
+                input_matrix_norm += std::pow(rInputMatrix(i,j),2);
+                inverted_matrix_norm += std::pow(rInvertedMatrix(i,j),2);
             }
         }
         input_matrix_norm = std::sqrt(input_matrix_norm);
         inverted_matrix_norm = std::sqrt(inverted_matrix_norm);
-        //now the condition number is the product of both norms
-        const double cond_number = input_matrix_norm * inverted_matrix_norm ; 
-        //finally check if the condition number is low enough
-        if (cond_number > MaxCondNumber)
-        {
-            KRATOS_WATCH(InputMatrix);
+        // Now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ;
+        // Finally check if the condition number is low enough
+        if (cond_number > max_condition_number) {
+            KRATOS_WATCH(rInputMatrix);
             KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
         }
-
-        return InvertedMatrix;
     }
 
     /**
