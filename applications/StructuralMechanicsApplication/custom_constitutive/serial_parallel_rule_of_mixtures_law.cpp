@@ -267,9 +267,9 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     const Matrix& rConstitutiveTensorFiberSS
 )
 {
-    const Vector& r_serial_total_strain  = prod(trans(rSerialProjector), rStrainVector);
-    const Vector& r_serial_stress_matrix = prod(trans(rSerialProjector), rMatrixStressVector);
-    const Vector& r_serial_stress_fiber  = prod(trans(rSerialProjector), rFiberStressVector);
+    const Vector& r_serial_total_strain  = prod(rSerialProjector, rStrainVector);
+    const Vector& r_serial_stress_matrix = prod(rSerialProjector, rMatrixStressVector);
+    const Vector& r_serial_stress_fiber  = prod(rSerialProjector, rFiberStressVector);
 
     const double norm_serial_stress_matrix = MathUtils<double>::Norm(r_serial_stress_matrix);
     const double norm_serial_stress_fiber  = MathUtils<double>::Norm(r_serial_stress_fiber);
