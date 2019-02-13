@@ -900,6 +900,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+            rValue = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
             return MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
