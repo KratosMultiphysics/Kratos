@@ -47,7 +47,7 @@ class LaplacianSolver(PythonSolver):
                     "input_filename": "unknown_name"
             },
             "element_replace_settings": {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
+                    "element_name":"IncompressiblePotentialFlowElement2D3N",
                     "condition_name": "PotentialWallCondition2D2N"
             },
             "linear_solver_settings": {

@@ -427,7 +427,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
-    Vector split_element_values(NumNodes*2);
+
+    Vector split_element_values(2*NumNodes);
     GetPotentialOnWakeElement(split_element_values,data.distances);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
