@@ -331,11 +331,11 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
 )
 {
     const int voigt_size = this->GetStrainSize();
-    const Vector& r_total_strain_vector_parallel = prod(rParallelProjector, rStrainVector);
-    const Vector& r_total_strain_vector_serial   = prod(trans(rSerialProjector), rStrainVector);
+    const Vector& r_total_strain_vector_parallel = prod(trans(rParallelProjector), rStrainVector);
+    const Vector& r_total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
 
-    const Vector& r_total_strain_increment_serial = r_total_strain_vector_serial - prod(trans(rSerialProjector), rPreviousStrainVector);
-    const Vector& r_total_strain_increment_parallel = r_total_strain_vector_parallel - prod(rParallelProjector, rPreviousStrainVector);
+    const Vector& r_total_strain_increment_serial = r_total_strain_vector_serial - prod(rSerialProjector, rPreviousStrainVector);
+    const Vector& r_total_strain_increment_parallel = r_total_strain_vector_parallel - prod(trans(rParallelProjector), rPreviousStrainVector);
 
     const double fiber_vol_participation = mFiberVolumetricParticipation;
     const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
@@ -348,19 +348,19 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
     this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
 
-    rConstitutiveTensorMatrixSS = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, rSerialProjector)));
-    rConstitutiveTensorFiberSS  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, rSerialProjector)));
+    rConstitutiveTensorMatrixSS = prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, trans(rSerialProjector))));
+    rConstitutiveTensorFiberSS  = prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, trans(rSerialProjector))));
 
-    const Matrix& r_constitutive_tensor_matrix_sp = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_matrix, trans(rParallelProjector))));
-    const Matrix& r_constitutive_tensor_fiber_sp  = prod(trans(rSerialProjector), Matrix(prod(constitutive_tensor_fiber, trans(rParallelProjector))));
+    const Matrix& r_constitutive_tensor_matrix_sp = trans(prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, rParallelProjector))));
+    const Matrix& r_constitutive_tensor_fiber_sp  = trans(prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, rParallelProjector))));
 
     Matrix A, aux;
-    noalias(aux) = matrix_vol_participation * rConstitutiveTensorFiberSS + fiber_vol_participation * rConstitutiveTensorMatrixSS;
+    aux = matrix_vol_participation * rConstitutiveTensorFiberSS + fiber_vol_participation * rConstitutiveTensorMatrixSS;
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
     Vector auxiliar;
-    noalias(auxiliar) = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) +
+    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) +
         fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), r_total_strain_increment_parallel);
 
     noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
@@ -405,10 +405,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     int parallel_counter = 0, serial_counter = 0;
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
         if (mParallelDirections[i_comp] == 1) {
-            rParallelProjector(i_comp, parallel_counter) = 1;
+            rParallelProjector(i_comp, parallel_counter) = 1.0;
             parallel_counter++;
         } else {
-            rSerialProjector(serial_counter, i_comp) = 1;
+            rSerialProjector(serial_counter, i_comp) = 1.0;
             serial_counter++; 
         }
     }
