@@ -304,7 +304,7 @@ if __name__ == '__main__':
     ''''start screening phase'''
     for level in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.difference_number_samples[level]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.mesh_sizes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
     '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -316,7 +316,7 @@ if __name__ == '__main__':
         '''MLMC execution phase'''
         for level in range (mlmc_class.current_number_levels+1):
             for instance in range (mlmc_class.difference_number_samples[level]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.mesh_sizes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
         '''finalize MLMC phase'''
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()

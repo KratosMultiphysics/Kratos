@@ -165,7 +165,7 @@ class MultilevelMonteCarlo(object):
         '''mesh_parameters : reciprocal of minimal mesh size'''
         self.mesh_parameters = []
         '''size_mesh : minimal mesh size'''
-        self.sizes_mesh = []
+        self.mesh_sizes = []
         '''BayesianVariance : Bayesian variance'''
         self.BayesianVariance = []
         '''number_iterations : theoretical number of iterations the MLMC algorithm will perform'''
@@ -408,7 +408,7 @@ class MultilevelMonteCarlo(object):
         for level in range(self.settings["Lmax"].GetInt()+1):
             h_current_level = h0 * M**(-level)
             mesh_parameter_current_level = h_current_level**(-1)
-            self.sizes_mesh.append(h_current_level)
+            self.mesh_sizes.append(h_current_level)
             self.mesh_parameters.append(mesh_parameter_current_level)
 
     '''
