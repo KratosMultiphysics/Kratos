@@ -6,30 +6,14 @@
 namespace Kratos
 {
 
-// Spacialization of AMGCLScalarSolve for distribued systems.
-template <class TSparseSpaceType>
-typename std::enable_if<TSparseSpaceType::IsDistributed(), void>::type
-AMGCLScalarSolve(
-    typename TSparseSpaceType::MatrixType& rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+void AMGCLSolve(
+    int block_size,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType& rA,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
     const boost::property_tree::ptree &amgclParams,
-    int verbosity_level,
-    bool use_gpgpu
-    );
-
-// Spacialization of AMGCLBlockSolve for distribued systems.
-template <int TBlockSize, class TSparseSpaceType>
-typename std::enable_if<TSparseSpaceType::IsDistributed(), void>::type
-AMGCLBlockSolve(
-    typename TSparseSpaceType::MatrixType & rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
-    double& rResidual,
-    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );

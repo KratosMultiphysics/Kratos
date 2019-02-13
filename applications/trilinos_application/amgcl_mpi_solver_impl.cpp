@@ -26,6 +26,8 @@
 #include "Epetra_FEVector.h"
 #include "trilinos_space.h"
 
+#include "external_includes/amgcl_mpi_solve_functions.h"
+
 namespace Kratos
 {
 
@@ -37,13 +39,11 @@ void register_vexcl_static_matrix_type();
 #endif
 
 // Spacialization of AMGCLScalarSolve for distribued systems.
-template <class TSparseSpaceType>
-typename std::enable_if<TSparseSpaceType::IsDistributed(), void>::type
-AMGCLScalarSolve(
-    typename TSparseSpaceType::MatrixType& rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+void AMGCLScalarSolve(
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType& rA,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
     const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
@@ -100,13 +100,12 @@ AMGCLScalarSolve(
 }
 
 // Spacialization of AMGCLBlockSolve for distribued systems.
-template <int TBlockSize, class TSparseSpaceType>
-typename std::enable_if<TSparseSpaceType::IsDistributed(), void>::type
-AMGCLBlockSolve(
-    typename TSparseSpaceType::MatrixType & rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+template <int TBlockSize>
+void AMGCLBlockSolve(
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType & rA,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
+    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
     boost::property_tree::ptree amgclParams,
     int verbosity_level,
@@ -184,8 +183,8 @@ AMGCLBlockSolve(
     }
 }
 
-// Exlplicit instantiations:
-template void AMGCLScalarSolve< TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> >(
+void AMGCLSolve(
+    int block_size,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType& rA,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
@@ -194,25 +193,23 @@ template void AMGCLScalarSolve< TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVecto
     const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
     bool use_gpgpu
-    );
-
-#define INSTANTIATE_BLOCK_SOLVER(B)                                                    \
-template void AMGCLBlockSolve<B, TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> >( \
-    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::MatrixType& rA,                \
-    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rX,                \
-    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,                \
-    TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,   \
-    double& rResidual,                                                                 \
-    boost::property_tree::ptree amgclParams,                                           \
-    int verbosity_level,                                                               \
-    bool use_gpgpu                                                                     \
     )
-
-INSTANTIATE_BLOCK_SOLVER(2);
-INSTANTIATE_BLOCK_SOLVER(3);
-INSTANTIATE_BLOCK_SOLVER(4);
-
-#undef INSTANTIATE_BLOCK_SOLVER
+{
+    switch (block_size) {
+        case 2:
+            AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        case 3:
+            AMGCLBlockSolve<3>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        case 4:
+            AMGCLBlockSolve<4>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        default:
+            AMGCLScalarSolve(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+    }
+}
 
 } // namespace Kratos
 

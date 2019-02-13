@@ -68,43 +68,22 @@ enum AMGCLCoarseningType
 ///@{
 
 /**
- * @brief This function computes a scalar solve for Ublas Matrix type
+ * @brief This function solves with Ublas Matrix type
+ * @param block_size Block size
  * @param rA System matrix
  * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
  * @param rB Right hand side vector.
  * @param rIterationNumber The current number of iterations
  * @param rResidual The current residual of the problem
  */
-template <class TSparseSpaceType>
-typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
-AMGCLScalarSolve(
-    typename TSparseSpaceType::MatrixType& rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+void KRATOS_API(KRATOS_CORE) AMGCLSolve(
+    int block_size,
+    TUblasSparseSpace<double>::MatrixType& rA,
+    TUblasSparseSpace<double>::VectorType& rX,
+    TUblasSparseSpace<double>::VectorType& rB,
+    TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
     const boost::property_tree::ptree &amgclParams,
-    int verbosity_level,
-    bool use_gpgpu
-    );
-
-/**
- * @brief This method solves by block a Ax=b system
- * @param rA System matrix
- * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
- * @param rB Right hand side vector.
- * @param rIterationNumber The current number of iterations
- * @param rResidual The current residual of the problem
- */
-template <int TBlockSize, class TSparseSpaceType>
-typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
-AMGCLBlockSolve(
-    typename TSparseSpaceType::MatrixType & rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
-    double& rResidual,
-    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );
@@ -462,21 +441,14 @@ public:
             if(mUseBlockMatricesIfPossible) {
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
-                if(mBlockSize == 1) AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
-                else if(mBlockSize == 2) AMGCLBlockSolve<2, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
-                else if(mBlockSize == 3) AMGCLBlockSolve<3, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
-                else if(mBlockSize == 4) AMGCLBlockSolve<4, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
-                else
-                    AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
-            } else {
-                AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
             }
+            AMGCLSolve(mBlockSize, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
             mAMGCLParameters.put("solver.type", "gmres");
             mAMGCLParameters.put("solver.M",  mGMRESSize);
-            AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(1, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         }
 
         KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;

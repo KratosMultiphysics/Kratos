@@ -18,6 +18,7 @@
 #endif
 
 #include "spaces/ublas_space.h"
+#include "linear_solvers/amgcl_solver.h"
 
 namespace Kratos {
 
@@ -39,13 +40,11 @@ void register_vexcl_static_matrix_type() {
 }
 #endif
 
-template <class TSparseSpaceType>
-typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
-AMGCLScalarSolve(
-    typename TSparseSpaceType::MatrixType& rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+void AMGCLScalarSolve(
+    TUblasSparseSpace<double>::MatrixType& rA,
+    TUblasSparseSpace<double>::VectorType& rX,
+    TUblasSparseSpace<double>::VectorType& rB,
+    TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
     const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
@@ -66,7 +65,7 @@ AMGCLScalarSolve(
         bprm.q = ctx;
 
         Solver solve(amgcl::adapter::zero_copy(
-                    TSparseSpaceType::Size1(rA),
+                    TUblasSparseSpace<double>::Size1(rA),
                     rA.index1_data().begin(),
                     rA.index2_data().begin(),
                     rA.value_data().begin()),
@@ -91,7 +90,7 @@ AMGCLScalarSolve(
             > Solver;
 
         Solver solve(amgcl::adapter::zero_copy(
-                    TSparseSpaceType::Size1(rA),
+                    TUblasSparseSpace<double>::Size1(rA),
                     rA.index1_data().begin(),
                     rA.index2_data().begin(),
                     rA.value_data().begin()),
@@ -104,13 +103,12 @@ AMGCLScalarSolve(
     }
 }
 
-template <int TBlockSize, class TSparseSpaceType>
-typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
-AMGCLBlockSolve(
-    typename TSparseSpaceType::MatrixType & rA,
-    typename TSparseSpaceType::VectorType& rX,
-    typename TSparseSpaceType::VectorType& rB,
-    typename TSparseSpaceType::IndexType& rIterationNumber,
+template <int TBlockSize>
+void AMGCLBlockSolve(
+    TUblasSparseSpace<double>::MatrixType & rA,
+    TUblasSparseSpace<double>::VectorType& rX,
+    TUblasSparseSpace<double>::VectorType& rB,
+    TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
     boost::property_tree::ptree amgclParams,
     int verbosity_level,
@@ -125,7 +123,7 @@ AMGCLBlockSolve(
     typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
     typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
 
-    std::size_t n = TSparseSpaceType::Size1(rA);
+    std::size_t n = TUblasSparseSpace<double>::Size1(rA);
     std::size_t nb = n / TBlockSize;
 
 #ifdef AMGCL_GPGPU
@@ -188,8 +186,8 @@ AMGCLBlockSolve(
     }
 }
 
-// Exlplicit instantiations:
-template void AMGCLScalarSolve< TUblasSparseSpace<double> >(
+void AMGCLSolve(
+    int block_size,
     TUblasSparseSpace<double>::MatrixType& rA,
     TUblasSparseSpace<double>::VectorType& rX,
     TUblasSparseSpace<double>::VectorType& rB,
@@ -198,24 +196,22 @@ template void AMGCLScalarSolve< TUblasSparseSpace<double> >(
     const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
     bool use_gpgpu
-    );
-
-#define INSTANTIATE_BLOCK_SOLVER(B)                                            \
-template void AMGCLBlockSolve<B, TUblasSparseSpace<double> >(                  \
-    TUblasSparseSpace<double>::MatrixType& rA,                                 \
-    TUblasSparseSpace<double>::VectorType& rX,                                 \
-    TUblasSparseSpace<double>::VectorType& rB,                                 \
-    TUblasSparseSpace<double>::IndexType& rIterationNumber,                    \
-    double& rResidual,                                                         \
-    boost::property_tree::ptree amgclParams,                                   \
-    int verbosity_level,                                                       \
-    bool use_gpgpu                                                             \
     )
-
-INSTANTIATE_BLOCK_SOLVER(2);
-INSTANTIATE_BLOCK_SOLVER(3);
-INSTANTIATE_BLOCK_SOLVER(4);
-
-#undef INSTANTIATE_BLOCK_SOLVER
+{
+    switch (block_size) {
+        case 2:
+            AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        case 3:
+            AMGCLBlockSolve<3>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        case 4:
+            AMGCLBlockSolve<4>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+        default:
+            AMGCLScalarSolve(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            return;
+    }
+}
 
 }
