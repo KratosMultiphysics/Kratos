@@ -491,19 +491,19 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
     mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
     mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(rValues);
 
-    // Recalculation to obtain the serial_strain_matrix and store de value
+    // Recalculation to obtain the serial_strain_matrix and store the value
     const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
-     // Get Values to compute the constitutive law:
+    // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
-    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-    const Properties& r_material_properties  = rValues.GetMaterialProperties();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
 
      // The deformation gradient
     if (rValues.IsSetDeterminantF()) {
