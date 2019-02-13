@@ -26,6 +26,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 "skin_model_part_name": "insert_skin_model_part",
                 "geometry_parameter": 0.0,
                 "remeshing_flag": false,
+                "isosurface_flag": false,
                 "initial_point": [0,0],
                 "node_id": -1,
                 "epsilon": 1e-9,
@@ -48,6 +49,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.main_model_part = Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.geometry_parameter = settings["geometry_parameter"].GetDouble();       
         self.do_remeshing = settings["remeshing_flag"].GetBool();   
+        self.isosurface_flag = settings["isosurface_flag"].GetBool();   
         self.initial_point = KratosMultiphysics.Vector(2)
         self.initial_point[0] = settings["initial_point"][0].GetDouble()
         self.initial_point[1] = settings["initial_point"][1].GetDouble()
@@ -90,14 +92,21 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.InitializeSkinModelPart()
         self.CalculateDistance()
         self.PerturbateDistanceNumericalGradient()
+
         if (self.do_remeshing):
-            # self.ExtrapolateMesh
-            self.RefineMesh()
-            self.CalculateDistance()
-        # self.InitializeSkinModelPart()
-        # if (self.do_remeshing):
-        #     self.RefineMesh()
-        #     self.InitializeSkinModelPart()
+            if self.isosurface_flag:
+                # self.RefineMesh()
+                self.FindIsosurface()
+                self.CalculateDistance()
+            else:
+                print("Executing first refinement ")
+                self.RefineMesh()
+                self.CalculateDistance()
+                self.MetricParameters["enforce_current"].SetBool(True)
+                # self.MetricParameters["minimal_size"].SetDouble(1e-4)
+                print("Executing second refinement ")
+                self.RefineMesh()
+                self.CalculateDistance()
 
         self.ApplyFlags()
         print("Level Set geometry initialized")
@@ -152,9 +161,50 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             # self.main_model_part.GetNodes(node_id).SetSolutionStepValue(CompressiblePotentialFlow.LEVEL_SET_DISTANCE,distance+self.epsilon)
         return
 
-    # def ExtrapolateMesh(self):
-   
+    def FindIsosurface(self):
+        KratosMultiphysics.VariableUtils().CopyScalarVar(CompressiblePotentialFlow.LEVEL_SET_DISTANCE,KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
+        # Construct the variational distance calculation process
+        maximum_iterations = 2 #TODO: Make this user-definable
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+                self.main_model_part,
+                self.linear_solver,
+                maximum_iterations)
+        else:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+                self.main_model_part,
+                self.linear_solver,
+                maximum_iterations)
+        variational_distance_process.Execute()    
+        import mmg_process
+        mmg_parameters = KratosMultiphysics.Parameters("""
+        {  
+            "Parameters":{
+                "model_part_name"                  : "Parts_Fluid",
+                "save_external_files"              : false,
+                "initialize_entities"              : false,
+                "echo_level"                       : 0  ,      
+                "discretization_type"                  : "ISOSURFACE",
+                "minimal_size"                         : 0.001, 
+                "enforce_current"                      : true, 
+                "anisotropy_remeshing"                 : true, 
+                "anisotropy_parameters": {   
+                    "reference_variable_name"          : "DISTANCE",
+                    "hmin_over_hmax_anisotropic_ratio"      : 0.5, 
+                    "boundary_layer_max_distance"           : 1.0, 
+                    "interpolation"                         : "Linear"
+                },
+                "isosurface_parameters"                    : {
+                        "remove_regions"                   : true
+                }
+            }
+            
+        }""")
 
+        mmg=mmg_process.Factory(mmg_parameters,self.model)
+        mmg.Execute()
+
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
     def RefineMesh(self):
         KratosMultiphysics.VariableUtils().CopyScalarVar(CompressiblePotentialFlow.LEVEL_SET_DISTANCE,KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
         
@@ -183,9 +233,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
+            "discretization_type"                  : "STANDARD",
             "save_external_files"              : false,
             "initialize_entities"              : false,
-            "echo_level"                       : 0
+            "echo_level"                       : 0,
+            "isosurface_parameters"                    : {
+                    "remove_regions"                   : false
+                }
         }
         """)
 
@@ -197,6 +251,31 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         # print(self.main_model_part)
         
         mmg_process.Execute()
+
+        from gid_output_process import GiDOutputProcess
+        gid_output = GiDOutputProcess(self.main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : ["DISTANCE"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
 
     def ApplyFlags(self):
