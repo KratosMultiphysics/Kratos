@@ -36,6 +36,7 @@
 #include "custom_conditions/incompressible_adjoint_potential_wall_condition.h"
 #include "custom_conditions/incompressible_potential_wall_condition_stresses.h"
 #include "custom_conditions/potential_wall_condition.h"
+#include "custom_conditions/compressible_potential_wall_condition.h"
 
 namespace Kratos {
 
@@ -205,6 +206,8 @@ private:
         const IncompressiblePotentialWallCondition<3,3> mIncompressiblePotentialWallCondition3D3N;
         const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
         const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
+		const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
+        const CompressiblePotentialWallCondition<3,3> mCompressiblePotentialWallCondition3D3N;
 
 	///@}
 	///@name Private Operators

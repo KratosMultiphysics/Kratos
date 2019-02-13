@@ -311,12 +311,10 @@ public:
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
         //gather nodal data
-        bool kutta_element = false;
         if (this->IsNot(STRUCTURE)){
             for(unsigned int i=0; i<NumNodes; i++)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }else{
-            kutta_element = true;
             for(unsigned int i=0; i<NumNodes; i++){
                 if (GetGeometry()[i].IsNot(STRUCTURE))
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
@@ -436,7 +434,7 @@ public:
                     noalias(lhs_kutta_negative) += -Volumes[i] * prod(test,trans(test));                        
                 }
             }   
-            if(kutta_element)//false
+            if(this->Is(THERMAL) || this->Is(STRUCTURE))
             {
                 std::cout<<"SOLVING KUTTA ELEMENT #"<<this->Id()<<std::endl;
                 for(unsigned int i=0; i<NumNodes; ++i)
