@@ -278,9 +278,9 @@ public:
 
     template<unsigned int TDim>
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
-        const BoundedMatrix<TDataType, TDim, TDim>& rInputMatrix,
-        TDataType& rInputMatrixDet,
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
+        TDataType& InputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
@@ -353,7 +353,7 @@ public:
         }
 
         // Checking condition number
-        CheckConditionNumber(rInputMatrix, InvertedMatrix, Tolerance);
+        CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
 
         return inverted_matrix;
     }
