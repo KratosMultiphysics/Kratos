@@ -52,7 +52,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString(
         )]
 
-        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
 
