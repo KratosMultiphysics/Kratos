@@ -588,6 +588,7 @@ public:
         array_1d<double,3> MPC_Displacement = ZeroVector(3);
         array_1d<double,3> MPC_Velocity = ZeroVector(3);
         array_1d<double,3> MPC_Acceleration = ZeroVector(3);
+        array_1d<double, 3 > Point_Load = ZeroVector(3);
 
         double MPC_Area = 0.0;
         double MPC_Penalty_Factor = 0.0;
@@ -656,6 +657,11 @@ public:
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
                         const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                         Matrix shape_functions_values;
+
+                        //Get geometry of the background grid
+                        std::string condition_type_name;
+                        const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
+
                         if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
@@ -673,8 +679,24 @@ public:
                                     break;
                             }
 
-                            if(is_neumann_condition)
-                                KRATOS_ERROR << "Particle point load condition is not yet implemented." << std::endl;
+                            if(is_neumann_condition){
+
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D8N";
+                                }
+
+                                if( i->Has( POINT_LOAD ) )
+                                    Point_Load = i->GetValue( POINT_LOAD );
+                            }
 
                         }
                         else if (rGeoType == GeometryData::Kratos_Line2D2  || rGeoType == GeometryData::Kratos_Line3D2)
@@ -813,8 +835,6 @@ public:
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
                         // If dirichlet boundary
-                        std::string condition_type_name;
-                        const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
                         if (!is_neumann_condition){
                             if (TDim==2){
                                 if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
@@ -863,6 +883,7 @@ public:
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
                             p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
                             p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
+                            p_condition->SetValue(POINT_LOAD, Point_Load);
                             if (is_slip)
                                 p_condition->Set(SLIP);
                             if (is_contact)
@@ -904,6 +925,7 @@ public:
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
                             p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
                             p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
+                            p_condition->SetValue(POINT_LOAD, Point_Load);
                             if (is_slip)
                                 p_condition->Set(SLIP);
                             if (is_contact)
