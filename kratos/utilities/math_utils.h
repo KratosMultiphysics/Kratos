@@ -353,7 +353,9 @@ public:
         }
 
         // Checking condition number
-        CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
+        if (Tolerance > 0.0) { // Check is skipped for negative tolerances
+            CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
+        }
 
         return InvertedMatrix;
     }
