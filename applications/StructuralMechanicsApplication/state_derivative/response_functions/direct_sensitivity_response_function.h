@@ -88,17 +88,20 @@ public:
 
     virtual void Initialize();
 
-    virtual void CalculateGradient(Element& rDirectElement,
-                                            const Matrix& rLHS,
-                                            Matrix& rResponseGradientMatrix,
-                                            const ProcessInfo& rProcessInfo);
+    virtual void CalculateGradient(Element& rDirectElement,                            
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
 
     virtual void CalculatePartialSensitivity(Element& rDirectElement, 
-                                            DirectSensitivityVariable& DesignVariable, 
-                                            Matrix& rSensitivityGradient, 
-                                            const ProcessInfo& rProcessInfo);
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<array_1d<double, 3>> const& rStressVariable, 
+                            std::vector<array_1d<double, 3>>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
 
-    virtual int GetNumberOfOutputPositions();
+    virtual std::vector<std::string> GetResponseSensitivityVariableVector();
+    
+    
 
     ///@}
 
@@ -117,6 +120,9 @@ protected:
     ///@name Protected Operations
     ///@{
     
+    virtual void Addition(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
+    
+    virtual void SetToZero( array_1d<double, 3>& rOutput );
     ///@}
 
 private:

@@ -19,6 +19,7 @@
 // Project includes
 #include "direct_sensitivity_response_function.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
+#include "derivative_builder.h"
 
 namespace Kratos
 {
@@ -49,6 +50,8 @@ public:
 
     typedef Vector VectorType;
 
+    typedef Element::DofsVectorType DofsVectorType;
+
     ///@}
     ///@name Pointer Definitions
 
@@ -72,19 +75,20 @@ public:
 
     void Initialize() override;
 
-    void CalculateGradient(Element& rDirectElement, 
-                            const Matrix& rLHS,
-                            Matrix& rResponseGradientMatrix,                                     
+    void CalculateGradient(Element& rDirectElement,                            
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
 
        
     
     void CalculatePartialSensitivity(Element& rDirectElement, 
-                            DirectSensitivityVariable& DesignVariable,
-                            Matrix& rSensitivityGradient,
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<array_1d<double, 3>> const& rStressVariable, 
+                            std::vector<array_1d<double, 3>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
 
-    int GetNumberOfOutputPositions() override;
+    std::vector<std::string> GetResponseSensitivityVariableVector() override;
 
     
 
@@ -110,7 +114,7 @@ private:
     ///@{
         
         StressTreatment mStressTreatment;
-        std::vector<TracedStressType> mTracedStressesVector;
+        std::vector<std::string> mTracedStressesVector;
         std::vector<unsigned int> mIdOfLocationVector;
               
     ///@}
@@ -120,23 +124,20 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    void CalculateElementContributionToGradient(Element& rDirectElement,
-                            const Matrix& rLHS,
-                            Vector& rResponseGradientVector,
-                            unsigned int& rIdOfGaussPoint,
-                            ProcessInfo& rProcessInfo); 
-
+    
     void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
-                            const std::string& rVariableName,
-                            Vector& rSensitivityGradient,
-                            unsigned int& rIdOfGaussPoint,
-                            ProcessInfo& rProcessInfo);
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<std::vector<array_1d<double, 3>>>& rOutput,
+                            const ProcessInfo& rProcessInfo);
 
-    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+    void ExtractMeanStressDerivative(const std::vector<array_1d<double, 3>>& rStressDerivativesMatrix,
+                            std::vector<array_1d<double, 3>>& rOutput);
 
-    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, 
-                            unsigned int& rIdOfGaussPoint,
-                            Vector& rResponseGradient);
+    void ExtractGaussPointStressDerivative(const std::vector<array_1d<double, 3>>& rStressDerivativesMatrix,
+                            std::vector<array_1d<double, 3>>& rOutput);
+
+    
     ///@}
 };
 

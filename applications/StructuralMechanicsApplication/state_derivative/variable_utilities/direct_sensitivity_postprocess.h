@@ -108,30 +108,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void ScalarProduct(const std::vector<std::vector<array_1d<double, 3>>>& rScalarFactor1 ,
+                                            const Vector& rScalarFactor2,
+                                            std::vector<array_1d<double, 3>>& rScalarProduct);
+        
+
     void SetAllSensitivityVariablesToZero();
     
     template <typename TDataType>
-    void UpdateElementContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    void UpdateElementContributionToSensitivity(Variable<TDataType> const& rResponseVariable, 
+                                            Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
-    void UpdateConditionContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    void UpdateConditionContributionToSensitivity(Variable<TDataType> const& rResponseVariable, 
+                                            Variable<TDataType> const& rOutputVariable);
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Element::GeometryType& rGeom);
+                                            Vector const& rSensitivityVector, Element::GeometryType& rGeom);
 
     void AssembleNodalSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Element::GeometryType& rGeom);
+                                            Vector const& rSensitivityVector, Element::GeometryType& rGeom);
 
     void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector, Element& rElement);
+                                            Vector const& rSensitivityVector, Element& rElement);
 
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector, Element& rElement);
+                                            Vector const& rSensitivityVector, Element& rElement);
 
     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Condition& rCondition);
+                                            Vector const& rSensitivityVector, Condition& rCondition);
 
     void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Condition& rCondition);
+                                            Vector const& rSensitivityVector, Condition& rCondition);
 
     
     
@@ -159,6 +166,23 @@ private:
         Variable<double> ReadScalarSensitivityVariables(std::string const& rVariableName);
     
         Variable<array_1d<double,3>> ReadVectorSensitivityVariables(std::string const& rVariableName);
+
+        void OutputOnTerminal(const std::string output_name, const std::vector<std::vector<array_1d<double, 3>>>& output_vector);
+
+        void OutputOnTerminal(const std::string output_name, const std::vector<array_1d<double, 3>>& output_vector);
+        
+        void OutputOnTerminal(const std::string output_name, const Vector& output_vector);
+
+        void Addition( array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput );
+
+        void Addition( std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& rInput );
+
+        void SetToZero( array_1d<double, 3>& rOutput );
+
+        void SetToZero( std::vector<array_1d<double, 3>>& rOutput );
+
+        
+        
     ///@}
 };
 

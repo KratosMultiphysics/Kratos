@@ -42,26 +42,40 @@ namespace Kratos
     }
 
     void DirectSensitivityResponseFunction::CalculateGradient(Element& rDirectElement,
-                                            const Matrix& rLHS,
-                                            Matrix& rResponseGradientMatrix,                                            
-                                            const ProcessInfo& rProcessInfo)
+                                    Variable<array_1d<double, 3>> const& rStressVariable,
+                                    std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
+                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "CalculateGradient needs to be implemented by the derived class.\n";
     }
     
     void DirectSensitivityResponseFunction::CalculatePartialSensitivity(Element& rDirectElement, 
-                                            DirectSensitivityVariable& DesignVariable, 
-                                            Matrix& rSensitivityGradient,
-                                            const ProcessInfo& rProcessInfo)
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    Variable<array_1d<double, 3>> const& rStressVariable, 
+                                    std::vector<array_1d<double, 3>>& rOutput, 
+                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "CalculatePartialGradient needs to be implemented by the derived class.\n";
     }
-
-    int DirectSensitivityResponseFunction::GetNumberOfOutputPositions()
+    
+    std::vector<std::string> DirectSensitivityResponseFunction::GetResponseSensitivityVariableVector()
     {
-        KRATOS_ERROR << "GetNumberOfTracedGaussPoints() needs to be implemented by the derived class.\n";
-        return 0;
+        KRATOS_ERROR << "GetResponseSensitivityVariableVector() needs to be implemented by the derived class.\n";
     }
     
+    void DirectSensitivityResponseFunction::Addition( array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput )
+    {
+        for (IndexType dir_it = 0; dir_it < 3; ++dir_it)
+            rOutput[dir_it] += rInput[dir_it];
+    }
+
+    
+    void DirectSensitivityResponseFunction::SetToZero( array_1d<double, 3>& rOutput )
+    {
+        for (IndexType dir_it = 0; dir_it < 3; ++dir_it)
+            rOutput[dir_it] = 0;
+    }
+
+
 };
 
