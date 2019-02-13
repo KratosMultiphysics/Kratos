@@ -8,6 +8,9 @@ import numpy as np
 from math import *
 import copy
 
+# Importing the analysis stage classes of the different problems
+from poisson_stochastic_analysis import SimulationScenario
+
 # Import the StatisticalVariable class
 from auxiliary_classes_utilities import StatisticalVariable
 
