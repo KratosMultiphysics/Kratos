@@ -107,7 +107,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.variational_distance_process = self.set_variational_distance_process()
         self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
-        import KratosMultiphsics.assign_vector_by_direction_process as assign_vector_by_direction_process
+        import KratosMultiphysics.assign_vector_by_direction_process as assign_vector_by_direction_process
 
         if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
             self.aux_process_fluid_1 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_1_settings"])
