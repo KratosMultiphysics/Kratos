@@ -84,8 +84,8 @@ namespace Kratos {
         virtual void CheckDistanceAndSetFlag(ModelPart& r_modelpart);
 
 
-        Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
-        Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
+        std::vector<double> mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
+        std::vector<double> mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
 
         bool mFirstInjectionIsDone;
         bool mBallsModelPartHasSphericity;
@@ -95,7 +95,7 @@ namespace Kratos {
         std::vector<int> mNumberOfParticlesInjected;
         std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
-        Vector mMassInjected;
+        std::vector<double> mMassInjected;
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle
         // and for allowing a new one to be injected. admissible_indentation_ratio_for_release should be smaller
         // (more strict), since we want to make sure that the particle is taken far enough to avoid interferences
@@ -103,7 +103,7 @@ namespace Kratos {
         double mNormalizedMaxIndentationForRelease;
         double mNormalizedMaxIndentationForNewParticleCreation;
         std::vector<PropertiesProxy> mFastProperties;
-        DenseVector<bool> mLayerRemoved;
+        std::vector<bool> mLayerRemoved;
         //std::vector<int> mTotalNumberOfDetachedParticles;
         ModelPart& mInletModelPart; //The model part used to insert elements
 

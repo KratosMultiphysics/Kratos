@@ -143,7 +143,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
                             deprecation_warning_issued = True
 
-                            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):

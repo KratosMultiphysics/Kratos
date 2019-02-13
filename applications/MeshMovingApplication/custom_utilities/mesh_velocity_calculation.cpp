@@ -16,6 +16,8 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
+#include "includes/mesh_moving_variables.h"
 #include "mesh_velocity_calculation.h"
 
 namespace Kratos {
@@ -59,9 +61,7 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-    const auto coeffs = rBDF.ComputeBDFCoefficients(delta_time);
+    const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
@@ -80,12 +80,7 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-    const double delta_time = r_current_process_info[DELTA_TIME];
-    const double previous_delta_time = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
-    const auto coeffs = rBDF.ComputeBDFCoefficients(delta_time, previous_delta_time);
+    const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
