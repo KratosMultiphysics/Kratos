@@ -1,15 +1,22 @@
 from __future__ import print_function, absolute_import, division
+
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+
 import RVEAnalysis
 
+import os
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
-        with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
+        with open(GetFilePath("rve_test/smallest_rve_test_parameters.json"), 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(True)
@@ -19,7 +26,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
 
     #@KratosUnittest.skip("Reactions and displacements not 100% accurate")
     def test_rve_computation_elimination_version(self):
-        with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
+        with open(GetFilePath("rve_test/smallest_rve_test_parameters.json"), 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(False)
