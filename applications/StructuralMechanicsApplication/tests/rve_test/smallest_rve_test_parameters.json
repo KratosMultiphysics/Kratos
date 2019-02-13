@@ -9,7 +9,7 @@
     "rve_settings"     : {
         "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
         "averaging_mp_name" : "Structure.computing_domain",
-        "print_rve_post"    : true,
+        "print_rve_post"    : false,
         "perturbation"      : 1e-6  
     },
     "solver_settings"  : {
@@ -33,7 +33,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["SurfacePressure3D_Pressure_on_surfaces_Auto2"]
     },
-    "output_processes" : {
+    "_output_processes" : {
         "all_output_processes" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
