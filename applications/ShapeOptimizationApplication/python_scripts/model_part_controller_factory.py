@@ -68,7 +68,7 @@ class ModelPartController:
 
         self.shell_thickness_adaptor = None
         if self.model_settings["shell_thickness_adaption"].GetBool():
-            from shell_thickness_adaptor import ShellThicknessAdaptor
+            from KratosMultiphysics.ShapeOptimizationApplication.shell_thickness_adaptor import ShellThicknessAdaptor
             adaptor_settings = Parameters("""{
                 "model_part_name" : \""""+self.optimization_model_part.Name+"""\"
             }""")
