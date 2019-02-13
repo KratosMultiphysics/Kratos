@@ -41,8 +41,6 @@ class BuoyancyTest(UnitTest.TestCase):
     def testBFECC(self):
         self.convection_diffusion_solver = "bfecc"
         self.reference_file = "reference10_bfecc"
-        #self.print_reference_values = True
-        self.print_output = True
         self.dt = 0.5
         self.check_tolerance = 1e-1 # The bfecc solver shows some variation between runs, we cannot be too strict here
         self.testBuoyancy()
@@ -83,7 +81,8 @@ class BuoyancyTest(UnitTest.TestCase):
         thermal_settings.SetVelocityVariable(VELOCITY)
         thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
         if self.convection_diffusion_solver == 'bfecc':
-            thermal_settings.SetProjectionVariable(PROJECTED_SCALAR1)
+            import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
+            thermal_settings.SetProjectionVariable(ConvDiff.PROJECTED_SCALAR1)
 
         self.fluid_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
