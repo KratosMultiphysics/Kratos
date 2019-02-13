@@ -27,7 +27,7 @@
     	"relative_pressure_tolerance"	: 0.001,
     	"absolute_pressure_tolerance"	: 0.00001,
         "volume_model_part_name"     	: "Parts_Fluid",
-        "skin_parts"                 	: ["AutomaticInlet3D_Inlet","Outlet3D_Outlet","Slip3D"],
+        "skin_parts"                 	: ["FluidModelPart.AutomaticInlet3D_Inlet","FluidModelPart.Outlet3D_Outlet","FluidModelPart.Slip3D"],
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
         "time_stepping"  : {
@@ -56,7 +56,7 @@
         "python_module" : "apply_two_fluids_inlet_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name" 			: "AutomaticInlet3D_Inlet",
+            "model_part_name" 			: "FluidModelPart.AutomaticInlet3D_Inlet",
             "interface_settings": {
                 "interface_normal": [0.0,0.0,1.0],
                 "point_on_interface": [0.0,0.0,0.5],
@@ -83,7 +83,7 @@
         "python_module" : "apply_outlet_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name"    : "Outlet3D_Outlet",
+            "model_part_name"    : "FluidModelPart.Outlet3D_Outlet",
             "variable_name"      : "PRESSURE",
             "constrained"        : true,
             "value"              : 0.0,
@@ -95,7 +95,7 @@
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "process_name"  : "ApplySlipProcess",
         "Parameters"    : {
-            "model_part_name" : "Slip3D"
+            "model_part_name" : "FluidModelPart.Slip3D"
         }
     }],
     	"gravity"                          : [{
