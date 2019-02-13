@@ -209,6 +209,11 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     const Matrix& rSerialProjector
 )
 {
+	auto& r_material_properties = rValues.GetMaterialProperties();
+	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+	const auto props_matrix_cl = *(it_cl_begin);
+	const auto props_fiber_cl = *(it_cl_begin + 1);
+
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
@@ -229,15 +234,17 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     Matrix fiber_tangent_tensor_ss, matrix_tangent_tensor_ss;
 
     // Compute the tangent tensor of the matrix
+    values_matrix.SetMaterialProperties(props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     matrix_tangent_tensor = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
+    values_fiber.SetMaterialProperties(props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     fiber_tangent_tensor = values_fiber.GetConstitutiveMatrix();
 
-    matrix_tangent_tensor_ss = prod(trans(rSerialProjector), Matrix(prod(matrix_tangent_tensor, rSerialProjector)));
-    fiber_tangent_tensor_ss  = prod(trans(rSerialProjector), Matrix(prod(fiber_tangent_tensor, rSerialProjector)));
+    matrix_tangent_tensor_ss = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
+    fiber_tangent_tensor_ss  = prod(rSerialProjector, Matrix(prod(fiber_tangent_tensor, trans(rSerialProjector))));
 
     const double constant = (1.0 - mFiberVolumetricParticipation) / mFiberVolumetricParticipation;
     const Matrix jacobian_matrix = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
@@ -300,6 +307,11 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector& rFiberStressVector
 )
 {
+	auto& r_material_properties = rValues.GetMaterialProperties();
+	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+	const auto props_matrix_cl = *(it_cl_begin);
+	const auto props_fiber_cl = *(it_cl_begin + 1);
+
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
     
@@ -309,10 +321,12 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     r_strain_matrix = rMatrixStrainVector;
 
     // Integrate Stress of the matrix
+	values_matrix.SetMaterialProperties(props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     rMatrixStressVector = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
+	values_fiber.SetMaterialProperties(props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     rFiberStressVector = values_fiber.GetStressVector();
 }
