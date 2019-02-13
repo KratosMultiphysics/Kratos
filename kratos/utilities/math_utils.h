@@ -355,7 +355,7 @@ public:
         // Checking condition number
         CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
 
-        return inverted_matrix;
+        return InvertedMatrix;
     }
 
     /**
@@ -374,21 +374,10 @@ public:
         // We want at least 4 significant digits
         const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
 
-        // Sizes
-        const SizeType size_1 = rInputMatrix.size1();
-        const SizeType size_2 = rInputMatrix.size2();
-
         // Find the condition number to define is inverse is OK
-        double input_matrix_norm = 0.0;
-        double inverted_matrix_norm = 0.0;
-        for(IndexType i = 0; i < size_1; ++i) {
-            for(IndexType j = 0; j < size_2; ++j) {
-                input_matrix_norm += std::pow(rInputMatrix(i,j),2);
-                inverted_matrix_norm += std::pow(rInvertedMatrix(i,j),2);
-            }
-        }
-        input_matrix_norm = std::sqrt(input_matrix_norm);
-        inverted_matrix_norm = std::sqrt(inverted_matrix_norm);
+        const double input_matrix_norm = norm_frobenius(rInputMatrix);
+        const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
+
         // Now the condition number is the product of both norms
         const double cond_number = input_matrix_norm * inverted_matrix_norm ;
         // Finally check if the condition number is low enough
