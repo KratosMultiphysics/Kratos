@@ -6,11 +6,3 @@ kratos_libs = os.path.abspath(os.path.join(kratos_install_path, "libs"))
 kratos_applications = os.path.abspath(os.path.join(kratos_python_source_path, "applications"))
 kratos_scripts = os.path.abspath(os.path.join(kratos_python_source_path, "kratos/python_scripts"))
 kratos_tests = os.path.abspath(os.path.join(kratos_python_source_path, "kratos/tests"))
-
-if __name__ == '__main__':
-  print("kratos_install_path:", kratos_install_path)
-  print("kratos_python_source_path:", kratos_python_source_path)
-  print("kratos_libs:", kratos_libs)
-  print("kratos_applications:", kratos_applications)
-  print("kratos_scripts:", kratos_scripts)
-  print("kratos_tests:", kratos_tests)
