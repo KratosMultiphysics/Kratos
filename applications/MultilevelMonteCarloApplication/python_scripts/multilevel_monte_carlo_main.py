@@ -43,7 +43,7 @@ if __name__ == '__main__':
     '''
 
     '''set the ProjectParameters.json path'''
-    project_parameters_path = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/PoissonSquareTest/parameters_poisson_coarse.json"
+    project_parameters_path = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
     '''customize setting parameters of the ML simulation'''
     settings_ML_simulation = KratosMultiphysics.Parameters("""
     {
