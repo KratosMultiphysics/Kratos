@@ -419,6 +419,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
         GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
+        GetBuilderAndSolver()->ApplyMasterSlaveRelation(BaseType::GetModelPart());
+
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
             BaseType::MoveMesh();
