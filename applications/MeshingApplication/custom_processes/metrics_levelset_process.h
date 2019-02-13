@@ -202,11 +202,7 @@ private:
     std::string mRatioReferenceVariable = "DISTANCE";     /// Variable used to compute the anisotropic ratio
     std::string mSizeReferenceVariable = "DISTANCE";      /// Variable used to compute the element size
     double mMinSize;                                      /// The minimal size of the elements
-<<<<<<< HEAD
-    double mMaxSize;                                      /// The minimal size of the elements
-=======
     double mMaxSize;                                      /// The maximal size of the elements
->>>>>>> origin/meshing-app/feature-defining-size-levelset-metric
     bool mEnforceCurrent;                                 /// With this we choose if we inforce the current nodal size (NODAL_H)
     double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
@@ -263,11 +259,6 @@ private:
 
     double CalculateAnisotropicRatio(
         const double Distance
-        );
-
-    double CalculateElementSize(
-        const double Distance,
-        const double NodalH
         );
 
     double CalculateElementSize(

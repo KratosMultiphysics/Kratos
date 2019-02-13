@@ -50,9 +50,9 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
-    mSizeReferenceVariable = default_parameters["sizing_parameters"]["reference_variable_name"].GetString();
-    mSizeBoundLayer = default_parameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
-    mSizeInterpolation = ConvertInter(default_parameters["sizing_parameters"]["interpolation"].GetString());
+    mSizeReferenceVariable = ThisParameters["sizing_parameters"]["reference_variable_name"].GetString();
+    mSizeBoundLayer = ThisParameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
+    mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
 
     // In case we have isotropic remeshing (default values)

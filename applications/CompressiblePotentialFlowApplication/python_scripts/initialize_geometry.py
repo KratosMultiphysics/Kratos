@@ -33,8 +33,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 "metric_parameters":  {
                     "minimal_size"                         : 5e-3, 
                     "maximal_size"                         : 1.0, 
+                    "sizing_parameters": {   
+                        "reference_variable_name"               : "DISTANCE",
+                        "boundary_layer_max_distance"           : 1.0, 
+                        "interpolation"                         : "Constant"
+                    },
                     "enforce_current"                      : true, 
-                    "anisotropy_remeshing"                 : true, 
+                    "anisotropy_remeshing"                 : false, 
                     "anisotropy_parameters": {   
                         "reference_variable_name"          : "DISTANCE",
                         "hmin_over_hmax_anisotropic_ratio"      : 0.5, 
