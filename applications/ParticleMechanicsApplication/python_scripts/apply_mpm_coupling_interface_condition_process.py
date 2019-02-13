@@ -35,14 +35,15 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
     def ExecuteBeforeSolutionLoop(self):
         # Get updated model_part
         if (self.model_part_name.startswith('Background_Grid.')):
-            self.model_part_name = "MPM_Material." + self.model_part_name.replace('Background_Grid.','')
-        else:
-            self.model_part_name = "MPM_Material." + self.model_part_name
-        self.model_part = self.model[self.model_part_name]
+            self.model_part_name = self.model_part_name.replace('Background_Grid.','')
+        mpm_material_model_part_name = "MPM_Material." + self.model_part_name
+        self.model_part = self.model[mpm_material_model_part_name]
 
         ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Interface" responsible for coupling with structure
         # Create coupling model part
-        self.coupling_model_part  = self.model.CreateModelPart("MPM_Coupling_Interface")
+        if not self.model.HasModelPart("MPM_Coupling_Interface"):
+            self.model.CreateModelPart("MPM_Coupling_Interface")
+        self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface").CreateSubModelPart(self.model_part_name)
 
         # Add variables to the coupling model part
         self._add_coupling_variables_to_model_part(self.coupling_model_part)
