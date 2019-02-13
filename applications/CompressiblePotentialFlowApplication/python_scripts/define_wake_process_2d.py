@@ -23,14 +23,19 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "fluid_part_name"           : "MainModelPart",
                 "wake_direction"                 : [1.0,0.0,0.0],
-                "epsilon"    : 1e-9
+                "epsilon"    : 1e-9,
+                "wake_element_replace_settings": {
+                    "element_name":"IncompressiblePotentialFlowWakeElement2D3N",
+                    "condition_name": "PotentialWallCondition2D2N"
+            }
             }
             """)
 
         settings.ValidateAndAssignDefaults(default_settings)
+        self.settings = settings
         # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
 
-        self.wake_direction = settings["wake_direction"].GetVector()
+        self.wake_direction = self.settings["wake_direction"].GetVector()
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 
@@ -45,16 +50,19 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.wake_normal[1] = self.wake_direction[0]
         self.wake_normal[2] = 0.0
 
-        self.epsilon = settings["epsilon"].GetDouble()
+        self.epsilon = self.settings["epsilon"].GetDouble()
 
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString(
+        self.upper_surface_model_part = Model[self.settings["upper_surface_model_part_name"].GetString(
         )]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString(
+        self.lower_surface_model_part = Model[self.settings["lower_surface_model_part_name"].GetString(
         )]
 
-        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+        self.fluid_model_part = Model[self.settings["fluid_part_name"].GetString()]
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
+
+        self.kutta_model_part = self.fluid_model_part.CreateSubModelPart("kutta_model_part")
+        self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part")
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -77,6 +85,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
 
+        #for elem in self.kutta_model_part.Elements:
+        #    print(elem.Id)
+
+        #for elem in self.wake_model_part.Elements:
+        #    print(elem.Id)
+
+        process = KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.fluid_model_part, self.settings["wake_element_replace_settings"])
+        #process.Execute()
+        KratosMultiphysics.Logger.PrintInfo('...DefineWakeProcess finished...')
+
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
         max_x_coordinate = -1e30
@@ -92,6 +110,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # and marks them as wake elements
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
 
+        wake_element_list = []
         for elem in self.fluid_model_part.Elements:
             # Mark and save the elements touching the trailing edge
             self.MarkTrailingEdgeElements(elem)
@@ -110,6 +129,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    #self.wake_model_part.AddElement(elem,0)
+                    wake_element_list.append(elem.Id)
+
+        self.wake_model_part.AddElements(wake_element_list)
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -198,6 +221,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             # Marking the elements under the trailing edge as kutta
             if(distance_to_wake < 0.0):
                 elem.SetValue(CPFApp.KUTTA, True)
+                self.kutta_model_part.AddElement(elem,0)
+                self.wake_model_part.RemoveElement(elem,0)
 
     def ComputeMaximumX(self):
         # This function computes the maximum x coordinate within
@@ -225,4 +250,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 elem.SetValue(CPFApp.WAKE, False)
             else:
                 elem.Set(KratosMultiphysics.STRUCTURE)
+                elem.SetValue(CPFApp.TRAILING_EDGE_ELEMENT, True)
                 elem.SetValue(CPFApp.KUTTA, False)
+                self.kutta_model_part.RemoveElement(elem,0)

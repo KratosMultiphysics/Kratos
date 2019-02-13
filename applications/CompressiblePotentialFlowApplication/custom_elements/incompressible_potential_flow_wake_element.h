@@ -10,8 +10,8 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
+#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_WAKE_ELEMENT_H)
+#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_WAKE_ELEMENT_H
 
 // System includes
 
@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowElement : public Element
+class IncompressiblePotentialFlowWakeElement : public Element
 {
 public:
     template <unsigned int TNumNodes, unsigned int TDim>
@@ -65,8 +65,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    /// Pointer definition of IncompressiblePotentialFlowWakeElement
+    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowWakeElement);
 
     ///@}
     ///@name Life Cycle
@@ -78,25 +78,25 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    [[deprecated("Using deprecated IncompressiblePotentialFlowElement constructor")]]
-    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
+    [[deprecated("Using deprecated IncompressiblePotentialFlowWakeElement constructor")]]
+    explicit IncompressiblePotentialFlowWakeElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    IncompressiblePotentialFlowWakeElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    IncompressiblePotentialFlowWakeElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId,
+    IncompressiblePotentialFlowWakeElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties){}
@@ -104,24 +104,24 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) = delete;
+    IncompressiblePotentialFlowWakeElement(IncompressiblePotentialFlowWakeElement const& rOther) = delete;
 
     /**
      * Move Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement&& rOther) = delete;
+    IncompressiblePotentialFlowWakeElement(IncompressiblePotentialFlowWakeElement&& rOther) = delete;
 
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override{}
+    ~IncompressiblePotentialFlowWakeElement() override{}
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
+    IncompressiblePotentialFlowWakeElement& operator=(IncompressiblePotentialFlowWakeElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -129,7 +129,7 @@ public:
     }
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
+    IncompressiblePotentialFlowWakeElement& operator=(IncompressiblePotentialFlowWakeElement&& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -356,7 +356,7 @@ private:
 
     ///@}
 
-}; // Class IncompressiblePotentialFlowElement
+}; // Class IncompressiblePotentialFlowWakeElement
 
 ///@}
 

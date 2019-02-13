@@ -25,6 +25,7 @@
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/incompressible_potential_flow_wake_element.h"
 #include "custom_conditions/potential_wall_condition.h"
 
 namespace Kratos {
@@ -184,6 +185,7 @@ private:
         const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
 
 		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+		const IncompressiblePotentialFlowWakeElement<2,3> mIncompressiblePotentialFlowWakeElement2D3N;
 
 
 	///@}
