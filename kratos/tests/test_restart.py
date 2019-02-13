@@ -156,7 +156,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         serializer_save = KratosMultiphysics.FileSerializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
-        
+
 
     def __execute_restart_load(self, current_model, file_name, serializer_flag):
         model_part_name = "MainRestart"
@@ -220,7 +220,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         rest_utility = restart_utility.RestartUtility(loaded_model_part, restart_parameters)
 
-        rest_utility.LoadRestart() #TODO: it would be best to return the loaded_modelpart from this... 
+        rest_utility.LoadRestart() #TODO: it would be best to return the loaded_modelpart from this...
 
         return loaded_model_part #rest_utility.model_part
 
@@ -236,7 +236,7 @@ class TestRestart(KratosUnittest.TestCase):
         self.__execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
 
     def test_restart_utility(self):
-        
+
 
         # Here we only test SERIALIZER_NO_TRACE since the others are tested in the simple tests
         model_part_name = "MainRestart"
@@ -269,19 +269,17 @@ class TestRestart(KratosUnittest.TestCase):
         end_time = 17.1
 
         save_restart_process = save_rest_proc.Factory(save_restart_process_params, model)
-        save_restart_process.ExecuteInitialize()
-        save_restart_process.ExecuteBeforeSolutionLoop()
+
+        base_path = "MainRestart__restart_files"
+        self.assertTrue(os.path.isdir(base_path)) # make sure the folder gets created right away
+
         while model_part.ProcessInfo[KratosMultiphysics.TIME] < end_time:
             model_part.ProcessInfo[KratosMultiphysics.TIME] += delta_time
             model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-            save_restart_process.ExecuteInitializeSolutionStep()
             if save_restart_process.IsOutputStep():
                 save_restart_process.PrintOutput()
-            save_restart_process.ExecuteFinalizeSolutionStep()
-        save_restart_process.ExecuteFinalize()
 
         # Checking if the files exist
-        base_path = "MainRestart__restart_files"
         base_file_name = os.path.join(base_path, "MainRestart_")
         for i in range(2,50,2):
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
@@ -304,4 +302,5 @@ class TestRestart(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
