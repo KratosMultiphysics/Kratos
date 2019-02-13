@@ -39,8 +39,12 @@ namespace Kratos {
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         unsigned int old_size = v.size();
+        Vector backup = v;
         v.resize(old_size + 1, false);
         v[old_size] = a;
+        for (unsigned int i=0; i<old_size; i++) {
+            v[i] = backup[i];
+        }
         return a;
     }
 
