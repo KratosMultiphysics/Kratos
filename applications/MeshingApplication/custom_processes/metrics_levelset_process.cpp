@@ -30,6 +30,12 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     {
         "minimal_size"                         : 0.1,
         "maximal_size"                         : 1.0,
+        "sizing_parameters":
+        {
+            "reference_variable_name"          : "DISTANCE",
+            "boundary_layer_max_distance"      : 1.0,
+            "interpolation"                    : "Constant"
+        },
         "enforce_current"                      : true,
         "anisotropy_remeshing"                 : true,
         "anisotropy_parameters":
@@ -37,13 +43,16 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
             "reference_variable_name"              : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"      : 1.0,
             "boundary_layer_max_distance"           : 1.0,
-            "interpolation"                         : "Constant"
+            "interpolation"                         : "Linear"
         }
     })" );
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
+    mSizeReferenceVariable = default_parameters["sizing_parameters"]["reference_variable_name"].GetString();
+    mSizeBoundLayer = default_parameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
+    mSizeInterpolation = ConvertInter(default_parameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
 
     // In case we have isotropic remeshing (default values)
@@ -77,7 +86,11 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
-    const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+    const auto& ani_reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
+    // Size reference variable
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mSizeReferenceVariable)) << "Variable " << mSizeReferenceVariable << " is not a double variable" << std::endl;
+    const auto& size_reference_var = KratosComponents<Variable<double>>::Get(mSizeReferenceVariable);
 
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
@@ -101,14 +114,18 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
         // Isotropic by default
         double ratio = 1.0;
+        if (it_node->SolutionStepsDataHas(ani_reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(ani_reference_var);
+            ratio = CalculateAnisotropicRatio(ratio_reference);
+        }
 
+        // MinSize by default
         double element_size = mMinSize;
         const double nodal_h = it_node->GetValue(NODAL_H);
-        if (it_node->SolutionStepsDataHas(reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
-            element_size = CalculateElementSize(ratio_reference, nodal_h);
-            ratio = CalculateAnisotropicRatio(ratio_reference);
-            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
+        if (it_node->SolutionStepsDataHas(size_reference_var)) {
+            const double size_reference = it_node->FastGetSolutionStepValue(size_reference_var);
+            element_size = CalculateElementSize(size_reference, nodal_h);
+            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(size_reference) > mSizeBoundLayer))
                 element_size = nodal_h;
         } else {
             if (((element_size > nodal_h) && (mEnforceCurrent)))
@@ -230,13 +247,13 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
     )
 {
     double size = NodalH;
-    if (std::abs(Distance) <= mBoundLayer) {
-        if (mInterpolation == Interpolation::CONSTANT)
+    if (std::abs(Distance) <= mSizeBoundLayer) {
+        if (mSizeInterpolation == Interpolation::CONSTANT)
             size = mMinSize;
-        else if (mInterpolation == Interpolation::LINEAR)
-            size = mMinSize + (std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize);
-        else if (mInterpolation == Interpolation::EXPONENTIAL) {
-            size = - std::log(1-std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
+        else if (mSizeInterpolation == Interpolation::LINEAR)
+            size = mMinSize + (std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize);
+        else if (mSizeInterpolation == Interpolation::EXPONENTIAL) {
+            size = - std::log(1-std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
             if (size > mMaxSize) size = mMaxSize;
         }
     }
