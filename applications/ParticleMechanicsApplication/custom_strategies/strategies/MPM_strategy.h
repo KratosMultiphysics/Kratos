@@ -810,6 +810,7 @@ public:
                             MPC_Penalty_Factor = i->GetValue(PENALTY_FACTOR);
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
+                        const bool is_interface = i->Is(INTERFACE);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
                         // If dirichlet boundary
@@ -867,6 +868,8 @@ public:
                                 p_condition->Set(SLIP);
                             if (is_contact)
                                 p_condition->Set(CONTACT);
+                            if (is_interface)
+                                p_condition->Set(INTERFACE);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -908,6 +911,8 @@ public:
                                 p_condition->Set(SLIP);
                             if (is_contact)
                                 p_condition->Set(CONTACT);
+                            if (is_interface)
+                                p_condition->Set(INTERFACE);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
