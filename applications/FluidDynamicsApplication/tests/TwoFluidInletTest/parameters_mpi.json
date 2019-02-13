@@ -27,7 +27,7 @@
     	"relative_pressure_tolerance"	: 0.001,
     	"absolute_pressure_tolerance"	: 0.00001,
         "volume_model_part_name"     	: "Parts_Fluid",
-        "skin_parts"                 	: ["FluidModelPart.AutomaticInlet3D_Inlet","FluidModelPart.Outlet3D_Outlet","FluidModelPart.Slip3D"],
+        "skin_parts"                 	: ["AutomaticInlet3D_Inlet","Outlet3D_Outlet","Slip3D"],
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
         "time_stepping"  : {

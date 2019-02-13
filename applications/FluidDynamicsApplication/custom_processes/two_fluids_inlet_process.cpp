@@ -59,7 +59,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // normalization of itnerface normal vector
     if ( norm_2( mInterfaceNormal ) > 1.0e-7 ){
-        mInterfaceNormal = mInterfaceNormal / norm_2( mInterfaceNormal );
+        mInterfaceNormal /= norm_2( mInterfaceNormal );
     } else {
         KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: 'interface_normal' in 'interface_settings' must not have a norm of 0.0." << std::endl;
     }
