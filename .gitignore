@@ -10,6 +10,7 @@ cmake_build/*
 !cmake_build/example_configure.sh.do_not_touch
 packaging/*
 packaging_aux/KratosLoader.py
+packaging_aux/KratosPaths.py
 packaging_aux/kratos.conf
 
 # Compile and install directories
