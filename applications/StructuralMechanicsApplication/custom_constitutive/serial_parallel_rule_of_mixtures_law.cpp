@@ -826,6 +826,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+            rValue = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
             return MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) { // TODO: Make in the future modifications for take into account different layers combinations
@@ -909,7 +910,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
