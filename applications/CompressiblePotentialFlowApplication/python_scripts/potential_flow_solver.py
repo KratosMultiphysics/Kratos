@@ -305,9 +305,6 @@ class LaplacianSolver(PythonSolver):
     def GetComputingModelPart(self):
         return self.main_model_part
 
-    def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
-
     def Predict(self):
         self.solver.Predict()
 
