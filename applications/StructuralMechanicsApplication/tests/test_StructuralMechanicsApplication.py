@@ -2,22 +2,17 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import run_cpp_unit_tests
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import subprocess
 
-try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+if kratos_utilities.IsApplicationAvailable("ExternalSolversApplication"):
+    has_external_solvers_application = True
+else:
+    has_external_solvers_application = False
 
 # Import the tests or test_classes to create the suits
 
@@ -357,7 +352,8 @@ def AssembleTestSuites():
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
 
-    if (missing_external_dependencies == False):
+    if has_external_solvers_application:
+        import KratosMultiphysics.ExternalSolversApplication
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
             # Eigenvalues tests
             smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
@@ -368,6 +364,8 @@ def AssembleTestSuites():
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
             # Element damping test
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
+            # Rayleigh process test
+            nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
@@ -381,9 +379,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
-
-    # Rayleigh process test
-    nightSuite.addTest(TRayleighProcessTest('test_execution'))
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))

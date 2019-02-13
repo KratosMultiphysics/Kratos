@@ -9,7 +9,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos {
-    
+
     using namespace GeometryFunctions;
 
 //***********************************************************************************
@@ -70,31 +70,31 @@ void SolidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    
+
     if (rRightHandSideVector.size() != MatSize)
     {
         rRightHandSideVector.resize(MatSize, false);
     }
     rRightHandSideVector = ZeroVector(MatSize);
-    
+
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-    
+
     for (unsigned int i=0; i<rNeighbours.size(); i++)
     {
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
-        
+
         std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
-                
+
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
             int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
-            
+
             if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
-                
-                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+
+                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double weight = 0.0;
-                
+
                 double ContactForce[3] = {0.0};
 
                 const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
@@ -106,14 +106,14 @@ void SolidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 for (unsigned int k=0; k< number_of_nodes; k++)
                 {
                     weight = weights_vector[k];
-  
+
                     unsigned int w =  k * 3;
 
                     rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
                     rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
                     rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
                 }
-                
+
             }//if the condition neighbour of my sphere neighbour is myself.
         }//Loop spheres neighbours (condition)
     }//Loop condition neighbours (spheres)
@@ -124,7 +124,7 @@ void SolidFace3D::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement
   array_1d<double, 3> displacement_now = this->GetGeometry()[inode].FastGetSolutionStepValue(DISPLACEMENT);
   array_1d<double, 3> displacement_old = this->GetGeometry()[inode].FastGetSolutionStepValue(DISPLACEMENT,1);
   delta_displacement = displacement_now - displacement_old;
-  
+
 }
 
 void SolidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
@@ -145,10 +145,10 @@ void SolidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 }
 
 
-void SolidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)   
+void SolidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)
 {
-  
-  
+
+
 }
 
 //***********************************************************************************

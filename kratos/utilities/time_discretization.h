@@ -21,12 +21,15 @@
 // Project includes
 
 namespace Kratos {
+class ProcessInfo; // forward-declaring to not having to include it here
+
 namespace TimeDiscretization {
 
 class KRATOS_API(KRATOS_CORE) BDF1
 {
 public:
     std::array<double, 2> ComputeBDFCoefficients(double DeltaTime) const;
+    std::array<double, 2> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF2
@@ -34,30 +37,35 @@ class KRATOS_API(KRATOS_CORE) BDF2
 public:
     std::array<double, 3> ComputeBDFCoefficients(double DeltaTime,
                                                  double PreviousDeltaTime) const;
+    std::array<double, 3> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF3
 {
 public:
     std::array<double, 4> ComputeBDFCoefficients(double DeltaTime) const;
+    std::array<double, 4> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF4
 {
 public:
     std::array<double, 5> ComputeBDFCoefficients(double DeltaTime) const;
+    std::array<double, 5> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF5
 {
 public:
     std::array<double, 6> ComputeBDFCoefficients(double DeltaTime) const;
+    std::array<double, 6> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class KRATOS_API(KRATOS_CORE) BDF6
 {
 public:
     std::array<double, 7> ComputeBDFCoefficients(double DeltaTime) const;
+    std::array<double, 7> ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const;
 };
 
 class Newmark

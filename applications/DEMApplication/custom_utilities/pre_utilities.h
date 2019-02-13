@@ -378,11 +378,11 @@ class PreUtilities
     {
     }
 
-    vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
+    std::vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
 
     protected:
 
-        vector<unsigned int> mElementPartition;
+        std::vector<unsigned int> mElementPartition;
 
     private:
 
