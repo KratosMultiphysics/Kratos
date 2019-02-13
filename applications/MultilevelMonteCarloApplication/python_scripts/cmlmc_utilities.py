@@ -29,9 +29,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 
 '''
-TODO: create a class for the values ValueClass in order to directly modify the values inside functions
-e.g. mean = [1,2,4,5]  ---> mean = [Value, Value, Value, Value]
-     to modify this inside a task I need it to be an object
 TODO: insert distinction between scalar and field Quantity of Interests
 '''
 
@@ -42,9 +39,11 @@ auxiliary function of AddResults of the MultilevelMonteCarlo class
 @ExaquteTask(returns=2)
 def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
-        difference_QoI_value = simulation_results.QoI[level]
+        '''each value is inside the relative level list, and only one value per level is computed
+        i.e. results = [[value_level_0],[value_level_1],...]'''
+        difference_QoI_value = simulation_results.QoI[level][0]
     else:
-        difference_QoI_value = simulation_results.QoI[level] - simulation_results.QoI[level - 1]
+        difference_QoI_value = simulation_results.QoI[level][0] - simulation_results.QoI[level-1][0]
     return difference_QoI_value,simulation_results.time_ML[level]
 
 
@@ -151,7 +150,7 @@ class MultilevelMonteCarlo(object):
         '''number_samples : total number of samples of current iteration'''
         self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''
-        self.difference_number_samples = None
+        self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''previous_number_samples : total number of samples of previous iteration'''
         self.previous_number_samples = None
         '''rates_error : dictionary containing the values of the parameters
@@ -659,14 +658,14 @@ class MultilevelMonteCarlo(object):
 
 class MultilevelMonteCarloResults(object):
     '''The base class for the MultilevelMonteCarloResults-classes'''
-    def __init__(self):
+    def __init__(self,number_levels):
         '''constructor of the MultilevelMonteCarloResults-Object
         Keyword arguments:
         self : an instance of a class
         '''
         '''Quantity of Interest'''
-        self.QoI = []
+        self.QoI = [[] for _ in range (number_levels+1)]
         '''time cost'''
-        self.time_ML = []
+        self.time_ML = [[] for _ in range (number_levels+1)]
         '''level of QoI and time_ML'''
-        self.finer_level = 0
+        self.finer_level = number_levels
