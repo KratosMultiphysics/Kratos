@@ -451,8 +451,9 @@ void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
+  //this is commented until EXPLICI CALLS ONLY RHS
+  //rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
+  //noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
