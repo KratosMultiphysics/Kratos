@@ -19,7 +19,14 @@ sys.path.append(path)
 path = os.getcwd()
 path = os.path.join(path,'basic_benchmarks')
 os.chdir(path)
-initial_number_of_threads = os.environ['OMP_NUM_THREADS']
+
+if "OMP_NUM_THREADS" in os.environ:
+    max_available_threads = int(os.environ['OMP_NUM_THREADS'])
+else:
+    max_available_threads = mp.cpu_count() - 1
+
+
+#initial_number_of_threads = os.environ['OMP_NUM_THREADS']
 os.environ['OMP_NUM_THREADS']='1'
 os.system("echo Benchmarks will be running on $OMP_NUM_THREADS cpu")
 
@@ -63,7 +70,7 @@ def run(benchmark):
     out_file_name = '{0}.info'.format(benchmark)
     f = open(out_file_name, 'wb')
 
-    path_to_callable_script = os.path.join(path,"DEM_benchmarks.py")
+    path_to_callable_script = os.path.join(path,"DEM_benchmarks_analysis.py")
 
     if sys.version_info >= (3, 0):
         subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
@@ -115,7 +122,7 @@ def main():
             #print(Benchmark_text[item - 1])
             q.put_nowait(item)
 
-        threads = [Thread(target=worker, args=(q,)) for _ in range(int(initial_number_of_threads))]
+        threads = [Thread(target=worker, args=(q,)) for _ in range(int(max_available_threads))]
         for t in threads:
             t.daemon = True # threads die if the program dies
             t.start()
@@ -186,6 +193,7 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.lst'))
     files_to_delete_list.extend(glob('*.info'))
     files_to_delete_list.extend(glob('*.err'))
+    files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)

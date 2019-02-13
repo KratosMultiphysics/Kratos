@@ -467,7 +467,7 @@ void UpdatedLagrangianQuadrilateral::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
+        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -998,7 +998,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > 1e-16)
+        if (rVariables.N[i] > std::numeric_limits<double>::epsilon() )
         {
             const array_1d<double, 3 > & nodal_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
 
@@ -1156,7 +1156,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
+        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1196,7 +1196,7 @@ void UpdatedLagrangianQuadrilateral::CalculateGreenLagrangeStrain(const Matrix& 
     }
     else
     {
-        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
+        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )

@@ -30,7 +30,7 @@ namespace Kratos {
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         unsigned int old_size = v.size();
-        v.resize(old_size + 1);
+        v.resize(old_size + 1, false);
         v[old_size]=a;
         return a;
     }
@@ -524,14 +524,14 @@ namespace Kratos {
 
 
     void DEM_Dempack_dev::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
-                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                          double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
 
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
         if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
 
         double force[3];
-        Matrix average_stress_tensor = ZeroMatrix(3,3);
+        BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {

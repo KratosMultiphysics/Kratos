@@ -124,10 +124,10 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mGlobalDamping = rOther.mGlobalDamping;
 
     if(rOther.mStressTensor != NULL) {
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = *rOther.mStressTensor;
 
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = *rOther.mSymmStressTensor;
     }
     else {
@@ -177,10 +177,16 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
         array_1d<double, 3> angular_momentum;
         CalculateLocalAngularMomentum(angular_momentum);
         noalias(node.GetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+
+        array_1d<double, 3>& delta_rotation = node.GetSolutionStepValue(DELTA_ROTATION);
+        delta_rotation = ZeroVector(3);
+
+        array_1d<double, 3>& rotation_angle = node.GetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+        rotation_angle = ZeroVector(3);
     }
 
     else {
-        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY); //TODO: do we need this when there is no rotation??
         angular_velocity = ZeroVector(3);
     }
 
@@ -237,8 +243,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     data_buffer.mDt = dt;
     data_buffer.mMultiStageRHS = false;
 
-    array_1d<double, 3> additional_forces(3, 0.0);
-    array_1d<double, 3> additionally_applied_moment(3, 0.0);
+    array_1d<double, 3> additional_forces = ZeroVector(3);
+    array_1d<double, 3> additionally_applied_moment = ZeroVector(3);
     array_1d<double, 3>& elastic_force       = this_node.FastGetSolutionStepValue(ELASTIC_FORCES);
     array_1d<double, 3>& contact_force       = this_node.FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
@@ -376,41 +382,41 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
     noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
 }
 
-void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& mTempNeighboursIds,
-                                                         std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces)
+void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids,
+                                                         std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces)
 {
-    std::vector<array_1d<double, 3> > mTempNeighbourElasticExtraContactForces;
+    std::vector<array_1d<double, 3> > temp_neighbour_elastic_extra_contact_forces;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
-    mTempNeighboursIds.resize(new_size);
-    mTempNeighbourElasticContactForces.resize(new_size);
-    mTempNeighbourElasticExtraContactForces.resize(new_size);
+    temp_neighbours_ids.resize(new_size, false);
+    temp_neighbour_elastic_contact_forces.resize(new_size);
+    temp_neighbour_elastic_extra_contact_forces.resize(new_size);
 
     DenseVector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
-        noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
-        noalias(mTempNeighbourElasticExtraContactForces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_elastic_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_elastic_extra_contact_forces[i]) = vector_of_zeros;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
-            mTempNeighboursIds[i] = -1;
+            temp_neighbours_ids[i] = -1;
             continue;
         }
 
-        mTempNeighboursIds[i] = mNeighbourElements[i]->Id();
+        temp_neighbours_ids[i] = mNeighbourElements[i]->Id();
 
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
-            if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
-                noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
-                noalias(mTempNeighbourElasticExtraContactForces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
+            if (int(temp_neighbours_ids[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
+                noalias(temp_neighbour_elastic_contact_forces[i]) = mNeighbourElasticContactForces[j];
+                noalias(temp_neighbour_elastic_extra_contact_forces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
                 break;
             }
         }
     }
 
-    vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
-    mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-    mNeighbourElasticExtraContactForces.swap(mTempNeighbourElasticExtraContactForces);
+    vector_of_ids_of_neighbours.swap(temp_neighbours_ids);
+    mNeighbourElasticContactForces.swap(temp_neighbour_elastic_contact_forces);
+    mNeighbourElasticExtraContactForces.swap(temp_neighbour_elastic_extra_contact_forces);
 }
 
 void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
@@ -836,7 +842,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                              mNeighbourElasticContactForces[i]);
 
 
-            array_1d<double, 3> other_ball_to_ball_forces(3, 0.0);
+            array_1d<double, 3> other_ball_to_ball_forces = ZeroVector(3);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
@@ -853,7 +859,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
-            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
                     CalculateOnContactElements(i, LocalContactForce);
@@ -1535,6 +1541,10 @@ void SphericParticle::ComputeReactions() {
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
 
+    if (this->GetGeometry()[0].SolutionStepsDataHas(IS_STICKY)) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(IS_STICKY) = this->Is(DEMFlags::STICKY);
+    }
+
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
     }
@@ -1688,10 +1698,10 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
 
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
     }
     else {
@@ -1834,7 +1844,7 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
     array_1d<double, 3> v1;
     array_1d<double, 3> v2;
     array_1d<double, 3> v3;
-    array_1d<double, 3> mNeighbourElasticContactForcesFinal;
+    array_1d<double, 3> rotated_neighbour_elastic_contact_forces;
 
     v1[0] = OldLocalCoordSystem[2][0]; v1[1] = OldLocalCoordSystem[2][1]; v1[2] = OldLocalCoordSystem[2][2];
     v2[0] = LocalCoordSystem[2][0];    v2[1] = LocalCoordSystem[2][1];    v2[2] = LocalCoordSystem[2][2];
@@ -1849,9 +1859,9 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
 
     GeometryFunctions::normalize(v3);
 
-    GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(mNeighbourElasticContactForces, v3, alpha, mNeighbourElasticContactForcesFinal);
+    GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(mNeighbourElasticContactForces, v3, alpha, rotated_neighbour_elastic_contact_forces);
 
-    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, mNeighbourElasticContactForcesFinal)
+    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, rotated_neighbour_elastic_contact_forces)
 }
 
 bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer)
@@ -1944,8 +1954,11 @@ void SphericParticle::Move(const double delta_t, const bool rotation_option, con
 }
 
 void SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
-    delete mpTranslationalIntegrationScheme;
+    if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) {
+        delete mpTranslationalIntegrationScheme;
+    }
     mpTranslationalIntegrationScheme = new GluedToWallScheme(p_wall, this);
+    delete mpRotationalIntegrationScheme;
     mpRotationalIntegrationScheme = mpTranslationalIntegrationScheme;
 }
 
