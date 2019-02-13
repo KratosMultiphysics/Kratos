@@ -104,7 +104,6 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
         double element_size = mMinSize;
         const double nodal_h = it_node->GetValue(NODAL_H);
-        // const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
         if (it_node->SolutionStepsDataHas(reference_var)) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
             element_size = CalculateElementSize(ratio_reference, nodal_h);
