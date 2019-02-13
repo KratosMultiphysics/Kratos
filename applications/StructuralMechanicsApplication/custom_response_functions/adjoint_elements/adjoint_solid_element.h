@@ -32,7 +32,7 @@ namespace Kratos
  * @brief A template class for creating adjoint elements for solids.
  */
 template <class TPrimalElement>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement
+class AdjointSolidElement
     : public Element
 {
     class ThisExtensions : public AdjointExtensions
