@@ -10,29 +10,41 @@ import RVEAnalysis
 
 import os
 
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+class controlledExecutionScope:
+    def __init__(self, scope):
+        self.currentPath = os.getcwd()
+        self.scope = scope
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.currentPath)
 
 class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
-        with open(GetFilePath("rve_test/smallest_rve_test_parameters.json"), 'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        parameters["solver_settings"]["block_builder"].SetBool(True)
-        parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
+            parameters["solver_settings"]["block_builder"].SetBool(True)
+            parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
 
-        self._aux_rve_computation(parameters)
+            self._aux_rve_computation(parameters)
 
     #@KratosUnittest.skip("Reactions and displacements not 100% accurate")
     def test_rve_computation_elimination_version(self):
-        with open(GetFilePath("rve_test/smallest_rve_test_parameters.json"), 'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        parameters["solver_settings"]["block_builder"].SetBool(False)
-        parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
+            parameters["solver_settings"]["block_builder"].SetBool(False)
+            parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
 
-        self._aux_rve_computation(parameters)
+            self._aux_rve_computation(parameters)
 
     def _aux_rve_computation(self, parameters):
 
