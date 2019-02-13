@@ -10,11 +10,6 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.IsApplicationAvailable("HDF5Application"):
-    has_hdf5_application = True
-else:
-    has_hdf5_application = False
-
 if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
     has_eigensolvers_application = True
 else:
