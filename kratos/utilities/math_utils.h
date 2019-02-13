@@ -10,7 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Collaborators:    Vicente Mataix Ferrandiz
+//                    Pablo Becker
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -96,7 +97,7 @@ public:
     ///@{
 
     /**
-     * This function calculates the number of elements between first and last.
+     * @brief This function calculates the number of elements between first and last.
      * @param rFirstData First element
      * @param rSecondData Second element
      * @return Distance Number of elements
@@ -111,7 +112,7 @@ public:
     }
 
     /**
-     * In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
+     * @brief In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
      * @param a First length
      * @param b Second length
      * @param c Third length
@@ -127,41 +128,33 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if(check == true)
-        {
-            if(A2 < 0.0)
-            {
+        if(check) {
+            if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
-            }
-            else
-            {
+            } else {
                 return std::sqrt(A2);
             }
-        }
-        else
-        {
+        } else {
             return std::sqrt(std::abs(A2));
         }
     }
 
     /**
-     * It gives you the absolute value of a given value
+     * @brief It gives you the absolute value of a given value
      * @param rData The value to compute the absolute value
      * @return The absolute value of rData
      */
-
     static TDataType Abs(const TDataType& rData)
     {
         return rData > TDataType(0) ? rData : -rData;
     }
 
     /**
-     * It gives you the minimum value between two values
+     * @brief It gives you the minimum value between two values
      * @param rValue1 The first value
      * @param rValue2 The second value
      * @return The minimum value
      */
-
     static TDataType Min(
         const TDataType& rValue1,
         const TDataType& rValue2
@@ -171,12 +164,11 @@ public:
     }
 
     /**
-     * It gives you the maximum value between two values
+     * @brief It gives you the maximum value between two values
      * @param rValue1 The first value
      * @param rValue2 The second value
      * @return The maximum value
      */
-
     static TDataType Max(
         const TDataType& rValue1,
         const TDataType& rValue2
@@ -186,42 +178,41 @@ public:
     }
 
     /**
-     * Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance)
-     * @param InputMatrix The matrix to calculate
+     * @brief Calculates the determinant of a 2x2, 3x3 and 4x4 matrix (using bounded matrix for performance)
+     * @param rInputMatrix The matrix to calculate
      * @return DetA: The determinant of the matrix
      */
-
     template<class TMatrixType>
-    static inline TDataType DetMat(const TMatrixType& InputMatrix)
+    static inline TDataType DetMat(const TMatrixType& rInputMatrix)
     {
         static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
-        TDataType InputMatrixDet;
+        TDataType rInputMatrixDet;
 
-        if (InputMatrix.size1() == 1)
-        {
-            InputMatrixDet = InputMatrix(0, 0);
-        }
-        else if (InputMatrix.size1() == 2)
-        {
-            InputMatrixDet = InputMatrix(0, 0) * InputMatrix(1, 1) - InputMatrix(0, 1) * InputMatrix(1, 0);
-        }
-        else if (InputMatrix.size1() == 3)
-        {
-            InputMatrixDet = InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)
-                           + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(0, 2)
-                           + InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0)
-                           - InputMatrix(2, 0) * InputMatrix(1, 1) * InputMatrix(0, 2)
-                           - InputMatrix(2, 1) * InputMatrix(1, 2) * InputMatrix(0, 0)
-                           - InputMatrix(1, 0) * InputMatrix(0, 1) * InputMatrix(2,2);
-        }
-        else
-        {
-            InputMatrixDet = InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(0, 3) * (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) + (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)) * InputMatrix(3, 3) + InputMatrix(0, 2) * (-(InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3));
+        if (rInputMatrix.size1() == 1) {
+            rInputMatrixDet = rInputMatrix(0, 0);
+        } else if (rInputMatrix.size1() == 2) {
+            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
+        } else if (rInputMatrix.size1() == 3) {
+            rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)
+                           + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(0, 2)
+                           + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0)
+                           - rInputMatrix(2, 0) * rInputMatrix(1, 1) * rInputMatrix(0, 2)
+                           - rInputMatrix(2, 1) * rInputMatrix(1, 2) * rInputMatrix(0, 0)
+                           - rInputMatrix(1, 0) * rInputMatrix(0, 1) * rInputMatrix(2,2);
+        } else {
+            rInputMatrixDet = rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 3) * (rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2)) + (rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)) * rInputMatrix(3, 3) + rInputMatrix(0, 2) * (-(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3));
         }
 
-        return InputMatrixDet;
+        return rInputMatrixDet;
     }
 
+    /**
+     * @brief Calculates the cofactor
+     * @param rMat The matrix to calculate
+     * @param i The index i
+     * @param j The index j
+     * @return The cofactor of the matrix
+     */
     template<class TMatrixType>
     static TDataType Cofactor(const TMatrixType& rMat, IndexType i, IndexType j)
     {
@@ -254,6 +245,11 @@ public:
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
+    /**
+     * @brief Calculates the cofactor matrix
+     * @param rMat The matrix to calculate
+     * @return The cofactor matrix
+     */
     template<class TMatrixType>
     static MatrixType CofactorMatrix(const TMatrixType& rMat)
     {
@@ -262,147 +258,116 @@ public:
 
         MatrixType cofactor_matrix(rMat.size1(), rMat.size2());
 
-        for (unsigned i = 0; i < rMat.size1(); ++i)
-            for (unsigned j = 0; j < rMat.size2(); ++j)
+        for (IndexType i = 0; i < rMat.size1(); ++i)
+            for (IndexType j = 0; j < rMat.size2(); ++j)
                 cofactor_matrix(i, j) = Cofactor(rMat, i, j);
 
         return cofactor_matrix;
     }
 
     /**
-     * Calculates the inverse of a 2x2, 3x3 and 4x4 matrices (using bounded matrix for performance)
-     * @param InputMatrix The matrix to invert
+     * @brief Calculates the inverse of a 2x2, 3x3 and 4x4 matrices (using bounded matrix for performance)
+     * @param rInputMatrix The matrix to invert
+     * @param rInputMatrixDet The determinant of the matrix
+     * @param Tolerance The maximum tolerance considered
      * @return InvertMatrix: The inverted matrix
      */
-
-    template<unsigned int TDim>
+    template<SizeType TDim>
+    KRATOS_DEPRECATED_MESSAGE("Please use InvertMatrix() instead")
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
-            const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
-            TDataType& InputMatrixDet,
-            const TDataType Tolerance = ZeroTolerance
-            )
+        const BoundedMatrix<TDataType, TDim, TDim>& rInputMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
+        )
     {
-        BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
+        BoundedMatrix<TDataType, TDim, TDim> inverted_matrix;
 
         /* Compute Determinant of the matrix */
-        InputMatrixDet = DetMat(InputMatrix);
+        rInputMatrixDet = DetMat(rInputMatrix);
 
-        if (std::abs(InputMatrixDet) < Tolerance)
-        {
-            KRATOS_WATCH(InputMatrix);
-            KRATOS_ERROR << " Determinant of the matrix is zero or almost zero!!!, InputMatrixDet = " << InputMatrixDet << std::endl;
-        }
-
-        if (TDim == 1)
-        {
-            InvertedMatrix(0, 0) = 1.0 / InputMatrixDet;
-        }
-        else if (TDim == 2)
-        {
-            /* Compute inverse of the Matrix */
-            InvertedMatrix(0, 0) =   InputMatrix(1, 1) / InputMatrixDet;
-            InvertedMatrix(0, 1) = - InputMatrix(0, 1) / InputMatrixDet;
-            InvertedMatrix(1, 0) = - InputMatrix(1, 0) / InputMatrixDet;
-            InvertedMatrix(1, 1) =   InputMatrix(0, 0) / InputMatrixDet;
-        }
-        else if (TDim == 3)
-        {
-            /* Compute inverse of the Matrix */
-            // First column
-            InvertedMatrix(0, 0) =   (InputMatrix(1, 1) * InputMatrix(2, 2) - InputMatrix(1, 2) * InputMatrix(2, 1)) / InputMatrixDet;
-            InvertedMatrix(1, 0) = - (InputMatrix(1, 0) * InputMatrix(2, 2) - InputMatrix(2, 0) * InputMatrix(1, 2)) / InputMatrixDet;
-            InvertedMatrix(2, 0) =   (InputMatrix(1, 0) * InputMatrix(2, 1) - InputMatrix(1, 1) * InputMatrix(2, 0)) / InputMatrixDet;
-
-            // Second column
-            InvertedMatrix(0, 1) = - (InputMatrix(0, 1) * InputMatrix(2, 2) - InputMatrix(0, 2) * InputMatrix(2, 1)) / InputMatrixDet;
-            InvertedMatrix(1, 1) =   (InputMatrix(0, 0) * InputMatrix(2, 2) - InputMatrix(0, 2) * InputMatrix(2, 0)) / InputMatrixDet;
-            InvertedMatrix(2, 1) = - (InputMatrix(0, 0) * InputMatrix(2, 1) - InputMatrix(0, 1) * InputMatrix(2, 0)) / InputMatrixDet;
-
-            // Third column
-            InvertedMatrix(0, 2) =   (InputMatrix(0, 1) * InputMatrix(1, 2) - InputMatrix(0, 2) * InputMatrix(1, 1)) / InputMatrixDet;
-            InvertedMatrix(1, 2) = - (InputMatrix(0, 0) * InputMatrix(1, 2) - InputMatrix(0, 2) * InputMatrix(1, 0)) / InputMatrixDet;
-            InvertedMatrix(2, 2) =   (InputMatrix(0, 0) * InputMatrix(1, 1) - InputMatrix(1, 0) * InputMatrix(0, 1)) / InputMatrixDet;
-        }
-        else if (TDim == 4)
-        {
-            /* Compute inverse of the Matrix */
-            // First column
-            InvertedMatrix(0, 0) = -(InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1)) + InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) + InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) - InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 3) + InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 3);
-            InvertedMatrix(0, 1) = InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 1) - InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) + InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 3) - InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 3);
-            InvertedMatrix(0, 2) = -(InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 1)) + InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 1) + InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 2) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 2) - InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 3) + InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 3);
-            InvertedMatrix(0, 3) = InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1) - InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2) + InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) + InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3);
-
-            // Second column
-            InvertedMatrix(1, 0) = InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 3) - InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 3);
-            InvertedMatrix(1, 1) = -(InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 0)) + InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 3);
-            InvertedMatrix(1, 2) = InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 0) - InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 0) - InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 2) + InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 3) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 3);
-            InvertedMatrix(1, 3) = -(InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0)) + InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0) + InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) - InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3);
-
-            // Third column
-            InvertedMatrix(2, 0) = -(InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3);
-            InvertedMatrix(2, 1) = InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) + InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) - InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 3);
-            InvertedMatrix(2, 2) = -(InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 0)) + InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 0) + InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 1) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 3) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 3);
-            InvertedMatrix(2, 3) = InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) - InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3);
-
-            // Fourth column
-            InvertedMatrix(3, 0) = InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2);
-            InvertedMatrix(3, 1) = -(InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) + InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 2);
-            InvertedMatrix(3, 2) = InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 0) - InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 1) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 2);
-            InvertedMatrix(3, 3) = -(InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0)) + InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) + InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2);
-
-            InvertedMatrix /= InputMatrixDet;
-        }
-        else
-        {
+        if(TDim == 1) {
+            inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
+            rInputMatrixDet = rInputMatrix(0,0);
+        } else if (TDim == 2) {
+            InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
+        } else if (TDim == 3) {
+            InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
+        } else if (TDim == 4) {
+            InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
+        } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
         }
 
-        return InvertedMatrix;
+        // Checking condition number
+        CheckConditionNumber(rInputMatrix, inverted_matrix, Tolerance);
+
+        return inverted_matrix;
     }
 
     /**
-     * It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
-     * @param InputMatrix Is the input matrix (unchanged at output)
-     * @param InvertedMatrix Is the inverse of the input matrix
-     * @param InputMatrixDet Is the determinant of the input matrix
+     * @brief This method checks the condition number of  amtrix
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param Tolerance The maximum tolerance considered
      */
-
-    static void GeneralizedInvertMatrix(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
+    template<class TMatrix1, class TMatrix2>
+    static inline void CheckConditionNumber(
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
-        const unsigned int size_1 = InputMatrix.size1();
-        const unsigned int size_2 = InputMatrix.size2();
+        // We want at least 4 significant digits
+        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
 
-        if (size_1 == size_2)
-        {
-            InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+        // Find the condition number to define is inverse is OK
+        const double input_matrix_norm = norm_frobenius(rInputMatrix);
+        const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
+
+        // Now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ;
+        // Finally check if the condition number is low enough
+        if (cond_number > max_condition_number) {
+            KRATOS_WATCH(rInputMatrix);
+            KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
         }
-        else if (size_1 < size_2) // Right inverse
-        {
-            if (InvertedMatrix.size1() != size_2 || InvertedMatrix.size2() != size_1)
-            {
-                InvertedMatrix.resize(size_2, size_1, false);
+    }
+
+    /**
+     * @brief It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param rInputMatrixDet Is the determinant of the input matrix
+     */
+    static void GeneralizedInvertMatrix(
+        const MatrixType& rInputMatrix,
+        MatrixType& rInvertedMatrix,
+        TDataType& rInputMatrixDet
+        )
+    {
+        const SizeType size_1 = rInputMatrix.size1();
+        const SizeType size_2 = rInputMatrix.size2();
+
+        if (size_1 == size_2) {
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+        } else if (size_1 < size_2) { // Right inverse
+            if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
+                rInvertedMatrix.resize(size_2, size_1, false);
             }
-            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
+            const Matrix aux = prod(rInputMatrix, trans(rInputMatrix));
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, InputMatrixDet);
-            InputMatrixDet = std::sqrt(InputMatrixDet);
-            noalias(InvertedMatrix) = prod(trans(InputMatrix), auxInv);
-        }
-        else // Left inverse
-        {
-            if (InvertedMatrix.size1() != size_2 || InvertedMatrix.size2() != size_1)
-            {
-                InvertedMatrix.resize(size_2, size_1, false);
+            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            rInputMatrixDet = std::sqrt(rInputMatrixDet);
+            noalias(rInvertedMatrix) = prod(trans(rInputMatrix), auxInv);
+        } else { // Left inverse
+            if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
+                rInvertedMatrix.resize(size_2, size_1, false);
             }
-            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
+            const Matrix aux = prod(trans(rInputMatrix), rInputMatrix);
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, InputMatrixDet);
-            InputMatrixDet = std::sqrt(InputMatrixDet);
-            noalias(InvertedMatrix) = prod(auxInv, trans(InputMatrix));
+            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            rInputMatrixDet = std::sqrt(rInputMatrixDet);
+            noalias(rInvertedMatrix) = prod(auxInv, trans(rInputMatrix));
         }
     }
 
@@ -419,9 +384,9 @@ public:
         )
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(rA);
         double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << rA << std::endl;
         rX = lu_factorization.solve(rB);
 #else
         const SizeType size1 = A.size1();
@@ -435,243 +400,237 @@ public:
     }
 
     /**
-     * It inverts matrices of order 2, 3 and 4
-     * @param InputMatrix Is the input matrix (unchanged at output)
-     * @param InvertedMatrix Is the inverse of the input matrix
-     * @param InputMatrixDet Is the determinant of the input matrix
+     * @brief It inverts matrices of order 2, 3 and 4
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param rInputMatrixDet Is the determinant of the input matrix
      */
-
+    template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
-        const SizeType size = InputMatrix.size2();
+        const SizeType size = rInputMatrix.size2();
 
         if(size == 1) {
-            if(InvertedMatrix.size1() != 1 || InvertedMatrix.size2() != 1) {
-                InvertedMatrix.resize(1,1,false);
+            if(rInvertedMatrix.size1() != 1 || rInvertedMatrix.size2() != 1) {
+                rInvertedMatrix.resize(1,1,false);
             }
-            InvertedMatrix(0,0) = 1.0/InputMatrix(0,0);
-            InputMatrixDet = InputMatrix(0,0);
+            rInvertedMatrix(0,0) = 1.0/rInputMatrix(0,0);
+            rInputMatrixDet = rInputMatrix(0,0);
         } else if (size == 2) {
-            InvertMatrix2(InputMatrix, InvertedMatrix, InputMatrixDet);
+            InvertMatrix2(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
         } else if (size == 3) {
-            InvertMatrix3(InputMatrix, InvertedMatrix, InputMatrixDet);
+            InvertMatrix3(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
         } else if (size == 4) {
-            InvertMatrix4(InputMatrix, InvertedMatrix, InputMatrixDet);
-        } else {
-            const SizeType size1 = InputMatrix.size1();
-            const SizeType size2 = InputMatrix.size2();
-            if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2) {
-                InvertedMatrix.resize(size1, size2,false);
+            InvertMatrix4(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+        } else if (std::is_same<TMatrix1, Matrix>::value) {
+
+            const SizeType size1 = rInputMatrix.size1();
+            const SizeType size2 = rInputMatrix.size2();
+            if(rInvertedMatrix.size1() != size1 || rInvertedMatrix.size2() != size2) {
+                rInvertedMatrix.resize(size1, size2,false);
             }
 
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(InputMatrix);
+            Matrix temp(rInputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            InputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << InputMatrix << std::endl;
-            InvertedMatrix = lu_factorization.inverse();
+            rInputMatrixDet = lu_factorization.determinant();
+            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
+            rInvertedMatrix = lu_factorization.inverse();
 #else
 
             typedef permutation_matrix<SizeType> pmatrix;
-            Matrix A(InputMatrix);
+            Matrix A(rInputMatrix);
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
-            InvertedMatrix.assign( IdentityMatrix(A.size1()));
-            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << InputMatrix << std::endl;
-            lu_substitute(A, pm, InvertedMatrix);
+            rInvertedMatrix.assign( IdentityMatrix(A.size1()));
+            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << rInputMatrix << std::endl;
+            lu_substitute(A, pm, rInvertedMatrix);
 
             // Calculating determinant
-            InputMatrixDet = 1.0;
+            rInputMatrixDet = 1.0;
 
             for (IndexType i = 0; i < A.size1();++i) {
                 IndexType ki = pm[i] == i ? 0 : 1;
-                InputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
+                rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
 
  #endif // ifdef KRATOS_USE_AMATRIX
+       } else {
+           KRATOS_ERROR << "Not possible to invert Matrix: " << rInputMatrix << std::endl;
        }
+
+       // Checking condition number
+        CheckConditionNumber(rInputMatrix, rInvertedMatrix, Tolerance);
     }
 
     /**
-     * It inverts matrices of order 2 //VERIFIED!!!
-     * @param InputMatrix Is the input matrix (unchanged at output)
-     * @param InvertedMatrix Is the inverse of the input matrix
-     * @param InputMatrixDet Is the determinant of the input matrix
+     * @brief It inverts matrices of order 2
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param rInputMatrixDet Is the determinant of the input matrix
      */
-
+    template<class TMatrix1, class TMatrix2>
     static void InvertMatrix2(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
         )
     {
         KRATOS_TRY;
 
-        if(InvertedMatrix.size1() != 2 || InvertedMatrix.size2() != 2)
-        {
-            InvertedMatrix.resize(2,2,false);
+        if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
+            rInvertedMatrix.resize(2,2,false);
         }
 
-        InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
+        rInputMatrixDet = rInputMatrix(0,0)*rInputMatrix(1,1)-rInputMatrix(0,1)*rInputMatrix(1,0);
 
-        InvertedMatrix(0,0) =  InputMatrix(1,1);
-        InvertedMatrix(0,1) = -InputMatrix(0,1);
-        InvertedMatrix(1,0) = -InputMatrix(1,0);
-        InvertedMatrix(1,1) =  InputMatrix(0,0);
+        rInvertedMatrix(0,0) =  rInputMatrix(1,1);
+        rInvertedMatrix(0,1) = -rInputMatrix(0,1);
+        rInvertedMatrix(1,0) = -rInputMatrix(1,0);
+        rInvertedMatrix(1,1) =  rInputMatrix(0,0);
 
-        InvertedMatrix/=InputMatrixDet;
+        rInvertedMatrix/=rInputMatrixDet;
 
         KRATOS_CATCH("");
     }
 
     /**
-     * It inverts matrices of order 3 //VERIFIED!!!
-     * @param InputMatrix Is the input matrix (unchanged at output)
-     * @param InvertedMatrix Is the inverse of the input matrix
-     * @param InputMatrixDet Is the determinant of the input matrix
+     * @brief It inverts matrices of order 3
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param rInputMatrixDet Is the determinant of the input matrix
      */
-
+    template<class TMatrix1, class TMatrix2>
     static void InvertMatrix3(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
         )
     {
         KRATOS_TRY;
 
-        if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        {
-            InvertedMatrix.resize(3,3,false);
+        if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
+            rInvertedMatrix.resize(3,3,false);
         }
 
         // Filling the inverted matrix with the algebraic complements
         // First column
-        InvertedMatrix(0,0) = InputMatrix(1,1)*InputMatrix(2,2) - InputMatrix(1,2)*InputMatrix(2,1);
-        InvertedMatrix(1,0) = -InputMatrix(1,0)*InputMatrix(2,2) + InputMatrix(1,2)*InputMatrix(2,0);
-        InvertedMatrix(2,0) = InputMatrix(1,0)*InputMatrix(2,1) - InputMatrix(1,1)*InputMatrix(2,0);
+        rInvertedMatrix(0,0) = rInputMatrix(1,1)*rInputMatrix(2,2) - rInputMatrix(1,2)*rInputMatrix(2,1);
+        rInvertedMatrix(1,0) = -rInputMatrix(1,0)*rInputMatrix(2,2) + rInputMatrix(1,2)*rInputMatrix(2,0);
+        rInvertedMatrix(2,0) = rInputMatrix(1,0)*rInputMatrix(2,1) - rInputMatrix(1,1)*rInputMatrix(2,0);
 
         // Second column
-        InvertedMatrix(0,1) = -InputMatrix(0,1)*InputMatrix(2,2) + InputMatrix(0,2)*InputMatrix(2,1);
-        InvertedMatrix(1,1) = InputMatrix(0,0)*InputMatrix(2,2) - InputMatrix(0,2)*InputMatrix(2,0);
-        InvertedMatrix(2,1) = -InputMatrix(0,0)*InputMatrix(2,1) + InputMatrix(0,1)*InputMatrix(2,0);
+        rInvertedMatrix(0,1) = -rInputMatrix(0,1)*rInputMatrix(2,2) + rInputMatrix(0,2)*rInputMatrix(2,1);
+        rInvertedMatrix(1,1) = rInputMatrix(0,0)*rInputMatrix(2,2) - rInputMatrix(0,2)*rInputMatrix(2,0);
+        rInvertedMatrix(2,1) = -rInputMatrix(0,0)*rInputMatrix(2,1) + rInputMatrix(0,1)*rInputMatrix(2,0);
 
         // Third column
-        InvertedMatrix(0,2) = InputMatrix(0,1)*InputMatrix(1,2) - InputMatrix(0,2)*InputMatrix(1,1);
-        InvertedMatrix(1,2) = -InputMatrix(0,0)*InputMatrix(1,2) + InputMatrix(0,2)*InputMatrix(1,0);
-        InvertedMatrix(2,2) = InputMatrix(0,0)*InputMatrix(1,1) - InputMatrix(0,1)*InputMatrix(1,0);
+        rInvertedMatrix(0,2) = rInputMatrix(0,1)*rInputMatrix(1,2) - rInputMatrix(0,2)*rInputMatrix(1,1);
+        rInvertedMatrix(1,2) = -rInputMatrix(0,0)*rInputMatrix(1,2) + rInputMatrix(0,2)*rInputMatrix(1,0);
+        rInvertedMatrix(2,2) = rInputMatrix(0,0)*rInputMatrix(1,1) - rInputMatrix(0,1)*rInputMatrix(1,0);
 
         // Calculation of determinant (of the input matrix)
-        InputMatrixDet = InputMatrix(0,0)*InvertedMatrix(0,0) + InputMatrix(0,1)*InvertedMatrix(1,0) + InputMatrix(0,2)*InvertedMatrix(2,0);
+        rInputMatrixDet = rInputMatrix(0,0)*rInvertedMatrix(0,0) + rInputMatrix(0,1)*rInvertedMatrix(1,0) + rInputMatrix(0,2)*rInvertedMatrix(2,0);
 
         // Finalizing the calculation of the inverted matrix
-        InvertedMatrix /= InputMatrixDet;
+        rInvertedMatrix /= rInputMatrixDet;
 
         KRATOS_CATCH("")
     }
 
     /**
-     * It inverts matrices of order 4
-     * @param InputMatrix Is the input matrix (unchanged at output)
-     * @param InvertedMatrix Is the inverse of the input matrix
-     * @param InputMatrixDet Is the determinant of the input matrix
+     * @brief It inverts matrices of order 4
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param rInputMatrixDet Is the determinant of the input matrix
      */
-
+    template<class TMatrix1, class TMatrix2>
     static void InvertMatrix4(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
         )
     {
         KRATOS_TRY;
 
-        if (InvertedMatrix.size1() != 4 || InvertedMatrix.size2() != 4)
-        {
-            InvertedMatrix.resize(4, 4, false);
+        if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
+            rInvertedMatrix.resize(4, 4, false);
         }
 
         /* Compute inverse of the Matrix */
         // First column
-        InvertedMatrix(0, 0) = -(InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1)) + InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) + InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) - InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 3) + InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 3);
-        InvertedMatrix(0, 1) = InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 1) - InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) + InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 3) - InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 3);
-        InvertedMatrix(0, 2) = -(InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 1)) + InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 1) + InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 2) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 2) - InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 3) + InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 3);
-        InvertedMatrix(0, 3) = InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1) - InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2) + InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) + InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3);
+        rInvertedMatrix(0, 0) = -(rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1)) + rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) + rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) - rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 3) + rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(0, 1) = rInputMatrix(0, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) - rInputMatrix(0, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 3) - rInputMatrix(0, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(0, 2) = -(rInputMatrix(0, 3) * rInputMatrix(1, 2) * rInputMatrix(3, 1)) + rInputMatrix(0, 2) * rInputMatrix(1, 3) * rInputMatrix(3, 1) + rInputMatrix(0, 3) * rInputMatrix(1, 1) * rInputMatrix(3, 2) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 2) * rInputMatrix(1, 1) * rInputMatrix(3, 3) + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(0, 3) = rInputMatrix(0, 3) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 2) * rInputMatrix(1, 3) * rInputMatrix(2, 1) - rInputMatrix(0, 3) * rInputMatrix(1, 1) * rInputMatrix(2, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) + rInputMatrix(0, 2) * rInputMatrix(1, 1) * rInputMatrix(2, 3) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3);
 
         // Second column
-        InvertedMatrix(1, 0) = InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 3) - InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 3);
-        InvertedMatrix(1, 1) = -(InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 0)) + InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 3);
-        InvertedMatrix(1, 2) = InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 0) - InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 0) - InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 2) + InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 3) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 3);
-        InvertedMatrix(1, 3) = -(InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0)) + InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0) + InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) - InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3);
+        rInvertedMatrix(1, 0) = rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 3) - rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(1, 1) = -(rInputMatrix(0, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0)) + rInputMatrix(0, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(0, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(0, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(1, 2) = rInputMatrix(0, 3) * rInputMatrix(1, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 2) * rInputMatrix(1, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 3) * rInputMatrix(1, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 2) * rInputMatrix(1, 0) * rInputMatrix(3, 3) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(3, 3);
+        rInvertedMatrix(1, 3) = -(rInputMatrix(0, 3) * rInputMatrix(1, 2) * rInputMatrix(2, 0)) + rInputMatrix(0, 2) * rInputMatrix(1, 3) * rInputMatrix(2, 0) + rInputMatrix(0, 3) * rInputMatrix(1, 0) * rInputMatrix(2, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) - rInputMatrix(0, 2) * rInputMatrix(1, 0) * rInputMatrix(2, 3) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3);
 
         // Third column
-        InvertedMatrix(2, 0) = -(InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3);
-        InvertedMatrix(2, 1) = InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) + InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) - InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 3);
-        InvertedMatrix(2, 2) = -(InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 0)) + InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 0) + InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 1) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 3) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 3);
-        InvertedMatrix(2, 3) = InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) - InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3);
+        rInvertedMatrix(2, 0) = -(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3);
+        rInvertedMatrix(2, 1) = rInputMatrix(0, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) + rInputMatrix(0, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) - rInputMatrix(0, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3);
+        rInvertedMatrix(2, 2) = -(rInputMatrix(0, 3) * rInputMatrix(1, 1) * rInputMatrix(3, 0)) + rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(3, 0) + rInputMatrix(0, 3) * rInputMatrix(1, 0) * rInputMatrix(3, 1) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(3, 3) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(3, 3);
+        rInvertedMatrix(2, 3) = rInputMatrix(0, 3) * rInputMatrix(1, 1) * rInputMatrix(2, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) - rInputMatrix(0, 3) * rInputMatrix(1, 0) * rInputMatrix(2, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3);
 
         // Fourth column
-        InvertedMatrix(3, 0) = InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2);
-        InvertedMatrix(3, 1) = -(InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) + InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 2);
-        InvertedMatrix(3, 2) = InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 0) - InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 1) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 2);
-        InvertedMatrix(3, 3) = -(InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0)) + InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) + InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2);
+        rInvertedMatrix(3, 0) = rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2);
+        rInvertedMatrix(3, 1) = -(rInputMatrix(0, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(0, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) + rInputMatrix(0, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(0, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2);
+        rInvertedMatrix(3, 2) = rInputMatrix(0, 2) * rInputMatrix(1, 1) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 2) * rInputMatrix(1, 0) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(3, 2);
+        rInvertedMatrix(3, 3) = -(rInputMatrix(0, 2) * rInputMatrix(1, 1) * rInputMatrix(2, 0)) + rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) + rInputMatrix(0, 2) * rInputMatrix(1, 0) * rInputMatrix(2, 1) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2);
 
         // Calculation of determinant (of the input matrix)
-        InputMatrixDet = InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0) - InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2) + InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2) + InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2) - InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2) + InputMatrix(0, 3) * (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0) - InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0) - InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1) + InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1) + InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2) - InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) + (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) - InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) - InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) + InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)) * InputMatrix(3, 3) + InputMatrix(0, 2) * (-(InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) + InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0) + InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1) - InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1) - InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3) + InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3));
+        rInputMatrixDet = rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 2) + rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 2) - rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 2) + rInputMatrix(0, 3) * (rInputMatrix(1, 2) * rInputMatrix(2, 1) * rInputMatrix(3, 0) - rInputMatrix(1, 1) * rInputMatrix(2, 2) * rInputMatrix(3, 0) - rInputMatrix(1, 2) * rInputMatrix(2, 0) * rInputMatrix(3, 1) + rInputMatrix(1, 0) * rInputMatrix(2, 2) * rInputMatrix(3, 1) + rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 2) - rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 2)) + (rInputMatrix(0, 1) * rInputMatrix(1, 2) * rInputMatrix(2, 0) - rInputMatrix(0, 0) * rInputMatrix(1, 2) * rInputMatrix(2, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0) * rInputMatrix(2, 2) + rInputMatrix(0, 0) * rInputMatrix(1, 1) * rInputMatrix(2, 2)) * rInputMatrix(3, 3) + rInputMatrix(0, 2) * (-(rInputMatrix(1, 3) * rInputMatrix(2, 1) * rInputMatrix(3, 0)) + rInputMatrix(1, 1) * rInputMatrix(2, 3) * rInputMatrix(3, 0) + rInputMatrix(1, 3) * rInputMatrix(2, 0) * rInputMatrix(3, 1) - rInputMatrix(1, 0) * rInputMatrix(2, 3) * rInputMatrix(3, 1) - rInputMatrix(1, 1) * rInputMatrix(2, 0) * rInputMatrix(3, 3) + rInputMatrix(1, 0) * rInputMatrix(2, 1) * rInputMatrix(3, 3));
 
         // Finalizing the calculation of the inverted matrix
-        InvertedMatrix /= InputMatrixDet;
+        rInvertedMatrix /= rInputMatrixDet;
 
         KRATOS_CATCH("");
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
+     * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-
-    static inline TDataType Det(const MatrixType& A)
+    static inline TDataType Det(const MatrixType& rA)
     {
         TDataType Det;
 
-        if (A.size1() == 2)
-        {
-            Det = Det2(A);
-        }
-        else if (A.size1() == 3)
-        {
-            Det = Det3(A);
-        }
-        else if (A.size1() == 4)
-        {
-            Det = Det4(A);
-        }
-        else
-        {
+        if (rA.size1() == 2) {
+            Det = Det2(rA);
+        } else if (rA.size1() == 3) {
+            Det = Det3(rA);
+        } else if (rA.size1() == 4) {
+            Det = Det4(rA);
+        } else {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(A);
+            Matrix temp(rA);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             Det = lu_factorization.determinant();
 #else
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
-            Matrix Aux(A);
+            Matrix Aux(rA);
             pmatrix pm(Aux.size1());
             bool singular = lu_factorize(Aux,pm);
 
-            if (singular == true)
-            {
+            if (singular) {
                 return 0.0;
             }
 
             Det = 1.0;
 
-            for (unsigned int i = 0; i < Aux.size1();i++)
-            {
-                unsigned int ki = pm[i] == i ? 0 : 1;
+            for (IndexType i = 0; i < Aux.size1();++i) {
+                IndexType ki = pm[i] == i ? 0 : 1;
                 Det *= std::pow(-1.0, ki) * Aux(i,i);
             }
 #endif // ifdef KRATOS_USE_AMATRIX
@@ -681,27 +640,21 @@ public:
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
+     * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-
-    static inline TDataType GeneralizedDet(const MatrixType& A)
+    static inline TDataType GeneralizedDet(const MatrixType& rA)
     {
         TDataType determinant;
 
-        if (A.size1() == A.size2())
-        {
-            determinant = Det(A);
-        }
-        else if (A.size1() < A.size2()) // Right determinant
-        {
-            Matrix AAT = prod( A, trans(A) );
+        if (rA.size1() == rA.size2()) {
+            determinant = Det(rA);
+        } else if (rA.size1() < rA.size2()) { // Right determinant
+            const Matrix AAT = prod( rA, trans(rA) );
             determinant = std::sqrt(Det(AAT));
-        }
-        else // Left determinant
-        {
-            Matrix ATA = prod( trans(A), A );
+        } else { // Left determinant
+            const Matrix ATA = prod( trans(rA), rA );
             determinant = std::sqrt(Det(ATA));
         }
 
@@ -709,159 +662,141 @@ public:
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
+     * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-
-    static inline TDataType Det2(const MatrixType& A)
+    static inline TDataType Det2(const MatrixType& rA)
     {
-        return (A(0,0)*A(1,1)-A(0,1)*A(1,0));
+        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 3*3 (no check performed on matrix size)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 3*3 (no check performed on matrix size)
+     * @param rA Is the input matrix
      * @return The determinant of the 3x3 matrix
      */
-
-    static inline TDataType Det3(const MatrixType& A)
+    static inline TDataType Det3(const MatrixType& rA)
     {
         // Calculating the algebraic complements to the first line
-        const double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
-        const double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
-        const double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
+        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
+        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
+        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
 
-        return A(0,0)*a - A(0,1)*b + A(0,2)*c;
+        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
+     * @param rA Is the input matrix
      * @return The determinant of the 4x4 matrix
      */
-
-    static inline TDataType Det4(const MatrixType& A)
+    static inline TDataType Det4(const MatrixType& rA)
     {
-        const double Det = A(0,1)*A(1,3)*A(2,2)*A(3,0)-A(0,1)*A(1,2)*A(2,3)*A(3,0)-A(0,0)*A(1,3)*A(2,2)*A(3,1)+A(0,0)*A(1,2)*A(2,3)*A(3,1)
-                          -A(0,1)*A(1,3)*A(2,0)*A(3,2)+A(0,0)*A(1,3)*A(2,1)*A(3,2)+A(0,1)*A(1,0)*A(2,3)*A(3,2)-A(0,0)*A(1,1)*A(2,3)*A(3,2)+A(0,3)*(A(1,2)*A(2,1)*A(3,0)-A(1,1)*A(2,2)*A(3,0)-A(1,2)*A(2,0)*A(3,1)+A(1,0)*A(2,2)*A(3,1)+A(1,1)*A(2,0)*A(3,2)
-                          -A(1,0)*A(2,1)*A(3,2))+(A(0,1)*A(1,2)*A(2,0)-A(0,0)*A(1,2)*A(2,1)-A(0,1)*A(1,0)*A(2,2)+A(0,0)*A(1,1)*A(2,2))*A(3,3)+A(0,2)*(-(A(1,3)*A(2,1)*A(3,0))+A(1,1)*A(2,3)*A(3,0)+A(1,3)*A(2,0)*A(3,1)-A(1,0)*A(2,3)*A(3,1)-A(1,1)*A(2,0)*A(3,3)+A(1,0)*A(2,1)*A(3,3));
+        const double Det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
+                          -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
+                          -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
         return Det;
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
+     * @param rA Is the input matrix
      * @return The determinant of the matrix
      */
-
-    static inline TDataType Det(const BoundedMatrix<double,2,2>& A)
+    static inline TDataType Det(const BoundedMatrix<double,2,2>& rA)
     {
-        return (A(0,0)*A(1,1)-A(0,1)*A(1,0));
+        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
 
     /**
-     * Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
-     * @param A Is the input matrix
+     * @brief Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
+     * @param rA Is the input matrix
      * @return The determinant of the matrix
      */
-
-    static inline TDataType Det(const BoundedMatrix<double,3,3>& A)
+    static inline TDataType Det(const BoundedMatrix<double,3,3>& rA)
     {
         // Calculating the algebraic complements to the first line
-        const double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
-        const double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
-        const double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
+        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
+        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
+        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
 
-        return A(0,0)*a - A(0,1)*b + A(0,2)*c;
+        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
     }
 
     /**
-     * Performs the dot product of two vectors of dimension 3
-     * (no check performed on vector sizes)
+     * @brief Performs the dot product of two vectors of dimension 3
+     * @details No check performed on vector sizes
      * @param a First input vector
      * @param b Second input vector
      * @return The resulting norm
      */
-
     static inline TDataType Dot3(
-        Vector& a,
-        Vector& b
+        const Vector& a,
+        const Vector& b
         )
     {
         return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
     }
 
     /**
-     * Performs the dot product of two vectors of arbitrary size
-     * (no check performed on vector sizes)
-     * @param FirstVector First input vector
-     * @param SecondVector Second input vector
+     * @brief Performs the dot product of two vectors of arbitrary size
+     * @details No check performed on vector sizes
+     * @param rFirstVector First input vector
+     * @param rSecondVector Second input vector
      * @return The resulting norm
      */
-
     static inline TDataType Dot(
-        const Vector& FirstVector,
-        const Vector& SecondVector
+        const Vector& rFirstVector,
+        const Vector& rSecondVector
         )
     {
-        Vector::const_iterator i = FirstVector.begin();
-        Vector::const_iterator j = SecondVector.begin();
+        Vector::const_iterator i = rFirstVector.begin();
+        Vector::const_iterator j = rSecondVector.begin();
         TDataType temp = TDataType();
-        while(i != FirstVector.end())
-        {
-            temp += *i++ * *j++;
+        while(i != rFirstVector.end()) {
+            temp += *++i * *++j;
         }
         return temp;
-        //return std::inner_product(FirstVector.begin(), FirstVector.end(), SecondVector.begin(), TDataType());
+        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), TDataType());
     }
 
     /**
-     * Calculates the norm of vector "a" which is assumed to be of size 3
-     * (no check is performed on the vector's size)
+     * @brief Calculates the norm of vector "a" which is assumed to be of size 3
+     * @details No check is performed on the vector's size
      * @param a Input vector
      * @return The resulting norm
      */
-
-    static inline TDataType Norm3(Vector& a)
+    template<class TVectorType>
+    static inline TDataType Norm3(const TVectorType& a)
     {
         TDataType temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
         temp = std::sqrt(temp);
         return temp;
     }
 
-    static inline double Norm3(const array_1d<double, 3>& a)
-    {
-        double temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
-        temp = std::sqrt(temp);
-        return temp;
-    }
-
     /**
-     * Calculates the norm of vector "a"
+     * @brief Calculates the norm of vector "a"
      * @param a Input vector
      * @return The resulting norm
      */
-
     static inline TDataType Norm(const Vector& a)
     {
         Vector::const_iterator i = a.begin();
         TDataType temp = TDataType();
-        while(i != a.end())
-        {
+        while(i != a.end()) {
             temp += (*i) * (*i);
-            i++;
+            ++i;
         }
         return std::sqrt(temp);
     }
 
     /**
-     * Calculates the norm of vector "a" while avoiding underflow and overflow.
+     * @brief Calculates the norm of vector "a" while avoiding underflow and overflow.
      * @param a Input vector
      * @return The resulting norm
      * @see http://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html
      */
-
     static inline TDataType StableNorm(const Vector& a)
     {
         if (a.size() == 0) {
@@ -897,16 +832,15 @@ public:
     }
 
     /**
-     * Performs the vector product of the two input vectors a,b
-     * a,b are assumed to be of size 3 (no check is performed on vector sizes)
+     * @brief Performs the vector product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3 (no check is performed on vector sizes)
      * @param a First input vector
      * @param b Second input vector
      * @return The resulting vector
      */
-
     static inline Vector CrossProduct(
-        Vector& a,
-        Vector& b
+        const Vector& a,
+        const Vector& b
         )
     {
         Vector c(3);
@@ -919,12 +853,7 @@ public:
     }
 
     /**
-     * This auxiliar struct helps to checl if the values have the same adress
-     * If the direction is the same we have aliasing
-     */
-
-    /**
-    * Checks there is aliasing
+    * @brief Checks there is aliasing
     * @param value1 The first value
     * @param value2 The second value
     */
@@ -935,7 +864,7 @@ public:
     }
 
     /**
-    * Checks there is aliasing
+    * @brief Checks there is aliasing
     * @param value1 The first value
     * @param value2 The second value
     */
@@ -946,13 +875,12 @@ public:
     }
 
     /**
-     * Performs the cross product of the two input vectors a,b
-     * a,b are assumed to be of size 3 (check is only performed on vector sizes in debug mode)
+     * @brief Performs the cross product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3 (check is only performed on vector sizes in debug mode)
      * @param a First input vector
      * @param b Second input vector
      * @param c The resulting vector
      */
-
     template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
         if (c.size() != 3) c.resize(3);
@@ -972,13 +900,12 @@ public:
     }
 
     /**
-     * Performs the unitary cross product of the two input vectors a,b
-     * a,b are assumed to be of size 3 (no check is performed on vector sizes)
+     * @brief Performs the unitary cross product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3 (no check is performed on vector sizes)
      * @param a First input vector
      * @param b Second input vector
      * @param c The resulting vector
      */
-
     template< class T1, class T2 , class T3>
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
@@ -1087,31 +1014,30 @@ public:
     }
 
     /**
-     * Computes the angle between two vectors in 3D
-     * @param v1 First input vector
-     * @param v2 Second input vector
+     * @brief Computes the angle between two vectors in 3D
+     * @param rV1 First input vector
+     * @param rV2 Second input vector
      */
-
     template< class T1, class T2>
-    static inline TDataType VectorsAngle(const T1& v1, const T2& v2 ){
-        const T1 aux_1 = v1 * norm_2(v2);
-        const T2 aux_2 = norm_2(v1) * v2;
+    static inline TDataType VectorsAngle(const T1& rV1, const T2& rV2 ){
+        const T1 aux_1 = rV1 * norm_2(rV2);
+        const T2 aux_2 = norm_2(rV1) * rV2;
         const TDataType num = norm_2(aux_1 - aux_2);
         const TDataType denom = norm_2(aux_1 + aux_2);
         return 2.0 * std::atan2( num , denom);
     }
 
     /**
-     * Returns a matrix :
+     * @brief Returns a matrix :
      * A = a.tensorproduct.b
-     * a,b are assumed to be of order 3, no check is performed on the size of the vectors
+     * @details a,b are assumed to be of order 3, no check is performed on the size of the vectors
      * @param a First input vector
      * @param b Second input vector
+     * @return Returns A = a.tensorproduct.b
      */
-
     static inline MatrixType TensorProduct3(
-        Vector& a,
-        Vector& b
+        const Vector& a,
+        const Vector& b
         )
     {
         MatrixType A(3,3);
@@ -1130,59 +1056,50 @@ public:
     }
 
     /**
-     * "InputMatrix" is ADDED to "Destination" matrix starting from
-     * InitialRow and InitialCol of the destination matrix
-     * "Destination" is assumed to be able to contain the "input matrix"
-     * (no check is performed on the bounds)
-     * @param Destination The matric destination
-     * @param InputMatrix The input matrix to be computed
+     * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
+     * @param rDestination The matric destination
+     * @param rInputMatrix The input matrix to be computed
      * @param InitialRow The initial row to compute
      * @param InitialCol The initial column to compute
      */
-
     static inline void  AddMatrix(
-        MatrixType& Destination,
-        MatrixType& InputMatrix,
-        int InitialRow,
-        int InitialCol
+        MatrixType& rDestination,
+        const MatrixType& rInputMatrix,
+        const IndexType InitialRow,
+        const IndexType InitialCol
         )
     {
         KRATOS_TRY
-        for(unsigned int i = 0; i < InputMatrix.size1(); i++)
-        {
-            for(unsigned int j = 0; j < InputMatrix.size2(); j++)
-            {
-                Destination(InitialRow+i, InitialCol+j) += InputMatrix(i,j);
+
+        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
+            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+                rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
         }
         KRATOS_CATCH("")
     }
 
     /**
-     *  "InputMatrix" is SUBTRACTED to "Destination" matrix starting from
-     * InitialRow and InitialCol of the destination matrix
-     * "Destination" is assumed to be able to contain the "input matrix"
-     * (no check is performed on the bounds)
-     * @param Destination The matric destination
-     * @param InputMatrix The input matrix to be computed
+     * @brief "rInputMatrix" is SUBTRACTED to "rDestination" matrix starting from InitialRow and InitialCol of the destination matrix
+     * @details "rDestination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
+     * @param rDestination The matric destination
+     * @param rInputMatrix The input matrix to be computed
      * @param InitialRow The initial row to compute
      * @param InitialCol The initial column to compute
      */
-
     static inline void  SubtractMatrix(
-        MatrixType& Destination,
-        MatrixType& InputMatrix,
-        int InitialRow,
-        int InitialCol
+        MatrixType& rDestination,
+        const MatrixType& rInputMatrix,
+        const IndexType InitialRow,
+        const IndexType InitialCol
         )
     {
         KRATOS_TRY;
 
-        for(unsigned int i = 0; i<InputMatrix.size1(); i++)
-        {
-            for(unsigned int j = 0; j<InputMatrix.size2(); j++)
-            {
-                Destination(InitialRow+i, InitialCol+j) -= InputMatrix(i,j);
+        for(IndexType i = 0; i<rInputMatrix.size1(); ++i) {
+            for(IndexType j = 0; j<rInputMatrix.size2(); ++j) {
+                rDestination(InitialRow+i, InitialCol+j) -= rInputMatrix(i,j);
             }
         }
 
@@ -1190,31 +1107,26 @@ public:
     }
 
     /**
-     * "InputMatrix" is WRITTEN on "Destination" matrix starting from
-     * InitialRow and InitialCol of the destination matrix
-     * "Destination" is assumed to be able to contain the "input matrix"
-     * (no check is performed on the bounds)
-     * ATTENTION: Destination is overwritten!!
-     * @param Destination The matric destination
-     * @param InputMatrix The input matrix to be computed
+     * @brief "rInputMatrix" is WRITTEN on "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
+     * @warning Destination is overwritten!!
+     * @param rDestination The matric destination
+     * @param rrInputMatrix The input matrix to be computed
      * @param InitialRow The initial row to compute
      * @param InitialCol The initial column to compute
      */
-
     static inline void  WriteMatrix(
-        MatrixType& Destination,
-        MatrixType& InputMatrix,
-        int InitialRow,
-        int InitialCol
+        MatrixType& rDestination,
+        const MatrixType& rInputMatrix,
+        const IndexType InitialRow,
+        const IndexType InitialCol
         )
     {
         KRATOS_TRY;
 
-        for(unsigned int i = 0; i < InputMatrix.size1(); i++)
-        {
-            for(unsigned int j = 0; j < InputMatrix.size2(); j++)
-            {
-                Destination(InitialRow+i, InitialCol+j) = InputMatrix(i,j);
+        for(IndexType i = 0; i < rInputMatrix.size1(); ++i) {
+            for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
+                rDestination(InitialRow+i, InitialCol+j) = rInputMatrix(i,j);
             }
         }
 
@@ -1243,7 +1155,7 @@ public:
             rowindex = i * Dimension;
             for (IndexType j = 0; j < size; ++j) {
                 colindex = j * Dimension;
-                for(IndexType ii = 0; ii < Dimension; ii++) {
+                for(IndexType ii = 0; ii < Dimension; ++ii) {
                     rDestination(rowindex+ii, colindex+ii) = rReducedMatrix(i, j);
                 }
             }
@@ -1274,7 +1186,7 @@ public:
             rowindex = i * Dimension;
             for (IndexType j = 0; j < size; ++j) {
                 colindex = j * Dimension;
-                for(IndexType ii = 0; ii < Dimension; ii++) {
+                for(IndexType ii = 0; ii < Dimension; ++ii) {
                     rDestination(rowindex+ii, colindex+ii) += rReducedMatrix(i, j);
                 }
             }
@@ -1284,30 +1196,28 @@ public:
     }
 
     /**
-     * Performs x += coeff*y. no check on bounds is performed
-     * @param x The vector destination
-     * @param y The vector to be added
+     * @brief Performs rX += coeff*rY. no check on bounds is performed
+     * @param rX The vector destination
+     * @param rY The vector to be added
      * @param coeff The proportion to be added
      */
-
     static inline void  VecAdd(
-        Vector& x,
-        TDataType coeff,
-        Vector& y)
+        Vector& rX,
+        const TDataType coeff,
+        Vector& rY
+        )
     {
         KRATOS_TRY
-        unsigned int size=x.size();
+        SizeType size=rX.size();
 
-        for (unsigned int i=0; i<size; i++)
-        {
-            x[i] += coeff * y[i];
+        for (IndexType i=0; i<size; ++i) {
+            rX[i] += coeff * rY[i];
         }
         KRATOS_CATCH("")
     }
 
    /**
-     * Transforms a stess vector into a matrix. Stresses are assumed to be stored
-     * in the following way:
+     * @brief Transforms a stess vector into a matrix. Stresses are assumed to be stored in the following way:
      * \f$ [ s11, s22, s33, s12, s23, s13 ] \f$ for 3D case and
      * \f$ [ s11, s22, s33, s12 ] \f$ for 2D case.
      * \f$ [ s11, s22, s12 ] \f$ for 2D case.
@@ -1411,7 +1321,7 @@ public:
     }
 
     /**
-     * Sign function
+     * @brief Sign function
      * @param ThisDataType The value to extract the sign
      * @return The sign of the value
      */
@@ -1425,13 +1335,11 @@ public:
 
 
     /**
-     * Transforms a strain vector into a matrix. Strains are assumed to be stored
-     * in the following way:
+     * @brief Transforms a strain vector into a matrix. Strains are assumed to be stored in the following way:
      * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
      * \f$ [ e11, e22, e33, 2*e12 ] \f$ for 2D case.
      * \f$ [ e11, e22, 2*e12 ] \f$ for 2D case.
-     * Hence the deviatoric components of the strain vector are divided by 2
-     * while they are stored into the matrix
+     * @details Hence the deviatoric components of the strain vector are divided by 2 while they are stored into the matrix
      * @param rStrainVector the given strain vector
      * @return the corresponding strain tensor in matrix form
      * @tparam TVector The vector type considered
@@ -1496,7 +1404,6 @@ public:
      * @tparam TMatrixType The matrix type considered
      * @tparam TVector The vector returning type
      */
-
     template<class TMatrixType, class TVector = Vector>
     static inline Vector StrainTensorToVector(
         const TMatrixType& rStrainTensor,
@@ -1558,7 +1465,7 @@ public:
     template<class TMatrixType, class TVector = Vector>
     static inline TVector StressTensorToVector(
         const TMatrixType& rStressTensor,
-        unsigned int rSize = 0
+        SizeType rSize = 0
         )
     {
         KRATOS_TRY;
@@ -1611,7 +1518,6 @@ public:
      * @tparam TMatrixType The matrix type considered
      * @tparam TVector The vector returning type
      */
-
     template<class TMatrixType, class TVector = Vector>
     static inline TVector SymmetricTensorToVector(
         const TMatrixType& rTensor,
@@ -1667,7 +1573,6 @@ public:
      * @param Tolerance The largest value considered to be zero
      * @param MaxIterations Maximum number of iterations
      */
-
     template<SizeType TDim>
     static inline bool EigenSystem(
         const BoundedMatrix<TDataType, TDim, TDim>& A,
