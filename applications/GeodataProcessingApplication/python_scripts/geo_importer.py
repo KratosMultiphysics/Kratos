@@ -12,9 +12,9 @@ class GeoImporter( GeoProcessor ):
 
     ### --- function imports the nodes from a *.stl file --- ###
 
-    def stl_import(self, stl_file_name_input):
+    def StlImport(self, stl_file_name_input):
 
-        self._initialize_model_part()
+        self._InitializeModelPart()
 
         with open (stl_file_name_input) as read_file:
 
@@ -24,7 +24,7 @@ class GeoImporter( GeoProcessor ):
             for row in read_file.readlines():
                 row = row.split()
                 
-                if (row[0] == "vertex" and all(self._isfloat(n) for n in row[1:])):
+                if (row[0] == "vertex" and all(self._IsFloat(n) for n in row[1:])):
                     # row[0] = "vertex"; row[1] = x coordinate; row[2] = y coordinate; row[3] = z coordinate
                     X_coord, Y_coord, Z_coord = [float(coord) for coord in row[1:]]
 
@@ -33,7 +33,7 @@ class GeoImporter( GeoProcessor ):
                         
                         node_id += 1
 
-        node_dict = self._delete_node_on_base(node_dict)
+        node_dict = self._DeleteNodeOnBase(node_dict)
 
         for coord, node_id in node_dict.items():
             self.ModelPart.CreateNewNode(node_id, coord[0], coord[1], coord[2])
@@ -43,15 +43,15 @@ class GeoImporter( GeoProcessor ):
 
     ### --- function imports the nodes from a *.xyz file --- ###
 
-    def xyz_import( self, xyz_file_name_input ):
+    def XyzImport( self, xyz_file_name_input ):
 
-        self._initialize_model_part()
+        self._InitializeModelPart()
 
         with open (xyz_file_name_input) as read_file:
             node_id = 1
             for row in read_file.readlines():
                 row = row.split()
-                if ( all( self._isfloat(n) for n in row) ):
+                if ( all( self._IsFloat(n) for n in row) ):
                     # row[0] = x coordinate; row[1] = y coordinate; row[2] = z coordinate
                     X_coord, Y_coord, Z_coord = [float(coord) for coord in row[0:3]]
                     n = self.ModelPart.CreateNewNode(node_id, X_coord, Y_coord, Z_coord)
@@ -64,7 +64,7 @@ class GeoImporter( GeoProcessor ):
 # auxiliary functions
 #########################################################################
 
-    def _isfloat( self, value):
+    def _IsFloat( self, value):
         # detecting if a conversion in float is possible
         try:
             float( value )
@@ -73,7 +73,7 @@ class GeoImporter( GeoProcessor ):
             return False
 
 
-    def _initialize_model_part( self ):
+    def _InitializeModelPart( self ):
         # this function adds all variables that will be needed during the pipeline (please add)
 
         current_model = KratosMultiphysics.Model()
@@ -99,7 +99,7 @@ class GeoImporter( GeoProcessor ):
         self.ModelPart.Conditions.clear()
 
 
-    def _delete_node_on_base(self, node_dict):
+    def _DeleteNodeOnBase(self, node_dict):
         # this function delete all nodes with Z == 0
 
         for coords, _ in list(node_dict.items()):
