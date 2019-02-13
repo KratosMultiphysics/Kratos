@@ -4,6 +4,8 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 have_convection_diffusion = KratosUtilities.IsApplicationAvailable("ConvectionDiffusionApplication")
+if have_convection_diffusion:
+    import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
 @UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")
 class BuoyancyTest(UnitTest.TestCase):
@@ -81,7 +83,6 @@ class BuoyancyTest(UnitTest.TestCase):
         thermal_settings.SetVelocityVariable(VELOCITY)
         thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
         if self.convection_diffusion_solver == 'bfecc':
-            import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
             thermal_settings.SetProjectionVariable(ConvDiff.PROJECTED_SCALAR1)
 
         self.fluid_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
