@@ -344,6 +344,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         mpFiberConstitutiveLaw = pFiberConstitutiveLaw;
     }
 
+    int GetNumberOfSerialComponents()
+    {
+        const int parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+        return this->GetStrainSize() - parallel_components;
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -374,7 +380,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     double mFiberVolumetricParticipation;
     Vector mParallelDirections = ZeroVector(6);
     Vector mPreviousStrainVector = ZeroVector(6);
-    Vector mPreviousSerialStrainMatrix = ZeroVector(6);
+    Vector mPreviousSerialStrainMatrix = ZeroVector(GetNumberOfSerialComponents());
 
     ///@}
     ///@name Private Operators
