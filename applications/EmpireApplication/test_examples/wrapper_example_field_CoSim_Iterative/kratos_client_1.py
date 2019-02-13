@@ -7,6 +7,7 @@ from ctypes import cdll
 import os
 import ctypes as ctp
 import numpy as np
+import sys
 
 def SetNodalValues(counter): # Somehow Modify the Nodal Values
     for node in model_part.Nodes:
