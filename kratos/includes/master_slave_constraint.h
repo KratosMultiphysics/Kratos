@@ -359,9 +359,9 @@ public:
      * @brief This method resets the values of the slave dofs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void ResetSlave(const ProcessInfo& rCurrentProcessInfo)
+    virtual void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "ResetSlave not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+        KRATOS_ERROR << "ResetSlaveDofs not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
 
     /**

@@ -391,7 +391,7 @@ public:
      * @brief This method resets the values of the slave dofs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void ResetSlave(const ProcessInfo& rCurrentProcessInfo) override
+    void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo) override
     {
         for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
             #pragma omp atomic
