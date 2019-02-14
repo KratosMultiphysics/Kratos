@@ -139,11 +139,12 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
     PATTERN "*.git" EXCLUDE
     PATTERN "*.c" EXCLUDE
     PATTERN "*.h" EXCLUDE
     PATTERN "*.cpp" EXCLUDE
     PATTERN "*.hpp" EXCLUDE
-    )
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
