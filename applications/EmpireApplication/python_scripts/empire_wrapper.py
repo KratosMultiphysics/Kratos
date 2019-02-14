@@ -14,12 +14,12 @@ class EmpireWrapper:
     # storage for the instance reference
     __instance = None
 
-    def __init__(self, echo_level=0, call_empire=True):
+    def __init__(self, echo_level=0, dry_run=False):
         """ Create singleton instance """
         # Check whether we already have an instance
         if EmpireWrapper.__instance is None:
             # Create and remember instance
-            EmpireWrapper.__instance = EmpireWrapper.__EmpireWrapper(echo_level, call_empire)
+            EmpireWrapper.__instance = EmpireWrapper.__EmpireWrapper(echo_level, dry_run)
 
     def __getattr__(self, attr):
         """ Delegate access to implementation """
@@ -34,11 +34,11 @@ class EmpireWrapper:
         # Implemented as Singleton, bcs otherwise the EMPIRE library can be imported several times
         ##### Constructor #####
         # -------------------------------------------------------------------------------------------------
-        def __init__(self, echo_level, call_empire):
+        def __init__(self, echo_level, dry_run):
             self.model_parts = {}
             self.echo_level = echo_level
-            self.call_empire = call_empire # only for debugging to set-up cases without having to execute EMPIRE
-            if self.call_empire:
+            self.dry_run = dry_run # only for debugging to set-up cases without having to execute EMPIRE
+            if not self.dry_run:
                 self._load_empire_library()
             else:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped loading empire-library!!')
@@ -51,7 +51,7 @@ class EmpireWrapper:
             info_msg  = 'Attempting to connect with xml-file "'
             info_msg += xml_input_file + '"'
             KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', info_msg)
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_Connect(xml_input_file.encode())
             else:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
@@ -62,7 +62,7 @@ class EmpireWrapper:
         def Disconnect(self):
             ''' Performs disconnection and finalization operations to the Emperor '''
             KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to disconnect')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_Disconnect()
             else:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
@@ -103,13 +103,13 @@ class EmpireWrapper:
 
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to send mesh "' + mesh_name + '"')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_sendMesh("mesh_name.encode()",
                                                        c_numNodes[0], c_numElems[0],
                                                        c_nodeCoors, c_nodeIDs,
                                                        c_numNodesPerElem, c_elemTable)
             if self.echo_level > 0:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully sent mesh')
         # -------------------------------------------------------------------------------------------------
@@ -141,13 +141,13 @@ class EmpireWrapper:
 
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to receive mesh "' + mesh_name + '"')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_recvMesh(mesh_name.encode(),
                                                        c_numNodes, c_numElems,
                                                        c_nodeCoors, c_nodeIDs,
                                                        c_numNodesPerElem, c_elemTable)
             if self.echo_level > 0:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully received mesh')
 
@@ -190,10 +190,10 @@ class EmpireWrapper:
                 info_msg += '" for mesh "' + mesh_name + '"\n                '
                 info_msg += 'With Kratos-Vars: ' + ", ".join([var.Name() for var in kratos_variables])
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', info_msg)
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_sendDataField("data_field_name.encode()", c_size, c_data_field)
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully sent data-field')
         # -------------------------------------------------------------------------------------------------
@@ -229,10 +229,10 @@ class EmpireWrapper:
                 info_msg += '" for mesh "' + mesh_name + '"\n                '
                 info_msg += 'With Kratos-Vars: ' + ", ".join([var.Name() for var in kratos_variables])
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', info_msg)
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_recvDataField(data_field_name.encode(), c_size_data_field, c_data_field)
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully received data-field')
 
@@ -255,11 +255,11 @@ class EmpireWrapper:
 
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to send array "' + array_name + '"')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_sendSignal_double(array_name.encode(), c_size, c_signal)
 
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully sent array')
         # -------------------------------------------------------------------------------------------------
@@ -279,10 +279,10 @@ class EmpireWrapper:
 
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to receive array "' + array_name + '"')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_recvSignal_double(array_name.encode(), array_size, c_signal)
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully received array')
 
@@ -297,10 +297,10 @@ class EmpireWrapper:
 
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to send convergence-signal')
-            if self.call_empire:
+            if not self.dry_run:
                 self.libempire_api.EMPIRE_API_sendConvergenceSignal(signal)
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully sent convergence-signal')
         # -------------------------------------------------------------------------------------------------
@@ -314,12 +314,12 @@ class EmpireWrapper:
 
             if self.echo_level > 1:
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to receive convergence-signal')
-            if self.call_empire:
+            if not self.dry_run:
                 signal = self.libempire_api.EMPIRE_API_recvConvergenceSignal()
             else:
                 signal = 0
             if self.echo_level > 1:
-                if not self.call_empire:
+                if self.dry_run:
                     KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'skipped call to empire!')
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully received convergence-signal')
             return signal
