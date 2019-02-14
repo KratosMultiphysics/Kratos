@@ -138,7 +138,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
     // Get imposed displacement and normal vector
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_DISPLACEMENT);
+    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
 
     // Prepare variables
     GeneralVariables Variables;

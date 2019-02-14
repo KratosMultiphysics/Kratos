@@ -28,13 +28,14 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
-    // Here MPC_DISPLACEMENT is updated in terms of velocity and acceleration is added
-    array_1d<double,3>& MPC_Displacement = this->GetValue(MPC_DISPLACEMENT);
+    // Here MPC_IMPOSED_DISPLACEMENT is updated in terms of velocity and acceleration is added
+    array_1d<double,3>& MPC_Imposed_Displacement = this->GetValue(MPC_IMPOSED_DISPLACEMENT);
     array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
     const array_1d<double,3>& MPC_Acceleration = this->GetValue(MPC_ACCELERATION);
     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    MPC_Displacement += (MPC_Velocity * delta_time) + (0.5 * MPC_Acceleration * delta_time * delta_time);
+    // NOTE: This only consider translational velocity and acceleration: no angular
+    MPC_Imposed_Displacement += (MPC_Velocity * delta_time) + (0.5 * MPC_Acceleration * delta_time * delta_time);
     MPC_Velocity += (MPC_Acceleration * delta_time);
 }
 
@@ -45,14 +46,20 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
 {
     KRATOS_TRY
 
-    // Update the MPC Position
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    array_1d<double,3> & displacement = this->GetValue(MPC_DISPLACEMENT);
-    const array_1d<double,3> & new_xg_c = xg_c + displacement ;
+    array_1d<double,3> & delta_xg_c = this->GetValue(MPC_IMPOSED_DISPLACEMENT);
+
+    // Update the MPC Position
+    const array_1d<double,3> new_xg_c = xg_c + delta_xg_c;
     this->SetValue(MPC_COORD,new_xg_c);
 
-    // Set displacement to zero (NOTE: to use incremental displacement, use MPC_VELOCITY)
-    displacement.clear();
+    // Update total MPC Displacement
+    array_1d<double,3> & MPC_Displacement = this->GetValue(MPC_DISPLACEMENT);
+    MPC_Displacement += delta_xg_c;
+    this->SetValue(MPC_DISPLACEMENT,MPC_Displacement);
+
+    // Reset value of incremental displacement
+    delta_xg_c.clear();
 
     KRATOS_CATCH( "" )
 }
