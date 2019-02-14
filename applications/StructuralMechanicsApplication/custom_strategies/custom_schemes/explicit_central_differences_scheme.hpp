@@ -264,20 +264,20 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         const auto it_elem_begin = rModelPart.ElementsBegin();
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
             auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
+            it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
 
         const auto it_cond_begin = rModelPart.ConditionsBegin();
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
             auto it_elem = it_cond_begin + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
+            it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
 
         KRATOS_CATCH( "" );
@@ -441,7 +441,8 @@ public:
         const SizeType DomainSize = 3
         )
     {
-        const double& nodal_mass = (itCurrentNode)->GetValue(NODAL_MASS);
+        const double nodal_mass = (itCurrentNode)->GetValue(NODAL_MASS);
+        const double nodal_displacement_damping = (itCurrentNode)->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = (itCurrentNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
         array_1d<double, 3>& r_current_velocity = (itCurrentNode)->FastGetSolutionStepValue(VELOCITY);
@@ -452,9 +453,9 @@ public:
 
         // Solution of the explicit equation:
         if (nodal_mass > numerical_limit)
-            r_current_acceleration = r_current_residual / nodal_mass;
+            noalias(r_current_acceleration) = (r_current_residual - nodal_displacement_damping * r_current_velocity) / nodal_mass;
         else
-            r_current_acceleration = ZeroVector(3);
+            noalias(r_current_acceleration) = ZeroVector(3);
 
         bool fix_displacements[3] = {false, false, false};
 
@@ -487,6 +488,7 @@ public:
     {
         ////// ROTATION DEGRESS OF FREEDOM
         const array_1d<double, 3>& nodal_inertia = (itCurrentNode)->GetValue(NODAL_INERTIA);
+        const array_1d<double, 3>& nodal_rotational_damping = (itCurrentNode)->GetValue(NODAL_ROTATIONAL_DAMPING);
         const array_1d<double, 3>& r_current_residual_moment = (itCurrentNode)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
         array_1d<double, 3>& r_current_angular_velocity = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3>& r_current_rotation = (itCurrentNode)->FastGetSolutionStepValue(ROTATION);
@@ -496,7 +498,7 @@ public:
         const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
         for (IndexType kk = initial_k; kk < 3; ++kk) {
             if (nodal_inertia[kk] > numerical_limit)
-                r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
+                r_current_angular_acceleration[kk] = (r_current_residual_moment[kk] - nodal_rotational_damping[kk] * r_current_angular_velocity[kk]) / nodal_inertia[kk];
             else
                 r_current_angular_acceleration[kk] = 0.0;
         }
@@ -548,7 +550,7 @@ public:
             // Current step information "N+1" (before step update).
             auto it_node = (it_begin + i);
 
-            const double& nodal_mass = it_node->GetValue(NODAL_MASS);
+            const double nodal_mass = it_node->GetValue(NODAL_MASS);
             const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
             array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
