@@ -488,7 +488,7 @@ public:
     {
         ////// ROTATION DEGRESS OF FREEDOM
         const array_1d<double, 3>& nodal_inertia = (itCurrentNode)->GetValue(NODAL_INERTIA);
-        const array_1d<double, 3>& nodal_rotational_damping = (itCurrentNode)->GetValue(NODAL_ROTATIONAL_DAMPING);
+        const array_1d<double, 3>& nodal_rotational_damping = (itCurrentNode)->GetValue(NODAL_ROTATION_DAMPING);
         const array_1d<double, 3>& r_current_residual_moment = (itCurrentNode)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
         array_1d<double, 3>& r_current_angular_velocity = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3>& r_current_rotation = (itCurrentNode)->FastGetSolutionStepValue(ROTATION);

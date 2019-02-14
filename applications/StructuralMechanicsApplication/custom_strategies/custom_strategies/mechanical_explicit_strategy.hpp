@@ -238,7 +238,7 @@ public:
             if (has_dof_for_rot_z) {
                 const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
-                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATIONAL_DAMPING, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
 
                 #pragma omp parallel for firstprivate(dummy_vector)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
@@ -298,7 +298,7 @@ public:
             if (has_dof_for_rot_z) {
                 const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
-                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATIONAL_DAMPING, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
 
                 #pragma omp parallel for firstprivate(dummy_vector)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
