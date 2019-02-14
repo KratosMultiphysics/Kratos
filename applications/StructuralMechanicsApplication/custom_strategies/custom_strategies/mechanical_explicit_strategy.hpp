@@ -68,6 +68,10 @@ public:
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
+    // Dense system definition
+    typedef typename TDenseSpace::MatrixType DenseMatrixType;
+    typedef typename TDenseSpace::VectorType DenseVectorType;
+
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
@@ -76,7 +80,7 @@ public:
     ///@{
 
     /**
-     * Default constructor
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param CalculateReactions The flag for the reaction calculation
@@ -89,15 +93,12 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag) {
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+          mpScheme(pScheme),
+          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+          mCalculateReactionsFlag(CalculateReactions)
+    {
         KRATOS_TRY
-
-        // Set flags to default values
-        this->mCalculateReactionsFlag = CalculateReactions;
-        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        // Saving the scheme
-        this->mpScheme = pScheme;
 
         // Set EchoLevel to the default value (only time is displayed)
         BaseType::SetEchoLevel(1);
@@ -220,9 +221,10 @@ public:
             // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
             if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
 
-            // Set Nodal Mass to zero
+            // Set Nodal Mass and Damping to zero
             NodesArrayType& r_nodes = r_model_part.Nodes();
             VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+            VariableUtils().SetNonHistoricalVariable(NODAL_DISPLACEMENT_DAMPING, 0.0, r_nodes);
 
             // Iterate over the elements
             ElementsArrayType& r_elements = r_model_part.Elements();
@@ -235,6 +237,7 @@ public:
             if (has_dof_for_rot_z) {
                 const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATIONAL_DAMPING, zero_array, r_nodes);
 
                 #pragma omp parallel for firstprivate(dummy_vector)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
@@ -275,18 +278,27 @@ public:
         TSystemVectorType rDx = TSystemVectorType();
         TSystemVectorType rb = TSystemVectorType();
 
-        // initial operations ... things that are constant over the Solution Step
+        // Initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, rDx, rb);
 
-        if (BaseType::mRebuildLevel > 0) {
+        if (BaseType::mRebuildLevel > 0) { // TODO: Right now is computed in the Initialize() because is always zero, the option to set the RebuildLevel should be added in the constructor or in some place
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             ElementsArrayType& r_elements = r_model_part.Elements();
             const auto it_elem_begin = r_elements.begin();
+
+            // Set Nodal Mass and Damping to zero
+            NodesArrayType& r_nodes = r_model_part.Nodes();
+            VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+            VariableUtils().SetNonHistoricalVariable(NODAL_DISPLACEMENT_DAMPING, 0.0, r_nodes);
 
             Vector dummy_vector;
             // If we consider the rotation DoF
             const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
             if (has_dof_for_rot_z) {
+                const array_1d<double, 3> zero_array = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATIONAL_DAMPING, zero_array, r_nodes);
+
                 #pragma omp parallel for firstprivate(dummy_vector)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
@@ -295,7 +307,7 @@ public:
                     auto it_elem = it_elem_begin + i;
                     it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
                 }
-            } else { // Only NODAL_MASS is needed
+            } else { // Only NODAL_MASS and NODAL_DISPLACEMENT_DAMPING are needed
                 #pragma omp parallel for firstprivate(dummy_vector)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
@@ -351,16 +363,29 @@ public:
     {
         typename TSchemeType::Pointer pScheme = GetScheme();
         ModelPart& r_model_part = BaseType::GetModelPart();
+
+        // Some dummy sets and matrices
         DofsArrayType dof_set_dummy;
         TSystemMatrixType rA = TSystemMatrixType();
         TSystemVectorType rDx = TSystemVectorType();
         TSystemVectorType rb = TSystemVectorType();
 
+        // Initialize the non linear iteration
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
+        // Compute residual forces on the model part
         this->CalculateAndAddRHS(pScheme, r_model_part);
 
-        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb); // Explicitly integrates the equation of motion.
+        // Explicitly integrates the equation of motion.
+        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb);
+
+        // Finalize the non linear iteration
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+
+        // We compute the MPC contributions
+        if(r_model_part.MasterSlaveConstraints().size() > 0) {
+            ComputeExplicitConstraintConstribution(pScheme, r_model_part);
+        }
 
         // Calculate reactions if required
         if (mCalculateReactionsFlag) {
@@ -461,6 +486,103 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the explicit contribution of the constraints
+     * @param pScheme The pointer to the integration scheme used
+     * @param rModelPart The model part which defines the problem
+     */
+    void ComputeExplicitConstraintConstribution(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Contributions to the system
+        DenseMatrixType transformation_matrix = DenseMatrixType(0, 0);
+        DenseVectorType constant_vector = DenseVectorType(0);
+
+        // Vector of dofs values
+        Vector slave_dofs_values, master_dofs_values;
+
+        // Vector containing the localization in the system of the different terms
+        typename MasterSlaveConstraint::DofPointerVectorType slave_equation_dofs, master_equation_dofs;
+
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+        // Setting to zero the slave dofs
+        #pragma omp parallel firstprivate(slave_equation_dofs)
+        {
+            #pragma omp for schedule(guided, 512)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    slave_equation_dofs = it_const->GetSlaveDofsVector();
+
+                    for (IndexType i = 0; i < slave_equation_dofs.size(); ++i) {
+                        #pragma omp critical
+                        slave_equation_dofs[i]->GetSolutionStepValue() = 0.0;
+                    }
+                }
+            }
+        }
+
+        // Adding MPC contribution
+        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_dofs, master_equation_dofs)
+        {
+            #pragma omp for schedule(guided, 512)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                    slave_equation_dofs = it_const->GetSlaveDofsVector();
+                    master_equation_dofs = it_const->GetMasterDofsVector();
+
+                    // Resizing if needed
+                    if (slave_dofs_values.size() != slave_equation_dofs.size())
+                        slave_dofs_values.resize(slave_equation_dofs.size());
+
+                    if (master_dofs_values.size() != master_equation_dofs.size())
+                        master_dofs_values.resize(master_equation_dofs.size());
+
+                    for (IndexType i = 0; i < master_equation_dofs.size(); ++i) {
+                        master_dofs_values[i] = master_equation_dofs[i]->GetSolutionStepValue();
+                    }
+
+                    noalias(slave_dofs_values) = prod(transformation_matrix, master_dofs_values) + constant_vector;
+
+                    for (IndexType i = 0; i < slave_equation_dofs.size(); ++i) {
+                        #pragma omp atomic
+                        slave_equation_dofs[i]->GetSolutionStepValue() += slave_dofs_values[i];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This method computes the reactions of the problem
+     * @param pScheme The pointer to the integration scheme used
+     * @param rModelPart The model part which defines the problem
+     * @param rA The LHS of the system (empty)
+     * @param rDx The solution of the system (empty)
+     * @param rb The RHS of the system (empty)
+     */
     void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -542,6 +664,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * @brief The pointer to the integration scheme
+     */
     typename TSchemeType::Pointer mpScheme;
 
     /**
@@ -551,7 +676,7 @@ protected:
         - false => form just one (more efficient)
         Default = false
     */
-    bool mReformDofSetAtEachStep;
+    bool mReformDofSetAtEachStep = false;
 
     /**
      * @brief Flag telling if it is needed or not to compute the reactions
