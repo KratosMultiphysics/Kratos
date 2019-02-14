@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -41,7 +42,7 @@ namespace Kratos
 ///@{
 /**
  * @namespace ConstraintUtilities
- * @ingroup StructuralMechanicsApplication
+ * @ingroup KratosCore
  * @brief This namespace includes several utilities necessaries for the computation of the MPC
  * @author Vicente Mataix Ferrandiz
  */

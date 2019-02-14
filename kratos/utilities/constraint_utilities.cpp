@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -14,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/constraint_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -26,6 +27,9 @@ void ResetSlaveDofs(ModelPart& rModelPart)
 
     // The number of constraints
     const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+    // The current process info
+    const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     // Setting to zero the slave dofs
     #pragma omp parallel
@@ -41,12 +45,7 @@ void ResetSlaveDofs(ModelPart& rModelPart)
                 constraint_is_active = it_const->Is(ACTIVE);
 
             if (constraint_is_active) {
-                const typename MasterSlaveConstraint::DofPointerVectorType& r_slave_equation_dofs = it_const->GetSlaveDofsVector();
-
-                for (std::size_t i = 0; i < r_slave_equation_dofs.size(); ++i) {
-                    #pragma omp atomic
-                    r_slave_equation_dofs[i]->GetSolutionStepValue() *= 0.0;
-                }
+                it_const->ResetSlave(r_current_process_info);
             }
         }
     }
