@@ -15,7 +15,7 @@ from simulation_definition import SimulationScenario
 from auxiliary_classes_utilities import StatisticalVariable
 
 # Import refinement library
-import adaptive_refinement_utilities as refinement
+import adaptive_refinement_utilities as hessian_metric_refinement
 
 # Import random variable generator
 import generator_utilities as generator
@@ -151,7 +151,7 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
         del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
         '''refine the model Kratos object'''
         refined_model,refined_project_parameters = \
-            refinement.compute_refinement_hessian_metric(current_model,current_project_parameters,mesh_sizes[current_level],mesh_sizes[current_level-1],current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,mesh_sizes[current_level],mesh_sizes[current_level-1],current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
         '''initialize the model Kratos object'''
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
         simulation.Initialize()
