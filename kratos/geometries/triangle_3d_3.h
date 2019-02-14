@@ -53,17 +53,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A three node 3D triangle geometry with linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      v                                                              
- *      ^                                                               
- *      |                                                              
- *      2                                   
- *      |`\                   
- *      |  `\                   
- *      |    `\                 
- *      |      `\                
- *      |        `\                 
- *      0----------1 --> u  
+ * The node ordering corresponds with:
+ *      v
+ *      ^
+ *      |
+ *      2
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -903,8 +903,17 @@ public:
         CoordinatesArrayType point_projected = rPoint;
         const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
         const double distance = inner_prod(vector_points, normal);
-        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane, projecting
-            noalias(point_projected) = rPoint - normal * distance;
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-4 * Length()) {
+                rResult(0) = 100.0; // Very very far
+                rResult(1) = 100.0;
+
+                return rResult;
+            } else { // Not in the plane, but allowing certain distance, projecting
+                noalias(point_projected) = rPoint - normal * distance;
+            }
         }
 
         // Computation of the rotation matrix
