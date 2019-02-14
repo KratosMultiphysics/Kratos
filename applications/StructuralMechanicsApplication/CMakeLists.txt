@@ -82,6 +82,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.cpp
 
   ## ELEMENTS
   #Adding truss element
