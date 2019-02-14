@@ -159,11 +159,11 @@ private:
     std::vector<std::vector<Variable<array_1d<double,3>>>> mNodalSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
-    
+
     // map that stores sensitivity matrices for each element in the previous step
     std::map<int, Matrix> mSensitivityMatrixI;
+    std::map<int, Matrix> mSensitivityMatrixElement;
 
-    int mSolutionStep = 1;
     ///@}
     ///@name Private Operators
     ///@{

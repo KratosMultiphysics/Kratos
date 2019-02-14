@@ -105,6 +105,9 @@ namespace Kratos
     }
 
     // \frac{1}{2} (f_{ext}_i - f_{ext}_i-1) + frac{1}{2} (u^T_i - u^T_i-1) \cdot ( \frac{\partial f_{ext}_i}{\partial u} + frac{\partial f_{ext}_i-1}{\partial u})
+    // TODO Mahmoud: The derivative for shape sensitivity different from element properties sensitivities,
+    // equation for element sensitivities is: \frac{1}{2} (f_{ext}_i - f_{ext}_i-1)
+    // TODO Mahmoud: function calculate gradient should have information about response variable as in CalculatePartialSensitivity()
     void AdjointNonlinearStrainEnergyResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
                                     const Matrix& rResidualGradient,
                                     Vector& rResponseGradient,
@@ -266,8 +269,6 @@ namespace Kratos
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
 
-
-
         KRATOS_CATCH("");
     }
 
@@ -284,9 +285,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR_IF( rVariable != SHAPE )
-            << "Calculation of nonlinear strain energy sensitivity is available only for shape variables!" << std::endl;
-
+    if(rVariable == SHAPE)
+    {
         // TODO Mahmoud: This copy assignment is expensive
         ProcessInfo process_info = rProcessInfo;
 
@@ -365,6 +365,7 @@ namespace Kratos
 
         // passing the value of the partial derivative matrix to a member variable
         mExternalForceDesignVariableDerivative = partial_derivative_matrix;
+    }
 
         KRATOS_CATCH("");
     }

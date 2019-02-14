@@ -70,6 +70,7 @@ namespace Kratos
             SizeType mat_size = number_of_nodes * dimension;
 
             mSensitivityMatrixI[elem_i.Id()] = ZeroMatrix(mat_size,mat_size);
+            mSensitivityMatrixElement[elem_i.Id()] = ZeroMatrix(1,mat_size);
         }
 
         KRATOS_CATCH("");
@@ -279,7 +280,10 @@ namespace Kratos
 
             if (mBuildMode == "static-non-linear-strain-energy")
             {
-                if(mSolutionStep == 1)
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) -
+                                                prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
+
+                if(r_process_info(STEP) == 1)
                 {
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
                 }
@@ -289,7 +293,6 @@ namespace Kratos
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) -
                                                            load_factor_ratio*prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
                 }
-                mSolutionStep++;
             }
             else
             {
@@ -416,7 +419,23 @@ namespace Kratos
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
+        std::vector<Vector> adjoint_vector_0(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
+        double load_factor_ratio;
+
+        // For follower load the ratio is only a double and same for all conditions
+        // This appraoch is a inexpensive approach to calculate the correction term
+        if (mBuildMode == "static-non-linear-strain-energy")
+        {
+            auto condition_pointer = mrModelPart.Conditions().begin();
+            auto cond = *condition_pointer;
+            Matrix residual_gradient;
+            Vector scaling_factor_vector;
+            Vector adjoint_values;
+            mrResponseFunction.CalculateFirstDerivativesGradient(cond, residual_gradient,
+                                                                scaling_factor_vector, r_process_info);
+            load_factor_ratio = scaling_factor_vector[0];
+        }
 
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfElements()); ++i)
@@ -451,9 +470,24 @@ namespace Kratos
 
                 // Get the adjoint displacement field
                 it->GetValuesVector(adjoint_vector[k]);
-
+            if (mBuildMode == "static-non-linear-strain-energy")
+            {
+                it->GetValuesVector(adjoint_vector_0[k], 1);
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
-                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) ;
+                if(r_process_info(STEP) == 1 )
+                {
+                    noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+                }
+                else
+                {
+                    noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] , adjoint_vector[k]) -
+                            load_factor_ratio*prod(mSensitivityMatrixElement[it->Id()], adjoint_vector_0[k]);
+                }
+            }
+            else
+            {
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] , adjoint_vector[k]);
+            }
             }
 
             if(response_gradient[k].size() > 0)
@@ -470,6 +504,8 @@ namespace Kratos
                 this->AssembleElementSensitivityContribution(
                             rOutputVariable, sensitivity_vector[k], *it);
             }
+
+            mSensitivityMatrixElement[it->Id()] = sensitivity_matrix[k];
         }
 
         mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);

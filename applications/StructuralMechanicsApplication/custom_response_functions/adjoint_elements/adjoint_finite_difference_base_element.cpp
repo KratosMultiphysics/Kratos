@@ -283,7 +283,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
     KRATOS_TRY;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    // There is a bug here, the value actually step_size*10
+    //const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetValue(PERTURBATION_SIZE);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
@@ -302,7 +304,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     // TODO Mahmoud: The perturbation value in GetPerturbationSize() with displacement
     // should fix GetPerturbationSize()function
-    const double delta = this->GetValue(PERTURBATION_SIZE); 
+    const double delta = this->GetValue(PERTURBATION_SIZE);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     if( rDesignVariable == SHAPE )
