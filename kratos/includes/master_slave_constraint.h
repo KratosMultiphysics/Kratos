@@ -356,7 +356,16 @@ public:
     }
 
     /**
-     * @brief This methgod directly applies the master/slave relationship
+     * @brief This method resets the values of the slave dofs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void ResetSlave(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "ResetSlave not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method directly applies the master/slave relationship
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void Apply(const ProcessInfo& rCurrentProcessInfo)

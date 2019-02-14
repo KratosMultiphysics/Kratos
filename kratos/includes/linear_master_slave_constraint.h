@@ -388,24 +388,39 @@ public:
     }
 
     /**
-     * @brief This methgod directly applies the master/slave relationship
+     * @brief This method resets the values of the slave dofs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void ResetSlave(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+            #pragma omp atomic
+            mMasterDofsVector[i]->GetSolutionStepValue() *= 0.0;
+        }
+    }
+
+    /**
+     * @brief This method directly applies the master/slave relationship
      * @param rCurrentProcessInfo the current process info instance
      */
     void Apply(const ProcessInfo& rCurrentProcessInfo) override
     {
-        // Creating the vectors
-        Vector slave_dofs_values(mSlaveDofsVector.size());
+        // Saving the master dofs values
         Vector master_dofs_values(mMasterDofsVector.size());
 
         for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
             master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
         }
 
-        noalias(slave_dofs_values) = prod(mRelationMatrix, master_dofs_values) + mConstantVector;
+        // Apply the constraint to the slave dofs
+        for (IndexType i = 0; i < mRelationMatrix.size1(); ++i) {
+            double aux = mConstantVector[i];
+            for(IndexType j = 0; j < mRelationMatrix.size2(); ++j) {
+                aux += mRelationMatrix(i,j) * master_dofs_values[j];
+            }
 
-        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
             #pragma omp atomic
-            mSlaveDofsVector[i]->GetSolutionStepValue() += slave_dofs_values[i];
+            mSlaveDofsVector[i]->GetSolutionStepValue() += aux;
         }
     }
 
