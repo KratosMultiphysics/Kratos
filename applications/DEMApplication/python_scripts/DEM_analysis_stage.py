@@ -114,6 +114,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.solver = self._GetSolver()
         self.SetDt()
         self.SetFinalTime()
+        self.AddVariables()
         super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
@@ -297,7 +298,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.time = 0.0
         self.time_old_print = 0.0
 
-        self.AddVariables()
+        # self.AddVariables()
 
         self.ReadModelParts()
 
@@ -680,5 +681,8 @@ class DEMAnalysisStage(AnalysisStage):
         return self.solver
 
 if __name__ == "__main__":
-    model = Model()
-    Solution(model).Run()
+    with open("ProjectParametersDEM.json",'r') as parameter_file:
+        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    model = KratosMultiphysics.Model()
+    DEMAnalysisStage(model, project_parameters).Run()
