@@ -168,6 +168,7 @@ from structural_mechanics_test_factory import TensileTestStructuralTest as TTens
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
+from structural_mechanics_test_factory import RigidSphereFailingExplicit as TRigidSphereFailingExplicit
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -347,6 +348,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
+    nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
 
     if has_external_solvers_application:
         import KratosMultiphysics.ExternalSolversApplication
