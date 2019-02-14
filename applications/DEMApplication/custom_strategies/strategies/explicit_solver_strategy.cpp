@@ -137,6 +137,10 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         SendProcessInfoToClustersModelPart();
 
+        if (r_model_part.GetCommunicator().MyPID() == 0) {
+            KRATOS_INFO("DEM") << "------------------DISCONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
+        }
+
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         DisplayThreadInfo();
 
@@ -162,7 +166,6 @@ namespace Kratos {
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
         InitializeSolutionStep();
-
         ApplyInitialConditions();
 
         // Search Neighbours and related operations
@@ -235,10 +238,12 @@ namespace Kratos {
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
-            auto neighbour_walls = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-            if (neighbour_walls.size()) {
-                if( neighbour_walls[0]->Is(DEMFlags::STICKY) ) {
-                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls[0]);
+            auto neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
+            for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
+                if( neighbour_walls_vector[j]->Is(DEMFlags::STICKY) ) {
+                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
+                    mListOfSphericParticles[i]->Set(DEMFlags::STICKY, true);
+                    break;
                 }
             }
         }
@@ -901,7 +906,7 @@ namespace Kratos {
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
-        DenseVector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
         unsigned int index;
 
@@ -1394,13 +1399,12 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            DenseVector<int> mTempNeighboursIds;
-            std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
-            std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
+            DenseVector<int> temp_neighbours_ids;
+            std::vector<array_1d<double, 3> > temp_neighbour_elastic_contact_forces;
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces);
+                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
 
@@ -1527,7 +1531,7 @@ namespace Kratos {
         KRATOS_TRY
         //CONTACT MODEL PART
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        DenseVector<unsigned int> contact_element_partition;
+        std::vector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for
@@ -1547,7 +1551,7 @@ namespace Kratos {
     //     ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
     //     ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
 
-    //     DenseVector<unsigned int> contact_element_partition;
+    //     std::vector<unsigned int> contact_element_partition;
 
     //     OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
     //     #pragma omp parallel for
@@ -1566,7 +1570,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        DenseVector<unsigned int> contact_element_partition;
+        std::vector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
@@ -1784,7 +1788,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        DenseVector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), element_partition);
 
