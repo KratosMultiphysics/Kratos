@@ -388,6 +388,28 @@ public:
     }
 
     /**
+     * @brief This methgod directly applies the master/slave relationship
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Apply(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Creating the vectors
+        Vector slave_dofs_values(mSlaveDofsVector.size());
+        Vector master_dofs_values(mMasterDofsVector.size());
+
+        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+            master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
+        }
+
+        noalias(slave_dofs_values) = prod(mRelationMatrix, master_dofs_values) + mConstantVector;
+
+        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
+            #pragma omp atomic
+            mSlaveDofsVector[i]->GetSolutionStepValue() += slave_dofs_values[i];
+        }
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
