@@ -251,7 +251,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
             
             // Split the triangle
             PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
@@ -269,8 +269,8 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes);
 
             // Split the quadrilateral
             PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
@@ -288,7 +288,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
 
             // Split the tetrahedra
             PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
@@ -306,10 +306,10 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
             for (auto face : geom.Faces())
-                middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInFace(FaceType{face}, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInBody(BodyType{geom}, step_divisions_level, rTagNodes);
 
             // Split the hexahedra
             PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
@@ -345,7 +345,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
         if (geom.GetGeometryType() == GeometryData::Kratos_Line2D2)
         {
-            NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level, rTagNodes);
+            NodeType::Pointer middle_node = GetNodeInEdge(EdgeType{geom}, step_divisions_level, rTagNodes);
 
             // Create the sub conditions
             PointerVector<NodeType> sub_condition_nodes(2);
@@ -362,7 +362,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3);
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
 
             PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -378,8 +378,8 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(5);
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes);
 
             PointerVector<NodeType> sub_condition_nodes(4);    // a quadrilateral is defined by 4 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub quadrilaterals

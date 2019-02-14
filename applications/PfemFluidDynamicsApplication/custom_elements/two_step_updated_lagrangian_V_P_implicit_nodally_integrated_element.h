@@ -45,7 +45,7 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
-  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
 
   ///@}
   ///@name  Enum's

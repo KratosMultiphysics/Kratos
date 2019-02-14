@@ -32,11 +32,13 @@ class DEMAnalysisStage(AnalysisStage):
         return "ProjectParametersDEM.json"
 
     def GetInputParameters(self):
+        self.KRATOSprint('Warning: Calls to this method (GetInputParameters) will become deprecated in the near future.')
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
     def LoadParametersFile(self):
+        self.KRATOSprint('Warning: Calls to this method (LoadParametersFile) will become deprecated in the near future.')
         self.DEM_parameters = self.GetInputParameters()
         self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
@@ -62,11 +64,17 @@ class DEMAnalysisStage(AnalysisStage):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self, model, parameters):
+    def __init__(self, model, DEM_parameters):
         self.model = model
         self.main_path = self.GetMainPath()
         self.mdpas_folder_path = self.main_path
-        self.LoadParametersFile()
+
+        self.DEM_parameters = DEM_parameters    # TODO, can be improved
+        self.project_parameters = DEM_parameters
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
+
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
@@ -541,6 +549,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
         self.CleanUpOperations()
+
+    def __SafeDeleteModelParts(self):
+        self.model.DeleteModelPart(self.cluster_model_part.Name)
+        self.model.DeleteModelPart(self.rigid_face_model_part.Name)
+        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.mapping_model_part.Name)
+        self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def CleanUpOperations(self):
 

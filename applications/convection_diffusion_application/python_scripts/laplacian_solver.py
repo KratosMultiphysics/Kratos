@@ -51,7 +51,7 @@ def CreateSolver(model_part, config):
     solver = LaplacianSolver(model_part, config.domain_size)
 
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

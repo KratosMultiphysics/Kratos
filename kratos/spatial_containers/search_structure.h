@@ -60,7 +60,7 @@ public:
         for(std::size_t i = 0; i < TDimension; i++)
             data[i] = T(0);
     }
-    Tvector( T const& value )
+    explicit Tvector( T const& value )
     {
         for(std::size_t i = 0; i < TDimension; i++)
             data[i] = value;

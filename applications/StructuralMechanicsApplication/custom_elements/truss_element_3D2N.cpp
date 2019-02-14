@@ -876,7 +876,7 @@ void TrussElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessIn
 
 BoundedVector<double,TrussElement3D2N::msLocalSize>
   TrussElement3D2N::GetConstitutiveLawTrialResponse(
-   ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
+   const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());

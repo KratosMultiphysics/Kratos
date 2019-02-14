@@ -59,10 +59,13 @@ namespace Kratos
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef std::vector<Node<3>::Pointer >                       PointPointerVector;
 
-    typedef std::vector<Node<3>*>             NodePointerVectorType;
-    typedef std::vector<Element*>          ElementPointerVectorType;
-    typedef std::vector<Condition*>      ConditionPointerVectorType;
+    typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
+    typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
+    typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
 
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 
     /**
      * Flags related to the meshing parameters
@@ -438,7 +441,7 @@ namespace Kratos
 
 
     void FillVectorData( VariablesList& rVariablesList,
-			 Node<3>::Pointer pnode );
+			 Node<3>& rNode );
 
 
     void Interpolate( Geometry<Node<3> >& geom,

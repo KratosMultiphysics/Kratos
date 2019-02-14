@@ -1,11 +1,7 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.MeshMovingApplication as MeshMovingApplication
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
@@ -32,9 +28,6 @@ class FSIAnalysis(AnalysisStage):
         # If this is an MPI run, load the distributed memory modules
         if (self.parallel_type == "MPI"):
             from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication
-            import KratosMultiphysics.TrilinosApplication
-            import KratosMultiphysics.MappingApplication #TODO: Import always once we use the serial version of the mapper
             self.is_printing_rank = (mpi.rank == 0)
         else:
             self.is_printing_rank = True
@@ -147,7 +140,7 @@ class FSIAnalysis(AnalysisStage):
             structure_restart_utility.SaveRestart()
 
     def _CreateSolver(self):
-        import python_solvers_wrapper_fsi
+        from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
         return python_solvers_wrapper_fsi.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -163,7 +156,7 @@ class FSIAnalysis(AnalysisStage):
 
     def _GetOrderOfOutputProcessesInitialization(self):
         return ["gid_output"]
-        
+
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
         has_restart = self.project_parameters.Has("restart_settings")

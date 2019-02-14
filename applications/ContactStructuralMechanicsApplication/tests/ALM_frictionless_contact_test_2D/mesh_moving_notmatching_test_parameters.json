@@ -35,7 +35,7 @@
         "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","CUSTOM","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1"],
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         }
     },
     "processes" : {

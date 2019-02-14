@@ -59,9 +59,10 @@ class BoundaryNormalsCalculationUtilities
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   typedef ModelPart::MeshType                               MeshType;
 
-  typedef std::vector<Node<3>*>             NodePointerVectorType;
-  typedef std::vector<Element*>          ElementPointerVectorType;
-  typedef std::vector<Condition*>      ConditionPointerVectorType;
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -94,36 +95,36 @@ class BoundaryNormalsCalculationUtilities
       this->ResetBodyNormals(rModelPart); //clear boundary normals
 
       //FLUID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(FLUID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //standard assignation // fails in sharp edges angle<90
-          AddNormalsToNodes(*i_mp);
+          AddNormalsToNodes(i_mp);
         }
       }
       //SOLID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(SOLID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //standard assignation // fails in sharp edges angle<90
-          AddNormalsToNodes(*i_mp);
+          AddNormalsToNodes(i_mp);
         }
       }
       //RIGID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(RIGID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(RIGID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //standard assignation // fails in sharp edges angle<90
-          AddNormalsToNodes(*i_mp);
+          AddNormalsToNodes(i_mp);
         }
       }
     }
@@ -156,36 +157,36 @@ class BoundaryNormalsCalculationUtilities
       this->ResetBodyNormals(rModelPart); //clear boundary normals
 
       //FLUID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(FLUID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //assignation for solid boundaries : Unity Normals on nodes and Shrink_Factor on nodes
-          AddWeightedNormalsToNodes(*i_mp);
+          AddWeightedNormalsToNodes(i_mp);
         }
       }
       //SOLID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(SOLID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //assignation for solid boundaries : Unity Normals on nodes and Shrink_Factor on nodes
-          AddWeightedNormalsToNodes(*i_mp);
+          AddWeightedNormalsToNodes(i_mp);
         }
       }
       //RIGID Domains
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      for(auto& i_mp : rModelPart.SubModelParts())
       {
-        if( i_mp->Is(RIGID) && i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
+        if( i_mp.Is(RIGID) && i_mp.IsNot(ACTIVE) && i_mp.IsNot(BOUNDARY) && i_mp.IsNot(CONTACT) ){
 
-          CalculateBoundaryNormals(*i_mp);
+          CalculateBoundaryNormals(i_mp);
 
           //assignation for solid boundaries : Unity Normals on nodes and Shrink_Factor on nodes
-          AddWeightedNormalsToNodes(*i_mp);
+          AddWeightedNormalsToNodes(i_mp);
         }
       }
     }
@@ -271,9 +272,7 @@ protected:
       if(mEchoLevel > 0)
         std::cout<<"   ["<<rModelPart.Name()<<"] (BC)"<<std::endl;
 
-      ConditionsContainerType& rConditions = rModelPart.Conditions();
-
-      this->CalculateBoundaryNormals(rConditions);
+      this->CalculateBoundaryNormals(rModelPart.Conditions());
 
     }
     else if( rModelPart.NumberOfElements() ){
@@ -306,35 +305,35 @@ protected:
 
   //this function adds the Contribution of one of the geometries
   //to the corresponding nodes
-  static void CalculateUnitNormal2D(ConditionsContainerType::iterator it, array_1d<double,3>& An)
+  static void CalculateUnitNormal2D(Condition& rCondition, array_1d<double,3>& An)
   {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    Geometry<Node<3> >& rGeometry = rCondition.GetGeometry();
 
     //Attention: normal criterion changed for line conditions (vs line elements)
-    An[0] =    pGeometry[1].Y()-pGeometry[0].Y();
-    An[1] =  -(pGeometry[1].X()-pGeometry[0].X());
+    An[0] =    rGeometry[1].Y()-rGeometry[0].Y();
+    An[1] =  -(rGeometry[1].X()-rGeometry[0].X());
     An[2] =    0.00;
 
-    array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+    array_1d<double,3>& normal = rCondition.GetValue(NORMAL);
     noalias(normal) = An/norm_2(An);
   }
 
-  static void CalculateUnitNormal3D(ConditionsContainerType::iterator it, array_1d<double,3>& An,
+  static void CalculateUnitNormal3D(Condition& rCondition, array_1d<double,3>& An,
                                      array_1d<double,3>& v1,array_1d<double,3>& v2 )
   {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    Geometry<Node<3> >& rGeometry = rCondition.GetGeometry();
 
-    v1[0] = pGeometry[1].X() - pGeometry[0].X();
-    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+    v1[0] = rGeometry[1].X() - rGeometry[0].X();
+    v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+    v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
 
-    v2[0] = pGeometry[2].X() - pGeometry[0].X();
-    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+    v2[0] = rGeometry[2].X() - rGeometry[0].X();
+    v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+    v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
     MathUtils<double>::CrossProduct(An,v1,v2);
 
-    array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+    array_1d<double,3>& normal = rCondition.GetValue(NORMAL);
 
     noalias(normal) = An/norm_2(An);
 
@@ -343,50 +342,50 @@ protected:
 
   //this function adds the Contribution of one of the geometries
   //to the corresponding nodes
-  static void CalculateUnitNormal2D(ElementsContainerType::iterator it, array_1d<double,3>& An)
+  static void CalculateUnitNormal2D(Element& rElement, array_1d<double,3>& An)
   {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    Geometry<Node<3> >& rGeometry = rElement.GetGeometry();
 
-    if(pGeometry.size()<2){
-      std::cout<<" Warning 2D geometry with only "<<pGeometry.size()<<" node :: multiple normal definitions "<<std::endl;
-      (it)->GetValue(NORMAL).clear();
+    if(rGeometry.size()<2){
+      std::cout<<" Warning 2D geometry with only "<<rGeometry.size()<<" node :: multiple normal definitions "<<std::endl;
+      rElement.GetValue(NORMAL).clear();
     }
     else{
 
-      An[0] = -(pGeometry[1].Y()-pGeometry[0].Y());
-      An[1] =   pGeometry[1].X()-pGeometry[0].X();
+      An[0] = -(rGeometry[1].Y()-rGeometry[0].Y());
+      An[1] =   rGeometry[1].X()-rGeometry[0].X();
       An[2] =   0.00;
 
-      array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+      array_1d<double,3>& normal = rElement.GetValue(NORMAL);
       noalias(normal) = An/norm_2(An);
 
     }
 
   }
 
-  static void CalculateUnitNormal3D(ElementsContainerType::iterator it, array_1d<double,3>& An,
-                                     array_1d<double,3>& v1,array_1d<double,3>& v2 )
+  static void CalculateUnitNormal3D(Element& rElement, array_1d<double,3>& An,
+                                    array_1d<double,3>& v1,array_1d<double,3>& v2 )
   {
-    Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+    Geometry<Node<3> >& rGeometry = rElement.GetGeometry();
 
-    if(pGeometry.size()<3){
-      std::cout<<" Warning 3D geometry with only "<<pGeometry.size()<<" nodes :: multiple normal definitions "<<std::endl;
-      (it)->GetValue(NORMAL).clear();
+    if(rGeometry.size()<3){
+      std::cout<<" Warning 3D geometry with only "<<rGeometry.size()<<" nodes :: multiple normal definitions "<<std::endl;
+      rElement.GetValue(NORMAL).clear();
     }
     else{
 
-      v1[0] = pGeometry[1].X() - pGeometry[0].X();
-      v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-      v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+      v1[0] = rGeometry[1].X() - rGeometry[0].X();
+      v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+      v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
 
-      v2[0] = pGeometry[2].X() - pGeometry[0].X();
-      v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-      v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+      v2[0] = rGeometry[2].X() - rGeometry[0].X();
+      v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+      v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
       MathUtils<double>::CrossProduct(An,v1,v2);
       An *= 0.5;
 
-      array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+      array_1d<double,3>& normal = rElement.GetValue(NORMAL);
 
       noalias(normal) = An/norm_2(An);
 
@@ -396,30 +395,20 @@ protected:
 
   void ResetBodyNormals(ModelPart& rModelPart)
   {
-    KRATOS_TRY
-
     //resetting the normals
-    for(NodesArrayType::iterator in = rModelPart.NodesBegin();
-        in !=rModelPart.NodesEnd(); ++in)
+    for(auto& i_node : rModelPart.Nodes())
     {
-      (in->GetSolutionStepValue(NORMAL)).clear();
+      i_node.GetSolutionStepValue(NORMAL).clear();
     }
-
-    KRATOS_CATCH( "" )
   }
 
   void CheckBodyNormals(ModelPart& rModelPart)
   {
-    KRATOS_TRY
-
     //resetting the normals
-    for(NodesArrayType::iterator in = rModelPart.NodesBegin();
-        in !=rModelPart.NodesEnd(); ++in)
+    for(const auto& i_node : rModelPart.Nodes())
     {
-      std::cout<<" ID: "<<in->Id()<<" normal: "<<(in->GetSolutionStepValue(NORMAL))<<std::endl;
+      std::cout<<" ID: "<<i_node.Id()<<" normal: "<<i_node.GetSolutionStepValue(NORMAL)<<std::endl;
     }
-
-    KRATOS_CATCH( "" )
   }
 
   /// Calculates the "area normal" (vector oriented as the normal with a magnitude proportional to the area).
@@ -445,7 +434,7 @@ protected:
     //       ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
     //   }
 
-    const unsigned int dimension = (rConditions.begin())->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rConditions.begin()->GetGeometry().WorkingSpaceDimension();
 
     //std::cout<<" condition geometry: "<<(rConditions.begin())->GetGeometry()<<std::endl;
 
@@ -453,10 +442,10 @@ protected:
     array_1d<double,3> An;
     if(dimension == 2)
     {
-      for(ConditionsContainerType::iterator it =  rConditions.begin(); it !=rConditions.end(); ++it)
+      for(auto& i_cond : rConditions)
       {
-        if(it->IsNot(CONTACT) && it->Is(BOUNDARY) )
-          CalculateUnitNormal2D(it,An);
+        if(i_cond.IsNot(CONTACT) && i_cond.Is(BOUNDARY) )
+          CalculateUnitNormal2D(i_cond,An);
       }
 
     }
@@ -464,11 +453,11 @@ protected:
     {
       array_1d<double,3> v1;
       array_1d<double,3> v2;
-      for(ConditionsContainerType::iterator it =  rConditions.begin(); it !=rConditions.end(); ++it)
+      for(auto& i_cond : rConditions)
       {
         //calculate the normal on the given condition
-        if(it->IsNot(CONTACT) && it->Is(BOUNDARY)){
-          CalculateUnitNormal3D(it,An,v1,v2);
+        if(i_cond.IsNot(CONTACT) && i_cond.Is(BOUNDARY)){
+          CalculateUnitNormal3D(i_cond,An,v1,v2);
         }
       }
     }
@@ -508,11 +497,11 @@ protected:
     array_1d<double,3> An;
     if(dimension == 2)
     {
-      for(ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); ++it)
+      for(auto& i_elem : rElements)
       {
-        if(it->IsNot(CONTACT)){
-          it->Set(BOUNDARY); //give an error in set flags (for the created rigid body)
-          CalculateUnitNormal2D(it,An);
+        if(i_elem.IsNot(CONTACT)){
+          i_elem.Set(BOUNDARY); //give an error in set flags (for the created rigid body)
+          CalculateUnitNormal2D(i_elem,An);
         }
       }
     }
@@ -520,12 +509,12 @@ protected:
     {
       array_1d<double,3> v1;
       array_1d<double,3> v2;
-      for(ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); ++it)
+      for(auto& i_elem : rElements)
       {
         //calculate the normal on the given surface element
-        if(it->IsNot(CONTACT)){
-          it->Set(BOUNDARY); //give an error in set flags (for the created rigid body)
-          CalculateUnitNormal3D(it,An,v1,v2);
+        if(i_elem.IsNot(CONTACT)){
+          i_elem.Set(BOUNDARY); //give an error in set flags (for the created rigid body)
+          CalculateUnitNormal3D(i_elem,An,v1,v2);
         }
       }
     }
@@ -559,11 +548,7 @@ protected:
   {
     KRATOS_TRY
 
-    ConditionsContainerType& rConditions = rModelPart.Conditions();
-
-    ConditionsContainerType::iterator it =  rConditions.begin();
-
-    if( (it)->GetGeometry().Dimension() == dimension ){
+    if( rModelPart.Conditions().begin()->GetGeometry().Dimension() == dimension ){
       return true;
     }
     else{
@@ -579,11 +564,7 @@ protected:
   {
     KRATOS_TRY
 
-    ElementsContainerType& rElements = rModelPart.Elements();
-
-    ElementsContainerType::iterator it =  rElements.begin();
-
-    if( (it)->GetGeometry().LocalSpaceDimension() == dimension ){
+    if( rModelPart.Elements().begin()->GetGeometry().LocalSpaceDimension() == dimension ){
       return true;
     }
     else{
@@ -599,11 +580,7 @@ protected:
   {
     KRATOS_TRY
 
-    ConditionsContainerType& rConditions = rModelPart.Conditions();
-
-    ConditionsContainerType::iterator it =  rConditions.begin();
-
-    if( (it)->GetGeometry().LocalSpaceDimension() == dimension ){
+    if( rModelPart.Conditions().begin()->GetGeometry().LocalSpaceDimension() == dimension ){
       return true;
     }
     else{
@@ -625,44 +602,36 @@ protected:
 
     //Reset normals
     ModelPart::NodesContainerType&    rNodes = rModelPart.Nodes();
-    ModelPart::ElementsContainerType& rElems = rModelPart.Elements();
+    ModelPart::ElementsContainerType& rElements = rModelPart.Elements();
 
     //Check if the neigbours search is already done and set
     bool neighsearch=false;
-    unsigned int number_of_nodes = rElems.begin()->GetGeometry().PointsNumber();
+    unsigned int number_of_nodes = rElements.begin()->GetGeometry().PointsNumber();
     for(unsigned int i=0; i<number_of_nodes; ++i)
-      if( (rElems.begin()->GetGeometry()[i].GetValue(NEIGHBOR_ELEMENTS)).size() > 1 )
+      if( (rElements.begin()->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS)).size() > 1 )
         neighsearch=true;
 
     if( !neighsearch )
       std::cout<<" WARNING :: Neighbour Search Not PERFORMED "<<std::endl;
 
-    for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
+    for(auto& i_node : rNodes)
     {
-      (in->GetSolutionStepValue(NORMAL)).clear();
-
+      i_node.GetSolutionStepValue(NORMAL).clear();
       if(!neighsearch){
-        //*************  Neigbours of nodes search  ************//
-        ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
-        rE.erase(rE.begin(),rE.end() );
-        in->Reset(BOUNDARY);
-        //*************  Neigbours of nodes search ************//
+        i_node.GetValue(NEIGHBOUR_ELEMENTS).clear();
+        i_node.Reset(BOUNDARY);
       }
     }
 
-
     if(!neighsearch){
-      //*************  Neigbours of nodes search ************//
-      //add the neighbour elements to all the nodes in the mesh
-      for(ModelPart::ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
+      for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
-        Element::GeometryType& pGeom = ie->GetGeometry();
-        for(unsigned int i = 0; i < pGeom.size(); ++i)
+        Element::GeometryType& rGeometry = i_elem->GetGeometry();
+        for(unsigned int i = 0; i < rGeometry.size(); ++i)
         {
-          (pGeom[i].GetValue(NEIGHBOR_ELEMENTS)).push_back( (*(ie.base())).get() );
+          rGeometry[i].GetValue(NEIGHBOUR_ELEMENTS).push_back(*i_elem.base());
         }
       }
-      //*************  Neigbours of nodes search ************//
     }
 
     //calculating the normals and storing it on nodes
@@ -679,18 +648,18 @@ protected:
     unsigned int not_assigned   = 0;
     unsigned int boundary_nodes = 0;
     //int boundarycounter=0;
-    for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
+    for(auto& i_node : rNodes)
     {
       noalias(An) = ZeroVector(3);
 
-      //if(in->Is(BOUNDARY)){
+      //if(i_node.Is(BOUNDARY)){
 
-      ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
+      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
-      for(ElementPointerVectorType::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
+      for(auto& i_nelem : nElements)
       {
 
-        Element::GeometryType& rGeometry = (*ie)->GetGeometry();
+        Element::GeometryType& rGeometry = i_nelem.GetGeometry();
 
         if( rGeometry.EdgesNumber() > 1 &&  rGeometry.LocalSpaceDimension() == dimension ){
 
@@ -717,7 +686,7 @@ protected:
 
           for(unsigned int i = 0; i < rGeometry.size(); ++i)
           {
-            if(in->Id() == rGeometry[i].Id()){
+            if(i_node.Id() == rGeometry[i].Id()){
 
               for(unsigned int d=0; d<dimension; ++d)
               {
@@ -731,24 +700,24 @@ protected:
         }
 
         if(norm_2(An)>1e-12){
-          noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
+          noalias(i_node.FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
           assigned +=1;
           if(!neighsearch){
-            in->Set(BOUNDARY);
+            i_node.Set(BOUNDARY);
           }
         }
         else{
-          (in->FastGetSolutionStepValue(NORMAL)).clear();
+          (i_node.FastGetSolutionStepValue(NORMAL)).clear();
           //std::cout<<" ERROR: normal not set "<<std::endl;
           not_assigned +=1;
           if(!neighsearch){
-            in->Set(BOUNDARY,false);
+            i_node.Set(BOUNDARY,false);
           }
         }
 
       }
 
-      if(in->Is(BOUNDARY))
+      if(i_node.Is(BOUNDARY))
         boundary_nodes +=1;
 
       //boundarycounter++;
@@ -779,33 +748,31 @@ protected:
       ConditionsContainerType& rConditions = rModelPart.Conditions();
 
       //adding the normals to the nodes
-      for(ConditionsContainerType::iterator it = rConditions.begin(); it !=rConditions.end(); ++it)
+      for(auto& i_cond : rModelPart.Conditions())
       {
-        Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
-        double coeff = 1.00/pGeometry.size();
-        const array_1d<double,3>& An = it->GetValue(NORMAL);
+        Geometry<Node<3> >& rGeometry = i_cond.GetGeometry();
+        double coeff = 1.00/rGeometry.size();
+        const array_1d<double,3>& An = i_cond.GetValue(NORMAL);
 
-        for(unsigned int i = 0; i<pGeometry.size(); ++i)
+        for(unsigned int i = 0; i<rGeometry.size(); ++i)
         {
-          noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * An;
+          noalias(rGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * An;
         }
       }
 
     }
     else if( rModelPart.NumberOfElements() && this->CheckElementsDimension(rModelPart, dimension-1) ){
 
-      ElementsContainerType& rElements = rModelPart.Elements();
-
       //adding the normals to the nodes
-      for(ElementsContainerType::iterator it = rElements.begin(); it !=rElements.end(); ++it)
+      for(auto& i_elem : rModelPart.Elements() )
       {
-        Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
-        double coeff = 1.00/pGeometry.size();
-        const array_1d<double,3>& An = it->GetValue(NORMAL);
+        Geometry<Node<3> >& rGeometry = i_elem.GetGeometry();
+        double coeff = 1.00/rGeometry.size();
+        const array_1d<double,3>& An = i_elem.GetValue(NORMAL);
 
-        for(unsigned int i = 0; i<pGeometry.size(); ++i)
+        for(unsigned int i = 0; i<rGeometry.size(); ++i)
         {
-          noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * An;
+          noalias(rGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * An;
         }
       }
 
@@ -839,34 +806,32 @@ protected:
         std::cout<<"   ["<<rModelPart.Name()<<"] (C)"<<std::endl;
 
       //add the neighbour boundary conditions to all the nodes in the mesh
-      ModelPart::ConditionsContainerType& rConditions = rModelPart.Conditions();
-
-      std::vector<ConditionPointerVectorType > Neighbours(rNodes.size()+1);
+      std::vector<ConditionWeakPtrVectorType > Neighbours(rNodes.size()+1);
 
       unsigned int id = 1;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rConditions.begin(); i_cond!=rConditions.end(); ++i_cond)
+      for(auto i_cond(rModelPart.Conditions().begin()); i_cond != rModelPart.Conditions().end(); ++i_cond)
       {
         if(i_cond->IsNot(CONTACT) && i_cond->Is(BOUNDARY)){
 
-          Condition::GeometryType& pGeometry = i_cond->GetGeometry();
+          Condition::GeometryType& rGeometry = i_cond->GetGeometry();
 
           if( mEchoLevel > 2 )
             std::cout<<" Condition ID "<<i_cond->Id()<<" id "<<id<<std::endl;
 
-          for(unsigned int i = 0; i < pGeometry.size(); ++i)
+          for(unsigned int i = 0; i < rGeometry.size(); ++i)
           {
             if( mEchoLevel > 2 ){
-              if(NodeNeighboursIds.size()<=pGeometry[i].Id())
-                std::cout<<" Shrink node in geom "<<pGeometry[i].Id()<<" number of nodes "<<NodeNeighboursIds.size()<<std::endl;
+              if(NodeNeighboursIds.size()<=rGeometry[i].Id())
+                std::cout<<" Shrink node in geom "<<rGeometry[i].Id()<<" number of nodes "<<NodeNeighboursIds.size()<<std::endl;
             }
 
-            if(NodeNeighboursIds[pGeometry[i].Id()]==0){
-              NodeNeighboursIds[pGeometry[i].Id()]=id;
-              Neighbours[id].push_back( (*(i_cond.base())).get() );
+            if(NodeNeighboursIds[rGeometry[i].Id()]==0){
+              NodeNeighboursIds[rGeometry[i].Id()]=id;
+              Neighbours[id].push_back( *i_cond.base() );
               id++;
             }
             else{
-              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( (*(i_cond.base())).get() );
+              Neighbours[NodeNeighboursIds[rGeometry[i].Id()]].push_back(*i_cond.base());
             }
 
           }
@@ -884,7 +849,7 @@ protected:
           for(unsigned int i = 0; i<rNodes.size(); ++i)
           {
             if((nodes_begin + i)->Is(BOUNDARY) && (nodes_begin + i)->IsNot(RIGID) && NodeNeighboursIds[(nodes_begin+i)->Id()]!=0){
-              BoundaryNodes.push_back( *((nodes_begin+i).base()) );
+              BoundaryNodes.push_back( *(nodes_begin+i).base() );
             }
           }
         }
@@ -893,12 +858,12 @@ protected:
           for(unsigned int i = 0; i<rNodes.size(); ++i)
           {
             if((nodes_begin + i)->Is(BOUNDARY) && NodeNeighboursIds[(nodes_begin+i)->Id()]!=0){
-              BoundaryNodes.push_back( *((nodes_begin+i).base()) );
+              BoundaryNodes.push_back( *(nodes_begin+i).base() );
             }
           }
         }
 
-        ComputeBoundaryShrinkage<Condition>( BoundaryNodes, Neighbours, NodeNeighboursIds, dimension);
+        ComputeBoundaryShrinkage<Condition>(BoundaryNodes, Neighbours, NodeNeighboursIds, dimension);
       }
 
     }
@@ -910,32 +875,32 @@ protected:
       //add the neighbour boundary elements to all the nodes in the mesh
       ModelPart::ElementsContainerType& rElements = rModelPart.Elements();
 
-      std::vector<ElementPointerVectorType> Neighbours(rNodes.size()+1);
+      std::vector<ElementWeakPtrVectorType> Neighbours(rNodes.size()+1);
 
       unsigned int id = 1;
-      for(ModelPart::ElementsContainerType::iterator i_elem = rElements.begin(); i_elem!=rElements.end(); ++i_elem)
+      for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         if(i_elem->IsNot(CONTACT) && i_elem->Is(BOUNDARY)){
 
-          Condition::GeometryType& pGeometry = i_elem->GetGeometry();
+          Condition::GeometryType& rGeometry = i_elem->GetGeometry();
 
           if( mEchoLevel > 2 )
             std::cout<<" Element ID "<<i_elem->Id()<<" id "<<id<<std::endl;
 
-          for(unsigned int i = 0; i < pGeometry.size(); ++i)
+          for(unsigned int i = 0; i < rGeometry.size(); ++i)
           {
             if( mEchoLevel > 2 ){
-              if(NodeNeighboursIds.size()<=pGeometry[i].Id())
-                std::cout<<" Shrink node in geom "<<pGeometry[i].Id()<<" number of nodes "<<NodeNeighboursIds.size()<<" Ids[id] "<<NodeNeighboursIds[pGeometry[i].Id()]<<std::endl;
+              if(NodeNeighboursIds.size()<=rGeometry[i].Id())
+                std::cout<<" Shrink node in geom "<<rGeometry[i].Id()<<" number of nodes "<<NodeNeighboursIds.size()<<" Ids[id] "<<NodeNeighboursIds[rGeometry[i].Id()]<<std::endl;
             }
 
-            if(NodeNeighboursIds[pGeometry[i].Id()]==0){
-              NodeNeighboursIds[pGeometry[i].Id()]=id;
-              Neighbours[id].push_back( (*(i_elem.base())).get() );
+            if(NodeNeighboursIds[rGeometry[i].Id()]==0){
+              NodeNeighboursIds[rGeometry[i].Id()]=id;
+              Neighbours[id].push_back(*i_elem.base());
               id++;
             }
             else{
-              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( (*(i_elem.base())).get() );
+              Neighbours[NodeNeighboursIds[rGeometry[i].Id()]].push_back(*i_elem.base());
             }
 
           }
@@ -955,7 +920,7 @@ protected:
           }
         }
 
-        ComputeBoundaryShrinkage<Element>( BoundaryNodes, Neighbours, NodeNeighboursIds, dimension );
+        ComputeBoundaryShrinkage<Element>(BoundaryNodes, Neighbours, NodeNeighboursIds, dimension);
       }
 
     }
@@ -967,7 +932,7 @@ protected:
   //**************************************************************************
 
   template<class TClassType>
-  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<std::vector<TClassType* > >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
+  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
   {
     KRATOS_TRY
 
@@ -1009,7 +974,7 @@ protected:
         std::cout<<" Id "<<Id<<" normals size "<<NumberOfNeighbourNormals<<" normal "<<rNormal<<" shrink "<<rShrinkFactor<<std::endl;
         for (unsigned int i_norm=0; i_norm<NumberOfNeighbourNormals; ++i_norm)//loop over node neighbour faces
         {
-          std::cout<<" normal ["<<i_norm<<"]["<<(iNode)->Id()<<"]: "<<rNeighbours[Id][i_norm]->GetValue(NORMAL)<<std::endl;
+          std::cout<<" normal ["<<i_norm<<"]["<<(iNode)->Id()<<"]: "<<rNeighbours[Id][i_norm].GetValue(NORMAL)<<std::endl;
         }
       }
 
@@ -1024,7 +989,7 @@ protected:
       for(unsigned int i_norm=0; i_norm<NumberOfNeighbourNormals; ++i_norm)//loop over node neighbour faces
       {
 
-        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions-elements
+        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions-elements
 
         if( FaceNormals[i_norm] != 1 ){ //if is not marked as coincident
 
@@ -1032,7 +997,7 @@ protected:
           for (unsigned int j_norm=i_norm+1; j_norm<NumberOfNeighbourNormals; ++j_norm)//loop over node neighbour faces
           {
 
-            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm]->GetValue(NORMAL); //conditions-elements
+            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions-elements
 
             ProjectionValue = inner_prod(rEntityNormal,rNormalVector);
 
@@ -1090,7 +1055,7 @@ protected:
           {
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]==0){ //tip normal and no coincident, no similar face normal
 
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               SingleFaces+=1;
             }
@@ -1112,13 +1077,13 @@ protected:
 
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=1){ //tip normal and no coincident face normal
 
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
 
               for (unsigned int j_norm=0;j_norm<NumberOfNeighbourNormals;++j_norm) //loop over node neighbour faces to check the most coplanar ones
               {
                 if(TipNormals[j_norm]>=1 && FaceNormals[j_norm]!=1 && i_norm!=j_norm){ //tip normal and no coincident face normal
 
-                  const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm]->GetValue(NORMAL); //conditions
+                  const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions
                   Projection=inner_prod(rEntityNormal,rNormalVector);
 
                   if(MaxProjection<Projection && Projection>0.3){ //most coplanar normals with a projection largest than 0.3
@@ -1147,7 +1112,7 @@ protected:
 
               if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=1){ //tip normal and no coincident face normal
 
-                array_1d<double,3> EntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+                array_1d<double,3> EntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
 
                 if(FaceNormals[i_norm]!=0) // similar face normal
                   EntityNormal*=FaceNormals[i_norm];
@@ -1158,7 +1123,7 @@ protected:
 
                     if(i_norm==(unsigned int)SignificativeNormals[j_norm]){ //i_norm is a significative normal with a close coincident projection
 
-                      const array_1d<double,3>& rNormalVector = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+                      const array_1d<double,3>& rNormalVector = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
 
                       if(FaceNormals[i_norm]!=0){ // similar face normal
                         EntityNormal+=rNormalVector*FaceNormals[i_norm]; //product with the quotient
@@ -1193,13 +1158,13 @@ protected:
               break;
 
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=0 && FaceNormals[i_norm]!=1){ //tip normal and similar face normal
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               ++SingleFaces;
             }
 
             if(TipNormals[i_norm]==0 && FaceNormals[i_norm]==0 && SingleFaces>0){ //if only two of the tip normals are acute one is not set
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               ++SingleFaces;
             }
@@ -1289,7 +1254,7 @@ protected:
         {
           if (FaceNormals[i_norm]!=1){ //not coincident normal
 
-            array_1d<double,3> rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
+            array_1d<double,3> rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
 
             if(norm_2(rEntityNormal))
               rEntityNormal/=norm_2(rEntityNormal);

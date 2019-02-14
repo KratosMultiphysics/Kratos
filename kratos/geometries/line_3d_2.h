@@ -176,7 +176,7 @@ public:
         BaseType::Points().push_back( pSecondPoint );
     }
 
-    Line3D2( const PointsArrayType& ThisPoints )
+    explicit Line3D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )
@@ -208,7 +208,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Line3D2( Line3D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Line3D2( Line3D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -290,8 +290,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
 	if(rResult.size() != 2)
            rResult.resize( 2, false );

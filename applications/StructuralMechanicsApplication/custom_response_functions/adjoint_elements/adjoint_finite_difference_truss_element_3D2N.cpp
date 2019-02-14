@@ -88,7 +88,7 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
 }
 
 
-void AdjointFiniteDifferenceTrussElement::CheckVariables()
+void AdjointFiniteDifferenceTrussElement::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
@@ -98,7 +98,7 @@ void AdjointFiniteDifferenceTrussElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckDofs()
+void AdjointFiniteDifferenceTrussElement::CheckDofs() const
 {
     const SizeType number_of_nodes = this->GetGeometry().size();
 
@@ -115,7 +115,7 @@ void AdjointFiniteDifferenceTrussElement::CheckDofs()
     }
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const PropertiesType & r_properties = GetProperties();

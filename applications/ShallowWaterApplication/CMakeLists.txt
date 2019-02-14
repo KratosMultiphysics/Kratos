@@ -38,7 +38,7 @@ pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHAL
 target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore )
 set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "" )
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -57,4 +57,4 @@ if(${INSTALL_TESTING_FILES} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py" DESTINATION "KratosMultiphysics/ShallowWaterApplication" RENAME "__init__.py")

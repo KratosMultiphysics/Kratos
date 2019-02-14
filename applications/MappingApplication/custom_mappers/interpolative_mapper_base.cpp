@@ -131,43 +131,21 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    const auto& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
-    const auto& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
-    const auto& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
+    const std::vector<std::string> var_comps{"_X", "_Y", "_Z"};
 
-    const auto& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
-    const auto& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
-    const auto& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
+    for (const auto& var_ext : var_comps) {
+        const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
-    // X-Component
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_x_origin, MappingOptions);
+        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_origin, MappingOptions);
 
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+        TSparseSpace::Mult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_x_destination, MappingOptions);
-
-    // Y-Component
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_y_origin, MappingOptions);
-
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_y_destination, MappingOptions);
-
-    // Z-Component
-    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_z_origin, MappingOptions);
-
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-
-    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_z_destination, MappingOptions);
+        mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(var_destination, MappingOptions);
+    }
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -176,43 +154,21 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    const auto& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
-    const auto& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
-    const auto& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
+    const std::vector<std::string> var_comps{"_X", "_Y", "_Z"};
 
-    const auto& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
-    const auto& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
-    const auto& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
+    for (const auto& var_ext : var_comps) {
+        const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
-    // X-Component
-    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_x_destination, MappingOptions);
+        mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_destination, MappingOptions);
 
-    TSparseSpace::TransposeMult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
-    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_x_origin, MappingOptions);
-
-    // Y-Component
-    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_y_destination, MappingOptions);
-
-    TSparseSpace::TransposeMult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
-
-    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_y_origin, MappingOptions);
-
-    // Z-Component
-    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_z_destination, MappingOptions);
-
-    TSparseSpace::TransposeMult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
-
-    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_z_origin, MappingOptions);
+        mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_origin, MappingOptions);
+    }
 }
 
 template<class TSparseSpace, class TDenseSpace>

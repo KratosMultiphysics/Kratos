@@ -112,8 +112,8 @@ namespace Kratos
       typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
       typedef Vector VectorType;
+      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
 
-      typedef  std::vector<Node<3>*>             NodePointerVectorType;
       ///@}
       ///@name Life Cycle
       ///@{
@@ -200,7 +200,7 @@ namespace Kratos
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
 
-	      NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      const unsigned int neighSize = neighb_nodes.size()+1;
 
 	      if(neighSize>1){
@@ -305,8 +305,8 @@ namespace Kratos
 			firstCol+=2;
 
 			if(i<neighb_nodes.size()){
-			  EquationId[firstCol]=neighb_nodes[i]->GetDof(VELOCITY_X,xpos).EquationId();
-			  EquationId[firstCol+1]=neighb_nodes[i]->GetDof(VELOCITY_Y,xpos+1).EquationId();
+			  EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+			  EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
 			}
 
 		      }
@@ -397,9 +397,9 @@ namespace Kratos
 		      firstCol+=3;
 
 		      if(i<neighb_nodes.size()){
-			EquationId[firstCol]  =neighb_nodes[i]->GetDof(VELOCITY_X,xpos).EquationId();
-			EquationId[firstCol+1]=neighb_nodes[i]->GetDof(VELOCITY_Y,xpos+1).EquationId();
-			EquationId[firstCol+2]=neighb_nodes[i]->GetDof(VELOCITY_Z,xpos+2).EquationId();
+			EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+			EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+			EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
 		      }
 
 		    }
@@ -1000,14 +1000,14 @@ namespace Kratos
 	    if(dimension==3)
 	      EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
 
-	    NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
 	    	firstCol+=dimension;
-	    	EquationId[firstCol]    =neighb_nodes[i]->GetDof(VELOCITY_X,xpos).EquationId();
-	    	EquationId[firstCol+1]  =neighb_nodes[i]->GetDof(VELOCITY_Y,xpos+1).EquationId();
+	    	EquationId[firstCol]    =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+	    	EquationId[firstCol+1]  =neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
 	    	if(dimension==3){
-		  EquationId[firstCol+2]=neighb_nodes[i]->GetDof(VELOCITY_Z,xpos+2).EquationId();
+		  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
 	    	}
 	      }
 

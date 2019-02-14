@@ -313,7 +313,7 @@ protected:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 residual_dof_value = TSparseSpace::GetValue(b,dof_id);
-                residual_solution_norm += residual_dof_value * residual_dof_value;
+                residual_solution_norm += std::pow(residual_dof_value, 2);
                 dof_num++;
             }
         }

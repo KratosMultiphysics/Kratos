@@ -67,12 +67,16 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "database_step_update"                : 1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
                 "check_gap"                           : "check_mapping"
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
                 "stiffness_factor"            : 1.0,
+                "penalty_scale_factor"        : 1.0,
+                "use_scale_factor"            : true,
                 "penalty"                     : 1.0e16,
+                "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
                 "max_gap_factor"              : 1.0e-3
             },
@@ -82,12 +86,12 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         }
         """)
 
+        # Construct the base process.
+        super(PenaltyContactProcess, self).__init__(Model, settings)
+
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
-
-        # Construct the base process.
-        super(PenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
