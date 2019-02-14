@@ -119,8 +119,9 @@ namespace Kratos
                     SizeType k = 0;
                     for (auto& r_dof : r_node_dofs)
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
-                }     // We compute the MPC contributions
-
+                }     
+                
+                // reconstruct the animation on slave-dofs
                 if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
                     ConstraintUtilities::ResetSlaveDofs(mrModelPart);
                     ConstraintUtilities::ApplyConstraints(mrModelPart);
