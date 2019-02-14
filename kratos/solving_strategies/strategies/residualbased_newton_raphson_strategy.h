@@ -429,7 +429,7 @@ class ResidualBasedNewtonRaphsonStrategy
             //the following is needed since we need to eventually compute time derivatives after applying 
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
-            p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         }
 
         //move the mesh if needed
