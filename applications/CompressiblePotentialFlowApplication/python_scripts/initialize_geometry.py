@@ -110,11 +110,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 self.RefineMesh()
                 print("Elapsed time: ",time.time()-ini_time)
                 self.CalculateDistance()
-                # self.MetricParameters["enforce_current"].SetBool(True)
-                # self.MetricParameters["minimal_size"].SetDouble(5e-4)
-                # print("Executing second refinement ")
-                # self.RefineMesh()
-                # self.CalculateDistance()
+                self.MetricParameters["enforce_current"].SetBool(True)
+                self.MetricParameters["minimal_size"].SetDouble(1e-4)
+                print("Executing second refinement ")
+                ini_time=time.time()
+                self.RefineMesh()
+                print("Elapsed time: ",time.time()-ini_time)
+                self.CalculateDistance()
 
         self.ApplyFlags()
         print("Level Set geometry initialized")
@@ -135,12 +137,12 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             for node in self.skin_model_part.Nodes:
                 node.X=node.X+1e-5
                 node.Y=node.Y+1e-5
-        elif self.skin_model_part_name=='ellipse':
+        elif self.skin_model_part_name=='ellipse' or self.skin_model_part_name=='ellipse_fine':
             angle=math.radians(-self.geometry_parameter)   
             self.origin=[0.0,0.0] #to be defined from skin model part  
-            for node in self.skin_model_part.Nodes:
-                node.X=node.X+1e-5
-                node.Y=node.Y+1e-5
+            # for node in self.skin_model_part.Nodes:
+            #     node.X=node.X+1e-5
+            #     node.Y=node.Y+1e-5
             RotateModelPart(self.origin,angle,self.skin_model_part)
             # a=1
             # b=a/4
@@ -191,11 +193,19 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 "model_part_name"                  : "Parts_Fluid",
                 "save_external_files"              : false,
                 "initialize_entities"              : false,
-                "echo_level"                       : 0  ,      
-                "discretization_type"                  : "ISOSURFACE",
+                "automatic_remesh"                 : false,
+                "echo_level"                       : 1  ,      
+                "discretization_type"                  : "Standard",
                 "minimal_size"                         : 0.001, 
-                "enforce_current"                      : true, 
-                "anisotropy_remeshing"                 : true, 
+                "maximal_size"                         : 1.0,
+                "sizing_parameters":
+                {
+                    "reference_variable_name"          : "DISTANCE",
+                    "boundary_layer_max_distance"      : 1.0,
+                    "interpolation"                    : "Linear"
+                },
+                "enforce_current"                      : false, 
+                "anisotropy_remeshing"                 : false, 
                 "anisotropy_parameters": {   
                     "reference_variable_name"          : "DISTANCE",
                     "hmin_over_hmax_anisotropic_ratio"      : 0.5, 
@@ -210,7 +220,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         }""")
 
         mmg=mmg_process.Factory(mmg_parameters,self.model)
-        mmg.Execute()
+        mmg.ExecuteInitialize()
+        mmg.ExecuteInitializeSolutionStep()
 
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
     def RefineMesh(self):
