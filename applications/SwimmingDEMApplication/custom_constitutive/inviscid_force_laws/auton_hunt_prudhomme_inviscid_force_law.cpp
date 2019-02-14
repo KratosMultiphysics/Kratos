@@ -20,7 +20,7 @@ namespace Kratos {
     void AutonHuntPrudhommeInviscidForceLaw::Initialize(const ProcessInfo& r_process_info){}
 
     std::string AutonHuntPrudhommeInviscidForceLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Standard Inviscid Force Law";
+        std::string type_of_law = "Standard inviscid force law";
         return type_of_law;
     }
 

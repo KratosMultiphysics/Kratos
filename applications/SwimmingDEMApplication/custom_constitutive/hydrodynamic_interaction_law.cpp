@@ -7,7 +7,8 @@ namespace Kratos {
         mpBuoyancyLaw(BuoyancyLaw().Clone()),
         mpDragLaw(DragLaw().Clone()),
         mpInviscidForceLaw(InviscidForceLaw().Clone()),
-        mpHistoryForceLaw(HistoryForceLaw().Clone()){}
+        mpHistoryForceLaw(HistoryForceLaw().Clone()),
+        mpVorticityInducedLiftLaw(VorticityInducedLiftLaw().Clone()){}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
     {
@@ -15,6 +16,7 @@ namespace Kratos {
         mpDragLaw = rHydrodynamicInteractionLaw.CloneDragLaw();
         mpInviscidForceLaw = rHydrodynamicInteractionLaw.CloneInviscidForceLaw();
         mpHistoryForceLaw = rHydrodynamicInteractionLaw.CloneHistoryForceLaw();
+        mpVorticityInducedLiftLaw = rHydrodynamicInteractionLaw.CloneVorticityInducedLiftLaw();
     }
 
     void HydrodynamicInteractionLaw::Initialize(const ProcessInfo& r_process_info) {
@@ -48,6 +50,10 @@ namespace Kratos {
 
     HistoryForceLaw::Pointer HydrodynamicInteractionLaw::CloneHistoryForceLaw() const {
         return mpHistoryForceLaw->Clone();
+    }
+
+    VorticityInducedLiftLaw::Pointer HydrodynamicInteractionLaw::CloneVorticityInducedLiftLaw() const {
+        return mpVorticityInducedLiftLaw->Clone();
     }
 
     HydrodynamicInteractionLaw::~HydrodynamicInteractionLaw(){}
@@ -145,4 +151,25 @@ namespace Kratos {
         return mpHistoryForceLaw->GetAddedMass(r_geometry, r_current_process_info);
     }
 
+    void HydrodynamicInteractionLaw::ComputeVorticityInducedLift(Geometry<Node<3> >& r_geometry,
+                                                                 double particle_radius,
+                                                                 double fluid_density,
+                                                                 double fluid_kinematic_viscosity,
+                                                                 array_1d<double, 3>& slip_velocity,
+                                                                 array_1d<double, 3>& vorticity_induced_lift,
+                                                                 const ProcessInfo& r_current_process_info)
+    {
+        const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
+                                                                     fluid_kinematic_viscosity,
+                                                                     SWIMMING_MODULUS_3(slip_velocity));
+
+        return mpHistoryForceLaw->ComputeForce(r_geometry,
+                                               reynolds_number,
+                                               particle_radius,
+                                               fluid_density,
+                                               fluid_kinematic_viscosity,
+                                               slip_velocity,
+                                               vorticity_induced_lift,
+                                               r_current_process_info);
+    }
 } // Namespace Kratos

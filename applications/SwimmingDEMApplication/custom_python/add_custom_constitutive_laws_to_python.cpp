@@ -30,9 +30,14 @@
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
 #include "../custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
 
-// history force laws
+// History force laws
 #include "../custom_constitutive/history_force_laws/history_force_law.h"
 #include "../custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
+
+// Vorticity-induced lift laws
+#include "../custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
+#include "../custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -43,6 +48,7 @@ typedef BuoyancyLaw BaseBuoyancyLawType;
 typedef DragLaw BaseDragLawType;
 typedef InviscidForceLaw BaseInviscidForceLawType;
 typedef HistoryForceLaw BaseHistoryForceLaw;
+typedef VorticityInducedLiftLaw BaseVorticityInducedLiftLawType;
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
@@ -56,6 +62,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("SetDragLaw", &HydrodynamicInteractionLaw::SetDragLaw)
         .def("SetInviscidForceLaw", &HydrodynamicInteractionLaw::SetInviscidForceLaw)
         .def("SetHistoryForceLaw", &HydrodynamicInteractionLaw::SetHistoryForceLaw)
+        .def("SetVorticityInducedLiftLaw", &HydrodynamicInteractionLaw::SetVorticityInducedLiftLaw)
         ;
 
     // Buoyancy laws
@@ -136,11 +143,25 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         .def(py::init<Parameters&>())
         .def("Clone", &HistoryForceLaw::Clone)
-        .def("SetDragLawInProperties", &HistoryForceLaw::SetHistoryForceLawInProperties)
+        .def("SetHistoryForceLawInProperties", &HistoryForceLaw::SetHistoryForceLawInProperties)
         .def("GetTypeOfLaw", &HistoryForceLaw::GetTypeOfLaw)
         ;
 
     py::class_<BoussinesqBassetHistoryForceLaw, BoussinesqBassetHistoryForceLaw::Pointer, BaseHistoryForceLaw>(m, "BoussinesqBassetHistoryForceLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    // Vorticity-induced lift laws
+    py::class_<VorticityInducedLiftLaw, VorticityInducedLiftLaw::Pointer>(m, "VorticityInducedLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        .def("Clone", &VorticityInducedLiftLaw::Clone)
+        .def("SetVorticityInducedLiftLawInProperties", &VorticityInducedLiftLaw::SetVorticityInducedLiftLawInProperties)
+        .def("GetTypeOfLaw", &VorticityInducedLiftLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<ElSamniLiftLaw, ElSamniLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "ElSamniLiftLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

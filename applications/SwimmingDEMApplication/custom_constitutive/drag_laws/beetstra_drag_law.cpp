@@ -13,7 +13,7 @@ namespace Kratos {
     void BeetstraDragLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string BeetstraDragLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Beetstra Drag Law";
+        std::string type_of_law = "Beetstra drag law";
         return type_of_law;
     }
 

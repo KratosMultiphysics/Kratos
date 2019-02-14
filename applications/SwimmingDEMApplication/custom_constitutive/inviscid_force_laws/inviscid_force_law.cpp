@@ -8,7 +8,7 @@ namespace Kratos {
     void InviscidForceLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string InviscidForceLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Generic Drag Law";
+        std::string type_of_law = "Generic inviscid force law";
         return type_of_law;
     }
 

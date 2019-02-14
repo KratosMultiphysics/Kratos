@@ -13,7 +13,7 @@ namespace Kratos {
     void StokesDragLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string StokesDragLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Stokes Drag Law";
+        std::string type_of_law = "Stokes drag law";
         return type_of_law;
     }
 

@@ -10,6 +10,7 @@
 #include "drag_laws/drag_law.h"
 #include "inviscid_force_laws/inviscid_force_law.h"
 #include "history_force_laws/history_force_law.h"
+#include "vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 
 namespace Kratos {
 
@@ -28,6 +29,7 @@ public:
     void SetDragLaw(const DragLaw& r_law){mpDragLaw = r_law.Clone();}
     void SetInviscidForceLaw(const InviscidForceLaw& r_law){mpInviscidForceLaw = r_law.Clone();}
     void SetHistoryForceLaw(const HistoryForceLaw& r_law){mpHistoryForceLaw = r_law.Clone();}
+    void SetVorticityInducedLiftLaw(const VorticityInducedLiftLaw& r_law){mpVorticityInducedLiftLaw = r_law.Clone();}
 
     virtual void Initialize(const ProcessInfo& r_process_info);
 
@@ -45,6 +47,7 @@ public:
     virtual DragLaw::Pointer CloneDragLaw() const;
     virtual InviscidForceLaw::Pointer CloneInviscidForceLaw() const;
     virtual HistoryForceLaw::Pointer CloneHistoryForceLaw() const;
+    virtual VorticityInducedLiftLaw::Pointer CloneVorticityInducedLiftLaw() const;
 
     double ComputeParticleReynoldsNumber(const double particle_radius,
                                          const double fluid_kinematic_viscosity,
@@ -86,11 +89,20 @@ public:
     virtual double GetHistoryForceAddedMass(Geometry<Node<3> >& r_geometry,
                                             const ProcessInfo& r_current_process_info);
 
+    virtual void ComputeVorticityInducedLift(Geometry<Node<3> >& r_geometry,
+                                             double particle_radius,
+                                             double fluid_density,
+                                             double fluid_kinematic_viscosity,
+                                             array_1d<double, 3>& slip_velocity,
+                                             array_1d<double, 3>& vorticity_induced_lift,
+                                             const ProcessInfo& r_current_process_info);
+
 protected:
     BuoyancyLaw::Pointer mpBuoyancyLaw;
     DragLaw::Pointer mpDragLaw;
     InviscidForceLaw::Pointer mpInviscidForceLaw;
     HistoryForceLaw::Pointer mpHistoryForceLaw;
+    VorticityInducedLiftLaw::Pointer mpVorticityInducedLiftLaw;
 
 private:
 

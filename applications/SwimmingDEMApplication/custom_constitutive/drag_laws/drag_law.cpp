@@ -8,7 +8,7 @@ namespace Kratos {
     void DragLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string DragLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Generic Drag Law";
+        std::string type_of_law = "Generic drag law";
         return type_of_law;
     }
 
