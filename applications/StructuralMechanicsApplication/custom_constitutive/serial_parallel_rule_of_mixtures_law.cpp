@@ -28,8 +28,9 @@ namespace Kratos
 ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
     const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
-    Vector parallel_directions = ZeroVector(6);
-    for (IndexType i_comp = 0; i_comp < 6; ++i_comp) {
+    const int voigt_size = 6;
+    Vector parallel_directions(voigt_size);
+    for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
         parallel_directions[i_comp] = NewParameters["parallel_behaviour_directions"][i_comp].GetInt();
     }
     return Kratos::make_shared<SerialParallelRuleOfMixturesLaw>(fiber_volumetric_participation, parallel_directions);
@@ -68,7 +69,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
-     // Get Values to compute the constitutive law:
+    // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
     // Previous flags saved
@@ -78,7 +79,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
 
     const Properties& r_material_properties  = rValues.GetMaterialProperties();
 
-     // The deformation gradient
+    // The deformation gradient
     if (rValues.IsSetDeterminantF()) {
         const double determinant_f = rValues.GetDeterminantF();
         KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
@@ -288,21 +289,12 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
         const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, r_serial_total_strain));
         ref = std::min(norm_product_matrix, norm_product_fiber);
     }
-    // KRATOS_WATCH(ref)
     if (ref < 1e-9) tolerance = 1e-9;
     else tolerance = 1e-4 * ref;
     
-
     rStressSerialResidual = r_serial_stress_matrix - r_serial_stress_fiber;
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
-
-    // KRATOS_WATCH(rStressSerialResidual)
-    // KRATOS_WATCH(r_serial_stress_matrix)
-    // KRATOS_WATCH(r_serial_stress_fiber)
-    // KRATOS_WATCH(norm_residual)
-    // KRATOS_WATCH(tolerance)
-    // KRATOS_WATCH(tolerance)
 }
 
 /***********************************************************************************/
@@ -403,7 +395,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
     const Vector& r_total_parallel_strain_vector = prod(trans(rParallelProjector), rStrainVector);
     const Vector& r_total_serial_strain_vector   = prod(rSerialProjector, rStrainVector);
-    // KRATOS_WATCH(rStrainVectorMatrix)
+
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
     rStrainVectorMatrix = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
     rStrainVectorFiber  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
