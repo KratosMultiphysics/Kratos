@@ -8,7 +8,7 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  collaborators:   Vicente Mataix
+//  Collaborators:   Vicente Mataix
 //
 //
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
