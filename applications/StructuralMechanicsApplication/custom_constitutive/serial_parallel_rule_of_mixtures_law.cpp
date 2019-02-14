@@ -936,6 +936,30 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
 		return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
+        const int voigt_size = this->GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, rParameterValues.GetMaterialProperties(),
+                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
+                                              matrix_strain_vector, fiber_strain_vector);
+        rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
+        return rValue;
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
+        const int voigt_size = this->GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, rParameterValues.GetMaterialProperties(),
+                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
+                                              matrix_strain_vector, fiber_strain_vector);
+        rValue = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
+        return rValue;
     } else {
         Matrix aux_value;
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
