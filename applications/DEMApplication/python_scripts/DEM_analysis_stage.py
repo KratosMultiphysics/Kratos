@@ -111,7 +111,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.step_count = 0
         self.p_count = self.p_frequency
 
-        self.solver = self._GetSolver()
+        self._solver = self._GetSolver()
         self.SetDt()
         self.SetFinalTime()
         self.AddVariables()
@@ -170,7 +170,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
 
     def SetDt(self):
-        self.solver.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
+        self._solver.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
@@ -278,7 +278,7 @@ class DEMAnalysisStage(AnalysisStage):
     #                                                  self.procedures)
 
     def AddVariables(self):
-        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
+        self.procedures.AddAllVariablesInAllModelParts(self._solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
 
     def FillAnalyticSubModelParts(self):
         if not self.spheres_model_part.HasSubModelPart("AnalyticParticlesPart"):
@@ -338,7 +338,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(self.DEM_parameters, self.spheres_model_part, self.cluster_model_part, self.graphs_path, "EnergyPlot.grf")
 
-        self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
+        self.materialTest.Initialize(self.DEM_parameters, self.procedures, self._solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
         self.KRATOSprint("Initialization Complete")
 
@@ -348,7 +348,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
-        self.report.total_steps_expected = int(self.end_time / self.solver.dt)
+        self.report.total_steps_expected = int(self.end_time / self._solver.dt)
 
         super(DEMAnalysisStage, self).Initialize()
 
@@ -361,18 +361,18 @@ class DEMAnalysisStage(AnalysisStage):
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def AddAllDofs(self):
-        self.solver.AddDofs(self.spheres_model_part)
-        self.solver.AddDofs(self.cluster_model_part)
-        self.solver.AddDofs(self.DEM_inlet_model_part)
+        self._solver.AddDofs(self.spheres_model_part)
+        self._solver.AddDofs(self.cluster_model_part)
+        self._solver.AddDofs(self.DEM_inlet_model_part)
 
     def SetSearchStrategy(self):
-        self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
+        self._solver.search_strategy = self.parallelutils.GetSearchStrategy(self._solver, self.spheres_model_part)
 
     def SolverBeforeInitialize(self):
-        self.solver.BeforeInitialize()
+        self._solver.BeforeInitialize()
 
     def SolverInitialize(self):
-        self.solver.Initialize() # Possible modifications of number of elements and number of nodes
+        self._solver.Initialize() # Possible modifications of number of elements and number of nodes
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.mdpas_folder_path, self.DEM_parameters["problem_name"].GetString())
@@ -464,7 +464,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.solver.dt
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._solver.dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
@@ -474,20 +474,20 @@ class DEMAnalysisStage(AnalysisStage):
 
     # TODO: deprecated
     def UpdateTimeInModelParts(self):
-        self.solver._UpdateTimeInModelParts(self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
+        self._solver._UpdateTimeInModelParts(self.time, self._solver.dt, self.step, self.IsTimeToPrintPostProcess())
 
     # TODO: deprecated
     def UpdateTimeInOneModelPart(self):
         pass
 
     def SolverSolve(self):
-        self.solver.SolveSolutionStep()
+        self._solver.SolveSolutionStep()
 
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
             self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
-            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
+            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._solver.continuum_type)
 
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
@@ -590,7 +590,7 @@ class DEMAnalysisStage(AnalysisStage):
         del self.procedures
         del self.creator_destructor
         del self.dem_fem_search
-        del self.solver
+        del self._solver
         del self.DEMFEMProcedures
         del self.post_utils
         self.__SafeDeleteModelParts()
@@ -614,7 +614,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
-        if self.solver.poisson_ratio_option:
+        if self._solver.poisson_ratio_option:
             self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, self.DEM_parameters, "Poisson_ratio.txt", time)
 
         if self.DEM_parameters["PostEulerAngles"].GetBool():
@@ -623,9 +623,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
 
         self.demio.PrintMultifileLists(time, self.post_path)
-        self.solver.PrepareElementsForPrinting()
+        self._solver.PrepareElementsForPrinting()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
-            self.solver.PrepareContactElementsForPrinting()
+            self._solver.PrepareContactElementsForPrinting()
 
         self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
         if "post_vtk_option" in self.DEM_parameters.keys():
@@ -647,7 +647,7 @@ class DEMAnalysisStage(AnalysisStage):
     def UpdateTimeParameters(self):
         self.InitializeSolutionStep()
         self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self._solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
         ##### adding DEM elements by the inlet ######
@@ -670,15 +670,15 @@ class DEMAnalysisStage(AnalysisStage):
         self.BeforePrintingOperations(self.time)
         #### GiD IO ##########################################
         time_to_print = self.time - self.time_old_print
-        if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.solver.dt:
+        if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._solver.dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)
 
-    def _GetSolver(self):    # TODO (why not) use parent GetSolver method instead.
-        if not hasattr(self, 'solver'):
-            self.solver = self._CreateSolver()
-        return self.solver
+    # def _GetSolver(self):    # TODO (why not) use parent GetSolver method instead.
+    #     if not hasattr(self, 'solver'):
+    #         self.solver = self._CreateSolver()
+    #     return self.solver
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
