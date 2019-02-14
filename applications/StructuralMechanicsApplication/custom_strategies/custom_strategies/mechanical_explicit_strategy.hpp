@@ -21,6 +21,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/constraint_utilities.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -68,9 +69,9 @@ public:
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-    // Dense system definition
-    typedef typename TDenseSpace::MatrixType DenseMatrixType;
-    typedef typename TDenseSpace::VectorType DenseVectorType;
+    /// DoF types definition
+    typedef typename Node<3>::DofType DofType;
+    typedef typename DofType::Pointer DofPointerType;
 
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
@@ -197,7 +198,7 @@ public:
     {
         return mReformDofSetAtEachStep;
     }
-
+//
     /**
      * @brief Initialization of member variables and prior operations
      */
@@ -496,83 +497,11 @@ private:
         ModelPart& rModelPart
         )
     {
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // First we reset the slave dofs
+        ConstraintUtilities::ResetSlaveDofs(rModelPart);
 
-        // Contributions to the system
-        DenseMatrixType transformation_matrix = DenseMatrixType(0, 0);
-        DenseVectorType constant_vector = DenseVectorType(0);
-
-        // Vector of dofs values
-        Vector slave_dofs_values, master_dofs_values;
-
-        // Vector containing the localization in the system of the different terms
-        typename MasterSlaveConstraint::DofPointerVectorType slave_equation_dofs, master_equation_dofs;
-
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-        // Setting to zero the slave dofs
-        #pragma omp parallel firstprivate(slave_equation_dofs)
-        {
-            #pragma omp for schedule(guided, 512)
-            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
-                    slave_equation_dofs = it_const->GetSlaveDofsVector();
-
-                    for (IndexType i = 0; i < slave_equation_dofs.size(); ++i) {
-                        #pragma omp critical
-                        slave_equation_dofs[i]->GetSolutionStepValue() = 0.0;
-                    }
-                }
-            }
-        }
-
-        // Adding MPC contribution
-        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_dofs, master_equation_dofs)
-        {
-            #pragma omp for schedule(guided, 512)
-            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
-                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                    slave_equation_dofs = it_const->GetSlaveDofsVector();
-                    master_equation_dofs = it_const->GetMasterDofsVector();
-
-                    // Resizing if needed
-                    if (slave_dofs_values.size() != slave_equation_dofs.size())
-                        slave_dofs_values.resize(slave_equation_dofs.size());
-
-                    if (master_dofs_values.size() != master_equation_dofs.size())
-                        master_dofs_values.resize(master_equation_dofs.size());
-
-                    for (IndexType i = 0; i < master_equation_dofs.size(); ++i) {
-                        master_dofs_values[i] = master_equation_dofs[i]->GetSolutionStepValue();
-                    }
-
-                    noalias(slave_dofs_values) = prod(transformation_matrix, master_dofs_values) + constant_vector;
-
-                    for (IndexType i = 0; i < slave_equation_dofs.size(); ++i) {
-                        #pragma omp atomic
-                        slave_equation_dofs[i]->GetSolutionStepValue() += slave_dofs_values[i];
-                    }
-                }
-            }
-        }
+        // Now we apply the constraints
+        ConstraintUtilities::ApplyConstraints(rModelPart);
     }
 
     /**
@@ -664,10 +593,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * @brief The pointer to the integration scheme
-     */
-    typename TSchemeType::Pointer mpScheme;
+    typename TSchemeType::Pointer mpScheme; /// The pointer to the integration scheme
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
