@@ -17,6 +17,7 @@
 
 
 // Project includes
+#include "utilities/constraint_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -106,7 +107,7 @@ namespace Kratos
             {
                 label = GetLabel(j, eigenvalue_vector[j]);
 
-                for(auto& r_node : mrModelPart.Nodes())
+                for (auto& r_node : mrModelPart.Nodes())
                 {
                     // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
                     DofsContainerType& r_node_dofs = r_node.GetDofs();
@@ -118,6 +119,14 @@ namespace Kratos
                     SizeType k = 0;
                     for (auto& r_dof : r_node_dofs)
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
+                }     // We compute the MPC contributions
+
+                if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
+                    // First we reset the slave dofs
+                    ConstraintUtilities::ResetSlaveDofs(mrModelPart);
+
+                    // Now we apply the constraints
+                    ConstraintUtilities::ApplyConstraints(mrModelPart);
                 }
 
                 for (const auto& variable : requested_double_results) {
