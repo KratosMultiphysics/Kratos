@@ -7,8 +7,8 @@ import KratosMultiphysics
 from simulation_definition import SimulationScenario
 
 # Import Monte Carlo library
-import mc_utilities_new_analysis as mc
-import cmlmc_utilities_new_analysis as mlmc
+import mc_utilities as mc
+import cmlmc_utilities as mlmc
 
 
 if __name__ == '__main__':
