@@ -391,20 +391,40 @@ class ExplicitStrategy(object):
     def AddClusterVariables(self, spheres_model_part, DEM_parameters):
         pass
 
-    def AddDofs(self, spheres_model_part=None):
+    # def AddDofs(self, spheres_model_part=None):
 
-        if spheres_model_part == None:
-            pass
-        else:
-            for node in spheres_model_part.Nodes:
-                node.AddDof(VELOCITY_X)
-                node.AddDof(VELOCITY_Y)
-                node.AddDof(VELOCITY_Z)
-                node.AddDof(ANGULAR_VELOCITY_X)
-                node.AddDof(ANGULAR_VELOCITY_Y)
-                node.AddDof(ANGULAR_VELOCITY_Z)
+    #     if spheres_model_part == None:
+    #         pass
+    #     else:
+    #         for node in spheres_model_part.Nodes:
+    #             node.AddDof(VELOCITY_X)
+    #             node.AddDof(VELOCITY_Y)
+    #             node.AddDof(VELOCITY_Z)
+    #             node.AddDof(ANGULAR_VELOCITY_X)
+    #             node.AddDof(ANGULAR_VELOCITY_Y)
+    #             node.AddDof(ANGULAR_VELOCITY_Z)
+
+    #         Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+
+    def AddDofs(self):
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+
+        model_part_list = [spheres_model_part, cluster_model_part, DEM_inlet_model_part]
+        for model_part in model_part_list:
+
+            for node in model_part.Nodes:
+                    node.AddDof(VELOCITY_X)
+                    node.AddDof(VELOCITY_Y)
+                    node.AddDof(VELOCITY_Z)
+                    node.AddDof(ANGULAR_VELOCITY_X)
+                    node.AddDof(ANGULAR_VELOCITY_Y)
+                    node.AddDof(ANGULAR_VELOCITY_Z)
 
             Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+
+
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()

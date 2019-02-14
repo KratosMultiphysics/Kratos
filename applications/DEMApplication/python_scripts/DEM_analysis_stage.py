@@ -313,7 +313,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
-        self.AddAllDofs()
+        # self.AddAllDofs()
 
         self.KRATOSprint("Initializing Problem...")
 
@@ -360,10 +360,10 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KRATOSprint(self.report.BeginReport(timer))
 
-    def AddAllDofs(self):
-        self._solver.AddDofs(self.spheres_model_part)
-        self._solver.AddDofs(self.cluster_model_part)
-        self._solver.AddDofs(self.DEM_inlet_model_part)
+    # def AddAllDofs(self):
+    #     self._solver.AddDofs(self.spheres_model_part)
+    #     self._solver.AddDofs(self.cluster_model_part)
+    #     self._solver.AddDofs(self.DEM_inlet_model_part)
 
     def SetSearchStrategy(self):
         self._solver.search_strategy = self.parallelutils.GetSearchStrategy(self._solver, self.spheres_model_part)
