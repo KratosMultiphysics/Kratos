@@ -434,7 +434,7 @@ public:
                 }
             }
         
-            if(kutta_element)
+            if(this->Is(THERMAL) || this->Is(STRUCTURE))
             {
 
                 for(unsigned int i=0; i<NumNodes; ++i)
