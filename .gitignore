@@ -11,6 +11,7 @@ cmake_build/*
 packaging/*
 packaging_aux/KratosLoader.py
 packaging_aux/kratos.conf
+kratos/python_interface/KratosPaths.py
 
 # Compile and install directories
 KratosMultiphysics/*
