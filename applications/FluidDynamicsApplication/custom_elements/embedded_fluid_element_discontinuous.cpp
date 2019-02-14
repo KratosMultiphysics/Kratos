@@ -131,8 +131,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         }
 
         // Recall to swap the boundary term signs because of the interface equilibrium (Neumann) imposition
-        rLeftHandSideMatrix -= aux_LHS;
-        rRightHandSideVector -= aux_RHS;
+        rLeftHandSideMatrix += aux_LHS;
+        rRightHandSideVector += aux_RHS;
 
         // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
