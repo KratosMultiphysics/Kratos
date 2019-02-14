@@ -161,7 +161,7 @@ public:
         BaseType::Check(rModelPart);
 
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size for Central Difference Scheme. It has to be > 2" << std::endl;
-        
+
         KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined on ProcessInfo. Please define" << std::endl;
 
         return 0;
@@ -457,7 +457,7 @@ public:
         else
             noalias(r_current_acceleration) = ZeroVector(3);
 
-        bool fix_displacements[3] = {false, false, false};
+        std::array<bool, 3> fix_displacements = {false, false, false};
 
         fix_displacements[0] = ((itCurrentNode)->pGetDof(DISPLACEMENT_X))->IsFixed();
         fix_displacements[1] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Y))->IsFixed();
@@ -503,7 +503,7 @@ public:
                 r_current_angular_acceleration[kk] = 0.0;
         }
 
-        bool fix_rotation[3] = {false, false, false};
+        std::array<bool, 3> fix_rotation = {false, false, false};
         if (DomainSize == 3) {
             fix_rotation[0] = ((itCurrentNode)->pGetDof(ROTATION_X))->IsFixed();
             fix_rotation[1] = ((itCurrentNode)->pGetDof(ROTATION_Y))->IsFixed();
@@ -566,7 +566,7 @@ public:
                 r_current_acceleration = zero_array;
             }
 
-            bool fix_displacements[3] = {false, false, false};
+            std::array<bool, 3> fix_displacements = {false, false, false};
 
             fix_displacements[0] = (it_node->pGetDof(DISPLACEMENT_X))->IsFixed();
             fix_displacements[1] = (it_node->pGetDof(DISPLACEMENT_Y))->IsFixed();
@@ -603,7 +603,7 @@ public:
                     }
                 }
 
-                bool fix_rotation[3] = {false, false, false};
+                std::array<bool, 3> fix_rotation = {false, false, false};
                 if (DomainSize == 3) {
                     fix_rotation[0] = (it_node->pGetDof(ROTATION_X))->IsFixed();
                     fix_rotation[1] = (it_node->pGetDof(ROTATION_Y))->IsFixed();
