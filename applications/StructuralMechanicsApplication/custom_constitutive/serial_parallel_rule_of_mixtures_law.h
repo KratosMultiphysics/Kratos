@@ -272,8 +272,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     void IntegrateStressesOfFiberAndMatrix(
         ConstitutiveLaw::Parameters& rValues,
-        const Vector& rMatrixStrainVector,
-        const Vector& rFiberStrainVector,
+        Vector rMatrixStrainVector,
+        Vector rFiberStrainVector,
         Vector& rMatrixStressVector,
         Vector& rFiberStressVector);
 

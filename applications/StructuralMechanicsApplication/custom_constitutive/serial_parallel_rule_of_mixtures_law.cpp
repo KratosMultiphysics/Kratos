@@ -161,16 +161,14 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Matrix parallel_projector, serial_projector;
     this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
-    Vector matrix_strain_vector, fiber_strain_vector;
-    matrix_strain_vector.resize(voigt_size);
-    fiber_strain_vector.resize(voigt_size);
+    Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
 
     bool is_converged = false;
-    int iteration = 0, max_iterations = 100;
-    Vector parallel_strain_matrix, stress_residual;
+    int iteration = 0, max_iterations = 150;
+    Vector parallel_strain_matrix, stress_residual(rSerialStrainMatrix.size());
 	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
 
-    // Iterative procedure unitl the equilibrium is reached in the serial stresses
+    // Iterative procedure until the equilibrium is reached in the serial stresses
     while (is_converged == false && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: serial_strain_matrix
@@ -182,6 +180,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
         // This method computes the strain vector for the matrix & fiber
         this->CalculateStrainsOnEachComponent(rStrainVector, rMaterialProperties, parallel_projector, serial_projector, 
                                               rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+
         // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
 
@@ -197,7 +196,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
             iteration++;
         }
     }
-    KRATOS_WARNING_IF("MaxIteration in SP-RoM", iteration > max_iterations);
+    KRATOS_WARNING_IF("Maximum number of interations inside the Serial-Parallel algorithm", iteration > max_iterations);
 }
 
 /***********************************************************************************/
@@ -211,8 +210,8 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 {
 	auto& r_material_properties = rValues.GetMaterialProperties();
 	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-	const auto props_matrix_cl = *(it_cl_begin);
-	const auto props_fiber_cl = *(it_cl_begin + 1);
+	const auto& r_props_matrix_cl = *(it_cl_begin);
+	const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -234,12 +233,12 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     Matrix fiber_tangent_tensor_ss, matrix_tangent_tensor_ss;
 
     // Compute the tangent tensor of the matrix
-    values_matrix.SetMaterialProperties(props_matrix_cl);
+    values_matrix.SetMaterialProperties(r_props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     matrix_tangent_tensor = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
-    values_fiber.SetMaterialProperties(props_fiber_cl);
+    values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     fiber_tangent_tensor = values_fiber.GetConstitutiveMatrix();
 
@@ -284,49 +283,56 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
 
     // Here we compute the tolerance
     double tolerance;
-    if (ref <= 0.0) {
+    if (ref <= machine_tolerance) {
         const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, r_serial_total_strain));
         const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, r_serial_total_strain));
         ref = std::min(norm_product_matrix, norm_product_fiber);
     }
-    if (ref < machine_tolerance) ref = 1e-9;
-    tolerance = 1e-4 * ref;
+    // KRATOS_WATCH(ref)
+    if (ref < 1e-9) tolerance = 1e-9;
+    else tolerance = 1e-4 * ref;
+    
 
     rStressSerialResidual = r_serial_stress_matrix - r_serial_stress_fiber;
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
+
+    // KRATOS_WATCH(rStressSerialResidual)
+    // KRATOS_WATCH(r_serial_stress_matrix)
+    // KRATOS_WATCH(r_serial_stress_fiber)
+    // KRATOS_WATCH(norm_residual)
+    // KRATOS_WATCH(tolerance)
+    // KRATOS_WATCH(tolerance)
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     ConstitutiveLaw::Parameters& rValues,
-    const Vector& rMatrixStrainVector,
-    const Vector& rFiberStrainVector,
+    Vector rMatrixStrainVector,
+    Vector rFiberStrainVector,
     Vector& rMatrixStressVector,
     Vector& rFiberStressVector
 )
 {
 	auto& r_material_properties = rValues.GetMaterialProperties();
 	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-	const auto props_matrix_cl = *(it_cl_begin);
-	const auto props_fiber_cl = *(it_cl_begin + 1);
-
+	const auto& r_props_matrix_cl = *(it_cl_begin);
+	const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+    
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
-    
-    Vector& r_strain_fiber = values_fiber.GetStrainVector();
-    Vector& r_strain_matrix = values_matrix.GetStrainVector();
-    r_strain_fiber  = rFiberStrainVector;
-    r_strain_matrix = rMatrixStrainVector;
+
+    values_fiber.SetStrainVector(rFiberStrainVector);
+    values_matrix.SetStrainVector(rMatrixStrainVector);
 
     // Integrate Stress of the matrix
-	values_matrix.SetMaterialProperties(props_matrix_cl);
+	values_matrix.SetMaterialProperties(r_props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
     rMatrixStressVector = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
-	values_fiber.SetMaterialProperties(props_fiber_cl);
+	values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     rFiberStressVector = values_fiber.GetStressVector();
 }
@@ -351,16 +357,16 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const Vector& r_total_strain_increment_serial = r_total_strain_vector_serial - prod(rSerialProjector, rPreviousStrainVector);
     const Vector& r_total_strain_increment_parallel = r_total_strain_vector_parallel - prod(trans(rParallelProjector), rPreviousStrainVector);
 
-    const double fiber_vol_participation = mFiberVolumetricParticipation;
-    const double matrix_vol_participation = 1.0 - mFiberVolumetricParticipation;
-    Matrix constitutive_tensor_matrix, constitutive_tensor_fiber;
+    const double k_f = mFiberVolumetricParticipation;
+    const double k_m = 1.0 - mFiberVolumetricParticipation;
+    Matrix constitutive_tensor_matrix(voigt_size, voigt_size), constitutive_tensor_fiber(voigt_size, voigt_size);
 
 	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-	const auto props_matrix_cl = *(it_cl_begin);
-    const auto props_fiber_cl  = *(it_cl_begin + 1);
+	const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
 
-    this->CalculateElasticMatrix(constitutive_tensor_matrix, props_matrix_cl);
-    this->CalculateElasticMatrix(constitutive_tensor_fiber, props_fiber_cl);
+    this->CalculateElasticMatrix(constitutive_tensor_matrix, r_props_matrix_cl);
+    this->CalculateElasticMatrix(constitutive_tensor_fiber, r_props_fiber_cl);
 
     rConstitutiveTensorMatrixSS = prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, trans(rSerialProjector))));
     rConstitutiveTensorFiberSS  = prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, trans(rSerialProjector))));
@@ -369,13 +375,13 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const Matrix& r_constitutive_tensor_fiber_sp  = trans(prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, rParallelProjector))));
 
     Matrix A, aux;
-    aux = matrix_vol_participation * rConstitutiveTensorFiberSS + fiber_vol_participation * rConstitutiveTensorMatrixSS;
+    aux = k_m * rConstitutiveTensorFiberSS + k_f * rConstitutiveTensorMatrixSS;
     double det_aux = 0.0;
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
-    Vector auxiliar;
+    Vector auxiliar(rInitialApproximationSerialStrainMatrix.size());
     auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) +
-        fiber_vol_participation * prod(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp), r_total_strain_increment_parallel);
+        k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
 
     noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
 }
@@ -397,7 +403,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
     const Vector& r_total_parallel_strain_vector = prod(trans(rParallelProjector), rStrainVector);
     const Vector& r_total_serial_strain_vector   = prod(rSerialProjector, rStrainVector);
-
+    // KRATOS_WATCH(rStrainVectorMatrix)
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
     rStrainVectorMatrix = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
     rStrainVectorFiber  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
@@ -717,14 +723,14 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     const Vector& rShapeFunctionsValues)
 {
 	const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-	const auto props_matrix_cl = *(it_cl_begin);
-    const auto props_fiber_cl  = *(it_cl_begin + 1);
+	const auto r_props_matrix_cl = *(it_cl_begin);
+    const auto r_props_fiber_cl  = *(it_cl_begin + 1);
 
-    KRATOS_ERROR_IF_NOT(props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    KRATOS_ERROR_IF_NOT(props_fiber_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props_matrix_cl.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props_fiber_cl.Has(CONSTITUTIVE_LAW))  << "No constitutive law set" << std::endl;
 
-    mpMatrixConstitutiveLaw = props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
-    mpFiberConstitutiveLaw  = props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
+    mpMatrixConstitutiveLaw = r_props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
+    mpFiberConstitutiveLaw  = r_props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
     mpMatrixConstitutiveLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
     mpFiberConstitutiveLaw ->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
