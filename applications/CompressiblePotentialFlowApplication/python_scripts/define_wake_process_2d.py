@@ -53,8 +53,24 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         )]
 
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
-            "trailing_edge_model_part")
+        if self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
+            self.fluid_model_part.RemoveSubModelPart("trailing_edge_model_part")
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
+                "trailing_edge_model_part")
+        else:
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
+                "trailing_edge_model_part")
+
+        for elem in self.fluid_model_part.Elements:
+            for node in elem.GetNodes():
+                node.Set(KratosMultiphysics.STRUCTURE,False)
+            if elem.Is(KratosMultiphysics.MARKER):
+                elem.Set(KratosMultiphysics.MARKER,False)
+            if elem.Is(KratosMultiphysics.STRUCTURE):
+                elem.Set(KratosMultiphysics.STRUCTURE,False)
+            if elem.Is(KratosMultiphysics.THERMAL):
+                elem.Set(KratosMultiphysics.THERMAL,False)
+
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -68,6 +84,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         nodal_neighbour_search.Execute()
 
     def ExecuteInitialize(self):
+        print("Executing wake process")
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
