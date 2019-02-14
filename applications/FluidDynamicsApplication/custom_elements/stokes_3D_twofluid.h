@@ -371,6 +371,38 @@ public:
                 Output = 0.5*inner_prod(data.stress, strain);
             }
         }
+        else if(rVariable == EQ_STRAIN_RATE) //compute effective strain rate
+        {
+                Output = mp_constitutive_law->GetValue(rVariable, Output);
+                // std::cout <<"StrainRate: "<<Output <<std::endl;
+                return;          
+        } 
+        else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
+        {
+            const unsigned int NumNodes = 4;
+            const unsigned int Dim = 3;
+            const unsigned int strain_size = 6;
+            
+            
+             double distance_center = 0.0;
+            for(unsigned int i=0; i<GetGeometry().size(); i++)
+                distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+            distance_center/=static_cast<double>(GetGeometry().size());
+            
+            const double air_nu = GetProperties()[DYNAMIC_VISCOSITY]; //ATTENTION: not using here the real visosity of air
+            
+            if(distance_center > 0) //AIR 
+            {
+                Output=air_nu;
+            }
+            else //OTHER MATERIAL
+            {
+                Output = mp_constitutive_law->GetValue(rVariable, Output);
+                //std::cout <<"Viscosity: "<< Output <<std::endl; 
+                return;
+            }         
+                        
+        }
 
         KRATOS_CATCH("")
     }
