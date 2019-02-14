@@ -48,7 +48,12 @@ install(TARGETS KratosMPI DESTINATION libs)
 # Install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
 
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos/mpi
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+    )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
