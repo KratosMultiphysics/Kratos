@@ -52,13 +52,13 @@ namespace ConstraintUtilities
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve
      */
-    void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ResetSlaveDofs(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) ResetSlaveDofs(ModelPart& rModelPart);
 
     /**
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve
      */
-    void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyConstraints(ModelPart& rModelPart);
+    void KRATOS_API(KRATOS_CORE) ApplyConstraints(ModelPart& rModelPart);
 
 }; // namespace ConstraintUtilities
 }  // namespace Kratos
