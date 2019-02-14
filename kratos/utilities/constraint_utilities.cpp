@@ -45,7 +45,7 @@ void ResetSlaveDofs(ModelPart& rModelPart)
                 constraint_is_active = it_const->Is(ACTIVE);
 
             if (constraint_is_active) {
-                it_const->ResetSlave(r_current_process_info);
+                it_const->ResetSlaveDofs(r_current_process_info);
             }
         }
     }
