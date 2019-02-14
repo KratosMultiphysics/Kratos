@@ -64,7 +64,7 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         ### Send displacement from coupling_mp to mp
         for coupling_node in self.coupling_model_part.Nodes:
             coupling_id  = coupling_node.Id
-            displacement = coupling_node.GetValue(KratosMultiphysics.DISPLACEMENT)
+            displacement = coupling_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
             self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_DISPLACEMENT,displacement)
 
 
@@ -73,8 +73,8 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         for mpc in self.model_part.Conditions:
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
-                contact_force = -1.0 * mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
-                self.coupling_model_part.GetNode(coupling_id).SetValue(KratosMultiphysics.CONTACT_FORCE,contact_force)
+                contact_force = mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
+                self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,contact_force)
 
 
     # Local functions
