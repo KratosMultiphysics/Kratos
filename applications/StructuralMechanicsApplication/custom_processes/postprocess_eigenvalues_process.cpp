@@ -122,10 +122,7 @@ namespace Kratos
                 }     // We compute the MPC contributions
 
                 if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                    // First we reset the slave dofs
                     ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-
-                    // Now we apply the constraints
                     ConstraintUtilities::ApplyConstraints(mrModelPart);
                 }
 
