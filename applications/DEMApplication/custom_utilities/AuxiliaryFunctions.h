@@ -261,7 +261,7 @@ namespace Kratos {
             outputfileYZ.close();
         }
 
-        static inline Vector EigenValuesDirectMethod(const Matrix& A) {
+        static inline Vector EigenValuesDirectMethod(const BoundedMatrix<double, 3, 3>& A) {
             // Given a real symmetric 3x3 matrix A, compute the eigenvalues
             const int dim= A.size1();
             Vector Result=ZeroVector(dim);
@@ -278,7 +278,7 @@ namespace Kratos {
             const double p2 = (A(0,0) - q) * (A(0,0) - q) + (A(1,1) - q) * (A(1,1) - q) + (A(2,2) - q) * (A(2,2) - q) + 2.0 * p1;
             const double p = sqrt(0.16666666666666666666666667 * p2);
 
-            Matrix B(3,3);
+            BoundedMatrix<double, 3, 3> B;
             const double inv_p = 1.0/p;
 
             // B = (1 / p) * (A - q * I)  where  I is the identity matrix

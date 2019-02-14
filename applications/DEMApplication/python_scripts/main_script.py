@@ -32,8 +32,11 @@ class Solution(object):
 
     def GetInputParameters(self):
         parameters_file_name = self.GetParametersFileName()
-        parameters_file = open(parameters_file_name, 'r')
-        return Parameters(parameters_file.read())
+        #parameters_file = open(parameters_file_name, 'r')
+        with open(parameters_file_name,'r') as parameter_file:
+            project_parameters = Parameters(parameter_file.read())
+
+        return project_parameters
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()

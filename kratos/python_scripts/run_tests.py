@@ -286,7 +286,7 @@ def main():
             commander.RunTestSuitInTime(
                 application,
                 application,
-                KtsMp.KratosLoader.kratos_applications+'/',
+                KtsMp.KratosPaths.kratos_applications+'/',
                 level,
                 verbosity,
                 cmd,

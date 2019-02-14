@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os.path
+import sys
 from . import kratos_globals
 
-# this adds the libs/ and applications/ folders to sys.path
-from . import KratosLoader
+from . import KratosPaths
+sys.path.append(KratosPaths.kratos_libs)
 
 # import core library (Kratos.so)
 from Kratos import *
@@ -15,7 +16,6 @@ def __ModuleInitDetail():
     and the parallel DataCommunicator are initialized when the Kernel is built.
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
-    import sys
     if "--using-mpi" in sys.argv[1:]:
         try:
             import KratosMultiphysics.mpi
@@ -31,10 +31,13 @@ def __ModuleInitDetail():
 __ModuleInitDetail()
 
 KratosGlobals = kratos_globals.KratosGlobalsImpl(
-    Kernel(), KratosLoader.kratos_applications)
+    Kernel(), KratosPaths.kratos_applications)
 
 # adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
-__path__.append(KratosLoader.kratos_scripts)
+__path__.append(KratosPaths.kratos_scripts)
+# To be purely pythonic, the following line should be removed
+# and all imports of files in python_scrips should be made relative to the KratosMultiphysics module.
+sys.path.append(KratosPaths.kratos_scripts)
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel

@@ -275,17 +275,17 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            DenseVector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
-            std::vector<array_1d<double, 3> > TempNeighbourElasticContactForces;
-            std::vector<SphericParticle*> TempNeighbourElements;
+            DenseVector<int> temp_neighbours_ids; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+            std::vector<array_1d<double, 3> > temp_neighbour_elastic_contact_forces;
+            std::vector<SphericParticle*> temp_neighbour_elements;
 
             const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(TempNeighbourElements);
+                mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(temp_neighbour_elements);
                 mListOfSphericContinuumParticles[i]->UpdateContinuumNeighboursVector(r_process_info);
-                mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(TempNeighboursIds, TempNeighbourElasticContactForces);
+                mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
 
@@ -725,7 +725,7 @@ namespace Kratos {
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         Vector rhs_cond;
-        DenseVector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
         #pragma omp parallel for private (rhs_cond)
