@@ -15,7 +15,7 @@ from simulation_definition import SimulationScenario
 from auxiliary_classes_utilities import StatisticalVariable
 
 # Import random variable generator
-import generator as generator
+import generator_utilities as generator
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss

@@ -18,7 +18,7 @@ from auxiliary_classes_utilities import StatisticalVariable
 import adaptive_refinement_utilities as refinement
 
 # Import random variable generator
-import generator as generator
+import generator_utilities as generator
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
