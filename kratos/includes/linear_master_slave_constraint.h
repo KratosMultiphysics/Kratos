@@ -393,9 +393,9 @@ public:
      */
     void ResetSlave(const ProcessInfo& rCurrentProcessInfo) override
     {
-        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
             #pragma omp atomic
-            mMasterDofsVector[i]->GetSolutionStepValue() *= 0.0;
+            mSlaveDofsVector[i]->GetSolutionStepValue() *= 0.0;
         }
     }
 
