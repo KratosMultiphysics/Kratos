@@ -441,15 +441,15 @@ public:
         const SizeType DomainSize = 3
         )
     {
-        const double nodal_mass = (itCurrentNode)->GetValue(NODAL_MASS);
-        const double nodal_displacement_damping = (itCurrentNode)->GetValue(NODAL_DISPLACEMENT_DAMPING);
-        const array_1d<double, 3>& r_current_residual = (itCurrentNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
+        const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
+        const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-        array_1d<double, 3>& r_current_velocity = (itCurrentNode)->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& r_current_displacement = (itCurrentNode)->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_middle_velocity = (itCurrentNode)->GetValue(MIDDLE_VELOCITY);
+        array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3>& r_middle_velocity = itCurrentNode->GetValue(MIDDLE_VELOCITY);
 
-        array_1d<double, 3>& r_current_acceleration = (itCurrentNode)->FastGetSolutionStepValue(ACCELERATION);
+        array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
 
         // Solution of the explicit equation:
         if (nodal_mass > numerical_limit)
@@ -459,10 +459,11 @@ public:
 
         std::array<bool, 3> fix_displacements = {false, false, false};
 
-        fix_displacements[0] = ((itCurrentNode)->pGetDof(DISPLACEMENT_X))->IsFixed();
-        fix_displacements[1] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Y))->IsFixed();
+        const IndexType disppos = itCurrentNode->GetDofPosition(DISPLACEMENT_X);
+        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, disppos).IsFixed());
+        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
         if (DomainSize == 3)
-            fix_displacements[2] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Z))->IsFixed();
+            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
 
         for (IndexType j = 0; j < DomainSize; j++) {
             if (fix_displacements[j]) {
@@ -487,13 +488,13 @@ public:
         )
     {
         ////// ROTATION DEGRESS OF FREEDOM
-        const array_1d<double, 3>& nodal_inertia = (itCurrentNode)->GetValue(NODAL_INERTIA);
-        const array_1d<double, 3>& nodal_rotational_damping = (itCurrentNode)->GetValue(NODAL_ROTATION_DAMPING);
-        const array_1d<double, 3>& r_current_residual_moment = (itCurrentNode)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-        array_1d<double, 3>& r_current_angular_velocity = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3>& r_current_rotation = (itCurrentNode)->FastGetSolutionStepValue(ROTATION);
-        array_1d<double, 3>& r_middle_angular_velocity = (itCurrentNode)->GetValue(MIDDLE_ANGULAR_VELOCITY);
-        array_1d<double, 3>& r_current_angular_acceleration = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+        const array_1d<double, 3>& nodal_inertia = itCurrentNode->GetValue(NODAL_INERTIA);
+        const array_1d<double, 3>& nodal_rotational_damping = itCurrentNode->GetValue(NODAL_ROTATION_DAMPING);
+        const array_1d<double, 3>& r_current_residual_moment = itCurrentNode->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+        array_1d<double, 3>& r_current_angular_velocity = itCurrentNode->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3>& r_current_rotation = itCurrentNode->FastGetSolutionStepValue(ROTATION);
+        array_1d<double, 3>& r_middle_angular_velocity = itCurrentNode->GetValue(MIDDLE_ANGULAR_VELOCITY);
+        array_1d<double, 3>& r_current_angular_acceleration = itCurrentNode->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
         const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
         for (IndexType kk = initial_k; kk < 3; ++kk) {
@@ -504,11 +505,12 @@ public:
         }
 
         std::array<bool, 3> fix_rotation = {false, false, false};
+        const IndexType rotppos = itCurrentNode->GetDofPosition(ROTATION_X);
         if (DomainSize == 3) {
-            fix_rotation[0] = ((itCurrentNode)->pGetDof(ROTATION_X))->IsFixed();
-            fix_rotation[1] = ((itCurrentNode)->pGetDof(ROTATION_Y))->IsFixed();
+            fix_rotation[0] = (itCurrentNode->GetDof(ROTATION_X, rotppos).IsFixed());
+            fix_rotation[1] = (itCurrentNode->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
         }
-        fix_rotation[2] = ((itCurrentNode)->pGetDof(ROTATION_Z))->IsFixed();
+        fix_rotation[2] = (itCurrentNode->GetDof(ROTATION_Z, rotppos + 2).IsFixed());
 
         for (IndexType j = initial_k; j < 3; j++) {
             if (fix_rotation[j]) {
@@ -568,10 +570,11 @@ public:
 
             std::array<bool, 3> fix_displacements = {false, false, false};
 
-            fix_displacements[0] = (it_node->pGetDof(DISPLACEMENT_X))->IsFixed();
-            fix_displacements[1] = (it_node->pGetDof(DISPLACEMENT_Y))->IsFixed();
+            const IndexType disppos = it_node->GetDofPosition(DISPLACEMENT_X);
+            fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed());
+            fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
             if (DomainSize == 3)
-                fix_displacements[2] = (it_node->pGetDof(DISPLACEMENT_Z))->IsFixed();
+                fix_displacements[2] = (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
 
             for (IndexType j = 0; j < DomainSize; j++) {
                 if (fix_displacements[j]) {
@@ -604,11 +607,12 @@ public:
                 }
 
                 std::array<bool, 3> fix_rotation = {false, false, false};
+                const IndexType rotppos = it_node->GetDofPosition(ROTATION_X);
                 if (DomainSize == 3) {
-                    fix_rotation[0] = (it_node->pGetDof(ROTATION_X))->IsFixed();
-                    fix_rotation[1] = (it_node->pGetDof(ROTATION_Y))->IsFixed();
+                    fix_rotation[0] = (it_node->GetDof(ROTATION_X, rotppos).IsFixed());
+                    fix_rotation[1] = (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
                 }
-                fix_rotation[2] = (it_node->pGetDof(ROTATION_Z))->IsFixed();
+                fix_rotation[2] = (it_node->GetDof(ROTATION_Z, rotppos + 2).IsFixed());
 
                 for (IndexType j = initial_k; j < 3; j++) {
                     if (fix_rotation[j]) {

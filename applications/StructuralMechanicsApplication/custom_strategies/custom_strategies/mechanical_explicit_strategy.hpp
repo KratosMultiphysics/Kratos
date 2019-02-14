@@ -21,7 +21,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
-#include "custom_utilities/constraint_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos {
 ///@name Kratos Globals
