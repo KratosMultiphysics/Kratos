@@ -759,7 +759,7 @@ public:
         Vector::const_iterator j = rSecondVector.begin();
         TDataType temp = TDataType();
         while(i != rFirstVector.end()) {
-            temp += *++i * *++j;
+            temp += *i++ * *j++;
         }
         return temp;
         //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), TDataType());
@@ -790,7 +790,7 @@ public:
         TDataType temp = TDataType();
         while(i != a.end()) {
             temp += (*i) * (*i);
-            ++i;
+            i++;
         }
         return std::sqrt(temp);
     }
