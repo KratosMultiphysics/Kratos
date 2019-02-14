@@ -4,8 +4,8 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 
 # Importing the problem analysis stage class
 from  KratosMultiphysics.analysis_stage import AnalysisStage

@@ -7,8 +7,8 @@ import KratosMultiphysics
 from simulation_definition import SimulationScenario
 
 # Import Monte Carlo library
-import mc_utilities as mc
-import cmlmc_utilities as mlmc
+import KratosMultiphysics.MultilevelMonteCarloApplication.mc_utilities as mc_utilities
+import KratosMultiphysics.MultilevelMonteCarloApplication.cmlmc_utilities as cmlmc_utilities
 
 
 if __name__ == '__main__':
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     }
     """)
     '''contruct MonteCarlo or MultilevelMonteCarlo class'''
-    mc_manager = mc.MonteCarlo(settings_MC_simulation,project_parameters_path,SimulationScenario)
+    mc_manager = mc_utilities.MonteCarlo(settings_MC_simulation,project_parameters_path,SimulationScenario)
     '''execute algorithm'''
     mc_manager.Run()
 
@@ -81,5 +81,5 @@ if __name__ == '__main__':
         }
     """)
     '''contruct MultilevelMonteCarlo class'''
-    mlmc_manager = mlmc.MultilevelMonteCarlo(settings_ML_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
+    mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(settings_ML_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
     mlmc_manager.Run()
