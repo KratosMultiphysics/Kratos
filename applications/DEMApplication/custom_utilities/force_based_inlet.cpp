@@ -21,7 +21,7 @@ void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element)
     node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
     node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
     node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
-    noalias(node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = ZeroVector();
+    noalias(node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = ZeroVector(3);
 }
 
 void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* p_injector_element)

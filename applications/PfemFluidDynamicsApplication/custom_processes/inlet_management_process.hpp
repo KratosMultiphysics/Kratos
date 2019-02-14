@@ -60,8 +60,8 @@ public:
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-  typedef std::vector<Node<3>*>             NodePointerVectorType;
-  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -210,8 +210,8 @@ private:
       {
     	if(i_node->Is(INLET) ){
 
-    	  ElementPointerVectorType& neighb_elems = i_node->GetValue(NEIGHBOR_ELEMENTS);
-    	  NodePointerVectorType& rN = i_node->GetValue(NEIGHBOR_NODES);
+    	  ElementWeakPtrVectorType& neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+    	  NodeWeakPtrVectorType& rN = i_node->GetValue(NEIGHBOUR_NODES);
 
     	  if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
 

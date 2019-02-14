@@ -194,7 +194,7 @@ namespace Kratos
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
 
-	      NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      const unsigned int neighSize = neighb_nodes.size() +1 ;
 
 	      if(neighSize>1){
@@ -235,7 +235,7 @@ namespace Kratos
 
 		  for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 		    {
-		      EquationId[i+1]=neighb_nodes[i]->GetDof(PRESSURE,xpos).EquationId();
+		      EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
 		    }
 
 		}
@@ -334,10 +334,10 @@ namespace Kratos
 
 		      if(i<neighb_nodes.size()){
 		  	// i==0 of EquationIs has been already filled with the master node (that is not included in neighb_nodes)
-		      	EquationId[i+1]=neighb_nodes[i]->GetDof(PRESSURE,xpos).EquationId();
+		      	EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
 		  	// at i==0 density and volume acceleration are taken from the master node
-		      	density= neighb_nodes[i]->FastGetSolutionStepValue(DENSITY);
-		      	VolumeAcceleration = neighb_nodes[i]->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+		      	density= neighb_nodes[i].FastGetSolutionStepValue(DENSITY);
+		      	VolumeAcceleration = neighb_nodes[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 		      }
 
 		      firstRow=0;
@@ -347,7 +347,7 @@ namespace Kratos
 		      	  dNdXj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow];
 		      	  dNdYj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+1];
 		      	  if(j!=0){
-		      	    pressure=neighb_nodes[j-1]->FastGetSolutionStepValue(PRESSURE,0);
+		      	    pressure=neighb_nodes[j-1].FastGetSolutionStepValue(PRESSURE,0);
 		      	  }else{
 		      	    pressure=itNode->FastGetSolutionStepValue(PRESSURE,0);
 		      	  }
@@ -953,7 +953,7 @@ namespace Kratos
 
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
-	    NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    const unsigned int neighSize =itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size();
 	    if (EquationId.size() != neighSize)
 	      EquationId.resize(neighSize, false);
@@ -967,7 +967,7 @@ namespace Kratos
 
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
-		EquationId[i+1]=neighb_nodes[i]->GetDof(PRESSURE,xpos).EquationId();
+		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
 		/* unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i]; */
 		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
 		/* rNodeOrderedNeighboursPressureId[i]=EquationId[i]; */

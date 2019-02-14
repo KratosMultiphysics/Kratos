@@ -1,8 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
-import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
-import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
@@ -10,16 +8,12 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
-import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Import base class file
-import partitioned_fsi_base_solver
+from KratosMultiphysics.FSIApplication import partitioned_fsi_base_solver
 
 def CreateSolver(model, project_parameters):
     return TrilinosPartitionedFSIBaseSolver(model, project_parameters)

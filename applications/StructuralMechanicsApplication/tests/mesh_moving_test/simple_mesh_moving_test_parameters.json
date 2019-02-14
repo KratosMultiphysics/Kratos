@@ -18,7 +18,7 @@
             "time_step" : 0.005
         },
         "linear_solver_settings" : {
-            "solver_type" : "SuperLUSolver"
+            "solver_type" : "ExternalSolversApplication.super_lu"
         },
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

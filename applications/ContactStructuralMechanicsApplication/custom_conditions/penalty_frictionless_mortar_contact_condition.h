@@ -72,6 +72,24 @@ public:
 
     typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
 
+    typedef typename BaseType::GeneralVariables                                  GeneralVariables;
+
+    typedef typename BaseType::AeData                                                      AeData;
+
+    typedef typename BaseType::IntegrationUtility                              IntegrationUtility;
+
+    typedef typename BaseType::DerivativesUtilitiesType                  DerivativesUtilitiesType;
+
+    typedef typename BaseType::BelongType                                              BelongType;
+
+    typedef typename BaseType::ConditionArrayType                              ConditionArrayType;
+
+    typedef typename BaseType::ConditionArrayListType                      ConditionArrayListType;
+
+    typedef typename BaseType::DecompositionType                                DecompositionType;
+
+    typedef typename BaseType::DerivativeDataType                              DerivativeDataType;
+
     typedef Condition                                                           ConditionBaseType;
 
     typedef PairedCondition                                               PairedConditionBaseType;
@@ -105,16 +123,6 @@ public:
 
     // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType                        IntegrationPointsType;
-
-    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
-
-    typedef Line2D2<Point>                                                               LineType;
-
-    typedef Triangle3D3<Point>                                                       TriangleType;
-
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
-
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
 
@@ -212,6 +220,18 @@ public:
         PropertiesPointerType pProperties,
         GeometryPointerType pMasterGeom
         ) const override;
+
+    /**
+     * @brief This is called during the assembling process in order
+     * to calculate the condition contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)

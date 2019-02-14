@@ -23,6 +23,12 @@ def ImportApplication(application, application_name, application_folder, caller,
     # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
     if mod_path is not None: # optional for backwards compatibility
         mod_path.append(python_path)
+    else:
+        warn_msg  = 'The python-import-mechanism used for application "' + application_name
+        warn_msg += '" is DEPRECATED!\n'
+        warn_msg += 'Please check the following website for instuctions on how to update it:\n'
+        warn_msg += 'https://github.com/KratosMultiphysics/Kratos/wiki/Applications-as-python-modules'
+        Logger.PrintWarning('DEPRECATION', warn_msg)
 
     # Add application to kernel
     Kernel.ImportApplication(application)

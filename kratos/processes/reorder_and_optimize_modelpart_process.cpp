@@ -252,7 +252,7 @@ namespace Kratos
                     node_id = std::min(node_id, r_node.Id());
                 node_ids.at(it->Id() - 1) = node_id;
             }
-            std::sort(element_ids.begin(), element_ids.end(),
+            std::stable_sort(element_ids.begin(), element_ids.end(),
                       [&node_ids](const std::size_t& i, const std::size_t& j) {
                           return node_ids[i - 1] < node_ids[j - 1];
                       });

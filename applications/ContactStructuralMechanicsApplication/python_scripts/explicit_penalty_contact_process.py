@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
@@ -67,12 +68,21 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 "database_step_update"                : 1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
                 "check_gap"                           : "check_mapping"
+            },
+            "advance_explicit_parameters" : {
+                "manual_max_gap_theshold" : true,
+                "max_gap_threshold"       : 1.0e-1,
+                "max_gap_factor"          : 1.0e4
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
                 "stiffness_factor"            : 1.0,
+                "penalty_scale_factor"        : 1.0,
+                "use_scale_factor"            : true,
                 "penalty"                     : 1.0e16,
+                "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
                 "max_gap_factor"              : 1.0e-3
             },
@@ -82,12 +92,12 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         }
         """)
 
+        # Construct the base process.
+        super(ExplicitPenaltyContactProcess, self).__init__(Model, settings)
+
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
-
-        # Construct the base process.
-        super(ExplicitPenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -103,8 +113,17 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         process_info = self.main_model_part.ProcessInfo
         process_info[KM.NL_ITERATION_NUMBER] = 1
 
+        # Setting the impact time duration
+        if self.contact_settings["advance_explicit_parameters"]["manual_max_gap_theshold"].GetBool():
+            process_info[CSMA.MAX_GAP_THRESHOLD] = self.contact_settings["advance_explicit_parameters"]["max_gap_threshold"].GetDouble()
+        else:
+            empty_settings = KM.Parameters("""{}""")
+            mean_nodal_h = CSMA.ContactUtilities.CalculateMeanNodalH(self.computing_model_part)
+            process_info[CSMA.MAX_GAP_THRESHOLD] = mean_nodal_h
+
         # Create the dynamic factor process
         self.dynamic_factor_process = CSMA.ComputeDynamicFactorProcess(self.main_model_part)
+        self.dynamic_factor_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -125,9 +144,18 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         # We call to the base process
         super(ExplicitPenaltyContactProcess, self).ExecuteInitializeSolutionStep()
 
-        if self._get_if_is_interval():
+        # Check if the contact is active
+        active_contact = CSMA.ContactUtilities.CheckActivity(self.computing_model_part, False)
+        if active_contact:
+            self.computing_model_part.Set(KM.CONTACT, True)
+        else:
+            self.computing_model_part.Set(KM.CONTACT, False)
+
+        # Specific operations for explicit contact
+        if self._get_if_is_interval() and active_contact:
             # Updating value of weighted gap
-            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_GAP, 0.0, self.computing_model_part.Nodes);
+            KM.VariableUtils().SetNonHistoricalVariable(KM.NODAL_AREA, 0.0, self.computing_model_part.Nodes)
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_GAP, 0.0, self.computing_model_part.Nodes)
             CSMA.ContactUtilities.ComputeExplicitContributionConditions(self.computing_model_part)
 
             # Calling for the active set utilities (to activate deactivate nodes)
@@ -196,3 +224,44 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 return True
             else:
                 return False
+
+    def _initialize_problem_parameters(self):
+        """ This method initializes the ALM parameters from the process info
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We call to the base process (in fact not, to avoid writing twice the values)
+        #super(PenaltyContactProcess, self)._initialize_problem_parameters()
+
+        # We call the process info
+        process_info = self.main_model_part.ProcessInfo
+
+        if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
+            # We compute NODAL_H that can be used in the search and some values computation
+            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h.Execute()
+
+            # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
+            alm_var_parameters = KM.Parameters("""{}""")
+            alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advance_ALM_parameters"]["stiffness_factor"])
+            alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advance_ALM_parameters"]["penalty_scale_factor"])
+            self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
+            self.alm_var_process.Execute()
+            # We rescale, the process is designed for ALM formulation
+            process_info[KM.INITIAL_PENALTY] = 1.0e0 * process_info[KM.INITIAL_PENALTY]
+        else:
+            # We set the values in the process info
+            process_info[KM.INITIAL_PENALTY] = self.contact_settings["advance_ALM_parameters"]["penalty"].GetDouble()
+
+        # We set a minimum value
+        if process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon:
+            process_info[KM.INITIAL_PENALTY] = 1.0e13
+
+        # Setting on nodes
+        initial_penalty = process_info[KM.INITIAL_PENALTY]
+        KM.VariableUtils().SetNonHistoricalVariable(KM.INITIAL_PENALTY, initial_penalty, self.computing_model_part.Nodes)
+
+        # We print the parameters considered
+        KM.Logger.PrintInfo("INITIAL_PENALTY: ", "{:.2e}".format(process_info[KM.INITIAL_PENALTY]))

@@ -464,7 +464,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
       thermo_mechanical = true;
 
-      Element::ElementType& MechanicalElement = *GetValue(MASTER_ELEMENT);
+      Element& MechanicalElement = *this->GetValue(MASTER_ELEMENT).lock().get();
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
