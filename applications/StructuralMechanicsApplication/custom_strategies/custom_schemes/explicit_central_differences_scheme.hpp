@@ -321,21 +321,21 @@ public:
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
         // The first iterator of the array of nodes
-        const auto it_begin = rModelPart.NodesBegin();
+        const auto it_begin_node = rModelPart.NodesBegin();
 
         /// Initialise the database of the nodes
         const array_1d<double, 3> zero_array = ZeroVector(3);
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_begin + i);
+            auto it_node = (it_begin_node + i);
             it_node->SetValue(NODAL_MASS, 0.0);
             it_node->SetValue(MIDDLE_VELOCITY, zero_array);
         }
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
+        const bool has_dof_for_rot_z = it_begin_node->HasDofFor(ROTATION_Z);
         if (has_dof_for_rot_z) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                auto it_node = (it_begin + i);
+                auto it_node = (it_begin_node + i);
                 it_node->SetValue(MIDDLE_ANGULAR_VELOCITY, zero_array);
                 it_node->SetValue(NODAL_INERTIA, zero_array);
             }
@@ -343,7 +343,7 @@ public:
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_begin + i);
+            auto it_node = (it_begin_node + i);
 
             array_1d<double, 3>& r_middle_velocity = it_node->GetValue(MIDDLE_VELOCITY);
             const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
@@ -409,19 +409,23 @@ public:
         mTime.Middle = 0.5 * (mTime.Previous + mTime.Current);
 
         // The iterator of the first node
-        const auto it_begin = rModelPart.NodesBegin();
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
+        const auto it_begin_node = rModelPart.NodesBegin();
+        const bool has_dof_for_rot_z = it_begin_node->HasDofFor(ROTATION_Z);
+
+        // Getting dof position
+        const IndexType disppos = it_begin_node->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = has_dof_for_rot_z ? it_begin_node->GetDofPosition(ROTATION_X) : 0;
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedom(it_begin + i, dim);
+            this->UpdateTranslationalDegreesOfFreedom(it_begin_node + i, disppos, dim);
         } // for Node parallel
 
         if (has_dof_for_rot_z){
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                this->UpdateRotationalDegreesOfFreedom(it_begin + i, dim);
+                this->UpdateRotationalDegreesOfFreedom(it_begin_node + i, rotppos, dim);
             } // for Node parallel
         }
 
@@ -434,10 +438,12 @@ public:
     /**
      * @brief This method updates the translation DoF
      * @param itCurrentNode The iterator of the current node
+     * @param DisplacementPosition The position of the displacement dof on the database
      * @param DomainSize The current dimention of the problem
      */
     void UpdateTranslationalDegreesOfFreedom(
         NodeIterator itCurrentNode,
+        const IndexType DisplacementPosition,
         const SizeType DomainSize = 3
         )
     {
@@ -459,11 +465,10 @@ public:
 
         std::array<bool, 3> fix_displacements = {false, false, false};
 
-        const IndexType disppos = itCurrentNode->GetDofPosition(DISPLACEMENT_X);
-        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, disppos).IsFixed());
-        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
+        fix_displacements[0] = (itCurrentNode->GetDof(DISPLACEMENT_X, DisplacementPosition).IsFixed());
+        fix_displacements[1] = (itCurrentNode->GetDof(DISPLACEMENT_Y, DisplacementPosition + 1).IsFixed());
         if (DomainSize == 3)
-            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed());
+            fix_displacements[2] = (itCurrentNode->GetDof(DISPLACEMENT_Z, DisplacementPosition + 2).IsFixed());
 
         for (IndexType j = 0; j < DomainSize; j++) {
             if (fix_displacements[j]) {
@@ -480,10 +485,12 @@ public:
     /**
      * @brief This method updates the rotation DoF
      * @param itCurrentNode The iterator of the current node
+     * @param RotationPosition The position of the rotation dof on the database
      * @param DomainSize The current dimention of the problem
      */
     void UpdateRotationalDegreesOfFreedom(
         NodeIterator itCurrentNode,
+        const IndexType RotationPosition,
         const SizeType DomainSize = 3
         )
     {
@@ -505,12 +512,11 @@ public:
         }
 
         std::array<bool, 3> fix_rotation = {false, false, false};
-        const IndexType rotppos = itCurrentNode->GetDofPosition(ROTATION_X);
         if (DomainSize == 3) {
-            fix_rotation[0] = (itCurrentNode->GetDof(ROTATION_X, rotppos).IsFixed());
-            fix_rotation[1] = (itCurrentNode->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
+            fix_rotation[0] = (itCurrentNode->GetDof(ROTATION_X, RotationPosition).IsFixed());
+            fix_rotation[1] = (itCurrentNode->GetDof(ROTATION_Y, RotationPosition + 1).IsFixed());
         }
-        fix_rotation[2] = (itCurrentNode->GetDof(ROTATION_Z, rotppos + 2).IsFixed());
+        fix_rotation[2] = (itCurrentNode->GetDof(ROTATION_Z, RotationPosition + 2).IsFixed());
 
         for (IndexType j = initial_k; j < 3; j++) {
             if (fix_rotation[j]) {
@@ -539,18 +545,22 @@ public:
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
         // The fisrt node interator
-        auto it_begin = rModelPart.NodesBegin();
+        auto it_begin_node = rModelPart.NodesBegin();
 
         // If we consider the rotation DoF
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
+        const bool has_dof_for_rot_z = it_begin_node->HasDofFor(ROTATION_Z);
 
         // Auxiliar zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
-        #pragma omp parallel for firstprivate(it_begin)
+        // Getting dof position
+        const IndexType disppos = it_begin_node->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = has_dof_for_rot_z ? it_begin_node->GetDofPosition(ROTATION_X) : 0;
+
+        #pragma omp parallel for firstprivate(it_begin_node)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            auto it_node = (it_begin + i);
+            auto it_node = (it_begin_node + i);
 
             const double nodal_mass = it_node->GetValue(NODAL_MASS);
             const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -570,7 +580,6 @@ public:
 
             std::array<bool, 3> fix_displacements = {false, false, false};
 
-            const IndexType disppos = it_node->GetDofPosition(DISPLACEMENT_X);
             fix_displacements[0] = (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed());
             fix_displacements[1] = (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed());
             if (DomainSize == 3)
@@ -607,7 +616,6 @@ public:
                 }
 
                 std::array<bool, 3> fix_rotation = {false, false, false};
-                const IndexType rotppos = it_node->GetDofPosition(ROTATION_X);
                 if (DomainSize == 3) {
                     fix_rotation[0] = (it_node->GetDof(ROTATION_X, rotppos).IsFixed());
                     fix_rotation[1] = (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed());
