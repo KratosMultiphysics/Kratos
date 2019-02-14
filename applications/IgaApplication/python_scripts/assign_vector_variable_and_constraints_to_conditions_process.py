@@ -33,7 +33,7 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
 
-        if not variable_type == "Array" and not variable_type == "Vector"
+        if not variable_type == "Array" and not variable_type == "Vector":
             err_msg  = 'Variable-type of variable: "' + variable_name + '" is incorrect ("'
             err_msg += variable_type + '"). Must be a "Array" or "Vector"'
             raise Exception(msg)
