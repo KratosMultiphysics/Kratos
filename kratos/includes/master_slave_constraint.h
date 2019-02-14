@@ -356,6 +356,15 @@ public:
     }
 
     /**
+     * @brief This methgod directly applies the master/slave relationship
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void Apply(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "Apply not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
