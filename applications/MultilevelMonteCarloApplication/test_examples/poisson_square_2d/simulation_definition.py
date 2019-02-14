@@ -8,7 +8,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Importing the problem analysis stage class
-from analysis_stage import AnalysisStage
+from  KratosMultiphysics.analysis_stage import AnalysisStage
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
