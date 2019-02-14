@@ -107,8 +107,7 @@ namespace Kratos
             {
                 label = GetLabel(j, eigenvalue_vector[j]);
 
-                for (auto& r_node : mrModelPart.Nodes())
-                {
+                for (auto& r_node : mrModelPart.Nodes()) {
                     // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
                     DofsContainerType& r_node_dofs = r_node.GetDofs();
                     Matrix& r_node_eigenvectors = r_node.GetValue(EIGENVECTOR_MATRIX);
@@ -121,7 +120,7 @@ namespace Kratos
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }     
                 
-                // reconstruct the animation on slave-dofs
+                // Reconstruct the animation on slave-dofs
                 if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
                     ConstraintUtilities::ResetSlaveDofs(mrModelPart);
                     ConstraintUtilities::ApplyConstraints(mrModelPart);
