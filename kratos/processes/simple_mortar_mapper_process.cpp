@@ -121,6 +121,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 {
     KRATOS_TRY;
 
+    // We reset the database if needed
+    const bool update_interface = mThisParameters["update_interface"].GetBool();
+    if (update_interface) {
+        this->UpdateInterface();
+    }
+
     if (mpThisLinearSolver == nullptr)
         ExecuteExplicitMapping();
     else
@@ -884,6 +890,28 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::UpdateInterface()
+{
+    // Iterate in the conditions
+    auto &r_destination_conditions_array = mDestinationModelPart.Conditions();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_destination_conditions_array.size()); ++i) {
+        auto it_cond = r_destination_conditions_array.begin() + i;
+        // Reset the index set
+        if (it_cond->Has(INDEX_SET)) {
+            (it_cond->GetValue(INDEX_SET))->clear();
+        }
+        // Reset the index set
+        if (it_cond->Has(INDEX_MAP)) {
+            (it_cond->GetValue(INDEX_SET))->clear();
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
@@ -901,6 +929,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "destination_variable"             : "",
         "origin_variable_historical"       : true,
         "destination_variable_historical"  : true,
+        "update_interface"                 : false,
         "search_parameters"                : {
             "allocation_size"                  : 1000,
             "bucket_size"                      : 4,
