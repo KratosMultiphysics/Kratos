@@ -13,14 +13,14 @@ import cmlmc_utilities_new_analysis as mlmc
 
 if __name__ == '__main__':
 
-    '''
-    |  V  |/ _|
-    | \_/ | (_
-    |_| |_|\__|
+    '''  __ __  __
+        |  V  |/ _|
+        | \_/ | (_
+        |_| |_|\__|
     '''
 
     '''set the ProjectParameters.json path'''
-    project_parameters_path = "problem_settings/parameters_poisson_finer.json"
+    project_parameters_path = "problem_settings/parameters_poisson_coarse.json"
     '''customize setting parameters of the ML simulation'''
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
@@ -36,10 +36,10 @@ if __name__ == '__main__':
     mc_manager.Run()
 
 
-    '''
-    |  V  | | |  V  |/ _|
-    | \_/ | |_| \_/ | (_
-    |_| |_|___|_| |_|\__|
+    '''  __ __ _   __ __  __
+        |  V  | | |  V  |/ _|
+        | \_/ | |_| \_/ | (_
+        |_| |_|___|_| |_|\__|
     '''
 
     '''set the ProjectParameters.json path'''
@@ -82,5 +82,4 @@ if __name__ == '__main__':
     """)
     '''contruct MultilevelMonteCarlo class'''
     mlmc_manager = mlmc.MultilevelMonteCarlo(settings_ML_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
-    mlmc_manager.RunScreening()
     mlmc_manager.Run()

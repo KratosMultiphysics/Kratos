@@ -343,6 +343,11 @@ class MultilevelMonteCarlo(object):
     function executing the CMLMC algorithm
     '''
     def Run(self):
+        ''''start screening phase'''
+        self.LaunchEpoch()
+        '''finalize screening phase'''
+        self.FinalizeScreeningPhase()
+        self.ScreeningInfoScreeningPhase()
         '''start MLMC phase'''
         while self.convergence is not True:
             '''initialize MLMC phase'''
@@ -353,16 +358,6 @@ class MultilevelMonteCarlo(object):
             '''finalize MLMC phase'''
             self.FinalizeMLMCPhase()
             self.ScreeningInfoFinalizeMLMCPhase()
-
-    '''
-    function executing the CMLMC screening phase
-    '''
-    def RunScreening(self):
-        ''''start screening phase'''
-        self.LaunchEpoch()
-        '''finalize screening phase'''
-        self.FinalizeScreeningPhase()
-        self.ScreeningInfoScreeningPhase()
 
     '''
     function running one Monte Carlo epoch
