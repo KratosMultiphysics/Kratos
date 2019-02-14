@@ -1097,7 +1097,7 @@ public:
                     rDerivativeData.ResetDerivatives();
 
                     // We compute the local coordinates
-                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                    const PointType local_point_decomp = PointType{integration_points_slave[point_number].Coordinates()};
                     PointType local_point_parent;
                     PointType gp_global;
 
@@ -1120,7 +1120,7 @@ public:
 
                     GeometryType::CoordinatesArrayType slave_gp_global;
                     rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                    GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, slave_gp_global, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
+                    GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, PointType{slave_gp_global}, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
 
                     GeometryType::CoordinatesArrayType projected_gp_local;
                     rMasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;

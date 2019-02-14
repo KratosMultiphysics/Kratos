@@ -175,7 +175,7 @@ namespace Kratos
 			  {
 
 			    if(itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE)){
-			     Point freeSurfaceToRigidNodeVector=itElem->GetGeometry()[i].Coordinates()-itElem->GetGeometry()[j].Coordinates();
+			     Point freeSurfaceToRigidNodeVector=Point{itElem->GetGeometry()[i].Coordinates()-itElem->GetGeometry()[j].Coordinates()};
 			      const array_1d<double,3> &freeSurfaceVelocity = itElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
 
 			      double freeSurfaceToRigidNodeDistance=sqrt(freeSurfaceToRigidNodeVector[0]*freeSurfaceToRigidNodeVector[0]+

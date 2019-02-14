@@ -370,6 +370,24 @@ public:
     }
 
     /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetSlaveDofsVector() const override
+    {
+        return mSlaveDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetMasterDofsVector() const override
+    {
+        return mMasterDofsVector;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom

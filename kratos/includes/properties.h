@@ -106,10 +106,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
+    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
 
     /// Default of properties with subproperties
-    Properties(IndexType NewId, PropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
+    explicit Properties(IndexType NewId, PropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}

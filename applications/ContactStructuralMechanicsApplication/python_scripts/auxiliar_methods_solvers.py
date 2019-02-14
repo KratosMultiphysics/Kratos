@@ -84,9 +84,6 @@ def AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["block_builder"].GetBool():
-        print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-        settings["block_builder"].SetBool(True)
 
     return settings
 

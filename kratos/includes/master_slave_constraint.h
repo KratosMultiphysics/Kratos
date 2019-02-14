@@ -338,6 +338,24 @@ public:
     }
 
     /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    virtual const DofPointerVectorType& GetSlaveDofsVector() const
+    {
+        KRATOS_ERROR << "GetSlaveDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    virtual const DofPointerVectorType& GetMasterDofsVector() const
+    {
+        KRATOS_ERROR << "GetMasterDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom

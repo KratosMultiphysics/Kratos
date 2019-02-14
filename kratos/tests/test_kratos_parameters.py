@@ -652,7 +652,7 @@ class TestParameters(KratosUnittest.TestCase):
         
         # ######## here we pickle the serializer
         try:
-            import cickle as pickle  # Use cPickle on Python 2.7
+            import cpickle as pickle  # Use cPickle on Python 2.7
         except ImportError:
             import pickle
 

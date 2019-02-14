@@ -357,7 +357,9 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-
+        
+	if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+	
         KRATOS_CATCH("")
     }
 
