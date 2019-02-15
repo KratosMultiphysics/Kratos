@@ -274,7 +274,7 @@ namespace Kratos {
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
-            Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " << std::endl;
+            Logger("Label") << "This log has a label which is not in the output columns and will not be printed in output " << std::endl;
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
