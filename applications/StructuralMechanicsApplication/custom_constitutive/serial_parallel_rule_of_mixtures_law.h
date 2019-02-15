@@ -253,7 +253,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     void CalculateStrainsOnEachComponent(
         const Vector& rStrainVector,
-        const Properties& rMaterialProperties,
         const Matrix& rParallelProjector,
         const Matrix& rSerialProjector,
         const Vector& rSerialStrainMatrix,
