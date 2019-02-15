@@ -88,8 +88,8 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         if ( self._perform_local_corr ):
             ### perform the local conservation procedure
             dt = self.mass_conservation_check_process.ComputeDtForConvection()
-            self.forward_convection_process.ConvectForward( dt, KratosMultiphysics.AUX_MESH_VAR )
-            self.mass_conservation_check_process.ApplyLocalCorrection( KratosMultiphysics.AUX_MESH_VAR )
+            self.forward_convection_process.ConvectForward( dt, KratosFluid.AUX_DISTANCE )
+            self.mass_conservation_check_process.ApplyLocalCorrection( KratosFluid.AUX_DISTANCE )
 
         # (2) #
         if ( self._perform_local_corr and self._perform_global_corr ):
