@@ -1,0 +1,128 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "test_inlet_serial",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 0.00001
+    },
+    "solver_settings"             		: {
+        "model_part_name" 	: "FluidModelPart",
+        "domain_size"     	: 3,
+        "solver_type"   	: "TwoFluids",
+        "model_import_settings"       	: {
+            "input_type"     : "mdpa",
+            "input_filename" : "TwoFluidInletTest/test_inlet"
+        },
+		"maximum_iterations"			: 3,
+    	"formulation": {
+        	"dynamic_tau" : 1.0
+    	},
+    	"echo_level"					: 0,
+    	"time_order"					: 2,
+    	"compute_reactions"				: false,
+    	"reform_dofs_at_each_step"		: false,
+    	"relative_velocity_tolerance"	: 0.001,
+    	"absolute_velocity_tolerance"	: 0.00001,
+    	"relative_pressure_tolerance"	: 0.001,
+    	"absolute_pressure_tolerance"	: 0.00001,
+        "volume_model_part_name"     	: "Parts_Fluid",
+        "skin_parts"                 	: ["AutomaticInlet3D_Inlet","Outlet3D_Outlet","Slip3D"],
+        "no_skin_parts"              	: [],
+        "move_mesh_flag"				: false,
+        "time_stepping"  : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.00002
+        },
+    	"linear_solver_settings": {
+            "solver_type" : "amgcl",
+            "smoother_type" :"damped_jacobi",
+            "krylov_type" : "lgmres",
+            "coarsening_type" : "aggregation",
+            "max_iteration" : 500,
+            "provide_coordinates" : false,
+            "gmres_krylov_space_dimension" : 500,
+            "verbosity" : 0,
+            "tolerance" : 1e-8,
+            "scaling" : false,
+            "block_size" : 3,
+            "use_block_matrices_if_possible" : true,
+            "coarse_enough" : 500
+    	}
+    },
+	"processes"	:	{
+    	"initial_conditions_process_list"  : [],
+    	"boundary_conditions_process_list" : [{
+        "python_module" : "apply_two_fluids_inlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name" 			: "AutomaticInlet3D_Inlet",
+            "interface_settings": {
+                "interface_normal": [0.0,0.0,1.0],
+                "point_on_interface": [0.0,0.0,0.5],
+                "inlet_transition_radius": 0.5
+            },
+            "fluid_1_settings" : {
+                "model_part_name": "fluid_1_inlet",
+                "variable_name": "VELOCITY",
+                "modulus": "2.0*z",
+                "constrained": true,
+                "direction": [1.0,0.0,0.0],
+                "interval": [0.0,"End"]
+            },
+            "fluid_2_settings" : {
+                "model_part_name": "fluid_2_inlet",
+                "variable_name": "VELOCITY",
+                "modulus": 0.1,
+                "constrained": true,
+                "direction": [1.0,0.0,0.0],
+                "interval": [0.0,"End"]
+            }
+        }
+    },{
+        "python_module" : "apply_outlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name"    : "Outlet3D_Outlet",
+            "variable_name"      : "PRESSURE",
+            "constrained"        : true,
+            "value"              : 0.0,
+            "hydrostatic_outlet" : false,
+            "h_top"              : 0.0
+        }
+    },{
+        "python_module" : "apply_slip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplySlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "Slip3D"
+        }
+    }],
+    	"gravity"                          : [{
+        	"python_module" : "assign_vector_by_direction_process",
+        	"kratos_module" : "KratosMultiphysics",
+        	"process_name"  : "AssignVectorByDirectionProcess",
+        	"Parameters"    : {
+            	"model_part_name" : "Parts_Fluid",
+            	"variable_name"   : "BODY_FORCE",
+            	"modulus"         : 9.81,
+            	"constrained"     : false,
+            	"direction"       : [0.0,0.0,-1.0]
+        	}
+    	}],
+    	"auxiliar_process_list"            : [{
+        	"python_module" : "apply_distance_modification_process",
+        	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        	"process_name"  : "ApplyDistanceModificationProcess",
+        	"Parameters"    : {
+            	"model_part_name"                        : "Parts_Fluid",
+            	"distance_threshold"                     : 0.0000001,
+            	"check_at_each_time_step"                : false,
+            	"avoid_almost_empty_elements"            : true,
+            	"deactivate_full_negative_elements"      : false,
+            	"recover_original_distance_at_each_step" : false
+        	}
+    	}]
+	},
+	"output_processes" 	:	{}
+}

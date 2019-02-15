@@ -251,18 +251,9 @@ void TrussElement3D2N::GetSecondDerivativesVector(Vector &rValues, int Step) {
 void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
                                             ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY
-  // calculate internal forces
-  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-  this->UpdateInternalForces(internal_forces);
-  // creating LHS
-  rLeftHandSideMatrix =
-      this->CreateElementStiffnessMatrix(rCurrentProcessInfo);
-  // create+compute RHS
-  rRightHandSideVector = -internal_forces;
-  // add bodyforces
-  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  KRATOS_TRY;
+  this->CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+  this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
   KRATOS_CATCH("")
 }
 
@@ -272,14 +263,10 @@ void TrussElement3D2N::CalculateRightHandSide(
   KRATOS_TRY
   rRightHandSideVector = ZeroVector(msLocalSize);
 
-  BoundedVector<double,msLocalSize> internal_forces =
-    this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,false);
+  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+  this->UpdateInternalForces(internal_forces);
 
-  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
-      ZeroMatrix(msLocalSize, msLocalSize);
-  this->CreateTransformationMatrix(transformation_matrix);
-
-  noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
+  noalias(rRightHandSideVector) -= internal_forces;
 
   // add bodyforces
   if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
@@ -289,7 +276,7 @@ void TrussElement3D2N::CalculateRightHandSide(
 void TrussElement3D2N::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                              ProcessInfo &rCurrentProcessInfo) {
 
-  KRATOS_TRY
+  KRATOS_TRY;
   // resizing the matrices + create memory for LHS
   rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
   // creating LHS

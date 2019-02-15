@@ -60,7 +60,7 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
 
     protected:
 
-        DenseVector<unsigned int> mElementPartition;
+        std::vector<unsigned int> mElementPartition;
 
     private:
 
