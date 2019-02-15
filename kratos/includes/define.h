@@ -578,6 +578,41 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 
+// The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+// If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
+// The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
+// NOTE!! this macro is not intented for extensive use, it's just for temporary use in methods exported to Python which
+// are still calling a C++ deprecated function.
+#if defined(__clang__)
+#define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic push) \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic ignored "-Wdeprecated-declarations")
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic push) \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-declarations")
+#elif defined(_MSC_VER)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+__pragma(warning(push))\
+__pragma(warning(disable: 4996))
+#endif
+
+// The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
+// ignoring the warnings of type 'deprecated function'.
+#if defined(__clang__)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+_Pragma("clang diagnostic pop")
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+_Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+__pragma(warning(pop))
+#endif
+
+
 namespace Kratos
 {
 ///@name Type Definitions

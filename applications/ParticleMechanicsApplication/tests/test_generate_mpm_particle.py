@@ -56,7 +56,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
             self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
 
         # Check total number of element
-        particle_counter = len(material_model_part.Elements)
+        particle_counter = material_model_part.NumberOfElements()
         self.assertEqual(expected_num_particle,particle_counter)
 
     def _create_nodes(self, initial_mp, dimension, geometry_element):
