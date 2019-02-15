@@ -127,8 +127,11 @@ namespace Kratos
         int i = 0;
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
-            project(displacement, range(i, dimension)) = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT);
-            project(displacement_previous_step , range(i , dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            for(IndexType j = 0; j < dimension; j++)
+            {
+                displacement[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT)[j];
+                displacement_previous_step[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1)[j];
+            }
             i += 3;
         }
 
@@ -314,8 +317,11 @@ namespace Kratos
         int i_1 = 0;
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
-            project(displacement, range(i_1 , i_1 + dimension)) = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT);
-            project(displacement_previous_step , range(i_1 , i_1 + dimension))= rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            for(IndexType j = 0; j < dimension; j++)
+            {
+                displacement[i_1+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT)[j];
+                displacement_previous_step[i_1+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1)[j];
+            }
             i_1 += 3;
         }
 

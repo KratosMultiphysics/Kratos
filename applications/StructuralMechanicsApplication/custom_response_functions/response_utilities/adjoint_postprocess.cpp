@@ -168,7 +168,6 @@ namespace Kratos
             // overwrite existing.
             this->SetAllSensitivityVariablesToZero();
         }
-        //else if (mBuildMode == "static-non-linear")
         else if (mBuildMode == "static-non-linear-strain-energy")
         {
             // accumulate -> do nothing
@@ -279,7 +278,7 @@ namespace Kratos
 
             if (mBuildMode == "static-non-linear-strain-energy")
             {
-                if(mSolutionStep == 1)
+                if(r_process_info(STEP) == 1)
                 {
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
                 }
@@ -289,14 +288,11 @@ namespace Kratos
                     noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) -
                                                            load_factor_ratio*prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
                 }
-                mSolutionStep++;
             }
             else
             {
                 noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
             }
-
-
             }
 
             if(response_gradient[k].size() > 0)
