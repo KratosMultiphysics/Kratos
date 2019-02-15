@@ -803,7 +803,7 @@ public:
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
-                            MPC_Imposed_Displacement = i->GetValue(DISPLACEMENT);;
+                            MPC_Imposed_Displacement = i->GetValue(DISPLACEMENT);
                         if (i->Has(VELOCITY))
                             MPC_Velocity = i->GetValue(VELOCITY);
                         if (i->Has(ACCELERATION))

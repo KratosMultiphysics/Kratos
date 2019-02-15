@@ -64,8 +64,16 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         ### Send displacement from coupling_mp to mp
         for coupling_node in self.coupling_model_part.Nodes:
             coupling_id  = coupling_node.Id
-            displacement = coupling_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
-            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_DISPLACEMENT,displacement)
+
+            ## IMPOSED DISPLACEMENT
+            total_displacement = coupling_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
+            old_displacement = self.model_part.GetCondition(coupling_id).GetValue(KratosParticle.MPC_DISPLACEMENT)
+            incremental_displacement = total_displacement - old_displacement
+            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
+
+            ## ADD NORMAL
+            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
 
 
     def ExecuteFinalizeSolutionStep(self):
