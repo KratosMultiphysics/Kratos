@@ -46,7 +46,7 @@ namespace Kratos
 
                         auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
                         
-                        tessellation->Compute(curve_on_surface, 1e-3);
+                        tessellation->Compute(curve_on_surface, 1e-1);
             
                         rPolygon.resize(point_id + tessellation->NbPoints() - 1); 
         

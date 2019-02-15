@@ -30,9 +30,11 @@ namespace Kratos
         */
 
         const auto gp_canonical_tri = 
-            Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 
-        rGP_surface.resize(mTriangles.size(), ZeroMatrix(gp_canonical_tri.size(),2));  
+        rGP_surface.resize(mTriangles.size(), ZeroMatrix(gp_canonical_tri.size(),2)); 
+
+        KRATOS_WATCH(gp_canonical_tri.size())
         
         for (unsigned int tri_i = 0; tri_i < mTriangles.size(); ++tri_i)
         {    

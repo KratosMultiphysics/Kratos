@@ -54,8 +54,8 @@ namespace Kratos
         void TriangulateCurveOnSurface(
             std::vector<Matrix>& rTriangulation_uv);  
         
-        void MapTriangulationCartesianSpace(
-            std::vector<Matrix>& rTriangulation_xyz); 
+        std::vector<Matrix> MapTriangulationCartesianSpace(
+            std::vector<Matrix>& rTriangulation_uv); 
         
         std::vector<std::vector<double>> PrintCurveTessellationPoints(); 
         std::vector<std::vector<double>> PrintCurveOnSurfaceTessellationPoints();
@@ -65,7 +65,7 @@ namespace Kratos
         // std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
         std::vector<std::vector<double>> PrintGaussPoints_uv();
         std::vector<std::vector<double>> PrintGaussPointsTriangulation_xyz(); 
-
+        std::vector<std::vector<double>> PrintGaussPointsSurface_xyz();
 
 
 

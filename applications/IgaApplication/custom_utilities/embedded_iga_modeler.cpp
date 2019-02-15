@@ -53,11 +53,12 @@ namespace Kratos
     void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
     {
         /**
-         * This function creates 3d triangulare elements for the triangulation of the patch. 
+         * This function creates 3d triangular elements for the triangulation of the patch. 
         */
 
-        std::vector<Matrix> triangulation_xyz; 
-        MapTriangulationCartesianSpace(triangulation_xyz); 
+        std::vector<Matrix> triangulation_uv; 
+        TriangulateCurveOnSurface(triangulation_uv); 
+        const auto triangulation_xyz = MapTriangulationCartesianSpace(triangulation_uv); 
 
         // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
         unsigned int node_id = 0;
@@ -162,36 +163,40 @@ namespace Kratos
         }
     }
 
-    void EmbeddedIgaModeler::MapTriangulationCartesianSpace(std::vector<Matrix>& rTriangulation_xyz) 
+    std::vector<Matrix> EmbeddedIgaModeler::MapTriangulationCartesianSpace(std::vector<Matrix>& rTriangulation_uv) 
     {
         /**
          * This function maps points generated in the triangulation of the patch from the 
          * parametric space into the cartesian space
         */
-       
-        std::vector<Matrix> triangulation_uv;  
-        TriangulateCurveOnSurface(triangulation_uv);
-
-        rTriangulation_xyz.resize(triangulation_uv.size(), ZeroMatrix(3,3));  
-
+        const auto number_triangles = rTriangulation_uv.size(); 
+        const auto number_gp = rTriangulation_uv[0].size1(); 
+        KRATOS_WATCH(number_triangles)
+        KRATOS_WATCH(number_gp)
+        
+        std::vector<Matrix> triangulation_xyz(
+            rTriangulation_uv.size(), ZeroMatrix(number_gp,3));  
+        
         for (unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
         {
             for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
             {
                 const auto geometry_surface = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface(); 
 
-                for (unsigned int tri_i = 0; tri_i < triangulation_uv.size(); ++tri_i)
+                for (unsigned int tri_i = 0; tri_i < number_triangles; ++tri_i)
                 {    
                     for (unsigned int point_i = 0; point_i < 3; ++point_i)
                     {
-                        auto point_xyz = geometry_surface->PointAt(
-                                triangulation_uv[tri_i](point_i,0), triangulation_uv[tri_i](point_i,1));
+                        const auto point_xyz = geometry_surface->PointAt(
+                                rTriangulation_uv[tri_i](point_i,0), rTriangulation_uv[tri_i](point_i,1));
                         
-                        for (unsigned int j = 0; j < 3; ++j)    rTriangulation_xyz[tri_i](point_i, j) = point_xyz[j]; 
+                        for (unsigned int j = 0; j < 3; ++j)    triangulation_xyz[tri_i](point_i, j) = point_xyz[j]; 
                     }
                 }
             }
         }
+
+        return triangulation_xyz; 
     }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -219,8 +224,11 @@ namespace Kratos
 
     std::vector<std::vector<double>> EmbeddedIgaModeler::PrintTriangulationPoints_xyz()
     {
-        std::vector<Matrix> triangulation_xyz; 
-        MapTriangulationCartesianSpace(triangulation_xyz);
+        std::vector<Matrix> triangulation_uv;
+        TriangulateCurveOnSurface(triangulation_uv);  
+        
+        const auto triangulation_xyz = MapTriangulationCartesianSpace(triangulation_uv);
+
         std::vector<std::vector<double>> coords_xyz(triangulation_xyz.size() * 3, std::vector<double>(3,0)); 
 
         unsigned int point_i = 0; 
@@ -295,10 +303,14 @@ namespace Kratos
 
     std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPointsTriangulation_xyz()
     {
-        std::vector<Matrix> triangulation;
-        MapTriangulationCartesianSpace(triangulation); 
 
-        EmbeddedIgaErrorEstimation error_estimator(triangulation); 
+        std::vector<Matrix> triangulation_uv;
+        TriangulateCurveOnSurface(triangulation_uv);  
+        
+        const auto triangulation_xyz = MapTriangulationCartesianSpace(triangulation_uv);
+
+
+        EmbeddedIgaErrorEstimation error_estimator(triangulation_xyz); 
 
         std::vector<Matrix> gp_triangulation;
         error_estimator.InsertGaussPointsTriangulation(gp_triangulation); 
@@ -317,6 +329,38 @@ namespace Kratos
                 gp_coords_xyz[index][0] = gp_triangulation[i](j,0); 
                 gp_coords_xyz[index][1] = gp_triangulation[i](j,1);
                 gp_coords_xyz[index][2] = gp_triangulation[i](j,2); 
+                index += 1;     
+            }
+        }       
+        return gp_coords_xyz; 
+    }
+
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPointsSurface_xyz()
+    {
+        std::vector<Matrix> triangulation_uv;
+        TriangulateCurveOnSurface(triangulation_uv); 
+
+        EmbeddedIgaErrorEstimation error_estimator(triangulation_uv); 
+        
+        std::vector<Matrix> gp_uv;
+        error_estimator.InsertGaussPointsSurface(gp_uv);
+        
+        const auto gp_xyz = MapTriangulationCartesianSpace(gp_uv); 
+
+        const auto number_triangles = gp_xyz.size(); 
+        const auto number_gp = gp_xyz[0].size1(); 
+        
+        std::vector<std::vector<double>> gp_coords_xyz(
+            number_triangles * number_gp, std::vector<double>(3,0));
+
+        unsigned int index = 0; 
+        for (unsigned int i = 0; i < number_triangles; ++i) 
+        {
+            for (unsigned int j = 0; j < number_gp; ++j)
+            {
+                gp_coords_xyz[index][0] = gp_xyz[i](j,0); 
+                gp_coords_xyz[index][1] = gp_xyz[i](j,1);
+                gp_coords_xyz[index][2] = gp_xyz[i](j,2); 
                 index += 1;     
             }
         }       
