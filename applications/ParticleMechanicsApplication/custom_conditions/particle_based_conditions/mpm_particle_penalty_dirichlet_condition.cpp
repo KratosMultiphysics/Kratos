@@ -153,7 +153,8 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
-        const array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {

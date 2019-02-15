@@ -39,6 +39,8 @@
 // Custom includes
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
+#include "custom_utilities/mpm_search_element_utility.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 // Core includes
 #include "solving_strategies/schemes/scheme.h"
@@ -51,7 +53,6 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -649,10 +650,9 @@ public:
                         }
 
                         // Get condition variables:
-                        // Normal vector (normalized)
+                        // Normal vector
                         if (i->Has(NORMAL)) MPC_Normal = i->GetValue(NORMAL);
-                        const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
-                        if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
+                        ParticleMechanicsMathUtilities<double>::Normalize(MPC_Normal);
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
