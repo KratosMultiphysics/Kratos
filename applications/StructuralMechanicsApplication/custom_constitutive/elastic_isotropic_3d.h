@@ -236,6 +236,114 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
+     * @brief Returns whether this constitutive Law has specified variable (boolean)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (integer)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<int>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Vector>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Matrix>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (array of 3 components)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     * @note Fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
+     */
+    bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (array of 6 components)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     * @note Fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
+     */
+    bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
+
+    /**
+     * @brief Returns the value of a specified variable (boolean)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+    /**
+     * Returns the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @return rValue output: the value of the specified variable
+     */
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (array of 3 components)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
+                                            array_1d<double, 3 > & rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (array of 6 components)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return the value of the specified variable
+     */
+    array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rThisVariable,
+                                            array_1d<double, 6 > & rValue) override;
+
+    /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
