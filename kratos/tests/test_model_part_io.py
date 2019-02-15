@@ -8,14 +8,10 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-try:
-    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    missing_application = KratosUtils.HandleInvalidImportException(e)
+structural_mechanics_is_available = KratosUtils.IsApplicationAvailable("StructuralMechanicsApplication")
+if structural_mechanics_is_available:
+    import KratosMultiphysics.StructuralMechanicsApplication
+
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -245,22 +241,20 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,1], 0.23)
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
 
+    @UnitTest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part(self):
-        if (missing_external_dependencies is False):
-            current_model = KratosMultiphysics.Model()
-            model_part = current_model.CreateModelPart("Main")
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-            model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
-            model_part_io.ReadModelPart(model_part)
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
+        model_part_io.ReadModelPart(model_part)
 
-            model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
-            model_part_io.WriteModelPart(model_part)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
+        model_part_io.WriteModelPart(model_part)
 
-            import filecmp
-            value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
-            self.assertEqual(value, True)
-        else:
-            KratosMultiphysics.Logger.PrintInfo("TestModelPartIO", "Please compile StructuralMechanicsApplication in order to test output in IO")
+        import filecmp
+        value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
+        self.assertEqual(value, True)
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

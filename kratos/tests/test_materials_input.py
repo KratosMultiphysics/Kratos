@@ -8,15 +8,10 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-try:
+dependencies_are_available = KratosUtils.AreApplicationsAvailable(["StructuralMechanicsApplication", "FluidDynamicsApplication"])
+if dependencies_are_available:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     import KratosMultiphysics.StructuralMechanicsApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    missing_application = KratosUtils.HandleInvalidImportException(e)
 
 
 def GetFilePath(fileName):
@@ -91,19 +86,15 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
 
+    @UnitTest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
-
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
         import read_materials_process
         read_materials_process.Factory(self.test_settings,self.current_model)
         self._check_results()
 
+    @UnitTest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_cpp(self):
-
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
