@@ -27,19 +27,19 @@ namespace Kratos
         {
             for (unsigned int face_i = 0; face_i < mBrepModelVector[brep_i].GetFaceVector().size(); ++face_i)
             {
-                auto surface_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetSurface();
+                const auto surface_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetSurface();
 
                 for (unsigned int b_loop_i = 0; b_loop_i < mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop().size(); ++b_loop_i)
                 {   
                     for (unsigned int trim_i = 0; trim_i < mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop()[b_loop_i].GetTrimmingCurves().size(); ++trim_i)
                     {   
-                        auto trimming_curves = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop()[b_loop_i].GetTrimmingCurves();
+                        const auto trimming_curves = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop()[b_loop_i].GetTrimmingCurves();
                         int trim_index = trimming_curves[trim_i].GetTrimIndex(); 
 
-                        auto curve_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetTrimCurve(
+                        const auto curve_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetTrimCurve(
                             trim_index); 
 
-                        auto curve_on_surface = CurveOnSurface<3>(
+                        const auto curve_on_surface = CurveOnSurface<3>(
                             curve_geometry->CurveGeometry(), 
                             surface_geometry, 
                             curve_geometry->Domain());
@@ -52,8 +52,11 @@ namespace Kratos
         
                         for (unsigned int i = 0; i < tessellation->NbPoints() -1; ++i)
                         {
-                            double curve_para = tessellation->Parameter(i); 
-                            for (unsigned int j = 0; j < 2; ++j)    rPolygon[point_id][j] = curve_geometry->CurveGeometry()->PointAt(curve_para)[j];      
+                            for (unsigned int j = 0; j < 2; ++j)
+                            {
+                                rPolygon[point_id][j] = curve_geometry->CurveGeometry()
+                                    ->PointAt(tessellation->Parameter(i))[j];      
+                            }    
                             point_id += 1; 
                         }
                     }

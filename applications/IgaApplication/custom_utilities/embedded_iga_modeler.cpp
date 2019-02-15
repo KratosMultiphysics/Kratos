@@ -22,6 +22,11 @@ namespace Kratos
 {
     void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
     {
+        /**
+         * This function creates 2d line elements for the nodes created in the 
+         * tessellation of the curve geometry.
+        */
+
         std::vector<array_1d<double,3>> polygon;
         EmbeddedIgaTessellation embedded_tessellation(m_brep_model_vector); 
         embedded_tessellation.CreateTessellationCurve(polygon);
@@ -29,7 +34,8 @@ namespace Kratos
         // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
         for (unsigned int point_i = 0; point_i < polygon.size(); ++point_i)
         {
-            rSkinModelPart.CreateNewNode(point_i, polygon[point_i][0], polygon[point_i][1], polygon[point_i][2]);
+            rSkinModelPart.CreateNewNode(
+                point_i, polygon[point_i][0], polygon[point_i][1], polygon[point_i][2]);
         }
 
         // skin_model_part property Container (Container is empty, but for the skin no properties are needed)
@@ -46,8 +52,12 @@ namespace Kratos
 
     void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
     {
+        /**
+         * This function creates 3d triangulare elements for the triangulation of the patch. 
+        */
+
         std::vector<Matrix> triangulation_xyz; 
-        MapTriangulationGeometricSpace(triangulation_xyz); 
+        MapTriangulationCartesianSpace(triangulation_xyz); 
 
         // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
         unsigned int node_id = 0;
@@ -56,12 +66,11 @@ namespace Kratos
             for (unsigned int point_i = 0; point_i < 3; ++point_i)
             {
                 rSkinModelPart.CreateNewNode(node_id, 
-                triangulation_xyz[tri_i](point_i,0), triangulation_xyz[tri_i](point_i,1), triangulation_xyz[tri_i](point_i,2));
-
+                    triangulation_xyz[tri_i](point_i,0), 
+                    triangulation_xyz[tri_i](point_i,1), 
+                    triangulation_xyz[tri_i](point_i,2));
                 node_id += 1; 
             }
-            
-            // KRATOS_WATCH(rSkinModelPart)
         }
 
         // skin_model_part property Container (Container is empty, but for the skin no properties are needed)
@@ -94,7 +103,7 @@ namespace Kratos
     void EmbeddedIgaModeler::TriangulateCurveOnSurface(std::vector<Matrix>& rTriangulation_uv)
     {
         /**
-         * Triangulation of the patch in the parametric space
+         * This function generates a triangulation of the patch in the parametric space
         */
 
         std::vector<array_1d<double,2>> polygon;
@@ -153,11 +162,11 @@ namespace Kratos
         }
     }
 
-    void EmbeddedIgaModeler::MapTriangulationGeometricSpace(std::vector<Matrix>& rTriangulation_xyz) 
+    void EmbeddedIgaModeler::MapTriangulationCartesianSpace(std::vector<Matrix>& rTriangulation_xyz) 
     {
         /**
-         * Map Points generated in the triangulation of the patch from the 
-         * parametric space into the geometric space
+         * This function maps points generated in the triangulation of the patch from the 
+         * parametric space into the cartesian space
         */
        
         std::vector<Matrix> triangulation_uv;  
@@ -211,7 +220,7 @@ namespace Kratos
     std::vector<std::vector<double>> EmbeddedIgaModeler::PrintTriangulationPoints_xyz()
     {
         std::vector<Matrix> triangulation_xyz; 
-        MapTriangulationGeometricSpace(triangulation_xyz);
+        MapTriangulationCartesianSpace(triangulation_xyz);
         std::vector<std::vector<double>> coords_xyz(triangulation_xyz.size() * 3, std::vector<double>(3,0)); 
 
         unsigned int point_i = 0; 
@@ -262,7 +271,7 @@ namespace Kratos
 
         EmbeddedIgaErrorEstimation error_estimator(triangulation_uv); 
         std::vector<Matrix> gp_uv;
-        error_estimator.InsertGaussPoints(gp_uv);
+        error_estimator.InsertGaussPointsSurface(gp_uv);
 
         const auto number_triangles = gp_uv.size(); 
         const auto number_gp = gp_uv[0].size1(); 
@@ -284,6 +293,40 @@ namespace Kratos
     }
 
 
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPointsTriangulation_xyz()
+    {
+        std::vector<Matrix> triangulation;
+        MapTriangulationCartesianSpace(triangulation); 
+
+        EmbeddedIgaErrorEstimation error_estimator(triangulation); 
+
+        std::vector<Matrix> gp_triangulation;
+        error_estimator.InsertGaussPointsTriangulation(gp_triangulation); 
+
+        const auto number_triangles = gp_triangulation.size(); 
+        const auto number_gp = gp_triangulation[0].size1(); 
+        
+        std::vector<std::vector<double>> gp_coords_xyz(
+            number_triangles * number_gp, std::vector<double>(3,0));
+
+        unsigned int index = 0; 
+        for (unsigned int i = 0; i < number_triangles; ++i) 
+        {
+            for (unsigned int j = 0; j < number_gp; ++j)
+            {
+                gp_coords_xyz[index][0] = gp_triangulation[i](j,0); 
+                gp_coords_xyz[index][1] = gp_triangulation[i](j,1);
+                gp_coords_xyz[index][2] = gp_triangulation[i](j,2); 
+                index += 1;     
+            }
+        }       
+        return gp_coords_xyz; 
+    }
+
+
+
+
+
     // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParameterCurveTessellationPoints()
     // {
     //     std::vector<array_1d<double,3>> polygon;
@@ -300,108 +343,89 @@ namespace Kratos
     // }
 
 
-    // std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedGaussPoints()
-    // {
-    //     std::vector<Matrix> triangles = TriangulateEmpire(); 
-    //     EmbeddedIgaErrorEstimation error_estimator(triangles); 
-    //     std::vector<array_1d<double, 2> > gp_pos; 
-
-    //     error_estimator.InsertGaussPoints(gp_pos); 
-        
-    //     auto geometry = m_brep_model_vector[0].GetFaceVector()[0].GetSurface(); 
-
-    //     std::vector<std::vector<double>> mapped_gp_coords (gp_pos.size(), std::vector<double>(3,0)); 
-
-    //     for (unsigned int i = 0; i < gp_pos.size(); ++i)
-    //     {    
-    //         auto point = geometry->PointAt(gp_pos[i][0],gp_pos[i][1]); 
-    //         for (unsigned int j = 0; j < 3; ++j)    mapped_gp_coords[i][j] = point[j]; 
-    //     }
-    //     return mapped_gp_coords; 
-    // }
 
     
 
-    std::vector<std::vector<double>> EmbeddedIgaModeler::TestTriangle()
-    {
-        std::vector<array_1d<double,2>> polygon;
+    // std::vector<std::vector<double>> EmbeddedIgaModeler::TestTriangle()
+    // {
+    //     std::vector<array_1d<double,2>> polygon;
 
-        polygon.resize(8); 
+    //     polygon.resize(8); 
 
-        polygon[0][0] = 0;
-        polygon[0][1] = 0; 
-        polygon[1][0] = 10;
-        polygon[1][1] = 0; 
-        polygon[2][0] = 10;
-        polygon[2][1] = 5; 
-        polygon[3][0] = 7;
-        polygon[3][1] = 5;
-        polygon[4][0] = 7; 
-        polygon[4][1] = 3; 
-        polygon[5][0] = 3; 
-        polygon[5][1] = 3;
-        polygon[6][0] = 3; 
-        polygon[6][1] = 5;
-        polygon[7][0] = 0; 
-        polygon[7][1] = 5;
+    //     polygon[0][0] = 0;
+    //     polygon[0][1] = 0; 
+    //     polygon[1][0] = 10;
+    //     polygon[1][1] = 0; 
+    //     polygon[2][0] = 10;
+    //     polygon[2][1] = 5; 
+    //     polygon[3][0] = 7;
+    //     polygon[3][1] = 5;
+    //     polygon[4][0] = 7; 
+    //     polygon[4][1] = 3; 
+    //     polygon[5][0] = 3; 
+    //     polygon[5][1] = 3;
+    //     polygon[6][0] = 3; 
+    //     polygon[6][1] = 5;
+    //     polygon[7][0] = 0; 
+    //     polygon[7][1] = 5;
 
-        // initializing the i/o containers
-        struct triangulateio in_data; 
-        struct triangulateio out_data; 
-        struct triangulateio vor_out_data;
+    //     // initializing the i/o containers
+    //     struct triangulateio in_data; 
+    //     struct triangulateio out_data; 
+    //     struct triangulateio vor_out_data;
 
-        vor_out_data.numberofpoints = 0; 
-        vor_out_data.pointlist = (REAL*) malloc(vor_out_data.numberofpoints * 2 * sizeof(REAL));
+    //     vor_out_data.numberofpoints = 0; 
+    //     vor_out_data.pointlist = (REAL*) malloc(vor_out_data.numberofpoints * 2 * sizeof(REAL));
          
-        InitTriangulationDataStructure(in_data); 
-        InitTriangulationDataStructure(out_data); 
-        InitTriangulationDataStructure(vor_out_data); 
+    //     InitTriangulationDataStructure(in_data); 
+    //     InitTriangulationDataStructure(out_data); 
+    //     InitTriangulationDataStructure(vor_out_data); 
 
-        // Initialize the pointlist (1d list) with the number of points and the position 
-        in_data.numberofpoints = polygon.size(); 
-        in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
-        in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
+    //     // Initialize the pointlist (1d list) with the number of points and the position 
+    //     in_data.numberofpoints = polygon.size(); 
+    //     in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
+    //     in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
 
-        unsigned int point_idx = 0;
-        for (unsigned int i = 0; i < in_data.numberofpoints; ++i)
-        {
-            for (unsigned int j = 0; j < 2; ++j)    in_data.pointlist[point_idx++] = polygon[i][j];
-        }
+    //     unsigned int point_idx = 0;
+    //     for (unsigned int i = 0; i < in_data.numberofpoints; ++i)
+    //     {
+    //         for (unsigned int j = 0; j < 2; ++j)    in_data.pointlist[point_idx++] = polygon[i][j];
+    //     }
         
-        // Initilize the segment list with the number of boundary edges and the start and end node id
-        // For closed polygons the number of segments is equal to the number of points
-        in_data.numberofsegments = in_data.numberofpoints; 
-        in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
+    //     // Initilize the segment list with the number of boundary edges and the start and end node id
+    //     // For closed polygons the number of segments is equal to the number of points
+    //     in_data.numberofsegments = in_data.numberofpoints; 
+    //     in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
         
-        unsigned int vertex_id = 1;
-        in_data.segmentlist[0] = 0; 
-        for (unsigned int seg_idx = 1; seg_idx < in_data.numberofsegments * 2 - 1;)
-        {
-            for (unsigned int j = 0; j < 2; ++j)    in_data.segmentlist[seg_idx++] =  vertex_id;
-            vertex_id += 1; 
-        }
-        in_data.segmentlist[in_data.numberofsegments * 2 - 1] = 0; 
+    //     unsigned int vertex_id = 1;
+    //     in_data.segmentlist[0] = 0; 
+    //     for (unsigned int seg_idx = 1; seg_idx < in_data.numberofsegments * 2 - 1;)
+    //     {
+    //         for (unsigned int j = 0; j < 2; ++j)    in_data.segmentlist[seg_idx++] =  vertex_id;
+    //         vertex_id += 1; 
+    //     }
+    //     in_data.segmentlist[in_data.numberofsegments * 2 - 1] = 0; 
 
         
 
-        char trigenOptsVerbose[] = "qpza0.5"; 
-        char* trigenOpts = trigenOptsVerbose; 
+    //     char trigenOptsVerbose[] = "qpza0.5"; 
+    //     char* trigenOpts = trigenOptsVerbose; 
 
-        triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
+    //     triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
 
-        std::vector<std::vector<double>> tri_coords (out_data.numberoftriangles * 3 , std::vector<double>(2,0)); 
-        unsigned int id = 0; 
-        for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
-        {
-            for (unsigned int j = 0; j < 3; ++j)
-            {
-                tri_coords[id + j][0] = out_data.pointlist[out_data.trianglelist[id + j] * 2];
-                tri_coords[id + j][1] = out_data.pointlist[out_data.trianglelist[id + j] * 2 + 1]; 
-            }
-            id += 3; 
-        }
-        return tri_coords; 
-    }
+    //     std::vector<std::vector<double>> tri_coords (out_data.numberoftriangles * 3 , std::vector<double>(2,0)); 
+    //     unsigned int id = 0; 
+    //     for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
+    //     {
+    //         for (unsigned int j = 0; j < 3; ++j)
+    //         {
+    //             tri_coords[id + j][0] = out_data.pointlist[out_data.trianglelist[id + j] * 2];
+    //             tri_coords[id + j][1] = out_data.pointlist[out_data.trianglelist[id + j] * 2 + 1]; 
+    //         }
+    //         id += 3; 
+    //     }
+    //     return tri_coords; 
+    // }
 
     // std::vector<std::vector<double>> EmbeddedIgaModeler::Triangulate()
     // {

@@ -854,11 +854,11 @@ namespace Kratos {
         .def("PrintTriangulationPoints_xyz", &EmbeddedIgaModeler::PrintTriangulationPoints_xyz)
         .def("PrintTriangulationPoints_uv", &EmbeddedIgaModeler::PrintTriangulationPoints_uv)
         
-        // .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
         .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints_uv)
-        // .def("PrintMappedGaussPoints", &EmbeddedIgaModeler::PrintMappedGaussPoints)
+        .def("PrintGaussPointsTriangulation_xyz", &EmbeddedIgaModeler::PrintGaussPointsTriangulation_xyz)
+        // .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
         // .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
-        .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
+        // .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
         ;
 
     

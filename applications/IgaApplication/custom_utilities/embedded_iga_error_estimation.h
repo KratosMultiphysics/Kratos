@@ -25,7 +25,8 @@ namespace Kratos
         ///@}
         ///@name functions
         ///@{
-        void InsertGaussPoints(std::vector<Matrix>& gp_uv); 
+        void InsertGaussPointsSurface(std::vector<Matrix>& rGP_surface);
+        void InsertGaussPointsTriangulation(std::vector<Matrix>& rGP_tri); 
         ///@}
         ///@name Life Cycle
         ///@{
