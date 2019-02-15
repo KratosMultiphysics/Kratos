@@ -241,7 +241,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,1], 0.23)
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
 
-    @UnitTest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")

@@ -264,7 +264,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    @UnitTest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_MPC_Constraints(self):
         dim = 2
         current_model = KratosMultiphysics.Model()
