@@ -16,15 +16,18 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "model_part_name"                           : "default_model_part_name",
+            "model_part_name"                           : "",
             "perform_local_corrections"                 : true,
             "perform_global_corrections"                : false,
             "correction_frequency_in_time_steps"        : 20,
-            "write_to_log_file"                         : true,
+            "write_to_log_file"                         : false,
             "log_file_name"                             : "mass_conservation.log"
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
+
+        if ( settings["model_part_name"].GetString() == "" ):
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","The value (string) of the parameter 'model_part_name' must not be empty.")
 
         self._fluid_model_part = Model[settings["model_part_name"].GetString()]
         self._write_to_log = settings["write_to_log_file"].GetBool()

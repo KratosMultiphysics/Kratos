@@ -56,11 +56,11 @@ MassConservationCheckProcess::MassConservationCheckProcess(
 
     Parameters default_parameters( R"(
     {
-        "model_part_name"                        : "default_model_part_name",
+        "model_part_name"                        : "",
         "perform_local_corrections"              : true,
         "perform_global_corrections"             : true,
         "correction_frequency_in_time_steps"     : 20,
-        "write_to_log_file"                      : true,
+        "write_to_log_file"                      : false,
         "log_file_name"                          : "mass_conservation.log"
     }  )" );
 
