@@ -1145,6 +1145,10 @@ protected:
         SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
+        // Cleaning up memory
+        auxiliar_A_matrix.resize(0, 0, false);
+        T_transpose_matrix.resize(0, 0, false);
+
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
 
