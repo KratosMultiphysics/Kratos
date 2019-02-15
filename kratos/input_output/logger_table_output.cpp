@@ -39,18 +39,19 @@ namespace Kratos
 	{
 		return "LoggerTableOutput";
     }
-    
+
     void LoggerTableOutput::WriteHeader()
     {
         for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
             std::cout << std::left << std::setw(mColumnsWidth[i]) << mColumnsNames[i];
-        
+
         std::cout << std::endl;
 
         for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
             this->GetStream() << std::left << std::setw(mColumnsWidth[i]) << mColumnsNames[i];
-        
+
         this->GetStream() << std::endl;
+        mHeaderIsWritten = true;
     }
 
     void LoggerTableOutput::WriteMessage(LoggerMessage const& TheMessage)
@@ -58,7 +59,10 @@ namespace Kratos
       int column_index = -1;
 
       auto message_severity = TheMessage.GetSeverity();
-      if (message_severity <= this->GetSeverity()) {
+      if (message_severity <= this->GetSeverity() && TheMessage.WriteInThisRank()) {
+        if (!mHeaderIsWritten) {
+          WriteHeader();
+        }
         for (std::size_t i = 0; i < mColumnsNames.size(); i++) {
           if (mColumnsNames[i] == TheMessage.GetLabel()) {
             column_index = static_cast<int>(i);
@@ -87,7 +91,7 @@ namespace Kratos
 	}
 
 	/// Print object's data.
-	void LoggerTableOutput::MoveCursorToColumn(std::size_t ColumnIndex) 
+	void LoggerTableOutput::MoveCursorToColumn(std::size_t ColumnIndex)
 	{
         if(ColumnIndex < mCurrentColumnIndex){
             this->GetStream() << std::endl;
