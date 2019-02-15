@@ -313,7 +313,7 @@ namespace Kratos
         /**
          * Checks if the block builder and solver with constraints performs correctly the assemble of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraints, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsElementWise, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
