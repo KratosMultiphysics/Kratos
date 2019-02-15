@@ -283,6 +283,9 @@ class RigidEliminationTest(StructuralMechanicsTestFactory):
 class RigidSphereFailing(StructuralMechanicsTestFactory):
     file_name = "rigid_test/sphere_failing"
 
+class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing_explicit"
+
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"

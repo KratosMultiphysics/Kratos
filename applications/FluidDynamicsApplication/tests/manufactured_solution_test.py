@@ -3,29 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+
+have_external_solvers = KratosUtilities.IsApplicationAvailable("ExternalSolversApplication")
 
 # Import Python modules
 import math
-import os
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
@@ -48,15 +32,12 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                             #"manufactured_solution_ref4"]
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             for filename in self.meshes_list:
-                try:
-                    os.remove(filename + '.time')
-                except FileNotFoundError as e:
-                    pass
+                KratosUtilities.DeleteFileIfExisting(filename + '.time')
 
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.OriginalProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 

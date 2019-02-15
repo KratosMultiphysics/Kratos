@@ -269,7 +269,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationGradient" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -343,7 +343,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
 
@@ -374,7 +374,7 @@ void UpdatedLagrangianAxisymmetry::CalculateGreenLagrangeStrain(const Matrix& rF
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -452,7 +452,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: MPMJacobian" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     return rResult;
@@ -499,7 +499,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const a
     }
     else
     {
-        KRATOS_ERROR <<  "Dimension given is wrong: Something is wrong with the given dimension in function: MPMJacobianDelta" << std::endl;
+        KRATOS_ERROR <<  "Dimension given is wrong!" << std::endl;
     }
 
     return rResult;
