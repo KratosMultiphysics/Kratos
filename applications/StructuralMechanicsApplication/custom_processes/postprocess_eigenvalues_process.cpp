@@ -88,7 +88,7 @@ namespace Kratos
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
         // Note: this is omega^2
         const SizeType num_eigenvalues = eigenvalue_vector.size();
-
+        const auto nodes_begin = mrModelPart.NodesBegin();
         const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
 
         std::vector<Variable<double>> requested_double_results;
@@ -102,7 +102,6 @@ namespace Kratos
 
             for (SizeType j=0; j<num_eigenvalues; ++j) {
                 const std::string label = GetLabel(j, eigenvalue_vector[j]);
-                const auto nodes_begin = mrModelPart.NodesBegin();
 
                 #pragma omp parallel for
                 for (int i=0; i<static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
