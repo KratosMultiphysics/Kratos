@@ -723,8 +723,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
 
     mpMatrixConstitutiveLaw = r_props_matrix_cl[CONSTITUTIVE_LAW]->Clone();
     mpFiberConstitutiveLaw  = r_props_fiber_cl[CONSTITUTIVE_LAW]->Clone();
-    mpMatrixConstitutiveLaw->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-    mpFiberConstitutiveLaw ->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+    mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
+    mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/
