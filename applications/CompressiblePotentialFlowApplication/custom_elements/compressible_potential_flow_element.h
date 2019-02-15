@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //
+// This is the old potential flow element. This will be eventually removed!
 
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
 #define KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
@@ -60,7 +61,6 @@ public:
     struct ElementalData
     {
         array_1d<double,TNumNodes> phis, distances;
-        double rho;
         double vol;
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;
@@ -86,7 +86,7 @@ public:
     /**
      * Constructor.
      */
-    CompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {};
 
     /**
      * Constructor using an array of nodes
@@ -129,13 +129,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
@@ -143,13 +136,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param pGeom: the geometry to be employed
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
@@ -157,13 +143,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * creates a new element pointer and clones the previous element data
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
@@ -171,12 +150,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * this determines the elemental equation ID vector for all elemental
-     * DOFs
-     * @param rResult: the elemental equation ID vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
@@ -185,7 +158,7 @@ public:
                 rResult.resize(NumNodes, false);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 
         }
         else//wake element
@@ -200,30 +173,24 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
         }
 
 
     }
 
-
-    /**
-     * determines the elemental list of DOFs
-     * @param ElementalDofList: the list of DOFs
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
@@ -232,7 +199,7 @@ public:
                 rElementalDofList.resize(NumNodes);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         }
         else//wake element
         {
@@ -246,38 +213,22 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
         }
     }
 
-
-    /**
-     * ELEMENTS inherited from this class have to implement next
-     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations
-     * only once: MANDATORY
-     */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -291,7 +242,7 @@ public:
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
         {
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }
         
         
@@ -410,7 +361,7 @@ public:
                     }
                     
                 
-                    //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side1  -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         if(data.distances[i]<0)
@@ -423,7 +374,7 @@ public:
                         }
                     }
                     
-                    //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {                            
                         if(data.distances[i]>0)
@@ -443,13 +394,6 @@ public:
         
     }
 
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         //TODO: improve speed
@@ -467,15 +411,6 @@ public:
             CheckWakeCondition();
     }
 
-    /**
-     * This method provides the place to perform checks on the completeness of the input
-     * and the compatibility with the problem options as well as the contitutive laws selected
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     * this method is: MANDATORY
-     */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
 
@@ -494,8 +429,8 @@ public:
 
         for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
         {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_FACE_PRESSURE on node ", this->GetGeometry()[i].Id())
+            if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable VELOCITY_POTENTIAL on node ", this->GetGeometry()[i].Id())
         }
 
         return 0;
@@ -511,8 +446,7 @@ public:
 
         if (rVariable == PRESSURE)
         {
-            double p = 0.0;
-            p = ComputePressure(rCurrentProcessInfo);
+            double p = ComputePressure(rCurrentProcessInfo);
             rValues[0] = p;
         }
     }
@@ -618,18 +552,18 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] > 0)
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
         //negative part - sign is opposite to the previous case
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] < 0)
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
     }
 
@@ -656,9 +590,9 @@ protected:
 
         //gather nodal data
         for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
@@ -675,12 +609,12 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
@@ -697,12 +631,12 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] < 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void CheckWakeCondition()
@@ -737,7 +671,6 @@ protected:
 
     double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        double pressure = 0.0;
         const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -748,14 +681,13 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityNormalElement(v);
 
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
         return pressure;
     }
 
     double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        double pressure = 0.0;
         const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -766,7 +698,7 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityLowerWakeElement(v);
 
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
         return pressure;
     }

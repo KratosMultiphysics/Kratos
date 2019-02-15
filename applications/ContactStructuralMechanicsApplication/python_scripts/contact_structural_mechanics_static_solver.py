@@ -154,12 +154,15 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self.get_linear_solver()
             if self.settings["block_builder"].GetBool():
-                if self.settings["multi_point_constraints_used"].GetBool():
-                    builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
-                else:
-                    builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
+                builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
+                    # We use the elimination builder and solver
+                    if self.settings["multi_point_constraints_used"].GetBool():
+                        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                            self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                    else:
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
             builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
