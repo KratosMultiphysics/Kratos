@@ -715,9 +715,9 @@ void AddUtilitiesToPython(pybind11::module& m)
     // Mortar utilities
     py::class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
         .def(py::init<>())
-        .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
-        .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
-        .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
+        .def_static("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+        .def_static("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
+        .def_static("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
         ;
 
     // Read materials utility
