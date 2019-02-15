@@ -8,17 +8,9 @@
 #if !defined(KRATOS_GATHER_MODELPART_UTILITY)
 #define  KRATOS_GATHER_MODELPART_UTILITY
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 // System includes
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/element.h"
-#include "includes/condition.h"
 #include "parallel_fill_communicator.h"
 
 namespace Kratos
@@ -26,13 +18,13 @@ namespace Kratos
 class GatherModelPartUtility
 {
 public:
-  
+
   KRATOS_CLASS_POINTER_DEFINITION(GatherModelPartUtility);
-  
+
   typedef ModelPart::NodesContainerType NodesContainerType;
-  
+
   typedef ModelPart::ElementsContainerType ElementsContainerType;
-  
+
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
   ///This function is designed to obtain data from "origin_model_part.GetMesh(mesh_id)", copy it to a new model part
@@ -45,13 +37,13 @@ public:
       :mr_model_part(destination_model_part), mgather_rank(gather_rank)
   {
     KRATOS_TRY;
-    
+
     int mpi_rank;
     int mpi_size;
-    
+
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    
+
     // here we perform open heart surgery on the model part
     destination_model_part.GetNodalSolutionStepVariablesList() = origin_model_part.GetNodalSolutionStepVariablesList();
     VariablesList * pVariablesList = &destination_model_part.GetNodalSolutionStepVariablesList();
@@ -196,22 +188,22 @@ public:
         it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
     }
     mr_model_part.GetCommunicator().AssembleCurrentData(ThisVariable);
-    
+
     KRATOS_CATCH("");
   }
 
   virtual ~GatherModelPartUtility()
   {
   }
-  
+
 private:
   ModelPart& mr_model_part;
   int mgather_rank;
-  
+
 };
 
 } // namespace Kratos.
 
-#endif // KRATOS_GATHER_MODELPART_UTILITY  defined 
+#endif // KRATOS_GATHER_MODELPART_UTILITY  defined
 
 

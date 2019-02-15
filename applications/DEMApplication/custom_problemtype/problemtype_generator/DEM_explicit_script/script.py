@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import DEM_explicit_solver_var
 import time as timer
-
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # defining a model part for the solid part
 solid_model_part = ModelPart("SolidPart")

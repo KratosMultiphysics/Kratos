@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
 
 namespace Kratos
@@ -93,19 +92,43 @@ public:
     ///@name Operations
     ///@{
 
-    // Name Operations
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
 
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
+        
     ///@}
     ///@name Access
     ///@{
@@ -120,6 +143,27 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Surface load Condition #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Surface load Condition #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+        
     ///@}
     ///@name Friends
     ///@{
@@ -152,7 +196,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -175,7 +219,7 @@ protected:
         const Vector& rN,
         const double Pressure,
         const double Weight
-        );
+        ) const;
 
     /**
      * @brief This method computes the cross product matrix
@@ -185,7 +229,7 @@ protected:
     void MakeCrossMatrix(
         BoundedMatrix<double, 3, 3>& rM,
         const array_1d<double, 3>& rU
-        );
+        ) const;
 
     /**
      * @brief This method adds the pressure contribution to the RHS
@@ -203,7 +247,7 @@ protected:
         const double Pressure,
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

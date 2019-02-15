@@ -67,19 +67,19 @@ public:
     {
     }
 
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeSolutionStep()
     {
     }
 
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeSolutionStep()
     {
     }
 
-    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeNonLinearIteration()
     {
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration()
     {
     }
 

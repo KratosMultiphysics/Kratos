@@ -4,6 +4,9 @@ class PythonProcess(object):
     def __init__(self):
         KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
         
+    def Check(self):
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
+    
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     

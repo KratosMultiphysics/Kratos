@@ -6,28 +6,17 @@
 //
 //
 
-
 #if !defined(KRATOS_TRILINOS_SPALART_ALLMARAS_H_INCLUDED )
 #define  KRATOS_TRILINOS_SPALART_ALLMARAS_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/communicator.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "solving_strategies/schemes/scheme.h"
 
 // Application includes
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"

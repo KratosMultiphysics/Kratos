@@ -19,12 +19,7 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
 #include "includes/legacy_structural_app_vars.h"
 
 namespace Kratos

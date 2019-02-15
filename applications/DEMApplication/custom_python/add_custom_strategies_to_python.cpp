@@ -112,6 +112,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
         .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
         .def("PrepareContactElementsForPrinting", &ExplicitSolverStrategy::PrepareContactElementsForPrinting)
+        .def("AttachSpheresToStickyWalls", &ExplicitSolverStrategy::AttachSpheresToStickyWalls)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")

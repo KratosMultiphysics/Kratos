@@ -47,7 +47,7 @@ namespace Kratos
             ModelPart& first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
-            Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = first_model_part.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = first_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -182,7 +182,7 @@ namespace Kratos
             ModelPart& first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
-            Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = first_model_part.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = first_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);

@@ -25,20 +25,20 @@ namespace Kratos {
 	namespace Testing {
 
 		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
-		{     
+		{
 			Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
 			Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
 			Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
 			Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
-      
+
 			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
-      
-			Parameters mesher_parameters(R"( 
+
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions" : 3,
                 "element_name" : "Element2D3N"
             }  )");
-      
+
 			Model current_model;
 			ModelPart &surface_part = current_model.CreateModelPart("Surface");
 			ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
@@ -93,13 +93,13 @@ namespace Kratos {
 
 			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions" : 3,
                 "element_name" : "Element2D3N"
             }  )");
 
-      Model current_model;
+      		Model current_model;
 			ModelPart &surface_part = current_model.CreateModelPart("Surface");
 			ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
 			skin_part.CreateNewNode(100, 0.3, -0.5, 0.0);
@@ -115,6 +115,39 @@ namespace Kratos {
 			}
 		}
 
+		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)
+		{
+      		Model current_model;
+			ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
+			ModelPart &surface_part = current_model.CreateModelPart("Surface");
+
+			// Create surface part
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
+			Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
+			Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Parameters mesher_parameters(R"({
+                "number_of_divisions" : 3,
+                "element_name" : "Element2D3N"
+            })");
+			StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
+
+			// Create skin part
+			skin_part.CreateNewNode(100, 0.2, 0.0, 0.0);
+			skin_part.CreateNewNode(200, 0.5, 0.0, 0.0);
+			Properties::Pointer p_properties(new Properties(0));
+			skin_part.CreateNewElement("Element2D2N", 1, {{ 100,200 }}, p_properties);
+
+			// Create and call the FindIntersectedGeometricalObjectsProcess
+			FindIntersectedGeometricalObjectsProcess find_intersections(surface_part, skin_part);
+			find_intersections.Execute();
+
+			KRATOS_CHECK_IS_FALSE((surface_part.Elements()[0]).Is(SELECTED));
+			KRATOS_CHECK_IS_FALSE((surface_part.Elements()[5]).Is(SELECTED));
+			KRATOS_CHECK_IS_FALSE((surface_part.Elements()[6]).Is(SELECTED));
+		}
+
 		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess3D, KratosCoreFastSuite)
 		{
 			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
@@ -128,13 +161,13 @@ namespace Kratos {
 
 			Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":2,
                 "element_name": "Element3D4N"
             }  )");
 
-      Model current_model;
+      		Model current_model;
 			ModelPart &volume_part = current_model.CreateModelPart("Volume");
 			ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
 			skin_part.CreateNewNode(1, 1., .2, 0.);
@@ -155,7 +188,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection3D, KratosCoreFastSuite)
 		{
 			// Generate the tetrahedron element
-      Model current_model;
+      		Model current_model;
 			ModelPart &volume_part = current_model.CreateModelPart("Volume");
 			volume_part.CreateNewNode(34, 0.865646, 0.657938, 0.222985);
 			volume_part.CreateNewNode(58, 0.770744, 0.570027, 0.204129);

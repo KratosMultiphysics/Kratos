@@ -141,7 +141,7 @@ Element::Pointer @{KRATOS_NAME_CAMEL}::Create(
     PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return ratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties);
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -155,7 +155,7 @@ Element::Pointer @{KRATOS_NAME_CAMEL}::Create(
 Element::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return ratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     KRATOS_CATCH("");
 }
 

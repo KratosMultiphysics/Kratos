@@ -30,12 +30,12 @@
 
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -51,7 +51,7 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -85,7 +85,7 @@ namespace Kratos
     AdaptiveTimeIntervalProcess(ModelPart& rModelPart,
 				 int EchoLevel)
       : mrModelPart(rModelPart)
-    { 
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -112,7 +112,7 @@ namespace Kratos
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-      const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];	
+      const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];
       const double currentTimeInterval = rCurrentProcessInfo[CURRENT_DELTA_TIME];
       double updatedTime = rCurrentProcessInfo[TIME];
       double updatedTimeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -121,7 +121,7 @@ namespace Kratos
 
       rCurrentProcessInfo.SetValue(PREVIOUS_DELTA_TIME,currentTimeInterval);
       rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,false);
-	    
+
       bool milestoneTimeReached=true;
       bool increaseTimeInterval=true;
       bool timeIntervalReduced=false;
@@ -132,10 +132,10 @@ namespace Kratos
       deltaTimeToNewMilestone=initialTimeInterval*(previousMilestoneStep+1)-updatedTime;
 
       updatedTimeInterval =currentTimeInterval;
-      
+
       bool badVelocityConvergence=rCurrentProcessInfo[BAD_VELOCITY_CONVERGENCE];
       bool badPressureConvergence=rCurrentProcessInfo[BAD_PRESSURE_CONVERGENCE];
- 
+
       if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
 	std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
       }
@@ -207,7 +207,7 @@ namespace Kratos
 	std::cout<<"current time "<<updatedTime<<" time step: new  "<<newTimeInterval<<" previous "<<currentTimeInterval<<" initial  "<<initialTimeInterval<<"\n"<<std::endl;
       }
 
-    
+
       KRATOS_CATCH("");
 
     };
@@ -220,7 +220,7 @@ namespace Kratos
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-#pragma omp parallel 
+#pragma omp parallel
 	  {
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
@@ -235,10 +235,10 @@ namespace Kratos
 		  }
 		  double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
 		  double unsafetyFactor=0;
-		  WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-		  for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+		  NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+		  for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
 		    {
-		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
+		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(nn)->Coordinates();
 		      double squaredDistance=0;
 		      for (unsigned int d = 0; d < 3; ++d){
 			squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];
@@ -295,9 +295,9 @@ namespace Kratos
 		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
 		    solidElement=true;
 		  }
-	
+
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
@@ -318,7 +318,7 @@ namespace Kratos
 
 	      if(newArea<0.001*currentElementalArea && currentElementalArea>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
-	      
+
 		if(reducedTimeInterval<temporaryTimeInterval){
 		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
 		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
@@ -332,7 +332,7 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 
 		  }
@@ -364,7 +364,7 @@ namespace Kratos
 		    solidElement=true;
 		  }
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
@@ -385,7 +385,7 @@ namespace Kratos
 
 	      if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
 		double reducedTimeInterval=0.5*temporaryTimeInterval;
-	      
+
 		if(reducedTimeInterval<temporaryTimeInterval){
 		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
 		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
@@ -399,7 +399,7 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 
@@ -424,7 +424,7 @@ namespace Kratos
 
 
 	    }
-		
+
 	  }
 
       }
@@ -435,7 +435,7 @@ namespace Kratos
 			      double tolerance,
 			      bool &increaseTimeInterval)
     {
-      ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();    
+      ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double increasedTimeInterval=2.0*updatedTimeInterval;
       if(increasedTimeInterval<deltaTimeToNewMilestone*(1.0+tolerance)){
 	rCurrentProcessInfo.SetValue(DELTA_TIME,increasedTimeInterval);
@@ -450,7 +450,7 @@ namespace Kratos
 
     ///@}
     ///@name Operators
-    ///@{ 
+    ///@{
 
     ///@}
     ///@name Access
@@ -495,7 +495,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
- 
+
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -596,5 +596,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADAPTIVE_TIME_INTERVAL_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_ADAPTIVE_TIME_INTERVAL_PROCESS_H_INCLUDED  defined

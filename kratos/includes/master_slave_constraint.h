@@ -338,6 +338,42 @@ public:
     }
 
     /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    virtual const DofPointerVectorType& GetSlaveDofsVector() const
+    {
+        KRATOS_ERROR << "GetSlaveDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    virtual const DofPointerVectorType& GetMasterDofsVector() const
+    {
+        KRATOS_ERROR << "GetMasterDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method resets the values of the slave dofs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "ResetSlaveDofs not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
+     * @brief This method directly applies the master/slave relationship
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void Apply(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "Apply not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
@@ -367,7 +403,7 @@ public:
      * @param rCurrentProcessInfo
      * @note This method is: MANDATORY
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -533,6 +569,7 @@ private:
     }
 };
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
 
 ///@name Input/Output funcitons
 ///@{

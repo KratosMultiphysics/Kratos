@@ -417,7 +417,7 @@ public:
 	  {
 	    if( (i)->Is(SLAVE) && i->IsNot(RIGID) ){
 
-	      Element& MasterElement = (i)->GetValue(MASTER_ELEMENTS).back();
+	      Element& MasterElement = *(i)->GetValue(MASTER_ELEMENTS).back();
 
 	      Node<3>& rCenterOfGravity = MasterElement.GetGeometry()[0];
 
@@ -1947,5 +1947,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_ROTATION_SCHEME  defined */
-
-

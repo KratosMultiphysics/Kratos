@@ -21,11 +21,7 @@
 // External includes
 
 // Project includes
-#include "mapper.h"
-#include "custom_searching/interface_communicator.h"
-#include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
-#include "custom_utilities/mapper_local_system.h"
+#include "interpolative_mapper_base.h"
 
 
 namespace Kratos
@@ -58,6 +54,11 @@ public:
             rCoordinates,
             SourceLocalSystemIndex,
             SourceRank);
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectType() const override
+    {
+        return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
@@ -144,7 +145,7 @@ private:
 * look into the class description of the MapperCommunicator
 */
 template<class TSparseSpace, class TDenseSpace>
-class NearestElementMapper : public Mapper<TSparseSpace, TDenseSpace>
+class NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -153,24 +154,9 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
-
-    typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
-    typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
-
-    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
-    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
-
-    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
-    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
-
-    typedef std::size_t IndexType;
-
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
-
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
+    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -179,23 +165,16 @@ public:
     // Default constructor, needed for registration
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                         : mrModelPartOrigin(rModelPartOrigin),
-                           mrModelPartDestination(rModelPartDestination) {}
+                         : BaseType(rModelPartOrigin,rModelPartDestination) {}
 
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
-                         : mrModelPartOrigin(rModelPartOrigin),
-                           mrModelPartDestination(rModelPartDestination),
-                           mMapperSettings(JsonParameters)
+                         : BaseType(rModelPartOrigin,
+                                    rModelPartDestination,
+                                    JsonParameters)
     {
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
-
-        ValidateInput(mMapperSettings);
-        InitializeInterfaceCommunicator();
-
-        InitializeInterface();
+        this->Initialize();
     }
 
     /// Destructor.
@@ -205,76 +184,6 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateInterface(
-        Kratos::Flags MappingOptions,
-        double SearchRadius) override
-    {
-        // Set the Flags according to the type of remeshing
-        if (MappingOptions.Is(MapperFlags::REMESHED)) {
-            InitializeInterface(MappingOptions);
-        }
-        else {
-            BuildMappingMatrix(MappingOptions);
-        }
-
-        if (mpInverseMapper) {
-            mpInverseMapper->UpdateInterface(MappingOptions,
-                                             SearchRadius);
-        }
-    }
-
-    void Map(
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
-        Kratos::Flags MappingOptions) override
-    {
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-    }
-
-    void Map(
-        const Variable< array_1d<double, 3> >& rOriginVariable,
-        const Variable< array_1d<double, 3> >& rDestinationVariable,
-        Kratos::Flags MappingOptions) override
-    {
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-    }
-
-    void InverseMap(
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
-        Kratos::Flags MappingOptions) override
-    {
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-    }
-
-    void InverseMap(
-        const Variable< array_1d<double, 3> >& rOriginVariable,
-        const Variable< array_1d<double, 3> >& rDestinationVariable,
-        Kratos::Flags MappingOptions) override
-    {
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-    }
-
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
@@ -283,15 +192,6 @@ public:
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    TMappingMatrixType* pGetMappingMatrix() override
-    {
-        return mpMappingMatrix.get();
     }
 
     ///@}
@@ -320,87 +220,25 @@ public:
     }
 
 private:
-    ///@name Member Variables
-    ///@{
 
-    ModelPart& mrModelPartOrigin;
-    ModelPart& mrModelPartDestination;
-
-    Parameters mMapperSettings;
-
-    MapperUniquePointerType mpInverseMapper = nullptr;
-
-    TMappingMatrixUniquePointerType mpMappingMatrix;
-
-    MapperLocalSystemPointerVector mMapperLocalSystems;
-
-    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
-
-    ///@}
     ///@name Private Operations
     ///@{
 
-    void ValidateInput(Parameters AllMapperSettings);
-
-    void ValidateParameters(Parameters AllMapperSettings)
+    void CreateMapperLocalSystems(
+        const Communicator& rModelPartCommunicator,
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        Parameters default_settings = Parameters( R"({
-            "search_radius"            : -1.0,
-            "search_iterations"        : 3,
-            "echo_level"               : 0
-        })");
-
-        AllMapperSettings.ValidateAndAssignDefaults(default_settings);
+        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+            rModelPartCommunicator,
+            rLocalSystems);
     }
 
-    void InitializeInterfaceCommunicator();
-
-    void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
-
-    void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
-
-    void AssignInterfaceEquationIds()
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+        return Kratos::make_unique<NearestElementInterfaceInfo>();
     }
-
-    void MapInternal(const Variable<double>& rOriginVariable,
-                     const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
-
-    void MapInternalTranspose(const Variable<double>& rOriginVariable,
-                              const Variable<double>& rDestinationVariable,
-                              Kratos::Flags MappingOptions);
-
-    void MapInternal(const Variable<array_1d<double, 3>>& rOriginVariable,
-                     const Variable<array_1d<double, 3>>& rDestinationVariable,
-                     Kratos::Flags MappingOptions);
-
-    void MapInternalTranspose(const Variable<array_1d<double, 3>>& rOriginVariable,
-                              const Variable<array_1d<double, 3>>& rDestinationVariable,
-                              Kratos::Flags MappingOptions);
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    MapperUniquePointerType& GetInverseMapper()
-    {
-        if (!mpInverseMapper) {
-            InitializeInverseMapper();
-        }
-        return mpInverseMapper;
-    }
-
-    void InitializeInverseMapper()
-    {
-        mpInverseMapper = Clone(mrModelPartDestination,
-                                mrModelPartOrigin,
-                                mMapperSettings);
-    }
 
 }; // Class NearestElementMapper
 

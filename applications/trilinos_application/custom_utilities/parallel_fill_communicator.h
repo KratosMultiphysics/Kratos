@@ -13,17 +13,12 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "processes/graph_coloring_process.h"
-#include "mpi.h"
 #include "mpi/includes/mpi_communicator.h"
 
 namespace Kratos

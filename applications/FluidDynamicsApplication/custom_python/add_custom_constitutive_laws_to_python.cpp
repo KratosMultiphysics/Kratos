@@ -30,11 +30,13 @@
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 
 namespace Kratos
 {
@@ -68,6 +70,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() );
 
     py::class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTemperatureDependent2DLaw, NewtonianTemperatureDependent2DLaw::Pointer, Newtonian2DLaw >(m,"NewtonianTemperatureDependent2DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTemperatureDependent3DLaw, NewtonianTemperatureDependent3DLaw::Pointer, Newtonian3DLaw >(m,"NewtonianTemperatureDependent3DLaw")
     .def( py::init<>() );
 
 }

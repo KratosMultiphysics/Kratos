@@ -139,8 +139,8 @@ namespace Kratos
          * @param rSaveInternalVariables Boolean to save internal constit. law variables
          */
         BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            ProcessInfo& rCurrentProcessInfo,
-            const bool& rSaveInternalVariables) override;
+            const ProcessInfo& rCurrentProcessInfo,
+            const bool rSaveInternalVariables) override;
 
 
 		private:

@@ -1,11 +1,22 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
-    
-    default_settings = KratosMultiphysics.Parameters("""
-        {
+
+    default_settings = KratosMultiphysics.Parameters(
+        """{
+            "echo_level"                  : 1,
+            "problem_data"     : {
+                "problem_name"  : "dummy_name.Provide_a_real_one",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 1,
+                "start_time"    : 0.0,
+                "end_time"      : 1
+            },
+            "do_print_results_option"                : true,
+            "processes" : {},
+            "json_output_process"  : [],
+            "sdem_output_processes" : {},
             "coupling_level_type"                    : 1,
             "time_averaging_type"                    : 0,
             "interaction_start_time"                 : 0.0,
@@ -91,30 +102,11 @@ def GetDefaultInputParameters():
             "regularization_coefficient"             : 0.0,
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
+            "basset_force_type"                      : 0,
+            "frame_of_reference_type"                : 0,
+            "angular_velocity_of_frame_Z"            : 0.0,
 
-            "GraphExportFreq"                  : 1e-3,
-            "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 0.5,
-            "PostDisplacement"                 : true,
-            "PostVelocity"                     : true,
-            "PostElasticForces"                : false,
-            "PostContactForces"                : false,
-            "PostRigidElementForces"           : false,
-            "PostTangentialElasticForces"      : false,
-            "PostTotalForces"                  : false,
-            "PostShearStress"                  : false,
-            "PostNonDimensionalVolumeWear"     : false,
-            "PostNodalArea"                    : false,
-            "PostRHS"                          : false,
-            "PostDampForces"                   : false,
-            "PostAppliedForces"                : false,
-            "PostRadius"                       : true,
-            "PostGroupId"                      : false,
-            "PostExportId"                     : false,
-            "PostAngularVelocity"              : false,
-            "PostParticleMoment"               : false,
-            "PostEulerAngles"                  : false,
-            "PostBoundingBox"                  : false,
             "PostPressure"                     : false,
             "PostFluidPressure"                          : false,
             "print_REYNOLDS_NUMBER_option"               : false,
@@ -144,9 +136,10 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
-            
             "PredefinedSkinOption"             : false,
-            "MeanRadius"                       : 0.0001
+            "MeanRadius"                       : 0.0001,
+            "fluid_parameters" : {},
+            "dem_parameters" : {}
             }""")
-            
+
     return default_settings
