@@ -142,10 +142,10 @@ public:
     /**
      * @brief Function to compute the "negative" (water) volume flow over a specified boundary
      *
-     * @param boundaryFlag Boundary to consider
+     * @param BoundaryFlag Boundary to consider
      * @return double Volume flow computed over boundary in regions with negative distance field
      */
-    double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
+    double ComputeFlowOverBoundary( const Kratos::Flags BoundaryFlag );
 
 
     /**
@@ -270,11 +270,11 @@ private:
     /**
      * @brief Computing volumes and interface in a common procedure (most efficient)
      *
-     * @param positiveVolume "Air" volume
-     * @param negativeVolume "Water" volume
-     * @param interfaceArea Area of the two fluid interface
+     * @param rPositiveVolume "Air" volume
+     * @param rNegativeVolume "Water" volume
+     * @param rInterfaceArea Area of the two fluid interface
      */
-    void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea );
+    void ComputeVolumesAndInterface( double& rPositiveVolume, double& rNegativeVolume, double& rInterfaceArea );
 
     /**
      * @brief Computation of normal (non-unit) vector on a line
@@ -297,7 +297,7 @@ private:
      *
      * @param deltaDist Distance for the shift ( negative = more "water", positive = more "air")
      */
-    void ShiftDistanceField( double deltaDist );
+    void ShiftDistanceField( const double DeltaDist );
 
     /**
      * @brief Generating a 2D triangle of type Triangle2D3 out of a Triangle3D3 geometry
@@ -305,22 +305,22 @@ private:
      * @param rGeom Original triangle geometry
      * @return Triangle2D3<Node<3>>::Pointer Shared pointer to the resulting triangle of type Triangle2D3
      */
-    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
+    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3>>& rGeom );
 
     /**
      * @brief Function to generate an auxiliary line segment that covers only the negative part of the original geometry
      *
      * @param rGeom Reference to original geometry
-     * @param distance Distance of the initial boundary nodes
-     * @param p_aux_line Resulting line segment (output)
-     * @param aux_velocity1 Velocity at the first node of the new line segment(output)
-     * @param aux_velocity2 Velocity at the second node of the new line segment (output)
+     * @param rDistance Distance of the initial boundary nodes
+     * @param rpAuxLine Resulting line segment (output)
+     * @param rAuxVelocity1 Velocity at the first node of the new line segment(output)
+     * @param rAuxVelocity2 Velocity at the second node of the new line segment (output)
      */
     void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
-                            const Vector& distance,
-                            Line3D2<IndexedPoint>::Pointer& p_aux_line,
-                            array_1d<double, 3>& aux_velocity1,
-                            array_1d<double, 3>& aux_velocity2 );
+                            const Vector& rDistance,
+                            Line3D2<IndexedPoint>::Pointer& rpAuxLine,
+                            array_1d<double, 3>& rAuxVelocity1,
+                            array_1d<double, 3>& rAuxVelocity2 );
 
     /**
      * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
@@ -333,7 +333,7 @@ private:
      * @return double Volume flow [3D: m3/s] computed over the surface
      */
 
-    double OrthogonalFlowIntoAir( const double factor = 1.0 );
+    double OrthogonalFlowIntoAir( const double Factor );
 
     ///@}
     ///@name Private  Access
