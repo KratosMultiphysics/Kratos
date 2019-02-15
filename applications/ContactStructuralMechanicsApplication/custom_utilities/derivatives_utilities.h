@@ -1390,12 +1390,14 @@ private:
         const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
-        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        double det_j;
+        BoundedMatrix<double, 2, 2> invJ = MathUtils<double>::InvertMatrix<2>(J, det_j, -1.0);
+        const bool good_condition_number = PrivateCheckConditionNumber(J, invJ);
+        if (!good_condition_number) // Reset in case of bad condition number
+            noalias(invJ) = ZeroMatrix(2,2);
 
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < ZeroTolerance)
-            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+        KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING:: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
 
         const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
@@ -1408,14 +1410,16 @@ private:
 //             L(i, 2) = ThisNormal[i];
 //         }
 //
-//         double det_L = MathUtils<double>::DetMat<BoundedMatrix<double, 3, 3>>(L);
-//         const BoundedMatrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
+//         double det_L;
+//         BoundedMatrix<double, 3, 3> invL = MathUtils<double>::InvertMatrix<3>(L, det_L, -1.0);
+//         const bool good_condition_number = PrivateCheckConditionNumber(L, invL);
+//         if (!good_condition_number) // Reset in case of bad condition number
+//             noalias(invL) = ZeroMatrix(3,3);
 //         array_1d<double, 3> aux = prod(invL, DeltaPoint);
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
 //         #ifdef KRATOS_DEBUG
-//             if (std::abs(det_L) < tolerance)
-//                 KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+//             KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
     }
 
@@ -1445,12 +1449,14 @@ private:
         const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
-        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        double det_j;
+        BoundedMatrix<double, 2, 2> invJ = MathUtils<double>::InvertMatrix<2>(J, det_j, -1.0);
+        const bool good_condition_number = PrivateCheckConditionNumber(J, invJ);
+        if (!good_condition_number) // Reset in case of bad condition number
+            noalias(invJ) = ZeroMatrix(2,2);
 
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < ZeroTolerance)
-            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+        KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING:: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
 
         const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
@@ -1580,6 +1586,37 @@ private:
          const double rhs = (rN2[iNode]*DX2(0, iNode)-DXa[0])*na[1] - (rN2[iNode]*DX2(1, iNode)-DXa[1])*na[0] + (rN2[iNode]*X2(0, iNode)-Xa[0])*Dna[1] - (rN2[iNode]*X2(1, iNode)-Xa[1])*Dna[0];
 
          return lhs*rhs;
+    }
+
+    /**
+     * @brief This method checks the condition number of  matrix (private method that copies the code of MathUtils)
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     * @return False of bad conditioned
+     */
+    template<class TMatrix1, class TMatrix2>
+    static inline bool PrivateCheckConditionNumber(
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        // We want at least 4 significant digits
+        const double max_condition_number = (1.0/Tolerance) * 1.0e-4;
+
+        // Find the condition number to define is inverse is OK
+        const double input_matrix_norm = norm_frobenius(rInputMatrix);
+        const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
+
+        // Now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ;
+        // Finally check if the condition number is low enough
+        if (cond_number > max_condition_number) {
+            return false;
+        }
+
+        return true;
     }
 
     ///@}
