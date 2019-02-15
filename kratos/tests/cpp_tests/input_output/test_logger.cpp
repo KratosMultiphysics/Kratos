@@ -259,18 +259,21 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
         {
+            int rank = DataCommunicator::GetDefault().Rank();
+
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
             Logger::AddOutput(p_output);
-            p_output->WriteHeader();
+
             std::stringstream reference_output;
-            reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
+            if (rank == 0)
+                reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
             std::size_t time_step = 1;
             Logger("Time Step") << time_step << std::endl;
-            reference_output << "1             ";
+            if (rank == 0) reference_output << "1             ";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
@@ -282,9 +285,9 @@ namespace Kratos {
             for(time_step = 2;time_step < 4; time_step++){
                 Logger("Time Step") << time_step << std::endl;
                 for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
-                        convergence = 0.3 / (iteration_number * time_step);
-                        Logger("Iteration Number") << iteration_number << std::endl;
-                        Logger("Convergence") << convergence << std::endl;
+                    convergence = 0.3 / (iteration_number * time_step);
+                    Logger("Iteration Number") << iteration_number << std::endl;
+                    Logger("Convergence") << convergence << std::endl;
                 }
                 if(convergence < 0.06) {
                     Logger("Is converged") << "Yes" << std::endl;
@@ -295,10 +298,12 @@ namespace Kratos {
 
             }
 
-            reference_output << std::endl << "2             1                        0.15                ";
-            reference_output << std::endl << "              2                        0.075               No           ";
-            reference_output << std::endl << "3             1                        0.1                 ";
-            reference_output << std::endl << "              2                        0.05                Yes          ";
+            if (rank == 0) {
+                reference_output << std::endl << "2             1                        0.15                ";
+                reference_output << std::endl << "              2                        0.075               No           ";
+                reference_output << std::endl << "3             1                        0.1                 ";
+                reference_output << std::endl << "              2                        0.05                Yes          ";
+            }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
