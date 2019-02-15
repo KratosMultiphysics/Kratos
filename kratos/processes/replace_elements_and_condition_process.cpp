@@ -27,53 +27,43 @@ namespace Kratos
 
 void ReplaceElementsAndConditionsProcess::Execute()
 {
-    ModelPart& r_model_part = mSettings["use_root_model_part"].GetBool() ? mrModelPart.GetRootModelPart() : mrModelPart;
 
-    const std::string element_name = mSettings["element_name"].GetString();
-    const std::string condition_name = mSettings["condition_name"].GetString();
+    ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
 
-    bool replace_elements = false;
-    bool replace_conditions = false;
+    const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
+    const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
 
-    if (element_name != "") {
-        replace_elements = true;
-        const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); i++) {
-            auto it_elem = r_model_part.ElementsBegin() + i;
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(r_root_model_part.Elements().size()); i++) {
+        auto it_elem = r_root_model_part.ElementsBegin() + i;
 
-            auto p_element = rReferenceElement.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
+        auto p_element = rReferenceElement.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
 
-            // Deep copy elemental data and flags
-            p_element->Data() = it_elem->Data();
-            p_element->Set(Flags(*it_elem));
+        // Deep copy elemental data and flags
+        p_element->Data() = it_elem->Data();
+        p_element->Set(Flags(*it_elem));
 
-            (*it_elem.base()) = p_element;
-        }
+        (*it_elem.base()) = p_element;
     }
 
-    if (condition_name != "") {
-        replace_conditions = true;
-        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(r_root_model_part.Conditions().size()); i++) {
+        auto it_cond = r_root_model_part.ConditionsBegin() + i;
 
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Conditions().size()); i++) {
-            auto it_cond = r_model_part.ConditionsBegin() + i;
+        auto p_condition = rReferenceCondition.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
 
-            auto p_condition = rReferenceCondition.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
+        // Deep copy elemental data and flags
+        p_condition->Data() = it_cond->Data();
+        p_condition->Set(Flags(*it_cond));
 
-            // Deep copy elemental data and flags
-            p_condition->Data() = it_cond->Data();
-            p_condition->Set(Flags(*it_cond));
+        (*it_cond.base()) = p_condition;
 
-            (*it_cond.base()) = p_condition;
-        }
     }
 
     // Change the submodelparts
-    for (auto& i_sub_model_part : r_model_part.SubModelParts()) {
-        UpdateSubModelPart( i_sub_model_part, r_model_part, replace_elements, replace_conditions );
-    }
+    for (auto& i_sub_model_part : r_root_model_part.SubModelParts())
+        UpdateSubModelPart( i_sub_model_part, r_root_model_part );
+
 }
 
 /***********************************************************************************/
@@ -81,34 +71,27 @@ void ReplaceElementsAndConditionsProcess::Execute()
 
 void ReplaceElementsAndConditionsProcess::UpdateSubModelPart(
     ModelPart& rModelPart,
-    ModelPart& rRootModelPart,
-    const bool UpdateElements,
-    const bool UpdateConditions
+    ModelPart& rRootModelPart
     )
 {
     // Change the model part itself
-    if (UpdateElements) {
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
+        auto it_elem = rModelPart.ElementsBegin() + i;
 
-            (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
-        }
+        (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
     }
 
-    if (UpdateConditions) {
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
+        auto it_cond = rModelPart.ConditionsBegin() + i;
 
-            (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
-        }
+        (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
     }
 
     // Change the submodelparts
-    for (auto& i_sub_model_part : rModelPart.SubModelParts()) {
-        UpdateSubModelPart( i_sub_model_part, rRootModelPart, UpdateElements, UpdateConditions);
-    }
+    for (auto& i_sub_model_part : rModelPart.SubModelParts())
+        UpdateSubModelPart( i_sub_model_part, rRootModelPart );
 
 }
 
