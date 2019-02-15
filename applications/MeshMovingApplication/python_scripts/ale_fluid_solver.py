@@ -203,7 +203,6 @@ class AleFluidSolver(PythonSolver):
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
 
-        #self.__ApplyALEBoundaryCondition()
         start_fluid_solution = self.settings["start_fluid_solution"].GetDouble()
 
         fluid_computing_model_part = self.fluid_solver.GetComputingModelPart()
