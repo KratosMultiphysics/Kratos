@@ -53,9 +53,6 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
 {
     const IncompressiblePotentialFlowWakeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
-
-    std::cout << this->Id() << std::endl;
-
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
