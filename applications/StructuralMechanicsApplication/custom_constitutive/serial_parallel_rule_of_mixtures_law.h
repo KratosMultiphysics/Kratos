@@ -71,7 +71,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     KRATOS_CLASS_POINTER_DEFINITION(SerialParallelRuleOfMixturesLaw);
 
     /// Definition of the base class
-    typedef typename ElasticIsotropic3D BaseType;
+    typedef typename ConstitutiveLaw BaseType;
 
     ///@}
     ///@name Life Cycle

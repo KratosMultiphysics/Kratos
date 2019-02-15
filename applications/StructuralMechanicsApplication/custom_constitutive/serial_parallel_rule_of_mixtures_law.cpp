@@ -342,7 +342,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     Vector& rInitialApproximationSerialStrainMatrix
 )
 {
-    const int voigt_size = this->GetStrainSize();
+    const std::size_t voigt_size = this->GetStrainSize();
     const Vector& r_total_strain_vector_parallel = prod(trans(rParallelProjector), rStrainVector);
     const Vector& r_total_strain_vector_serial   = prod(rSerialProjector, rStrainVector);
 
