@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -12,7 +13,7 @@ from test_multilevel_montecarlo import KratosMultilevelMonteCarloGeneralTests
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "small", "nighlty" and "all"
 
     Return
@@ -26,20 +27,19 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
-    # - testSmallExample
+    # -
     smallSuite = suites['small']
-    smallSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testSmallExample'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
+    # - testMonteCarloAnalysis
+    # - testMultilevelMonteCarloAnalysis
     nightSuite = suites['nightly']
-    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testNightlyFirstExample'))
-    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testNightlySecondExample'))
-    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarloAnalysis'))
-    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarloAnalysis'))
+    if(hasattr(MeshingApplication,"MmgProcess2D")):
+        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarloAnalysis'))
+        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarloAnalysis'))
+    else:
+        print("MMG process is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
@@ -53,4 +53,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

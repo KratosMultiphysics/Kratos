@@ -40,7 +40,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # the previous default linear-solver is set
             if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
                 default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "ExternalSolversApplication.SuperLUSolver",
+                "solver_type": "ExternalSolversApplication.super_lu",
                     "max_iteration": 500,
                     "tolerance": 1e-9,
                     "scaling": false,
@@ -276,6 +276,9 @@ class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory
 
 class RigidSphereFailing(StructuralMechanicsTestFactory):
     file_name = "rigid_test/sphere_failing"
+
+class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing_explicit"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):

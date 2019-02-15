@@ -35,7 +35,7 @@
         "mesh_motion_solver_settings"                     :{
             "solver_type" : "structural_similarity",
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
@@ -69,7 +69,7 @@
             "velocity_tolerance"              : 0.001,
             "maximum_velocity_iterations"     : 15,
             "velocity_linear_solver_settings" : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
@@ -79,7 +79,7 @@
                 "scaling"             : false
             },
             "pressure_linear_solver_settings" : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
