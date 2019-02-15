@@ -1,9 +1,12 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import os
+import sys
+
+# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-import KratosMultiphysics.kratos_utilities as kratos_utils
+import KratosMultiphysics.kratos_utilities as KratosUtils
 
 try:
     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -12,11 +15,7 @@ try:
 except ImportError as e:
     missing_external_dependencies = True
     # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
-import os
-import sys
+    missing_application = KratosUtils.HandleInvalidImportException(e)
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -30,9 +29,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Clean up temporary files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     def test_model_part_io_read_model_part(self):
         current_model = KratosMultiphysics.Model()

@@ -1,8 +1,13 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import os
+import sys
+
 # Importing the Kratos Library
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
 try:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     import KratosMultiphysics.StructuralMechanicsApplication
@@ -11,13 +16,8 @@ try:
 except ImportError as e:
     missing_external_dependencies = True
     # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+    missing_application = KratosUtils.HandleInvalidImportException(e)
 
-# Other imports
-import os
-import sys
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
