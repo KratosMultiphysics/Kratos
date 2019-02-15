@@ -935,7 +935,7 @@ protected:
     void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
-            ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // Constraint initial iterator
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
@@ -1028,7 +1028,7 @@ protected:
         TSparseSpace::SetToZero(mConstantVector);
 
         // The current process info
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
