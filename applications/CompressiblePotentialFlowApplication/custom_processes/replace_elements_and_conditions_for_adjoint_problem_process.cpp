@@ -183,10 +183,6 @@ namespace Kratos
         // Add here all new adjoint elements or elements which should be ignored by the replacement process
         if(name_current_element == "IncompressiblePotentialFlowElement2D3N")
             rName = "IncompressibleAdjointPotentialFlowElement2D3N";
-        else if(name_current_element == "IncompressibleFullPotentialFlowElement2D3N")
-            rName = "IncompressibleAdjointPotentialFlowElement2D3N";
-        else if(name_current_element == "IncompressibleAlphaPotentialFlowElement2D3N")
-            rName = "IncompressibleAdjointPotentialFlowElement2D3N";
         else {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
              " because there is no equivalent adjoint/primal element available." << std::endl;
@@ -208,9 +204,7 @@ namespace Kratos
 
 
         // Add here all new adjoint conditions or conditions which should be ignored by the replacement process
-        if(name_current_condition == "IncompressiblePotentialWallCondition2D2N")
-            rName = "IncompressibleAdjointPotentialWallCondition2D2N";
-        else if(name_current_condition == "IncompressibleStressesPotentialWallCondition2D2N")
+        if(name_current_condition == "PotentialWallCondition2D2N")
             rName = "IncompressibleAdjointPotentialWallCondition2D2N";
         else
         {
