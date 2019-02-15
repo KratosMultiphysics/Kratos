@@ -77,11 +77,6 @@ namespace Kratos
 
 			class DistributedFilter {
 			public:
-				DistributedFilter()
-					: mIsDistributed(false), mPrintFromAllRanks(false), mSourceRank(0) {}
-
-				DistributedFilter(bool IsDistributed, bool PrintFromAllRanks, int TheRank)
-					: mIsDistributed(IsDistributed), mPrintFromAllRanks(PrintFromAllRanks), mSourceRank(TheRank) {}
 
 				DistributedFilter(DistributedFilter const& rOther)
 					: mIsDistributed(rOther.mIsDistributed), mPrintFromAllRanks(rOther.mPrintFromAllRanks), mSourceRank(rOther.mSourceRank) {}
@@ -111,6 +106,12 @@ namespace Kratos
 				}
 
 			private:
+				DistributedFilter()
+					: mIsDistributed(false), mPrintFromAllRanks(false), mSourceRank(0) {}
+
+				DistributedFilter(bool IsDistributed, bool PrintFromAllRanks, int TheRank)
+					: mIsDistributed(IsDistributed), mPrintFromAllRanks(PrintFromAllRanks), mSourceRank(TheRank) {}
+
 				bool mIsDistributed;
 				bool mPrintFromAllRanks;
 				int mSourceRank;
