@@ -10,8 +10,8 @@
 //  Main authors:    Aditya Ghantasala
 //
 //
-#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS)
-#define KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS
+#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_ELEMENTWISE)
+#define KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_ELEMENTWISE
 
 /* System includes */
 #include <unordered_set>
@@ -56,7 +56,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedBlockBuilderAndSolverWithConstraints
+ * @class ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -71,13 +71,13 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           >
-class ResidualBasedBlockBuilderAndSolverWithConstraints
+class ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise
     : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithConstraints);
+    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise);
 
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TSchemeType TSchemeType;
@@ -111,7 +111,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief Default constructor. (with parameters)
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
@@ -127,7 +127,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
@@ -135,7 +135,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     /** Destructor.
      */
-    ~ResidualBasedBlockBuilderAndSolverWithConstraints() override
+    ~ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise() override
     {
     }
 
@@ -216,7 +216,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
 
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = rModelPart.Elements();
@@ -236,7 +236,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         std::vector<set_type> dofs_aux_list(nthreads);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
         for (int i = 0; i < static_cast<int>(nthreads); i++)
         {
@@ -248,7 +248,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 #endif
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         #pragma omp parallel firstprivate(nelements, ElementalDofList, AuxiliarDofList)
         {
@@ -264,7 +264,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
             }
 
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
 
             ConditionsArrayType& pConditions = rModelPart.Conditions();
             const int nconditions = static_cast<int>(pConditions.size());
@@ -296,7 +296,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
 
         // Here we do a reduction in a tree so to have everything on thread 0
         unsigned int old_max = nthreads;
@@ -332,7 +332,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
@@ -349,13 +349,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         //Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
         BaseType::mDofSetIsInitialized = true;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
 #ifdef _OPENMP
         if (BaseType::mlock_array.size() != 0)
@@ -373,7 +373,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 #endif
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
 
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
@@ -418,7 +418,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to initialize solution step.")
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise failed to initialize solution step.")
     }
 
 
@@ -443,7 +443,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             auto it = constraints_begin + k;
             it->FinalizeSolutionStep(r_process_info);
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize solution step.")
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise failed to finalize solution step.")
     }
 
     ///@}
@@ -461,7 +461,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualBasedBlockBuilderAndSolverWithConstraints";
+        return "ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise";
     }
 
     /// Print information about this object.
@@ -521,7 +521,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const double start_update_constraints = OpenMPUtils::GetCurrentTime();
         this->UpdateConstraintsForBuilding(rModelPart);
         const double stop_update_constraints = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraints update time : " << stop_update_constraints - start_update_constraints << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraints update time : " << stop_update_constraints - start_update_constraints << std::endl;
 
 
         Timer::Start("Build");
@@ -532,7 +532,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         this->ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                                          << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         const double start_solve = OpenMPUtils::GetCurrentTime();
@@ -544,12 +544,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "After the solution of the system"
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                                          << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
@@ -800,11 +800,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
         //for (int i = 0; i < A_size; i++)
         //    omp_destroy_lock(&lock_array[i]);
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -881,9 +881,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
         }
         const double stop_formulate = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Formulate global constraints time: " << stop_formulate - start_formulate << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Formulate global constraints time: " << stop_formulate - start_formulate << std::endl;
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::FormulateGlobalMasterSlaveRelations failed ..");
     }
 
 
@@ -923,7 +923,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
             slave_count++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ...");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::AssembleSlaves failed ...");
     }
 
 
@@ -948,7 +948,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             (it->second)->Reset();
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResetConstraintRelations failed to reset constraint relations..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ResetConstraintRelations failed to reset constraint relations..");
     }
 
     /**
@@ -984,7 +984,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 UpdateMasterSlaveConstraint(*it, r_current_process_info);
             }
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::UpdateConstraintsForBuilding failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::UpdateConstraintsForBuilding failed ..");
     }
 
 
@@ -1025,7 +1025,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             global_constraint->second->UpdateRightHandSide(slave_value_calc);
             slave_index++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::UpdateMasterSlaveConstraint failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::UpdateMasterSlaveConstraint failed ..");
     }
 
     /**
@@ -1075,7 +1075,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             rDx[slave_equation_id] = slave_dx_value; // this access is always unique for an object so no need of special care for openmp
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ReconstructSlaveSolutionAfterSolve failed ..");
     }
 
     ///@}
@@ -1091,7 +1091,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     ///@}
 
-}; /* Class ResidualBasedBlockBuilderAndSolverWithConstraints */
+}; /* Class ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise */
 
 ///@}
 
