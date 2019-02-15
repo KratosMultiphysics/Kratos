@@ -29,6 +29,11 @@ namespace Kratos
             mColumnsWidth.push_back(column_name.size() + 1);
             column_name.erase(column_name.find_last_not_of(" ") + 1);
         }
+
+        DataCommunicator& r_communicator = DataCommunicator::GetDefault();
+        if (r_communicator.Rank() == 0) {
+          WriteHeader();
+        }
     }
 
 	LoggerTableOutput::LoggerTableOutput(LoggerTableOutput const& Other) : LoggerOutput(Other), mColumnsNames(Other.mColumnsNames), mColumnsWidth(Other.mColumnsWidth) {
