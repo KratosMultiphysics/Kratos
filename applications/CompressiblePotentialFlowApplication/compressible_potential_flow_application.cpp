@@ -21,6 +21,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "custom_utilities/potential_flow_flags.h"
 
 namespace Kratos {
 
@@ -62,6 +63,10 @@ void KratosCompressiblePotentialFlowApplication::Register()
     KRATOS_REGISTER_VARIABLE(UPPER_WAKE);
     KRATOS_REGISTER_VARIABLE(LOWER_WAKE);
     KRATOS_REGISTER_VARIABLE(AIRFOIL);
+
+    // Flags
+    Kratos::KratosComponents<Kratos::Flags>::Add("WAKE_ELEMENT", PotentialFlowFlags::WAKE_ELEMENT);
+    Kratos::KratosComponents<Kratos::Flags>::Add("NOT_WAKE_ELEMENT", PotentialFlowFlags::NOT_WAKE_ELEMENT);
 
     // To be removed
     KRATOS_REGISTER_VARIABLE(TRAILING_EDGE_ELEMENT);
