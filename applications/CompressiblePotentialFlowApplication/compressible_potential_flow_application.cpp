@@ -21,7 +21,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "custom_utilities/potential_flow_flags.h"
 
 namespace Kratos {
 
