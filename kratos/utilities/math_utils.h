@@ -10,7 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Collaborators:    Vicente Mataix Ferrandiz 
+//                    Pablo Becker
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -277,21 +278,15 @@ public:
 
     template<unsigned int TDim>
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
-            const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
-            TDataType& InputMatrixDet,
-            const TDataType Tolerance = ZeroTolerance
-            )
+        const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
+        TDataType& InputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
+        )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
 
         /* Compute Determinant of the matrix */
         InputMatrixDet = DetMat(InputMatrix);
-
-        if (std::abs(InputMatrixDet) < Tolerance)
-        {
-            KRATOS_WATCH(InputMatrix);
-            KRATOS_ERROR << " Determinant of the matrix is zero or almost zero!!!, InputMatrixDet = " << InputMatrixDet << std::endl;
-        }
 
         if (TDim == 1)
         {
@@ -357,7 +352,41 @@ public:
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
         }
 
+        // Checking condition number
+        if (Tolerance > 0.0) { // Check is skipped for negative tolerances
+            CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
+        }
+
         return InvertedMatrix;
+    }
+
+    /**
+     * @brief This method checks the condition number of  amtrix
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     */
+    template<class TMatrix1, class TMatrix2>
+    static inline void CheckConditionNumber(
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        // We want at least 4 significant digits
+        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
+
+        // Find the condition number to define is inverse is OK
+        const double input_matrix_norm = norm_frobenius(rInputMatrix);
+        const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
+
+        // Now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ;
+        // Finally check if the condition number is low enough
+        if (cond_number > max_condition_number) {
+            KRATOS_WATCH(rInputMatrix);
+            KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
+        }
     }
 
     /**
