@@ -401,7 +401,6 @@ public:
                 ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
                 Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
                 //std::cout <<"Viscosity: "<< Output <<std::endl; 
-                return;
             }         
                         
         }
