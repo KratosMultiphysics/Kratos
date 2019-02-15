@@ -22,6 +22,7 @@
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
 
 namespace Kratos
@@ -480,15 +481,6 @@ protected:
         KRATOS_TRY
 
         Timer::Start("Build");
-
-        // We compute only once (or if cleared)
-        if (mCleared) {
-            mCleared = false;
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
-        } else if (mResetRelationMatrixEachIteration) {
-            ResetConstraintSystem();
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
-        }
 
         // We apply the master/slave realtionship before build
         ApplyMasterSlaveRelation(pScheme, rModelPart, rA, rDx, rb);
@@ -1632,53 +1624,11 @@ private:
     {
         KRATOS_TRY
 
-        // Auxiliar values
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        TSystemVectorType current_solution(mDoFToSolveSystemSize);
-        TSystemVectorType updated_solution(BaseType::mEquationSystemSize);
+        // First we reset the slave dofs
+        ConstraintUtilities::ResetSlaveDofs(rModelPart);
 
-        // Get current values
-        IndexType counter = 0;
-        for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                auto it = mDoFSlaveSet.find(*it_dof);
-                if (it == mDoFSlaveSet.end()) {
-                    current_solution[counter] = it_dof->GetSolutionStepValue();
-                    counter += 1;
-                }
-            }
-        }
-
-        // Apply master slave constraints
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
-
-        if (mComputeConstantContribution) {
-            const TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
-        }
-
-        // Update database
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
-                if (is_slave) {
-                    it_dof->GetSolutionStepValue() = updated_solution[equation_id];
-                }
-            }
-        }
-
-        // We check the solution
-        if (mCheckConstraintRelation) {
-            TSystemVectorType Dx_aux(mDoFToSolveSystemSize);
-            TSparseSpace::SetToZero(Dx_aux);
-            KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_aux)) << "The relation between master/slave dofs is not respected" << std::endl;
-        }
+        // Now we apply the constraints
+        ConstraintUtilities::ApplyConstraints(rModelPart);
 
         KRATOS_CATCH("");
     }
