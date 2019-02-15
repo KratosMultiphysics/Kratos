@@ -129,20 +129,6 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
-    double CalculateValue(ModelPart& rModelPart) override;
-
-    void ComputeInitialLift();
-
-    Vector ComputeNormal(Geometry<Node<3>>& rGeom);
-
-    Vector ComputeNormalPerturbed(Geometry<Node<3>>& rGeom, Vector normal_ini);
-
-    Vector ComputeNormalCondition(Geometry<Node<3>>& rGeom);
-
-    void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom);
-
-    void GetSortedIds(std::vector<IndexType> &Ids, const GeometryType &rGeom);
-
     Element::WeakPointer FindParentElement(std::vector<IndexType> &NodeIds,
                             std::vector<IndexType> &ElementNodeIds,
                             WeakPointerVector<Element> ElementCandidates);

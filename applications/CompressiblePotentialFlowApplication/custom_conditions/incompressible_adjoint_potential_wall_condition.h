@@ -243,14 +243,14 @@ public:
 
         bool is_kutta=false;
         for(unsigned int i=0; i<TNumNodes; i++){
-            if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+            if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
                 is_kutta=true;
                 break;
             }
         }
         for(unsigned int i=0; i<TNumNodes; i++){
             if(is_kutta){
-                if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
                     rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
                 else
                     rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
@@ -279,7 +279,6 @@ public:
             rOutput.resize(TDim*TNumNodes, TNumNodes, false);
         rOutput.clear();
     }
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
       @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
@@ -348,14 +347,14 @@ public:
 
             bool is_kutta=false;
             for(unsigned int i=0; i<TNumNodes; i++){
-                if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+                if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
                     is_kutta=true;
                     break;
                 }
             }
             for(unsigned int i=0; i<TNumNodes; i++){
                 if(is_kutta){
-                    if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                    if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
                         rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                     else
                         rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -379,14 +378,14 @@ public:
 
             bool is_kutta=false;
             for(unsigned int i=0; i<TNumNodes; i++){
-                if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+                if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
                     is_kutta=true;
                     break;
                 }
             }
             for(unsigned int i=0; i<TNumNodes; i++){
                 if(is_kutta){
-                    if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                    if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
                         ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                     else
                         ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);

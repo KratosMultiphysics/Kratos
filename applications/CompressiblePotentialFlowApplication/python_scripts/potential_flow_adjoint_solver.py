@@ -61,7 +61,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
     
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+        self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.main_model_part, 
             scheme, 
             self.linear_solver,
@@ -71,8 +71,8 @@ class PotentialAdjointSolver(LaplacianSolver):
             self.settings["calculate_solution_norm"].GetBool(), 
             move_mesh_flag)
 
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.solver.Check()
+        (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.incompressible_solution_stratety.Check()
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Finished initialization.")
     def PrepareModelPart(self):

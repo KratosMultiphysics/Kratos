@@ -377,7 +377,8 @@ public:
     {
         KRATOS_TRY
 
-        if (this->Is(MARKER)){
+        if (this->GetValue(WAKE)) // wake element
+        {
             if(rValues.size() != 2*NumNodes)
                 rValues.resize(2*NumNodes, false);
 
@@ -385,50 +386,21 @@ public:
             GetWakeDistances(distances);
             GetValuesOnSplitElement(rValues,distances);
             
-        }else{
+        }else{ // normal element
             if(rValues.size() != NumNodes)
                 rValues.resize(NumNodes, false);
 
-            if (this->IsNot(STRUCTURE)){
+            if(!(this->GetValue(KUTTA))){
                 for(unsigned int i=0; i<NumNodes; i++)
                     rValues[i] =GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
             }else{
                 for(unsigned int i=0; i<NumNodes; i++){
-                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
                         rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
                     else
                         rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
                 }
             }
-        }
-        KRATOS_CATCH("")
-    }
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-        // KRATOS_WATCH("entering Sensitivity calculation")
-        // Get perturbation size
-        const double delta = this->GetPerturbationSize(rDesignVariable);
-        ProcessInfo process_info = rCurrentProcessInfo;
-
-        Vector RHS;
-        Vector RHS_perturbed;
-        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
-
-        if (rOutput.size1() != NumNodes || rOutput.size2() != RHS.size())
-            rOutput.resize(NumNodes, RHS.size(), false);
-
-        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            double distance_value = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-            //perturbate distance
-            pGetPrimalElement()->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value+delta;
-            //compute perturbated RHS
-            pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
-            //recover distance value
-            pGetPrimalElement()->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value;
-            for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++)
-                rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;                
         }
         KRATOS_CATCH("")
     }
@@ -450,7 +422,7 @@ public:
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
         bool kutta_node_spotted=false;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            if(GetGeometry()[i_node].Is(STRUCTURE)){
+            if(GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
                 kutta_node_spotted=true;
                 break;
             }
@@ -480,7 +452,7 @@ public:
         }
         if (kutta_node_spotted){ //remove kutta node lines
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-                if(GetGeometry()[i_node].Is(STRUCTURE)){
+                if(GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
                     for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
                         for(unsigned int i = 0; i < RHS.size(); ++i)
                                 rOutput( (i_dim + i_node*Dim), i) = 0.0;
@@ -498,18 +470,18 @@ public:
      */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
     {
-        if(this->IsNot(MARKER)) //normal element
+        if(!(this->GetValue(WAKE)))//normal element
         {
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
 
-            if(this->IsNot(STRUCTURE)){
+            if(!(this->GetValue(KUTTA))){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
                         rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
                     else
                         rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -554,18 +526,18 @@ public:
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
-        if(this->IsNot(MARKER)) //normal element
+        if(!(this->GetValue(WAKE))) //normal element
         {
             if (rElementalDofList.size() != NumNodes)
                 rElementalDofList.resize(NumNodes);
 
-            if(this->IsNot(STRUCTURE)){
+            if(!(this->GetValue(KUTTA))){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                    if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
                         rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
                     else
                         rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
