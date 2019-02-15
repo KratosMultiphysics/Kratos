@@ -13,6 +13,7 @@ class AleFluidSolver(PythonSolver):
         default_settings = KM.Parameters("""{
             "solver_type"                 : "ale_fluid",
             "echo_level"                  : 0,
+            "start_fluid_solution"        : 0.0,
             "ale_boundary_parts"          : [ ],
             "mesh_motion_parts"           : [ ],
             "fluid_solver_settings"       : { },
@@ -202,9 +203,15 @@ class AleFluidSolver(PythonSolver):
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
 
-        self.__ApplyALEBoundaryCondition()
+        #self.__ApplyALEBoundaryCondition()
+        start_fluid_solution = self.settings["start_fluid_solution"].GetDouble()
 
-        self.fluid_solver.SolveSolutionStep()
+        fluid_computing_model_part = self.fluid_solver.GetComputingModelPart()
+        time = fluid_computing_model_part.ProcessInfo[KM.TIME]
+
+        if time >= start_fluid_solution:
+            self.__ApplyALEBoundaryCondition()
+            self.fluid_solver.SolveSolutionStep()
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
