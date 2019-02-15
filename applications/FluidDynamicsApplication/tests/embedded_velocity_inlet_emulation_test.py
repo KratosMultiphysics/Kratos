@@ -1,25 +1,14 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+have_external_solvers = KratosUtilities.IsApplicationAvailable("ExternalSolversApplication")
 
+import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import os
-import sys
-import time
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
     def testEmbeddedVelocityInletEmulationSymbolic2D(self):
         self.print_output = False
@@ -54,13 +43,13 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
         self.ExecuteTest()
 
     def ExecuteTest(self):
-        self.setUp()
+        self.buildSimulation()
         self.runTest()
         self.tearDown()
         self.checkResults()
 
-    def setUp(self):
-        with WorkFolderScope(self.work_folder):
+    def buildSimulation(self):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
                 self.ProjectParameters["solver_settings"]["formulation"] = self.formulation_settings
@@ -71,13 +60,14 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
         self.simulation = FluidDynamicsAnalysis(self.model,self.ProjectParameters)
 
     def runTest(self):
-        self.simulation.Initialize()
-        self._set_inlet_emulation_simulation()
-        self.simulation.RunSolutionLoop()
-        self.simulation.Finalize()
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            self.simulation.Initialize()
+            self._set_inlet_emulation_simulation()
+            self.simulation.RunSolutionLoop()
+            self.simulation.Finalize()
 
     def checkResults(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             ## 2D results check
             main_model_part = self.simulation._GetSolver().main_model_part
             if (main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
@@ -110,11 +100,9 @@ class EmbeddedVelocityInletEmulationTest(UnitTest.TestCase):
                             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting(
+                self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
 
     def _set_inlet_emulation_simulation(self):
         main_model_part = self.simulation._GetSolver().main_model_part
