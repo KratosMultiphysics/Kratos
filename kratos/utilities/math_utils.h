@@ -307,7 +307,7 @@ public:
     }
 
     /**
-     * @brief This method checks the condition number of  amtrix
+     * @brief This method checks the condition number of matrix
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param Tolerance The maximum tolerance considered
