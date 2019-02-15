@@ -100,8 +100,8 @@ class GeoBuilding( GeoProcessor ):
             elif ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) < -1000.0 ):
         	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0 )
 
-        variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
-        variational_distance_process.Execute()
+        # variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
+        # variational_distance_process.Execute()
 
         for node in aux_model_part.Nodes:
             source = node
@@ -227,7 +227,7 @@ class GeoBuilding( GeoProcessor ):
                 "deactivate_detect_angle": false,
                 "force_gradation_value": true,
                 "force_hausdorff_value": true,
-                "gradation_value": 1.3,
+                "gradation_value": 1.2,
                 "hausdorff_value": """ + str( hausdorff_value ) + """,
                 "no_insert_mesh": false,
                 "no_move_mesh": false,
@@ -256,7 +256,7 @@ class GeoBuilding( GeoProcessor ):
                 "interpolation_type": "LST",
                 "search_factor": 2
             },
-            "interpolate_non_historical": true,
+            "interpolate_non_historical": false,
             "isosurface_parameters": {
                 "isosurface_variable": "DISTANCE",
                 "nonhistorical_variable": false,

@@ -16,7 +16,7 @@ def GetFilePath(fileName):
 
 tool1 = GeoImporter()
 # tool1.xyz_import( "data/torrent1_qgis.xyz" )
-tool1.xyz_import( "data/torrent2_qgis.xyz" )
+tool1.xyz_import( "data/torrent3_qgis.xyz" )
 
 tool1.ShowModelPartQuality()
 
@@ -31,15 +31,15 @@ tool2.SetGeoModelPart( model_part )
 # tool2.ComputeExtrusionHeight( 13, 8, 1, 10 )
 
 ### for section 1 (torrent1_qgis.xyz)
-tool2.ComputeExtrusionHeight( 7, 10, 1, 10 )
+tool2.ComputeExtrusionHeight( 12, 11, 1, 10 )
 
 tool2.MeshConcaveHullWithTerrainPoints()
 
 tool2.CreateGidControlOutput( "out_of_pipeline_0" )
 
 # 1st iteration
-tool2.ComputeDistanceFieldFromGround()
-tool2.RefineMeshNearGround( 15.0 )
+# tool2.ComputeDistanceFieldFromGround()
+# tool2.RefineMeshNearGround( 15.0 )
 print( "End of Refinement 1")
 # 2nd iteration
 # tool2.ComputeDistanceFieldFromGround()
@@ -52,10 +52,38 @@ tool2.ShowModelPartQuality()
 
 tool2.CreateGidControlOutput( "out_of_pipeline_2" )
 
-main_model_part = tool2.GetGeoModelPart()
+model_part = tool2.GetGeoModelPart()
 print( "Generation of main_model_part")
-print( main_model_part )
+print( model_part )
 print( "Generation of main_model_part")
+
+
+### BUILDING MESHING ### ------------------------------------------
+
+tool3 = GeoBuilding()
+tool3.SetGeoModelPart( model_part )
+
+tool3.ImportBuildingHullMDPA( "/data/CheckDam5_Prep" )
+# 1st iteration
+tool3.ComputeDistanceFieldFromHull()
+tool2.CreateGidControlOutput( "out_of_pipeline_3a" )
+tool3.RefineMeshNearBuilding( 0.3 )
+# 2nd iteration
+tool3.ComputeDistanceFieldFromHull()
+tool2.CreateGidControlOutput( "out_of_pipeline_3b" )
+tool3.RefineMeshNearBuilding( 0.1 )
+# 3rd iteration
+tool3.ComputeDistanceFieldFromHull()
+tool3.RefineMeshNearBuilding( 0.05 )
+# Ready
+tool3.ShowModelPartQuality()
+tool3.ComputeDistanceFieldFromHull()
+tool3.CreateGidControlOutput( "out_of_pipeline_4" )
+tool3.SubtractBuilding( 0.1, 0.4, 0.1)
+
+tool3.CreateGidControlOutput( "out_of_pipeline_5" )
+main_model_part = tool3.GetGeoModelPart()
+
 
 ###################################################################################################
 
@@ -93,9 +121,9 @@ for n_id in required_node_list:
     node = main_model_part.GetNode( n_id )
     n = new_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
     fluidSubModelPart.AddNode(n, 0)
-    if node.Y < 0.1:
+    if node.X < 0.1:
         inletSubModelPart.AddNode(n, 0)
-    if node.Y > 99.9:
+    if node.X > 54.9:
         outletSubModelPart.AddNode(n, 0 )
 
 print( "Node distribution finished")
@@ -112,10 +140,10 @@ for cond in main_model_part.Conditions:
     c = new_model_part.CreateNewCondition("WallCondition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id],new_model_part.GetProperties()[0])
     print( cond.Id )
 
-    if ( nodes[0].Y < 0.1 and nodes[1].Y < 0.1 and nodes[2].Y < 0.1 ):
+    if ( nodes[0].X < 0.1 and nodes[1].X < 0.1 and nodes[2].X < 0.1 ):
         inletSubModelPart.AddCondition( c, 0 )
 
-    elif ( nodes[0].Y > 99.9 and nodes[1].Y > 99.9 and nodes[2].Y > 99.9 ):
+    elif ( nodes[0].X > 54.9 and nodes[1].X > 54.9 and nodes[2].X > 54.9 ):
         outletSubModelPart.AddCondition( c, 0 )
 
     else:
@@ -125,7 +153,7 @@ for cond in main_model_part.Conditions:
 
 print( "Condition distribution finished")
 
-model_part_io = Kratos.ModelPartIO("out", Kratos.IO.WRITE)
+model_part_io = Kratos.ModelPartIO("TorrentWithDam", Kratos.IO.WRITE)
 model_part_io.WriteModelPart( new_model_part )
 
 
