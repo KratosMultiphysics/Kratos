@@ -358,18 +358,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
 #ifdef _OPENMP
-        if (BaseType::mlock_array.size() != 0)
+        if (mlock_array.size() != 0)
         {
-            for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); i++)
+            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             {
-                omp_destroy_lock(&BaseType::mlock_array[i]);
+                omp_destroy_lock(&mlock_array[i]);
             }
         }
-        BaseType::mlock_array.resize(BaseType::mDofSet.size());
+        mlock_array.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); i++)
+        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
         {
-            omp_init_lock(&BaseType::mlock_array[i]);
+            omp_init_lock(&mlock_array[i]);
         }
 #endif
 
@@ -493,6 +493,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@}
     ///@name Protected Operators
     ///@{
+    std::vector< omp_lock_t > mlock_array; //to be removed!!
 
     ///@}
     ///@name Protected Operations
@@ -600,13 +601,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&mlock_array[ids[i]]);
 #endif
                 auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&mlock_array[ids[i]]);
 #endif
             }
         }
@@ -621,12 +622,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&mlock_array[ids[i]]);
 #endif
                 auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&mlock_array[ids[i]]);
 #endif
             }
         }
@@ -642,23 +643,23 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&mlock_array[ids[i]]);
 #endif
                 auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&mlock_array[ids[i]]);
 #endif
             }
             for (std::size_t i = 0; i < aux_ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[aux_ids[i]]);
+                omp_set_lock(&mlock_array[aux_ids[i]]);
 #endif
                 auto &row_indices = indices[aux_ids[i]];
                 row_indices.insert(aux_ids.begin(), aux_ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[aux_ids[i]]);
+                omp_unset_lock(&mlock_array[aux_ids[i]]);
 #endif
             }
         }
@@ -759,7 +760,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
@@ -788,7 +789,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
