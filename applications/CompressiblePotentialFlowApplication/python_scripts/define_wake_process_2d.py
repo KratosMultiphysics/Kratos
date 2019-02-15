@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
+import itertools
 
 
 def Factory(settings, Model):
@@ -67,6 +68,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Find neighbours
         nodal_neighbour_search.Execute()
 
+        for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.SOLID)
+
     def ExecuteInitialize(self):
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
@@ -110,6 +115,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    counter=0
+                    for node in elem.GetNodes():
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        counter += 1
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
