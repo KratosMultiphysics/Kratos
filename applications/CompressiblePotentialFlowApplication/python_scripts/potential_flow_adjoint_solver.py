@@ -38,7 +38,6 @@ class PotentialAdjointSolver(LaplacianSolver):
         super(PotentialAdjointSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
@@ -50,15 +49,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        if self.response_function_settings["response_type"].GetString() == "adjoint_lift":
-            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates":
-            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates_global":
-            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftGlobalCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_potential_coordinates":
-            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
+        if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
