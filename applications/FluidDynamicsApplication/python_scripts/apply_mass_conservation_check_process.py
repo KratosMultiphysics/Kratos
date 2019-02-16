@@ -45,14 +45,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        # construction of the convection process
-        numProc = self._fluid_model_part.GetCommunicator().TotalProcesses()
-        if numProc == 1:
-            self.forward_convection_process = self._set_levelset_convection_process_serial()
-        elif numProc > 1:
-            self.forward_convection_process = self._set_levelset_convection_process_mpi()
-        else:
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Communicator not found.")
+        self.forward_convection_process = self._set_levelset_convection_process()
 
         # calling C++ initalization
         first_lines_string = self.mass_conservation_check_process.Initialize()
@@ -102,7 +95,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             self.mass_conservation_check_process.ApplyGlobalCorrection()
 
 
-    def _set_levelset_convection_process_serial(self):
+    def _set_levelset_convection_process(self):
         ### for serial and OpenMP
         serial_settings = KratosMultiphysics.Parameters("""{
             "linear_solver_settings"   : {
@@ -122,34 +115,5 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.DISTANCE,
                 self._fluid_model_part,
                 self.linear_solver)
-
-        return level_set_convection_process
-
-
-    def _set_levelset_convection_process_mpi(self):
-        ### for MPI application
-        import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-        self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
-        mpi_settings = KratosMultiphysics.Parameters("""{
-            "linear_solver_settings"   : {
-                "solver_type" : "amgcl"
-            }
-        }""")
-
-        import trilinos_linear_solver_factory
-        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(mpi_settings["linear_solver_settings"])
-
-        if self._fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            level_set_convection_process = KratosTrilinos.TrilinosLevelSetForwardConvectionProcess2D(
-                self.EpetraCommunicator,
-                KratosMultiphysics.DISTANCE,
-                self._fluid_model_part,
-                self.trilinos_linear_solver)
-        else:
-            level_set_convection_process = KratosTrilinos.TrilinosLevelSetForwardConvectionProcess3D(
-                self.EpetraCommunicator,
-                KratosMultiphysics.DISTANCE,
-                self._fluid_model_part,
-                self.trilinos_linear_solver)
 
         return level_set_convection_process
