@@ -49,7 +49,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Clone(IndexType NewI
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::Initialize()
+void PotentialWallCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -80,7 +80,7 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                    ProcessInfo& rCurrentProcessInfo)
+                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
     this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -88,7 +88,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& 
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -111,7 +111,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -149,7 +149,7 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                               ProcessInfo& rCurrentProcessInfo)
+                                                            const ProcessInfo& rCurrentProcessInfo) const
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -160,7 +160,7 @@ void PotentialWallCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorT
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& ConditionDofList,
-                                                         ProcessInfo& CurrentProcessInfo)
+                                                         const ProcessInfo& CurrentProcessInfo) const
 {
     if (ConditionDofList.size() != TNumNodes)
         ConditionDofList.resize(TNumNodes);
@@ -170,7 +170,7 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();

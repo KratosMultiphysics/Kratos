@@ -49,7 +49,7 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -62,7 +62,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO: improve speed
     Matrix tmp;
@@ -71,7 +71,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -99,7 +99,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                   ProcessInfo& CurrentProcessInfo)
+                                                                   const ProcessInfo& CurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -126,7 +126,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorTyp
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
@@ -147,7 +147,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
 // Inquiry
 
 template <int Dim, int NumNodes>
-int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -558,7 +558,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() con
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));

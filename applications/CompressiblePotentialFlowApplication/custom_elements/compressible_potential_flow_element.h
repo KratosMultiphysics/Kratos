@@ -150,7 +150,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -191,7 +191,7 @@ public:
 
     }
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -359,8 +359,8 @@ public:
                             rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
-                    
-                
+
+
                     //side1  -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
@@ -373,7 +373,7 @@ public:
                                 }
                         }
                     }
-                    
+
                     //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
@@ -394,7 +394,7 @@ public:
 
     }
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         //TODO: improve speed
         Matrix tmp;
@@ -411,7 +411,7 @@ public:
             CheckWakeCondition();
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
 
         KRATOS_TRY
