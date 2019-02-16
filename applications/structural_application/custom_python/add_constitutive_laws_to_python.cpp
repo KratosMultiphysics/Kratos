@@ -114,8 +114,6 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef FluencyCriteria::Pointer FluencyCriteriaPointer;
@@ -133,193 +131,195 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_< MaterialsContainer >(m, "MaterialsContainer")
-    .def(init<>() )
+    namespace py = pybind11;
+
+    py::class_< MaterialsContainer >(m, "MaterialsContainer")
+    .def(py::init<>() )
     .def( "PushBack", Push_Back_Constitutive_Laws )
     ;
 
-    class_< DummyConstitutiveLaw, ConstitutiveLawBaseType >
+    py::class_< DummyConstitutiveLaw, ConstitutiveLawBaseType >
     (m, "DummyConstitutiveLaw" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< TutorialDamageModel, ConstitutiveLawBaseType >
+    py::class_< TutorialDamageModel, ConstitutiveLawBaseType >
     (m, "TutorialDamageModel" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Isotropic2D, ConstitutiveLawBaseType >
+    py::class_< Isotropic2D, ConstitutiveLawBaseType >
     (m, "Isotropic2D" )
-    .def( init<>() )
+    .def( py::init<>() )
     // .def("Clone",              &Isotropic2D::Clone)
     ;
 
-    class_< PlaneStrain, ConstitutiveLawBaseType >
+    py::class_< PlaneStrain, ConstitutiveLawBaseType >
     (m, "PlaneStrain" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< PlaneStress, ConstitutiveLawBaseType >
+    py::class_< PlaneStress, ConstitutiveLawBaseType >
     (m, "PlaneStress" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< MohrCoulombPlaneStrain, ConstitutiveLawBaseType >
+    py::class_< MohrCoulombPlaneStrain, ConstitutiveLawBaseType >
     (m, "MohrCoulombPlaneStrain")
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Isotropic3D, ConstitutiveLawBaseType >
+    py::class_< Isotropic3D, ConstitutiveLawBaseType >
     (m, "Isotropic3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< DruckerPrager, ConstitutiveLawBaseType >
+    py::class_< DruckerPrager, ConstitutiveLawBaseType >
     (m, "DruckerPrager" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Orthotropic3D, ConstitutiveLawBaseType >
+    py::class_< Orthotropic3D, ConstitutiveLawBaseType >
     (m, "Orthotropic3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Isotropic_Damage_2D, ConstitutiveLawBaseType >
+    py::class_< Isotropic_Damage_2D, ConstitutiveLawBaseType >
     (m, "IsotropicDamage2D" )
-    .def( init<>() )
-    .def( init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
+    .def( py::init<>() )
+    .def( py::init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
     ;
 
-    class_< Isotropic_Damage_3D, ConstitutiveLawBaseType >
+    py::class_< Isotropic_Damage_3D, ConstitutiveLawBaseType >
     (m, "IsotropicDamage3D" )
-    .def( init<>() )
-    .def( init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
+    .def( py::init<>() )
+    .def( py::init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
     ;
 
-    class_< IsotropicDamageIMPLEX, ConstitutiveLawBaseType >
+    py::class_< IsotropicDamageIMPLEX, ConstitutiveLawBaseType >
     (m, "IsotropicDamageIMPLEX" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
 
-    class_<Plasticity2D, ConstitutiveLawBaseType >
+    py::class_<Plasticity2D, ConstitutiveLawBaseType >
     (m, "Plasticity2D" )
-    .def( init<>() )
-    .def( init<FluencyCriteriaPointer, PropertiesPointer>() )
+    .def( py::init<>() )
+    .def( py::init<FluencyCriteriaPointer, PropertiesPointer>() )
     ;
 
-    class_<PlaneStressJ2, ConstitutiveLawBaseType >
+    py::class_<PlaneStressJ2, ConstitutiveLawBaseType >
     (m, "PlaneStressJ2" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-//             class_<Plasticity3D, bases< ConstitutiveLawBaseType >
+//             py::class_<Plasticity3D, bases< ConstitutiveLawBaseType >
 //             ("Plasticity3D",
-//             init<>() )
-//                 .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+//             py::init<>() )
+//                 .def(py::init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
 //                  ;
 
 
 
 
 
-    class_<BrittleMaterial2D, ConstitutiveLawBaseType >
+    py::class_<BrittleMaterial2D, ConstitutiveLawBaseType >
     (m, "BrittleMaterial2D" )
-    .def( init<>() )
-    .def( init<FluencyCriteriaPointer, PropertiesPointer>() )
+    .def( py::init<>() )
+    .def( py::init<FluencyCriteriaPointer, PropertiesPointer>() )
     ;
 
 
-    class_<IsotropicRankineDamage2D, ConstitutiveLawBaseType >
+    py::class_<IsotropicRankineDamage2D, ConstitutiveLawBaseType >
     (m, "IsotropicRankineDamage2D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_<IsotropicRankineDamage3D, ConstitutiveLawBaseType >
+    py::class_<IsotropicRankineDamage3D, ConstitutiveLawBaseType >
     (m, "IsotropicRankineDamage3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< VonMises3D, ConstitutiveLawBaseType >
+    py::class_< VonMises3D, ConstitutiveLawBaseType >
     (m, "VonMises3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Hypoelastic2D, ConstitutiveLawBaseType >
+    py::class_< Hypoelastic2D, ConstitutiveLawBaseType >
     (m, "Hypoelastic2D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Fluid2D, ConstitutiveLawBaseType >
+    py::class_< Fluid2D, ConstitutiveLawBaseType >
     (m, "Fluid2D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< ExternalIsotropic3D, ConstitutiveLawBaseType >
+    py::class_< ExternalIsotropic3D, ConstitutiveLawBaseType >
     (m, "ExternalIsotropic3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< HooksLaw, ConstitutiveLawBaseType >
+    py::class_< HooksLaw, ConstitutiveLawBaseType >
     (m, "HooksLaw" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< IsotropicPlaneStressWrinkling, ConstitutiveLawBaseType >
+    py::class_< IsotropicPlaneStressWrinkling, ConstitutiveLawBaseType >
     (m, "IsotropicPlaneStressWrinkling" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< Hyperelastic3D, ConstitutiveLawBaseType >
+    py::class_< Hyperelastic3D, ConstitutiveLawBaseType >
     (m, "Hyperelastic3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
 
-    class_< Hyperelastic2D, ConstitutiveLawBaseType >
+    py::class_< Hyperelastic2D, ConstitutiveLawBaseType >
     (m, "Hyperelastic2D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< CamClay3D, ConstitutiveLawBaseType >
+    py::class_< CamClay3D, ConstitutiveLawBaseType >
     (m, "CamClay3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< NeoHookean3D, ConstitutiveLawBaseType >
+    py::class_< NeoHookean3D, ConstitutiveLawBaseType >
     (m, "NeoHookean3D" )
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
     /*
-           class_< Viscofibers2D, bases< ConstitutiveLawBaseType >
+           py::class_< Viscofibers2D, bases< ConstitutiveLawBaseType >
                    ("Viscofibers2D",
-                    init<>() )
+                    py::init<>() )
                    ;
 
 
-           class_< Viscoelastic2D, bases< ConstitutiveLawBaseType >
+           py::class_< Viscoelastic2D, bases< ConstitutiveLawBaseType >
                    ("Viscoelastic2D",
-                    init<>() )
+                    py::init<>() )
                    ;
 
 
-    class_< Viscofibers_Hypermatrix2D, bases< ConstitutiveLawBaseType >
+    py::class_< Viscofibers_Hypermatrix2D, bases< ConstitutiveLawBaseType >
                    ("Viscofibers_Hypermatrix2D",
-                    init<>() )
+                    py::init<>() )
                    ;
      */
-//    class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >
+//    py::class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >
 //    ("PlaneStressDamageOrthotropic2D",
-//    init<>() )
-//    //.def(init<FluencyCriteriaType const&>())
-//                         .def(init<FluencyCriteriaPointer>())
+//    py::init<>() )
+//    //.def(py::init<FluencyCriteriaType const&>())
+//                         .def(py::init<FluencyCriteriaPointer>())
 //    ;
     /*
-       class_<ComposeMaterial , bases< ConstitutiveLawBaseType >
+       py::class_<ComposeMaterial , bases< ConstitutiveLawBaseType >
        ("ComposeMaterial",
-       init<>() )
-                            .def(init<MaterialsContainer>())
+       py::init<>() )
+                            .def(py::init<MaterialsContainer>())
        ;*/
 
 

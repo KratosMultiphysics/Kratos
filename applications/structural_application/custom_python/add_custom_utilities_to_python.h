@@ -77,7 +77,6 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
 
 void  AddCustomUtilitiesToPython(pybind11::module& m);
 

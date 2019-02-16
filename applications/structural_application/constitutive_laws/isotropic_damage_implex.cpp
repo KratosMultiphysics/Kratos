@@ -329,7 +329,7 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
 
     // Update corrected stresses
     Matrix C_t = (1.0 - mD)*C;
-    noalias(AlgorithmicTangent) = C_t;
+    AlgorithmicTangent.noalias() = C_t;
     mCurrentStress = prod( C_t, StrainVector );
 
     //==========================================================================================
@@ -350,7 +350,7 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
     mC_alg = (1.0 - mDamage_alg)*C;
 
     // Set algorithmic tangent operator
-    noalias(AlgorithmicTangent) = mC_alg;
+    AlgorithmicTangent.noalias() = mC_alg;
 
     // Compute extrapolated stresses
     StressVector = prod( mC_alg, StrainVector );

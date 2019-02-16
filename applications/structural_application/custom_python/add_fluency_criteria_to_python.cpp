@@ -89,7 +89,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+
 typedef FluencyCriteria                   FluencyCriteriaType;
 typedef SofteningHardeningCriteria        SofteningHardeningType;
 typedef Morh_Coulomb_Yield_Function       MorhCoulombType;
@@ -103,58 +103,59 @@ typedef RankineType::Pointer                RankinePointerType;
 
 void  AddFluencyCriteriaToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-    class_< FluencyCriteriaType >
+    py::class_< FluencyCriteriaType >
     (m, "FluencyCriteriaType")
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    class_< SofteningHardeningType >
+    py::class_< SofteningHardeningType >
     (m, "SofteningHardeningType")
-    .def( init<>() )
+    .def( py::init<>() )
     ;
 
-    enum_<myState>(m, "State")
+    py::enum_<myState>(m, "State")
     .value("Plane_Stress", Plane_Stress)
     .value("Plane_Strain", Plane_Strain)
     .value("Tri_D", Tri_D)
     ;
 
-    enum_<myPotencialPlastic>(m, "PotencialPlastic")
+    py::enum_<myPotencialPlastic>(m, "PotencialPlastic")
     .value("Not_Associated", Not_Associated)
     .value("Associated", Associated)
     ;
 
 
     /*
-    class_<Rankine_Yield_Function, bases< FluencyCriteriaType > >
+    py::class_<Rankine_Yield_Function, bases< FluencyCriteriaType > >
     ("RankineYieldFunction",
-    init<myState> () )
+    py::init<myState> () )
     ;
     */
 
-    class_<Isotropic_Rankine_Yield_Function, FluencyCriteriaType >
+    py::class_<Isotropic_Rankine_Yield_Function, FluencyCriteriaType >
     (m, "IsotropicRankineYieldFunction")
-    .def( init<SofteningHardeningPointerType, myState> () )
+    .def( py::init<SofteningHardeningPointerType, myState> () )
     ;
 
     /*
-    class_<Tresca_Yield_Function, bases< FluencyCriteriaType > >
+    py::class_<Tresca_Yield_Function, bases< FluencyCriteriaType > >
     ("TrescaYieldFunction",
-    init<myState> () )
+    py::init<myState> () )
     ;
     */
 
-    class_<Von_Mises_Yield_Function, FluencyCriteriaType >
+    py::class_<Von_Mises_Yield_Function, FluencyCriteriaType >
     (m, "VonMisesYieldFunction")
-    .def( init<const myState&, const SofteningHardeningPointerType&> () )
-    //init<myState, myPotencialPlastic> () )
+    .def( py::init<const myState&, const SofteningHardeningPointerType&> () )
+    //py::init<myState, myPotencialPlastic> () )
     ;
 
-    class_<Modified_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    py::class_<Modified_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
     (m, "ModifiedMorhCoulombYieldFunction")
-    .def( init<myState, MorhCoulombPointerType, RankinePointerType> () )
-    /* init<const SofteningHardeningPointerType&,
+    .def( py::init<myState, MorhCoulombPointerType, RankinePointerType> () )
+    /* py::init<const SofteningHardeningPointerType&,
          const SofteningHardeningPointerType&,
          const SofteningHardeningPointerType&,
          const SofteningHardeningPointerType&,
@@ -164,58 +165,58 @@ void  AddFluencyCriteriaToPython(pybind11::module& m)
     ;
 
 
-    class_<Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    py::class_<Morh_Coulomb_Yield_Function, FluencyCriteriaType >
     (m, "MorhCoulombYieldFunction")
-    .def(init<const SofteningHardeningPointerType&,
+    .def(py::init<const SofteningHardeningPointerType&,
      const SofteningHardeningPointerType&,
      const SofteningHardeningPointerType&,
      const myState,
      const myPotencialPlastic> () )
     ;
 
-    class_<Standard_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
+    py::class_<Standard_Morh_Coulomb_Yield_Function, FluencyCriteriaType >
     (m, "StandardMorhCoulombYieldFunction")
-    .def(init<const SofteningHardeningPointerType&,
+    .def(py::init<const SofteningHardeningPointerType&,
      const myState> () )
     ;
 
     /*
-    class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaType > >
+    py::class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaType > >
     ("DruckerPragerYieldFunction",
-    init<myState> () )
+    py::init<myState> () )
     ;
                  */
 
 
-    class_<Energy_Yield_Function, FluencyCriteriaType >
+    py::class_<Energy_Yield_Function, FluencyCriteriaType >
     (m, "EnergyYieldFunction")
-    .def( init<myState> () )
+    .def( py::init<myState> () )
     ;
 
 
-    class_<Exponential_Softening, SofteningHardeningType >
+    py::class_<Exponential_Softening, SofteningHardeningType >
     (m, "ExponentialSoftening")
-    .def( init<> () )
+    .def( py::init<> () )
     ;
 
-    class_<Linear_Softening, SofteningHardeningType >
+    py::class_<Linear_Softening, SofteningHardeningType >
     (m, "LinearSoftening")
-    .def( init<> () )
+    .def( py::init<> () )
     ;
 
-    class_<Cohesion_Softening, SofteningHardeningType >
+    py::class_<Cohesion_Softening, SofteningHardeningType >
     (m, "CohesionSoftening")
-    .def( init<> () )
+    .def( py::init<> () )
     ;
 
-    class_<Friction_Softening, SofteningHardeningType >
+    py::class_<Friction_Softening, SofteningHardeningType >
     (m, "FrictionSoftening")
-    .def( init<> () )
+    .def( py::init<> () )
     ;
 
-    class_<Dilatancy_Softening, SofteningHardeningType >
+    py::class_<Dilatancy_Softening, SofteningHardeningType >
     (m, "DilatancySoftening")
-    .def( init<> () )
+    .def( py::init<> () )
     ;
 
 

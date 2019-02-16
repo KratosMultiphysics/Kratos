@@ -91,10 +91,11 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
 
 void  AddCustomParallelStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
 // #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
 //     typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
 //     typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;

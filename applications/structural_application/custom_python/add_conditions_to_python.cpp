@@ -3,7 +3,7 @@
 KratosStructuralApplication
 A library based on:
 Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
+A General Purpose Software for Multi-Physics Fpy::inite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
@@ -80,7 +80,6 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
 typedef Condition ConditionBaseType;
 typedef Geometry<Node<3> > GeometryType;
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
@@ -88,15 +87,16 @@ typedef GeometryType::PointsArrayType NodesArrayType;
 
 void  AddCustomConditionsToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-    class_< FaceForce3D, FaceForce3D::Pointer, ConditionBaseType >
+    py::class_< FaceForce3D, FaceForce3D::Pointer, ConditionBaseType >
     (m, "FaceForce3D")
-    .def( init<int, GeometryType::Pointer, Properties::Pointer>() )
+    .def( py::init<int, GeometryType::Pointer, Properties::Pointer>() )
     ;
 
-    class_< PointPointJointCondition, PointPointJointCondition::Pointer, ConditionBaseType >
+    py::class_< PointPointJointCondition, PointPointJointCondition::Pointer, ConditionBaseType >
     (m, "PointPointJointCondition")
-    .def( init<int, Node<3>::Pointer, Node<3>::Pointer>() )
+    .def( py::init<int, Node<3>::Pointer, Node<3>::Pointer>() )
     ;
 }
 

@@ -50,11 +50,11 @@ namespace Python
 
 void AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<TopologyUpdateProcess, Process >
+    py::class_<TopologyUpdateProcess, Process >
     (m, "TopologyUpdateProcess")
-    .def(init<ModelPart&, double, double, double>())
+    .def(py::init<ModelPart&, double, double, double>())
     .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
     .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
     .def("GetObjective", &TopologyUpdateProcess::GetObjective)

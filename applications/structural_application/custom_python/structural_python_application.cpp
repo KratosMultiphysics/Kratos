@@ -76,13 +76,12 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
-
 PYBIND11_MODULE( KratosStructuralApplication, m )
 {
 
-    class_ < KratosStructuralApplication,
+    namespace py = pybind11;
+
+    py::class_ < KratosStructuralApplication,
            KratosStructuralApplication::Pointer,
            KratosApplication > (m, "KratosStructuralApplication" )
            ;
