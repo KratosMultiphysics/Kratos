@@ -12,6 +12,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
 try:
     import cickle as pickle
     have_pickle_module = True
