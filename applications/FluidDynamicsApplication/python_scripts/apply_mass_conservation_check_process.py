@@ -80,8 +80,20 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         # (1) #
         if ( self._perform_local_corr ):
             ### perform the local conservation procedure
+            # REMARK: The pseudo time step dt has no meaning as a physical time step and is NOT accounted as such.
+            # Instead, it as purely used for an artificial convection that helps to conserve the mass.
+            # Accordingly, dt depends on the currently necessary mass convection.
             dt = self.mass_conservation_check_process.ComputeDtForConvection()
+
+            # REMARK: The distance field is artificially convected to extrapolate the inteface motion into the future.
+            # The time step considered for this artificial "forward convection" is dt.
+            # The generated distance field is saved in an auxiliary variable and does not influence the actual distance field.
             self.forward_convection_process.ConvectForward( dt, KratosFluid.AUX_DISTANCE )
+
+            # REMARK: A comparison between the "forward_convected" distance field and the current distance field is made.
+            # Depending on the current mass balance, one of the following options i chosen:
+            # - taking min() of both fields = adding to fluid_1 ("more water")
+            # - taking max() of both fields = adding to fluid_2 ("more air")
             self.mass_conservation_check_process.ApplyLocalCorrection( KratosFluid.AUX_DISTANCE )
 
         # (2) #
@@ -92,6 +104,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         # (3) #
         if ( self._perform_global_corr ):
             ### perform the global correction
+            # without any consideration of the velocity field, volume is added by a global slight shift of the distance field
             self.mass_conservation_check_process.ApplyGlobalCorrection()
 
 
@@ -99,7 +112,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         ### for serial and OpenMP
         serial_settings = KratosMultiphysics.Parameters("""{
             "linear_solver_settings"   : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "amgcl"
             }
         }""")
         import linear_solver_factory
