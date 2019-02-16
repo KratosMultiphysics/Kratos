@@ -18,7 +18,7 @@ import numpy as np
 import time
 
 # Import Continuation Multilevel Monte Carlo library
-import cmlmc_utilities as mlmc
+import test_cmlmc_utilities as mlmc
 
 # Import refinement library
 import adaptive_refinement_utilities as refinement

@@ -21,6 +21,12 @@ class SimplePatchTestThreeDMeshTying(TestFactory):
 class ALMHyperSimplePatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
 
+class ALMHyperSimplePatchTestWithEliminationContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
+
+class ALMHyperSimplePatchTestWithEliminationWithConstraintContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination_with_constraints"
+
 class ALMHyperSimpleSlopePatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
 
@@ -76,6 +82,14 @@ class ComponentsALMHyperSimpleTrianglePatchTestContact(TestFactory):
 class ComponentsALMHyperSimplePatchTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+
+class ComponentsALMHyperSimplePatchTestWithEliminationContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
+
+class ComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination_with_constraints"
 
 class ComponentsALMHyperSimpleSlopePatchTestContact(TestFactory):
     frictionless_by_components = True

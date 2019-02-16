@@ -20,7 +20,7 @@
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/dynamic_3D2NTruss_test"
-        },        
+        },
         "material_import_settings" :{
             "materials_filename": "truss_test/dynamic_3D2NTruss_test_materials.json"
         },
@@ -32,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false,
             "verbosity"   : 0
         },
@@ -105,5 +105,5 @@
             "time_frequency"   : 0.00002
         }
     }
-    ]     
+    ]
 }
