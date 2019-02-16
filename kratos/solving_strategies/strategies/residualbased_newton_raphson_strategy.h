@@ -419,6 +419,28 @@ class ResidualBasedNewtonRaphsonStrategy
 
         GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
+        if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0)
+        {
+            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+
+            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
+
+            #pragma omp parallel for firstprivate(it_begin)
+            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
+                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
+
+            #pragma omp parallel for firstprivate(it_begin)
+            for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
+                 (it_begin+i)->Apply(rProcessInfo);
+            
+
+            
+            //the following is needed since we need to eventually compute time derivatives after applying 
+            //Master slave relations
+            TSparseSpace::SetToZero(rDx);
+            this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        }
+
         //move the mesh if needed
         if (this->MoveMeshFlag() == true)
             BaseType::MoveMesh();

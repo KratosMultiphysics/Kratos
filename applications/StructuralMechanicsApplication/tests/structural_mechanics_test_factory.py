@@ -40,7 +40,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # the previous default linear-solver is set
             if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
                 default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "ExternalSolversApplication.SuperLUSolver",
+                "solver_type": "ExternalSolversApplication.super_lu",
                     "max_iteration": 500,
                     "tolerance": 1e-9,
                     "scaling": false,
@@ -274,8 +274,17 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMe
 class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
     file_name = "rigid_test/rigid_test"
 
+class RigidBlockTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_block_mpc"
+
+class RigidEliminationTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_elimination_mpc"
+
 class RigidSphereFailing(StructuralMechanicsTestFactory):
     file_name = "rigid_test/sphere_failing"
+
+class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing_explicit"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
@@ -322,6 +331,9 @@ class PendulusTLTest(StructuralMechanicsTestFactory):
 
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
+
+class RayleighProcessTest(StructuralMechanicsTestFactory):
+    file_name = "rayleigh_process_test/test_rayleigh"
 
 class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"

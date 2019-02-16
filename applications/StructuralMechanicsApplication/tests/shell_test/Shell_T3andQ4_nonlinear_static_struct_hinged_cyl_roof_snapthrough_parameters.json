@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 50,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_Q4_thin","Parts_Surface_Q4_thick","Parts_Surface_T3_thick"],
