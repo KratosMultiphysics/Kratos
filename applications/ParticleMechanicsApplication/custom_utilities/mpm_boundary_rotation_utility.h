@@ -80,7 +80,7 @@ public:
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
 		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,rVariable,0.0)
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,rVariable,0.0), mrFlagVariable(rVariable)
 	{}
 
 	/// Destructor.
@@ -200,6 +200,131 @@ public:
 				}
 			}
 		}
+	}
+
+	// An extra function to distinguish the application of slip in element considering penalty imposition
+	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		// If it is not a penalty element, do as standard
+		// Otherwise, if it is a penalty element, dont do anything
+		if (!this->IsPenalty(rGeometry))
+		{
+			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
+		}
+	}
+
+	// An extra function to distinguish the application of slip in element considering penalty imposition (RHS Version)
+	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		// If it is not a penalty element, do as standard
+		// Otherwise, if it is a penalty element, dont do anything
+		if (!this->IsPenalty(rGeometry))
+		{
+			this->ApplySlipCondition(rLocalVector, rGeometry);
+		}
+	}
+
+	// An extra function to distinguish the application of slip in condition considering penalty imposition
+	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		// If it is not a penalty condition, do as standard
+		if (!this->IsPenalty(rGeometry))
+		{
+			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
+		}
+		// Otherwise, do the following modification
+		else
+		{
+			const unsigned int LocalSize = rLocalVector.size();
+
+			if (LocalSize > 0)
+			{
+				const unsigned int block_size = this->GetBlockSize();
+				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+				{
+					if(this->IsSlip(rGeometry[itNode]) )
+					{
+						// We fix the first displacement dof (normal component) for each rotated block
+						unsigned int j = itNode * block_size;
+
+						// Copy all normal value in LHS to the temp_matrix
+						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
+						{
+							temp_matrix(i,j) = rLocalMatrix(i,j);
+							temp_matrix(j,i) = rLocalMatrix(j,i);
+						}
+
+						// Remove all other value in RHS than the normal component
+						for(unsigned int i = j; i < (j + block_size); ++i)
+						{
+							if (i!=j) rLocalVector[i] = 0.0;
+						}
+					}
+				}
+				rLocalMatrix = temp_matrix;
+			}
+		}
+	}
+
+	// An extra function to distinguish the application of slip in condition considering penalty imposition (RHS Version)
+	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		// If it is not a penalty condition, do as standard
+		if (!this->IsPenalty(rGeometry))
+		{
+			this->ApplySlipCondition(rLocalVector, rGeometry);
+		}
+		// Otherwise, if it is a penalty element, dont do anything
+		else
+		{
+			if (rLocalVector.size() > 0)
+			{
+				const unsigned int block_size = this->GetBlockSize();
+				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+				{
+					if( this->IsSlip(rGeometry[itNode]) )
+					{
+						// We fix the first momentum dof (normal component) for each rotated block
+						unsigned int j = itNode * block_size;
+
+						// Remove all other value than the normal component
+						for(unsigned int i = j; i < (j + block_size); ++i)
+						{
+							if (i!=j) rLocalVector[i] = 0.0;
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	// Checking whether it is normal element or penalty element
+	bool IsPenalty(GeometryType& rGeometry) const
+	{
+		bool is_penalty = false;
+		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+		{
+			if(this->IsSlip(rGeometry[itNode]) )
+			{
+				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
+				const double tolerance  = 1.e-6;
+				if (identifier > 1.00 + tolerance)
+				{
+					is_penalty = true;
+					break;
+				}
+			}
+		}
+
+		return is_penalty;
 	}
 
 	/// Transform nodal displacement to the rotated coordinates (aligned with each node's normal)
@@ -347,6 +472,8 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
+
+	const Variable<double>& mrFlagVariable;
 
 	///@}
 	///@name Member Variables

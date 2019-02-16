@@ -89,11 +89,13 @@ namespace Kratos
             Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
             Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
 
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+            auto p_this_law = r_clone_cl.Clone();
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+
             // Initialize Elements
-            p_elem_0->Initialize(r_process_info);
-            p_elem_1->Initialize(r_process_info);
-            p_elem_2->Initialize(r_process_info);
-            p_elem_3->Initialize(r_process_info);
+            for (auto& r_elem : ThisModelPart.Elements())
+                r_elem.Initialize();
         }
 
         void Create3DModelPartForExtrapolation(ModelPart& ThisModelPart)
@@ -202,19 +204,13 @@ namespace Kratos
             Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, PointerVector<NodeType>{element_nodes_10}, p_elem_prop);
             Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, PointerVector<NodeType>{element_nodes_11}, p_elem_prop);
 
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+            auto p_this_law = r_clone_cl.Clone();
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+
             // Initialize Elements
-            p_elem_0->Initialize(r_process_info);
-            p_elem_1->Initialize(r_process_info);
-            p_elem_2->Initialize(r_process_info);
-            p_elem_3->Initialize(r_process_info);
-            p_elem_4->Initialize(r_process_info);
-            p_elem_5->Initialize(r_process_info);
-            p_elem_6->Initialize(r_process_info);
-            p_elem_7->Initialize(r_process_info);
-            p_elem_8->Initialize(r_process_info);
-            p_elem_9->Initialize(r_process_info);
-            p_elem_10->Initialize(r_process_info);
-            p_elem_11->Initialize(r_process_info);
+            for (auto& r_elem : ThisModelPart.Elements())
+                r_elem.Initialize();
         }
 
         /**
@@ -230,20 +226,16 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
-            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
-            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
-            auto p_this_law = r_clone_cl.Clone();
-            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+
+            Create2DModelPartForExtrapolation(this_model_part);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-
-            Create2DModelPartForExtrapolation(this_model_part);
 
             // Compute extrapolation
             Parameters extrapolation_parameters = Parameters(R"(
@@ -280,19 +272,15 @@ namespace Kratos
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
-            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
-            auto p_this_law = r_clone_cl.Clone();
-            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
+
+            Create3DModelPartForExtrapolation(this_model_part);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-
-            Create3DModelPartForExtrapolation(this_model_part);
 
             // Compute extrapolation
             Parameters extrapolation_parameters = Parameters(R"(

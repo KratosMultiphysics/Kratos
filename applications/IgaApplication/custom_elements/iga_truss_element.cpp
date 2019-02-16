@@ -133,7 +133,7 @@ void IgaTrussElement::CalculateAll(
         const std::size_t shape_index_r = GetShapeIndex(r);
 
         const double epsilon_var_r = actual_base_vector[dof_type_r] *
-            shape_derivatives(shape_index_r, 0) / reference_aa;
+            shape_derivatives(0, shape_index_r) / reference_aa;
 
         if (ComputeLeftHandSide) {
             for (std::size_t s = 0; s < NumberOfDofs(); s++) {
@@ -142,15 +142,15 @@ void IgaTrussElement::CalculateAll(
 
                 const double epsilon_var_s =
                     actual_base_vector[dof_type_s] *
-                    shape_derivatives(shape_index_s, 0) / reference_aa;
+                    shape_derivatives(0, shape_index_s) / reference_aa;
 
                 rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
                     epsilon_var_s;
 
                 if (dof_type_r == dof_type_s) {
                     const double epsilon_var_rs =
-                        shape_derivatives(shape_index_r, 0) *
-                        shape_derivatives(shape_index_s, 0) / reference_aa;
+                        shape_derivatives(0, shape_index_r) *
+                        shape_derivatives(0, shape_index_s) / reference_aa;
 
                     rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
                 }

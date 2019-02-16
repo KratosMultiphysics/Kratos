@@ -228,7 +228,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle3D3( const PointsArrayType& ThisPoints )
+    explicit Triangle3D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -261,7 +261,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }

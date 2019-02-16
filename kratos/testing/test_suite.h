@@ -61,7 +61,7 @@ class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {
     TestSuite(TestSuite const& rOther) = delete;
 
     /// The constructor to be called
-    TestSuite(std::string const& Name);
+    explicit TestSuite(std::string const& Name);
 
     /// Destructor.
     virtual ~TestSuite();
