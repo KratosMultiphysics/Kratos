@@ -58,7 +58,7 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     {
         "model_part_name"                        : "",
         "perform_local_corrections"              : true,
-        "perform_global_corrections"             : true,
+        "perform_global_corrections"             : false,
         "correction_frequency_in_time_steps"     : 20,
         "write_to_log_file"                      : false,
         "log_file_name"                          : "mass_conservation.log"
@@ -243,9 +243,6 @@ void MassConservationCheckProcess::ReCheckTheMassConservation(){
     } else {
         KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ReCheckTheMassConservation()";
     }
-
-
-
 }
 
 
