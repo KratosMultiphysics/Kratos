@@ -428,6 +428,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
+
+    Vector split_element_values(2*NumNodes);
+    GetPotentialOnWakeElement(split_element_values,data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
@@ -594,7 +598,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
         ComputeVelocityUpperWakeElement(velocity);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, abs(internal_energy));
+    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
 template <int Dim, int NumNodes>

@@ -33,6 +33,8 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <array>
 #include <string>
 #include <set>
 #include <complex>
