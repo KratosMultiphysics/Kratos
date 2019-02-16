@@ -93,6 +93,7 @@ public:
             MaxSubSteps),
         mrEpetraCommunicator(rEpetraCommunicator)
     {
+
         KRATOS_TRY
 
         // Check that there is at least one element and node in the model
@@ -114,7 +115,6 @@ public:
 
         rBaseModelPart.GetCommunicator().SumAll(n_nodes);
         rBaseModelPart.GetCommunicator().SumAll(n_elems);
-
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
 
@@ -133,7 +133,7 @@ public:
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         (this->mDistancePartIsInitialized) = false;
-        ReGenerateForwardConvectionModelPart(rBaseModelPart);
+        this->ReGenerateForwardConvectionModelPart(rBaseModelPart);
 
         // Generate a linear strategy
         SchemePointerType p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -146,7 +146,7 @@ public:
 
         const bool calculate_reactions = false;
         const bool reform_dof_at_each_iteration = false;
-        const bool calculate_norm_Dx_flag = false;
+        const bool calculate_norm_dx_flag = false;
 
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             *BaseType::mpDistanceAuxModelPart,
@@ -155,7 +155,7 @@ public:
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
-            calculate_norm_Dx_flag);
+            calculate_norm_dx_flag);
 
         (this->mpSolvingStrategy)->SetEchoLevel(0);
 
@@ -173,12 +173,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    void ConvectForward( double timeStep, Variable<double>& rAuxLevelSetVar ){
-
-        LevelSetForwardConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ConvectForward( timeStep, rAuxLevelSetVar );
-
-    }
 
     ///@}
     ///@name Operations
@@ -233,81 +227,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ReGenerateForwardConvectionModelPart(ModelPart& rBaseModelPart) override {
-
-        KRATOS_TRY
-
-        // Check buffer size
-        const auto base_buffer_size = rBaseModelPart.GetBufferSize();
-        KRATOS_ERROR_IF(base_buffer_size < 2) <<
-            "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
-
-        if(rBaseModelPart.GetModel().HasModelPart("DistanceForwardConvectionPart"))
-            rBaseModelPart.GetModel().DeleteModelPart("DistanceForwardConvectionPart");
-
-        BaseType::mpDistanceAuxModelPart= &(rBaseModelPart.GetModel().CreateModelPart("DistanceForwardConvectionPart"));
-
-
-        // Generate
-        BaseType::mpDistanceAuxModelPart->Nodes().clear();
-        BaseType::mpDistanceAuxModelPart->Conditions().clear();
-        BaseType::mpDistanceAuxModelPart->Elements().clear();
-
-        BaseType::mpDistanceAuxModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
-        BaseType::mpDistanceAuxModelPart->SetBufferSize(base_buffer_size);
-        BaseType::mpDistanceAuxModelPart->SetProperties(rBaseModelPart.pProperties());
-        BaseType::mpDistanceAuxModelPart->Tables() = rBaseModelPart.Tables();
-
-        // Assigning the nodes to the new model part
-        BaseType::mpDistanceAuxModelPart->Nodes() = rBaseModelPart.Nodes();
-
-        // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof< Variable < double> >(this->mrLevelSetVar, rBaseModelPart);
-
-        // Copy communicator data
-        Communicator& r_base_comm = rBaseModelPart.GetCommunicator();
-        Communicator::Pointer p_new_comm = r_base_comm.Create();
-
-        p_new_comm->SetNumberOfColors(r_base_comm.GetNumberOfColors());
-        p_new_comm->NeighbourIndices() = r_base_comm.NeighbourIndices();
-        p_new_comm->LocalMesh().SetNodes(r_base_comm.LocalMesh().pNodes());
-        p_new_comm->InterfaceMesh().SetNodes(r_base_comm.InterfaceMesh().pNodes());
-        p_new_comm->GhostMesh().SetNodes(r_base_comm.GhostMesh().pNodes());
-        for (unsigned int i = 0; i < r_base_comm.GetNumberOfColors(); ++i){
-            p_new_comm->pInterfaceMesh(i)->SetNodes(r_base_comm.pInterfaceMesh(i)->pNodes());
-            p_new_comm->pLocalMesh(i)->SetNodes(r_base_comm.pLocalMesh(i)->pNodes());
-            p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
-        }
-
-        BaseType::mpDistanceAuxModelPart->SetCommunicator(p_new_comm);
-
-        // Generating the elements
-        (BaseType::mpDistanceAuxModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
-        for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
-                it_elem->Id(),
-                it_elem->pGetGeometry(),
-                it_elem->pGetProperties());
-
-            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = it_elem->pGetGeometry();
-
-            (BaseType::mpDistanceAuxModelPart->Elements()).push_back(p_element);
-            (BaseType::mpDistanceAuxModelPart->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
-        }
-
-        // Resize the arrays
-        const auto n_nodes = BaseType::mpDistanceAuxModelPart->NumberOfNodes();
-        (this->mVelocity).resize(n_nodes);
-        (this->mVelocityOld).resize(n_nodes);
-        (this->mOldDistance).resize(n_nodes);
-        (this->mCurrentDistance).resize(n_nodes);
-
-        (this->mDistancePartIsInitialized) = true;
-
-        KRATOS_CATCH("")
-    }
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -353,7 +272,7 @@ private:
     TrilinosLevelSetForwardConvectionProcess& operator=(TrilinosLevelSetForwardConvectionProcess const& rOther);
 
     /// Copy constructor.
-    //TrilinosLevelSetForwardConvectionProcess(TrilinosLevelSetForwardConvectionProcess const& rOther);
+    // TrilinosLevelSetForwardConvectionProcess(TrilinosLevelSetForwardConvectionProcess const& rOther);
 
     ///@}
 }; // Class TrilinosLevelSetForwardConvectionProcess
