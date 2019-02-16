@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include <fstream>
 
 #include <amgcl/util.hpp>
+#include <amgcl/detail/sort_row.hpp>
 
 namespace amgcl {
 namespace io {
@@ -111,6 +112,13 @@ void read_crs(
 
     f.seekg(col_beg + nnz * sizeof(Col) + nnz_beg * sizeof(Val));
     precondition(read(f, val), "File I/O error");
+
+#pragma omp parallel for
+    for(ptrdiff_t i = 0; i < chunk; ++i) {
+        Ptr beg = ptr[i];
+        Ptr end = ptr[i + 1];
+        amgcl::detail::sort_row(&col[beg], &val[beg], end - beg);
+    }
 }
 
 template <typename SizeT, typename Val>
