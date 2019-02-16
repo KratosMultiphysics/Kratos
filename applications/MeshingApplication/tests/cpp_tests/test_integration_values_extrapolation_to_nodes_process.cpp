@@ -95,7 +95,7 @@ namespace Kratos
 
             // Initialize Elements
             for (auto& r_elem : ThisModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         void Create3DModelPartForExtrapolation(ModelPart& ThisModelPart)
@@ -210,7 +210,7 @@ namespace Kratos
 
             // Initialize Elements
             for (auto& r_elem : ThisModelPart.Elements())
-                r_elem.Initialize();
+                r_elem.Initialize(r_process_info);
         }
 
         /**
