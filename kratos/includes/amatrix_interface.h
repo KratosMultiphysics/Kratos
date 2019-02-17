@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -88,20 +88,20 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     explicit Matrix(std::initializer_list<TDataType> InitialValues)
         : base_type(InitialValues) {}
 
-	template <typename TExpressionType, std::size_t TCategory>
-	Matrix& operator=(
-		AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
+    template <typename TExpressionType, std::size_t TCategory>
+    Matrix& operator=(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
         KRATOS_DEBUG_ERROR_IF(Other.expression().check_aliasing(data(), data()+size())) << "Aliasing found in assigning Matrix";
-		base_type::operator=(Other.expression());
-		return *this;
-	}
+        base_type::operator=(Other.expression());
+        return *this;
+    }
 
-	template <typename TExpressionType>
-	Matrix& operator=(
-		AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other) {
-		base_type::operator=(Other.expression());
-		return *this;
-	}
+    template <typename TExpressionType>
+    Matrix& operator=(
+        AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other) {
+        base_type::operator=(Other.expression());
+        return *this;
+    }
 
     //template <typename TOtherMatrixType>
     //Matrix& operator=(TOtherMatrixType const& Other) {
@@ -299,20 +299,20 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         return (check1 || check2 || check3);
     }
 
-	void fill(data_type const& value) {
-		for (std::size_t i = 0; i < size(); i++)
-			at(i) = value;
+    void fill(data_type const& value) {
+        for (std::size_t i = 0; i < size(); i++)
+            at(i) = value;
 
-	}
+    }
 
-	void fill_identity() {
+    void fill_identity() {
         KRATOS_ERROR_IF(size1() != size2()) << "fill_identity is only supported for square matrices." << std::endl;
-		fill(0.00);
-		const std::size_t next_diagonal = size1() + 1;
-		for (std::size_t i = 0; i < size(); i += next_diagonal)
-			at(i) = 1.00;
+        fill(0.00);
+        const std::size_t next_diagonal = size1() + 1;
+        for (std::size_t i = 0; i < size(); i += next_diagonal)
+            at(i) = 1.00;
 
-	}
+    }
 
 };
 
@@ -327,43 +327,43 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 ///  format for a matrix : [size1, size2](()()...())
 template <typename TExpressionType, std::size_t TCategory>
 inline std::ostream& operator<<(std::ostream& rOStream,
-	AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
-	TExpressionType const& the_expression = TheMatrix.expression();
-	if ((the_expression.size1() == 1) || (the_expression.size2() == 1)) { // writing in vector format
-		const std::size_t size = the_expression.size();
-		rOStream << "[" << size << "](";
-		if (size > 0)
-			rOStream << the_expression[0];
-		for (std::size_t i = 1; i < size; i++) {
-			rOStream << "," << the_expression[i];
-		}
-		rOStream << ")";
-	}
-	else // writing in matrix format
-	{
-		const std::size_t size2 = the_expression.size2();
-		rOStream << "[" << the_expression.size1() << "," << the_expression.size2() << "](";
-		if (the_expression.size1() > 0) {
-			rOStream << "(";
-			if (size2 > 0)
-				rOStream << the_expression(0, 0);
-			for (std::size_t j = 1; j < size2; j++) {
-				rOStream << "," << the_expression(0, j);
-			}
-			rOStream << ")";
-		}
-		for (std::size_t i = 1; i < the_expression.size1(); i++) {
-			rOStream << ",(";
-			if (size2 > 0)
-				rOStream << the_expression(i, 0);
-			for (std::size_t j = 1; j < size2; j++) {
-				rOStream << "," << the_expression(i, j);
-			}
-			rOStream << ")";
-		}
-		rOStream << ")";
-	}
-	return rOStream;
+    AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
+    TExpressionType const& the_expression = TheMatrix.expression();
+    if ((the_expression.size1() == 1) || (the_expression.size2() == 1)) { // writing in vector format
+        const std::size_t size = the_expression.size();
+        rOStream << "[" << size << "](";
+        if (size > 0)
+            rOStream << the_expression[0];
+        for (std::size_t i = 1; i < size; i++) {
+            rOStream << "," << the_expression[i];
+        }
+        rOStream << ")";
+    }
+    else // writing in matrix format
+    {
+        const std::size_t size2 = the_expression.size2();
+        rOStream << "[" << the_expression.size1() << "," << the_expression.size2() << "](";
+        if (the_expression.size1() > 0) {
+            rOStream << "(";
+            if (size2 > 0)
+                rOStream << the_expression(0, 0);
+            for (std::size_t j = 1; j < size2; j++) {
+                rOStream << "," << the_expression(0, j);
+            }
+            rOStream << ")";
+        }
+        for (std::size_t i = 1; i < the_expression.size1(); i++) {
+            rOStream << ",(";
+            if (size2 > 0)
+                rOStream << the_expression(i, 0);
+            for (std::size_t j = 1; j < size2; j++) {
+                rOStream << "," << the_expression(i, j);
+            }
+            rOStream << ")";
+        }
+        rOStream << ")";
+    }
+    return rOStream;
 }
 
 /// input stream function for matrix using the ublas style for backward compatibility
@@ -371,55 +371,55 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///  NOTE: it deosnot support white spaces, tab, etc.
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
 inline std::istream& operator>>(std::istream& rIStream,
-	Matrix<TDataType, TSize1, TSize2>& TheMatrix) {
+    Matrix<TDataType, TSize1, TSize2>& TheMatrix) {
 
-	std::size_t size1;
-	std::size_t size2;
+    std::size_t size1;
+    std::size_t size2;
 
-	char c;
+    char c;
 
-	rIStream >> c; // skipping the '['
-	KRATOS_DEBUG_CHECK(c == '[');
+    rIStream >> c; // skipping the '['
+    KRATOS_DEBUG_CHECK(c == '[');
 
-	rIStream >> size1;
+    rIStream >> size1;
 
-	rIStream >> c; // skipping the ','
-	KRATOS_DEBUG_CHECK(c == ',');
+    rIStream >> c; // skipping the ','
+    KRATOS_DEBUG_CHECK(c == ',');
 
-	rIStream >> size2;
+    rIStream >> size2;
 
-	rIStream >> c; // skipping the ']'
-	KRATOS_DEBUG_CHECK(c == ']');
+    rIStream >> c; // skipping the ']'
+    KRATOS_DEBUG_CHECK(c == ']');
 
-	TheMatrix.resize(size1, size2);
+    TheMatrix.resize(size1, size2);
 
-	rIStream >> c; // skipping the '('
-	KRATOS_DEBUG_CHECK(c == '(');
+    rIStream >> c; // skipping the '('
+    KRATOS_DEBUG_CHECK(c == '(');
 
-	for (std::size_t i = 0; i < size1; i++) {
-		if (i > 0) {
-			rIStream >> c; // skipping the row ','
-			KRATOS_DEBUG_CHECK(c == ',');
-		}
-		rIStream >> c; // skipping the row '('
-		KRATOS_DEBUG_CHECK(c == '(');
+    for (std::size_t i = 0; i < size1; i++) {
+        if (i > 0) {
+            rIStream >> c; // skipping the row ','
+            KRATOS_DEBUG_CHECK(c == ',');
+        }
+        rIStream >> c; // skipping the row '('
+        KRATOS_DEBUG_CHECK(c == '(');
 
-		for (std::size_t j = 0; j < size2; j++) {
-			if (j > 0) {
-				rIStream >> c; // skipping the ','
-				KRATOS_DEBUG_CHECK(c == ',');
-			}
-			rIStream >> TheMatrix(i, j);
-		}
+        for (std::size_t j = 0; j < size2; j++) {
+            if (j > 0) {
+                rIStream >> c; // skipping the ','
+                KRATOS_DEBUG_CHECK(c == ',');
+            }
+            rIStream >> TheMatrix(i, j);
+        }
 
-		rIStream >> c; // skipping the row ')'
-		KRATOS_DEBUG_CHECK(c == ')');
-	}
+        rIStream >> c; // skipping the row ')'
+        KRATOS_DEBUG_CHECK(c == ')');
+    }
 
-	rIStream >> c; // skipping the final ')'
-	KRATOS_DEBUG_CHECK(c == ')');
+    rIStream >> c; // skipping the final ')'
+    KRATOS_DEBUG_CHECK(c == ')');
 
-	return rIStream;
+    return rIStream;
 }
 
 /// input stream function for vector using the ublas style for backward compatibility
@@ -427,38 +427,38 @@ inline std::istream& operator>>(std::istream& rIStream,
 ///  NOTE: it deosnot support white spaces, tab, etc.
 template <typename TDataType, std::size_t TSize1>
 inline std::istream& operator>>(std::istream& rIStream,
-	Matrix<TDataType, TSize1, 1>& TheMatrix) {
+    Matrix<TDataType, TSize1, 1>& TheMatrix) {
 
-	std::size_t size1;
+    std::size_t size1;
 
 
-	char c;
+    char c;
 
-	rIStream >> c; // skipping the '['
-	KRATOS_DEBUG_CHECK(c == '[');
+    rIStream >> c; // skipping the '['
+    KRATOS_DEBUG_CHECK(c == '[');
 
-	rIStream >> size1;
+    rIStream >> size1;
 
-	rIStream >> c; // skipping the ']'
-	KRATOS_DEBUG_CHECK(c == ']');
+    rIStream >> c; // skipping the ']'
+    KRATOS_DEBUG_CHECK(c == ']');
 
-	TheMatrix.resize(size1);
+    TheMatrix.resize(size1);
 
-	rIStream >> c; // skipping the '('
-	KRATOS_DEBUG_CHECK(c == '(');
+    rIStream >> c; // skipping the '('
+    KRATOS_DEBUG_CHECK(c == '(');
 
-	for (std::size_t i = 0; i < size1; i++) {
-		if (i > 0) {
-			rIStream >> c; // skipping the ','
-			KRATOS_DEBUG_CHECK(c == ',');
-		}
-		rIStream >> TheMatrix[i];
-	}
+    for (std::size_t i = 0; i < size1; i++) {
+        if (i > 0) {
+            rIStream >> c; // skipping the ','
+            KRATOS_DEBUG_CHECK(c == ',');
+        }
+        rIStream >> TheMatrix[i];
+    }
 
-	rIStream >> c; // skipping the ')'
-	KRATOS_DEBUG_CHECK(c == ')');
+    rIStream >> c; // skipping the ')'
+    KRATOS_DEBUG_CHECK(c == ')');
 
-	return rIStream;
+    return rIStream;
 }
 
 
@@ -609,19 +609,6 @@ typename TExpression1Type::data_type inner_prod(
 
 }
 
-    template <typename TExpressionType, std::size_t TCategory>
-    typename TExpressionType::data_type norm_1(
-        AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
-            using data_type = typename TExpressionType::data_type;
-            auto& the_expression = TheExpression.expression();
-            data_type result = std::fabs(the_expression[0]);
-            for (std::size_t i = 0; i < the_expression.size(); ++i) {
-                if (result < std::fabs(the_expression[i]))
-                    result = std::fabs(the_expression[i]);
-            }
-        return result;
-    }
-
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_2(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
@@ -634,17 +621,17 @@ template <typename TExpressionType, std::size_t TCategory>
     return std::sqrt(result);
 }
 
-	template <typename TExpressionType, std::size_t TCategory>
-	AMatrix::MatrixColumn<const TExpressionType> column(
-		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t ColumnIndex) {
-		return AMatrix::MatrixColumn<const TExpressionType>(TheExpression.expression(), ColumnIndex);
-	}
+    template <typename TExpressionType, std::size_t TCategory>
+    AMatrix::MatrixColumn<const TExpressionType> column(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t ColumnIndex) {
+        return AMatrix::MatrixColumn<const TExpressionType>(TheExpression.expression(), ColumnIndex);
+    }
 
-	template <typename TExpressionType, std::size_t TCategory>
-	AMatrix::MatrixColumn<TExpressionType> column(
-		AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t ColumnIndex) {
-		return AMatrix::MatrixColumn<TExpressionType>(TheExpression.expression(), ColumnIndex);
-	}
+    template <typename TExpressionType, std::size_t TCategory>
+    AMatrix::MatrixColumn<TExpressionType> column(
+        AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t ColumnIndex) {
+        return AMatrix::MatrixColumn<TExpressionType>(TheExpression.expression(), ColumnIndex);
+    }
 
 template <typename TExpressionType, std::size_t TCategory>
     AMatrix::MatrixRow<const TExpressionType> row(
@@ -653,11 +640,11 @@ template <typename TExpressionType, std::size_t TCategory>
 }
 
 
-	template <typename TExpressionType, std::size_t TCategory>
-	AMatrix::MatrixRow<TExpressionType> row(
-		AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
-		return AMatrix::MatrixRow<TExpressionType>(TheExpression.expression(), RowIndex);
-	}
+    template <typename TExpressionType, std::size_t TCategory>
+    AMatrix::MatrixRow<TExpressionType> row(
+        AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
+        return AMatrix::MatrixRow<TExpressionType>(TheExpression.expression(), RowIndex);
+    }
 
 template <typename TExpressionType, std::size_t TCategory>
     AMatrix::SubVector<const TExpressionType> subrange(
@@ -672,17 +659,17 @@ template <typename TExpressionType, std::size_t TCategory>
 }
 
 
-	template <typename TExpressionType, std::size_t TCategory>
-	typename TExpressionType::data_type sum(
-		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
-		using data_type = typename TExpressionType::data_type;
-		auto& the_expression = TheExpression.expression();
-		data_type result = data_type();
-		for (std::size_t i = 0; i < the_expression.size(); ++i) {
-			result += the_expression[i];
-		}
-		return result;
-	}
+    template <typename TExpressionType, std::size_t TCategory>
+    typename TExpressionType::data_type sum(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+        using data_type = typename TExpressionType::data_type;
+        auto& the_expression = TheExpression.expression();
+        data_type result = data_type();
+        for (std::size_t i = 0; i < the_expression.size(); ++i) {
+            result += the_expression[i];
+        }
+        return result;
+    }
 
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_frobenius(
@@ -697,75 +684,75 @@ template <typename TExpressionType, std::size_t TCategory>
 }
 
 
-	template <typename TDataType>
-	class scalar_matrix
-		: public AMatrix::MatrixExpression<scalar_matrix<TDataType>, AMatrix::row_major_access> {
-		std::size_t _size1;
-		std::size_t _size2;
-		const TDataType _value;
+    template <typename TDataType>
+    class scalar_matrix
+        : public AMatrix::MatrixExpression<scalar_matrix<TDataType>, AMatrix::row_major_access> {
+        std::size_t _size1;
+        std::size_t _size2;
+        const TDataType _value;
 
-	public:
-		using data_type = TDataType;
+    public:
+        using data_type = TDataType;
 
-		scalar_matrix() = delete;
+        scalar_matrix() = delete;
 
-		scalar_matrix(std::size_t Size1, std::size_t Size2, TDataType const& Value)
-			: _size1(Size1), _size2(Size2), _value(Value) {}
+        scalar_matrix(std::size_t Size1, std::size_t Size2, TDataType const& Value)
+            : _size1(Size1), _size2(Size2), _value(Value) {}
 
-		inline TDataType operator()(std::size_t i, std::size_t j) const {
-			return _value;
-		}
+        inline TDataType operator()(std::size_t i, std::size_t j) const {
+            return _value;
+        }
 
-		inline TDataType operator[](std::size_t i) const { return _value; }
+        inline TDataType operator[](std::size_t i) const { return _value; }
 
-		inline std::size_t size1() const { return _size1; }
-		inline std::size_t size2() const { return _size2; }
+        inline std::size_t size1() const { return _size1; }
+        inline std::size_t size2() const { return _size2; }
 
         bool check_aliasing(const data_type* From, const data_type* To) const {
             return false;
         }
-	};
+    };
 
-	using ScalarMatrix = scalar_matrix<double>;
+    using ScalarMatrix = scalar_matrix<double>;
 
 
-	template <typename TExpressionType, typename TIndicesVectorType>
-	class PermutationMatrix : public AMatrix::MatrixExpression<PermutationMatrix<TExpressionType, TIndicesVectorType>, AMatrix::unordered_access> {
-		TExpressionType& _original_expression;
-		TIndicesVectorType const& _permutation_indices_i;
-		TIndicesVectorType const& _permutation_indices_j;
-	public:
-		using data_type = typename TExpressionType::data_type;
-		using value_type = typename TExpressionType::data_type;
-		PermutationMatrix() = delete;
+    template <typename TExpressionType, typename TIndicesVectorType>
+    class PermutationMatrix : public AMatrix::MatrixExpression<PermutationMatrix<TExpressionType, TIndicesVectorType>, AMatrix::unordered_access> {
+        TExpressionType& _original_expression;
+        TIndicesVectorType const& _permutation_indices_i;
+        TIndicesVectorType const& _permutation_indices_j;
+    public:
+        using data_type = typename TExpressionType::data_type;
+        using value_type = typename TExpressionType::data_type;
+        PermutationMatrix() = delete;
 
-		PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndices)
-			: _original_expression(Original),
-			_permutation_indices_i(PermutaionIndices),
-			_permutation_indices_j(PermutaionIndices) {}
+        PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndices)
+            : _original_expression(Original),
+            _permutation_indices_i(PermutaionIndices),
+            _permutation_indices_j(PermutaionIndices) {}
 
-		PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndicesI, TIndicesVectorType const& PermutaionIndicesJ)
-			: _original_expression(Original),
-			_permutation_indices_i(PermutaionIndicesI),
-			_permutation_indices_j(PermutaionIndicesJ) {}
+        PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndicesI, TIndicesVectorType const& PermutaionIndicesJ)
+            : _original_expression(Original),
+            _permutation_indices_i(PermutaionIndicesI),
+            _permutation_indices_j(PermutaionIndicesJ) {}
 
-		inline data_type const& operator()(std::size_t i, std::size_t j) const {
-			return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
-		}
+        inline data_type const& operator()(std::size_t i, std::size_t j) const {
+            return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
+        }
 
-		inline data_type& operator()(std::size_t i, std::size_t j) {
-			return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
-		}
+        inline data_type& operator()(std::size_t i, std::size_t j) {
+            return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
+        }
 
-		inline std::size_t size() const { return size1() * size2(); }
-		inline std::size_t size1() const { return _permutation_indices_i.size(); }
-		inline std::size_t size2() const { return _permutation_indices_j.size(); }
+        inline std::size_t size() const { return size1() * size2(); }
+        inline std::size_t size1() const { return _permutation_indices_i.size(); }
+        inline std::size_t size2() const { return _permutation_indices_j.size(); }
 
         bool check_aliasing(const data_type* From, const data_type* To) const {
             return _original_expression.check_aliasing(From, To);
         }
 
-	};
+    };
 
 
 
@@ -795,6 +782,5 @@ template <typename TExpressionType, std::size_t TCategory>
 }  // namespace Kratos.
 
 #endif // KRATOS_AMATRIX_INTERFACE_H_INCLUDED  defined
-
 
 
