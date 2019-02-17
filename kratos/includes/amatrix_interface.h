@@ -609,6 +609,19 @@ typename TExpression1Type::data_type inner_prod(
 
 }
 
+    template <typename TExpressionType, std::size_t TCategory>
+    typename TExpressionType::data_type norm_1(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+            using data_type = typename TExpressionType::data_type;
+            auto& the_expression = TheExpression.expression();
+            data_type result = std::fabs(the_expression[0]);
+            for (std::size_t i = 0; i < the_expression.size(); ++i) {
+                if (result < std::fabs(the_expression[i]))
+                    result = std::fabs(the_expression[i]);
+            }
+        return result;
+    }
+
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_2(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {

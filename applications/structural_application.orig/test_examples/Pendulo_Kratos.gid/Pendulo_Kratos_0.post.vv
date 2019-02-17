@@ -1,0 +1,62 @@
+BeginZE /home/nelson/kratos/applications/structural_application/test_examples/Pendulo_Kratos.gid/Pendulo_Kratos_0.post.vv
+   x -22.7768 24.7883
+   y 18.5244 -2.44596
+   z -31.4555 31.4555
+   e 10.4852
+   v 2.18557e-08 1.91069e-15 -8.74228e-08
+   r -1
+   m 1 -1.74846e-07 -7.64274e-15 0 1.74846e-07 1 4.37114e-08 0 0 -4.37114e-08 1 0 0 0 0 1
+   c 1.00573 8.03921 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 3.7054 116.722 83.0551 0
+EndZE /home/nelson/kratos/applications/structural_application/test_examples/Pendulo_Kratos.gid/Pendulo_Kratos_0.post.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 0
+  Num sets: 2
+  Num cuts: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Quadrilateral2D4_Mesh_1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0 0.3 0 0.5
+    Color Diffuse: 0 1 0 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 93
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+  Set: 1
+  State: On
+    Name: "Kratos_Quadrilateral2D4_Mesh_2"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0 0.3 0 0.5
+    Color Diffuse: 0 1 0 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 93
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 1
+EndSingleMesh
+  ResultView: {Id 211} {No results} {} {} {} {}
+  Post_Prefs_Vector_Size: 0 32 32 32
+EndPostState
+

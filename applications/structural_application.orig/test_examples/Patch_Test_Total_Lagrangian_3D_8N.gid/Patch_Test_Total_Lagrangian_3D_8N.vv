@@ -1,0 +1,19 @@
+BeginZE /home/nelson/kratos/applications/structural_application/test_examples/Patch_Test_Total_Lagrangian_3D_8N.gid/Patch_Test_Total_Lagrangian_3D_8N.vv
+   x -1.33204 2.6889
+   y 1.39679 -0.335261
+   z -3.09808 2.09808
+   e 0.866025
+   v 0.191374 -0.150875 -0.550178
+   r 0.798697
+   m 0.349081 0.821104 -0.451586 0 -0.936598 0.32136 -0.139683 0 0.0304268 0.471715 0.881226 0 0 0 0 1
+   c 0.5 0.5 0.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 3.7054 116.722 83.0551 0
+EndZE /home/nelson/kratos/applications/structural_application/test_examples/Patch_Test_Total_Lagrangian_3D_8N.gid/Patch_Test_Total_Lagrangian_3D_8N.vv
+
