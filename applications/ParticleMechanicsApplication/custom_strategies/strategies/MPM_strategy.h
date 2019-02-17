@@ -815,21 +815,37 @@ public:
                         const bool is_interface = i->Is(INTERFACE);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
-                        // If dirichlet boundary
+                        // If dirichlet boundary or coupling interface
                         std::string condition_type_name;
                         const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
                         if (!is_neumann_condition){
-                            if (TDim==2){
-                                if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
-                                else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                            if(!is_interface){
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                                }
                             }
-                            else if (TDim==3){
-                                if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
-                                else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
+                            else{
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition3D8N";
+                                }
                             }
                         }
 
