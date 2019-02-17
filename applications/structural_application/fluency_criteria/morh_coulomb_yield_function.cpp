@@ -50,6 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
+#include "utilities/math_utils.h"
 #include "fluency_criteria/morh_coulomb_yield_function.h"
 
 namespace Kratos
@@ -511,6 +512,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
 
     Matrix d                    = ZeroMatrix(2,2);
     Matrix d_inv                = ZeroMatrix(2,2);
+    double detd;
     array_1d<double,2> dgama    = ZeroVector(2);
     array_1d<double,2> ddgama   = ZeroVector(2);
     array_1d<double,2> residual = ZeroVector(2);
@@ -558,7 +560,6 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
 
     residual[1]   =  sigma_b - fact1;
 
-//    int singular  = 0.00;
     double norma  = norm_2(residual);
     double phipsi = 0.00;
     Vector Imput_Parameters;
@@ -622,7 +623,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
         d(1,0) = C[9] * C[8]  + C[12] * C[13] - C[5]     +  (C[6] + C[4] -C[15]) * Partial_Ep_gama_a;
         d(1,1) = C[9] * C[10] - C[11] * C[13] - 4.00 * G +  (C[6] + C[4] -C[15]) * Partial_Ep_gama_b;
 
-//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama         =  -Vector(prod(d_inv, residual));
 
 

@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///  WARNING = mirar las funciones de los modelos
 ///  WARNING = mirar matrix
 
-
+#include "utilities/math_utils.h"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "fluency_criteria/modified_morh_coulomb_yield_function.h"
 
@@ -360,6 +360,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     array_1d<double, 2> residual = ZeroVector(2);
     Matrix d                     = ZeroMatrix(2,2);
     Matrix d_inv                 = ZeroMatrix(2,2);
+    double detd;
 
 
 
@@ -500,7 +501,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
         d(1,1) = -2.00 * G * Partial_A_gama_b - K * Partial_D_gama_b - H * Partial_Ep_gama_b;
 
-//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -658,6 +659,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     array_1d<double, 3> residual = ZeroVector(3);
     Matrix d                     = ZeroMatrix(3,3);
     Matrix d_inv                 = ZeroMatrix(3,3);
+    double detd;
 
     unsigned iter                =  0;
     double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -905,7 +907,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         d(2,2) = -2.00 * G * Partial_A_gama_c - K * Partial_D_gama_c;
 
 
-//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -1069,6 +1071,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     d_inv.resize(4,4,false);
     noalias(d)                   =   ZeroMatrix(4,4);
     noalias(d_inv)               =   ZeroMatrix(4,4);
+    double detd;
 
     unsigned iter                =   0;
     double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -1398,7 +1401,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             }
              count++;
              */
-//            singular       =   SD_MathUtils<double>::InvertMatrix(d, d_inv);
+            MathUtils<double>::InvertMatrix(d, d_inv, detd);
         }
 
 

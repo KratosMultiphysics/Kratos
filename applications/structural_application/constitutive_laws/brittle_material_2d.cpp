@@ -218,7 +218,7 @@ void BrittleMaterial2D::FinalizeSolutionStep( const Properties& props,
 {
     double detF;
     noalias(mStrain_Old) = mStrain_New;
-    MathUtils<double>::InvertMatrix(mF,m_invF_old,detF);   /// WARNING = descomeatr
+    MathUtils<double>::InvertMatrix(mF,m_invF_old,detF);
     mpFluencyCriteria->FinalizeSolutionStep();
 
     // Calculating the local fail failure
