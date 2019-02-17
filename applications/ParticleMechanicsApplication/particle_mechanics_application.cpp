@@ -85,7 +85,11 @@ namespace Kratos
         mMPMParticlePenaltyDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) )
+        mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticlePenaltyCouplingInterfaceCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) )
     {}
 
     void KratosParticleMechanicsApplication::Register()
@@ -123,6 +127,10 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D4N", mMPMParticlePenaltyDirichletCondition3D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D8N", mMPMParticlePenaltyDirichletCondition3D8N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D3N", mMPMParticlePenaltyCouplingInterfaceCondition2D3N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition2D4N", mMPMParticlePenaltyCouplingInterfaceCondition2D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D4N", mMPMParticlePenaltyCouplingInterfaceCondition3D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyCouplingInterfaceCondition3D8N", mMPMParticlePenaltyCouplingInterfaceCondition3D8N)
 
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
