@@ -87,17 +87,17 @@ namespace Kratos
 		: Element( NewId, pGeometry, pProperties )
 	{
 		mIsInitialized = false;
-		
+
 		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        
+
         if(dim != 2)
             KRATOS_THROW_ERROR(std::logic_error, "This element only works in 2D", "");
-        
+
         if ( GetGeometry().size() != 4 && GetGeometry().size() != 8 && GetGeometry().size() != 9 )
             KRATOS_THROW_ERROR(std::logic_error, "This element only works with quadrilateral geometry", "");
-        
+
 	}
 
 	Element::Pointer EASElementQ4E4::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
@@ -119,7 +119,7 @@ namespace Kratos
 
 		//dimension of the problem
 	    unsigned int dim = GetGeometry().WorkingSpaceDimension();
-	    
+
 		if ( mIsInitialized )
 		{
 			//Set Up Initial displacement for StressFreeActivation of Elements
@@ -133,7 +133,7 @@ namespace Kratos
 		}
 
         //hbui remark: the code below will be called if mIsInitialized == false
-        
+
 		//number of integration points used, mThisIntegrationMethod refers to the
 		//integration method defined in the constructor
 		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -191,22 +191,22 @@ namespace Kratos
         //initialize incompatible mode
         mIncompatibleMode.resize( 4 );
         noalias( mIncompatibleMode ) = ZeroVector( 4 );
-        
+
         //calculate Jacobian at centre
         Matrix CentreJ( dim, dim );
         noalias( CentreJ ) = ZeroMatrix( dim, dim );
         Matrix F0 (3, 3);
         noalias( F0 ) = ZeroMatrix( 3, 3 );
         double temp;
-	    
+
 	    GeometryType::PointType p0(0.00 , 0.00 , 0.00);
         CentreJ = GetGeometry().Jacobian( CentreJ, p0 );
-        
+
         CalculateF0operator(F0 , CentreJ);
-        
+
         mDetJcentre = MathUtils<double>::Det(CentreJ);
         MathUtils<double>::InvertMatrix( F0, mInverseF0operator, temp );
-        
+
 		mIsInitialized = true;
 
 
@@ -258,7 +258,7 @@ namespace Kratos
 		KRATOS_TRY
 
         //TODO add incompatible mode
-//        
+//
 //		unsigned int number_of_nodes = GetGeometry().size();
 //		unsigned int dim = GetGeometry().WorkingSpaceDimension();;
 //		unsigned int StrainSize = dim * ( dim + 1 ) / 2;
@@ -304,7 +304,7 @@ namespace Kratos
 //			//calculate material response
 //			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
 //					StrainVector,
-//					ZeroMatrix( 1 ),
+//					ZeroMatrix( 1, 1 ),
 //					StressVector,
 //					TanC,
 //					rCurrentProcessInfo,
@@ -379,7 +379,7 @@ namespace Kratos
 		//this is the size of the elements stiffness matrix/force vector
 		unsigned int MatSize = GetGeometry().size() * dim;
 
-        
+
 //        for(int i = 0; i < number_of_nodes; i++)
 //        {
 //            KRATOS_WATCH(GetGeometry().GetPoint(i).X());
@@ -408,7 +408,7 @@ namespace Kratos
 				rLeftHandSideMatrix.resize( MatSize, MatSize, false );
 
 			noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
-			
+
 			noalias( Kbg ) = ZeroMatrix( MatSize, 4 );
 			noalias( Kgg ) = ZeroMatrix( 4, 4 );
 			noalias( Kgb ) = ZeroMatrix( 4 , MatSize );
@@ -433,14 +433,14 @@ namespace Kratos
 
 		//Current displacements
 		for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
-			noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-        
+			row( CurrentDisp, node ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
 		//auxiliary terms
 		Vector BodyForce;
 
         //compute incompatible mode
         CalculateIncompatibleMode( mIncompatibleMode , rCurrentProcessInfo );
-        
+
         #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
         KRATOS_WATCH(mIncompatibleMode);
         #endif
@@ -453,10 +453,10 @@ namespace Kratos
 			noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
 			//Initializing B_Operator at the current integration point
 			CalculateBoperator( B, DN_DX );
-            
+
             //Compute enhanced strain operator
 			CalculateGoperator( G, PointNumber);
-            
+
 			//calculate strain
 			CalculateStrain( B, CurrentDisp, G, mIncompatibleMode, StrainVector );
 
@@ -466,7 +466,7 @@ namespace Kratos
 			//calculate stress and tangent operator
 			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
 					StrainVector,
-					ZeroMatrix( 1 ),
+					ZeroMatrix( 1, 1 ),
 					StressVector,
 					TanC,
 					rCurrentProcessInfo,
@@ -490,10 +490,10 @@ namespace Kratos
 			if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
 			{
 			    double Temp = ( IntToReferenceWeight * mDetJ0[PointNumber] );
-			    
+
 				//calculate stiffness matrix
 				noalias( rLeftHandSideMatrix ) += prod( trans( B ), Temp * Matrix( prod( TanC, B ) ) );
-					
+
 				noalias( Kbg ) += prod( trans( B ), Temp * Matrix( prod( TanC, G ) ) );
 				noalias( Kgg ) += prod( trans( G ), Temp * Matrix( prod( TanC, G ) ) );
 				noalias( Kgb ) += prod( trans( G ), Temp * Matrix( prod( TanC, B ) ) );
@@ -503,23 +503,23 @@ namespace Kratos
 			{
 				//contribution to external forces
 				BodyForce = GetProperties()[BODY_FORCE];
-				
+
 				CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight, mDetJ0[PointNumber]);
-				
+
 				//contribution of gravity (if there is)
 				AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight, mDetJ0[PointNumber] );
 
 				AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );
 			}
-			
+
 //			KRATOS_WATCH(StrainVector);
 //			KRATOS_WATCH(mIncompatibleMode);
 //			KRATOS_WATCH(CurrentDisp);
-			
+
 //			//update new tangent for the material
 //			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
 //					StrainVector,
-//					ZeroMatrix( 1 ),
+//					ZeroMatrix( 1, 1 ),
 //					StressVector,
 //					TanC,
 //					rCurrentProcessInfo,
@@ -529,24 +529,25 @@ namespace Kratos
 //					true,
 //					1,
 //					true );
-					
-			
+
+
 		}//loop over integration points
-	    
-	    
+
+
 	    if ( CalculateStiffnessMatrixFlag == true ) //modify stiffness matrix is required
 		{
 		    Matrix InverseKgg( 4, 4 );
-            SD_MathUtils<double>::InvertMatrix(Kgg, InverseKgg);
+		    double detKgg;
+            MathUtils<double>::InvertMatrix(Kgg, InverseKgg, detKgg);
             #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
             KRATOS_WATCH(prod( InverseKgg, Kgb ));
             KRATOS_WATCH(prod( Kbg, Matrix( prod( InverseKgg, Kgb ) ) ));
             #endif
 		    noalias( rLeftHandSideMatrix ) += ( -1 ) * prod( Kbg, Matrix( prod( InverseKgg, Kgb ) ) );
 		}
-        
-//        KRATOS_WATCH("------");        
-        
+
+//        KRATOS_WATCH("------");
+
 		KRATOS_CATCH( "" )
 	}
 
@@ -615,7 +616,7 @@ namespace Kratos
 			mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point ), CurrentProcessInfo );
 		}
 	}
-	
+
 	void EASElementQ4E4::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
         //reset all resistant forces at node
@@ -721,9 +722,9 @@ namespace Kratos
 			double weight )
 	{
 		KRATOS_TRY
-        
+
         //TODO ?
-        
+
 		KRATOS_CATCH( "" )
 	}
 
@@ -871,7 +872,7 @@ namespace Kratos
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int StrainSize = dim * (dim + 1) / 2;
         double aux;
-        
+
         for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
         {
             for ( unsigned int i = 0; i < dim; i++ )
@@ -881,20 +882,20 @@ namespace Kratos
                 {
                     aux += B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight;
                 }
-                
+
                 R( prim * dim + i ) -= aux;
-                
+
                 if( i == 0 )
                     GetGeometry()[prim].GetSolutionStepValue( REACTION_X ) += aux;
-                
+
                 if( i == 1 )
                     GetGeometry()[prim].GetSolutionStepValue( REACTION_Y ) += aux;
-                    
+
                 if( i == 2 )
                     GetGeometry()[prim].GetSolutionStepValue( REACTION_Z ) += aux;
             }
         }
-        
+
         KRATOS_CATCH( "" )
     }
 
@@ -939,7 +940,7 @@ namespace Kratos
 
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		unsigned int StrainSize = dim * (dim + 1) / 2;
-		
+
 		//         if(B_Operator.size() != number_of_nodes)
 		//             B_Operator.resize(number_of_nodes);
 		noalias( B_Operator ) = ZeroMatrix( StrainSize, number_of_nodes * dim );
@@ -982,37 +983,37 @@ namespace Kratos
         F0_Operator(0,0) = J(0,0) * J(0,0);
         F0_Operator(0,1) = J(1,0) * J(0,1); /*J(0,1) * J(0,1);*/
         F0_Operator(0,2) = J(0,0) * J(0,1) * 2.00;
-        
+
         F0_Operator(1,0) = J(0,1) * J(1,0); /*J(1,0) * J(1,0);*/
         F0_Operator(1,1) = J(1,1) * J(1,1);
         F0_Operator(1,2) = J(1,0) * J(1,1) * 2.00;
-        
+
         F0_Operator(2,0) = J(0,0) * J(1,0);
         F0_Operator(2,1) = J(0,1) * J(1,1);
         F0_Operator(2,2) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
     }
-    
+
     void EASElementQ4E4::CalculateGoperator ( Matrix& G_Operator, IndexType IntegrationPointIndex)
     {
 //         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         noalias( G_Operator ) = ZeroMatrix( 3, 4 );
-        
+
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
         const GeometryType::IntegrationPointType IntegrationPoint = integration_points[IntegrationPointIndex];
-        
+
         Matrix E_Operator( 3, 4 );
         noalias( E_Operator ) = ZeroMatrix( 3, 4 );
         double xi = IntegrationPoint.X();
         double eta = IntegrationPoint.Y();
-        
+
         E_Operator( 0, 0 ) = xi;
         E_Operator( 1, 1 ) = eta;
         E_Operator( 2, 2 ) = xi;
         E_Operator( 2, 3 ) = eta;
-        
+
         noalias( G_Operator ) = (mDetJcentre / mDetJ0[IntegrationPointIndex]) * prod( trans( mInverseF0operator ) , E_Operator );
     }
-    
+
     /**
 	 * Computes the incompatible mode
 	 */
@@ -1025,12 +1026,12 @@ namespace Kratos
         unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();;
 		unsigned int StrainSize = dim * (dim + 1) / 2;
-		
+
 		//this is the size of the elements stiffness matrix/force vector
 		unsigned int MatSize = GetGeometry().size() * dim;
-        
+
         //reset incompatible mode
-        
+
 		//Initialize local variables
 		Matrix B( StrainSize, MatSize );
 		Matrix TanC( StrainSize, StrainSize );
@@ -1041,20 +1042,21 @@ namespace Kratos
 		Matrix G( 3, 4 );
 		Matrix Kgg( 4, 4 );
 		Matrix InverseKgg( 4, 4 );
+		double detKgg;
 		Vector h( 4 );
 		#ifdef ENABLE_Q4E4_DEBUG_LEVEL1
 		Vector RHS_test( 4 ); //a test value for rIncompatibleMode
 		#endif
-        
+
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-	    
+
 	    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
 		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
 		//Current displacements
 		for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
-			noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+			row( CurrentDisp, node ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
         double eps = 1.00;
         double tol = 1e-9;
@@ -1073,7 +1075,7 @@ namespace Kratos
             #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
             noalias( RHS_test ) = ZeroVector( 4 );
             #endif
-        
+
 		    /////////////////////////////////////////////////////////////////////////
 		    //// Integration in space over quadrature points
 		    /////////////////////////////////////////////////////////////////////////
@@ -1082,13 +1084,13 @@ namespace Kratos
 		        noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
 			    //Initializing B_Operator at the current integration point
 			    CalculateBoperator( B, DN_DX );
-                
+
                 //Compute enhanced strain operator
 			    CalculateGoperator( G, PointNumber);
-			    
+
 //			    KRATOS_WATCH(integration_points[PointNumber]);
 //                KRATOS_WATCH(G);
-                
+
 			    //calculate strain
 			    CalculateStrain( B, CurrentDisp, G, rIncompatibleMode, StrainVector );
 
@@ -1098,7 +1100,7 @@ namespace Kratos
 			    //calculate stress and tangent operator
 			    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
 					    StrainVector,
-					    ZeroMatrix( 1 ),
+					    ZeroMatrix( 1, 1 ),
 					    StressVector,
 					    TanC,
 					    rCurrentProcessInfo,
@@ -1109,18 +1111,18 @@ namespace Kratos
 //					    2, //retain old tangent, do stress update incrementally
 					    1,
 					    false );
-                
+
 //                KRATOS_WATCH(StressVector);
 //                KRATOS_WATCH(TanC);
-                
+
 //                KRATOS_WATCH(StrainVector);
 //                KRATOS_WATCH(TanC);
 //                KRATOS_WATCH(StressVector);
 //                Vector tmpStress( 3 );
 //                noalias( tmpStress ) = prod( TanC , StrainVector );
 //                KRATOS_WATCH(tmpStress);
-                
-                
+
+
 			    //calculating weights for integration on the reference configuration
 			    double IntToReferenceWeight = integration_points[PointNumber].Weight();
 
@@ -1128,17 +1130,17 @@ namespace Kratos
 			    if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
                 double Temp = ( IntToReferenceWeight * mDetJ0[PointNumber] );
-                
+
                 //articulate to orthogonal condition
                 noalias( h ) += Temp * prod( trans( G ), StressVector );
 			    noalias( Kgg ) += prod( trans( G ), Temp * Matrix( prod( TanC, G ) ) );
-    
+
 //                KRATOS_WATCH(h);
-                
+
 		        #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
                 //compute test value
 		        CalculateStrain( B, CurrentDisp, G, ZeroVector( 4 ), StrainVector ); //StrainVector = B * CurrentDisp
-		        
+
 		        KRATOS_WATCH(StrainVector);
 		        KRATOS_WATCH(Temp);
 		        KRATOS_WATCH(G);
@@ -1155,7 +1157,7 @@ namespace Kratos
             #endif
 
 		    //incrementally update incomaptible mode
-		    SD_MathUtils<double>::InvertMatrix(Kgg , InverseKgg);
+		    MathUtils<double>::InvertMatrix(Kgg , InverseKgg, detKgg);
             noalias( rIncompatibleMode ) += ( -1.00 ) * prod( InverseKgg , h );
 
 		    //compute stopping criteria
@@ -1166,8 +1168,8 @@ namespace Kratos
 		        eps = sqrt(inner_prod(h, h));
 		    if(eps < tol)
 		        break;
-		    
-            
+
+
             #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
 		    KRATOS_WATCH(eps);
 //		    KRATOS_WATCH(h);
@@ -1175,26 +1177,26 @@ namespace Kratos
 //		    KRATOS_WATCH(rIncompatibleMode);
             KRATOS_WATCH("--------------");
             #endif
-            
+
 		}
-		
+
 		if(cnt >= max_cnt)
 		{
 		    KRATOS_WATCH(eps);
 		    KRATOS_THROW_ERROR(std::logic_error, "Iteration to update incompatible mode does not converge in 15 loops", "");
 		}
-		
+
 		#ifdef ENABLE_Q4E4_DEBUG_LEVEL1
 		KRATOS_WATCH(rIncompatibleMode);
 		KRATOS_WATCH(RHS_test);
 		Vector test = ( -1.00 ) * prod( InverseKgg , RHS_test );
 		KRATOS_WATCH(test);
 		#endif
-		
-		
+
+
 		KRATOS_CATCH( "" )
 	}
-	
+
 	/**
 	 * Calculate Matrix Variables at each integration point, used for postprocessing etc.
 	 * @param rVariable Global name of the variable to be calculated

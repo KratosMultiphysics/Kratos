@@ -400,8 +400,8 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
     noalias(d_inv)= ZeroMatrix(2,2);
     Vector residual      = ZeroVector(2);
     delta_lamda          = ZeroVector(2);
-    d.resize(2,2);
-    d_inv.resize(2,2);
+    d.resize(2,2, false );
+    d_inv.resize(2,2, false );
     Vector Imput_Parameters(4);
     Imput_Parameters    =  ZeroVector(4);
     Imput_Parameters[0] =  mhe;
@@ -590,8 +590,8 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
 
 
 
-    d.resize(3,3);
-    d_inv.resize(3,3);
+    d.resize(3,3, false );
+    d_inv.resize(3,3, false );
     const double raiz2d3    = 0.8164958092773;
     const double d3         = 0.3333333333333333;
     double Ppvs = 0.00;                            /// principal plastic volumetric strain
@@ -800,12 +800,12 @@ void Isotropic_Rankine_Yield_Function::GetValue(const Variable<Vector>& rVariabl
     const int size = mplastic_strain.size();
     if(rVariable==ALMANSI_PLASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false );
         noalias(Result) = mplastic_strain;
     }
     if(rVariable==ALMANSI_ELASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false );
         noalias(Result) = mElastic_strain ;
     }
 }

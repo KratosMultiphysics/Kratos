@@ -323,7 +323,7 @@ bool Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_1d<double
     double Partial_Dilatancy = 0.00;
     double Partial_Ep_gama_a = 0.00;
     Vector Imput_Parameters;
-    Imput_Parameters.resize(4);
+    Imput_Parameters.resize(4, false);
     Imput_Parameters = ZeroVector(4);
     Imput_Parameters[0] =  mlength;
     Imput_Parameters[1] =  mmorh_coulomb_maccumulated_plastic_strain_current;
@@ -562,7 +562,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
     double norma  = norm_2(residual);
     double phipsi = 0.00;
     Vector Imput_Parameters;
-    Imput_Parameters.resize(4);
+    Imput_Parameters.resize(4, false);
     Imput_Parameters    =  ZeroVector(4);
     Imput_Parameters[0] =  mlength;
     Imput_Parameters[1] =  mmorh_coulomb_maccumulated_plastic_strain_current;
@@ -873,7 +873,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
 
     r  =  p_trial - K *  dgama_b - mcohesion * cotphi;
     Vector Imput_Parameters;
-    Imput_Parameters.resize(4);
+    Imput_Parameters.resize(4, false);
     Imput_Parameters    =  ZeroVector(4);
     Imput_Parameters[0] =  mlength;
     Imput_Parameters[1] =  mmorh_coulomb_maccumulated_plastic_strain_current;
@@ -1093,7 +1093,7 @@ void Morh_Coulomb_Yield_Function::GetValue(const Variable<Matrix>& rVariable, Ma
 
     if (rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
     {
-        Result.resize(1, size);
+        Result.resize(1, size, false);
         for(unsigned int i = 0; i< size; i++ )
             Result(0,i) = mplastic_strain(i);
     }
@@ -1154,12 +1154,12 @@ void Morh_Coulomb_Yield_Function::GetValue(const Variable<Vector>& rVariable, Ve
     const int size = mplastic_strain.size();
     if(rVariable==ALMANSI_PLASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mplastic_strain;
     }
     if(rVariable==ALMANSI_ELASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mElastic_strain;
     }
 
