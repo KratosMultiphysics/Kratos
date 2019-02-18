@@ -40,9 +40,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stopping criteria in Monte Carlo simulations; avaiable at  SIAM Journal on Scientific Computing, 2014, Vol. 36, No. 2 : pp. A869-A885
 """
 
-#TODO: distinguish between raw and central moments
-
-####################################################################################################
 
 """
 auxiliary function of AddResults of the MonteCarlo class

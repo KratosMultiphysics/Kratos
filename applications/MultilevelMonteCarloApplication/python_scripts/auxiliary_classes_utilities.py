@@ -23,6 +23,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 # TODO: choose a proper name for self.moment_p
 # TODO: organize if possible better initialize function
 # TODO: check moments from scratch are correct after renaming
+# TODO: distinguish between raw and central moments, now central are computed, raw moments are not
 
 
 """
