@@ -23,15 +23,15 @@ namespace Kratos
 {
 
 	//******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+  	//************************************************************************************
 
 	BorjaHenckyCasmCemPlastic3DLaw::BorjaHenckyCasmCemPlastic3DLaw()
 		: NonLinearHenckyElasticPlastic3DLaw()
-  {
+  	{
 		mpHardeningLaw   = HardeningLaw::Pointer( new CasmCemHardeningLaw() );
 		mpYieldCriterion = YieldCriterion::Pointer( new CasmCemYieldCriterion(mpHardeningLaw) );
 		mpFlowRule       = FlowRule::Pointer( new BorjaCasmCemExplicitFlowRule(mpYieldCriterion) );
-std::cout<<"   CASM cemented 3D constructed"<<std::endl;
+std::cout<<"   CASM-CEM 3D constructed"<<std::endl;
 	}
 
   //******************************CONSTRUCTOR*******************************************
@@ -42,7 +42,7 @@ std::cout<<"   CASM cemented 3D constructed"<<std::endl;
 		mpHardeningLaw    =  pHardeningLaw;
 		mpYieldCriterion  =  YieldCriterion::Pointer( new CasmCemYieldCriterion(mpHardeningLaw) );
 		mpFlowRule        =  pFlowRule;
-std::cout<<"   CASM cemented 3D constructed"<<std::endl;
+std::cout<<"   CASM-CEM 3D constructed"<<std::endl;
 	}
 
   //******************************COPY CONSTRUCTOR**************************************
@@ -113,6 +113,23 @@ std::cout<<"   CASM cemented 3D constructed"<<std::endl;
 			rValue = 9.0*K*G / ( 3.0*K + G);
 
 		}
+        else if ( rThisVariable == CRITICAL_STATE_M )
+        {
+            const double InitialShearM = mpYieldCriterion->GetHardeningLaw().GetProperties()[ CRITICAL_STATE_LINE ];
+
+            //stress invariants & invariants derivatives
+            double LodeAngle;
+            LodeAngle = this->GetValue( STRESS_INV_THETA, LodeAngle);
+            LodeAngle *= 3.14159265359/180.0;
+        
+            //calculate third invariant effect 
+            double ThirdInvariantEffect = 1.0;
+            ThirdInvariantEffect = mpYieldCriterion->EvaluateThirdInvariantEffectMC( -LodeAngle);
+
+            rValue = InitialShearM/ThirdInvariantEffect;
+            //std::cout<<ThirdInvariantEffect<<std::endl<<std::endl;
+
+        }
 		else if ( (rThisVariable==VOLUMETRIC_PLASTIC) || (rThisVariable==INCR_SHEAR_PLASTIC) || (rThisVariable==PLASTIC_STRAIN) ||
 		 (rThisVariable==INCR_VOL_PLASTIC) || (rThisVariable == PRECONSOLIDATION) || (rThisVariable == BONDING) )
 		{
@@ -154,13 +171,7 @@ std::cout<<"   CASM cemented 3D constructed"<<std::endl;
 	{
 		mpFlowRule->SetPlasticVariables(rInitialPreconPressure, rInitialBonding);
 	}
-	
-	void BorjaHenckyCasmCemPlastic3DLaw::GetHardeningParameters ( double& rPreconPressure, double& rBonding)
-	{
-		GetValue(PRECONSOLIDATION, rPreconPressure);
-		GetValue(BONDING, rBonding);
-	}
-	
+
 	const double BorjaHenckyCasmCemPlastic3DLaw::GetBonding()
 	{
 		return mpFlowRule->GetPlasticVariables().Bonding;
@@ -170,22 +181,32 @@ std::cout<<"   CASM cemented 3D constructed"<<std::endl;
 	{
 		return mpFlowRule->GetPlasticVariables().PreconsolidationPressure;
 	}
+    const double BorjaHenckyCasmCemPlastic3DLaw::GetCriticalStateM()
+    {
+        double MM;
+        MM = this->GetValue(CRITICAL_STATE_M, MM);
+        return MM;
+    }
 
   void BorjaHenckyCasmCemPlastic3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
   {
-    if ( rThisVariable == PENALTY_PARAMETER)
-    {
+    if ( rThisVariable == PENALTY_PARAMETER) {
     }
-    else 
-    {
-      NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+    else if ( rThisVariable == PRECONSOLIDATION ) {
+    	mpFlowRule->SetPreconsolidation(rValue);
+    }
+    else if ( rThisVariable == BONDING ) {
+    	mpFlowRule->SetBonding(rValue);
+    }
+    else {
+    	NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
     }
   }
 
-  void BorjaHenckyCasmCemPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
-  {
+	void BorjaHenckyCasmCemPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+  	{
 		if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
-    {
+    	{
 			Vector rStressVector = rValue;
 			// Sets the ElasticLeftCauchyGreen tensor based on a Kirchhoff Stress
 			// for the moment only works in the principal directions to set the initial state

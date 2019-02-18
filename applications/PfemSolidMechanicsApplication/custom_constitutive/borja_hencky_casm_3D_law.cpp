@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                    LHauser $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2018 $
+//   Date:                $Date:                 January 2019 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -15,65 +15,68 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
+#include "utilities/math_utils.h"
+#include "custom_constitutive/borja_hencky_casm_3D_law.hpp"
 #include "pfem_solid_mechanics_application_variables.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
 
 	//******************************CONSTRUCTOR*******************************************
-	//************************************************************************************
+  	//************************************************************************************
 
-	BorjaHenckyCasmPlasticAxisym2DLaw::BorjaHenckyCasmPlasticAxisym2DLaw()
-		: NonLinearHenckyElasticPlasticAxisym2DLaw()
-	{
+	BorjaHenckyCasmPlastic3DLaw::BorjaHenckyCasmPlastic3DLaw()
+		: NonLinearHenckyElasticPlastic3DLaw()
+  	{
 		mpHardeningLaw   = HardeningLaw::Pointer( new CasmHardeningLaw() );
 		mpYieldCriterion = YieldCriterion::Pointer( new CasmYieldCriterion(mpHardeningLaw) );
 		mpFlowRule       = FlowRule::Pointer( new BorjaCasmExplicitFlowRule(mpYieldCriterion) );
-std::cout<<"   CASM 2D axisym constructed"<<std::endl;
+std::cout<<"   CASM 3D constructed"<<std::endl;
 	}
 
-	//******************************CONSTRUCTOR*******************************************
-	//************************************************************************************
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
 
-	BorjaHenckyCasmPlasticAxisym2DLaw::BorjaHenckyCasmPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+	BorjaHenckyCasmPlastic3DLaw::BorjaHenckyCasmPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 	{
 		mpHardeningLaw    =  pHardeningLaw;
 		mpYieldCriterion  =  YieldCriterion::Pointer( new CasmYieldCriterion(mpHardeningLaw) );
 		mpFlowRule        =  pFlowRule;
-std::cout<<"   CASM 2D axisym constructed"<<std::endl;
+std::cout<<"   CASM 3D constructed"<<std::endl;
 	}
 
-	//******************************COPY CONSTRUCTOR**************************************
-	//************************************************************************************
+  //******************************COPY CONSTRUCTOR**************************************
+  //************************************************************************************
 
-	BorjaHenckyCasmPlasticAxisym2DLaw::BorjaHenckyCasmPlasticAxisym2DLaw(const BorjaHenckyCasmPlasticAxisym2DLaw& rOther)
-		: NonLinearHenckyElasticPlasticAxisym2DLaw(rOther)
+  BorjaHenckyCasmPlastic3DLaw::BorjaHenckyCasmPlastic3DLaw(const BorjaHenckyCasmPlastic3DLaw& rOther)
+		: NonLinearHenckyElasticPlastic3DLaw(rOther)
+  {
+  }
+
+  //********************************CLONE***********************************************
+  //************************************************************************************
+
+  ConstitutiveLaw::Pointer BorjaHenckyCasmPlastic3DLaw::Clone() const
 	{
-	}
-
-	//********************************CLONE***********************************************
-	//************************************************************************************
-
-	ConstitutiveLaw::Pointer BorjaHenckyCasmPlasticAxisym2DLaw::Clone() const
-	{
-		BorjaHenckyCasmPlasticAxisym2DLaw::Pointer p_clone(new BorjaHenckyCasmPlasticAxisym2DLaw(*this));
+		BorjaHenckyCasmPlastic3DLaw::Pointer p_clone(new BorjaHenckyCasmPlastic3DLaw(*this));
 		return p_clone;
-	}
+  }
 
-	//*******************************DESTRUCTOR*******************************************
-	//************************************************************************************
+  //*******************************DESTRUCTOR*******************************************
+  //************************************************************************************
 
-	BorjaHenckyCasmPlasticAxisym2DLaw::~BorjaHenckyCasmPlasticAxisym2DLaw()
-	{
-	}
+  BorjaHenckyCasmPlastic3DLaw::~BorjaHenckyCasmPlastic3DLaw()
+  {
+  }
 
 
-	//*************************************** GET VALUE *********************************
-	double&  BorjaHenckyCasmPlasticAxisym2DLaw::GetValue(const Variable<double>& rThisVariable, double & rValue)
-	{
-		if ( rThisVariable == M_MODULUS ) {
+  //******************************** GET VALUE ********************************
+	double& BorjaHenckyCasmPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue)
+  {
+		if ( rThisVariable == PENALTY_PARAMETER)
+		{
+		}
+		else if ( rThisVariable == M_MODULUS ) {
 			double Swelling = mpYieldCriterion->GetHardeningLaw().GetProperties()[ SWELLING_SLOPE ];
 			double MeanStress ;
 			MeanStress = this->GetValue( STRESS_INV_P, MeanStress);
@@ -85,7 +88,7 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 
 			rValue = K + 4.0*G / 3.0;
 		}
-		else if ( ( rThisVariable == YOUNG_MODULUS) || ( rThisVariable == EQUIVALENT_YOUNG_MODULUS ) || ( rThisVariable == SHEAR_MODULUS ) || (rThisVariable == BULK_MODULUS ) )
+		else if ( ( rThisVariable == YOUNG_MODULUS) || ( rThisVariable == SHEAR_MODULUS ) || (rThisVariable == BULK_MODULUS ) )
 		{
 			double Swelling = mpYieldCriterion->GetHardeningLaw().GetProperties()[ SWELLING_SLOPE ];
 			double MeanStress ;
@@ -99,36 +102,7 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 
 			double Alpha = mpYieldCriterion->GetHardeningLaw().GetProperties()[ ALPHA_SHEAR ];
 			double G = mpYieldCriterion->GetHardeningLaw().GetProperties()[ INITIAL_SHEAR_MODULUS ];
-			//G += Alpha*MeanStress;  // this modulus is approximated (not the real one)
-			Matrix ELCG = mElasticLeftCauchyGreen;
-			Vector Hencky;
-			//Vector Hencky = ConvertCauchyGreenTensorToHenckyStrain( ELCG);
-			// instead for calling the function, I just copy here the function. :'P --
-			{
-				Matrix & rCauchyGreenMatrix = ELCG;
-				Matrix EigenVectors;
-				Vector EigenValues;
-				SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues);
-
-				Matrix Aux = ZeroMatrix(3,3);
-				for (unsigned int i = 0; i < 3; ++i)
-					Aux(i,i) = (std::log(EigenValues(i)))/2.0;
-
-				Aux = prod(Aux, (EigenVectors));
-				Aux = prod(trans(EigenVectors), Aux);
-				Vector Result = MathUtils<double>::StrainTensorToVector(Aux, 6);
-				Hencky = Result;
-			}
-
-
-			double volum = 0.0;
-			for (unsigned int i = 0; i < 3; i++)
-				volum += Hencky(i);
-
-			double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
-			double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
-			ReferencePressure /= OCR;    
-			G += Alpha* ReferencePressure * std::exp( - volum / Swelling) ; 
+			G += Alpha*MeanStress;  // this modulus is approximated (not the real one)
 
 			if ( rThisVariable == SHEAR_MODULUS)
 			{
@@ -139,7 +113,7 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 			rValue = 9.0*K*G / ( 3.0*K + G);
 
 		}
-		else if ( rThisVariable == CRITICAL_STATE_M )
+        else if ( rThisVariable == CRITICAL_STATE_M )
         {
             const double InitialShearM = mpYieldCriterion->GetHardeningLaw().GetProperties()[ CRITICAL_STATE_LINE ];
 
@@ -180,65 +154,64 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 			else if (rThisVariable==PRECONSOLIDATION) {
 				rValue = InternalVariables.PreconsolidationPressure;
 			}
-			
 
-
-			
 		}
-
-		else {
-			rValue = NonLinearHenckyElasticPlasticAxisym2DLaw::GetValue( rThisVariable, rValue);
+		else
+		{
+			rValue = NonLinearHenckyElasticPlastic3DLaw::GetValue( rThisVariable, rValue);
 		}
 
 		return rValue;
-	}
-
-	void BorjaHenckyCasmPlasticAxisym2DLaw::SetPlasticVariables ( const double& rInitialPreconPressure, const double& rInitialBonding) //TODO
+  }
+  
+  void BorjaHenckyCasmPlastic3DLaw::SetPlasticVariables ( const double& rInitialPreconPressure, const double& rInitialBonding)
 	{
 		mpFlowRule->SetPlasticVariables(rInitialPreconPressure, rInitialBonding);
 	}
-
-	const double BorjaHenckyCasmPlasticAxisym2DLaw::GetPreconPressure() //INHERT
+	
+    const double BorjaHenckyCasmPlastic3DLaw::GetPreconPressure()
 	{
 		return mpFlowRule->GetPlasticVariables().PreconsolidationPressure;
 	}
 
-	void BorjaHenckyCasmPlasticAxisym2DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) //INHERIT
-	{
-		if ( rThisVariable == PRECONSOLIDATION)
-		{
-			mpFlowRule->SetPreconsolidation(rValue);
-		}
-		else
-		{
-			NonLinearHenckyElasticPlasticAxisym2DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
-		}
-	}
+    const double BorjaHenckyCasmPlastic3DLaw::GetCriticalStateM()
+    {
+        double MM;
+        MM = this->GetValue(CRITICAL_STATE_M, MM);
+        std::cout<<MM<<std::endl<<std::endl;
+        return MM;
+    }
 
+  void BorjaHenckyCasmPlastic3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
+  {
+    if ( rThisVariable == PENALTY_PARAMETER) {
+    }
+    else if ( rThisVariable == PRECONSOLIDATION ) {
+    	mpFlowRule->SetPreconsolidation(rValue);
+    }
+    else {
+    	NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+    }
+  }
 
-
-
-
-	void BorjaHenckyCasmPlasticAxisym2DLaw::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
-	{
-
+	void BorjaHenckyCasmPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+  	{
 		if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
-		{
+    	{
 			Vector rStressVector = rValue;
 			// Sets the ElasticLeftCauchyGreen tensor based on a Kirchhoff Stress
 			// for the moment only works in the principal directions to set the initial state
 
-			double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
-			double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
-
+			const double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+			const double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 			double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
-			double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
-			double ConstantShearModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[INITIAL_SHEAR_MODULUS];
+			const double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+			const double ConstantShearModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[INITIAL_SHEAR_MODULUS];
 			ReferencePressure /= OCR;    
 
 			Vector Objective(3);
 			Objective(0) = rStressVector(0) + rStressVector(1) + rStressVector(2);
-			Objective(0) /= 3.0;                     // mean stress
+			Objective(0) /= 3.0;                     				// mean stress
 			Objective(1) = rStressVector(1) - Objective(0); // large deviatoric stress
 			Objective(2) = rStressVector(2) - Objective(0); // small deviatoric stress (two directions)
 
@@ -256,8 +229,8 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 			double error, detI; 
 			unsigned nIter = 0;
 
-			while (NotConverged) {
-
+			while (NotConverged)
+			{
 				//1 COMPUTE SOME ERROR
 				DeviatoricNorm2 = pow( Guess(1), 2) + 2.0*pow( Guess(2), 2);
 				ShearModulus = AlphaShear*ReferencePressure*std::exp( -Guess(0) / SwellingSlope) + ConstantShearModulus;
@@ -265,21 +238,19 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 				Y(1) = 2.0*ShearModulus*Guess(1);
 				Y(2) = 2.0*ShearModulus*Guess(2);
 
-
 				Residual = Y - Objective;
 				error = 0.0;
 				for (unsigned int i = 0; i < 3; ++i)
-				   error += pow( Residual(i), 2);
+					error += pow( Residual(i), 2);
 
 				if (error < 1.0e-10) {
-				   NotConverged = false;
+					NotConverged = false;
 				}
 				
 				//1.1 Compute the Tangent Matrix
 				TangentMatrix(0,0) = ReferencePressure*std::exp( -Guess(0)/SwellingSlope) * (1.0 + AlphaShear/SwellingSlope*DeviatoricNorm2) / SwellingSlope;
 				TangentMatrix(0,1) = -ReferencePressure*std::exp( -Guess(0)/SwellingSlope) * ( AlphaShear/SwellingSlope) * 2.0 *  Guess(1) ;
 				TangentMatrix(0,2) = -ReferencePressure*std::exp( -Guess(0)/SwellingSlope) * ( AlphaShear/SwellingSlope) * 2.0 *  Guess(2) * 2.0 ;
-
 
 				TangentMatrix(1,0) =  2.0* AlphaShear * ReferencePressure*std::exp(-Guess(0) / SwellingSlope)*(-1.0/SwellingSlope)*Guess(1);
 				TangentMatrix(1,1) = 2.0*ShearModulus;
@@ -295,17 +266,16 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 				// (Try to solve some convergence problems)
 				double dGNorm = 0.0;
 				for (unsigned int i = 0; i <3 ; ++i)
-				   dGNorm += pow( dGuess(i), 2);
+					dGNorm += pow( dGuess(i), 2);
 				dGNorm = sqrt( dGNorm);
 				if ( dGNorm > 0.01)
-				   dGuess *= 0.1;
-
-
+					dGuess *= 0.1;
+					
 				Guess -= dGuess;
 				nIter += 1;
 				if (nIter > 1000) {
-				   std::cout << " NONCONVERGING " << std::endl;
-				   return;
+					std::cout << " NONCONVERGING " << std::endl;
+					return;
 				}
 			}
 
@@ -321,42 +291,45 @@ std::cout<<"   CASM 2D axisym constructed"<<std::endl;
 			mElasticLeftCauchyGreen(2,2) = mElasticLeftCauchyGreen(0,0);
 
 			// 3. Try to be inside the yield surface (this only make sense in the Initial State)
-
 			const double ShearM = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 			const double OtherSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
 			double PreconsolidationStress;
 
 			double StressQ = 0.0;
 			StressQ = pow( Objective(1), 2) + 2.0*pow( Objective(2), 2);
-			StressQ = sqrt(1.5) * sqrt(StressQ);
+			StressQ = sqrt(3.0/2.0) * sqrt(StressQ);
 
 			PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2) / Objective(0); 
 			ReferencePressure *= OCR;
 
-			PreconsolidationStress *= OCR;
-			PreconsolidationStress = rStressVector(1)*OCR;
-			if ( PreconsolidationStress > -5.0 ) {
-				PreconsolidationStress = -5.0; // a treure;
-			}
-			else {
-			}
-			double VolumetricPlasticDef = - (OtherSlope - SwellingSlope) * std::log(-PreconsolidationStress / ReferencePressure);
-			FlowRule::RadialReturnVariables ReturnMappingVariables;
-			ReturnMappingVariables.DeltaGamma = VolumetricPlasticDef;
-			ReturnMappingVariables.DeltaTime = 1.0;
-			ReturnMappingVariables.DeltaBeta = 0.0;
-			mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
+      PreconsolidationStress *= OCR;
 
-			double ThisPrecon = 0.0;
-			mpHardeningLaw->CalculateHardening( ThisPrecon, ReturnMappingVariables.DeltaGamma );
+      double MaxStress = 0;
+      for (unsigned int ii = 0; ii< 3; ii++)
+        if ( rStressVector(ii) < MaxStress)
+          MaxStress = rStressVector(ii);
+
+      PreconsolidationStress = MaxStress*OCR;
+      if ( PreconsolidationStress > -5.0 ) {
+        PreconsolidationStress = -5.0; // a treure;
+      }
+      else {
+      }
+
+      double VolumetricPlasticDef = - (OtherSlope - SwellingSlope) * std::log(-PreconsolidationStress / ReferencePressure);
+      FlowRule::RadialReturnVariables ReturnMappingVariables;
+      ReturnMappingVariables.DeltaGamma = VolumetricPlasticDef;
+      ReturnMappingVariables.DeltaTime = 1.0;
+      ReturnMappingVariables.DeltaBeta = 0.0;
+			mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
 		}
 		else
 		{
-			NonLinearHenckyElasticPlasticAxisym2DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+			NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
 		}
 	}
-   
-	int BorjaHenckyCasmPlasticAxisym2DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+
+	int BorjaHenckyCasmPlastic3DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 	{
 		return 0;
 	}

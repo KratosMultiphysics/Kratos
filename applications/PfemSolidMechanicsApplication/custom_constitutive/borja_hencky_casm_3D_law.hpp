@@ -2,29 +2,29 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                    LHauser $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                     Dec 2018 $
+//   Date:                $Date:                 January 2019 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined (KRATOS_BORJA_HENCKY_CASM_CEM_PLASTIC_AXISYM_2D_LAW_H_INCLUDED)
-#define       KRATOS_BORJA_HENCKY_CASM_CEM_PLASTIC_AXISYM_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_BORJA_HENCKY_CASM_PLASTIC_3D_LAW_H_INCLUDED)
+#define       KRATOS_BORJA_HENCKY_CASM_PLASTIC_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/borja_casm_cem_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_yield_criteria/casm_cem_yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/casm_yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_hardening_law.hpp"
 
 
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law J2 in 3D 
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
@@ -33,8 +33,8 @@ namespace Kratos
 
 
 
-class BorjaHenckyCasmCemPlasticAxisym2DLaw 
-  : public BorjaHenckyCasmPlasticAxisym2DLaw
+class BorjaHenckyCasmPlastic3DLaw 
+  : public NonLinearHenckyElasticPlastic3DLaw
 
 {
 public:
@@ -45,17 +45,17 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef FlowRule::Pointer                   FlowRulePointer;
-    typedef YieldCriterion::Pointer    			YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        		HardeningLawPointer;
-    typedef Properties::Pointer            		PropertiesPointer;
+    typedef FlowRule::Pointer            				     FlowRulePointer;
+    typedef YieldCriterion::Pointer   				 YieldCriterionPointer;
+    typedef HardeningLaw::Pointer        				 HardeningLawPointer;
+    typedef Properties::Pointer           				 PropertiesPointer;
     typedef HardeningLaw::PlasticVariables      PlasticVariablesType;
 
     /**
-     * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
+     * Counted pointer of BorjaHenckyCasmPlastic3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( BorjaHenckyCasmCemPlasticAxisym2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( BorjaHenckyCasmPlastic3DLaw );
 
     /**
      * Life Cycle
@@ -64,22 +64,16 @@ public:
     /**
      * Default constructor.
      */
-    BorjaHenckyCasmCemPlasticAxisym2DLaw();
+    BorjaHenckyCasmPlastic3DLaw();
 
 
-    BorjaHenckyCasmCemPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    BorjaHenckyCasmPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    BorjaHenckyCasmCemPlasticAxisym2DLaw (const BorjaHenckyCasmCemPlasticAxisym2DLaw& rOther);
+    BorjaHenckyCasmPlastic3DLaw (const BorjaHenckyCasmPlastic3DLaw& rOther);
 
-
-    /**
-     * Assignment operator.
-     */
-
-    //HyperElasticPlasticJ2PlaneStrain2DLaw& operator=(const HyperElasticPlasticJ2PlaneStrain2DLaw& rOther);
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -90,12 +84,24 @@ public:
     /**
      * Destructor.
      */
-    virtual ~BorjaHenckyCasmCemPlasticAxisym2DLaw();
+    virtual ~BorjaHenckyCasmPlastic3DLaw();
 
     /**
      * Operators
      */
 
+		virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+
+		virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+
+		virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+
+		virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
+		//const double GetBonding(); 
+        const double GetPreconPressure();
+		const double GetCriticalStateM();
+
+		int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
     /**
      * Operations needed by the base class:
      */
@@ -112,17 +118,8 @@ public:
      */
     //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
-    virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo);
-    //virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
-    
-    virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
-	
-    const double GetBonding(); 
-		//const double GetPreconPressure(); 
 
-    int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
     /**
      * Input and output
      */
@@ -150,6 +147,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -190,16 +188,17 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BorjaHenckyCasmPlasticAxisym2DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BorjaHenckyCasmPlasticAxisym2DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
 
 
-}; // Class HyperElasticPlasticJ2PlaneStrain2DLaw
+}; // Class BorjaHenckyCasmPlastic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_BORJA_HENCKY_CASM_PLASTIC_3D_LAW_H_INCLUDED
+

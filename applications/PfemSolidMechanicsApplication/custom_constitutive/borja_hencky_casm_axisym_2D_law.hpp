@@ -18,7 +18,7 @@
 #include "custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_casm_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/casm_yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp" // same hardening law
+#include "custom_constitutive/custom_hardening_laws/casm_hardening_law.hpp" // same hardening law
 
 
 namespace Kratos
@@ -45,10 +45,11 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef FlowRule::Pointer                FlowRulePointer;
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
-    typedef Properties::Pointer            PropertiesPointer;
+    typedef FlowRule::Pointer                   FlowRulePointer;
+    typedef YieldCriterion::Pointer             YieldCriterionPointer;
+    typedef HardeningLaw::Pointer               HardeningLawPointer;
+    typedef Properties::Pointer                 PropertiesPointer;
+    typedef HardeningLaw::PlasticVariables      PlasticVariablesType;
 
     /**
      * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
@@ -113,8 +114,12 @@ public:
 
     virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
+    virtual void SetValue( const Variable<double>& rThisVariable, const double& rVector, const ProcessInfo& rCurrentProcessInfo);
     virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rVector, const ProcessInfo& rCurrentProcessInfo);
 
+    virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
+
+    const double GetPreconPressure(); 
 
     int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
     /**

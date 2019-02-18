@@ -97,9 +97,9 @@ public:
 		virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
 
 		void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
-		void GetHardeningParameters(double& rPreconPressure, double& rBonding); 
 		const double GetBonding(); 
 		const double GetPreconPressure();
+        const double GetCriticalStateM();
 
 		int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
     /**
