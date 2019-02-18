@@ -88,7 +88,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
 
-        Matrix F_deformation_gradient;
+        Matrix F_deformation_gradient(dimension, dimension);
         this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
         const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
         // Doing resize in case is needed
@@ -105,7 +105,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         }
 
         // Calculating the inverse of the left Cauchy tensor
-        Matrix inverse_B_tensor (dimension, dimension);
+        Matrix inverse_B_tensor(dimension, dimension);
         double aux_det_b = 0;
         MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
 
@@ -158,21 +158,25 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Vector& rSerialStrainMatrix
 )
 {
-    const int voigt_size = this->GetStrainSize();
-    Matrix parallel_projector, serial_projector;
+    const std::size_t voigt_size = this->GetStrainSize();
+    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    const int num_serial_components = voigt_size - num_parallel_components;
+
+    Matrix parallel_projector(voigt_size, num_parallel_components), serial_projector(num_serial_components, voigt_size);
     this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
     Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
 
     bool is_converged = false;
     int iteration = 0, max_iterations = 150;
-    Vector parallel_strain_matrix, stress_residual(rSerialStrainMatrix.size());
-	Matrix constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss;
+    Vector parallel_strain_matrix(num_parallel_components), stress_residual(rSerialStrainMatrix.size());
+	Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components), 
+        constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
 
     // Iterative procedure until the equilibrium is reached in the serial stresses
     while (is_converged == false && iteration <= max_iterations) {
         if (iteration == 0) {
-            // Computes an initial approximation of the independent var: serial_strain_matrix
+            // Computes an initial approximation of the independent var: rSerialStrainMatrix
             this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
                                                                   rMaterialProperties,  parallel_projector,  serial_projector,
                                                                   constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss,
@@ -209,6 +213,10 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     const Matrix& rSerialProjector
 )
 {
+    const std::size_t voigt_size = this->GetStrainSize();
+    const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
+    const int num_serial_components = voigt_size - num_parallel_components;
+
 	auto& r_material_properties = rValues.GetMaterialProperties();
 	const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
 	const auto& r_props_matrix_cl = *(it_cl_begin);
@@ -230,8 +238,8 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
 
-    Matrix fiber_tangent_tensor, matrix_tangent_tensor;
-    Matrix fiber_tangent_tensor_ss, matrix_tangent_tensor_ss;
+    Matrix fiber_tangent_tensor(voigt_size, voigt_size), matrix_tangent_tensor(voigt_size, voigt_size);
+    Matrix fiber_tangent_tensor_ss(num_serial_components, num_serial_components), matrix_tangent_tensor_ss(num_serial_components, num_serial_components);
 
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
@@ -243,12 +251,13 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
     fiber_tangent_tensor = values_fiber.GetConstitutiveMatrix();
 
-    matrix_tangent_tensor_ss = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
-    fiber_tangent_tensor_ss  = prod(rSerialProjector, Matrix(prod(fiber_tangent_tensor, trans(rSerialProjector))));
+    noalias(matrix_tangent_tensor_ss) = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
+    noalias(fiber_tangent_tensor_ss)  = prod(rSerialProjector, Matrix(prod(fiber_tangent_tensor, trans(rSerialProjector))));
 
     const double constant = (1.0 - mFiberVolumetricParticipation) / mFiberVolumetricParticipation;
-    const Matrix jacobian_matrix = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
-	Matrix inv_jacobian;
+    Matrix jacobian_matrix(num_serial_components, num_serial_components);
+    noalias(jacobian_matrix) = matrix_tangent_tensor_ss + constant * fiber_tangent_tensor_ss;
+	Matrix inv_jacobian(num_serial_components, num_serial_components);
     double det_jacobian;
 
     MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
@@ -292,7 +301,7 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     if (ref < 1e-9) tolerance = 1e-9;
     else tolerance = 1e-4 * ref;
     
-    rStressSerialResidual = r_serial_stress_matrix - r_serial_stress_fiber;
+    noalias(rStressSerialResidual) = r_serial_stress_matrix - r_serial_stress_fiber;
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
 }
@@ -360,8 +369,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     this->CalculateElasticMatrix(constitutive_tensor_matrix, r_props_matrix_cl);
     this->CalculateElasticMatrix(constitutive_tensor_fiber, r_props_fiber_cl);
 
-    rConstitutiveTensorMatrixSS = prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, trans(rSerialProjector))));
-    rConstitutiveTensorFiberSS  = prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, trans(rSerialProjector))));
+    noalias(rConstitutiveTensorMatrixSS) = prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, trans(rSerialProjector))));
+    noalias(rConstitutiveTensorFiberSS)  = prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, trans(rSerialProjector))));
 
     const Matrix& r_constitutive_tensor_matrix_sp = trans(prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, rParallelProjector))));
     const Matrix& r_constitutive_tensor_fiber_sp  = trans(prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, rParallelProjector))));
@@ -396,8 +405,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     const Vector& r_total_serial_strain_vector   = prod(rSerialProjector, rStrainVector);
 
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
-    rStrainVectorMatrix = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
-    rStrainVectorFiber  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
+    noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
+    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
                                (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
 }
 
@@ -408,7 +417,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     Matrix& rSerialProjector
 )
 {
-    const int voigt_size = this->GetStrainSize();
+    const std::size_t voigt_size = this->GetStrainSize();
     const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
     KRATOS_ERROR_IF(num_parallel_components == 0) << "There is no parallel direction!" << std::endl;
     const int num_serial_components = voigt_size - num_parallel_components;
@@ -923,7 +932,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
 		return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_MATRIX) {
-        const int voigt_size = this->GetStrainSize();
+        const std::size_t voigt_size = this->GetStrainSize();
         Matrix parallel_projector, serial_projector;
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
@@ -935,7 +944,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
-        const int voigt_size = this->GetStrainSize();
+        const std::size_t voigt_size = this->GetStrainSize();
         Matrix parallel_projector, serial_projector;
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
 
