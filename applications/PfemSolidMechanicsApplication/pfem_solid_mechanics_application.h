@@ -93,9 +93,11 @@
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.hpp"
 
 //constitutive laws
+#include "custom_constitutive/borja_hencky_casm_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
@@ -324,8 +326,9 @@ namespace Kratos
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
 
-		const BorjaHenckyCasmCemPlastic3DLaw                			mBorjaHenckyCasmCemPlastic3DLaw;
-		const BorjaHenckyCasmCemPlasticAxisym2DLaw                mBorjaHenckyCasmCemPlasticAxisym2DLaw;
+    const BorjaHenckyCasmCemPlastic3DLaw                      mBorjaHenckyCasmCemPlastic3DLaw;
+    const BorjaHenckyCasmCemPlasticAxisym2DLaw                mBorjaHenckyCasmCemPlasticAxisym2DLaw;
+		const BorjaHenckyCasmPlastic3DLaw                			    mBorjaHenckyCasmPlastic3DLaw;
 		const BorjaHenckyCasmPlasticAxisym2DLaw                   mBorjaHenckyCasmPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlastic3DLaw                      mBorjaHenckyCamClayPlastic3DLaw;
     const BorjaHenckyCamClayPlasticAxisym2DLaw                mBorjaHenckyCamClayPlasticAxisym2DLaw;

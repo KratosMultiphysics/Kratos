@@ -189,8 +189,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( VOLUMETRIC_PLASTIC )
     KRATOS_REGISTER_VARIABLE( INCR_SHEAR_PLASTIC )
     KRATOS_REGISTER_VARIABLE( INCR_VOL_PLASTIC )
+    KRATOS_REGISTER_VARIABLE( CRITICAL_STATE_M )
 
     KRATOS_REGISTER_VARIABLE( M_MODULUS )
+    KRATOS_REGISTER_VARIABLE( EXCESS_WATER_PRESSURE )
 
     //deprecated
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
@@ -260,6 +262,7 @@ namespace Kratos
 
 
     //Register Constitutive Laws
+    Serializer::Register("BorjaHenckyCasmPlastic3DLaw", mBorjaHenckyCasmPlastic3DLaw);
     Serializer::Register("BorjaHenckyCasmPlasticAxisym2DLaw", mBorjaHenckyCasmPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCasmCemPlastic3DLaw", mBorjaHenckyCasmCemPlastic3DLaw);
     Serializer::Register("BorjaHenckyCasmCemPlasticAxisym2DLaw", mBorjaHenckyCasmCemPlasticAxisym2DLaw);
