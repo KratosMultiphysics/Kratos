@@ -40,6 +40,8 @@
 #include "../custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.h"
 #include "../custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.h"
 
+#include "../custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
+#include "../custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -51,6 +53,7 @@ typedef DragLaw BaseDragLawType;
 typedef InviscidForceLaw BaseInviscidForceLawType;
 typedef HistoryForceLaw BaseHistoryForceLaw;
 typedef VorticityInducedLiftLaw BaseVorticityInducedLiftLawType;
+typedef RotationInducedLiftLaw BaseRotationInducedLiftLawType;
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
@@ -174,6 +177,20 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<MeiLiftLaw, MeiLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "MeiLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    // Rotation-induced lift laws
+    py::class_<RotationInducedLiftLaw, RotationInducedLiftLaw::Pointer>(m, "RotationInducedLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        .def("Clone", &RotationInducedLiftLaw::Clone)
+        .def("SetRotationInducedLiftLawInProperties", &RotationInducedLiftLaw::SetRotationInducedLiftLawInProperties)
+        .def("GetTypeOfLaw", &RotationInducedLiftLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<RubinowAndKellerLiftLaw, RubinowAndKellerLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "RubinowAndKellerLiftLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

@@ -71,13 +71,13 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                                     const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
+    NodeType& node = GetGeometry()[0];
 
-    if (!mCouplingType){
+    if (!mCouplingType || node.IsNot(INSIDE) || node.Is(BLOCKED)){
         TBaseElement::ComputeAdditionalForces(non_contact_force, non_contact_moment, r_current_process_info, gravity);
         return;
     }
 
-    NodeType& node = GetGeometry()[0];
     mFluidDensity                           = node.FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
     mKinematicViscosity                     = node.FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
     mFluidFraction                          = node.FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
@@ -144,7 +144,6 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                              vorticity_induced_lift,
                                                              r_current_process_info);
 
-    //ComputeSaffmanLiftForce(node, vorticity_induced_lift, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
@@ -155,7 +154,6 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                      mSlipVel,
                                                      basset_force,
                                                      r_current_process_info);
-    // ComputeBassetForce(node, basset_force, r_current_process_info);
 
     // Adding all forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += drag_force
