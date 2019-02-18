@@ -672,40 +672,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
             }
         }
         // application of the nodal projection matrix
-
-        /** for slip length **/
-        // const Vector vector_tau = ( nodal_beta * interpolated_velocity );
-
-
-        /** for log law **/
-        double scalar_tau_current = 0.01;
-        double scalar_tau_old = 0.01;
-
-        const double scalar_velocity = norm_2( interpolated_velocity );
-
-        const double y_fix = 0.2;    // find heuristics from formula
-        const double B = 5.2;
-
-        // interpolate!
-        const double nu = rGeom[nnode].GetSolutionStepValue(DYNAMIC_VISCOSITY) / rGeom[0].GetSolutionStepValue(DENSITY);
-        const double rho = rGeom[nnode].GetSolutionStepValue(DENSITY);
-        const double kappa = 0.41;
-
-        for( unsigned int i = 0; i < 5; i++){
-
-            scalar_tau_current = ( scalar_velocity * scalar_velocity * rho );
-
-            scalar_tau_current /= ( ( (1.0/kappa)*log( y_fix/nu * std::sqrt( scalar_tau_old/rho ) ) + B ) *
-                                    ( (1.0/kappa)*log( y_fix/nu * std::sqrt( scalar_tau_old/rho ) ) + B ) );
-
-            scalar_tau_old = scalar_tau_current;
-            KRATOS_WATCH( scalar_tau_current )
-        }
-
-        const Vector vector_tau = (scalar_tau_current * interpolated_velocity) / ( norm_2( interpolated_velocity ) + 0.000000001 );
-
-
-        const array_1d<double,TNumNodes> nodal_entry_rhs = prod( nodal_projection_matrix, (wGauss * N[nnode] * vector_tau) );
+        const array_1d<double,TNumNodes> nodal_entry_rhs = prod( nodal_projection_matrix, (wGauss * N[nnode] * nodal_beta * interpolated_velocity) );
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
             rRightHandSideVector( nnode*(TNumNodes+1) + entry ) += nodal_entry_rhs[entry];
         }
