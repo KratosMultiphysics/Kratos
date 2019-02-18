@@ -29,7 +29,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         import numpy as np
         import matplotlib.pyplot as plt
 
-        ID = 'IsoC4Mh12G0s1000_'
+        ID = 'IsoD4Rh12G0_'
         NumberIncrements = 1000
         F11max = 0.8
         IncrementalF = self._set_identity_matrix()
@@ -59,31 +59,31 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
 
         if(1==1):
             #variation of bonding parameters
-            for pt in np.arange(1.0,5.0,1.0):
+            for pt in np.arange(0.0,50.0,10.0):
                 #create and initialize element, gauss point & constitutive law
                 self._create_material_model_and_law()
-                self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, pt)
-                #self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_COMPRESSION, pt)
-                #self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_SHEAR, pt)
+                self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, 3.0)
+                self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_COMPRESSION, pt)
+                self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_SHEAR, pt)
                 self.parameters.SetMaterialProperties( self.properties )
-                self.material_law.SetPlasticVariables(-80, pt)
+                self.material_law.SetPlasticVariables(-80, 3.0)
                 #stress integration
                 pp, qq, epsVol, FF01, FF11 = self._compute_strain_driven_problem(IncrementalF, NumberIncrements, ID+str(pt))
                 ax1.plot(pp, qq)
                 ax2.plot(np.log10(pp), epsVol)
 
         #
-        #plt.show()
+        plt.show()
 
     #oedometer
-    def _test_OedometricLoading(self):
+    def test_OedometricLoading(self):
         import math
         import numpy as np
         import matplotlib.pyplot as plt
 
-        ID = 'OedA4Mh12G0longs1000_'
+        ID = 'OedD4Rh10alpha_'
         NumberIncrements = 1000
-        F11max = 0.7
+        F11max = 0.8
         IncrementalF = self._set_identity_matrix()
 
         #IncrementalF[0,0] = F11max**(1/NumberIncrements)
@@ -132,7 +132,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         import numpy as np
         import matplotlib.pyplot as plt
         
-        ID = 'SSA4Yh12G0s1000_'
+        ID = 'SSA4Mh10G5000_'
         NumberIncrements = 1000
         F01max = 1.0
         IncrementalF = self._set_identity_matrix()
@@ -166,7 +166,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         
         if(1==1):
             #variation of bounding parameters
-            for pt in np.arange(1.0,4.0,1.0):
+            for pt in np.arange(1.0,5.0,1.0):
                 #create and initialize element, gauss point & constitutive law
                 self._create_material_model_and_law()
                 self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, pt)
@@ -186,12 +186,12 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         plt.show()
 
     #
-    def test_ResponseEnvelope(self):
+    def _test_ResponseEnvelope(self):
         import math
         import numpy as np
         import matplotlib.pyplot as plt
         
-        ID = 'RE1DbMb1h12G0_'
+        ID0 = 'RE3DMh12G0_'
         NumberIncrements = 1000
         
         #initialize plot
@@ -206,37 +206,48 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         ax2.set_ylabel('q')
         
         #read deforamtion gradients
-        a = self._ReadFileToMatrix('IncrDef1.csv')
+        a = self._ReadFileToMatrix('IncrDef3.csv')
 
-        
-        
-        if(1==1):
-            for jj in np.arange(1,len(a),1):
-                print(jj)
-                #create and initialize element, gauss point & constitutive law
-                self._create_material_model_and_law()
-                self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, 1.0)
-                #self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_COMPRESSION, jj)
-                self.parameters.SetMaterialProperties( self.properties )
-                self.material_law.SetPlasticVariables(-80, 1.0)
+        #loop over OCR
+        for kk in np.arange(1.0,5.0,1.0):
+            ID1 = ID0+'OCR'+str(kk)+'_'
+            #loop over bonding
+            for ii in np.arange(0.0,4.0,1.0):
+                ID = ID1+'b'+str(ii)+'_'
+                #loop over increments
+                for jj in np.arange(1,len(a),1):
+                    #create and initialize element, gauss point & constitutive law
+                    self._create_material_model_and_law()
+                    self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, ii)
+                    self.properties.SetValue( KratosMultiphysics.OVER_CONSOLIDATION_RATIO, kk)
+                    #self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_COMPRESSION, jj)
+                    self.parameters.SetMaterialProperties( self.properties )
+                    self.material_law.SetPlasticVariables(-80, ii)
+                    
+                    #proc_info = self.model_part.ProcessInfo
+                    #bonding = 1.0
+                    #precon = -80.0
+                    #self.material_law.SetValue(KratosPfemSolid.BONDING, bonding, proc_info)
+                    #self.material_law.SetValue(KratosPfemSolid.PRECONSOLIDATION, precon.GetDouble(), proc_info)
+                    #self.material_law.SetValue(KratosPfemSolid.PRECONSOLIDATION, -80.0, self.model_part.ProcessInfo)
 
-                #get increment
-                FF = KratosMultiphysics.Matrix(3,3);
-                FF[0,0] = float(a[jj][0]);
-                FF[0,1] = float(a[jj][3]);
-                FF[0,2] = float(a[jj][6]);
-                FF[1,0] = float(a[jj][1]);
-                FF[1,1] = float(a[jj][4]);
-                FF[1,2] = float(a[jj][7]);
-                FF[2,0] = float(a[jj][2]);
-                FF[2,1] = float(a[jj][5]);
-                FF[2,2] = float(a[jj][8]);
-                print(FF)
+                    #get increment
+                    FF = KratosMultiphysics.Matrix(3,3);
+                    FF[0,0] = float(a[jj][0]);
+                    FF[0,1] = float(a[jj][3]);
+                    FF[0,2] = float(a[jj][6]);
+                    FF[1,0] = float(a[jj][1]);
+                    FF[1,1] = float(a[jj][4]);
+                    FF[1,2] = float(a[jj][7]);
+                    FF[2,0] = float(a[jj][2]);
+                    FF[2,1] = float(a[jj][5]);
+                    FF[2,2] = float(a[jj][8]);
+                    #print(FF)
 
-                #stress integration
-                pp, qq, epsVol, FF01, FF11 = self._compute_strain_driven_problem_Ftot(FF, NumberIncrements, ID+str(jj-1)+'-'+str(len(a)-2)+'PI')
-                ax1.plot(pp, qq)
-                ax2.plot(FF01, qq)
+                    #stress integration
+                    pp, qq, epsVol, FF01, FF11 = self._compute_strain_driven_problem_Ftot(FF, NumberIncrements, ID+str(jj-1)+'-'+str(len(a)-2)+'PI')
+                    ax1.plot(pp, qq)
+                    ax2.plot(FF01, qq)
 
         #
         plt.show()
@@ -261,6 +272,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
         p0 = self.material_law.GetPreconPressure()
         bb = self.material_law.GetBonding()
+        theta = self.material_law.GetCriticalStateM()
         
         #initialize output
         pp = 1.1*np.arange(nIncr+1)
@@ -285,7 +297,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         
         #write to output file
         self._OpenOutputFile(ID)
-        self._WriteThisToFile(0, pp[0], qq[0], p0, bb, epsVol[0], FF01[0], FF11[0], stress, strain)
+        self._WriteThisToFile(0, pp[0], qq[0], p0, bb, epsVol[0], FF01[0], FF11[0], stress, strain, theta)
         
         #loop over nIncr
         for step in range(1, nIncr+1):
@@ -293,6 +305,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             #add increment
             IncrF = self._ComputeSubGradient(Ftot, (step-1)*1/nIncr, (step)*1/nIncr)
             self.F = IncrF * self.F
+            #print(self.F)
             self.detF = self._ComputeDeterminant( self.F )
             
             #print(" ")
@@ -306,6 +319,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
             p0 = self.material_law.GetPreconPressure()
             bb = self.material_law.GetBonding()
+            theta = self.material_law.GetCriticalStateM()
             
             #calculate invariants from self.stress
             self.stress = self.parameters.GetStressVector()
@@ -321,7 +335,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             
             #write to output file
             #self._OpenOutputFile()
-            self._WriteThisToFile(step, pp[step], qq[step], p0, bb, epsVol[step], FF01[step], FF11[step], stress, strain)
+            self._WriteThisToFile(step, pp[step], qq[step], p0, bb, epsVol[step], FF01[step], FF11[step], stress, strain, theta)
           
         return pp, qq, epsVol, FF01, FF11
 
@@ -354,6 +368,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
         p0 = self.material_law.GetPreconPressure()
         bb = self.material_law.GetBonding()
+        theta = self.material_law.GetCriticalStateM()
         
         #initialize output
         pp = 1.1*np.arange(nIncr+1)
@@ -377,7 +392,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         
         #write to output file
         self._OpenOutputFile(ID)
-        self._WriteThisToFile(0, pp[0], qq[0], p0, bb, epsVol[0], FF01[0], FF11[0], stress, strain)
+        self._WriteThisToFile(0, pp[0], qq[0], p0, bb, epsVol[0], FF01[0], FF11[0], stress, strain, theta)
         
         #loop over nIncr
         for step in range(1, nIncr+1):
@@ -399,6 +414,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
             p0 = self.material_law.GetPreconPressure()
             bb = self.material_law.GetBonding()
+            theta = self.material_law.GetCriticalStateM()
             
             #calculate invariants from self.stress
             self.stress = self.parameters.GetStressVector()
@@ -414,7 +430,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             
             #write to output file
             #self._OpenOutputFile()
-            self._WriteThisToFile(step, pp[step], qq[step], p0, bb, epsVol[step], FF01[step], FF11[step], stress, strain)
+            self._WriteThisToFile(step, pp[step], qq[step], p0, bb, epsVol[step], FF01[step], FF11[step], stress, strain, theta)
           
         return pp, qq, epsVol, FF01, FF11    
             
@@ -582,7 +598,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         csv_file.close()
         
     #
-    def _WriteThisToFile(self, t, pp, qq, p0, bb, epsVol, FF01, FF11, stress, strain):
+    def _WriteThisToFile(self, t, pp, qq, p0, bb, epsVol, FF01, FF11, stress, strain, theta):
 
         line = str(t) + " " + str(pp) + " " + str(qq) + " " + str(p0) + " " + str(bb) + " " + str(epsVol) + " " + str(FF01) + " " + str(FF11) + " "
         for st in stress:
@@ -590,6 +606,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
 
         for st in strain:
             line = line + str(st) + " "
+        line = line + str(theta) + " "
 
         line = line[:-2]
         line = line + "\n"
@@ -790,10 +807,10 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
                 "KratosMultiphysics.YOUNG_MODULUS": 0.0,
                 "KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.085,
                 "KratosMultiphysics.SWELLING_SLOPE": 0.0078,
-                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 500.0,
-                "KratosMultiphysics.ALPHA_SHEAR": 0.0,
+                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 0.0,
+                "KratosMultiphysics.ALPHA_SHEAR": 120.0,
                 "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 0.8e+02,
-                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
+                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 4.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 0.9,
                 "KratosMultiphysics.INTERNAL_FRICTION_ANGLE": 23.0,
                 "KratosMultiphysics.SPACING_RATIO": 1.5,
@@ -862,6 +879,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             variable = self._GetItemFromModule(key)
             if(value.IsDouble()):
                 self.properties.SetValue(variable, value.GetDouble())
+                #print(variable)
             elif(value.IsArray()):
                 vector_value = KratosMultiphysics.Vector(value.size())
                 for i in range(0, value.size() ):
