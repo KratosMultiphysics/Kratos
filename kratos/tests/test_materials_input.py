@@ -23,7 +23,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
-    def _prepare_test(self):
+    def _prepare_test(self, input_file = "materials.json"):
         # Define a Model
         self.current_model = KratosMultiphysics.Model()
 
