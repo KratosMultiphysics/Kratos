@@ -41,14 +41,20 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 
 
+# TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+
+
 """
 auxiliary function of AddResults of the MonteCarlo class
+input:  simulation_results: an instance of the monte carlo result class
+        level:              working level
+output: QoI_value: new qoi value
 """
 @ExaquteTask(returns=1)
 def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
-        """each value is inside the relative level list, and only one value per level is computed
-        i.e. results = [[value_level_0],[value_level_1],...]"""
+        # each value is inside the relative level list, and only one value per level is computed
+        # i.e. results = [[value_level_0],[value_level_1],...]
         QoI_value = simulation_results.QoI[level][0]
     else:
         raise Exception("level not equal to 0, in MC we should have only level zero")
@@ -57,25 +63,36 @@ def AddResultsAux_Task(simulation_results,level):
 
 """
 auxiliary function of CheckConvergence of the MonteCarlo class
+input:  curr_number_samples:                   current number of samples computed
+        curr_mean:                             current mean
+        curr_sample_variance:                  current sample variance
+        curr_h2:                               current h2 statistics
+        curr_h3:                               current h3 statistics
+        curr_sample_central_moment_3_absolute: current third absolute central moment
+        curr_h4:                               current h4 statistics
+        curr_tol:                              current tolerance
+        curr_delta:                            current convergence probability
+        convergence_criteria:                  convergence criteria exploited to check convergence
+output: convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1)
 def CheckConvergenceAux_Task(curr_number_samples,curr_mean,curr_sample_variance,curr_h2,curr_h3,curr_sample_central_moment_3_absolute,curr_h4,curr_tol,curr_delta,convergence_criteria):
     convergence_boolean = False
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
-        """define local variables"""
+        # define local variables
         curr_coefficient_to_compute_convergence = np.sqrt(curr_number_samples) * curr_tol / np.sqrt(curr_sample_variance)
-        """evaluate probability of failure"""
+        # evaluate probability of failure
         main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(curr_coefficient_to_compute_convergence))
         if(main_contribute < curr_delta):
             convergence_boolean = True
     elif(convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
-        """define local variables"""
+        # define local variables
         curr_second_sample_moment = np.sqrt(curr_h2)
         curr_third_sample_moment_absolute = curr_sample_central_moment_3_absolute / (curr_second_sample_moment**3)
         curr_third_sample_moment = curr_h3 / (curr_second_sample_moment**3)
         curr_fourth_sample_moment = (curr_h4 / (curr_second_sample_moment**4)) - 3
         curr_coefficient_to_compute_convergence = np.sqrt(curr_number_samples) * curr_tol / np.sqrt(curr_second_sample_moment)
-        """evaluate probability of failure and penalty term"""
+        # evaluate probability of failure and penalty term
         main_contribute = 2 * (1 - _ComputeCDFStandardNormalDistribution(curr_coefficient_to_compute_convergence))
         penalty_contribute = 2 * np.minimum(4 * (2/(curr_number_samples - 1) + (curr_fourth_sample_moment / curr_number_samples)), 1) * \
             _ComputeBoundFunction(curr_coefficient_to_compute_convergence,curr_third_sample_moment_absolute) / np.sqrt(curr_number_samples) + \
@@ -91,26 +108,24 @@ def CheckConvergenceAux_Task(curr_number_samples,curr_mean,curr_sample_variance,
 
 
 """
-function executing the problem
-input:
-        model       : serialization of the model
-        parameters  : serialization of the Project Parameters
-output:
-        QoI         : Quantity of Interest
+auxiliary function of ExecuteInstance of the MonteCarlo class
+input:  model:      serialization of the model
+        parameters: serialization of the Project Parameters
+output: QoI: Quantity of Interest
 """
 @ExaquteTask(returns=1)
 def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
-    """overwrite the old model serializer with the unpickled one"""
+    # overwrite the old model serializer with the unpickled one
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
     model_serializer.Load("ModelSerialization",current_model)
     del(model_serializer)
-    """overwrite the old parameters serializer with the unpickled one"""
+    # overwrite the old parameters serializer with the unpickled one
     serialized_project_parameters = pickle.loads(pickled_project_parameters)
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
-    """initialize the MonteCarloResults class"""
+    # initialize the MonteCarloResults class
     mc_results_class = MonteCarloResults(current_level)
     sample = generator.GenerateSample()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
@@ -125,29 +140,27 @@ class MonteCarlo(object):
     def __init__(self,custom_settings,project_parameters_path,custom_analysis):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
-        self                    : an instance of a class
-        custom_settings         : settings of the Monte Carlo simulation
-        project_parameters_path : path of the project parameters file
-        custom_analysis         : analysis stage of the problem
+        self:                    an instance of a class
+        custom_settings:         settings of the Monte Carlo simulation
+        project_parameters_path: path of the project parameters file
+        custom_analysis:         analysis stage of the problem
         """
 
-        """analysis : analysis stage of the current problem"""
+        # analysis : analysis stage of the current problem
         if (custom_analysis is not None):
             self.SetAnalysis(custom_analysis)
         else:
             raise Exception ("Please provide a Kratos specific application analysis stage for the current problem")
-        """project_parameters_path : path to the project parameters json file"""
+        # project_parameters_path : path to the project parameters json file
         if(project_parameters_path is not None):
             self.project_parameters_path = project_parameters_path
         else:
             raise Exception ("Please provide the path of the project parameters json file")
-        """
-        default settings of the Monte Carlo algorithm
-        tolerance            : tolerance
-        cphi                 : confidence on tolerance
-        batch_size           : number of samples per batch size
-        convergence_criteria : convergence criteria to get if convergence is achieved
-        """
+        # default settings of the Monte Carlo algorithm
+        # tolerance:            tolerance
+        # cphi:                 confidence on tolerance
+        # batch_size:           number of samples per batch size
+        # convergence_criteria: convergence criteria to get if convergence is achieved
         default_settings = KratosMultiphysics.Parameters("""
         {
             "tolerance" : 1e-1,
@@ -157,50 +170,51 @@ class MonteCarlo(object):
         }
         """)
         self.settings = custom_settings
-        """validate and assign default parameters"""
+        # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
-        """convergence : boolean variable defining if MC algorithm has converged"""
+        # convergence : boolean variable defining if MC algorithm has converged
         self.convergence = False
-        """current_number_levels : number of levels of MC by default = 0 (we only have level 0)"""
+        # current_number_levels : number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
-        """current_level : current level of work, current_level = 0 for MC"""
+        # current_level : current level of work, current_level = 0 for MC
         self.current_level = 0
-        """theta_i : splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error"""
+        # theta_i : splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error
         self.theta_i = None
-        """TErr : total error of MC algorithm, the sum of bias and statistical error is an overestmation of the real total error
-                  TErr := \abs(E^MC[QoI] - E[QoI])"""
+        # TErr: total error of MC algorithm, the sum of bias and statistical error is an overestmation of the real total error
+        #       TErr := \abs(E^MC[QoI] - E[QoI])"""
         self.TErr = None
-        """QoI : Quantity of Interest of the considered problem"""
+        # QoI : Quantity of Interest of the considered problem
         self.QoI = StatisticalVariable(self.current_number_levels)
-        """initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0"""
+        # initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0
         self.QoI.InitializeLists(self.current_number_levels+1)
-        """number_samples : total number of samples of current iteration"""
+        # number_samples : total number of samples of current iteration
         self.number_samples = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
-        """difference_number_samples : difference between number of samples of current and previous iterations"""
+        # difference_number_samples : difference between number of samples of current and previous iterations
         self.difference_number_samples = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
-        """previous_number_samples : total number of samples of previous iteration"""
+        # previous_number_samples : total number of samples of previous iteration
         self.previous_number_samples = [0 for _ in range (self.current_number_levels+1)]
-        """batch_size : number of iterations of each epoch
-        TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours"""
+        # batch_size : number of iterations of each epoch
+        # TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours
         self.batch_size = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
-        """iteration counter"""
+        # iteration counter
         self.iteration_counter = 0
-        """set convergence criteria"""
+        # set convergence criteria
         self.SetConvergenceCriteria(self.settings["convergence_criteria"].GetString())
         if (self.convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and self.convergence_criteria != "MC_higher_moments_sequential_stopping_rule"):
             raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
 
-        """pickled_model : serialization of model Kratos object of the problem"""
+        # pickled_model : serialization of model Kratos object of the problem
         self.pickled_model = None
-        """pickled_project_parameters : serialization of project parameters Kratos object of the problem"""
+        # pickled_project_parameters : serialization of project parameters Kratos object of the problem
         self.pickled_project_parameters = None
-        """construct the pickled model and pickled project parameters of the problem"""
+        # construct the pickled model and pickled project parameters of the problem
         self.is_project_parameters_pickled = False
         self.is_model_pickled = False
         self.SerializeModelParameters()
 
     """
     function executing the Monte Carlo algorithm
+    input: self: an instance of the class
     """
     def Run(self):
         while self.convergence is not True:
@@ -212,22 +226,23 @@ class MonteCarlo(object):
 
     """
     function running one Monte Carlo epoch
+    input: self: an instance of the class
     """
     def LaunchEpoch(self):
         for instance in range (self.batch_size[self.current_level]):
             self.AddResults(self.ExecuteInstance())
 
     """
-    function called in the main returning a future object (the result class) and an integer (the finer level)
-    requires:
-            pickled_model              : pickled model
-            pickled_project_parameters : pickled parameters
-            current_analysis_stage     : analysis stage of the problem
-    output:
-            MonteCarloResults class           : class of the simulation results
-            current_level                     : level of the current MC simulation (= 0)
+    function executing an instance of the Monte Carlo algorithm
+    requires:  self.pickled_model:              pickled model
+               self.pickled_project_parameters: pickled parameters
+               self.current_analysis_stage:     analysis stage of the problem
+    input:  self: an instance of the class
+    output: MonteCarloResults class: an instance og the MonteCarloResults class
+            current_level: level of the current MC simulation (= 0)
     """
     def ExecuteInstance(self):
+        # ensure working level is level 0
         if (self.current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,self.GetAnalysis(),self.current_level),self.current_level)
@@ -239,11 +254,10 @@ class MonteCarlo(object):
     ii)  from StreamSerializer Kratos object to pickle string
     iii) from pickle string to StreamSerializer Kratos object
     iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
-    requires:
-            self.project_parameters_path     : path of the Project Parameters file
-    constructs:
-            self.pickled_model              : pickled model
-            self.pickled_project_parameters : pickled project parameters
+    requires: self.project_parameters_path: path of the Project Parameters file
+    builds: self.pickled_model:              pickled model
+            self.pickled_project_parameters: pickled project parameters
+    input:  self: an instance of the class
     """
     def SerializeModelParameters(self):
         with open(self.project_parameters_path,'r') as parameter_file:
@@ -267,12 +281,16 @@ class MonteCarlo(object):
 
     """
     function defining the Kratos specific application analysis stage of the problem
+    input:  self: an instance of the class
+            application_analysis_stage: working analysis stage Kratos class
     """
     def SetAnalysis(self,application_analysis_stage):
         self.analysis = application_analysis_stage
 
     """
     function getting the Kratos specific application analysis stage of the problem previously defined
+    input:  self: an instance of the class
+    output: self.analysis: working analysis stage Kratos class
     """
     def GetAnalysis(self):
         if (self.analysis is not None):
@@ -281,7 +299,9 @@ class MonteCarlo(object):
             print("Please provide a Kratos specific application analysis stage for the current problem.")
 
     """
-    function checking if the MC algorithm has conveged, with respect to the selected convergence criteria
+    function checking the convergence of the MC algorithm, with respect to the selected convergence criteria
+    input:  self:  an instance of the class
+            level: working level
     """
     def CheckConvergence(self,level):
         curr_number_samples = self.QoI.number_samples[level]
@@ -301,6 +321,7 @@ class MonteCarlo(object):
 
     """
     function adding QoI values to the corresponding level
+    
     """
     def AddResults(self,simulation_results):
         """simulation_results = [MonteCarloResults class, level (integer type, not compss.future)]"""
