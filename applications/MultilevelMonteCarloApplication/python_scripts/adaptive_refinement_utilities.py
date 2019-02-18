@@ -16,12 +16,12 @@ Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
 """
 function computing the refinement of the model based on the solution on the coarse mesh,
 exploiting the hessian metric of the solution
-input: model_coarse:       Kratos model class before refinement
-       parameters_coarse:  Kratos parameters class before refinement
-       minimal_size_value: minimal size after remeshing
-       maximal_size_value: maximal size after remeshing
-       metric_param:       Kratos parameters class containing metric custom settings
-       remesh_param:       Kratos parameters class containing remeshing custom settings
+input:  model_coarse:       Kratos model class before refinement
+        parameters_coarse:  Kratos parameters class before refinement
+        minimal_size_value: minimal size after remeshing
+        maximal_size_value: maximal size after remeshing
+        metric_param:       Kratos parameters class containing metric custom settings
+        remesh_param:       Kratos parameters class containing remeshing custom settings
 output: current_model_refined:      Kratos model class after refinement
         current_parameters_refined: Kratos parameters class after refinement
 """
