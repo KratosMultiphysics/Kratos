@@ -517,20 +517,20 @@ configure_file(
 install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
 
 ################################################################################
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
+# if(${INSTALL_PYTHON_FILES} MATCHES ON)
+#   file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
 
-  install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
-  install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
+#   install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
+#   install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
 
-  SET(CPACK_GENERATOR "DEB")
-  SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
-  set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
-  #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
-  #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
-  Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
+#   SET(CPACK_GENERATOR "DEB")
+#   SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
+#   set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
+#   #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+#   SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
+#   #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
+#   Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+#   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
 
-  INCLUDE(CPack)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+#   INCLUDE(CPack)
+# endif(${INSTALL_PYTHON_FILES} MATCHES ON)
