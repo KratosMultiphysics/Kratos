@@ -43,9 +43,8 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
-"""
-TODO: insert distinction between scalar and field Quantity of Interests
-"""
+#TODO: insert distinction between scalar and field Quantity of Interests
+#TODO: distinguish between raw and central moments
 
 
 """
