@@ -747,23 +747,24 @@ public:
 
     /**
      * @brief Calculate the Jacobian on the initial configuration.
-     * @param rGeom element geometry.
-     * @param rCoords local coordinates of the current integration point.
-     * @param rJ0 Jacobian on the initial configuration.
+     * @param rGeom element geometry
+     * @param rJ0 Jacobian on the initial configuration
+     * @param PointNumber The integration point considered
+     * @param rIntegrationMethod The integration method considered
      */
     template<class TMatrix>
     static void DirectJacobianOnInitialConfiguration(
         GeometryType const& rGeometry,
-        GeometryType::CoordinatesArrayType const& rCoords,
-        TMatrix& rJ0
+        TMatrix& rJ0,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         )
     {
         const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
         const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
         const SizeType points_number = rGeometry.PointsNumber();
 
-        Matrix shape_functions_gradients(points_number, local_space_dimension);
-        rGeometry.ShapeFunctionsLocalGradients( shape_functions_gradients, rCoords );
+        const Matrix& rDN_De = rGeometry.ShapeFunctionsLocalGradients(rIntegrationMethod)[PointNumber];
 
         rJ0.clear();
         for (IndexType i = 0; i < points_number; ++i ) {
@@ -771,7 +772,7 @@ public:
             for(IndexType j = 0; j< working_space_dimension; ++j) {
                 const double value = r_coordinates[j];
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
-                    rJ0(j,m) += value * shape_functions_gradients(i,m);
+                    rJ0(j,m) += value * rDN_De(i,m);
                 }
             }
         }
