@@ -22,8 +22,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: choose a proper name for self.moment_p
 # TODO: organize if possible better initialize function
-# TODO: from ComputeSampleCentralMoments to ComputeSampleCentralMomentsFromScratch
-# TODO: use self.number_samples[level] instead of an input in ComputeSampleCentralMoments
 
 
 """
@@ -342,7 +340,6 @@ class StatisticalVariable(object):
     """
     def ComputeSampleCentralMomentsFromScratch(self,level):
         number_samples_level = self.number_samples[level]
-        # local variables for mean and number of samples
         curr_mean = self.mean[level]
         # initialize central moements
         first_central_moment = 0.0
