@@ -24,7 +24,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         # Remove the .time file
         try:
             os.remove('levelset_convection_process_mesh.time')
-        except FileNotFoundError as e:
+        except :
             pass
 
     def test_levelset_convection(self):
