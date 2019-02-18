@@ -145,7 +145,7 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 
 
 """
-auxiliary function of ComputeSampleCentralMoments of the StatisticalVariable class
+auxiliary function of ComputeSampleCentralMomentsFromScratch of the StatisticalVariable class
 input:  sample: new value that will update the statistics
         curr_mean: current mean
         number_samples_level:                  number of samples for defined level
@@ -166,7 +166,7 @@ output: first_central_moment:          updated first central moment
         fourth_central_moment:         update fourth central moment
 """
 @ExaquteTask(returns=5)
-def ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment,compute_second_central_moment, \
+def ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment,compute_second_central_moment, \
     compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
     first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment):
     if (compute_first_central_moment):
@@ -340,7 +340,7 @@ class StatisticalVariable(object):
     input:  self:  an instance of the class
             level: defined level
     """
-    def ComputeSampleCentralMoments(self,level,number_samples_level):
+    def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
         """local variables for mean and number of samples"""
         curr_mean = self.mean[level]
         """initialize central moements"""
@@ -358,7 +358,7 @@ class StatisticalVariable(object):
             """compute only the central moements we need, since it is expensive their computation at large number_samples_level"""
             sample = self.values[level][i]
             first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment = \
-                ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment, \
+                ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment, \
                 compute_second_central_moment,compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
                 first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment)
         self.sample_central_moment_1[level] = first_central_moment

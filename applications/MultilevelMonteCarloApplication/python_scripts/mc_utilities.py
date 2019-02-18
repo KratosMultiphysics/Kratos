@@ -349,7 +349,7 @@ class MonteCarlo(object):
         """compute the central moments we can't derive from the unbiased h statistics
         we compute expensively the absolute central moment because we can't retrieve it from the h statistics"""
         self.QoI.sample_third_absolute_central_moment_to_compute = True
-        self.QoI.ComputeSampleCentralMoments(level,self.number_samples[level]) # give as input the number of samples computed up to this point
+        self.QoI.ComputeSampleCentralMomentsFromScratch(level,self.number_samples[level]) # give as input the number of samples computed up to this point
         self.QoI.ComputeHStatistics(level)
         self.QoI.ComputeSkewnessKurtosis(level)
         self.CheckConvergence(level)
