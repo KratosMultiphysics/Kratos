@@ -103,7 +103,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
     array_1d<double, 3> virtual_mass_plus_undisturbed_flow_force;
-    array_1d<double, 3> saffman_lift_force;
+    array_1d<double, 3> vorticity_induced_lift;
     array_1d<double, 3> magnus_lift_force;
     array_1d<double, 3> brownian_motion_force;
     array_1d<double, 3>& basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
@@ -136,7 +136,15 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
 
 
 
-    ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
+    mHydrodynamicInteractionLaw->ComputeVorticityInducedLift(r_geometry,
+                                                             mRadius,
+                                                             mFluidDensity,
+                                                             mKinematicViscosity,
+                                                             mSlipVel,
+                                                             vorticity_induced_lift,
+                                                             r_current_process_info);
+
+    //ComputeSaffmanLiftForce(node, vorticity_induced_lift, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
@@ -152,7 +160,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     // Adding all forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += drag_force
                                 + virtual_mass_plus_undisturbed_flow_force
-                                + saffman_lift_force
+                                + vorticity_induced_lift
                                 + magnus_lift_force
                                 + brownian_motion_force
                                 + buoyancy
@@ -175,7 +183,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
         ApplyNumericalAveragingWithOldForces(node, non_contact_force, r_current_process_info);
     }
 
-    UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_plus_undisturbed_flow_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
+    UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_plus_undisturbed_flow_force, basset_force, vorticity_induced_lift, magnus_lift_force, force_reduction_coeff, r_current_process_info);
     // The Basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
     // and then we add the Basset force (minus the term proportional to the current acceleration, which is treated implicitly)
     noalias(non_contact_force) += basset_force;
@@ -196,7 +204,7 @@ void SwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
                                                               const array_1d<double, 3>& drag_force,
                                                               const array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
                                                               const array_1d<double, 3>& basset_force,
-                                                              const array_1d<double, 3>& saffman_lift_force,
+                                                              const array_1d<double, 3>& vorticity_induced_lift,
                                                               const array_1d<double, 3>& magnus_lift_force,
                                                               const double& force_reduction_coeff,
                                                               const ProcessInfo& r_current_process_info)
@@ -227,7 +235,7 @@ void SwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
     }
 
     if (mHasLiftForceNodalVar){
-        noalias(node.FastGetSolutionStepValue(LIFT_FORCE))           = saffman_lift_force + magnus_lift_force;
+        noalias(node.FastGetSolutionStepValue(LIFT_FORCE))           = vorticity_induced_lift + magnus_lift_force;
     }
 
     if (mHasDragCoefficientVar){

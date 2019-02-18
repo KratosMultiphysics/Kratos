@@ -38,6 +38,9 @@ class CandelierDEMSolver(BaseSolver):
 
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
             node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
+            if candelier_pp.include_lift:
+                vort = Vector([0.0, 0.0, 2.0 * omega])
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED, vort)
 
     def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
         super(CandelierDEMSolver, self).ApplyForwardCouplingOfVelocityToSlipVelocityOnly()

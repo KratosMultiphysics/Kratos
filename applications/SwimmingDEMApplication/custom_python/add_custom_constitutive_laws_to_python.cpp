@@ -37,6 +37,7 @@
 // Vorticity-induced lift laws
 #include "../custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "../custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.h"
+#include "../custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.h"
 
 
 namespace Kratos {
@@ -162,6 +163,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<ElSamniLiftLaw, ElSamniLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "ElSamniLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<SaffmanLiftLaw, SaffmanLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "SaffmanLiftLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

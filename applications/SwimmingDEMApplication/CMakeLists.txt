@@ -62,6 +62,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
 
     # Vorticity-Induced Lift Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.cpp
 
     ## Elements

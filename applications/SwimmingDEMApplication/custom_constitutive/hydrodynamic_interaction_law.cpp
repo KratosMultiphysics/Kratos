@@ -162,14 +162,13 @@ namespace Kratos {
         const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
                                                                      fluid_kinematic_viscosity,
                                                                      SWIMMING_MODULUS_3(slip_velocity));
-
-        return mpHistoryForceLaw->ComputeForce(r_geometry,
-                                               reynolds_number,
-                                               particle_radius,
-                                               fluid_density,
-                                               fluid_kinematic_viscosity,
-                                               slip_velocity,
-                                               vorticity_induced_lift,
-                                               r_current_process_info);
+        return mpVorticityInducedLiftLaw->ComputeForce(r_geometry,
+                                                       reynolds_number,
+                                                       particle_radius,
+                                                       fluid_density,
+                                                       fluid_kinematic_viscosity,
+                                                       slip_velocity,
+                                                       vorticity_induced_lift,
+                                                       r_current_process_info);
     }
 } // Namespace Kratos
