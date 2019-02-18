@@ -20,8 +20,25 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
+#TODO: choose a proper name for self.moment_p
+
+
 """
 auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
+input:  sample: new value that will update the statistics
+        old_mean:   old mean
+        old_M2:     old second central moment multiplied by number samples, i.e. M_p = number_samples * central_moment
+        old_M3:     old third central moment multiplied by number samples
+        compute_M3: boolean setting if computation is needed
+        old_M4:     old fourth central moment multiplied by number samples
+        compute_M4: boolean settings if computation is needed
+        nsamples:   old number of samples computed, starts from 1
+output: new_mean:            updated mean
+        new_sample_variance: updated sample variance
+        new_M2:              updated M2
+        new_M3:              updated M3
+        new_M4:              updated M4
+        nsamples:            updated number of samples
 """
 @ExaquteTask(returns=6)
 def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
@@ -54,6 +71,18 @@ def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M
 
 """
 auxiliary function of UpdateOnepassPowerSums of the StatisticalVariable class
+input:  sample: new value that will update the statistics
+        old_S1: old first power sum
+        old_S2: old second power sum
+        old_S3: old third power sum
+        old_S3_absolute: old third power sum absolute value
+        old_S4: old fourth power sum
+        nsamples: number of samples, it has already been updated in UpdateOnePassMomentsVarianceAux_Task
+output: new_S1: updated first power sum
+        new_s2: updated second power sum
+        new_S3: updated third power sum
+        new_S3_absolute: updated third power sum absolute value
+        new_S4: updated fourth power sum with absolute value
 """
 @ExaquteTask(returns=5)
 def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
@@ -74,6 +103,15 @@ def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,o
 
 """
 auxiliary function of UpdateHStatistics of the StatisticalVariable class
+input:  S1_level:             first power sum at defined level
+        S2_level:             second power sum at defined level
+        S3_level:             third power sum at defined level
+        S4_level:             fourth power sum at defined level
+        number_samples_level: number of samples (already update) for defined level
+output: h1_level: first h statistics for defined level
+        h2_level: second h statistics for defined level
+        h3_level: third h statistics for defined level
+        h4_level: fourth h statistics for defined level
 """
 @ExaquteTask(returns=4)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
@@ -90,6 +128,11 @@ def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_sample
 
 """
 auxiliary function of ComputeSkewnessKurtosis of the StatisticalVariable class
+input:  h2_level: second h statistics for defined level
+        h3_level: third h statistics for defined level
+        h4_level: fourth h statistics for defined level
+output: skewness_level: skewness for defined level
+        kurtosis_level: kurtosis for defined level
 """
 @ExaquteTask(returns=2)
 def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
@@ -100,6 +143,24 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 
 """
 auxiliary function of ComputeSampleCentralMoments of the StatisticalVariable class
+input:  sample: new value that will update the statistics
+        curr_mean: current mean
+        number_samples_level:                  number of samples for defined level
+        compute_first_central_moment:          boolean setting if computation is needed
+        compute_second_central_moment:         boolean setting if computation is needed
+        compute_third_central_moment:          boolean setting if computation is needed
+        compute_third_absolute_central_moment: boolean setting if computation is needed
+        compute_fourth_central_moment:         boolean setting if computation is needed
+        first_central_moment:                  old first central moment
+        second_central_moment:                 old second central moment
+        third_central_moment:                  old third central moment
+        third_central_moment_absolute:         old third central moment absolute value
+        fourth_central_moment:                 old fourth central moment
+output: first_central_moment:          updated first central moment
+        second_central_moment:         updated second central moment
+        third_central_moment:          updated third central moment
+        third_central_moment_absolute: updated third central moment absolute value
+        fourth_central_moment:         update fourth central moment
 """
 @ExaquteTask(returns=5)
 def ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment,compute_second_central_moment, \
