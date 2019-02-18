@@ -16,16 +16,16 @@ extern "C"
 
 // External includes
 #include "anurbs.h"
-#include "triangle.h"   
+// #include "triangle.h"   
 
 // Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "iga_application_variables.h"
 #include "nurbs_brep_modeler.h"
-#include "embedded_iga_tessellation.h"
-#include "embedded_iga_triangulation.h"
-#include "embedded_iga_error_estimation.h"
+#include "embedded_iga/embedded_iga_tessellation.h"
+// #include "embedded_iga/embedded_iga_triangulation.h"
+// #include "embedded_iga/embedded_iga_error_estimation.h"
 
 
 namespace Kratos
@@ -43,66 +43,11 @@ namespace Kratos
         ///@name functions
         ///@{
         
-        void CreateElements2D(
-            ModelPart& rSkinModelPart);
-
-        void CreateElements3D(
-            ModelPart& rSkinModelPart);
-        
-        std::vector<Matrix> TriangulateEmpire(); 
-
-        void TriangulateCurveOnSurface(
-            std::vector<Matrix>& rTriangulation_uv);  
-        
-        std::vector<Matrix> MapTriangulationCartesianSpace(
-            std::vector<Matrix>& rTriangulation_uv); 
-        
-        std::vector<std::vector<double>> PrintCurveTessellationPoints(); 
-        std::vector<std::vector<double>> PrintCurveOnSurfaceTessellationPoints();
-        std::vector<std::vector<double>> PrintTriangulationPoints_uv(); 
-        std::vector<std::vector<double>> PrintTriangulationPoints_xyz(); 
-
-        // std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
-        std::vector<std::vector<double>> PrintGaussPoints_uv();
-        std::vector<std::vector<double>> PrintGaussPointsTriangulation_xyz(); 
-        std::vector<std::vector<double>> PrintGaussPointsSurface_xyz();
+        std::vector<std::vector<double>> Test(); 
 
 
 
 
-
-        // std::vector<std::vector<double>> Triangulate();  
-        
-        // std::vector<std::vector<double>> TestTriangle(); 
-
-
-
-        void InitTriangulationDataStructure(triangulateio& tr)
-        {
-            tr.pointlist                  = (REAL*) NULL;
-            tr.pointattributelist         = (REAL*) NULL;
-            tr.pointmarkerlist            = (int*) NULL;
-            tr.numberofpoints             = 0;
-            tr.numberofpointattributes    = 0;
-            tr.trianglelist               = (int*) NULL;
-            tr.triangleattributelist      = (REAL*) NULL;
-            tr.trianglearealist           = (REAL*) NULL;
-            tr.neighborlist               = (int*) NULL;
-            tr.numberoftriangles          = 0;
-            tr.numberofcorners            = 3;
-            tr.numberoftriangleattributes = 0;
-            tr.segmentlist                = (int*) NULL;
-            tr.segmentmarkerlist          = (int*) NULL;
-            tr.numberofsegments           = 0;
-            tr.holelist                   = (REAL*) NULL;
-            tr.numberofholes              = 0;
-            tr.regionlist                 = (REAL*) NULL;
-            tr.numberofregions            = 0;
-            tr.edgelist                   = (int*) NULL;
-            tr.edgemarkerlist             = (int*) NULL;
-            tr.normlist                   = (REAL*) NULL;
-            tr.numberofedges              = 0;
-        };  
             
         ///@}
         ///@name Life Cycle

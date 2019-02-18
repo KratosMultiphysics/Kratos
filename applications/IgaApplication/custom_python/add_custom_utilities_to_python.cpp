@@ -25,7 +25,6 @@
 #include "custom_utilities/brep_json_io.h"
 #include "custom_utilities/nurbs_brep_modeler.h"
 #include "custom_utilities/embedded_iga_modeler.h"
-#include "custom_utilities/embedded_iga_error_estimation.h"
 
 
 #include "custom_utilities/iga_flags.h"
@@ -847,19 +846,8 @@ namespace Kratos {
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
-        .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
-        .def("CreateElements3D", &EmbeddedIgaModeler::CreateElements3D)
-        .def("PrintCurveTessellationPoints", &EmbeddedIgaModeler::PrintCurveTessellationPoints)
-        .def("PrintCurveOnSurfaceTessellationPoints", &EmbeddedIgaModeler::PrintCurveOnSurfaceTessellationPoints)
-        .def("PrintTriangulationPoints_xyz", &EmbeddedIgaModeler::PrintTriangulationPoints_xyz)
-        .def("PrintTriangulationPoints_uv", &EmbeddedIgaModeler::PrintTriangulationPoints_uv)
-        
-        .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints_uv)
-        .def("PrintGaussPointsTriangulation_xyz", &EmbeddedIgaModeler::PrintGaussPointsTriangulation_xyz)
-        .def("PrintGaussPointsSurface_xyz", &EmbeddedIgaModeler::PrintGaussPointsSurface_xyz)
-        // .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
-        // .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
-        // .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
+        .def("Test", &EmbeddedIgaModeler::Test)
+
         ;
 
     
