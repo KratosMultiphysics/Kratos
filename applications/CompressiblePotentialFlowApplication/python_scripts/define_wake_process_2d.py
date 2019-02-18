@@ -23,12 +23,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "fluid_part_name"           : "MainModelPart",
                 "wake_direction"                 : [1.0,0.0,0.0],
-                "epsilon"    : 1e-9,
-                "wake_element_replace_settings": {
-                    "element_name":"IncompressiblePotentialFlowWakeElement2D3N",
-                    "condition_name": "",
-                    "use_root_model_part" : false
-            }
+                "epsilon"    : 1e-9
             }
             """)
 
@@ -60,24 +55,55 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
 
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
+                                                                       self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
+
         self.kutta_model_part = self.fluid_model_part.CreateSubModelPart("kutta_model_part")
         self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part")
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
-                                                                       self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-        '''
-        # Neigbour search tool instance
-        AvgElemNum = 10
-        AvgNodeNum = 10
-        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(
-            self.fluid_model_part, AvgElemNum, AvgNodeNum)
-        # Find neighbours
-        nodal_neighbour_search.Execute()
-        '''
-
         self.__MarkElements()
-        #self.__ReplaceElements()
-    
+        self.__ReplaceElements()
+        self.__FindNodalNeighbors()
+
+        KratosMultiphysics.Logger.PrintInfo('...WakeProcess2D initialized...')
+
+    def __ReplaceElements(self):
+        KratosMultiphysics.Logger.PrintInfo('...Replacing elements...')
+
+        nodal_distances_to_wake = KratosMultiphysics.Vector(3)
+        
+
+        print('self.fluid_model_part.NumberOfElements() = ',self.fluid_model_part.NumberOfElements())
+
+        for elem in self.fluid_model_part.Elements:
+            if (elem.GetValue(CPFApp.WAKE)):
+                nodal_distances_to_wake = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+                the_id = elem.Id
+                the_properties = elem.Properties
+                the_node_ids = [node.Id for node in elem.GetNodes()]
+                if(elem.Is(KratosMultiphysics.STRUCTURE)):
+                    self.fluid_model_part.RemoveElement(elem)
+                    new_elem_name = "IncompressiblePotentialFlowTrailingEdgeElement2D3N"
+                    new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
+                    new_element.Set(KratosMultiphysics.STRUCTURE)
+                else:
+                    self.fluid_model_part.RemoveElement(elem)
+                    new_elem_name = "IncompressiblePotentialFlowWakeElement2D3N"
+                    new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
+                new_element.SetValue(CPFApp.WAKE, True)
+                new_element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, nodal_distances_to_wake)
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                the_id = elem.Id
+                the_properties = elem.Properties
+                the_node_ids = [node.Id for node in elem.GetNodes()]
+                self.fluid_model_part.RemoveElement(elem)
+                new_elem_name = "IncompressiblePotentialFlowKuttaElement2D3N"
+                new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
+                new_element.SetValue(CPFApp.KUTTA, True)
+
+        KratosMultiphysics.Logger.PrintInfo('...Replacing elements finished...')
+
     def __MarkElements(self):
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
@@ -88,22 +114,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
 
-        #for elem in self.kutta_model_part.Elements:
-        #    print(elem.Id)
-
-        #for elem in self.wake_model_part.Elements:
-        #    print(elem.Id)
-
-        #process = KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.wake_model_part, self.settings["wake_element_replace_settings"])
-        #process.Execute()
-        KratosMultiphysics.Logger.PrintInfo('...DefineWakeProcess finished...')
-
-        #wake_element_list = []
-        #for elem in self.wake_model_part.Elements:
-        #    wake_element_list.append(elem.Id)
-
-        #KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
-        #                                                               self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+    def __FindNodalNeighbors(self):
 
         # Neigbour search tool instance
         AvgElemNum = 10
@@ -112,10 +123,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.fluid_model_part, AvgElemNum, AvgNodeNum)
         # Find neighbours
         nodal_neighbour_search.Execute()
-
-        #self.fluid_model_part.AddElements(wake_element_list)
-        #for elem in self.fluid_model_part.Elements:
-        #    print(elem)
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
@@ -157,8 +164,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     wake_element_list.append(elem.Id)
 
         self.wake_model_part.AddElements(wake_element_list)
-
-        
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -247,6 +252,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             # Marking the elements under the trailing edge as kutta
             if(distance_to_wake < 0.0):
                 elem.SetValue(CPFApp.KUTTA, True)
+                elem.Set(CPFApp.KUTTA_ELEMENT)
                 self.kutta_model_part.AddElement(elem,0)
                 self.wake_model_part.RemoveElement(elem,0)
 
@@ -277,7 +283,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 elem.Reset(CPFApp.WAKE_ELEMENT)
             else:
                 elem.Set(KratosMultiphysics.STRUCTURE)
+                elem.Set(CPFApp.TRAILING_EDGE_ELEMENT)
                 elem.Reset(CPFApp.WAKE_ELEMENT)
-                elem.SetValue(CPFApp.TRAILING_EDGE_ELEMENT, True)
+                elem.Reset(CPFApp.KUTTA_ELEMENT)
                 elem.SetValue(CPFApp.KUTTA, False)
                 self.kutta_model_part.RemoveElement(elem,0)
