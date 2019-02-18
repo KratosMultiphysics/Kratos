@@ -22,6 +22,9 @@
 #include "structural_mechanics_application_variables.h"
 #include "state_derivative/response_functions/direct_sensitivity_response_function.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "state_derivative/math_functions/vector_math.h"
+#include "state_derivative/output_utilities/output_utility.h"
+
 
 //#include "state_derivative/new_adjoint_response_functions/new_adjoint_response_function.h"
 
@@ -108,18 +111,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ScalarProduct(const std::vector<std::vector<array_1d<double, 3>>>& rScalarFactor1 ,
-                                            const Vector& rScalarFactor2,
-                                            std::vector<array_1d<double, 3>>& rScalarProduct);
-        
+            
 
     void SetAllSensitivityVariablesToZero();
     
     template <typename TDataType>
-    void UpdateElementContributionToSensitivity(Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivityOnGaussPoint(Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
+    
     template <typename TDataType>
-    void UpdateConditionContributionToSensitivity(Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivityOnNode(Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
@@ -166,22 +167,6 @@ private:
         Variable<double> ReadScalarSensitivityVariables(std::string const& rVariableName);
     
         Variable<array_1d<double,3>> ReadVectorSensitivityVariables(std::string const& rVariableName);
-
-        void OutputOnTerminal(const std::string output_name, const std::vector<std::vector<array_1d<double, 3>>>& output_vector);
-
-        void OutputOnTerminal(const std::string output_name, const std::vector<array_1d<double, 3>>& output_vector);
-        
-        void OutputOnTerminal(const std::string output_name, const Vector& output_vector);
-
-        void Addition( array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput );
-
-        void Addition( std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& rInput );
-
-        void SetToZero( array_1d<double, 3>& rOutput );
-
-        void SetToZero( std::vector<array_1d<double, 3>>& rOutput );
-
-        
         
     ///@}
 };
