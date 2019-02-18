@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
-KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechanicsFastSuite2)
+KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechanicsFastSuite)
 {
     // Model part
     Model current_model;
@@ -220,14 +220,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechani
     element_nodes[2] = p_node_3;
     Triangle2D3 <NodeType> triangle( PointerVector<NodeType>{element_nodes} );
 
+    array_1d<double, 3> delta_disp = ZeroVector(3);
+    delta_disp[0] = 1.0e-2;
+    p_node_1->Coordinates() += delta_disp;
+
     // Compute CalculateCharacteristicLength
     const double length = ConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
 
-    KRATOS_CHECK_NEAR(length,  0.745356, tolerance);
+    KRATOS_CHECK_NEAR(length,  0.743871, tolerance);
 
     // Compute CalculateCharacteristicLengthOnReferenceConfiguration
     const double length_origin = ConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
-    
+
     KRATOS_CHECK_NEAR(length_origin,  0.745356, tolerance);
 }
 } // namespace Testing
