@@ -82,6 +82,7 @@ class InterpretLabTestData:
         p0 = elem.GetValuesOnIntegrationPoints( PRECONSOLIDATION, proc_info )[0][0]
         bb = elem.GetValuesOnIntegrationPoints( BONDING, proc_info )[0][0]
         theta = elem.GetValuesOnIntegrationPoints( STRESS_INV_THETA, proc_info )[0][0]
+        mm = elem.GetValuesOnIntegrationPoints( CRITICAL_STATE_M, proc_info )[0][0]
         # Hencky strain tensor
         FF = self._ConvertTulpeToMatrix(elem.GetValuesOnIntegrationPoints( TOTAL_DEFORMATION_GRADIENT, proc_info )[0])
         hh = self._ComputeHenckyStrainFromF(FF)
@@ -106,7 +107,7 @@ class InterpretLabTestData:
         # create string
         line_value = str(self._GetStepTime())+ " " + str(ii) + " " + str(pp) + " " + str(qq) + " " + str(theta) + " " + str(p0) + " " + str(bb) + " "
         line_value = line_value + str(ww) + " " + str(epsVol) + " " + hhSt + " " + GGSt + " " + eeSt + " " + FFSt + " " + sigTSt + " " + sigESt + " "
-        line_value = line_value + "\n"
+        line_value = line_value + str(mm) + " " + "\n"
 
         # write line in output file
         figure_file = open(figure_path, "a")

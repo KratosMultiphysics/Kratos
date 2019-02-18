@@ -41,7 +41,7 @@ class InterpretCPTData:
         if(os.path.exists(figure_path) == False):
             # print file headers
             figure_file = open(figure_path, "w")
-            line_header  = "Time q_t f_s U2 U1 U3" +"\n"
+            line_header  = "Time q_t f_s U2 U1 U3 dU2 dU1 dU3" +"\n"
             figure_file.write(line_header)
             figure_file.close()
 
@@ -99,11 +99,12 @@ class InterpretCPTData:
     def GetPorePressureShaftAlt(self, YSearch, BLOKI = False):
 
         # get WATER_PRESSURE as variable
-        nodes = self.model_part.GetNodes(self.mesh_id);
+        nodes = self.model_part.GetNodes(self.mesh_id)
         if ( nodes[1].HasDofFor( WATER_PRESSURE) ):
-            variable = WATER_PRESSURE;
+            variable = WATER_PRESSURE
+            variable2 = EXCESS_WATER_PRESSURE
         elif (nodes[1].HasDofFor( PRESSURE ) ):
-            variable = PRESSURE;
+            variable = PRESSURE
         else:
             return 0.0;
 
@@ -139,7 +140,7 @@ class InterpretCPTData:
 
         if (  (nBestTop < 1) or (nBestBottom < 1) ):
             print( ' In the Usomething. NotFound Contacting nodes that are in the range of this kind of thing')
-            return 0.0
+            return 0.0, 0.0
 
         ### check element start
         if(1==0):
@@ -176,108 +177,30 @@ class InterpretCPTData:
         if (NBottom > 1.0 or NBottom < 0):
             print( 'ULTRA MEGA STUPID ERROR ')
 
-        uBottom = nodes[nBestBottom].GetSolutionStepValue(variable);
-        uTop = nodes[nBestTop].GetSolutionStepValue(variable);
-        ThisV = NTop*uTop + NBottom*uBottom;
-        return ThisV;
+        uBottom = nodes[nBestBottom].GetSolutionStepValue(variable)
+        uBottom2 = nodes[nBestBottom].GetSolutionStepValue(variable2)
+        uTop = nodes[nBestTop].GetSolutionStepValue(variable)
+        uTop2 = nodes[nBestTop].GetSolutionStepValue(variable2)
+        ThisV = NTop*uTop + NBottom*uBottom
+        ThisV2 = NTop*uTop2 + NBottom*uBottom2
+        return ThisV, ThisV2
 
-# NOT USED start
-    def GetPorePressureShaft(self, YSearch, BLOKI = False):
-
-        nodes = self.model_part.GetNodes(self.mesh_id);
-        if ( nodes[1].HasDofFor( WATER_PRESSURE) ):
-            variable = WATER_PRESSURE;
-        elif (nodes[1].HasDofFor( PRESSURE ) ):
-            variable = PRESSURE;
-        else:
-            return 0.0;
-
-        YBest = -100000;
-        YSecond = -100000000;
-        nBest = -100;
-        nSecond  = -100;
-
-        for node in self.model_part.GetNodes(self.mesh_id):
-            Force = node.GetSolutionStepValue( CONTACT_FORCE);
-            if ( abs(Force[0]) + abs(Force[1]) > 1e-8):
-                YThis = node.Y;
-                if ( abs( YThis-YSearch) < abs(YBest-YSearch) ):
-                    nSecond = nBest
-                    YSecond = YBest
-                    nBest = node.Id
-                    YBest = YThis
-                elif ( abs( YThis-YSearch) < abs(YSecond - YSearch) ):
-                    YSecond = YThis;
-                    nSecond = node.Id;
-
-        if (  (nBest < 1) or (nSecond < 1) ):
-            print( ' In the Usomething. NotFound Contacting nodes that that')
-            return 0.0
-
-        if ( (YBest <= YSearch) and ( YSearch <= YSecond) ):
-            #continue
-            a = 0
-        elif ( (YBest >= YSearch) and ( YSearch >= YSecond) ):
-            #continue
-            a = 0
-        else:
-            return 0.0;
-            rint( ' In the Usomething. Not consecutive nodes')
-            # try to plot this to see what may happen
-            plt.plot( [0.0, 0.02], [YSearch, YSearch])
-            AllNodes = self.model_part.GetNodes( self.mesh_id)
-            plt.plot( AllNodes[nBest].X, AllNodes[nBest].Y, 'ro')
-            plt.plot( AllNodes[nSecond].X, AllNodes[nSecond].Y, 'go')
-            a = [ 0, 1, 2, 0]
-
-            for elem in self.model_part.GetElements( self.mesh_id ):
-                XX = []; YY = [];
-                plotti = False
-                for i in a:
-                    XX.append( elem.GetNode(i).X)
-                    YY.append( elem.GetNode(i).Y)
-                    nn = elem.GetNode(i)
-                    CF = nn.GetSolutionStepValue(CONTACT_FORCE)
-                    if ( abs(CF[0]) + abs(CF[1]) > 1e-8):
-                        plotti = True; 
-                if ( plotti ):
-                    plt.plot( XX, YY)
-            #print( ' YSearch')
-            #print( ' YBest  ')
-            #print( ' YSecond')
-            #print(  YSearch)
-            #print(  YBest  )
-            #print(  YSecond)
-            plt.axis('equal')
-            plt.show(block=BLOKI)
-            plt.clf; 
-            return 0.0
-
-        DeltaY = abs(YSecond - YBest);
-        N1 = 1-  abs(YBest -YSearch) / DeltaY;
-        N2 = 1 - N1;
-
-        u2 = nodes[nSecond].GetSolutionStepValue(variable);
-        u1 = nodes[nBest].GetSolutionStepValue(variable);
-        ThisV = N1*u1 + N2*u2;
-        return ThisV;
-# NOT USED end
 
     #
     def GetPorePressureU22(self):
         #print( ' Getting U2')
-        YSearch = self.Y0 + self.Vy*self.GetStepTime();
-        U22 = self.GetPorePressureShaftAlt( YSearch )
-        return U22
+        YSearch = self.Y0 + self.Vy*self.GetStepTime()
+        U22, dU22 = self.GetPorePressureShaftAlt( YSearch )
+        return U22, dU22
 
 
     #
     def GetPorePressureU3(self):
         #print( ' Getting U3')
-        YSearch = self.Y0 + self.Vy*self.GetStepTime();
+        YSearch = self.Y0 + self.Vy*self.GetStepTime()
         YSearch = YSearch + 7.5*self.radius
-        U33 = self.GetPorePressureShaftAlt( YSearch )
-        return U33
+        U33, dU33 = self.GetPorePressureShaftAlt( YSearch )
+        return U33, dU33
 
 
     #
@@ -286,8 +209,8 @@ class InterpretCPTData:
         YSearch = self.Y0 + self.Vy*self.GetStepTime();
         #YSearch = YSearch - 0.01544989
         YSearch = YSearch - 0.017841
-        U11 = self.GetPorePressureShaftAlt( YSearch )
-        return U11
+        U11, dU11 = self.GetPorePressureShaftAlt( YSearch )
+        return U11, dU11
 
 
     #
@@ -351,16 +274,16 @@ class InterpretCPTData:
         Q = self.GetResistance();
         Friction = self.GetFriction();
 
-        U22 = self.GetPorePressureU22();
-        U33 = self.GetPorePressureU3()
-        U11 = self.GetPorePressureU1();
+        U22, dU22 = self.GetPorePressureU22();
+        U33, dU33 = self.GetPorePressureU3();
+        U11, dU11 = self.GetPorePressureU1();
 
         time = self.GetStepTime(); # - self.GetStepDeltaTime();
 
         ### write CPTInterpreter.csv
         figure_path = os.path.join(self.problem_path, "CPTInterpreter.csv")
         figure_file = open(figure_path, "a")
-        line_value = str(time) + " " + str(Q) + " " + str(Friction) + " " + str(U22) +  " " + str(U11) + " " + str(U33)  + "\n"
+        line_value = str(time) + " " + str(Q) + " " + str(Friction) + " " + str(U22) +  " " + str(U11) + " " + str(U33) + " " + str(dU22) +  " " + str(dU11) + " " + str(dU33)  + "\n"
         figure_file.write(line_value)
         figure_file.close()
 

@@ -63,7 +63,7 @@ class InterpretInterestingData:
             # write file headers
             if(os.path.exists(figure_path_nodes) == False):
                 figure_file = open(figure_path_nodes, "w")
-                line_header  = "ID X Y Z disp_X disp_Y disp_Z J WP" +"\n"
+                line_header  = "ID X Y Z disp_X disp_Y disp_Z J WP dWP" +"\n"
                 figure_file.write(line_header)
                 figure_file.close()
 
@@ -123,6 +123,7 @@ class InterpretInterestingData:
             nodalQuantities.append(node.GetSolutionStepValue( DISPLACEMENT_Z ))
             nodalQuantities.append(node.GetSolutionStepValue( JACOBIAN ))
             nodalQuantities.append(node.GetSolutionStepValue( WATER_PRESSURE ))
+            nodalQuantities.append(node.GetSolutionStepValue( EXCESS_WATER_PRESSURE ))
 
             # create string
             line_value = ""
