@@ -89,6 +89,9 @@ namespace Kratos
     ///@name Access
     ///@{
 
+    void SetValue( const Variable<Vector> & rThisVariable, 
+          const Vector & rValue,
+          const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -161,6 +164,7 @@ namespace Kratos
       */
     void SeparateVolumetricAndDeviatoricPart( const MatrixType& rA, double & rVolumetric, MatrixType& rDev, double & devNorm);
 
+    void SetStressState( MatrixType & rHenckyStrain, const double & rE, const double & rNu);
 
     ///@}
     ///@name Protected  Access
@@ -184,6 +188,9 @@ namespace Kratos
     ///@name Static Member Variables
     ///@{
 
+
+    bool mSetStressState;
+    Vector mInitialStressState;
 
     ///@}
     ///@name Member Variables

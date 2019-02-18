@@ -144,6 +144,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "NonlocalV2GensNovaModel", mNonlocalV2GensNovaModel );
   Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
   Serializer::Register( "MohrCoulombV1Model", mMohrCoulombV1Model );
+  Serializer::Register( "TrescaModel", mTrescaModel );
 
   //yield criteria
   Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
@@ -152,6 +153,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "ModifiedMisesYieldSurface", mModifiedMisesYieldSurface );
   Serializer::Register( "ModifiedCamClayYieldSurface", mModifiedCamClayYieldSurface );
   Serializer::Register( "MohrCoulombV1YieldSurface", mMohrCoulombV1YieldSurface );
+  Serializer::Register( "TrescaYieldSurface", mTrescaYieldSurface );
 
   //hardening rules
   Serializer::Register( "SimoExponentialHardeningRule", mSimoExponentialHardeningRule );

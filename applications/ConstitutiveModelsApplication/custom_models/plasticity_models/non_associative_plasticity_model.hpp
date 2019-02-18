@@ -150,6 +150,7 @@ namespace Kratos
                {
                   double p;
                   StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, rValue);
+                  rValue *= sqrt(3);
                }
                else if ( rThisVariable == STRESS_INV_THETA)
                {

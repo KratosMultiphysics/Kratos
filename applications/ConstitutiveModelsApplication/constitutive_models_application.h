@@ -93,6 +93,7 @@
 #include "custom_models/plasticity_models/v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/nonlocal_v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/mohr_coulomb_v1_model.hpp"
+#include "custom_models/plasticity_models/tresca_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 //#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
@@ -103,6 +104,7 @@
 #include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/gens_nova_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/mohr_coulomb_v1_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/tresca_yield_surface.hpp"
 
 //hardening rules
 #include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
@@ -321,6 +323,7 @@ namespace Kratos {
     const SimoJuExponentialDamageModel             mSimoJuExponentialDamageModel;
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
     const MohrCoulombV1Model                       mMohrCoulombV1Model;
+    const TrescaModel                              mTrescaModel;
 
     //yield criteria
     const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;
@@ -330,6 +333,7 @@ namespace Kratos {
     const ModifiedCamClayYieldSurface<HardeningRule>    mModifiedCamClayYieldSurface;
     const GensNovaYieldSurface<HardeningRule>           mGensNovaYieldSurface;
     const MohrCoulombV1YieldSurface<HardeningRule>      mMohrCoulombV1YieldSurface;
+    const TrescaYieldSurface<HardeningRule>             mTrescaYieldSurface;
     
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;

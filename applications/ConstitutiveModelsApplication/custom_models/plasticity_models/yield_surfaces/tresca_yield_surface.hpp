@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED )
-#define      KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED )
+#define      KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -47,7 +47,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MohrCoulombV1YieldSurface : public YieldSurface<THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) TrescaYieldSurface : public YieldSurface<THardeningRule>
   {    
   public:
 
@@ -63,22 +63,22 @@ namespace Kratos
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
-    /// Pointer definition of MohrCoulombV1YieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( MohrCoulombV1YieldSurface );
+    /// Pointer definition of TrescaYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( TrescaYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MohrCoulombV1YieldSurface() : BaseType() {}
+    TrescaYieldSurface() : BaseType() {}
 
     /// Copy constructor.
-    MohrCoulombV1YieldSurface(MohrCoulombV1YieldSurface const& rOther) : BaseType(rOther) {}
+    TrescaYieldSurface(TrescaYieldSurface const& rOther) : BaseType(rOther) {}
 
 
     /// Assignment operator.
-    MohrCoulombV1YieldSurface& operator=(MohrCoulombV1YieldSurface const& rOther)
+    TrescaYieldSurface& operator=(TrescaYieldSurface const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -87,11 +87,11 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MohrCoulombV1YieldSurface(*this));
+      return BaseTypePointer(new TrescaYieldSurface(*this));
     }
 
     /// Destructor.
-    virtual ~MohrCoulombV1YieldSurface() {}
+    virtual ~TrescaYieldSurface() {}
 
 
     ///@}
@@ -117,24 +117,30 @@ namespace Kratos
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       // Material Parameters
-      const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
-      const double & rCohesion = rMaterialProperties[COHESION];
-      double Friction = rFriction* Globals::Pi / 180.0;
+      const double & rYieldStress = rMaterialProperties[YIELD_STRESS];
 
       double MeanStress, LodeAngle, J2;
-      
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
 
-      double K;
-      K = std::cos( LodeAngle) - 1.0/sqrt(3.0) * std::sin( LodeAngle) * std::sin( Friction);
-      rYieldCondition = MeanStress * std::sin( Friction) + J2 * K - rCohesion * std::cos( Friction );
+      double LodeCut = this->GetSmoothingLodeAngle();
 
+      if ( fabs(LodeAngle) < LodeCut ) {
 
+         rYieldCondition = J2 * std::cos( LodeAngle );
 
-      //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pcSTAR " << rPCstar << " yield value " << rYieldCondition << std::endl;
-      //std::cout << " stressMatrix " << rStressMatrix << " translated " << StressTranslated << " and " << rPT << std::endl;
-      return rYieldCondition;
+      }
+      else {
+
+         double ASmoothing, BSmoothing, CSmoothing;
+         CalculateSmoothingInvariants( ASmoothing, BSmoothing, CSmoothing, LodeAngle);
+
+         rYieldCondition =  J2 * ( ASmoothing +  BSmoothing * std::sin( 3.0* LodeAngle )  + CSmoothing * pow( std::sin( 3.0*LodeAngle), 2 )  );
+      }
+
+      //rStateFunction = rStateFunction/YieldStress - 1.0;
+      rYieldCondition = rYieldCondition - 1.0*rYieldStress;
+      return rYieldCondition; 
 
       KRATOS_CATCH(" ")
     }
@@ -147,14 +153,10 @@ namespace Kratos
       KRATOS_TRY
 
       const ModelDataType & rModelData = rVariables.GetModelData();
-      const Properties& rMaterialProperties = rModelData.GetProperties();
 
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       // Material Parameters
-      const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
-      //const double & rCohesion = rMaterialProperties[COHESION];
-      double Friction = rFriction* Globals::Pi / 180.0;
 
       double MeanStress, LodeAngle, J2;
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
@@ -163,23 +165,40 @@ namespace Kratos
       VectorType V1, V2, V3;
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2, V3);
 
-      double A1, A2, A3;
-      
-      double K;
-      K = std::cos( LodeAngle) - 1.0/sqrt(3.0) * std::sin( LodeAngle) * std::sin( Friction);
-      double dKdAngle;
-      dKdAngle = -std::sin( LodeAngle) - 1.0/sqrt(3.0) * std::cos( LodeAngle) * std::sin( Friction);
-      
+      double C2;
+      double C3;
 
-      A1 = sin( Friction);
-      A2 = K - dKdAngle * std::tan( 3.0 * LodeAngle);
-      A3 = sqrt(3)*dKdAngle;
-      A3 /= 2.0 * pow(J2, 2) * std::cos( 3.0 * LodeAngle);
+      double LodeCut = this->GetSmoothingLodeAngle();
 
-      rDeltaStressYieldCondition  = A1 * V1 + A2 * V2 + A3 *V3 ;
+      if ( fabs(LodeAngle) < LodeCut ) {
 
+         C2 =  std::cos( LodeAngle) * ( 1.0 + std::tan( LodeAngle) * std::tan( 3.0 * LodeAngle) );
+
+         C3 = sqrt(3.0) / 2.0 * std::sin( LodeAngle) / std::cos( 3.0* LodeAngle);
+         C3 /= pow( J2, 2);
+
+         if ( J2 < 1E-6)
+            C3 = 0.0;
+      }
+      else {
+
+         double ASmoothing, BSmoothing, CSmoothing;
+         CalculateSmoothingInvariants( ASmoothing, BSmoothing, CSmoothing, LodeAngle);
+
+         C2 = ASmoothing - 2.0 * BSmoothing * std::sin( 3.0 * LodeAngle ) - 5.0 * CSmoothing * pow( std::sin( 3.0 * LodeAngle ) , 2 );
+
+         C3 = BSmoothing + 2.0 * CSmoothing * std::sin( 3.0 * LodeAngle ) ;
+         C3 *= -3.0 * sqrt( 3.0) / ( 2.0 * pow( J2, 2 ) );
+
+         if ( fabs( J2) < 1E-6) {
+            C3 = 0.0;
+         }
+
+      } 
+
+
+      rDeltaStressYieldCondition = C2*V2 + C3*V3;
       return rDeltaStressYieldCondition;
-
       KRATOS_CATCH(" ")
     }
 
@@ -203,20 +222,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "MohrCoulombV1YieldSurface" ;
+      buffer << "TrescaYieldSurface" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "MohrCoulombV1YieldSurface";
+      rOStream << "TrescaYieldSurface";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "MohrCoulombV1YieldSurface Data";
+      rOStream << "TrescaYieldSurface Data";
     }
 
 
@@ -245,8 +264,40 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
+         
+    void CalculateSmoothingInvariants( double & rASmoothing, double & rBSmoothing, double & rCSmoothing, const double & rLodeAngle)
+    {
+       KRATOS_TRY
 
-    
+      double SignedSmoothing = this->GetSmoothingLodeAngle();
+      double SmoothingAngle = this->GetSmoothingLodeAngle();
+
+      if ( rLodeAngle < 0.0)
+         SignedSmoothing = -SmoothingAngle;
+
+      double Denom = 18.0 * pow ( std::cos( 3.0 * SmoothingAngle) , 3 );
+      
+      rCSmoothing = - std::cos( 3.0*SmoothingAngle) * std::cos( SmoothingAngle) - 3.0*std::sin ( 3.0 * SmoothingAngle) * std::sin( SmoothingAngle);
+
+      rBSmoothing = std::cos( SmoothingAngle) * std::sin( 6.0 * SignedSmoothing)  - 6.0 * std::cos( 6.0 * SmoothingAngle) * std::sin( SignedSmoothing) ;
+
+      rBSmoothing /= Denom;
+      rCSmoothing /= Denom;
+
+      rASmoothing =  std::cos( SmoothingAngle) - rBSmoothing * std::sin( 3.0 * SignedSmoothing) - rCSmoothing * pow( std::sin( 3.0 * SmoothingAngle), 2 ) ;
+
+
+       KRATOS_CATCH("")
+    }
+
+
+    double GetSmoothingLodeAngle() 
+    {
+       KRATOS_TRY
+
+       return 29.0*Globals::Pi/180.0;  
+       KRATOS_CATCH("")
+    }
     ///@}
     ///@name Protected  Access
     ///@{
@@ -316,7 +367,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class MohrCoulombV1YieldSurface
+  }; // Class TrescaYieldSurface
 
   ///@}
 
@@ -335,6 +386,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MOHR_COULOMB_V1_YIELD_SURFACE_H_INCLUDED  defined 
+#endif // KRATOS_TRECA_YIELD_SURFACE_H_INCLUDED  defined 
 
 

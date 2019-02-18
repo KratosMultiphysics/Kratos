@@ -24,13 +24,14 @@ namespace Kratos
    HenckyLinearModel::HenckyLinearModel()
       : HenckyHyperElasticModel()
    {
+      mSetStressState = false;
    }
 
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
    HenckyLinearModel::HenckyLinearModel(const HenckyLinearModel& rOther)
-      : HenckyHyperElasticModel( rOther )
+      : HenckyHyperElasticModel( rOther ), mSetStressState( rOther.mSetStressState)
    {
    }
 
@@ -47,6 +48,7 @@ namespace Kratos
    HenckyLinearModel& HenckyLinearModel::operator=(HenckyLinearModel const& rOther)
    {
       HenckyHyperElasticModel::operator=(rOther);
+      mSetStressState = rOther.mSetStressState;
       return *this;
    }
 
@@ -105,7 +107,14 @@ namespace Kratos
       double ShearModulus = rYoungModulus / 2.0 / (1.0 + rPoissonRatio);
 
 
-      const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
+      MatrixType HenckyStrain(3,3);
+      HenckyStrain = rVariables.Strain.Matrix;
+
+      if ( mSetStressState )
+      {
+         mSetStressState = false;
+         SetStressState( HenckyStrain, rYoungModulus, rPoissonRatio);
+      }
 
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;
@@ -165,6 +174,97 @@ namespace Kratos
 
 
       rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
+
+      KRATOS_CATCH("")
+   }
+
+   // ***************************************************************************
+   // Set Value (Vector)
+   void HenckyLinearModel::SetValue( const Variable<Vector> & rThisVariable, const Vector & rValue, const ProcessInfo& rCurrentProcessInfo)
+   {
+      KRATOS_TRY
+
+      if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
+      {
+         mInitialStressState.resize(6);
+         noalias( mInitialStressState) = ZeroVector(6);
+         mInitialStressState = rValue;
+         mSetStressState = true;
+
+      }
+
+      KRATOS_CATCH("")
+   }
+
+   // *********************************************************************************
+   // Set Stress state
+   void HenckyLinearModel::SetStressState( MatrixType & rHenckyStrain, const double & rE, const double & rNu)
+   {
+
+      KRATOS_TRY
+      Matrix StressMat(3,3);
+      noalias( StressMat) = ZeroMatrix(3,3);
+
+      for (int i = 0; i < 3; ++i)
+         StressMat(i,i) = mInitialStressState(i);
+
+
+      Vector EigenStress(3);
+      MatrixType EigenStressM;
+      MatrixType  EigenV;
+      noalias( EigenStressM ) = ZeroMatrix(3,3);
+      noalias( EigenV) = ZeroMatrix(3,3);
+      MatrixType OriginalHencky;
+      noalias( OriginalHencky) = ZeroMatrix(3,3);
+      OriginalHencky = rHenckyStrain;
+
+      //SolidMechanicsMathUtilities<double>::EigenVectors( StressMat, EigenV, EigenStress);
+      MathUtils<double>::EigenSystem<3> ( StressMat, EigenV, EigenStressM);
+      for (unsigned int i = 0; i < 3; i++)
+         EigenStress(i) = EigenStressM(i,i);
+
+
+      Vector ElasticHenckyStrain(3);
+      Matrix InverseElastic(3,3);
+      const double & YoungModulus = rE;
+      const double & PoissonCoef  = rNu;
+
+
+      for (unsigned int i = 0; i < 3; ++i) {
+         for (unsigned int j = 0; j < 3; ++j) {
+            if (i == j ) {
+               InverseElastic(i,i) = 1.0/YoungModulus;
+            }
+            else {
+               InverseElastic(i,j) = - PoissonCoef / YoungModulus;
+            }
+         }
+      }
+
+      noalias( ElasticHenckyStrain )  = prod( InverseElastic, EigenStress);
+
+
+      MatrixType ElasticLeftCauchy(3,3);
+      noalias( ElasticLeftCauchy ) = ZeroMatrix(3,3);
+      noalias( rHenckyStrain ) = ZeroMatrix(3,3);
+
+      for (unsigned int i = 0; i < 3; ++i) {
+         ElasticLeftCauchy(i,i) = std::exp(2.0*ElasticHenckyStrain(i));
+         rHenckyStrain(i,i) = ElasticHenckyStrain(i);
+      }
+
+      noalias( ElasticLeftCauchy ) = prod( trans( EigenV), ElasticLeftCauchy);
+      noalias( ElasticLeftCauchy )  = prod( ElasticLeftCauchy, (EigenV) );
+
+      noalias( rHenckyStrain ) = prod( trans(EigenV), rHenckyStrain);
+      noalias( rHenckyStrain ) = prod( rHenckyStrain, EigenV);
+
+      rHenckyStrain += OriginalHencky;
+
+      Vector NewHistoryVector(6);
+      NewHistoryVector = ConstitutiveModelUtilities::StrainTensorToVector( ElasticLeftCauchy, NewHistoryVector);
+      this->mHistoryVector = NewHistoryVector;
+
 
       KRATOS_CATCH("")
    }
