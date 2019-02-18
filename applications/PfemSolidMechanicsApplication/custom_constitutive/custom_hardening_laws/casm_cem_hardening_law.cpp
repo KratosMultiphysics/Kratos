@@ -29,7 +29,7 @@ namespace Kratos
 	CasmCemHardeningLaw::CasmCemHardeningLaw()
 		:HardeningLaw()
 	{
-		std::cout<<"   CASM CEM HARDENING LAW constructed"<<std::endl;
+		std::cout<<"   CASM-CEM HARDENING LAW constructed"<<std::endl;
 	}
 
 
@@ -66,29 +66,61 @@ namespace Kratos
 	//************************************************************************************
 	void CasmCemHardeningLaw::CalculateHardening(PlasticVariablesType& rPlasticVariables, const double& rDeltaAlpha, const double& rDeltaBeta)
 	{
-		const double SwellingSlope 									= GetProperties()[SWELLING_SLOPE];
-		const double OtherSlope 										= GetProperties()[NORMAL_COMPRESSION_SLOPE];
-		const double Omega 													= GetProperties()[PLASTIC_DEVIATORIC_STRAIN_HARDENING];
-		const double H1 														= GetProperties()[DEGRADATION_RATE_COMPRESSION];
-		const double H2 														= GetProperties()[DEGRADATION_RATE_SHEAR];
+		const double FirstPreconsolidationPressure 	= GetProperties()[PRE_CONSOLIDATION_STRESS];
+		const double SwellingSlope 					= GetProperties()[SWELLING_SLOPE];
+		const double OtherSlope 					= GetProperties()[NORMAL_COMPRESSION_SLOPE];
+		const double Omega 							= GetProperties()[PLASTIC_DEVIATORIC_STRAIN_HARDENING];
+		const double B0 							= GetProperties()[INITIAL_BONDING];
+		const double H0 							= GetProperties()[DEGRADATION_THRESHOLD];
+		const double H1 							= GetProperties()[DEGRADATION_RATE_COMPRESSION];
+		const double H2 							= GetProperties()[DEGRADATION_RATE_SHEAR];
 
 		//update hardening parameter
-		rPlasticVariables.PreconsolidationPressure += rPlasticVariables.PreconsolidationPressure/(OtherSlope-SwellingSlope)*(-rDeltaAlpha + Omega*rDeltaBeta );
-		rPlasticVariables.Bonding += -rPlasticVariables.Bonding*( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) );
+		double Pinit = rPlasticVariables.PreconsolidationPressure;
+
+		//VERSION 1:
+		//rPlasticVariables.PreconsolidationPressure += rPlasticVariables.PreconsolidationPressure/(OtherSlope-SwellingSlope)*(-rDeltaAlpha + Omega*rDeltaBeta );
+		//rPlasticVariables.Bonding += -rPlasticVariables.Bonding*( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) );
+		
+		//VERSION 2:
+		rPlasticVariables.PreconsolidationPressure = -FirstPreconsolidationPressure*(std::exp(1/(OtherSlope-SwellingSlope)*(-(rPlasticVariables.EquivalentPlasticStrain+rDeltaAlpha) + Omega*(rPlasticVariables.PlasticShearStrain+rDeltaBeta) )));
+		//rPlasticVariables.Bonding *= B0*std::exp(-( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) ));
+
+		//VERSION 3
+		double prevH = 0.0;
+		if ( B0 == 0.0 ){
+			rPlasticVariables.Bonding = 0.0;
+		} else {
+			prevH = H0 - std::log(rPlasticVariables.Bonding/B0);
+			rPlasticVariables.Bonding = B0*std::exp(H0 - ( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) + prevH));
+		}
+
+		if( rPlasticVariables.PreconsolidationPressure > 0 || std::isnan(rPlasticVariables.PreconsolidationPressure) || std::isnan(rPlasticVariables.Bonding) )
+		{
+			std::cout<<std::endl<<"Error in hardening variables: "<<std::endl;
+	    	std::cout<<"  P: "<< rPlasticVariables.PreconsolidationPressure <<std::endl;
+	    	std::cout<<"  P0_init: "<< Pinit <<std::endl;
+	    	std::cout<<"  rDeltaAlpha: "<< rDeltaAlpha <<std::endl;
+	    	std::cout<<"  factor: "<< (-rDeltaAlpha + Omega*rDeltaBeta )/(OtherSlope-SwellingSlope) <<std::endl;
+	    	std::cout<<"  b: "<< rPlasticVariables.Bonding <<std::endl;
+	    	std::cout<<"  factor: "<< std::exp(H0 - ( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) + prevH)) <<std::endl;
+	    	std::cout<<"  h: "<< ( H1*fabs(rDeltaAlpha) + H2*fabs(rDeltaBeta) + prevH) <<std::endl;
+	    	std::cout<<"  prevH: "<< prevH <<std::endl;
+		}
 	}
 
-
+/*
 	Vector& CasmCemHardeningLaw::CalculateHardening(Vector& rHardening, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum, const double rTemperature)
 	{
 		//rAlpha ... inc vol strain, rBeta ... inc dev strain
 		const double FirstPreconsolidationPressure 	= GetProperties()[PRE_CONSOLIDATION_STRESS];
-		const double SwellingSlope 									= GetProperties()[SWELLING_SLOPE];
-		const double OtherSlope 										= GetProperties()[NORMAL_COMPRESSION_SLOPE];
-		const double Omega 													= GetProperties()[PLASTIC_DEVIATORIC_STRAIN_HARDENING];
-		const double B0 														= GetProperties()[INITIAL_BONDING];
-		const double H0 														= GetProperties()[DEGRADATION_THRESHOLD];
-		const double H1 														= GetProperties()[DEGRADATION_RATE_COMPRESSION];
-		const double H2 														= GetProperties()[DEGRADATION_RATE_SHEAR];
+		const double SwellingSlope 					= GetProperties()[SWELLING_SLOPE];
+		const double OtherSlope 					= GetProperties()[NORMAL_COMPRESSION_SLOPE];
+		const double Omega 							= GetProperties()[PLASTIC_DEVIATORIC_STRAIN_HARDENING];
+		const double B0 							= GetProperties()[INITIAL_BONDING];
+		const double H0 							= GetProperties()[DEGRADATION_THRESHOLD];
+		const double H1 							= GetProperties()[DEGRADATION_RATE_COMPRESSION];
+		const double H2 							= GetProperties()[DEGRADATION_RATE_SHEAR];
 
 		
 		rHardening(0) = -FirstPreconsolidationPressure*(std::exp ((-rAlpha + Omega*rBeta)/(OtherSlope-SwellingSlope)) );
@@ -113,7 +145,7 @@ namespace Kratos
 		rHardening = aux(1);
 		return rHardening;
 	}
-
+*/
 
 	void CasmCemHardeningLaw::save( Serializer& rSerializer ) const
 	{

@@ -64,11 +64,14 @@ namespace Kratos
 	//************************************************************************************
 	void CasmHardeningLaw::CalculateHardening(PlasticVariablesType& rPlasticVariables, const double& rDeltaAlpha, const double& rDeltaBeta)
 	{
-		const double SwellingSlope 		= GetProperties()[SWELLING_SLOPE];
-		const double OtherSlope 		= GetProperties()[NORMAL_COMPRESSION_SLOPE];
+		const double FirstPreconsolidationPressure 	= GetProperties()[PRE_CONSOLIDATION_STRESS];
+		const double SwellingSlope 					= GetProperties()[SWELLING_SLOPE];
+		const double OtherSlope 					= GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
 		//update hardening parameter
-		rPlasticVariables.PreconsolidationPressure += rPlasticVariables.PreconsolidationPressure/(OtherSlope-SwellingSlope)*(-rDeltaAlpha );
+		//rPlasticVariables.PreconsolidationPressure += rPlasticVariables.PreconsolidationPressure/(OtherSlope-SwellingSlope)*(-rDeltaAlpha );
+		rPlasticVariables.PreconsolidationPressure = -FirstPreconsolidationPressure*(std::exp(1/(OtherSlope-SwellingSlope)*(-(rPlasticVariables.EquivalentPlasticStrain+rDeltaAlpha) )));
+
 	}
 
 	Vector& CasmHardeningLaw::CalculateHardening(Vector& rHardening, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum, const double rTemperature)
