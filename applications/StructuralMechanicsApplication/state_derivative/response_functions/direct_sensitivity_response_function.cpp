@@ -36,26 +36,44 @@ namespace Kratos
 
     void DirectSensitivityResponseFunction::Initialize()
     {
-        KRATOS_TRY;
+        KRATOS_TRY; 
 
         KRATOS_CATCH("");
     }
 
-    void DirectSensitivityResponseFunction::CalculateGradient(Element& rDirectElement,
-                                    Variable<array_1d<double, 3>> const& rStressVariable,
+    
+    void DirectSensitivityResponseFunction::CalculateGradient(Element& rDirectElement,                            
+                                    Variable<array_1d<double, 3>> const& rResponseVariable,
                                     std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                                     const ProcessInfo& rProcessInfo)
     {
-        KRATOS_ERROR << "CalculateGradient needs to be implemented by the derived class.\n";
+        KRATOS_ERROR << "CalculateGradient() needs to be implemented by the derived class.\n";  
+    }
+
+    void DirectSensitivityResponseFunction::CalculateGradient(Node<3>& rNode,                            
+                                    Variable<array_1d<double, 3>> const& rStressVariable,
+                                    std::vector<array_1d<double, 3>>& rOutput, 
+                                    const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "CalculateGradient() needs to be implemented by the derived class.\n";  
     }
     
     void DirectSensitivityResponseFunction::CalculatePartialSensitivity(Element& rDirectElement, 
                                     DirectSensitivityVariable& rDesignVariable,
-                                    Variable<array_1d<double, 3>> const& rStressVariable, 
+                                    Variable<array_1d<double, 3>> const& rResponseVariable, 
                                     std::vector<array_1d<double, 3>>& rOutput, 
                                     const ProcessInfo& rProcessInfo)
     {
-        KRATOS_ERROR << "CalculatePartialGradient needs to be implemented by the derived class.\n";
+        KRATOS_ERROR << "CalculatePartialSensitivity() needs to be implemented by the derived class.\n";  
+    }
+
+    void DirectSensitivityResponseFunction::CalculatePartialSensitivity(Node<3>& rNode, 
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    Variable<array_1d<double, 3>> const& rStressVariable, 
+                                    array_1d<double, 3>& rOutput, 
+                                    const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "CalculatePartialSensitivity() needs to be implemented by the derived class.\n";  
     }
     
     std::vector<std::string> DirectSensitivityResponseFunction::GetResponseSensitivityVariableVector()
@@ -63,19 +81,5 @@ namespace Kratos
         KRATOS_ERROR << "GetResponseSensitivityVariableVector() needs to be implemented by the derived class.\n";
     }
     
-    void DirectSensitivityResponseFunction::Addition( array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput )
-    {
-        for (IndexType dir_it = 0; dir_it < 3; ++dir_it)
-            rOutput[dir_it] += rInput[dir_it];
-    }
-
-    
-    void DirectSensitivityResponseFunction::SetToZero( array_1d<double, 3>& rOutput )
-    {
-        for (IndexType dir_it = 0; dir_it < 3; ++dir_it)
-            rOutput[dir_it] = 0;
-    }
-
-
 };
 

@@ -25,6 +25,9 @@
 #include "includes/condition.h"
 #include "includes/process_info.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "derivative_builder.h"
+#include "state_derivative/math_functions/vector_math.h"
+#include "state_derivative/output_utilities/output_utility.h"
 
 
 namespace Kratos
@@ -35,10 +38,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStructuralResponseFunction
+/** \brief DirectSensitivityResponseFunction
 *
 * This is the response base class for responses in structural mechanics.
-* It is designed to be used in adjoint sensitivity analysis.
+* It is designed to be used in direct sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityResponseFunction
 {
@@ -92,11 +95,23 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable,
                             std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                             const ProcessInfo& rProcessInfo);
+    
+    virtual void CalculateGradient(Node<3>& rNode,                            
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<array_1d<double, 3>>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
+    
 
     virtual void CalculatePartialSensitivity(Element& rDirectElement, 
                             DirectSensitivityVariable& rDesignVariable,
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             std::vector<array_1d<double, 3>>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
+
+    virtual void CalculatePartialSensitivity(Node<3>& rNode, 
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<array_1d<double, 3>> const& rStressVariable, 
+                            array_1d<double, 3>& rOutput, 
                             const ProcessInfo& rProcessInfo);
 
     virtual std::vector<std::string> GetResponseSensitivityVariableVector();
@@ -120,9 +135,6 @@ protected:
     ///@name Protected Operations
     ///@{
     
-    virtual void Addition(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
-    
-    virtual void SetToZero( array_1d<double, 3>& rOutput );
     ///@}
 
 private:

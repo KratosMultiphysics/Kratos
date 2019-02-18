@@ -31,10 +31,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStructuralResponseFunction
+/** \brief DirectSensitivityNodalDisplacementResponseFunction
 *
-* This is the response base class for responses in structural mechanics.
-* It is designed to be used in adjoint sensitivity analysis.
+* This is the response class for nodal displacements used in the direct sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityNodalDisplacementResponseFunction : public DirectSensitivityResponseFunction
 {
@@ -75,23 +74,19 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override;
+    void Initialize() override;    
 
-    void CalculateGradient(Element& rDirectElement, 
-                            const Matrix& rLHS,
-                            Matrix& rResponseGradientMatrix,                                     
+    void CalculateGradient(Node<3>& rNode,                            
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<array_1d<double, 3>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
 
-       
+    void CalculatePartialSensitivity(Node<3>& rNode, 
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<array_1d<double, 3>> const& rStressVariable, 
+                            array_1d<double, 3>& rOutput, 
+                            const ProcessInfo& rProcessInfo) override;
     
-    void CalculatePartialSensitivity(Element& rDirectElement, 
-                            DirectSensitivityVariable& DesignVariable,
-                            Matrix& rSensitivityGradient,
-                            const ProcessInfo& rProcessInfo) override;
-
-    int GetNumberOfOutputPositions() override;
-
-
     ///@}
 
 protected:
@@ -112,9 +107,7 @@ private:
     ///@name private Member Variables
     ///@{
     
-    std::vector<std::string> mTracedDofsVector;
-    std::vector<unsigned int> mIdOfLocationVector;
-
+    
     ///@}
     ///@name Private Operators
     ///@{
