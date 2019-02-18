@@ -72,9 +72,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('...Replacing elements...')
 
         nodal_distances_to_wake = KratosMultiphysics.Vector(3)
-        
-
-        print('self.fluid_model_part.NumberOfElements() = ',self.fluid_model_part.NumberOfElements())
 
         for elem in self.fluid_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
