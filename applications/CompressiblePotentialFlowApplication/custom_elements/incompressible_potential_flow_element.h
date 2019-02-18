@@ -78,7 +78,6 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    [[deprecated("Using deprecated IncompressiblePotentialFlowElement constructor")]]
     explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
 
     /**
