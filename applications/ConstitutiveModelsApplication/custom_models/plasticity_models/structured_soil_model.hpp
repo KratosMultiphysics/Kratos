@@ -501,7 +501,7 @@ namespace Kratos
 
 
 
-               double Tolerance = 1e-7;
+               double Tolerance = 1e-6;
 
                MatrixType StressMatrix;
                this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);

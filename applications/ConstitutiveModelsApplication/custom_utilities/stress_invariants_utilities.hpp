@@ -132,7 +132,15 @@ namespace Kratos
 
          }
 
-         static inline void CalculateDerivativeVectors( const Vector rStress, Vector& C1, Vector& C2, Vector& C3)
+         static inline void CalculateDerivativeVectors( const MatrixType& rStressMatrix, VectorType& C1, VectorType & C2, VectorType & C3)
+         {
+            Vector StressVector = ZeroVector(6);
+            ConstitutiveModelUtilities::StressTensorToVector( rStressMatrix, StressVector);
+            CalculateDerivativeVectors( StressVector, C1, C2, C3);
+
+         }
+
+         static inline void CalculateDerivativeVectors( const Vector & rStress, VectorType& C1, VectorType& C2, VectorType& C3)
          {
             // COPY
             C1 = ZeroVector(6);
@@ -165,7 +173,7 @@ namespace Kratos
             for (int i = 0; i < 3; i++)
                ShearStress(i) -= I1;
 
-            C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2);
+            /*C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2);
             C3(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2);
             C3(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2);
 
@@ -175,8 +183,9 @@ namespace Kratos
 
             for (unsigned int i = 0; i < 3; ++i)
                C3(i) += pow(J2, 2) / 3.0;
+            */
 
-            Matrix Aux, ShearStressM;
+            MatrixType Aux, ShearStressM;
             ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
             Aux = prod(  ShearStressM, ShearStressM);
 

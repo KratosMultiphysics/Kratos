@@ -77,6 +77,8 @@
 #include "custom_models/elasticity_models/ogden_model.hpp"
 //#include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
 #include "custom_models/elasticity_models/incompressible_hypo_elastic_model.hpp"
+#include "custom_models/elasticity_models/hencky_linear_model.hpp"
+
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -90,6 +92,7 @@
 #include "custom_models/plasticity_models/gens_nova_model.hpp"
 #include "custom_models/plasticity_models/v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/nonlocal_v2_gens_nova_model.hpp"
+#include "custom_models/plasticity_models/mohr_coulomb_v1_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 //#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
@@ -99,6 +102,7 @@
 #include "custom_models/plasticity_models/yield_surfaces/modified_mises_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/gens_nova_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/mohr_coulomb_v1_yield_surface.hpp"
 
 //hardening rules
 #include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
@@ -109,7 +113,7 @@
 #include "custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.hpp"
-
+#include "custom_models/plasticity_models/hardening_rules/mohr_coulomb_v1_hardening_rule.hpp"
 
 //#include "constitutive_models_application_variables.h"
 
@@ -300,6 +304,7 @@ namespace Kratos {
     const HypoElasticModel                         mHypoElasticModel;
     const IsochoricHypoElasticModel                mIsochoricHypoElasticModel;
     const IncompressibleHypoElasticModel           mIncompressibleHypoElasticModel;
+    const HenckyLinearModel                        mHenckyLinearModel;
 
     //plasticity models
     const VonMisesLinearElasticPlasticityModel     mVonMisesLinearElasticPlasticityModel;
@@ -315,6 +320,7 @@ namespace Kratos {
     const NonlocalV2GensNovaModel                  mNonlocalV2GensNovaModel;
     const SimoJuExponentialDamageModel             mSimoJuExponentialDamageModel;
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
+    const MohrCoulombV1Model                       mMohrCoulombV1Model;
 
     //yield criteria
     const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;
@@ -323,6 +329,7 @@ namespace Kratos {
     const ModifiedMisesYieldSurface<HardeningRule>      mModifiedMisesYieldSurface;
     const ModifiedCamClayYieldSurface<HardeningRule>    mModifiedCamClayYieldSurface;
     const GensNovaYieldSurface<HardeningRule>           mGensNovaYieldSurface;
+    const MohrCoulombV1YieldSurface<HardeningRule>      mMohrCoulombV1YieldSurface;
     
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;
@@ -334,6 +341,7 @@ namespace Kratos {
     const ModifiedExponentialDamageHardeningRule    mModifiedExponentialDamageHardeningRule;
     const CamClayHardeningRule                      mCamClayHardeningRule;
     const GensNovaHardeningRule                     mGensNovaHardeningRule;
+    const MohrCoulombV1HardeningRule                mMohrCoulombV1HardeningRule;
       
        
     ///@}

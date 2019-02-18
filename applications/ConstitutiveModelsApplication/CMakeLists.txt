@@ -40,6 +40,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/mooney_rivlin_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/borja_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/tamagnini_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hencky_linear_model.cpp
 
 	#plasticity models (template, all in headers)
 
@@ -55,6 +56,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/mohr_coulomb_v1_hardening_rule.cpp
 
         #utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_layout.cpp
