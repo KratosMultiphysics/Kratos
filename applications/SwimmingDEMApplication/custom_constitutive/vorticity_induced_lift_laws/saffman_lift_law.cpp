@@ -54,7 +54,6 @@ namespace Kratos {
         const double lift_coeff = ComputeSaffmanLiftCoefficient(fluid_density, fluid_kinematic_viscosity, particle_radius, norm_of_vorticity);
 
         noalias(vorticity_induced_lift) = lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x (- slip_vel) (Jackson, 2000), which is normalized here
-        KRATOS_WATCH(vorticity_induced_lift)
     }
 
 } // namespace Kratos
