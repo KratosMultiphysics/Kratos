@@ -217,7 +217,6 @@ class MechanicalSolver(object):
             raise Exception("Other input options are not yet implemented.")
 
 
-        print(self.main_model_part)
         print ("::[Mechanical_Solver]:: Finished importing model part.")
             
     def ExportModelPart(self):
