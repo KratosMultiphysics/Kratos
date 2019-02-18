@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_constitutive/elastic_isotropic_3d.h"
 
 
 namespace Kratos
@@ -45,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class SerialParallelRuleOfMixturesLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This CL implements the serial-parallel rule of mixtures developed by F.Rastellini 
  * @details
@@ -308,6 +307,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Vector& rShapeFunctionsValues);
 
 
+    /**
+     * This method computes the stresses in the matrix and fiber according to the Serial-Parallel RoM
+     * @param rStrainVector The total strain of the composite
+     * @param FiberStressVector the Stress of the Fiber
+     * @param MatrixStressVector the Stress of the Matrix
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rValues the needed parameters for the CL calculation
+     * @param rSerialStrainMatrix the serial component of the matrix strain vector
+     */
     void IntegrateStrainSerialParallelBehaviour(
         const Vector& rStrainVector,
         Vector& FiberStressVector,
@@ -316,12 +324,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         ConstitutiveLaw::Parameters& rValues,
         Vector& rSerialStrainMatrix);
 
+    /**
+     * This method computes the projection tensors that divide the serial & paralle behaviours of the Strain/Stress
+     * @param rParallelProjector The Parallel behaviour projector
+     * @param rSerialProjector The Serial behaviour projector
+     */
     void CalculateSerialParallelProjectionMatrices(
-        Matrix& rFiberStressVector,
-        Matrix& rMatrixStressVector);
+        Matrix& rParallelProjector,
+        Matrix& rSerialProjector);
 
+    /**
+     * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
     void InitializeMaterialResponsePK2(Parameters& rValues);  
 
+    /**
+     * This method computes the strain vector in the fiber and matrix according to the total 
+     * strain and the serial strain of the matrix
+     * @param rStrainVector The total strain of the composite
+     * @param rParallelProjector The Parallel behaviour projector
+     * @param rSerialProjector The Serial behaviour projector
+     * @param rSerialStrainMatrix the serial component of the matrix strain vector
+     * @param rStrainVectorMatrix the strain vector of the matrix
+     * @param rStrainVectorFiber  the strain vector of the fiber
+     */
     void CalculateStrainsOnEachComponent(
         const Vector& rStrainVector,
         const Matrix& rParallelProjector,
@@ -330,6 +357,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         Vector& rStrainVectorMatrix,
         Vector& rStrainVectorFiber);
 
+    /**
+     * This method computes the initial aproximation of the Newton-Raphson procedure
+     * regarding the serial strain of the matrix
+     * @param rStrainVector The total strain of the composite
+     * @param rPreviousStrainVector The total strain of the composite of the previous step
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rParallelProjector The Parallel behaviour projector
+     * @param rSerialProjector The Serial behaviour projector
+     * @param rConstitutiveTensorMatrixSS the serial-serial components of the constitutive tensor of the matrix
+     * @param rConstitutiveTensorFiberSS  the serial-serial components of the constitutive tensor of the fiber
+     * @param rInitialApproximationSerialStrainMatrix  initial aproximation of the serial strain of the matrix
+     */
     void CalculateInitialApproximationSerialStrainMatrix(
         const Vector& rStrainVector,
         const Vector& rPreviousStrainVector,
@@ -340,6 +379,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         Matrix& rConstitutiveTensorFiberSS,
         Vector& rInitialApproximationSerialStrainMatrix);
 
+    /**
+     * This method computes the stresses of the matrix/fiber according to its own CL
+     * @param rValues the needed parameters for the CL calculation
+     * @param rMatrixStrainVector the strain vector of the matrix
+     * @param rMatrixStressVector  the stress vector of the matrix
+     * @param rFiberStressVector  the stress vector of the fiber
+     */
     void IntegrateStressesOfFiberAndMatrix(
         ConstitutiveLaw::Parameters& rValues,
         Vector rMatrixStrainVector,
@@ -347,6 +393,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         Vector& rMatrixStressVector,
         Vector& rFiberStressVector);
 
+    /**
+     * This method checks wether the serial stresses are in equilibrium
+     * @param rStrainVector The total strain of the composite
+     * @param rSerialProjector The Serial behaviour projector
+     * @param rMatrixStressVector  the stress vector of the matrix
+     * @param rFiberStressVector  the stress vector of the fiber
+     * @param rStressResidual  the stress residual between the serial stresses
+     * @param rIsConverged  boolean indicator, true if equilibrium is achieved
+     * @param rConstitutiveTensorMatrixSS the serial-serial components of the constitutive tensor of the matrix
+     * @param rConstitutiveTensorFiberSS  the serial-serial components of the constitutive tensor of the fiber
+     */
     void CheckStressEquilibrium(
         const Vector& rStrainVector,
         const Matrix& rSerialProjector,
@@ -357,12 +414,23 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
         const Matrix& rConstitutiveTensorMatrixSS,
         const Matrix& rConstitutiveTensorFiberSS);
 
+    /**
+     * This method updates the serial strain of the matrix in order to reach equilibrium
+     * @param rValues the needed parameters for the CL calculation
+     * @param rResidualStresses  the stress residual between the serial stresses
+     * @param rSerialStrainMatrix the serial component of the matrix strain vector
+     * @param rSerialProjector The Serial behaviour projector
+     */
     void CorrectSerialStrainMatrix(
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rResidualStresses,
         Vector& rSerialStrainMatrix,
         const Matrix& rSerialProjector);
 
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
     ///@}
     ///@name Access
