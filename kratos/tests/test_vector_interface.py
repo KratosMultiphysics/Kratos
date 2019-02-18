@@ -150,7 +150,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
         a[0] = 1.0
         a[1] = 2.0
         a[2] = 3.0
-        self.assertEqual(3.0,a.norm_1())
+        self.assertEqual(6.0,a.norm_1())
         self.assertEqual(math.sqrt(14.0),a.norm_2())
 
 

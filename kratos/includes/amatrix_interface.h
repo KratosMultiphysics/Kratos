@@ -614,10 +614,9 @@ typename TExpression1Type::data_type inner_prod(
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
             using data_type = typename TExpressionType::data_type;
             auto& the_expression = TheExpression.expression();
-            data_type result = std::abs(the_expression[0]);
+            data_type result = data_type();
             for (std::size_t i = 0; i < the_expression.size(); ++i) {
-                if (result < std::abs(the_expression[i]))
-                    result = std::abs(the_expression[i]);
+                result += std::abs(the_expression[i]);
             }
         return result;
     }
