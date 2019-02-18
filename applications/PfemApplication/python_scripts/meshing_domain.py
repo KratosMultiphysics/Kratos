@@ -225,7 +225,7 @@ class MeshingDomain(object):
         self.RefiningParameters.SetConditionalMeshingNodes(conditional_meshing)
 
         #conditional meshing output variables
-        self.TransferParameters = KratosPfem.TransferParameters()
+        #self.TransferParameters = KratosPfem.TransferParameters()
         node_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_nodal_variables"]
         for i in range(0, node_variables.size() ):            
             self.RefiningParameters.SetConditionalMeshingNodeVariable(KratosMultiphysics.KratosGlobals.GetVariable(node_variables[i].GetString()))
