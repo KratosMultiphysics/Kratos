@@ -22,6 +22,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: choose a proper name for self.moment_p
 # TODO: organize if possible better initialize function
+# TODO: check moments from scratch are correct after renaming
 
 
 """
@@ -146,38 +147,38 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 auxiliary function of ComputeSampleCentralMomentsFromScratch of the StatisticalVariable class
 input:  sample: new value that will update the statistics
         curr_mean: current mean
-        number_samples_level:                  number of samples for defined level
-        compute_first_central_moment:          boolean setting if computation is needed
-        compute_second_central_moment:         boolean setting if computation is needed
-        compute_third_central_moment:          boolean setting if computation is needed
-        compute_third_absolute_central_moment: boolean setting if computation is needed
-        compute_fourth_central_moment:         boolean setting if computation is needed
-        first_central_moment:                  old first central moment
-        second_central_moment:                 old second central moment
-        third_central_moment:                  old third central moment
-        third_central_moment_absolute:         old third central moment absolute value
-        fourth_central_moment:                 old fourth central moment
-output: first_central_moment:          updated first central moment
-        second_central_moment:         updated second central moment
-        third_central_moment:          updated third central moment
-        third_central_moment_absolute: updated third central moment absolute value
-        fourth_central_moment:         update fourth central moment
+        number_samples_level:                              number of samples for defined level
+        central_moment_from_scratch_1_to_compute:          boolean setting if computation is needed
+        central_moment_from_scratch_2_to_compute:          boolean setting if computation is needed
+        central_moment_from_scratch_3_to_compute:          boolean setting if computation is needed
+        central_moment_from_scratch_3_absolute_to_compute: boolean setting if computation is needed
+        central_moment_from_scratch_4_to_compute:          boolean setting if computation is needed
+        central_moment_from_scratch_1:                     old first central moment
+        central_moment_from_scratch_2:                     old second central moment
+        central_moment_from_scratch_3:                     old third central moment
+        central_moment_from_scratch_3_absolute:            old third central moment absolute value
+        central_moment_from_scratch_4:                     old fourth central moment
+output: central_moment_from_scratch_1:          updated first central moment
+        central_moment_from_scratch_2:          updated second central moment
+        central_moment_from_scratch_3:          updated third central moment
+        central_moment_from_scratch_3_absolute: updated third central moment absolute value
+        central_moment_from_scratch_4:          update fourth central moment
 """
 @ExaquteTask(returns=5)
-def ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment,compute_second_central_moment, \
-    compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
-    first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment):
-    if (compute_first_central_moment):
-        first_central_moment = first_central_moment + ((sample - curr_mean)**1) / number_samples_level
-    if (compute_second_central_moment):
-        second_central_moment = second_central_moment + ((sample - curr_mean)**2) / number_samples_level
-    if (compute_third_central_moment):
-        third_central_moment = third_central_moment + ((sample - curr_mean)**3) / number_samples_level
-    if (compute_third_absolute_central_moment):
-        third_central_moment_absolute = third_central_moment_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
-    if (compute_fourth_central_moment):
-        fourth_central_moment = fourth_central_moment + ((sample - curr_mean)**4) / number_samples_level
-    return first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment
+def ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
+    central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
+    central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4):
+    if (central_moment_from_scratch_1_to_compute):
+        central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
+    if (central_moment_from_scratch_2_to_compute):
+        central_moment_from_scratch_2 = central_moment_from_scratch_2 + ((sample - curr_mean)**2) / number_samples_level
+    if (central_moment_from_scratch_3_to_compute):
+        central_moment_from_scratch_3 = central_moment_from_scratch_3 + ((sample - curr_mean)**3) / number_samples_level
+    if (central_moment_from_scratch_3_absolute_to_compute):
+        central_moment_from_scratch_3_absolute = central_moment_from_scratch_3_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
+    if (central_moment_from_scratch_4_to_compute):
+        central_moment_from_scratch_4 = central_moment_from_scratch_4 + ((sample - curr_mean)**4) / number_samples_level
+    return central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4
 
 
 class StatisticalVariable(object):
@@ -219,16 +220,16 @@ class StatisticalVariable(object):
         self.power_sum_3_absolute = [] # S_p = \sum_{i=1}^{n} abs(Q(sample_i)**p)
         self.power_sum_4 = []
         # sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level
-        self.sample_central_moment_1 = []
-        self.sample_central_moment_2 = []
-        self.sample_central_moment_3 = []
-        self.sample_central_moment_3_absolute = [] # \mu_p = \sum_{i=1}^{n} abs((Q(sample_i)-mean_n)**p) / n
-        self.sample_central_moment_4 = []
-        self.sample_first_central_moment_to_compute = False
-        self.sample_second_central_moment_to_compute = False
-        self.sample_third_central_moment_to_compute = False
-        self.sample_third_absolute_central_moment_to_compute = False
-        self.sample_fourth_central_moment_to_compute = False
+        self.central_moment_from_scratch_1 = []
+        self.central_moment_from_scratch_2 = []
+        self.central_moment_from_scratch_3 = []
+        self.central_moment_from_scratch_3_absolute = [] # \mu_p = \sum_{i=1}^{n} abs((Q(sample_i)-mean_n)**p) / n
+        self.central_moment_from_scratch_4 = []
+        self.central_moment_from_scratch_1_to_compute = False
+        self.central_moment_from_scratch_2_to_compute = False
+        self.central_moment_from_scratch_3_to_compute = False
+        self.central_moment_from_scratch_3_absolute_to_compute = False
+        self.central_moment_from_scratch_4_to_compute = False
         # h-statistics h_p, the unbiased central moment estimator with minimal variance, organized per level
         self.h_statistics_1 = []
         self.h_statistics_2 = []
@@ -265,11 +266,11 @@ class StatisticalVariable(object):
         self.h_statistics_4 = [[] for _ in range (number_levels)]
         self.skewness = [[] for _ in range (number_levels)]
         self.kurtosis = [[] for _ in range (number_levels)]
-        self.sample_central_moment_1 = [[] for _ in range (number_levels)]
-        self.sample_central_moment_2 = [[] for _ in range (number_levels)]
-        self.sample_central_moment_3 = [[] for _ in range (number_levels)]
-        self.sample_central_moment_3_absolute = [[] for _ in range (number_levels)]
-        self.sample_central_moment_4 = [[] for _ in range (number_levels)]
+        self.central_moment_from_scratch_1 = [[] for _ in range (number_levels)]
+        self.central_moment_from_scratch_2 = [[] for _ in range (number_levels)]
+        self.central_moment_from_scratch_3 = [[] for _ in range (number_levels)]
+        self.central_moment_from_scratch_3_absolute = [[] for _ in range (number_levels)]
+        self.central_moment_from_scratch_4 = [[] for _ in range (number_levels)]
 
     """
     function updating statistic moments and number of samples
@@ -342,28 +343,28 @@ class StatisticalVariable(object):
         number_samples_level = self.number_samples[level]
         curr_mean = self.mean[level]
         # initialize central moements
-        first_central_moment = 0.0
-        second_central_moment = 0.0
-        third_central_moment = 0.0
-        third_central_moment_absolute = 0.0
-        fourth_central_moment = 0.0
-        compute_first_central_moment = self.sample_first_central_moment_to_compute
-        compute_second_central_moment = self.sample_second_central_moment_to_compute
-        compute_third_central_moment = self.sample_third_central_moment_to_compute
-        compute_third_absolute_central_moment = self.sample_third_absolute_central_moment_to_compute
-        compute_fourth_central_moment = self.sample_fourth_central_moment_to_compute
+        central_moment_from_scratch_1 = 0.0
+        central_moment_from_scratch_2 = 0.0
+        central_moment_from_scratch_3 = 0.0
+        central_moment_from_scratch_3_absolute = 0.0
+        central_moment_from_scratch_4 = 0.0
+        central_moment_from_scratch_1_to_compute = self.central_moment_from_scratch_1_to_compute
+        central_moment_from_scratch_2_to_compute = self.central_moment_from_scratch_2_to_compute
+        central_moment_from_scratch_3_to_compute = self.central_moment_from_scratch_3_to_compute
+        central_moment_from_scratch_3_absolute_to_compute = self.central_moment_from_scratch_3_absolute_to_compute
+        central_moment_from_scratch_4_to_compute = self.central_moment_from_scratch_4_to_compute
         for i in range(0,number_samples_level):
             # compute only the central moements we need, since it is expensive their computation at large number_samples_level
             sample = self.values[level][i]
-            first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment = \
-                ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment, \
-                compute_second_central_moment,compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
-                first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment)
-        self.sample_central_moment_1[level] = first_central_moment
-        self.sample_central_moment_2[level] = second_central_moment
-        self.sample_central_moment_3[level] = third_central_moment
-        self.sample_central_moment_3_absolute[level] = third_central_moment_absolute
-        self.sample_central_moment_4[level] = fourth_central_moment
+            central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
+                ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
+                central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
+                central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4)
+        self.central_moment_from_scratch_1[level] = central_moment_from_scratch_1
+        self.central_moment_from_scratch_2[level] = central_moment_from_scratch_2
+        self.central_moment_from_scratch_3[level] = central_moment_from_scratch_3
+        self.central_moment_from_scratch_3_absolute[level] = central_moment_from_scratch_3_absolute
+        self.central_moment_from_scratch_4[level] = central_moment_from_scratch_4
 
     """
     function computing the skewness and the kurtosis from the h statistics

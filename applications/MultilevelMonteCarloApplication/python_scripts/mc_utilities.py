@@ -292,7 +292,7 @@ class MonteCarlo(object):
         curr_sample_variance = self.QoI.sample_variance[level]
         curr_h2 = self.QoI.h_statistics_2[level]
         curr_h3 = self.QoI.h_statistics_3[level]
-        curr_sample_central_moment_3_absolute = self.QoI.sample_central_moment_3_absolute[level]
+        curr_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         curr_h4 = self.QoI.h_statistics_4[level]
         curr_tol = self.settings["tolerance"].GetDouble()
         curr_delta = self.settings["cphi"].GetDouble()
@@ -348,7 +348,7 @@ class MonteCarlo(object):
             self.QoI.UpdateOnePassPowerSums(level,i_sample)
         """compute the central moments we can't derive from the unbiased h statistics
         we compute expensively the absolute central moment because we can't retrieve it from the h statistics"""
-        self.QoI.sample_third_absolute_central_moment_to_compute = True
+        self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
         self.QoI.ComputeSampleCentralMomentsFromScratch(level) # consider also to give as input the number of samples computed up to this point,
                                                                # i.e. self.number_samples[level], instead of using self.StatisticalVariable.number_samples[level]
         self.QoI.ComputeHStatistics(level)
