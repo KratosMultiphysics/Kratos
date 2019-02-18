@@ -461,14 +461,14 @@ if(${MPI_NEEDED} MATCHES ON )
     add_subdirectory(external_libraries/mpi_python)
 endif(${MPI_NEEDED} MATCHES ON )
 
-# Set installation directory
-if(DEFINED KRATOS_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
-  message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
-else(DEFINED KRATOS_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
-  message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
-endif(DEFINED KRATOS_INSTALL_PREFIX)
+# # Set installation directory
+# if(DEFINED KRATOS_INSTALL_PREFIX)
+#   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
+#   message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
+# else(DEFINED KRATOS_INSTALL_PREFIX)
+#   set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
+#   message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
+# endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 
 ################################################################################
