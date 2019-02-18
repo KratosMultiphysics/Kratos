@@ -29,7 +29,7 @@ class PfemStaticMechanicalSolver(BaseSolver.StaticMechanicalSolver):
     def SetVariables(self):
 
         super(PfemStaticMechanicalSolver, self).SetVariables()
-        self.nodal_variables = self.nodal_variables + ['CONTACT_FORCE']
+        self.nodal_variables = self.nodal_variables + ['CONTACT_FORCE', 'EXCESS_WATER_PRESSURE']
 
         if self._check_input_dof("WATER_PRESSURE"):
             # Add specific variables for the problem (pressure dofs)
