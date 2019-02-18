@@ -96,6 +96,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_casm_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_casm_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_casm_cem_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
@@ -111,6 +112,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
     ##hardening laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/casm_hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.cpp
 
 	##yield criteria
