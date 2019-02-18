@@ -20,7 +20,10 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
-#TODO: choose a proper name for self.moment_p
+# TODO: choose a proper name for self.moment_p
+# TODO: organize if possible better initialize function
+# TODO: from ComputeSampleCentralMoments to ComputeSampleCentralMomentsFromScratch
+# TODO: use self.number_samples[level] instead of an input in ComputeSampleCentralMoments
 
 
 """
@@ -181,43 +184,43 @@ def ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,co
 
 class StatisticalVariable(object):
     """The base class for statistical variables"""
-    def __init__(self, number_levels):
+    def __init__(self,number_levels):
         """constructor of the class
         Keyword arguments:
         self : an instance of a class
         number_levels : number of levels
         """
 
-        """values of the variable, organized per level"""
+        # values of the variable, organized per level
         self.values = []
-        """mean of the variable per each level"""
+        # mean of the variable per each level
         self.mean = []
-        """sample variance of the variable per each level"""
+        # sample variance of the variable per each level
         self.sample_variance = []
-        """moments of the variable per each level M_p   = n * \mu_p
-                                                  \mu_p = p-th central moment
-                                                  n     = number of values"""
+        # moments of the variable per each level M_p  = n * mu_p
+        #                                        mu_p = p-th central moment
+        #                                        n    = number of values"""
         self.moment_2 = []
         self.moment_3 = []
         self.moment_4 = []
-        """set if M3 and M4 will be computed (M2 is mandatory to be computed because it is exploited in the mean evaluation)"""
+        # set if M3 and M4 will be computed (M2 is mandatory to be computed because it is exploited in the mean evaluation)
         self.moment_3_to_compute = False
         self.moment_4_to_compute = False
-        """bias error of the variable"""
+        # bias error of the variable
         self.bias_error = None
-        """statistical error of the variable"""
+        # statistical error of the variable
         self.statistical_error = None
-        """type of variable: scalar or field"""
+        # type of variable: scalar or field
         self.type = None
-        """number of samples of the variable"""
+        # number of samples of the variable
         self.number_samples = [0 for _ in range(number_levels+1)]
-        """power sums S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level"""
+        # power sums S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level
         self.power_sum_1 = []
         self.power_sum_2 = []
         self.power_sum_3 = []
         self.power_sum_3_absolute = [] # S_p = \sum_{i=1}^{n} abs(Q(sample_i)**p)
         self.power_sum_4 = []
-        """sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level"""
+        # sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level
         self.sample_central_moment_1 = []
         self.sample_central_moment_2 = []
         self.sample_central_moment_3 = []
@@ -228,21 +231,23 @@ class StatisticalVariable(object):
         self.sample_third_central_moment_to_compute = False
         self.sample_third_absolute_central_moment_to_compute = False
         self.sample_fourth_central_moment_to_compute = False
-        """h-statistics h_p, the unbiased central moment estimator with minimal variance, organized per level"""
+        # h-statistics h_p, the unbiased central moment estimator with minimal variance, organized per level
         self.h_statistics_1 = []
         self.h_statistics_2 = []
         self.h_statistics_3 = []
         self.h_statistics_4 = []
         self.h_statistics_computed = False
-        """skewness of the variable per each level"""
+        # skewness of the variable per each level
         self.skewness = []
-        """kurtosis of the variable per each level"""
+        # kurtosis of the variable per each level
         self.kurtosis = []
-        """convergence criteria of the algorithm"""
+        # convergence criteria of the algorithm
         self.convergence_criteria = None
 
     """
-    function initializing variables of the Statistical Variable class given number of levels
+    function initializing variables of the Statistical Variable class in lists given number of levels
+    input:  self:          an instance of the class
+            number_levels: number of levels considered
     """
     def InitializeLists(self,number_levels):
         self.values = [[] for _ in range (number_levels)]
@@ -269,13 +274,10 @@ class StatisticalVariable(object):
         self.sample_central_moment_4 = [[] for _ in range (number_levels)]
 
     """
-    function updating moments and sample variance
-    moments:
-    M_p   = n * \mu_p
-    \mu_p = p-th central moment
-    n     = number of values
-    sample variance:
-    s_n^2 = M_{2,n} / (n-1)
+    function updating statistic moments and number of samples
+    input:  self:     an instance of the class
+            level:    defined level
+            i_sample: defined level in level
     """
     def UpdateOnePassMomentsVariance(self,level,i_sample):
         sample = self.values[level][i_sample]
@@ -296,6 +298,9 @@ class StatisticalVariable(object):
 
     """
     function updating the power sums S_p
+    input:  self:     an instance of the class
+            level:    defined level
+            i_sample: defined level in level
     """
     def UpdateOnePassPowerSums(self,level,i_sample):
         sample = self.values[level][i_sample]
@@ -314,6 +319,8 @@ class StatisticalVariable(object):
 
     """
     function computing the h statistics h_p from the power sums
+    input:  self:  an instance of the class
+            level: defined level
     """
     def ComputeHStatistics(self,level):
         number_samples_level = self.number_samples[level]
@@ -329,7 +336,9 @@ class StatisticalVariable(object):
         self.h_statistics_4[level] = h4_level
 
     """
-    function computing the central moments (and the absolute third central moment)
+    function computing from scratch the central moments and the absolute third central moment
+    input:  self:  an instance of the class
+            level: defined level
     """
     def ComputeSampleCentralMoments(self,level,number_samples_level):
         """local variables for mean and number of samples"""
@@ -359,9 +368,11 @@ class StatisticalVariable(object):
         self.sample_central_moment_4[level] = fourth_central_moment
 
     """
-    function computing the skewness and the kurtosis from the central moments (i.e. from the h statistics)
+    function computing the skewness and the kurtosis from the h statistics
     skewness = \mu_3 / \sqrt(\mu_2^3)
     kurtosis = \mu_4 / \mu_2^2
+    input:  self:  an instance of the class
+            level: defined level
     """
     def ComputeSkewnessKurtosis(self,level):
         if (self.h_statistics_computed):
