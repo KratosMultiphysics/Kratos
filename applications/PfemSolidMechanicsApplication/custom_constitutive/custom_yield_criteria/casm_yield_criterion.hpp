@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                    LHauser $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    June 2018 $
+//   Date:                $Date:                     Dec 2018 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -18,7 +18,7 @@
 
 // Project includes
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_hardening_law.hpp"
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -86,9 +86,9 @@ class CasmYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha);
+        double& CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const PlasticVariablesType& rPlasticVariables);
 
-				void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha);
+		void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const PlasticVariablesType& rPlasticVariables);
 				
         ///@}
         ///@name Access

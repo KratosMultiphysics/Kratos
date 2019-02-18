@@ -24,28 +24,23 @@
 namespace Kratos
 {
 
-
 	//*******************************CONSTRUCTOR******************************************
 	//************************************************************************************
 	CasmYieldCriterion::CasmYieldCriterion()
 		:YieldCriterion()
 	{
-
 	}
 
 	//*****************************INITIALIZATION CONSTRUCTOR*****************************
 	//************************************************************************************
-
 	CasmYieldCriterion::CasmYieldCriterion(HardeningLawPointer pHardeningLaw)
 		:YieldCriterion(pHardeningLaw)
 	{
 		std::cout<<"   CASM YIELD CRITERION constructed"<<std::endl;
 	}
 
-
 	//*******************************ASSIGMENT OPERATOR***********************************
 	//************************************************************************************
-
 	CasmYieldCriterion& CasmYieldCriterion::operator=(CasmYieldCriterion const& rOther)
 	{
 		YieldCriterion::operator=(rOther);
@@ -54,47 +49,39 @@ namespace Kratos
 
 	//*******************************COPY CONSTRUCTOR*************************************
 	//************************************************************************************
-
 	CasmYieldCriterion::CasmYieldCriterion(CasmYieldCriterion const& rOther)
 		:YieldCriterion(rOther)
 	{
-
 	}
-
 
 	//********************************DESTRUCTOR******************************************
 	//************************************************************************************
-
 	CasmYieldCriterion::~CasmYieldCriterion()
 	{
-		
 	}
 
-
-	//************************* CALCULATE YIELD FUNCTION  ******************
-	//**********************************************************************
-
-	double& CasmYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
+	// ***********************************
+	// ***** Evaluate yield function *****
+	// ***********************************
+	double& CasmYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const PlasticVariablesType& rPlasticVariables)
 	{
 		// calculate Kirchhoff invariants
 		double MeanStress, LodeAngle;
 		double DeviatoricQ; // == sqrt(3)*J2
-
 		StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, DeviatoricQ, LodeAngle);
 		DeviatoricQ *= sqrt(3.0);
 
 		// slope of CS-line
-		const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE]; // for Lode = -30°
+		const double ShearM 				= this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE]; // for Lode = -30°
 		double ThirdInvariantEffect = EvaluateThirdInvariantEffectMC(LodeAngle);
 		
 		// get spacing rario r & shape parameter n
-		const double SpacingR = this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
-		const double ShapeN = this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
+		const double SpacingR 			= this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
+		const double ShapeN 				= this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
 
 		// calculate hardening consolidation pressure (Kirchoff) with plastic volumetric strain increment rAlpha
-		// h = h(F^p * F^pT)
-		double PreconsolidationStress = 0.0;
-		PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);		
+		double PreconsolidationStress = rPlasticVariables.PreconsolidationPressure;		
+		
 		// evaluate yield function
 		rStateFunction = pow(-DeviatoricQ/(ShearM/ThirdInvariantEffect*(MeanStress)), ShapeN );
 		rStateFunction += 1/log(SpacingR)*log(MeanStress/PreconsolidationStress);
@@ -111,23 +98,32 @@ namespace Kratos
 	}
 
 
-	//*******************************CALCULATE YIELD FUNCTION DERIVATIVE *****************
-	//************************************************************************************
-	void CasmYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
+	
+
+
+
+
+	// ************************************************
+	// ***** Calculate yield function derivatives *****
+	// ************************************************
+	void CasmYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const PlasticVariablesType& rPlasticVariables)
 	{
-		double PreconsolidationStress = 0.0;
-		PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
-		const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-		const double SpacingR = this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
-		const double ShapeN = this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
-		
 		// stress invariants & invariants derivatives
 		double MeanStress, J2, LodeAngle;
 		Vector V1, V2;
 		StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2, LodeAngle);
 		StressInvariantsUtilities::CalculateDerivativeVectors( rStressVector, V1, V2);
 
+		//
+		const double ShearM 				= this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 		double ThirdInvariantEffect = EvaluateThirdInvariantEffectMC( LodeAngle);
+
+		//
+		const double SpacingR 			= this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
+		const double ShapeN 				= this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
+
+		//
+		double PreconsolidationStress = rPlasticVariables.PreconsolidationPressure;
 
 		// calculate d_f/d_Sig = d_f/d_Inv * d_Inv/d_Sig 
 		rYieldFunctionD = ( 1/( MeanStress * log(SpacingR) ) + ( ShapeN * pow( pow(3,1/2)*J2 , ShapeN) )/( pow(ShearM/ThirdInvariantEffect,ShapeN) * pow(-MeanStress,ShapeN+1) ) ) * V1;
@@ -143,8 +139,12 @@ namespace Kratos
 			*/
 	}
 
-	//******************************Evaluate Effect of Third Invariant *******************
-	//************************************************************************************
+
+
+
+	// **********************************************
+	// ***** Evaluate Effect of Third Invariant *****
+	// **********************************************
 	double CasmYieldCriterion::EvaluateThirdInvariantEffectSheng( const double& rLodeAngle)
 	{
 		// get phi_CS and catch phi of zero
@@ -166,9 +166,9 @@ namespace Kratos
 		Effect = pow( 2*pow(auxAlpha,4) / ( 1+pow(auxAlpha,4)+(1-pow(auxAlpha,4))*std::sin(-3*rLodeAngle) ) , 1/4);
 
 		return Effect;
-
 	}
-   
+
+
 	double CasmYieldCriterion::EvaluateThirdInvariantEffectMC( const double& rLodeAngle)
 	{
 
@@ -200,19 +200,17 @@ namespace Kratos
 
   }
 
-
-	//*******************************Add  derivative of Effect THird Invariant ********************
-	//*********************************************************************************************
+  // ****************************************************
+	// ***** Add derivative of Effect Third Invariant *****
+	// ****************************************************
 	void CasmYieldCriterion::CalculateAndAddThirdInvDerivativeMC(const Vector& rStressVector, Vector& rYieldFunctionD)
 	{
-
 		double KLode = 1.0;
 		double Friction = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
 		if (Friction < 1.0E-3) {
 			return ;
 		}
 		Friction *= GetPI() / 180.0;
-
 
 		double MeanStress, J2, LodeAngle;
 		Vector V1, V2, V3;
@@ -261,8 +259,6 @@ namespace Kratos
         std::cout << " V2 " << V2 << " V3 " << V3 << std::endl;*/
        
 		rYieldFunctionD += ThisDerivative;
-
-
 	}
 
 	//************************* smoothingInvariants of something ***********

@@ -31,15 +31,13 @@ namespace Kratos
 	{
 	}
 
-
 	//*****************************INITIALIZATION CONSTRUCTOR*****************************
 	//************************************************************************************
 	CasmCemYieldCriterion::CasmCemYieldCriterion(HardeningLawPointer pHardeningLaw)
 		:YieldCriterion(pHardeningLaw)
 	{
-		std::cout<<"   CASM CEM YIELD CRITERION constructed"<<std::endl;
+		std::cout<<"   CASM-CEM YIELD CRITERION constructed"<<std::endl;
 	}
-
 
 	//*******************************ASSIGMENT OPERATOR***********************************
 	//************************************************************************************
@@ -49,7 +47,6 @@ namespace Kratos
 		return *this;
 	}
 
-
 	//*******************************COPY CONSTRUCTOR*************************************
 	//************************************************************************************
 	CasmCemYieldCriterion::CasmCemYieldCriterion(CasmCemYieldCriterion const& rOther)
@@ -57,13 +54,11 @@ namespace Kratos
 	{
 	}
 
-
 	//********************************DESTRUCTOR******************************************
 	//************************************************************************************
 	CasmCemYieldCriterion::~CasmCemYieldCriterion()
 	{
 	}
-
 
 	//************************* CALCULATE YIELD FUNCTION  ******************
 	//**********************************************************************
@@ -264,8 +259,6 @@ namespace Kratos
         std::cout << " V2 " << V2 << " V3 " << V3 << std::endl;*/
        
 		rYieldFunctionD += ThisDerivative;
-
-
 	}
 
 	//************************* smoothingInvariants of something ***********
@@ -287,95 +280,6 @@ namespace Kratos
 
 		rB = -1.0 * ( Sign* std::sin(SmoothingAngle) + std::sin(FrictionAngle)*std::cos(SmoothingAngle) / sqrt(3.0) ) / ( 3.0*std::cos(3.0*SmoothingAngle) );
 	}
-	
-	// ************************************************
-	// ***** Calculate yield function derivatives *****
-	// ************************************************
-/*	void CasmCemYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum)
-	{
-		// Kirchhoff stress invariants & invariants derivatives
-		double MeanStress, J2, LodeAngle;
-		Vector V1, V2;
-		StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, J2, LodeAngle);
-		StressInvariantsUtilities::CalculateDerivativeVectors( rStressVector, V1, V2);
-		
-		// slope CS-line
-		const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-		double ThirdInvariantEffect = EvaluateThirdInvariantEffectMC( LodeAngle);
-		
-		// get material constants
-		const double SpacingR = this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
-		const double ShapeN = this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
-		const double AlphaTensile 		= this->GetHardeningLaw().GetProperties()[ALPHA_TENSILE];
-		
-		// calculate hardening parameters p0, b -> pt, pc
-		Vector HardeningVariables = ZeroVector(2);
-		HardeningVariables = mpHardeningLaw->CalculateHardening(HardeningVariables, rAlpha, rBeta, rAlphaCum, rBetaCum);
-		double Pt;//, Pc;
-		//Pc = HardeningVariables(0)*(1+HardeningVariables(1));
-		Pt = HardeningVariables(0)*(AlphaTensile*HardeningVariables(1));
-
-		// calculate d_f/d_Sig = d_f/d_Inv * d_Inv/d_Sig 
-		rYieldFunctionD = ( 1/( (MeanStress+Pt) * log(SpacingR) ) + ( ShapeN * pow( pow(3,1/2)*J2 , ShapeN) )/( pow(ShearM/ThirdInvariantEffect,ShapeN) * pow(-(MeanStress+Pt),ShapeN+1) ) ) * V1;
-		rYieldFunctionD += ( ( ShapeN * pow(3,ShapeN/2) * pow(J2,ShapeN-1) )/( pow(ShearM/ThirdInvariantEffect,ShapeN) * pow(-(MeanStress+Pt),ShapeN) ) ) * V2;
-		
-		CalculateAndAddThirdInvDerivativeMC( rStressVector, rYieldFunctionD, Pt);
-			*
-			std::cout<<"  CasmYieldCriterion::CalculateYieldFunctionDerivative"<<std::endl;
-			std::cout<<"   p: "<<MeanStress<<" J: "<<J2<<" Lode: "<<LodeAngle<<std::endl;
-			std::cout<<"   M: "<<ShearM<<" Eff: "<<ThirdInvariantEffect<<std::endl;
-			std::cout<<"   Sig: "<<rStressVector<<std::endl;
-			std::cout<<"   d_f/d_sig: "<<rYieldFunctionD<<std::endl;
-			std::cout<<"   Pt: "<<Pt<<std::endl;
-			*
-	}
-*/
-
-/*
-	// ************************* CALCULATE YIELD FUNCTION  ******************
-	// **********************************************************************
-	double& CasmCemYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum)
-	{
-		// calculate Kirchhoff invariants
-		double MeanStress, LodeAngle;
-		double DeviatoricQ; // == sqrt(3)*J2
-		StressInvariantsUtilities::CalculateStressInvariants( rStressVector, MeanStress, DeviatoricQ, LodeAngle);
-		DeviatoricQ *= sqrt(3.0);
-
-		// slope of CS-line
-		double ThirdInvariantEffect = EvaluateThirdInvariantEffectMC(LodeAngle);
-		
-		// get material constants
-		const double ShearM 					= this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
-		const double SpacingR 				= this->GetHardeningLaw().GetProperties()[SPACING_RATIO];
-		const double ShapeN 					= this->GetHardeningLaw().GetProperties()[SHAPE_PARAMETER];
-		const double AlphaTensile 		= this->GetHardeningLaw().GetProperties()[ALPHA_TENSILE];
-		
-		// calculate hardening parameters p0, b -> pt, pc
-		Vector HardeningVariables = ZeroVector(2);
-		HardeningVariables = mpHardeningLaw->CalculateHardening(HardeningVariables, rAlpha, rBeta, rAlphaCum, rBetaCum);
-		double Pc, Pt;
-		Pc = HardeningVariables(0)*(1+HardeningVariables(1));
-		Pt = HardeningVariables(0)*(AlphaTensile*HardeningVariables(1));
-
-		// evaluate yield function
-		rStateFunction = pow(-DeviatoricQ/(ShearM/ThirdInvariantEffect*(MeanStress + Pt)), ShapeN );
-		rStateFunction += 1/log(SpacingR)*log((MeanStress + Pt)/(Pc + Pt));
-			*
-			std::cout<<"  CasmCemYieldCriterion::CalculateYieldCondition"<<std::endl;
-			std::cout<<"   p:    "<<MeanStress<<"   J: "<<DeviatoricQ<<"   Lode: "<<LodeAngle<<std::endl;
-			std::cout<<"   M:    "<<ShearM<<" Eff: "<<ThirdInvariantEffect<<std::endl;
-			std::cout<<"   Sig:  "<<rStressVector<<std::endl;
-			std::cout<<"   p0:   "<<HardeningVariables(0)<<std::endl;
-			std::cout<<"   b:    "<<HardeningVariables(1)<<std::endl;
-			std::cout<<"   Pc:   "<<Pc<<std::endl;
-			std::cout<<"   Pt:   "<<Pt<<std::endl;
-			std::cout<<"   Eff:  "<<ThirdInvariantEffect<<std::endl;
-			std::cout<<"   f(sig): "<<rStateFunction<<std::endl<<std::endl;
-			*
-		return rStateFunction; 
-	}
-*/	
 
 	double CasmCemYieldCriterion::GetSmoothingLodeAngle()
 	{
