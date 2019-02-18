@@ -13,7 +13,7 @@ class AddAdditionalPostProcessDataProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
 
-
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -32,8 +32,8 @@ class AddAdditionalPostProcessDataProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = Model
-        self.model_part_name = self.settings["model_part_name"].GetString()
+        #self.model_part = Model
+        #self.model_part_name = self.settings["model_part_name"].GetString()
         self.gravity_active = self.settings["gravity_active"].GetBool()
         if (self.gravity_active):
             self.ref_levelY = self.settings["top_ref_levelY"].GetDouble()
@@ -45,24 +45,22 @@ class AddAdditionalPostProcessDataProcess(KratosMultiphysics.Process):
         else:
             self.constant_wP = self.settings["constant_water_pressure"].GetDouble()
 
-
         ## 
 
     def ExecuteBeforeOutputStep(self):
-        self.model_part = self.model_part[self.model_part_name]
-        for node in self.model_part.Nodes:
+        for node in self.main_model_part.Nodes:
             delta_wp = node.GetSolutionStepValue( KratosMultiphysics.WATER_PRESSURE )
-            initial_wp = self._CalucalteInitialWaterPressure(node)
+            initial_wp = self._CalculateInitialWaterPressure(node)
             delta_wp -= initial_wp
 
             if (node.SolutionStepsDataHas(KratosPFEMSolid.EXCESS_WATER_PRESSURE)):
                 node.SetSolutionStepValue(KratosPFEMSolid.EXCESS_WATER_PRESSURE,delta_wp)
 
-    def _CalucalteInitialWaterPressure(self, node):
+    def _CalculateInitialWaterPressure(self, node):
         if (self.gravity_active):
             wP0 = 10.0*1.0*(node.Y-self.ref_levelY) + self.top_wP
             return wP0
         else:
-            return self.constant_water_pressure
+            return self.constant_wP
 
 
