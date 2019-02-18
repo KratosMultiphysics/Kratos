@@ -291,5 +291,97 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
 
+    def test_isosurface_remesh_sphere(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+        # We create the model part
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
+        #main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 1)
+
+        # We add the variables needed
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+
+        # We import the model main_model_part
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        KratosMultiphysics.ModelPartIO(file_path + "/mmg_eulerian_test/test_sphere_isosurface").ReadModelPart(main_model_part)
+
+        # Set manually a distance function
+        circle_radious = 0.25
+        center_coordinates = [0.5, 0.5, 0.5]
+
+        for node in main_model_part.Nodes:
+            distance = ((node.X-center_coordinates[0])**2+(node.Y-center_coordinates[1])**2+(node.Z-center_coordinates[2])**2)**0.5 - circle_radious
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
+
+        # We calculate the gradient of the distance variable
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(main_model_part)
+        find_nodal_h.Execute()
+
+        mmg_parameters = KratosMultiphysics.Parameters("""
+        {
+            "discretization_type"              : "Isosurface",
+            "filename"                         : "mmg_eulerian_test/test_sphere_isosurface",
+            "save_external_files"              : true,
+            "echo_level"                       : 0
+        }
+        """)
+
+        # We create the remeshing utility
+        mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
+        mmg_process = MeshingApplication.MmgProcess3D(main_model_part, mmg_parameters)
+
+        # We remesh
+        mmg_process.Execute()
+
+        # Finally we export to GiD
+        from gid_output_process import GiDOutputProcess
+        gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : ["DISTANCE"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        #gid_output.ExecuteInitialize()
+        #gid_output.ExecuteBeforeSolutionLoop()
+        #gid_output.ExecuteInitializeSolutionStep()
+        #gid_output.PrintOutput()
+        #gid_output.ExecuteFinalizeSolutionStep()
+        #gid_output.ExecuteFinalize()
+
+        from compare_two_files_check_process import CompareTwoFilesCheckProcess
+        check_parameters = KratosMultiphysics.Parameters("""
+                            {
+                                "reference_file_name"   : "mmg_eulerian_test/test_sphere_isosurface_result.sol",
+                                "output_file_name"      : "mmg_eulerian_test/test_sphere_isosurface_step=0.o.sol",
+                                "dimension"             : 3,
+                                "comparison_type"       : "sol_file"
+                            }
+                            """)
+        check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
+        check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
+
+        check_files.ExecuteInitialize()
+        check_files.ExecuteBeforeSolutionLoop()
+        check_files.ExecuteInitializeSolutionStep()
+        check_files.ExecuteFinalizeSolutionStep()
+        check_files.ExecuteFinalize()
+
 if __name__ == '__main__':
     KratosUnittest.main()

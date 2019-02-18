@@ -12,8 +12,8 @@ if(POLICY CMP0022)
 endif(POLICY CMP0022)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 6)
-set (KratosMultiphysics_MINOR_VERSION 1)
+set (KratosMultiphysics_MAJOR_VERSION 7)
+set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION Dev)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -461,11 +461,25 @@ if(${MPI_NEEDED} MATCHES ON )
     add_subdirectory(external_libraries/mpi_python)
 endif(${MPI_NEEDED} MATCHES ON )
 
-# Install Files
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosLoader.py" DESTINATION KratosMultiphysics RENAME KratosLoader.py )
+# Set installation directory
+if(DEFINED KRATOS_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
+  message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
+else(DEFINED KRATOS_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
+  message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
+endif(DEFINED KRATOS_INSTALL_PREFIX)
+
+
+################################################################################
+# install core files for the KratosMultiphysics python module
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
+
+# Remove the tags in the event of multiple versions of boost being found
+# in the same directory
+# list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
 
 # Install the libraries in the libs folder
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
@@ -480,3 +494,43 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.hpp" EXCLUDE
     )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
+# Install blas and lapack
+if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
+	message("installed blas = " ${BLAS_LIBRARIES})
+	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+	message("installed lapack = " ${LAPACK_LIBRARIES})
+	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
+
+# Configure and install KratosPaths.py, containing routes to installed kratos modules.
+set(KratosMultiphysics_KRATOS_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
+if (${INSTALL_PYTHON_FILES} MATCHES ON)
+  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_INSTALL_PREFIX})
+else ()
+  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_SOURCE_DIR})
+endif (${INSTALL_PYTHON_FILES} MATCHES ON)
+
+configure_file(
+  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
+  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
+)
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
+
+################################################################################
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
+
+  install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
+  install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
+
+  SET(CPACK_GENERATOR "DEB")
+  SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
+  set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
+  #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
+  #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
+  Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
+
+  INCLUDE(CPack)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)

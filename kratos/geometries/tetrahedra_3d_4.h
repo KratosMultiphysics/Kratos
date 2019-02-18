@@ -209,7 +209,7 @@ public:
         this->Points().push_back(pPoint4);
     }
 
-    Tetrahedra3D4( const PointsArrayType& ThisPoints)
+    explicit Tetrahedra3D4( const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
@@ -242,7 +242,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
+    template<class TOtherPointType> explicit Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
         : BaseType(rOther)
     {
     }
@@ -325,8 +325,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -792,13 +802,50 @@ public:
       return max_dihedral_angle;
     }
 
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element 
+     * In radians
+     * @return [description]
+     */
+    double MinDihedralAngle() const override {
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = 1000.0;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+         if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
+      } 
+      return min_dihedral_angle;
+    }
+
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(6);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = -1000.0;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            if (dihedral_angles[i] > max_dihedral_angle)  max_dihedral_angle = dihedral_angles[i];
+        }
+        return max_dihedral_angle;
+    }
+
+
+
     /** Calculates the min solid angle quality metric.
      * Calculates the min solid angle quality metric.
      * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry
      * In stereo radians
      * @return [description]
      */
-    virtual double MinSolidAngle() const override {
+    double MinSolidAngle() const override {
       Vector solid_angles(4);
       ComputeSolidAngles(solid_angles);
       double min_solid_angle = 1000.0;
@@ -816,18 +863,18 @@ public:
      *
      * @return   The solid angles of the geometry
     */
-    virtual inline void ComputeSolidAngles(Vector& solid_angles) const override
+    inline void ComputeSolidAngles(Vector& rSolidAngles) const override
     {
-      if(solid_angles.size() != 4)
-          solid_angles.resize(4, false);
+      if(rSolidAngles.size() != 4)
+          rSolidAngles.resize(4, false);
 
       Vector dihedral_angles(6);
       ComputeDihedralAngles(dihedral_angles); 
 
-      solid_angles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  -3.14159265359;     
-      solid_angles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  -3.14159265359;     
-      solid_angles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  -3.14159265359;     
-      solid_angles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  -3.14159265359;     
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;     
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;     
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;     
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;     
     }
 
 
@@ -836,13 +883,13 @@ public:
      *
      * @return   The dihedral angles of the geometry
     */
-    virtual inline void ComputeDihedralAngles(Vector& dihedral_angles) const override
+    inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
     {
-      if(dihedral_angles.size() != 6)
-          dihedral_angles.resize(6, false);
+      if(rDihedralAngles.size() != 6)
+          rDihedralAngles.resize(6, false);
 
 
-      boost::numeric::ublas::bounded_matrix<double, 4, 3 > coords;
+      BoundedMatrix<double, 4, 3 > coords;
       for (unsigned int i = 0; i < 4; i++)
       {
           const array_1d<double, 3 > & xyz = this->GetPoint(i);
@@ -863,7 +910,7 @@ public:
       for (unsigned int i = 0; i < 6; i++)
       {
         //first we find the edges
-        for (unsigned int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; ++j)
         {
             edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
             edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
@@ -872,15 +919,16 @@ public:
         //now we find the normals to the planes
         MathUtils<double>::CrossProduct(normal1,edge1,edge2a);
         MathUtils<double>::CrossProduct(normal2,edge1,edge2b);
-        normal1 /= sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
-        normal2 /= sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
+        normal1 /= std::sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
+        normal2 /= std::sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
 
         //and finally the cos of the angle:
         const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
-        dihedral_angles[i] = acos(angle_cos);
+        rDihedralAngles[i] = std::acos(angle_cos);
       }
 
     }
+
     /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results

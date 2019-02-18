@@ -39,7 +39,7 @@
                     },
                     "domain_size"     : 3,
                     "mesh_motion_linear_solver_settings"  : {
-                        "solver_type" : "Super_LU",
+                        "solver_type" : "ExternalSolversApplication.super_lu",
                         "scaling"     : false,
                         "verbosity"   : 0
                     },
