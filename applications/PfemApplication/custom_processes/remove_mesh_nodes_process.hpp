@@ -697,10 +697,18 @@ private:
 		KRATOS_TRY
 
 		//***SIZES :::: parameters do define the tolerance in mesh size: 
-		double size_for_distance_inside       = 1.0 * mrRemesh.Refine->CriticalRadius; //compared with element radius
-		double size_for_distance_boundary     = 1.5 * size_for_distance_inside; //compared with element radius
-		size_for_distance_inside *= size_for_distance_inside;
-        size_for_distance_boundary *= size_for_distance_boundary;
+		double size_for_distance_inside       = 1.0 * mrRemesh.Refine->CriticalRadius; //compared with element radius ORIGINALLY 1.0 * ...
+		double size_for_distance_boundary     = 1.12 * size_for_distance_inside; //compared with element radius
+        double size_for_wall_tip_contact_side = 0.6*(0.6 * mrRemesh.Refine->CriticalSide);
+        size_for_wall_tip_contact_side =  size_for_wall_tip_contact_side * size_for_wall_tip_contact_side;
+		//size_for_distance_inside *= size_for_distance_inside;
+        //size_for_distance_boundary *= size_for_distance_boundary;
+
+        double SF = 0.9;
+        size_for_wall_tip_contact_side *= SF*SF;
+
+        std::cout << " DEREFINING WITH THIS VALUE " << size_for_wall_tip_contact_side << std::endl;
+        bool derefine_wall_tip_contact = true;
 
 		bool any_node_removed = false;
 
@@ -775,6 +783,8 @@ private:
 							// look if we are already erasing any of the other nodes
 							unsigned int contact_nodes = 0;
 							unsigned int erased_nodes = 0;
+                            unsigned int near_to_contact_nodes = 0;
+                            unsigned int kk = 0;
 							
 							// loop over neighbouring nodes
 							for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
@@ -788,7 +798,12 @@ private:
 								if( (*nn)->Is(TO_ERASE) ){
 									erased_nodes += 1;
 								}
+
+                                // 
+
 							}
+
+                            std::cout<<"     contact_nodes "<< contact_nodes <<" erased_nodes "<<erased_nodes<<std::endl;
 
 							// we release (set TO_ERASE) the node if no other nodes neighbours are being erased
 							if( erased_nodes < 1 && contact_nodes < 1){
