@@ -70,6 +70,7 @@ if(cptBool):
     import Interpret_CPT_Data           as CPT_Data
 if(intDataBool):
     import Interpret_InterestingData   as Interesting_Data
+    import Interpret_LabTest_Data      as LabTest_Data
 
 #set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -120,8 +121,9 @@ main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParam
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
     if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
         solver.AddDofs()
-        for node in main_model_part.GetNodes():
-            node.SetSolutionStepValue(KratosPfemSolid.JACOBIAN, 1.0)
+        if(main_model_part.GetNodes()[1].SolutionStepsDataHas(KratosPfemSolid.JACOBIAN)):
+            for node in main_model_part.GetNodes():
+                node.SetSolutionStepValue(KratosPfemSolid.JACOBIAN, 1.0)
 
 else:
     solver.AddDofs()
@@ -159,7 +161,7 @@ if(ProjectParameters.Has("output_process_list")):
     list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
             
 #print list of constructed processes
-if(echo_level>1):
+if(echo_level>-1):
 #    for process in list_of_processes:
 #        print(process)
     print("")
@@ -221,8 +223,10 @@ if(cptBool):
 
 # create Interesting_Data Interpreter
 if(intDataBool):
-    interestingData = Interesting_Data.InterpretInterestingData(main_model_part, problem_path)
-    interestingData.Initialize(0)
+    #interestingData = Interesting_Data.InterpretInterestingData(main_model_part, problem_path)
+    #interestingData.Initialize(0)
+    labTest = LabTest_Data.InterpretLabTestData(main_model_part, problem_path)
+    labTest.Initialize(0)
 
 #### Output settings end ####
 
@@ -306,7 +310,8 @@ while(time < end_time):
     if(cptBool):
         cptTest.SetStepResult()
     if(intDataBool):
-        interestingData.SetStepResults()
+        #interestingData.SetStepResults()
+        labTest.SetStepResults()
 
     # processes to be executed at the end of the solution step
     for process in list_of_processes:
