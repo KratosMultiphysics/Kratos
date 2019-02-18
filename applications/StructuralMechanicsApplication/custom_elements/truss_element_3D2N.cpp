@@ -949,7 +949,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(VectorType &rMassVector)
 
     // Clear matrix
     if (rMassVector.size() != msLocalSize)
-        rMassVector.resize( msLocalSize );
+        rMassVector.resize(msLocalSize, false);
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
