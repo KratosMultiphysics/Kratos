@@ -228,17 +228,32 @@ namespace Kratos
 
    void SetMechanicalInitialStateProcess::SetMechanicalStateConstant(ModelPart& rModelPart, const double& rS1, const double& rS2, const double& rWaterPressure, int& EchoLevel)
    {
+
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties = 1;
+      const double InitialBonding   = rModelPart.GetProperties(Properties)[ INITIAL_BONDING ];
+      double InitialPreCon          = rModelPart.GetProperties(Properties)[ PRE_CONSOLIDATION_STRESS ];
+      InitialPreCon *= -1.0;
+
+      //build initial state vector
       std::vector<Vector> StressVector;
+      std::vector<double> BondingVector;
+      std::vector<double> PreConVector;
       Vector ThisVector = ZeroVector(6);
       ThisVector(0) = rS2; ThisVector(2) = rS2;
       ThisVector(1) = rS1;
       StressVector.push_back(ThisVector);
+      BondingVector.push_back(InitialBonding);
+      PreConVector.push_back(InitialPreCon);
 
       ProcessInfo SomeProcessInfo;
 
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd() ; pElement++)
       {
+         //assign initial state parameters
          pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 
+         pElement->SetValueOnIntegrationPoints( BONDING, BondingVector, SomeProcessInfo );
+         pElement->SetValueOnIntegrationPoints( PRECONSOLIDATION, PreConVector, SomeProcessInfo );
       }
       // AND NOW SET THE WATER PRESSURE
 
@@ -249,9 +264,7 @@ namespace Kratos
             double & rNodeWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
             rNodeWaterPressure = rWaterPressure;
          }
-
       }
-
    }
 
 
@@ -441,8 +454,8 @@ namespace Kratos
    {
       unsigned int Properties = rModelPart.NumberOfProperties();
       Properties -= 1;
-      double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
-      const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
+      double MixtureDensity         = rModelPart.GetProperties(Properties)[ DENSITY ];
+      const double Knot             = rModelPart.GetProperties(Properties)[ K0 ];
 
       double VerticalStress, HorizontalStress;
       ProcessInfo SomeProcessInfo;
@@ -507,9 +520,12 @@ namespace Kratos
 
 		unsigned int Properties = rModelPart.NumberOfProperties();
 		Properties = 1;
-		const double WaterDensity 	= rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
-		double MixtureDensity 			=	rModelPart.GetProperties(Properties)[ DENSITY ];
-		const double Knot 					= rModelPart.GetProperties(Properties)[ K0 ];
+		const double WaterDensity 	   = rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
+		double MixtureDensity 		   = rModelPart.GetProperties(Properties)[ DENSITY ];
+		const double Knot 			   = rModelPart.GetProperties(Properties)[ K0 ];
+      const double InitialBonding   = rModelPart.GetProperties(Properties)[ INITIAL_BONDING ];
+      double InitialPreCon          = rModelPart.GetProperties(Properties)[ PRE_CONSOLIDATION_STRESS ];
+      InitialPreCon *= -1.0;
 		
 		MixtureDensity -= WaterDensity;
 		double WaterPressure;
@@ -541,7 +557,7 @@ namespace Kratos
 
 		double rYmaxMod = mRefLevelY; //
 		
-		//set nodal values
+		//set NODAL values
 		for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd() ; pNode++)
 		{
 			WaterPressure = 10.0*WaterDensity * ( pNode->Y() -rYmaxMod ) + WaterOverLoad;
@@ -559,7 +575,7 @@ namespace Kratos
 		double VerticalStress, HorizontalStress;
 		ProcessInfo SomeProcessInfo;
 
-		//set values on integration points
+		//set values on INTEGRATION POINTS
 		for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
 		{
 			//calculate y-coordinate of Gauss point (linear triangle)
@@ -578,6 +594,8 @@ namespace Kratos
 
 			//build stress vector and asign
 			std::vector<Vector> StressVector;
+         std::vector<double> BondingVector;
+         std::vector<double> PreConVector;
 			unsigned int NumberOfGaussPoints = 1;
 			for (unsigned int i = 0; i < NumberOfGaussPoints; ++i) {
 				Vector ThisVector = ZeroVector(6);
@@ -585,8 +603,13 @@ namespace Kratos
 				ThisVector(1) = VerticalStress;
 				ThisVector(2) = HorizontalStress;
 				StressVector.push_back(ThisVector);
+            BondingVector.push_back(InitialBonding);
+            PreConVector.push_back(InitialPreCon);
 			}
 			pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo );
+         //assign initial state parameters
+         pElement->SetValueOnIntegrationPoints( BONDING , BondingVector, SomeProcessInfo );
+         pElement->SetValueOnIntegrationPoints( PRECONSOLIDATION, PreConVector, SomeProcessInfo );
 		}
   }
 
