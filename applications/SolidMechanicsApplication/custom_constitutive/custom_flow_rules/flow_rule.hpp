@@ -410,10 +410,20 @@ namespace Kratos
 			 return ErrorMatrix;
 		};
 		
-		virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding)
+		virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding )
 		{
 			KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 		};
+
+    virtual void SetBonding( const double& rInitialBonding )
+    {
+      KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
+    };
+
+    virtual void SetPreconsolidation( const double& rInitialPreconPressure )
+    {
+      KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
+    };
 
 
     ///@}
