@@ -36,6 +36,7 @@
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.hpp"
 
 //yield criteria
@@ -57,6 +58,7 @@
 
 
 //constitutive laws
+#include "custom_constitutive/borja_hencky_casm_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
@@ -113,6 +115,11 @@ namespace Kratos
     ;
 		class_<BorjaHenckyCasmCemPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "BorjaHenckyCasmCemPlasticAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+    class_<BorjaHenckyCasmPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "BorjaHenckyCasmPlastic3DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
