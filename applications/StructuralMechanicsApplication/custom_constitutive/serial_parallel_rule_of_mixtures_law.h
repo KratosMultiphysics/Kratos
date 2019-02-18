@@ -207,30 +207,101 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @return rValue output: the value of the specified variable
+     */
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (boolean)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<Vector>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<Matrix>& rThisVariable) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     double& CalculateValue(
         Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
         double& rValue) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     Vector& CalculateValue(
         Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
+    /**
+     * @brief Calculates the value of a specified variable (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     Matrix& CalculateValue(
         Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue) override;
 
+    /**
+     * This is to be called at the very beginning of the calculation
+     * (e.g. from InitializeElement) in order to initialize all relevant
+     * attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
     void InitializeMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
