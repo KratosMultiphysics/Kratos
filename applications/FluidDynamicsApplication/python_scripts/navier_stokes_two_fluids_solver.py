@@ -59,7 +59,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0
-            }
+            },
+            "bfecc_convection" : false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -75,7 +76,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
-        self._bfecc_convection = False
+        self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
