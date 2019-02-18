@@ -32,13 +32,14 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
 
         self.direct_settings = custom_settings["variable_settings"].Clone()
         self.direct_response_settings = custom_settings["response_function_settings"].Clone()
-        self.direct_sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
+        self.direct_sensitivity_settings = custom_settings["sensitivity_settings"].Clone()        
         custom_settings.RemoveValue("variable_settings")
         custom_settings.RemoveValue("response_function_settings")
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsDirectSensitivitySolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Construction finished")
+        
         
 
     def AddVariables(self):
