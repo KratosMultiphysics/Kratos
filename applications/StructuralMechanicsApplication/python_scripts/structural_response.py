@@ -6,7 +6,6 @@ import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import structural_mechanics_analysis
-import KratosMultiphysics
 
 import time as timer
 
