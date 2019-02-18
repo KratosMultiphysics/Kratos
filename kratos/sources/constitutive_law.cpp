@@ -690,16 +690,9 @@ void ConstitutiveLaw::SetPlasticVariables( const double& rInitialPreconPressure,
 	
 } 
 
-void ConstitutiveLaw::GetHardeningParameters( double& rPreconPressure, double& rBonding)
-{
-	
-} 
-
 const double ConstitutiveLaw::GetBonding( ) { }
-const double ConstitutiveLaw::GetPreconPressure( )
-{
-	
-} 
+const double ConstitutiveLaw::GetPreconPressure( ) { } 
+const double ConstitutiveLaw::GetCriticalStateM( ) { } 
 
 void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
