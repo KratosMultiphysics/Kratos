@@ -152,7 +152,6 @@ class TestVectorInterface(KratosUnittest.TestCase):
         a[2] = 3.0
         self.assertEqual(3.0,a.norm_1())
         self.assertEqual(math.sqrt(14.0),a.norm_2())
-        self.assertEqual(math.sqrt(14.0),a.norm_frobenius())
 
 
 if __name__ == '__main__':
