@@ -45,7 +45,9 @@ class mpi_aggregator {
     public:
         typedef typename Counter::value_type value_type;
 
-        mpi_aggregator() : world(MPI_COMM_WORLD), dtype(amgcl::mpi::datatype<value_type>::get()) {
+        mpi_aggregator(MPI_Comm comm = MPI_COMM_WORLD)
+            : world(comm), dtype(amgcl::mpi::datatype<value_type>::get())
+        {
             if (SingleReaderPerNode) {
                 typedef std::integral_constant<bool, sizeof(size_t) == sizeof(int)>::type _32bit;
 

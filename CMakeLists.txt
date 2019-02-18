@@ -16,7 +16,7 @@ endif(POLICY CMP0022)
 
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 6)
+set (KratosMultiphysics_MAJOR_VERSION 7)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
