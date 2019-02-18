@@ -21,6 +21,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/incompressible_potential_flow_wake_element.h"
 
 namespace Kratos {
   namespace Testing {
@@ -28,7 +29,7 @@ namespace Kratos {
     typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodeIterator NodeIteratorType;
 
-    void GenerateElement(ModelPart& rModelPart)
+    void GenerateNormalElement(ModelPart& rModelPart)
     {
       // Variables addition
       rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
@@ -45,6 +46,23 @@ namespace Kratos {
       rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
+    void GenerateWakeElement(ModelPart& rModelPart)
+    {
+      // Variables addition
+      rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set the element properties
+      Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+
+      // Geometry creation
+      rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
+      rModelPart.CreateNewElement("IncompressiblePotentialFlowWakeElement2D3N", 1, elemNodes, pElemProp);
+    }
+
     /** Checks the CompressiblePotentialFlowElement element.
      * Checks the LHS and RHS computation.
      */
@@ -53,7 +71,7 @@ namespace Kratos {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
       //ModelPart model_part("Main");
-      GenerateElement(model_part);
+      GenerateNormalElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
@@ -83,7 +101,7 @@ namespace Kratos {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
       //ModelPart model_part("Main");
-      GenerateElement(model_part);
+      GenerateWakeElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
       // Define the nodal values
@@ -138,7 +156,7 @@ namespace Kratos {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
       
-      GenerateElement(model_part);
+      GenerateNormalElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
       for (unsigned int i = 0; i < 3; i++)
@@ -168,7 +186,7 @@ namespace Kratos {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
       
-      GenerateElement(model_part);
+      GenerateWakeElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);
 
