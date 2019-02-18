@@ -511,10 +511,10 @@ else ()
 endif (${INSTALL_PYTHON_FILES} MATCHES ON)
 
 configure_file(
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
+  "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
+  "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
 )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
