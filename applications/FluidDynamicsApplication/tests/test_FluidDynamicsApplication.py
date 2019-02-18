@@ -15,6 +15,7 @@ from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_test import EmbeddedCouetteTest
 from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
+from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulationTest
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
@@ -54,6 +55,8 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
+    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
+    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.

@@ -43,7 +43,7 @@ void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
     )
 {
     rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i) 
+    for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
 
@@ -377,8 +377,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -387,7 +387,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
             else identity_matrix(i, j) = 0.0;
         }
     }
-    
+
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
 
@@ -406,8 +406,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -421,7 +421,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
     MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
-    
+
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
 
@@ -440,8 +440,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
@@ -471,7 +471,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
+        rStrainVector.resize(VoigtSize, false);
 
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
@@ -503,9 +503,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
 {
     // Doing resize in case is needed
     if (rRMatrix.size1() != Dimension || rRMatrix.size2() != Dimension)
-        rRMatrix.resize(Dimension, Dimension);
+        rRMatrix.resize(Dimension, Dimension, false);
     if (rUMatrix.size1() != Dimension || rUMatrix.size2() != Dimension)
-        rUMatrix.resize(Dimension, Dimension);
+        rUMatrix.resize(Dimension, Dimension, false);
 
     // We compute Right Cauchy tensor
     const MatrixType C = prod(trans(rFDeformationGradient), rFDeformationGradient);
@@ -658,7 +658,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
         auxiliar_vector[2] = eigen_vectors_matrix(2, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
-    
+
     Vector sigma_tension_vector;
     Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -670,7 +670,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     }
 
     Matrix indexes_ij;
-    indexes_ij.resize(3, 2);
+    indexes_ij.resize(3, 2, false);
     indexes_ij(0, 0) = 0;
     indexes_ij(0, 1) = 1;
     indexes_ij(1, 0) = 1;
@@ -726,7 +726,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
         auxiliar_vector[1] = eigen_vectors_matrix(1, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
-    
+
     Vector sigma_tension_vector;
     Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -802,7 +802,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGr
     const double PlasticConsistencyFactorIncrement
     )
 {
-    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension, Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     return plastic_deformation_gradient_increment;
 }
@@ -848,7 +848,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ConstitutiveLawUtilities<3>; 
+template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
 } // namespace Kratos

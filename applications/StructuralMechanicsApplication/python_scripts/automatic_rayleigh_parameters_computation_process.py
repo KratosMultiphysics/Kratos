@@ -125,7 +125,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
                 KM.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
                 from KratosMultiphysics import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.settings["eigen_system_settings"])
-                builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithConstraints(eigen_linear_solver)
+                builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
                 eigen_scheme = SMA.EigensolverDynamicScheme()
                 eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver)
                 eigen_solver.Solve()
