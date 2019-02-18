@@ -89,12 +89,30 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+
+    //virtual bool CalculateReturnMappingExpl( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+    virtual bool CalculateReturnMappingExpl( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+
+    virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix);
+
+    virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix);
+
+    virtual void EvaluateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
     
     virtual void EvaluateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress);
 
-    virtual void EvaluateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
+    const PlasticVariablesType& GetPlasticVariables() { return mPlasticVariables; };
 
-    virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix);
+    virtual void InitializeMaterial( YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
+    
+    virtual void InitializeMaterial( const Properties& rMaterialProperties);
+    
+    virtual void SetPreconsolidation( const double& rInitialPreconPressure ); 
+    
+    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables);
+
+    virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding);
+    
 
     ///@}
     ///@name Access
@@ -136,6 +154,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    PlasticVariablesType mPlasticVariables;
 	
     ///@}
     ///@name Protected Operators
@@ -146,20 +165,36 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-		void CalculateKirchhoffStressVector(const Vector& rHenckyStrainVector, Vector& rKirchhoffStressVector);
+    void CalculateExplicitSolution( const Matrix& rIncrementalDeformationGradient, const Matrix& rPreviousElasticCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance);
+
+		void CalculateExplicitSolutionWithChange( const Matrix& rDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const double& rTolerance);
+    
+    void CalculateKirchhoffStressVector( const Vector& rHenckyStrainVector, Vector& rKirchhoffStressVector);
+    
+    void CalculateKirchhoffStressVector( const Matrix& rElasticLeftCauchyGreen, Vector& rStressVector);
+    
+    void CalculateOneExplicitPlasticStep( const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const PlasticVariablesType& rPreviousPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, PlasticVariablesType& rNewPlasticVariables, double& rDeltaPlastic);
+   
+    void CalculateOneExplicitStep( const Matrix& rDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, ExplicitStressUpdateInformation& rStressUpdateInformation);
+    
+    void CalculatePlasticPotentialDerivatives( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative, const PlasticVariablesType& rPlasticVariables);
+    
+    //virtual void CalculatePlasticPotentialDerivativesPJ2( const Vector& rStressVector, double& rFirstDerivativeP, double& rFirstDerivativeJ2, const PlasticVariablesType& rPlasticVariables);
+    virtual void CalculatePlasticPotentialDerivativesPJ2( const Vector& rStressVector, double& rFirstDerivativeP, double& rFirstDerivativeJ2, const PlasticVariablesType& rPlasticVariables);
+    
+    //virtual void ComputePlasticHardeningParameter( const Vector& rHenckyStrainVector, const PlasticVariablesType& rPlasticVariables, double& rH);
+    virtual void ComputePlasticHardeningParameter( const Vector& rHenckyStrainVector, const PlasticVariablesType& rPlasticVariables, double& rH);
+
+    bool& EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const PlasticVariablesType& rPlasticVariables, const double& rTolerance);
 
 		void EvaluateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress);
 
-		virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+    void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
 
-//    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
-
-//		void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
+    void UpdateDerivatives( const Vector& rHenckyStrain, AuxiliarDerivativesStructure& rAuxiliarDerivatives, const PlasticVariablesType& rPlasticVariables);
     
-		void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative, const double& rAlpha); 
+    void UpdateRadialReturnVariables( RadialReturnVariables& rReturnMappingVariables, const ExplicitStressUpdateInformation& rStressUpdateInformation);
 
-//    void CalculateInvariantsAndDerivatives(const Vector& rStressVector, InvariantsStructure& rInv);
-    
     ///@}
     ///@name Protected  Access
     ///@{

@@ -233,7 +233,7 @@ namespace Kratos
 
     void UpdateDerivatives(const Vector& rHenckyElasticStrain, AuxiliarDerivativesStructure & rAuxiliarDerivatives, const double& EquivalentPlasticStrian) ;
 
-    virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative, const double& rAlpha)
+    virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative)
     {
 			KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };

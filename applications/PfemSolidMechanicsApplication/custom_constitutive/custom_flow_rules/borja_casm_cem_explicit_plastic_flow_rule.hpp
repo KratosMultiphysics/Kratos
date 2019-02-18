@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                    LHauser $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2018 $
+//   Date:                $Date:                     Dec 2018 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_explicit_plastic_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
   */
   class BorjaCasmCemExplicitFlowRule 
-	  :public NonAssociativeExplicitPlasticFlowRule
+	  :public BorjaCasmExplicitFlowRule
   {
   
 
@@ -91,26 +91,10 @@ namespace Kratos
     ///@{
     
     virtual bool CalculateReturnMappingExpl( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
-    
-    virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix);
-    
-    virtual void ComputeElasticMatrix( const Vector& rElasticStrainVector, Matrix& rElasticMatrix);
-    
-    virtual void EvaluateDeviatoricStress( const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
-    
-    virtual void EvaluateMeanStress( const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress);
-    
-    const PlasticVariablesType& GetPlasticVariables() { return mPlasticVariables; };
-    
-    virtual void InitializeMaterial( YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
-    
-    virtual void InitializeMaterial( const Properties& rMaterialProperties);
-    
-    virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
+      
+    virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding);
 
-    //virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables);
-    
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables);
+    virtual void SetBonding( const double& rInitialBonding); 
 
     ///@}
     ///@name Access
@@ -152,7 +136,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 		
-		PlasticVariablesType mPlasticVariables;
+		//PlasticVariablesType mPlasticVariables;
 	
     ///@}
     ///@name Protected Operators
@@ -162,37 +146,10 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    void CalculateExplicitSolution( const Matrix& rIncrementalDeformationGradient, const Matrix& rPreviousElasticCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance);
-    
-    void CalculateExplicitSolutionWithChange( const Matrix& rDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const double& rTolerance);
-		
-		void CalculateKirchhoffStressVector( const Vector& rHenckyStrainVector, Vector& rKirchhoffStressVector);
-		
-		void CalculateKirchhoffStressVector( const Matrix& rElasticLeftCauchyGreen, Vector& rStressVector);
-		
-		void CalculateOneExplicitPlasticStep( const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const PlasticVariablesType& rPreviousPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, PlasticVariablesType& rNewPlasticVariables, double& rDeltaPlastic);
-   
-		void CalculateOneExplicitStep( const Matrix& rDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, ExplicitStressUpdateInformation& rStressUpdateInformation);
-		
-		void CalculatePlasticPotentialDerivatives( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative, const PlasticVariablesType& rPlasticVariables);
-		void CalculatePlasticPotentialDerivativesPJ2( const Vector& rStressVector, double& rFirstDerivativeP, double& rFirstDerivativeJ2, const PlasticVariablesType& rPlasticVariables);
-		//void CalculatePlasticPotentialDerivativesRowe( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative, const PlasticVariablesType& rPlasticVariables);
-		//void CalculatePlasticPotentialDerivativesYu( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative, const PlasticVariablesType& rPlasticVariables);
-		
-		void ComputePlasticHardeningParameter( const Vector& rHenckyStrainVector, const PlasticVariablesType& rPlasticVariables, double& rH);
+     	
+    virtual void CalculatePlasticPotentialDerivativesPJ2( const Vector& rStressVector, double& rFirstDerivativeP, double& rFirstDerivativeJ2, const PlasticVariablesType& rPlasticVariables);
 
-		bool& EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const PlasticVariablesType& rPlasticVariables, const double& rTolerance);
-
-		void EvaluateMeanStress( const Vector& rHenckyStrainVector, double& rMeanStress);
-
-		void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
-		//void ReturnStressToYieldSurfaceNormal( RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
-		
-		void UpdateDerivatives( const Vector& rHenckyStrain, AuxiliarDerivativesStructure& rAuxiliarDerivatives, const PlasticVariablesType& rPlasticVariables);
-		
-		void UpdateRadialReturnVariables( RadialReturnVariables& rReturnMappingVariables, const ExplicitStressUpdateInformation& rStressUpdateInformation);
-
+  	virtual void ComputePlasticHardeningParameter( const Vector& rHenckyStrainVector, const PlasticVariablesType& rPlasticVariables, double& rH);
     
     ///@}
     ///@name Protected  Access

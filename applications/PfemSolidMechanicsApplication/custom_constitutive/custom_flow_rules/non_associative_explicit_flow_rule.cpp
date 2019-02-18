@@ -1406,7 +1406,7 @@ std::cout<<"actual time step: "<<TimeStep<<std::endl;
 
       this->CalculateKirchhoffStressVector( rHenckyStrain, StressVector);
 
-      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD, rAlpha);
+      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
 
       mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, rAuxiliarDerivatives.YieldFunctionD, rAlpha);
 
