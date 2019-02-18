@@ -464,6 +464,10 @@ public:
 
         array_1d<double, 3>& r_current_acceleration = itCurrentNode->FastGetSolutionStepValue(ACCELERATION);
 
+        array_1d<double, 3>& r_last_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,1);
+        r_last_displacement = r_current_displacement;
+
+
         // Solution of the explicit equation:
         if (nodal_mass > numerical_limit)
             noalias(r_current_acceleration) = (r_current_residual - nodal_displacement_damping * r_current_velocity) / nodal_mass;

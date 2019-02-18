@@ -163,7 +163,7 @@ void SlidingCableElement3D::GetSecondDerivativesVector(Vector &rValues, int Step
   KRATOS_CATCH("")
 }
 
-Vector SlidingCableElement3D::GetCurrentLengthArray() const
+Vector SlidingCableElement3D::GetCurrentLengthArray(int step)
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -172,14 +172,14 @@ Vector SlidingCableElement3D::GetCurrentLengthArray() const
   for (int i=0;i<number_of_segments;++i)
   {
     const double du =
-        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_X) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_X,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X,step);
     const double dv =
-        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_Y,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y,step);
     const double dw =
-        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
-        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+        this->GetGeometry()[i+1].FastGetSolutionStepValue(DISPLACEMENT_Z,step) -
+        this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z,step);
     const double dx = this->GetGeometry()[i+1].X0() - this->GetGeometry()[i].X0();
     const double dy = this->GetGeometry()[i+1].Y0() - this->GetGeometry()[i].Y0();
     const double dz = this->GetGeometry()[i+1].Z0() - this->GetGeometry()[i].Z0();
@@ -205,7 +205,7 @@ Vector SlidingCableElement3D::GetRefLengthArray() const
   return segment_lengths;
 }
 
-double SlidingCableElement3D::GetCurrentLength() const
+double SlidingCableElement3D::GetCurrentLength()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -269,14 +269,14 @@ Vector SlidingCableElement3D::GetDeltaPositions(const int& rDirection) const
   return delta_position;
 }
 
-double SlidingCableElement3D::CalculateGreenLagrangeStrain() const
+double SlidingCableElement3D::CalculateGreenLagrangeStrain()
 {
   const double reference_length = this->GetRefLength();
   const double current_length = this->GetCurrentLength();
   return (0.50 * (((current_length*current_length)-(reference_length*reference_length)) / (reference_length*reference_length)));
 }
 
-Vector SlidingCableElement3D::GetDirectionVectorNt() const
+Vector SlidingCableElement3D::GetDirectionVectorNt()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -306,9 +306,15 @@ Vector SlidingCableElement3D::GetDirectionVectorNt() const
   return n_t;
 }
 
-Vector SlidingCableElement3D::GetInternalForces() const
+
+Vector SlidingCableElement3D::GetInternalForces()
 {
-  //const double k_0            = this->LinearStiffness();
+  const int points_number = GetGeometry().PointsNumber();
+  const int dimension = 3;
+  const SizeType local_size = dimension*points_number;
+  const int segments_number = points_number-1;
+  const int points_int_number = points_number-2;
+
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
   const double prestress     = this->GetPK2PrestressValue();
@@ -318,12 +324,108 @@ Vector SlidingCableElement3D::GetInternalForces() const
 
   const double total_internal_force = (youngs_mod*strain_gl+prestress) * area * current_length / ref_length;
 
-  //const double total_internal_force = k_0 * strain_gl * current_length;
-  const Vector internal_foces = this->GetDirectionVectorNt() * total_internal_force;
-  return internal_foces;
+  Vector internal_forces = total_internal_force*this->GetDirectionVectorNt();
+
+  double friction_coefficient = 0.0;
+  if (this->GetProperties().Has(FRICTION_COEFFICIENT))  friction_coefficient = GetProperties()[FRICTION_COEFFICIENT];
+
+  if (friction_coefficient>0.0)
+  {
+    Vector l_p = this->CalculateProjectionLengths();
+
+    /*   Vector l_0 = this->GetCurrentLengthArray();
+      Vector l_1 = this->GetCurrentLengthArray(2);
+      Vector d_l = l_0-l_1; */
+
+    Vector l_0 = this->GetRefLengthArray();
+    Vector d_l = l_p-l_0;
+
+    Vector e_l = ZeroVector(segments_number);
+    for (int i=0;i<segments_number;++i) e_l[i] = d_l[i]/l_0[i];
+
+    //const double total_internal_force = k_0 * strain_gl * current_length;
+    Vector deviation_forces = this->GetDirectionVectorNt() * total_internal_force;
+
+    Vector internal_normal_resulting_forces = ZeroVector(segments_number);
+    for (int i=0;i<segments_number;++i) internal_normal_resulting_forces[i] = total_internal_force;
+
+    /* starting_segment_id = 0;
+    for (int i=0;i<segments_number;++i)
+    {
+      if (d_l[i]>0.0)
+      {
+        starting_segment_id = i;
+        break;
+      }
+    } */
+    // simplified start at left segment and say N1 = N
+
+    for (int i=0;i<points_int_number;++i)
+    {
+      int node_i = i+1;
+      double dl_i_0 = d_l[i];
+      double dl_i_1 = d_l[i+1];
+
+      double el_i_0 = e_l[i];
+      double el_i_1 = e_l[i+1];
+
+      double next_n = 0.0;
+
+      double deviation_force_i =
+      std::sqrt((deviation_forces[node_i*dimension]*deviation_forces[node_i*dimension])+
+      (deviation_forces[(node_i*dimension)+1]*deviation_forces[(node_i*dimension)+1])+
+      (deviation_forces[(node_i*dimension)+2]*deviation_forces[(node_i*dimension)+2]));
+
+      double friction_force = deviation_force_i*friction_coefficient;
+
+      if ((el_i_0>=0) && (el_i_1>=0)) internal_normal_resulting_forces[i+1] = internal_normal_resulting_forces[i];
+      else
+      {
+        if (el_i_1<el_i_0) next_n = internal_normal_resulting_forces[i] - friction_force;
+        else next_n = internal_normal_resulting_forces[i] + friction_force;
+
+        internal_normal_resulting_forces[i+1] = next_n;
+      }
+    }
+
+    internal_forces = this->GetCustomInternalForceWithFriction(internal_normal_resulting_forces);
+  }
+
+  return internal_forces;
 }
 
-Matrix SlidingCableElement3D::ElasticStiffnessMatrix() const
+Vector SlidingCableElement3D::GetCustomInternalForceWithFriction(const Vector& rNormalForces)
+{
+  const int points_number = GetGeometry().PointsNumber();
+  const int dimension = 3;
+  const SizeType local_size = dimension*points_number;
+
+  Vector n_t = ZeroVector(local_size);
+  const Vector d_x = this->GetDeltaPositions(1);
+  const Vector d_y = this->GetDeltaPositions(2);
+  const Vector d_z = this->GetDeltaPositions(3);
+  const Vector lengths = this->GetCurrentLengthArray();
+
+  n_t[0] = (-d_x[0] / lengths[0])*rNormalForces[0];
+  n_t[1] = (-d_y[0] / lengths[0])*rNormalForces[0];
+  n_t[2] = (-d_z[0] / lengths[0])*rNormalForces[0];
+
+  for (int i=0;i<points_number-2;++i)
+  {
+    n_t[(i+1)*3]     = ((d_x[i]/lengths[i])*rNormalForces[i])-((d_x[i+1]/lengths[i+1])*rNormalForces[i+1]);
+    n_t[((i+1)*3)+1] = ((d_y[i]/lengths[i])*rNormalForces[i])-((d_y[i+1]/lengths[i+1])*rNormalForces[i+1]);
+    n_t[((i+1)*3)+2] = ((d_z[i]/lengths[i])*rNormalForces[i])-((d_z[i+1]/lengths[i+1])*rNormalForces[i+1]);
+  }
+
+  n_t[local_size-dimension]   = (d_x[points_number-2]/lengths[points_number-2])*rNormalForces[points_number-2];
+  n_t[local_size-dimension+1] = (d_y[points_number-2]/lengths[points_number-2])*rNormalForces[points_number-2];
+  n_t[local_size-dimension+2] = (d_z[points_number-2]/lengths[points_number-2])*rNormalForces[points_number-2];
+
+  return n_t;
+}
+
+
+Matrix SlidingCableElement3D::ElasticStiffnessMatrix()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -340,7 +442,7 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix() const
   return elastic_stiffness_matrix;
 }
 
-Matrix SlidingCableElement3D::GeometricStiffnessMatrix() const
+Matrix SlidingCableElement3D::GeometricStiffnessMatrix()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -392,7 +494,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix() const
   return geometric_stiffness_matrix;
 }
 
-inline Matrix SlidingCableElement3D::TotalStiffnessMatrix() const
+inline Matrix SlidingCableElement3D::TotalStiffnessMatrix()
 {
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix();
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix();
@@ -422,6 +524,7 @@ void SlidingCableElement3D::CalculateRightHandSide(
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
+
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
@@ -703,6 +806,42 @@ Vector SlidingCableElement3D::CalculateBodyForces() {
 
     return body_forces_global;
     KRATOS_CATCH("")
+}
+
+
+Vector SlidingCableElement3D::CalculateProjectionLengths()
+{
+  const int points_number = GetGeometry().PointsNumber();
+  const int number_of_segments = points_number-1;
+
+  Vector projection_lengths = ZeroVector(number_of_segments);
+
+  const Vector d_x = this->GetDeltaPositions(1);
+  const Vector d_y = this->GetDeltaPositions(2);
+  const Vector d_z = this->GetDeltaPositions(3);
+
+  const Vector l_0 = this->GetRefLengthArray();
+
+  for (int i=0;i<number_of_segments;++i)
+  {
+    double l_p_i = 0.00;
+
+    const double dX = this->GetGeometry()[i+1].X0() - this->GetGeometry()[i].X0();
+    const double dY = this->GetGeometry()[i+1].Y0() - this->GetGeometry()[i].Y0();
+    const double dZ = this->GetGeometry()[i+1].Z0() - this->GetGeometry()[i].Z0();
+
+    const double l_0_i = l_0[i];
+
+    l_p_i += dX*d_x[i];
+    l_p_i += dY*d_y[i];
+    l_p_i += dZ*d_z[i];
+
+    l_p_i /= l_0_i;
+
+    projection_lengths[i] = l_p_i;
+  }
+
+  return projection_lengths;
 }
 
 

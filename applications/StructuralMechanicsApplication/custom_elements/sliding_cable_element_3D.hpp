@@ -116,19 +116,19 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
-        Vector GetCurrentLengthArray() const;
+        Vector GetCurrentLengthArray(int Step = 0);
         Vector GetRefLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
-        Vector GetDirectionVectorNt() const;
-        Vector GetInternalForces() const;
+        Vector GetDirectionVectorNt();
+        Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix() const;
-        Matrix GeometricStiffnessMatrix() const;
-        inline Matrix TotalStiffnessMatrix() const;
+        Matrix ElasticStiffnessMatrix();
+        Matrix GeometricStiffnessMatrix();
+        inline Matrix TotalStiffnessMatrix();
 
-        double GetCurrentLength() const;
+        double GetCurrentLength();
         double GetRefLength() const;
-        double CalculateGreenLagrangeStrain() const;
+        double CalculateGreenLagrangeStrain();
         inline double LinearStiffness() const
         {
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
@@ -178,6 +178,10 @@ namespace Kratos
          * @brief This function calculates self-weight forces
          */
         Vector CalculateBodyForces();
+
+        Vector GetCustomInternalForceWithFriction(const Vector& rNormalForces);
+
+        Vector CalculateProjectionLengths();
 
     private:
 
