@@ -381,10 +381,6 @@ public:
         } 
         else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
         {
-            const unsigned int NumNodes = 4;
-            const unsigned int Dim = 3;
-            const unsigned int strain_size = 6;
-
             double distance_center = 0.0;
             for(unsigned int i=0; i<GetGeometry().size(); i++)
                 distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
