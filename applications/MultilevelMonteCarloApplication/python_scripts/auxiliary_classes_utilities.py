@@ -340,10 +340,11 @@ class StatisticalVariable(object):
     input:  self:  an instance of the class
             level: defined level
     """
-    def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
-        """local variables for mean and number of samples"""
+    def ComputeSampleCentralMomentsFromScratch(self,level):
+        number_samples_level = self.number_samples[level]
+        # local variables for mean and number of samples
         curr_mean = self.mean[level]
-        """initialize central moements"""
+        # initialize central moements
         first_central_moment = 0.0
         second_central_moment = 0.0
         third_central_moment = 0.0
@@ -355,7 +356,7 @@ class StatisticalVariable(object):
         compute_third_absolute_central_moment = self.sample_third_absolute_central_moment_to_compute
         compute_fourth_central_moment = self.sample_fourth_central_moment_to_compute
         for i in range(0,number_samples_level):
-            """compute only the central moements we need, since it is expensive their computation at large number_samples_level"""
+            # compute only the central moements we need, since it is expensive their computation at large number_samples_level
             sample = self.values[level][i]
             first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment = \
                 ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment, \
