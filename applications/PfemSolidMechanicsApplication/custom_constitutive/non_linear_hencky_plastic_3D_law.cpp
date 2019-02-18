@@ -87,7 +87,7 @@ namespace Kratos
 
    void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
    {
-			std::cout<<std::endl<<"  Calculate Kirchhoff material response "<<std::endl;
+		//std::cout<<std::endl<<"  Calculate Kirchhoff material response "<<std::endl;
 
       //-----------------------------//
 
@@ -155,8 +155,8 @@ namespace Kratos
       Matrix StressMatrix = ZeroMatrix(3,3);    
       Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
       
-std::cout<< "    Delta_F : " << ElasticVariables.DeformationGradientF <<std::endl;
-std::cout<< "    b_n :     " << NewElasticLeftCauchyGreen <<std::endl;
+//std::cout<< "    Delta_F : " << ElasticVariables.DeformationGradientF <<std::endl;
+//std::cout<< "    b_n :     " << NewElasticLeftCauchyGreen <<std::endl;
 
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -229,7 +229,7 @@ std::cout<< "    b_n :     " << NewElasticLeftCauchyGreen <<std::endl;
          mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
          mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
-         std::cout<<std::endl<< "  ... MATERIAL RESPONSE FINALIZED ... " <<std::endl<<std::endl;
+//std::cout<<std::endl<< "  ... MATERIAL RESPONSE FINALIZED ... " <<std::endl<<std::endl;
 
          // moved to HyperElastic3DLaw::UpdateInvernalVariables that is called at FinalizeMaterialResponse just after it arribes here.
          /*ElasticVariables.DeformationGradientF = DeformationGradientF; 
