@@ -29,10 +29,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStructuralResponseFunction
+/** \brief DirectSensitivityLocalStressResponseFunction
 *
-* This is the response base class for responses in structural mechanics.
-* It is designed to be used in adjoint sensitivity analysis.
+* This is the response class for local stresses used in the direct sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityLocalStressResponseFunction : public DirectSensitivityResponseFunction 
 {

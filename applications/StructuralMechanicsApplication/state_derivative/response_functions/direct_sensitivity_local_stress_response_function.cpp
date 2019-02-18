@@ -83,10 +83,10 @@ namespace Kratos
 
 
     // Derivative of the response function "local stress" w.r.t the displacement
-    void DirectSensitivityLocalStressResponseFunction::CalculateGradient(Element& rDirectElement,
-                                   Variable<array_1d<double, 3>> const& rStressVariable,
-                                   std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
-                                   const ProcessInfo& rProcessInfo)
+    void DirectSensitivityLocalStressResponseFunction::CalculateGradient(Element& rDirectElement,                            
+                            Variable<array_1d<double, 3>> const& rStressVariable,
+                            std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
+                            const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
         
@@ -100,11 +100,14 @@ namespace Kratos
 
         // Define working variables
         std::vector<std::vector<array_1d<double, 3>>> response_gradient;
-        std::vector<array_1d<double, 3>> extracted_response_gradient;
+        VectorMath::SetToZero(response_gradient);
 
         // Compute Derivative
-        DerivativeBuilder::ComputeDerivative(rDirectElement, rStressVariable, STRESS_DISP_DERIV_ON_GP, response_gradient, rProcessInfo);
-     
+        std::string derivative_flag = "DISPLACEMENT_DERIVATIVE";
+        DerivativeBuilder::ComputeDerivative(derivative_flag, rDirectElement, rStressVariable, response_gradient, rProcessInfo);
+
+        //OutputUtility::OutputOnTerminal("rOutput", rOutput);
+        
         // Size rOutput
         if (rOutput.size() != num_dofs)
             rOutput.resize(num_dofs);
@@ -114,9 +117,11 @@ namespace Kratos
         {   
             if( mStressTreatment == StressTreatment::Mean )
                 this->ExtractMeanStressDerivative(response_gradient[dof_it], rOutput[dof_it]);
-            if( mStressTreatment == StressTreatment::GaussPoint )
+            else if( mStressTreatment == StressTreatment::GaussPoint )
                 this->ExtractGaussPointStressDerivative(response_gradient[dof_it], rOutput[dof_it]);
         }
+
+        //OutputUtility::OutputOnTerminal("Gradient", rOutput);
         
         KRATOS_CATCH("");
     }
@@ -149,6 +154,7 @@ namespace Kratos
                 this->ExtractGaussPointStressDerivative(sensitivity_gradient[0], rOutput);
         }
         
+        OutputUtility::OutputOnTerminal("SensitivityGradient", rOutput);
 
         KRATOS_CATCH("");
     }
@@ -169,7 +175,8 @@ namespace Kratos
         rDirectElement.SetValue(PERTURBATION_SIZE, delta);
 
         // CalculateOnIntegrationPoints compute the derivative of the local stress wrt. the design variable
-        DerivativeBuilder::ComputeDerivative(rDirectElement, rStressVariable, STRESS_DESIGN_DERIVATIVE_ON_GP, rOutput, rProcessInfo);;
+        std::string derivative_flag = "DESIGN_VARIABLE_DERIVATIVE";
+        DerivativeBuilder::ComputeDerivative(derivative_flag, rDirectElement, rStressVariable, rOutput, rProcessInfo);
     }
 
 
@@ -184,22 +191,22 @@ namespace Kratos
         
         // Define working variables
         array_1d<double, 3> stress_derivative_value;
-        SetToZero(stress_derivative_value);        
+        VectorMath::SetToZero(stress_derivative_value);        
     
         // Sizing of rOutput
         if(rOutput.size() != 1)
             rOutput.resize(1);
         
-        SetToZero(rOutput[0]);
+        VectorMath::SetToZero(rOutput[0]);
         
         // Compute mean value of all gauss points          
         for(IndexType gp_it = 0; gp_it < num_of_stress_positions; ++gp_it)            
-            Addition(stress_derivative_value, rStressDerivativesMatrix[gp_it]);                
+            VectorMath::Addition(stress_derivative_value, rStressDerivativesMatrix[gp_it]);                
             
         stress_derivative_value /= num_of_stress_positions;
                         
-        Addition(rOutput[0], stress_derivative_value);
-        SetToZero(stress_derivative_value);   
+        VectorMath::Addition(rOutput[0], stress_derivative_value);
+        VectorMath::SetToZero(stress_derivative_value);   
 
         KRATOS_CATCH("");
     }
@@ -211,23 +218,25 @@ namespace Kratos
     {
         KRATOS_TRY;
         
+
         // Define sizes
         const SizeType num_gp = rStressDerivativeVector.size();
         const SizeType num_traced_gp = mIdOfLocationVector.size();
-
+        
         // Sizing of rOutput
         if(rOutput.size() != num_traced_gp)
             rOutput.resize(num_traced_gp);
 
+        VectorMath::SetToZero(rOutput);
+
         for (IndexType i = 0; i < num_traced_gp; ++i)
         {    
-            SetToZero(rOutput[i]);
             // Check if choosen gauss point is available
             KRATOS_ERROR_IF_NOT(num_gp >= mIdOfLocationVector[i] ) <<
                     "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " << num_gp  << "!"<< std::endl;
 
             // Extract the values for the choosen gauss point from the derivative matrix
-            Addition( rOutput[i], rStressDerivativeVector[mIdOfLocationVector[i]-1] );
+            VectorMath::Addition( rOutput[i], rStressDerivativeVector[mIdOfLocationVector[i]-1] );
         }
 
         KRATOS_CATCH("");
