@@ -108,8 +108,9 @@ bool isPrintingRank(pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
-    if (isPrintingRank(kwargs))
+    if (isPrintingRank(kwargs)) {
         printImpl(args, kwargs, Logger::Severity::INFO, true, LoggerMessage::DistributedFilter::FromRoot());
+    }
 }
 
 /**
@@ -119,8 +120,9 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
-    if (isPrintingRank(kwargs))
+    if (isPrintingRank(kwargs)) {
         printImpl(args, kwargs, Logger::Severity::INFO, false, LoggerMessage::DistributedFilter::FromRoot());
+    }
 }
 
 /**
@@ -130,8 +132,9 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
-    if (isPrintingRank(kwargs))
+    if (isPrintingRank(kwargs)) {
         printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromRoot());
+    }
 }
 
 void printDefaultOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {

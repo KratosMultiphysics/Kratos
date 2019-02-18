@@ -30,7 +30,7 @@ namespace Kratos
             column_name.erase(column_name.find_last_not_of(" ") + 1);
         }
 
-        DataCommunicator& r_communicator = DataCommunicator::GetDefault();
+        const DataCommunicator& r_communicator = DataCommunicator::GetDefault();
         if (r_communicator.Rank() == 0) {
           WriteHeader();
         }
