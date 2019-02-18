@@ -10,8 +10,8 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
+#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_KUTTA_ELEMENT_H)
+#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_KUTTA_ELEMENT_H
 
 // System includes
 
@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowElement : public Element
+class IncompressiblePotentialFlowKuttaElement : public Element
 {
 public:
     template <unsigned int TNumNodes, unsigned int TDim>
@@ -65,8 +65,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    /// Pointer definition of IncompressiblePotentialFlowKuttaElement
+    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowKuttaElement);
 
     ///@}
     ///@name Life Cycle
@@ -78,24 +78,25 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
+    [[deprecated("Using deprecated IncompressiblePotentialFlowKuttaElement constructor")]]
+    explicit IncompressiblePotentialFlowKuttaElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    IncompressiblePotentialFlowKuttaElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    IncompressiblePotentialFlowKuttaElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId,
+    IncompressiblePotentialFlowKuttaElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties){}
@@ -103,24 +104,24 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) = delete;
+    IncompressiblePotentialFlowKuttaElement(IncompressiblePotentialFlowKuttaElement const& rOther) = delete;
 
     /**
      * Move Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement&& rOther) = delete;
+    IncompressiblePotentialFlowKuttaElement(IncompressiblePotentialFlowKuttaElement&& rOther) = delete;
 
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override{}
+    ~IncompressiblePotentialFlowKuttaElement() override{}
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
+    IncompressiblePotentialFlowKuttaElement& operator=(IncompressiblePotentialFlowKuttaElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -128,7 +129,7 @@ public:
     }
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
+    IncompressiblePotentialFlowKuttaElement& operator=(IncompressiblePotentialFlowKuttaElement&& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -355,7 +356,7 @@ private:
 
     ///@}
 
-}; // Class IncompressiblePotentialFlowElement
+}; // Class IncompressiblePotentialFlowKuttaElement
 
 ///@}
 
@@ -370,4 +371,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
+#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_KUTTA_ELEMENT_H  defined

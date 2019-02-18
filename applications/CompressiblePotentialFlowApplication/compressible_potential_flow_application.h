@@ -26,6 +26,8 @@
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_wake_element.h"
+#include "custom_elements/incompressible_potential_flow_kutta_element.h"
+#include "custom_elements/incompressible_potential_flow_trailing_edge_element.h"
 #include "custom_conditions/potential_wall_condition.h"
 
 namespace Kratos {
@@ -186,6 +188,8 @@ private:
 
 		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
 		const IncompressiblePotentialFlowWakeElement<2,3> mIncompressiblePotentialFlowWakeElement2D3N;
+		const IncompressiblePotentialFlowKuttaElement<2,3> mIncompressiblePotentialFlowKuttaElement2D3N;
+		const IncompressiblePotentialFlowTrailingEdgeElement<2,3> mIncompressiblePotentialFlowTrailingEdgeElement2D3N;
 
 
 	///@}

@@ -86,6 +86,7 @@ public:
     /**
      * Constructor.
      */
+    [[deprecated("Using deprecated IncompressiblePotentialFlowElement constructor")]]
     explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {};
 
     /**

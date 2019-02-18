@@ -10,7 +10,7 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#include "incompressible_potential_flow_wake_element.h"
+#include "incompressible_potential_flow_trailing_edge_element.h"
 
 namespace Kratos
 {
@@ -18,41 +18,42 @@ namespace Kratos
 // Public Operations
 
 template <int Dim, int NumNodes>
-Element::Pointer IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Create(
+Element::Pointer IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowWakeElement>(
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowTrailingEdgeElement>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-Element::Pointer IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Create(
+Element::Pointer IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowWakeElement>(
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowTrailingEdgeElement>(
         NewId, pGeom, pProperties));
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-Element::Pointer IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Clone(
+Element::Pointer IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Clone(
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowWakeElement>(
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowTrailingEdgeElement>(
         NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
+
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
@@ -60,7 +61,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateRightHandSide(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     // TODO: improve speed
@@ -69,10 +70,10 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateRightHandSi
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::EquationIdVector(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element
@@ -97,10 +98,10 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::EquationIdVector(
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                                                                    ProcessInfo& CurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element
@@ -125,13 +126,13 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofList(DofsVecto
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
         active = (this)->Is(ACTIVE);
 
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake != 0 && active == true)
@@ -146,7 +147,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::FinalizeSolutionStep
 // Inquiry
 
 template <int Dim, int NumNodes>
-int IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -173,7 +174,7 @@ int IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Check(const ProcessIn
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -191,13 +192,13 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
     }
     else if (rVariable == WAKE)
     {
-        const IncompressiblePotentialFlowWakeElement& r_this = *this;
+        const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
         rValues[0] = r_this.GetValue(WAKE);
     }
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -207,7 +208,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
     else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == WAKE)
-        rValues[0] = 15;//this->GetValue(WAKE);
+        rValues[0] = this->GetValue(WAKE);
     else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
@@ -215,7 +216,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -243,7 +244,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -256,21 +257,21 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
 // Input and output
 
 template <int Dim, int NumNodes>
-std::string IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::Info() const
+std::string IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "IncompressiblePotentialFlowWakeElement #" << Id();
+    buffer << "IncompressiblePotentialFlowTrailingEdgeElement #" << Id();
     return buffer.str();
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "IncompressiblePotentialFlowWakeElement #" << Id();
+    rOStream << "IncompressiblePotentialFlowTrailingEdgeElement #" << Id();
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::PrintData(std::ostream& rOStream) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::PrintData(std::ostream& rOStream) const
 {
     pGetGeometry()->PrintData(rOStream);
 }
@@ -280,20 +281,20 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::PrintData(std::ostre
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
     noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
 {
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -306,7 +307,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetEquationIdVectorK
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
 {
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
@@ -334,14 +335,14 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetEquationIdVectorW
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofListNormalElement(DofsVectorType& rElementalDofList) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListNormalElement(DofsVectorType& rElementalDofList) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
 {
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -354,7 +355,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofListKuttaEleme
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
 {
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
@@ -380,7 +381,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetDofListWakeElemen
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
@@ -401,7 +402,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     // Note that the lhs and rhs have double the size
@@ -435,10 +436,14 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
+
+    Vector split_element_values(2*NumNodes);
+    GetPotentialOnWakeElement(split_element_values,data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
     Matrix& lhs_positive, Matrix& lhs_negative)
 {
     ElementalData<NumNodes, Dim> data;
@@ -482,14 +487,14 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
     const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
 {
     noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemSubdividedElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::AssignLocalSystemSubdividedElement(
     MatrixType& rLeftHandSideMatrix,
     Matrix& lhs_positive,
     Matrix& lhs_negative,
@@ -514,7 +519,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemSub
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::AssignLocalSystemWakeElement(
     MatrixType& rLeftHandSideMatrix, Matrix& lhs_total, const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
@@ -522,7 +527,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemWak
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemWakeNode(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::AssignLocalSystemWakeNode(
     MatrixType& rLeftHandSideMatrix,
     Matrix& lhs_total,
     const ElementalData<NumNodes, Dim>& data,
@@ -545,7 +550,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::AssignLocalSystemWak
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CheckWakeCondition() const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CheckWakeCondition() const
 {
     array_1d<double, Dim> upper_wake_velocity;
     ComputeVelocityUpperWakeElement(upper_wake_velocity);
@@ -561,7 +566,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CheckWakeCondition()
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
@@ -587,12 +592,12 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePotentialJump
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeElementInternalEnergy()
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeElementInternalEnergy()
 {
     double internal_energy = 0.0;
     array_1d<double, Dim> velocity;
 
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
@@ -605,10 +610,10 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeElementIntern
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnNormalElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnNormalElement(
     array_1d<double, NumNodes>& phis) const
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
 
     if (kutta == 0)
@@ -623,7 +628,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnNormal
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnWakeElement(
     Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
 {
     array_1d<double, NumNodes> upper_phis;
@@ -640,7 +645,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnWakeEl
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
     array_1d<double, NumNodes>& upper_phis, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -651,7 +656,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnUpperW
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
     array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -662,11 +667,11 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetPotentialOnLowerW
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
@@ -676,11 +681,11 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityUpper
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
@@ -690,7 +695,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityLower
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityNormalElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityNormalElement(
     array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
@@ -704,7 +709,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityNorma
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
     array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
@@ -721,7 +726,7 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityUpper
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
     array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
@@ -738,9 +743,9 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeVelocityLower
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
@@ -750,9 +755,9 @@ double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureUpp
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
 {
-    const IncompressiblePotentialFlowWakeElement& r_this = *this;
+    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
@@ -762,7 +767,7 @@ double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureLow
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -780,7 +785,7 @@ double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureNor
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
@@ -800,7 +805,7 @@ double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureUpp
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
@@ -822,13 +827,13 @@ double IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputePressureLow
 // serializer
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::save(Serializer& rSerializer) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::load(Serializer& rSerializer)
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
@@ -836,6 +841,6 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::load(Serializer& rSe
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
-template class IncompressiblePotentialFlowWakeElement<2, 3>;
+template class IncompressiblePotentialFlowTrailingEdgeElement<2, 3>;
 
 } // namespace Kratos
