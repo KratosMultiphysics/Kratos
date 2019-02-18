@@ -12,7 +12,7 @@ import copy
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from auxiliary_classes_utilities import StatisticalVariable
+from statistical_variable_utilities import StatisticalVariable
 
 # Import random variable generator
 import generator_utilities as generator
