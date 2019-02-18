@@ -98,7 +98,9 @@ namespace Python
         });
         binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { noalias(self) = TVectorType(self.size(),value); });
     #endif // KRATOS_USE_AMATRIX
-
+        binder.def("norm_1", [](TVectorType& self) { return norm_1(self); });
+        binder.def("norm_2", [](TVectorType& self) { return norm_2(self); });
+        binder.def("norm_frobenius", [](TVectorType& self) { return norm_frobenius(self); });
         binder.def("__iter__", [](TVectorType& self){ return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal); } , py::keep_alive<0,1>() ) ;
         binder.def("__str__", PrintObject<TVectorType>);
 

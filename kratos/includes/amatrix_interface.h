@@ -613,7 +613,7 @@ typename TExpression1Type::data_type inner_prod(
     typename TExpressionType::data_type norm_1(
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
             using data_type = typename TExpressionType::data_type;
-            auto& the_expression = TheExpression;
+            auto& the_expression = TheExpression.expression();
             data_type result = std::abs(the_expression[0]);
             for (std::size_t i = 0; i < the_expression.size(); ++i) {
                 if (result < std::abs(the_expression[i]))
