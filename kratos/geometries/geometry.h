@@ -906,16 +906,6 @@ public:
         KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
     }
 
-    /** Calculates the dihedral angles of the geometry.
-     * Calculates the dihedral angles of the geometry.
-     *
-     * @return a vector of dihedral angles of the geometry..
-     */
-    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles )  const
-    {
-        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
-    }
-
     /** Calculates the solid angles of the geometry.
      * Calculates the solid angles of the geometry.
      *
