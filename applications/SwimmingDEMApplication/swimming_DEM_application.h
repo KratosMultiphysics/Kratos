@@ -149,10 +149,6 @@ private:
     const ShellRigid mRigidShellElement;
 
     const SwimmingParticle<SphericParticle> mSwimmingParticle3D;
-
-    /// swimming derivation of spheric basic DEM element (SphericParticle) TODO: deprecated in favour of mSwimmingParticle3D
-    const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
-
     const SwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
     const SwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
     /// Assignment operator.

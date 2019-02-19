@@ -90,7 +90,6 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swimming_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
 
     ## Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
