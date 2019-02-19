@@ -53,7 +53,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
 {
     const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
     auto& r_elements = mrModelPart1.ElementsArray();
-    std::vector<OctreeType::cell_type*> leaves;
+    OtreeCellVectorType leaves;
 
     rResults.resize(number_of_elements);
     for (std::size_t i = 0; i < number_of_elements; i++) {
@@ -95,7 +95,7 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 /***********************************************************************************/
 
 template<class TEntity>
-OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* FindIntersectedGeometricalObjectsProcess<TEntity>::GetOctreePointer()
+OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<TEntity>::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess<TEntity>::GetOctreePointer()
 {
     return &mOctree;
 }
@@ -117,7 +117,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
 {
     GenerateOctree();
 
-    std::vector<OctreeType::cell_type*> leaves;
+    OtreeCellVectorType leaves;
     const int number_of_entities = mrModelPart1.NumberOfElements();
 
     const auto it_entity_begin = mrModelPart1.ElementsBegin();
@@ -201,9 +201,10 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TEntity>
 void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
     Element& rElement1,
-    std::vector<OctreeType::cell_type*>& leaves
+    OtreeCellVectorType& leaves
     )
 {
     for (auto p_leaf : leaves) {
@@ -298,7 +299,7 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
 template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(
     Element& rElement1,
-    std::vector<OctreeType::cell_type*>& leaves,
+    FindIntersectedGeometricalObjectsProcess<TEntity>::OtreeCellVectorType& leaves,
     PointerVector<GeometricalObject>& rResults
     )
 {

@@ -333,10 +333,11 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsProcess);
 
     /// Octree definitions
-    using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
+    using ConfigurationType = Internals::DistanceSpatialContainersConfigure<TEntity>;
     using CellType = OctreeBinaryCell<ConfigurationType>;
     using OctreeType = OctreeBinary<CellType>;
-    using CellNodeDataType = ConfigurationType::CellNodeDataType;
+    using CellNodeDataType = typename ConfigurationType::CellNodeDataType;
+    using OtreeCellVectorType = std::vector<OctreeType::cell_type*>;
 
     /// Definition of the node type
     using NodeType = Node<3>;
@@ -380,7 +381,7 @@ public:
 
     virtual ModelPart& GetModelPart1();
 
-    virtual OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* GetOctreePointer();
+    virtual OctreeBinary<OctreeBinaryCell<ConfigurationType>>* GetOctreePointer();
 
     virtual void Clear();
 
@@ -450,7 +451,7 @@ private:
 
     void FindIntersectedSkinObjects(
         TEntity& rEntity1,
-        std::vector<OctreeType::cell_type*>& leaves,
+        OtreeCellVectorType& leaves,
         PointerVector<GeometricalObject>& rResults
         );
 
