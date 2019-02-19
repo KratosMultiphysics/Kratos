@@ -3,7 +3,7 @@
         "problem_name"    : "nonlinear_3D2NTruss_snapthrough_plasticity_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 46,
+        "end_time"        : 44,
         "echo_level"      : 0
     },
     "solver_settings"          : {
