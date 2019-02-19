@@ -145,6 +145,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    virtual void CalculateContactForce( ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected Operators
