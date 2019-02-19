@@ -676,6 +676,9 @@ private:
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, conditions_to_erase;
 
+        // Getting discontinous factor
+        const double discontinous_interface_factor = mDiscontinuousInterface ? mThisParameters["discontinous_interface_factor"].GetDouble() : 1.0;
+
         // Geometrical values
         const array_1d<double, 3>& r_slave_normal = itCond->GetValue(NORMAL);
         GeometryType& r_slave_geometry = itCond->GetGeometry();
@@ -737,6 +740,40 @@ private:
                             #pragma omp atomic
                             r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
                         }
+                        // In case of discontinous interface we add contribution to near nodes
+                        if (mDiscontinuousInterface) {
+                            const double element_length = r_slave_geometry.Length();
+
+                            // Iterating over nodes
+                            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                                const double nodal_area_contribution = rThisMortarOperators.DOperator(i_node, i_node);
+
+                                // The original node coordinates
+                                const array_1d<double, 3>& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
+
+                                // Iterating over other paired conditions
+                                const auto& index_masp_master = p_cond_master->GetValue(INDEX_SET);
+                                for (auto it_master_pair = index_masp_master->begin(); it_master_pair != index_masp_master->end(); ++it_master_pair ) {
+
+                                    const IndexType auxiliar_slave_id = index_masp_master->GetId(it_master_pair);
+                                    if (itCond->Id() != auxiliar_slave_id) {
+                                        Condition::Pointer p_cond_auxiliar_slave = mDestinationModelPart.pGetCondition(auxiliar_slave_id); // AUXILIAR SLAVE
+                                        GeometryType& r_auxiliar_slave_geometry = p_cond_auxiliar_slave->GetGeometry();
+
+                                        for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
+                                            // The auxiliar node coordinates
+                                            const array_1d<double, 3>& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
+                                            const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
+                                            const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
+
+                                            double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
+                                            #pragma omp atomic
+                                            r_nodal_area += contribution_coeff * nodal_area_contribution;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else if (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
@@ -762,12 +799,14 @@ private:
     }
 
     /**
+     * @brief This method creates an inverse database
+     */
+    void CreateInverseDatabase();
+
+    /**
      * @brief Reset the interface database
-     * This method resets the mapping database saved in the destination database.
-     * Note that this needs to be done if such modelpart has changed its number
-     * of nodes or conditions. This needs to be done even though the mapping
-     * instance is deleted since such information is saved in the destination
-     * nodes and conditions.
+     * @details This method resets the mapping database saved in the destination database.
+     * @note Note that this needs to be done if such modelpart has changed its number of nodes or conditions. This needs to be done even though the mapping instance is deleted since such information is saved in the destination nodes and conditions.
      */
     void UpdateInterface();
 

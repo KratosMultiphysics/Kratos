@@ -715,6 +715,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     // Check if the pairs has been created
     CheckAndPerformSearch();
 
+    // In case of discontinous interface we create an inverse mapping
+    if (mDiscontinuousInterface) {
+        CreateInverseDatabase();
+    }
+
+    // Compute until convergence
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the auxiliar variable
         MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
@@ -722,11 +728,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 
         ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(r_conditions_array.size());
+        const auto it_cond_begin = r_conditions_array.begin();
 
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
 
             if (it_cond->Has( INDEX_MAP )) {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
@@ -839,19 +846,27 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     // Check if the pairs has been created
     CheckAndPerformSearch();
 
+    // In case of discontinous interface we create an inverse mapping
+    if (mDiscontinuousInterface) {
+        CreateInverseDatabase();
+    }
+
+    // Compute until convergence
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the RHS
         if (iteration > 0)
             for (IndexType i_size = 0; i_size < variable_size; ++i_size)
                 b[i_size] = zero_vector;
 
-        ConditionsArrayType& conditions_array = mDestinationModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
+        // Conditions array
+        ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+        const int num_conditions = static_cast<int>(r_conditions_array.size());
+        const auto it_cond_begin = r_conditions_array.begin();
 
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
             if (it_cond->Has( INDEX_MAP )) {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
                 PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, it_cond, integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
@@ -897,6 +912,54 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CreateInverseDatabase()
+{
+    // First we clear database
+    ConditionsArrayType& r_master_conditions_array = mOriginModelPart.Conditions();
+    const int num_origin_conditions = static_cast<int>(r_master_conditions_array.size());
+    const auto it_cond_origin_begin = r_master_conditions_array.begin();
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_origin_conditions; ++i) {
+        auto it_cond = it_cond_origin_begin + i;
+        if (it_cond->Has(INDEX_SET) == false) {
+            it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+        } else {
+            it_cond->GetValue(INDEX_SET)->clear();
+        }
+    }
+
+    // Conditions array
+    ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+    const int num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
+
+    // Create an inverted database
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+        if (it_cond->Has( INDEX_MAP )) {
+            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+            for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+                const IndexType master_id = p_indexes_pairs->GetId(it_pair);
+                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+            }
+        } else {
+            IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+            for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+                const IndexType master_id = p_indexes_pairs->GetId(it_pair);
+                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::UpdateInterface()
 {
     // Iterate in the conditions
@@ -926,6 +989,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "echo_level"                       : 0,
         "using_average_nodal_normal"       : true,
         "compute_discontinuous_interface"  : false,
+        "discontinous_interface_factor"    : 1.0e-1,
         "absolute_convergence_tolerance"   : 1.0e-9,
         "relative_convergence_tolerance"   : 1.0e-4,
         "max_number_iterations"            : 10,
