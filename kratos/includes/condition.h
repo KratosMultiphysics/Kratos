@@ -23,7 +23,7 @@
 #include "includes/geometrical_object.h"
 #include "containers/flags.h"
 #include "containers/weak_pointer_vector.h"
-
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -247,6 +247,52 @@ public:
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Condition" << Info() << std::endl;
         return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief It creates a new condition pointer (with Parameters)
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @param ThisParameters The custom parameters
+     * @return a Pointer to the new condition
+     */
+    virtual Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters
+        ) const
+    {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("condition_name")) << "Please to use this constructor you need at least to define the condition_name into the Parameters" << std::endl;
+        const std::string& r_condition_name = ThisParameters["condition_name"].GetString();
+        KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(r_condition_name)) << "Condition: " << r_condition_name << " not registered" << std::endl;
+        return KratosComponents<Condition>::Get(r_condition_name).Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief It creates a new condition pointer (with Parameters)
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @param ThisParameters The custom parameters
+     * @return a Pointer to the new condition
+     */
+    virtual Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters
+        ) const
+    {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("condition_name")) << "Please to use this constructor you need at least to define the condition_name into the Parameters" << std::endl;
+        const std::string& r_condition_name = ThisParameters["condition_name"].GetString();
+        KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(r_condition_name)) << "Condition: " << r_condition_name << " not registered" << std::endl;
+        return KratosComponents<Condition>::Get(r_condition_name).Create(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 

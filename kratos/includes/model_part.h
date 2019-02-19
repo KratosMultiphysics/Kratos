@@ -126,6 +126,7 @@ public:
 
 
     typedef Node < 3 > NodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
@@ -1040,6 +1041,25 @@ public:
      */
     ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /**
+     * @brief Inserts a element in the current mesh. (with Parameters)
+     * @param rElementName The new element name (registered in the KratosComponents)
+     * @param NewId the ID of the new element
+     * @param pElementNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @param ThisParameters The custom parameters
+     * @param ThisIndex The mesh Id
+     * @return a Pointer to the new element
+     */
+    ElementType::Pointer CreateNewElement(
+        const std::string& rElementName,
+        const IndexType NewId,
+        GeometryType::PointsArrayType pElementNodes,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters,
+        const IndexType ThisIndex = 0
+        );
+
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
     {
@@ -1217,6 +1237,25 @@ public:
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /**
+     * @brief Inserts a condition in the current mesh. (with Parameters)
+     * @param rConditionName The new condition name (registered in the KratosComponents)
+     * @param NewId the ID of the new condition
+     * @param pConditionNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @param ThisParameters The custom parameters
+     * @param ThisIndex The mesh Id
+     * @return a Pointer to the new condition
+     */
+    ConditionType::Pointer CreateNewCondition(
+        const std::string& rConditionName,
+        const IndexType NewId,
+        GeometryType::PointsArrayType pConditionNodes,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters,
+        const IndexType ThisIndex = 0
+        );
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)

@@ -33,6 +33,9 @@ namespace Kratos
 namespace Python
 {
 
+typedef Node<3> NodeType;
+typedef Geometry<NodeType> GeometryType;
+
 template<class TDataType>
 void AddNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
 {
@@ -97,6 +100,25 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
 }
 
+Element::Pointer ModelPartCreateNewElementWithParameters(
+    ModelPart& rModelPart,
+    const std::string& rElementName,
+    ModelPart::IndexType Id,
+    std::vector< ModelPart::IndexType >& NodeIdList,
+    ModelPart::PropertiesType::Pointer pProperties,
+    const Parameters ThisParameters
+    )
+{
+    const std::size_t number_of_nodes = NodeIdList.size();
+    GeometryType::PointsArrayType p_element_node_list(number_of_nodes);
+
+    for(std::size_t i = 0; i < number_of_nodes; i++) {
+        p_element_node_list[i] = rModelPart.pGetNode(NodeIdList[i]);
+    }
+
+    return rModelPart.CreateNewElement(rElementName, Id, p_element_node_list, pProperties, ThisParameters);
+}
+
 Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
@@ -108,6 +130,24 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
     return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
 }
 
+Condition::Pointer ModelPartCreateNewConditionWithParameters(
+    ModelPart& rModelPart,
+    const std::string& rConditionName,
+    ModelPart::IndexType Id,
+    std::vector< ModelPart::IndexType >& NodeIdList,
+    ModelPart::PropertiesType::Pointer pProperties,
+    const Parameters ThisParameters
+    )
+{
+    const std::size_t number_of_nodes = NodeIdList.size();
+    GeometryType::PointsArrayType p_condition_node_list(number_of_nodes);
+
+    for(std::size_t i = 0; i < number_of_nodes; i++) {
+        p_condition_node_list[i] = rModelPart.pGetNode(NodeIdList[i]);
+    }
+
+    return rModelPart.CreateNewCondition(rConditionName, Id, p_condition_node_list, pProperties, ThisParameters);
+}
 
 // Nodes
 
@@ -929,7 +969,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
         .def("CreateNewElement", ModelPartCreateNewElement)
+        .def("CreateNewElement", ModelPartCreateNewElementWithParameters)
         .def("CreateNewCondition", ModelPartCreateNewCondition)
+        .def("CreateNewCondition", ModelPartCreateNewConditionWithParameters)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)

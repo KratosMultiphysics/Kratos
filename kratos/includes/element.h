@@ -24,7 +24,7 @@
 #include "containers/flags.h"
 #include "includes/constitutive_law.h"
 #include "containers/weak_pointer_vector.h"
-
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -241,6 +241,52 @@ public:
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief It creates a new element pointer (with Parameters)
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @param ThisParameters The custom parameters
+     * @return a Pointer to the new element
+     */
+    virtual Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters
+        ) const
+    {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("element_name")) << "Please to use this constructor you need at least to define the element_name into the Parameters" << std::endl;
+        const std::string& r_element_name = ThisParameters["element_name"].GetString();
+        KRATOS_ERROR_IF_NOT(KratosComponents<Element>::Has(r_element_name)) << "Element: " << r_element_name << " not registered" << std::endl;
+        return KratosComponents<Element>::Get(r_element_name).Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief It creates a new element pointer (with Parameters)
+     * @param NewId the ID of the new element
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new element
+     * @param ThisParameters The custom parameters
+     * @return a Pointer to the new element
+     */
+    virtual Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties,
+        const Parameters ThisParameters
+        ) const
+    {
+        KRATOS_TRY
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("element_name")) << "Please to use this constructor you need at least to define the element_name into the Parameters" << std::endl;
+        const std::string& r_element_name = ThisParameters["element_name"].GetString();
+        KRATOS_ERROR_IF_NOT(KratosComponents<Element>::Has(r_element_name)) << "Element: " << r_element_name << " not registered" << std::endl;
+        return KratosComponents<Element>::Get(r_element_name).Create(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 

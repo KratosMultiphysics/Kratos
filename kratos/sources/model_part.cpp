@@ -778,6 +778,41 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     KRATOS_CATCH("")
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(
+    const std::string& rElementName,
+    const IndexType NewId,
+    GeometryType::PointsArrayType pElementNodes,
+    PropertiesType::Pointer pProperties,
+    const Parameters ThisParameters,
+    const IndexType ThisIndex
+    )
+{
+    KRATOS_TRY
+
+    if (IsSubModelPart()) {
+        ElementType::Pointer p_new_condition = mpParentModelPart->CreateNewElement(rElementName, NewId, pElementNodes, pProperties, ThisParameters, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_condition);
+        return p_new_condition;
+    }
+
+    auto existing_condition_iterator = GetMesh(ThisIndex).Elements().find(NewId);
+    KRATOS_ERROR_IF(existing_condition_iterator != GetMesh(ThisIndex).ElementsEnd() ) << "Trying to construct a condition with ID " << NewId << " however a condition with the same Id already exists";
+
+    // Get the element
+    ElementType const& r_clone_condition = KratosComponents<ElementType>::Get(rElementName);
+    ElementType::Pointer p_condition = r_clone_condition.Create(NewId, pElementNodes, pProperties, ThisParameters);
+
+    // Add the new element
+    GetMesh(ThisIndex).AddElement(p_condition);
+
+    return p_condition;
+    KRATOS_CATCH("")
+}
+
 /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
 void ModelPart::RemoveElement(ModelPart::IndexType ElementId, ModelPart::IndexType ThisIndex)
@@ -1341,6 +1376,39 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(
+    const std::string& rConditionName,
+    const IndexType NewId,
+    GeometryType::PointsArrayType pConditionNodes,
+    PropertiesType::Pointer pProperties,
+    const Parameters ThisParameters,
+    const IndexType ThisIndex
+    )
+{
+    KRATOS_TRY
+
+    if (IsSubModelPart()) {
+        ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(rConditionName, NewId, pConditionNodes, pProperties, ThisParameters, ThisIndex);
+        GetMesh(ThisIndex).AddCondition(p_new_condition);
+        return p_new_condition;
+    }
+
+    auto existing_condition_iterator = GetMesh(ThisIndex).Conditions().find(NewId);
+    KRATOS_ERROR_IF(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() ) << "Trying to construct a condition with ID " << NewId << " however a condition with the same Id already exists";
+
+    // Get the element
+    ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(rConditionName);
+    ConditionType::Pointer p_condition = r_clone_condition.Create(NewId, pConditionNodes, pProperties, ThisParameters);
+
+    // Add the new element
+    GetMesh(ThisIndex).AddCondition(p_condition);
+
+    return p_condition;
+    KRATOS_CATCH("")
+}
 
 /** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
