@@ -18,8 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
-#include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
+#include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos

@@ -19,6 +19,8 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_coupling_interface_condition.h"
 #include "includes/kratos_flags.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -103,11 +105,22 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateContactForce( Proces
     array_1d<double, 3 > MPC_Force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        for ( unsigned int j = 0; j < dimension; j++)
+        // Check whether there is material point inside the node
+        const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon())
         {
-            MPC_Force[j] += Variables.N[i] *  nodal_force[block_size * i + j];
+            for ( unsigned int j = 0; j < dimension; j++)
+            {
+                MPC_Force[j] += Variables.N[i] *  nodal_force[block_size * i + j];
+            }
         }
     }
+
+    // Apply only in the normal direction
+    array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+    ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
+    const double normal_force = MathUtils<double>::Dot(MPC_Force,unit_normal_vector);
+    MPC_Force  = normal_force * unit_normal_vector;
     MPC_Force *= -1.0;
 
     // Set Contact Force
