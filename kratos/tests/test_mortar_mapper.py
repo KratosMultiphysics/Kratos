@@ -6,11 +6,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted):
+    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         self.StructureModel = KratosMultiphysics.Model()
 
@@ -24,12 +27,48 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
         KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
+        ### BEGIN Generate discontinous case
+        #counter_nodes = 0
+        #for node in self.main_model_part.Nodes:
+            #counter_nodes += 1
 
-        if (inverted is True):
+        #counter_conditions = 0
+        #for cond in self.main_model_part.Conditions:
+            #counter_conditions += 1
+
+        #if inverted:
+            #self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+            #self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+        #else:
+            #self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+            #self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+
+        #for cond in self.model_part_slave.Conditions:
+
+            #counter_conditions += 1
+            #length = cond.GetGeometry().Area() * 0.01
+            #list_nodes = []
+            #for node in cond.GetNodes():
+                #counter_nodes += 1
+                #list_nodes.append(counter_nodes)
+                #self.model_part_slave.CreateNewNode(counter_nodes, node.X + length, node.Y - length, node.Z)
+                #node.Set(KratosMultiphysics.TO_ERASE)
+            #cond.Set(KratosMultiphysics.TO_ERASE)
+
+            #self.main_model_part.CreateNewCondition("SurfaceCondition3D3N", counter_conditions, list_nodes, self.main_model_part.GetProperties()[1])
+
+        #self.main_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+        #self.main_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        ## Debug
+        ##self.__post_process()
+
+        #model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_double_curvature_integration_triangle_discontinous_interface"), KratosMultiphysics.IO.WRITE)
+        #model_part_io.WriteModelPart(self.main_model_part)
+
+        ### END Generate discontinous case
+
+        if inverted:
             self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
             self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
         else:
@@ -53,11 +92,13 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
-            "origin_variable"                  : "TEMPERATURE"
+            "origin_variable"                  : "TEMPERATURE",
+            "compute_discontinuous_interface"  : false
         }
         """)
+        map_parameters["compute_discontinuous_interface"].SetBool(discontinuous)
 
-        if (pure_implicit == True):
+        if pure_implicit:
             #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         else:
@@ -67,9 +108,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["origin_variable"].SetString("DISPLACEMENT")
         self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
 
-    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False):
+    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False):
 
-        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted)
+        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous)
 
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
@@ -88,7 +129,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         }
         """)
 
-        if (inverted is True):
+        if inverted:
             check_parameters["input_file_name"].SetString(input_filename+"_inverted.json")
         else:
             check_parameters["input_file_name"].SetString(input_filename+".json")
@@ -110,7 +151,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #}
         #""")
 
-        #if (inverted is True):
+        #if inverted:
             #out_parameters["output_file_name"].SetString(input_filename+"_inverted.json")
         #else:
             #out_parameters["output_file_name"].SetString(input_filename+".json")
@@ -135,6 +176,10 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
         self._mapper_tests(input_filename, 3, 3)
+
+    #def test_mortar_mapping_triangle_discontinous_interface(self):
+        #input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
+        #self._mapper_tests(input_filename, 3, 3, False, False, True)
 
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
