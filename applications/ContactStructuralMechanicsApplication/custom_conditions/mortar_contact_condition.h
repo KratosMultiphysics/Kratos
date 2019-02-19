@@ -50,11 +50,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    /**
-     * @brief We use this to differentiate between cases of friction
-     */
-    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2, FRICTIONLESS_PENALTY = 3, FRICTIONAL_PENALTY = 4  };
-
 ///@}
 ///@name  Functions
 ///@{
@@ -557,19 +552,6 @@ protected:
         const bool ComputeRHS = true
         );
 
-    /**
-     * @brief Calculate condition kinematics (shape functions, jacobians, ...)
-     */
-    void CalculateKinematics(
-        GeneralVariables& rVariables,
-        const DerivativeDataType& rDerivativeData,
-        const array_1d<double, 3>& NormalMaster,
-        const PointType& LocalPointDecomp,
-        const PointType& LocalPointParent,
-        GeometryPointType& GeometryDecomp,
-        const bool DualLM = true
-        );
-
     /********************************************************************************/
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
@@ -602,19 +584,6 @@ protected:
         const DerivativeDataType& rDerivativeData,
         const IndexType rActiveInactive,
         const ProcessInfo& rCurrentProcessInfo
-        );
-
-    /***********************************************************************************/
-    /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
-    /***********************************************************************************/
-
-    /**
-     * @brief Calculates the values of the shape functions for the master element
-     */
-    void MasterShapeFunctionValue(
-        GeneralVariables& rVariables,
-        const array_1d<double, 3>& NormalMaster,
-        const PointType& LocalPoint
         );
 
     /******************************************************************/
@@ -664,6 +633,12 @@ protected:
             return GeometryData::GI_GAUSS_2;
         }
     }
+
+    /**
+     * @brief This functions returns if the computation is axisymmetric or not
+     * @return If axisymmetric or not
+     */
+    virtual bool IsAxisymmetric() const;
 
     /**
      * @brief This functions computes the integration weight to consider

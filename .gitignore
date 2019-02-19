@@ -11,6 +11,7 @@ cmake_build/*
 packaging/*
 packaging_aux/KratosLoader.py
 packaging_aux/kratos.conf
+kratos/python_interface/KratosPaths.py
 
 # Compile and install directories
 KratosMultiphysics/*
@@ -56,6 +57,10 @@ kratos/includes/kratos_version.h
 *.post.bin
 *.post.lst
 
+# VTK post files
+*.vtk
+*.vtu
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh
@@ -63,8 +68,5 @@ kratos/includes/kratos_version.h
 *.o.mesh
 
 *.bak
-
-*.h~
-*.cpp~
 
 applications/python_scripts/beam_profiles\.csv

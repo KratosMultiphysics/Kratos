@@ -72,19 +72,42 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
 
-    //std::string Info() const;
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
 
     ///@}
     ///@name Access
@@ -98,13 +121,26 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "AxisymPointLoadCondition #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "AxisymPointLoadCondition #" << Id();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{

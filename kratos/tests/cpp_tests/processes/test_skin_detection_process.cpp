@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
     array_nodes2.push_back(p_node_3);
     array_nodes2.push_back(p_node_4);
 
-    Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
+    Properties::Pointer p_elem_prop = model_part.CreateNewProperties(0);
     Element::Pointer p_elem_1 = model_part.CreateNewElement("Element2D3N", 1,PointerVector<NodeType>{array_nodes1}, p_elem_prop);
     Element::Pointer p_elem_2 = model_part.CreateNewElement("Element2D3N", 2,PointerVector<NodeType>{array_nodes2}, p_elem_prop);
 

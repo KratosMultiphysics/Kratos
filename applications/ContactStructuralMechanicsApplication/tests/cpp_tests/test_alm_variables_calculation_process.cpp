@@ -43,7 +43,7 @@ namespace Kratos
 
         void Create3DConditionsGeometry(ModelPart& ThisModelPart, const std::string& rConditionName)
         {
-            Properties::Pointer p_cond_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_cond_prop = ThisModelPart.CreateNewProperties(0);
             p_cond_prop->SetValue(YOUNG_MODULUS, 100.0);
 
             // First we create the nodes

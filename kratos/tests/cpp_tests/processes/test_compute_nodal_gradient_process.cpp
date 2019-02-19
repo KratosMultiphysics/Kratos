@@ -62,7 +62,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info.SetValue(DOMAIN_SIZE, 2);
@@ -147,7 +147,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info.SetValue(DOMAIN_SIZE, 3);
@@ -311,7 +311,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info.SetValue(DOMAIN_SIZE, 2);
@@ -383,7 +383,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info.SetValue(DOMAIN_SIZE, 3);

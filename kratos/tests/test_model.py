@@ -1,10 +1,28 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import sys
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import sys
+# Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
+# Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
+try:
+    import cickle as pickle
+    have_pickle_module = True
+except ImportError:
+    if sys.version_info > (3, 0):
+        try:
+            import pickle
+            have_pickle_module = True
+        except ImportError:
+            have_pickle_module = False
+            pickle_message = "No pickle module found"
+    else:
+        have_pickle_module = False
+        pickle_message = "No valid pickle module found"
 
 class TestModel(KratosUnittest.TestCase):
 
@@ -59,7 +77,6 @@ class TestModel(KratosUnittest.TestCase):
         
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
-
     def test_model_serialization(self):
 
         file_name = "model_serialization"
@@ -80,6 +97,7 @@ class TestModel(KratosUnittest.TestCase):
 
         kratos_utils.DeleteFileIfExisting(file_name + ".rest")
 
+    @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: " + pickle_message)
     def test_model_serialization_with_pickling(self):
         current_model = KratosMultiphysics.Model()
 
@@ -96,14 +114,9 @@ class TestModel(KratosUnittest.TestCase):
         serializer.Save("ModelSerialization",current_model)
         del(current_model)
 
-        # ######## here we pickle the serializer
-        try:
-            import cpickle as pickle  # Use cPickle on Python 2.7
-        except ImportError:
-            import pickle
-
         #pickle dataserialized_data
-        pickled_data = pickle.dumps(serializer, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        pickled_data = pickle.dumps(serializer, protocol=2) # Second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        del(serializer)
 
         #overwrite the old serializer with the unpickled one
         serializer = pickle.loads(pickled_data)

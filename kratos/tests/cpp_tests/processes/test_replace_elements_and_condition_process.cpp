@@ -40,7 +40,7 @@ namespace Kratos
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             // First we create the nodes 
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -111,7 +111,7 @@ namespace Kratos
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             // First we create the nodes 
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);

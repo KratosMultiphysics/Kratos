@@ -151,16 +151,6 @@ public:
 
     int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
-/*    void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom, //this is just to give the array of nodes
-                               const Vector& ShapeFunctionsValues ,
-                               const ProcessInfo& CurrentProcessInfo);
-*/
    /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix

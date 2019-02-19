@@ -40,9 +40,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef  std::vector<Node<3>*> NodePointerVectorType;
-  typedef  std::vector<Element*> ElementPointerVectorType;
-
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -344,7 +343,7 @@ namespace Kratos
 	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
 	    DenseVector<unsigned int> lnofa; //number of points defining faces
 
-	    ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
+	    ElementWeakPtrVectorType& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 	    //get matrix nodes in faces
 	    rElementGeometry.NodesInFaces(lpofa);
@@ -355,12 +354,12 @@ namespace Kratos
 
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
-	    for(ElementPointerVectorType::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
+	    for(ElementWeakPtrVectorType::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
 
-		if ((*ne)->Id() == ie->Id())
+		if ((ne)->Id() == ie->Id())
 		  {
 
 		    //if no neighbour is present => the face is free surface
@@ -495,13 +494,13 @@ namespace Kratos
 
 			//std::cout<<" _IDa_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-			ElementPointerVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
-			MasterElements.push_back( (*(ie.base())).get() );
+			ElementWeakPtrVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+			MasterElements.push_back( (*(ie.base())) );
 			p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
-			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)).get() );
-			NodePointerVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
-			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)).get() );
+			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)) );
+			NodeWeakPtrVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)) );
 			p_cond->SetValue(MASTER_NODES,MasterNodes);
 
 		      }
@@ -533,13 +532,13 @@ namespace Kratos
 
 			//std::cout<<" _IDb_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-			ElementPointerVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
-			MasterElements.push_back( (*(ie.base())).get() );
+			ElementWeakPtrVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+			MasterElements.push_back( (*(ie.base())) );
 			p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
-			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)).get() );
-			NodePointerVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
-			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)).get() );
+			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)) );
+			NodeWeakPtrVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)) );
 			p_cond->SetValue(MASTER_NODES,MasterNodes);
 
 		      }

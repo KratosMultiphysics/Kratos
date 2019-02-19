@@ -72,6 +72,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( EAS_IMPLICIT_EXPLICIT );    // True means implicit
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_UPDATED_LAGRANGIAN ); // True means total lagrangian
     KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
+    KRATOS_DEFINE_LOCAL_FLAG( EXPLICIT_RHS_COMPUTATION ); // True means elastic behaviour for stabilization
 
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
@@ -933,7 +934,7 @@ protected:
      */
     void CalculateElementalSystem(
         LocalSystemComponents& rLocalSystem,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -959,23 +960,23 @@ protected:
     bool HasNeighbour(
         const IndexType Index,
         const NodeType& NeighbourNode
-        );
+        ) const ;
 
     /**
      * @brief Calculates the number of active neighbours:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes);
+    std::size_t NumberOfActiveNeighbours(const WeakPointerVector< NodeType >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        WeakPointerVector< NodeType >& pNeighbourNodes,
+        const WeakPointerVector< NodeType >& pNeighbourNodes,
         const Configuration ThisConfiguration
-        );
+        ) const;
 
     /**
      * @brief Calculate the cartesian derivatives

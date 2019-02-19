@@ -43,7 +43,7 @@ void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
     )
 {
     rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i) 
+    for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
 
@@ -59,6 +59,9 @@ void ConstitutiveLawUtilities<6>::CalculateI2Invariant(
     rI2 = (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
             -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
@@ -92,7 +95,7 @@ void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
     double& rI3
     )
 {
-    KRATOS_ERROR << "I3 invariant not available in 2D!" << std::endl;
+    rI3 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -168,12 +171,26 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+template<>
+void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
-    rFirstVector = ZeroVector(6);
-    for (IndexType i = 0; i < Dimension; ++i)
-        rFirstVector[i] = 1.0;
+    rFirstVector[0] = 1.0;
+    rFirstVector[1] = 1.0;
+    rFirstVector[2] = 1.0;
+    rFirstVector[3] = 0.0;
+    rFirstVector[4] = 0.0;
+    rFirstVector[5] = 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+{
+    rFirstVector[0] = 1.0;
+    rFirstVector[1] = 1.0;
+    rFirstVector[2] = 0.0;
 }
 
 /***********************************************************************************/
@@ -186,8 +203,6 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
 
     if (twosqrtJ2 > tolerance) {
@@ -213,13 +228,11 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
+    for (IndexType i = 0; i < 3; ++i) {
         rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
     }
-    rSecondVector[3] *= 2.0;
+    rSecondVector[2] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -232,9 +245,6 @@ void ConstitutiveLawUtilities<6>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector.resize(6);
-
     const double J2thirds = J2 / 3.0;
 
     rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
@@ -255,9 +265,6 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector = ZeroVector(6);
-
     const double J2thirds = J2 / 3.0;
 
     rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
@@ -299,11 +306,35 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const
 
     for(IndexType i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)  {
         const array_1d<double, 3>& aux_vector = r_center.Coordinates() - rGeometry[i_node].Coordinates();
-        const double aux_value = inner_prod(aux_vector, aux_vector);
+        double aux_value = inner_prod(aux_vector, aux_vector);
         if(aux_value > radius) radius = aux_value;
     }
 
-    return radius;
+    return std::sqrt(radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry)
+{
+    double radius = 0.0;
+
+    const SizeType points_number = rGeometry.size();
+	array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
+    for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
+        center += rGeometry[i_node].GetInitialPosition().Coordinates();
+    }
+    center /= static_cast<double>( points_number );
+
+    for(IndexType i_node = 0; i_node < points_number; ++i_node)  {
+        const array_1d<double, 3>& aux_vector = center - rGeometry[i_node].GetInitialPosition().Coordinates();
+        double aux_value = inner_prod(aux_vector, aux_vector);
+        if(aux_value > radius) radius = aux_value;
+    }
+
+    return std::sqrt(radius);
 }
 
 /***********************************************************************************/
@@ -346,8 +377,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -356,7 +387,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
             else identity_matrix(i, j) = 0.0;
         }
     }
-    
+
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
 
@@ -375,8 +406,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -390,7 +421,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
     MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
-    
+
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
 
@@ -409,8 +440,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
-    
+        rStrainVector.resize(VoigtSize, false);
+
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
@@ -440,7 +471,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 {
     // Doing resize in case is needed
     if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize);
+        rStrainVector.resize(VoigtSize, false);
 
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
@@ -472,9 +503,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
 {
     // Doing resize in case is needed
     if (rRMatrix.size1() != Dimension || rRMatrix.size2() != Dimension)
-        rRMatrix.resize(Dimension, Dimension);
+        rRMatrix.resize(Dimension, Dimension, false);
     if (rUMatrix.size1() != Dimension || rUMatrix.size2() != Dimension)
-        rUMatrix.resize(Dimension, Dimension);
+        rUMatrix.resize(Dimension, Dimension, false);
 
     // We compute Right Cauchy tensor
     const MatrixType C = prod(trans(rFDeformationGradient), rFDeformationGradient);
@@ -549,9 +580,6 @@ void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
     const BoundedVectorType& rStressVector
     )
 {
-    if (rPrincipalStressVector.size() != Dimension)
-            rPrincipalStressVector.resize(Dimension);
-
     rPrincipalStressVector[0] = 0.5 * (rStressVector[0] + rStressVector[1]) + 
         std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2)  +
         std::pow(rStressVector[2], 2));
@@ -630,7 +658,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
         auxiliar_vector[2] = eigen_vectors_matrix(2, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
-    
+
     Vector sigma_tension_vector;
     Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -642,7 +670,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     }
 
     Matrix indexes_ij;
-    indexes_ij.resize(3, 2);
+    indexes_ij.resize(3, 2, false);
     indexes_ij(0, 0) = 0;
     indexes_ij(0, 1) = 1;
     indexes_ij(1, 0) = 1;
@@ -698,7 +726,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
         auxiliar_vector[1] = eigen_vectors_matrix(1, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
-    
+
     Vector sigma_tension_vector;
     Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -774,7 +802,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGr
     const double PlasticConsistencyFactorIncrement
     )
 {
-    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension, Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     return plastic_deformation_gradient_increment;
 }
@@ -820,7 +848,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ConstitutiveLawUtilities<3>; 
+template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
 
 } // namespace Kratos

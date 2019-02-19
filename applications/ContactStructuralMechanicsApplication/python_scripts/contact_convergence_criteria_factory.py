@@ -146,8 +146,8 @@ class convergence_criterion:
             base_mechanical_convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_parameters)
 
             # Adding the mortar criteria
-            Mortar = self.GetMortarCriteria(False)
             if "ALMContact" in self.mortar_type or "MeshTying" in self.mortar_type:
+                Mortar = self.GetMortarCriteria(False)
                 self.mechanical_convergence_criterion = KM.AndCriteria( base_mechanical_convergence_criterion.mechanical_convergence_criterion, Mortar)
                 self.mechanical_convergence_criterion.SetActualizeRHSFlag(True)
             else:

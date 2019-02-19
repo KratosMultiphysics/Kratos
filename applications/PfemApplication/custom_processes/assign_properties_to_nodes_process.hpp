@@ -42,8 +42,7 @@ public:
     typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
     typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
-    typedef std::vector<Element*> ElementPointerVectorType;
-
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
     /// Pointer definition of AssignPropertiesToNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignPropertiesToNodesProcess);
 
@@ -287,12 +286,12 @@ private:
       double counter = 0;
       if( rNode.Is(FLUID) && mFluidMixture ){
 
-        ElementPointerVectorType& rE = rNode.GetValue(NEIGHBOR_ELEMENTS);
+        ElementWeakPtrVectorType& nElements = rNode.GetValue(NEIGHBOUR_ELEMENTS);
 
-        for(unsigned int i = 0; i < rE.size(); i++)
+        for(auto& i_nelem : nElements)
         {
-          if(rE[i]->Is(FLUID)){
-            unsigned int id = rE[i]->GetProperties().Id();
+          if(i_nelem.Is(FLUID)){
+            unsigned int id = i_nelem.GetProperties().Id();
             if( id < size ){
               MaterialPercentage[id] += 1;
               ++counter;
@@ -302,11 +301,11 @@ private:
       }
       else if( rNode.Is(SOLID) && mSolidMixture ){
 
-        ElementPointerVectorType& rE = rNode.GetValue(NEIGHBOR_ELEMENTS);
-        for(unsigned int i = 0; i < rE.size(); i++)
+        ElementWeakPtrVectorType& nElements = rNode.GetValue(NEIGHBOUR_ELEMENTS);
+        for(auto& i_nelem : nElements)
         {
-          if(rE[i]->Is(SOLID)){
-            unsigned int id = rE[i]->GetProperties().Id();
+          if(i_nelem.Is(SOLID)){
+            unsigned int id = i_nelem.GetProperties().Id();
             if( id < size ){
               MaterialPercentage[id] += 1;
               ++counter;

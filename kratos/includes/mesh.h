@@ -241,6 +241,7 @@ public:
         mpProperties->clear();
         mpElements->clear();
         mpConditions->clear();
+        mpMasterSlaveConstraints->clear();
     }
 
     ///@}
@@ -276,7 +277,6 @@ public:
     {
         return mpNodes->size();
     }
-
 
     /** Inserts a node in the mesh.
     */
@@ -387,7 +387,6 @@ public:
     {
         return mpProperties->size();
     }
-
 
     /** Inserts a properties in the mesh.
     */
@@ -705,8 +704,6 @@ public:
     ///@name MasterSlaveConstraints
     ///@{
 
-
-
     SizeType NumberOfMasterSlaveConstraints() const
     {
         return mpMasterSlaveConstraints->size();
@@ -803,10 +800,9 @@ public:
         return mpMasterSlaveConstraints->GetContainer();
     }
 
-
     bool HasMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
     {
-            return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
+        return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
     }
 
 
@@ -952,7 +948,7 @@ private:
         rSerializer.save("Properties",mpProperties);
         rSerializer.save("Elements",mpElements);
         rSerializer.save("Conditions",mpConditions);
-        rSerializer.save("Conditions",mpMasterSlaveConstraints);
+        rSerializer.save("Constraints",mpMasterSlaveConstraints);
     }
 
     void load(Serializer& rSerializer) override
@@ -963,7 +959,7 @@ private:
         rSerializer.load("Properties",mpProperties);
         rSerializer.load("Elements",mpElements);
         rSerializer.load("Conditions",mpConditions);
-        rSerializer.load("Conditions",mpMasterSlaveConstraints);
+        rSerializer.load("Constraints",mpMasterSlaveConstraints);
     }
 
 
@@ -989,6 +985,7 @@ private:
         mpProperties = rOther.mpProperties;
         mpElements = rOther.mpElements;
         mpConditions = rOther.mpConditions;
+        mpMasterSlaveConstraints = rOther.mpMasterSlaveConstraints;
     }
 
 

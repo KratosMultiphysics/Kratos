@@ -36,7 +36,7 @@ namespace Kratos {
             auto p_node3 = model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
 
             // Definition of properties
-            auto p_prop = model_part.pGetProperties(1);
+            auto p_prop = model_part.CreateNewProperties(1);
 
             // List onf nodes
             std::vector<NodeType::Pointer> list_nodes(3);

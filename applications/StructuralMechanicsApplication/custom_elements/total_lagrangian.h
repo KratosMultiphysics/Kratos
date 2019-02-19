@@ -131,6 +131,18 @@ public:
         ) const override;
 
     /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+
+    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -157,13 +169,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{

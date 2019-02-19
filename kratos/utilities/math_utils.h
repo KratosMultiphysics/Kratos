@@ -10,7 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Collaborators:    Vicente Mataix Ferrandiz
+//                    Pablo Becker
 //
 
 #if !defined(KRATOS_MATH_UTILS )
@@ -277,21 +278,15 @@ public:
 
     template<unsigned int TDim>
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
-            const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
-            TDataType& InputMatrixDet,
-            const TDataType Tolerance = ZeroTolerance
-            )
+        const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
+        TDataType& InputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
+        )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
 
         /* Compute Determinant of the matrix */
         InputMatrixDet = DetMat(InputMatrix);
-
-        if (std::abs(InputMatrixDet) < Tolerance)
-        {
-            KRATOS_WATCH(InputMatrix);
-            KRATOS_ERROR << " Determinant of the matrix is zero or almost zero!!!, InputMatrixDet = " << InputMatrixDet << std::endl;
-        }
 
         if (TDim == 1)
         {
@@ -354,10 +349,50 @@ public:
         }
         else
         {
-            KRATOS_ERROR << "::WARNING: Size not implemented. Size: " << TDim << std::endl;
+            KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
+        }
+
+        // Checking condition number
+        if (Tolerance > 0.0) { // Check is skipped for negative tolerances
+            CheckConditionNumber(InputMatrix, InvertedMatrix, Tolerance);
         }
 
         return InvertedMatrix;
+    }
+
+    /**
+     * @brief This method checks the condition number of  amtrix
+     * @param rInputMatrix Is the input matrix (unchanged at output)
+     * @param rInvertedMatrix Is the inverse of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     */
+    template<class TMatrix1, class TMatrix2>
+    static inline bool CheckConditionNumber(
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        const TDataType Tolerance = std::numeric_limits<double>::epsilon(),
+        const bool ThrowError = true
+        )
+    {
+        // We want at least 4 significant digits
+        const TDataType max_condition_number = (1.0/Tolerance) * 1.0e-4;
+
+        // Find the condition number to define is inverse is OK
+        const double input_matrix_norm = norm_frobenius(rInputMatrix);
+        const double inverted_matrix_norm = norm_frobenius(rInvertedMatrix);
+
+        // Now the condition number is the product of both norms
+        const double cond_number = input_matrix_norm * inverted_matrix_norm ;
+        // Finally check if the condition number is low enough
+        if (cond_number > max_condition_number) {
+            if (ThrowError) {
+                KRATOS_WATCH(rInputMatrix);
+                KRATOS_ERROR << " Condition number of the matrix is too high!, cond_number = " << cond_number << std::endl;
+            }
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -421,7 +456,7 @@ public:
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
         double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << A << std::endl;
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
         rX = lu_factorization.solve(rB);
 #else
         const SizeType size1 = A.size1();
@@ -429,7 +464,7 @@ public:
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
-        KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
+        KRATOS_DEBUG_ERROR_IF(singular == 1) << "Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
 #endif // ifdef KRATOS_USE_AMATRIX
     }
@@ -472,7 +507,7 @@ public:
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << InputMatrix << std::endl;
             InvertedMatrix = lu_factorization.inverse();
 #else
 
@@ -481,7 +516,7 @@ public:
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
             InvertedMatrix.assign( IdentityMatrix(A.size1()));
-            KRATOS_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << InputMatrix << std::endl;
+            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << InputMatrix << std::endl;
             lu_substitute(A, pm, InvertedMatrix);
 
             // Calculating determinant
@@ -956,11 +991,16 @@ public:
     template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
         if (c.size() != 3) c.resize(3);
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3) << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c << std::endl;
-        KRATOS_ERROR_IF(CheckIsAlias(c, a)) << "Aliasing between the output parameter and the first input parameter" << std::endl;
-        KRATOS_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between the output parameter and the second input parameter"  << std::endl;
-#endif
+
+        KRATOS_DEBUG_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3)
+            << "The size of the vectors is different of 3: "
+            << a << ", " << b << " and " << c << std::endl;
+        KRATOS_DEBUG_ERROR_IF(CheckIsAlias(c, a))
+            << "Aliasing between the output parameter and the first "
+            << "input parameter" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between "
+            << "the output parameter and the second input parameter"  << std::endl;
+
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
         c[2] = a[0]*b[1] - a[1]*b[0];
@@ -978,10 +1018,9 @@ public:
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
         const double norm = norm_2(c);
-#ifdef KRATOS_DEBUG
-        if(norm < 1000.0*ZeroTolerance)
-            KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
-#endif
+        KRATOS_DEBUG_ERROR_IF(norm < 1000.0*ZeroTolerance)
+            << "norm is 0 when making the UnitCrossProduct of the vectors "
+            << a << " and " << b << std::endl;
         c/=norm;
     }
 

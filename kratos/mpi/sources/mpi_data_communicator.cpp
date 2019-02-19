@@ -417,10 +417,10 @@ std::vector<int> MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::vector<int> recv_values(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
@@ -431,10 +431,10 @@ std::vector<double> MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::vector<double> recv_values(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
@@ -445,33 +445,33 @@ std::string MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::string recv_values;
     recv_values.resize(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<int>& rSendValues, const int SendDestination,
-    std::vector<int>& rRecvValues, const int RecvSource) const
+    const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
+    std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<double>& rSendValues, const int SendDestination,
-    std::vector<double>& rRecvValues, const int RecvSource) const
+    const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
+    std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 void MPIDataCommunicator::SendRecv(
-        const std::string& rSendValues, const int SendDestination,
-        std::string& rRecvValues, const int RecvSource) const
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 // Broadcast
@@ -871,20 +871,14 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
 }
 
 template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
-    const TDataType& rSendMessage, const int SendDestination,
-    TDataType& rRecvMessage, const int RecvSource) const
+    const TDataType& rSendMessage, const int SendDestination, const int SendTag,
+    TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const
 {
-    #ifdef KRATOS_DEBUG
-    ValidateSendRecvInput(rSendMessage, SendDestination, rRecvMessage, RecvSource);
-    #endif
-    const int send_tag = 0;
-    const int recv_tag = 0;
-
     int ierr = MPI_Sendrecv(
         MPIBuffer(rSendMessage), MPIMessageSize(rSendMessage),
-        MPIDatatype(rSendMessage), SendDestination, send_tag,
+        MPIDatatype(rSendMessage), SendDestination, SendTag,
         MPIBuffer(rRecvMessage), MPIMessageSize(rRecvMessage),
-        MPIDatatype(rRecvMessage), RecvSource, recv_tag,
+        MPIDatatype(rRecvMessage), RecvSource, RecvTag,
         mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
@@ -1065,65 +1059,6 @@ bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
 bool MPIDataCommunicator::IsValidRank(const int Rank) const
 {
     return (Rank >= 0) && (Rank < Size());
-}
-
-template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
-    const TDataType& rSendMessage, const int SendDestination,
-    TDataType& rRecvMessage, const int RecvSource) const
-{
-    // Check input ranks
-    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SendDestination)))
-    << "In call to MPI_Sendrecv: " << SendDestination << " is not a valid rank." << std::endl;
-    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvSource)))
-    << "In call to MPI_Sendrecv: " << RecvSource << " is not a valid rank." << std::endl;
-
-    // Check that send and recv ranks match
-    const int rank = Rank();
-    const int size = Size();
-    const int buffer_size = (rank == 0) ? size : 0;
-    int send_ranks[buffer_size];
-    int recv_ranks[buffer_size];
-    // These two can be merged, but I want the check to be simple (it is for debug only).
-    int ierr = MPI_Gather(&SendDestination, 1, MPI_INT, send_ranks, 1, MPI_INT, 0, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Gather");
-    ierr = MPI_Gather(&RecvSource, 1, MPI_INT, recv_ranks, 1, MPI_INT, 0, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Gather");
-
-    // No overflow in sent buffer.
-    std::stringstream message;
-    bool failed = false;
-    if (rank == 0)
-    {
-        for (int i = 0; i < size; i++)
-        {
-            if(i != recv_ranks[send_ranks[i]])
-            {
-                message
-                << "Input error in call to MPI_Sendrecv: "
-                << "Rank " << i << " is sending a message to rank " << send_ranks[i]
-                << " but rank " << send_ranks[i] << " expects a message from rank "
-                << recv_ranks[send_ranks[i]] << "." << std::endl;
-                failed = true;
-                break;
-            }
-        }
-    }
-    KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, 0)) << message.str();
-
-    // Check that message sizes match
-    const int send_tag = 0;
-    const int recv_tag = 0;
-    const int send_size = MPIMessageSize(rSendMessage);
-    int recv_size = 0;
-    const int expected_recv_size = MPIMessageSize(rRecvMessage);
-    ierr = MPI_Sendrecv(
-        &send_size, 1, MPI_INT, SendDestination, send_tag,
-        &recv_size, 1, MPI_INT, RecvSource, recv_tag,
-        mComm, MPI_STATUS_IGNORE);
-    CheckMPIErrorCode(ierr, "MPI_Sendrecv");
-    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(recv_size != expected_recv_size))
-    << "Input error in call to MPI_Sendrecv for rank " << Rank() << ": "
-    << "Receiving " << recv_size << " values but " << expected_recv_size << " are expected." << std::endl;
 }
 
 template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(

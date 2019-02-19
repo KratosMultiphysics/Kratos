@@ -32,8 +32,11 @@ class Solution(object):
 
     def GetInputParameters(self):
         parameters_file_name = self.GetParametersFileName()
-        parameters_file = open(parameters_file_name, 'r')
-        return Parameters(parameters_file.read())
+        #parameters_file = open(parameters_file_name, 'r')
+        with open(parameters_file_name,'r') as parameter_file:
+            project_parameters = Parameters(parameter_file.read())
+
+        return project_parameters
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()
@@ -545,6 +548,13 @@ class Solution(object):
 
         #------os.chdir(self.main_path)
 
+    def __SafeDeleteModelParts(self):
+        self.model.DeleteModelPart(self.cluster_model_part.Name)
+        self.model.DeleteModelPart(self.rigid_face_model_part.Name)
+        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.mapping_model_part.Name)
+        self.model.DeleteModelPart(self.spheres_model_part.Name)
+
     def CleanUpOperations(self):
 
         self.procedures.DeleteFiles()
@@ -563,6 +573,7 @@ class Solution(object):
         del self.solver
         del self.DEMFEMProcedures
         del self.post_utils
+        self.__SafeDeleteModelParts()
         del self.cluster_model_part
         del self.rigid_face_model_part
         del self.spheres_model_part

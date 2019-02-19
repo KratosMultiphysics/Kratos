@@ -249,16 +249,6 @@ namespace Kratos
         double CalculateShearModulus() const;
 
         /**
-         * @brief This function calculates the reference length
-         */
-        double CalculateReferenceLength() const;
-
-        /**
-         * @brief This function calculates the current length
-         */
-        double CalculateCurrentLength() const;
-
-        /**
          * @brief This function updates incremental deformation w.r.t. to current and previous deformations
          */
         Vector UpdateIncrementDeformation();
