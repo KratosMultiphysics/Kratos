@@ -149,7 +149,7 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 	Matrix nodes_indexes = ZeroMatrix(6, 2);
 	this->SetNodeIndexes(nodes_indexes);
 
-	// Loop over EDGES to assign the elements that share that edge -> Fill mp_edge_neighboursContainer
+	// Loop over EDGES to assign the elements that share that edge -> Fill mEdgeNeighboursContainer
 	for (unsigned int edge = 0; edge < 6; edge++) {
 		const int NodeIndex1 = nodes_indexes(edge, 0);
 		const int NodeIndex2 = nodes_indexes(edge, 1);
