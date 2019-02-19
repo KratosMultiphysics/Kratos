@@ -71,7 +71,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( Process
 
     MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
 
-    // Additional treatment for interface conditions
+    // Estimating the contact forces at the boundary
     if (Is(INTERFACE))
     {
         GeometryType& rGeom = GetGeometry();

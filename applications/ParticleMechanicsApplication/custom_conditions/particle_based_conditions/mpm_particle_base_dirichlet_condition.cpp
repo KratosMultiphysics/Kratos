@@ -30,13 +30,13 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     This function is called by the base scheme class.*/
     // Here MPC_IMPOSED_DISPLACEMENT is updated in terms of velocity and acceleration is added
     array_1d<double,3>& MPC_Imposed_Displacement = this->GetValue(MPC_IMPOSED_DISPLACEMENT);
-    array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
-    const array_1d<double,3>& MPC_Acceleration = this->GetValue(MPC_ACCELERATION);
+    const array_1d<double,3>& MPC_Imposed_Velocity = this->GetValue(MPC_IMPOSED_VELOCITY);
+    const array_1d<double,3>& MPC_Imposed_Acceleration = this->GetValue(MPC_IMPOSED_ACCELERATION);
     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
+    // Convert imposition of velocity and acceleration to displacement
     // NOTE: This only consider translational velocity and acceleration: no angular
-    MPC_Imposed_Displacement += (MPC_Velocity * delta_time) + (0.5 * MPC_Acceleration * delta_time * delta_time);
-    MPC_Velocity += (MPC_Acceleration * delta_time);
+    MPC_Imposed_Displacement += (MPC_Imposed_Velocity * delta_time) + (0.5 * MPC_Imposed_Acceleration * delta_time * delta_time);
 }
 
 //************************************************************************************
