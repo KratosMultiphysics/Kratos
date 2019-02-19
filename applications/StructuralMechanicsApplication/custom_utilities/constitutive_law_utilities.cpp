@@ -317,6 +317,30 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry)
+{
+    double radius = 0.0;
+
+    const SizeType points_number = rGeometry.size();
+	array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
+    for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
+        center += rGeometry[i_node].GetInitialPosition().Coordinates();
+    }
+    center /= static_cast<double>( points_number );
+
+    for(IndexType i_node = 0; i_node < points_number; ++i_node)  {
+        const array_1d<double, 3>& aux_vector = center - rGeometry[i_node].GetInitialPosition().Coordinates();
+        double aux_value = inner_prod(aux_vector, aux_vector);
+        if(aux_value > radius) radius = aux_value;
+    }
+
+    return std::sqrt(radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
 {
     // We update the deformation gradient
