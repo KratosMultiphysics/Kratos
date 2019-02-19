@@ -124,26 +124,26 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 {
-	std::vector<std::vector<Element *>> p_edge_neighboursContainer;
-	Geometry<Node<3>> &NodesCurrentElement = this->GetGeometry();
+	std::vector<std::vector<Element*>> edge_neighboursContainer;
+	Geometry<Node<3>>& r_nodes_current_element = this->GetGeometry();
 
-	Node<3> &pNode0 = NodesCurrentElement[0];
-	Node<3> &pNode1 = NodesCurrentElement[1];
-	Node<3> &pNode2 = NodesCurrentElement[2];
-	Node<3> &pNode3 = NodesCurrentElement[3];
+	Node<3> &pNode0 = r_nodes_current_element[0];
+	Node<3> &pNode1 = r_nodes_current_element[1];
+	Node<3> &pNode2 = r_nodes_current_element[2];
+	Node<3> &pNode3 = r_nodes_current_element[3];
 
 	// Neighbour elements of each node of the current element
-	WeakPointerVector<Element> &NeighNode0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element> &NeighNode1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element> &NeighNode2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element> &NeighNode3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
+	WeakPointerVector<Element>& neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
+	WeakPointerVector<Element>& neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
+	WeakPointerVector<Element>& neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
+	WeakPointerVector<Element>& neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
 
 	// Nodal neighbours container
-	std::vector<WeakPointerVector<Element>> NodalNeighbours;
-	NodalNeighbours.push_back(NeighNode0);
-	NodalNeighbours.push_back(NeighNode1);
-	NodalNeighbours.push_back(NeighNode2);
-	NodalNeighbours.push_back(NeighNode3);
+	std::vector<WeakPointerVector<Element>> nodal_neighbours;
+	nodal_neighbours.push_back(neigh_node_0);
+	nodal_neighbours.push_back(neigh_node_1);
+	nodal_neighbours.push_back(neigh_node_2);
+	nodal_neighbours.push_back(neigh_node_3);
 
 	// Aux indexes
 	Matrix nodes_indexes = ZeroMatrix(6, 2);
@@ -151,27 +151,27 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 
 	// Loop over EDGES to assign the elements that share that edge -> Fill mEdgeNeighboursContainer
 	for (unsigned int edge = 0; edge < 6; edge++) {
-		const int NodeIndex1 = nodes_indexes(edge, 0);
-		const int NodeIndex2 = nodes_indexes(edge, 1);
+		const int node_index_1 = nodes_indexes(edge, 0);
+		const int node_index_2 = nodes_indexes(edge, 1);
 
 		// Neigh elements of local node 1 and 2  //
-		WeakPointerVector<Element> &neigh_of_node_1 = NodalNeighbours[NodeIndex1];
-		WeakPointerVector<Element> &neigh_of_node_2 = NodalNeighbours[NodeIndex2];
+		WeakPointerVector<Element> &neigh_of_node_1 = nodal_neighbours[node_index_1];
+		WeakPointerVector<Element> &neigh_of_node_2 = nodal_neighbours[node_index_2];
 
-		const int NodeId1 = NodesCurrentElement[NodeIndex1].Id();
-		const int NodeId2 = NodesCurrentElement[NodeIndex2].Id();
+		const int node_id_1 = r_nodes_current_element[node_index_1].Id();
+		const int node_id_2 = r_nodes_current_element[node_index_2].Id();
 
 		std::vector<Element *> edge_shared_elements_node_1;
 		// Loop over neigh elements of the node 1
 		for (unsigned int neigh_elem = 0; neigh_elem < neigh_of_node_1.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>> &NodesNeighElem = neigh_of_node_1[neigh_elem].GetGeometry();
+			Geometry<Node<3>> &r_nodes_neigh_elem = neigh_of_node_1[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
-				const int NeighElementNodeId = NodesNeighElem[neigh_elem_node].Id();
+				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
 
-				if (NeighElementNodeId == NodeId2 && this->Id() != neigh_of_node_1[neigh_elem].Id()) {
+				if (neigh_element_node_id == node_id_2 && this->Id() != neigh_of_node_1[neigh_elem].Id()) {
 					edge_shared_elements_node_1.push_back(&neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
 				}
 			}
@@ -181,13 +181,13 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 		// Loop over neigh elements of the node 2
 		for (unsigned int neigh_elem = 0; neigh_elem < neigh_of_node_2.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>> &NodesNeighElem = neigh_of_node_2[neigh_elem].GetGeometry();
+			Geometry<Node<3>> &r_nodes_neigh_elem = neigh_of_node_2[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
-				const int NeighElementNodeId = NodesNeighElem[neigh_elem_node].Id();
+				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
 
-				if (NeighElementNodeId == NodeId1 && this->Id() != neigh_of_node_2[neigh_elem].Id()) {
+				if (neigh_element_node_id == node_id_1 && this->Id() != neigh_of_node_2[neigh_elem].Id()) {
 					edge_shared_elements_node_2.push_back(&neigh_of_node_2[neigh_elem]);
 				}
 			}
@@ -205,11 +205,11 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 			if (aux == 0)
 				edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
 		}
-		p_edge_neighboursContainer.push_back(edge_shared_elements);
+		edge_neighboursContainer.push_back(edge_shared_elements);
 	} // End loop edges
 
 	// Storages the information inside the element
-	this->SaveEdgeNeighboursContainer(p_edge_neighboursContainer);
+	this->SaveEdgeNeighboursContainer(edge_neighboursContainer);
 
 } // End finding edge neighbour elements
 
