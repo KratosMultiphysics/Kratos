@@ -104,16 +104,16 @@ Element::Pointer ModelPartCreateNewElementWithParameters(
     ModelPart& rModelPart,
     const std::string& rElementName,
     ModelPart::IndexType Id,
-    std::vector< ModelPart::IndexType >& NodeIdList,
+    std::vector< ModelPart::IndexType >& rNodeIdList,
     ModelPart::PropertiesType::Pointer pProperties,
     const Parameters ThisParameters
     )
 {
-    const std::size_t number_of_nodes = NodeIdList.size();
-    GeometryType::PointsArrayType p_element_node_list(number_of_nodes);
+    const std::size_t number_of_nodes = rNodeIdList.size();
+    GeometryType::PointsArrayType p_element_node_list;
 
     for(std::size_t i = 0; i < number_of_nodes; i++) {
-        p_element_node_list[i] = rModelPart.pGetNode(NodeIdList[i]);
+        p_element_node_list.push_back(rModelPart.pGetNode(rNodeIdList[i]));
     }
 
     return rModelPart.CreateNewElement(rElementName, Id, p_element_node_list, pProperties, ThisParameters);
@@ -134,16 +134,16 @@ Condition::Pointer ModelPartCreateNewConditionWithParameters(
     ModelPart& rModelPart,
     const std::string& rConditionName,
     ModelPart::IndexType Id,
-    std::vector< ModelPart::IndexType >& NodeIdList,
+    std::vector< ModelPart::IndexType >& rNodeIdList,
     ModelPart::PropertiesType::Pointer pProperties,
     const Parameters ThisParameters
     )
 {
-    const std::size_t number_of_nodes = NodeIdList.size();
-    GeometryType::PointsArrayType p_condition_node_list(number_of_nodes);
+    const std::size_t number_of_nodes = rNodeIdList.size();
+    GeometryType::PointsArrayType p_condition_node_list;
 
     for(std::size_t i = 0; i < number_of_nodes; i++) {
-        p_condition_node_list[i] = rModelPart.pGetNode(NodeIdList[i]);
+        p_condition_node_list.push_back(rModelPart.pGetNode(rNodeIdList[i]));
     }
 
     return rModelPart.CreateNewCondition(rConditionName, Id, p_condition_node_list, pProperties, ThisParameters);
