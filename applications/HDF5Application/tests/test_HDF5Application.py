@@ -1,5 +1,9 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from test_core import TestFileIO as TestHDF5FileIO
+from test_core import TestOperations as TestHDF5Operations
+from test_core import TestControllers as TestHDF5Controllers
+from test_core import TestFactory as TestHDF5Factory
 from test_hdf5_model_part_io import TestCase as TestHDF5ModelPartIO
 from test_hdf5_processes import TestHDF5Processes
 import run_cpp_unit_tests
@@ -8,6 +12,9 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5FileIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Operations]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Controllers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5ModelPartIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Processes]))
 

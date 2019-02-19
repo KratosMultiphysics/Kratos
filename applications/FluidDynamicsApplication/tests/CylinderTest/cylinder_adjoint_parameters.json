@@ -99,14 +99,14 @@
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-	        "model_part_name" : "MainModelPart",
+            "model_part_name" : "MainModelPart",
             "file_settings" : {
+                "file_name" : "primal_output-<time>",
                 "file_access_mode" : "read_only"
             },
             "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-            },
-            "file_name" : "primal_output"
+            }
         }
     },{
         "kratos_module"   : "KratosMultiphysics",

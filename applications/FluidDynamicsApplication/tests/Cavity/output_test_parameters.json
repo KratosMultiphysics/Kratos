@@ -125,12 +125,12 @@
                 "prefix" : "/ModelData"
             },
             "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"],
+                "alpha_bossak" : 0.0
             },
             "output_time_settings" : {
-                "output_step_frequency": 1
-            },
-            "alpha_bossak" : 0.0
+                "step_frequency": 1
+            }
         }
     },{
 	"python_module" : "json_output_process",
