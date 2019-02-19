@@ -149,8 +149,8 @@ ModelPart::IndexType ModelPart::CreateSolutionStep()
 
 ModelPart::IndexType ModelPart::CloneSolutionStep()
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     const int nnodes = static_cast<int>(Nodes().size());
@@ -171,8 +171,8 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
 
 ModelPart::IndexType ModelPart::CloneTimeStep()
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CloneSolutionStep();
@@ -184,8 +184,8 @@ ModelPart::IndexType ModelPart::CloneTimeStep()
 
 ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CreateSolutionStep();
@@ -196,8 +196,8 @@ ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 
 ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     IndexType new_index = CloneSolutionStep();
@@ -208,8 +208,8 @@ ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 
 void ModelPart::OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
@@ -224,8 +224,8 @@ void ModelPart::ReduceTimeStep(ModelPart& rModelPart, double NewTime)
     //ATTENTION: this function does not touch the coordinates of the nodes.
     //It just resets the database values to the values at the beginning of the time step
 
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     rModelPart.OverwriteSolutionStepData(1, 0);
@@ -523,8 +523,8 @@ ModelPart& ModelPart::GetRootModelPart()
 
 void ModelPart::SetNodalSolutionStepVariablesList()
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
@@ -1448,7 +1448,7 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(name);
 
-    KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub modelpart  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
+    KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub model part  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
     mSubModelParts.erase(name);
 }
@@ -1467,8 +1467,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 
 void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 {
-    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub-modelpart "
-        << Name() << " please call the one of the root-modelpart: "
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
     for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
@@ -1603,7 +1603,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Name", ModelPartName);
 
     KRATOS_ERROR_IF(ModelPartName != mName) //checking if the name is correct
-        << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
+        << "trying to load a model part called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
 
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
