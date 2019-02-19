@@ -254,8 +254,20 @@ void CrBeamElement2D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 void CrBeamElement2D2N::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
+  // t
+  this->mDeformationForces = this->CalculateInternalStresses_DeformationModes();
+
+  // qe
+  Vector nodal_forces = ZeroVector(msElementSize);
+  nodal_forces = this->ReturnElementForces_Local();
+  // q
+  this->GlobalizeVector(nodal_forces);
+  this->mInternalGlobalForces = nodal_forces;
+
+  // residual >>> r = f_ext - f_int
   rRightHandSideVector = ZeroVector(msElementSize);
-  noalias(rRightHandSideVector) -= this->mInternalGlobalForces;
+  noalias(rRightHandSideVector) -= nodal_forces;
+
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
