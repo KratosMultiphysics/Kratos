@@ -27,28 +27,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::Test()
     EmbeddedIgaTessellation tessellation;
     auto tes = tessellation.CreateTessellation(face);
 
-
-
-
-    // std::vector<std::vector<array_1d<double,2>>> poly; 
-    // std::vector<array_1d<double,2>> loop(3); 
-    
-    // loop[0][0] = 1; 
-    // loop[0][1] = 2; 
-    // loop[1][0] = 3; 
-    // loop[1][1] = 4; 
-    // loop[2][0] = 5; 
-    // loop[2][1] = 6; 
-
-    // poly.push_back(loop);
-
-    // KRATOS_WATCH(loop.size())
-    // KRATOS_WATCH(poly.size())
-    // KRATOS_WATCH(poly[0].size())
-    // KRATOS_WATCH(poly)
-
-    
-    return tes;
+    return tes;     
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

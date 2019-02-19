@@ -67,6 +67,24 @@ public:
         tr.numberofedges              = 0;
     };  
 
+    void CleanTriangulationDataStructure( triangulateio& tr )
+{
+        if(tr.pointlist != NULL) free(tr.pointlist );
+        if(tr.pointattributelist != NULL) free(tr.pointattributelist );
+        if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
+        if(tr.trianglelist != NULL) free(tr.trianglelist  );
+        if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
+        if(tr.trianglearealist != NULL) free(tr.trianglearealist );
+        if(tr.neighborlist != NULL) free(tr.neighborlist   );
+        if(tr.segmentlist != NULL) free(tr.segmentlist    );
+        if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
+        if(tr.holelist != NULL) delete[] tr.holelist;
+        if(tr.regionlist != NULL) free(tr.regionlist  );
+        if(tr.edgelist != NULL) free(tr.edgelist   );
+        if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
+        if(tr.normlist != NULL) free(tr.normlist  );
+}
+
     
     
     
