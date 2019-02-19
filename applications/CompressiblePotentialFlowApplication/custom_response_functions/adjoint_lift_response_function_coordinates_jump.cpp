@@ -51,14 +51,16 @@ namespace Kratos
         rResponseGradient.clear();
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
-            double value= 2.0/10.0;
+            const array_1d<double, 3> v_inf = rProcessInfo.GetValue(VELOCITY_INFINITY);
+            double v_norm = norm_2(v_inf);
+            double derivative= 2.0/v_norm;
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {
                 if(rAdjointElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
                 {   
-                    rResponseGradient[i] = value;
-                    rResponseGradient[i+NumNodes] = -value;
+                    rResponseGradient[i] = derivative;
+                    rResponseGradient[i+NumNodes] = -derivative;
                 }
             }
         }
