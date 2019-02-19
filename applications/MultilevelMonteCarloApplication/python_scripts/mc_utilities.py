@@ -42,6 +42,7 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 
 
 # TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+# TODO: use better names in CheckConvergence and CheckConvergenceAux_Task functions
 
 
 """
@@ -199,9 +200,7 @@ class MonteCarlo(object):
         # iteration counter
         self.iteration_counter = 0
         # set convergence criteria
-        self.SetConvergenceCriteria(self.settings["convergence_criteria"].GetString())
-        if (self.convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and self.convergence_criteria != "MC_higher_moments_sequential_stopping_rule"):
-            raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
+        self.SetConvergenceCriteria()
 
         # pickled_model : serialization of model Kratos object of the problem
         self.pickled_model = None
@@ -239,13 +238,14 @@ class MonteCarlo(object):
                self.current_analysis_stage:     analysis stage of the problem
     input:  self: an instance of the class
     output: MonteCarloResults class: an instance og the MonteCarloResults class
-            current_level: level of the current MC simulation (= 0)
+            current_level:           level of the current MC simulation (= 0)
     """
     def ExecuteInstance(self):
         # ensure working level is level 0
-        if (self.current_level != 0):
+        current_level = self.current_level
+        if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
-        return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,self.GetAnalysis(),self.current_level),self.current_level)
+        return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,self.GetAnalysis(),self.current_level),current_level)
 
     """
     function serializing and pickling the model and the project parameters of the problem
@@ -321,35 +321,39 @@ class MonteCarlo(object):
 
     """
     function adding QoI values to the corresponding level
-    
+    input:  self:               an instance of the class
+            simulation_results: tuple=(instance of MonteCarloResults class, working level)
     """
     def AddResults(self,simulation_results):
-        """simulation_results = [MonteCarloResults class, level (integer type, not compss.future)]"""
         simulation_results_class = simulation_results[0]
-        level = simulation_results[1]
-        for lev in range (level+1):
+        current_level = simulation_results[1] # not compss future object
+        if (current_level != 0):
+            raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
+        for lev in range (current_level+1):
             QoI_value = AddResultsAux_Task(simulation_results_class,lev)
-            """update values of difference QoI and time ML per each level"""
+            # update values of difference QoI and time ML per each level
             self.QoI.values[lev] = np.append(self.QoI.values[lev],QoI_value)
 
     """
     function initializing the MC phase
+    input:  self: an instance of the class
     """
     def InitializeMCPhase(self):
-        level = self.current_level
-        """update iteration counter"""
+        current_level = self.current_level
+        # update iteration counter
         self.iteration_counter = self.iteration_counter + 1
-        """update number of samples and batch size"""
+        # update number of samples (MonteCarlo.number_samples) and batch size
         if (self.iteration_counter > 1):
-            self.previous_number_samples[level] = self.number_samples[level]
-            self.number_samples[level] = self.number_samples[level] * 2 + self.previous_number_samples[level]
-            self.difference_number_samples[level] = self.number_samples[level] - self.previous_number_samples[level]
+            self.previous_number_samples[current_level] = self.number_samples[current_level]
+            self.number_samples[current_level] = self.number_samples[current_level] * 2 + self.previous_number_samples[current_level]
+            self.difference_number_samples[current_level] = self.number_samples[current_level] - self.previous_number_samples[current_level]
             self.UpdateBatch()
         else:
             pass
 
     """
     function updating batch size
+    input:  self: an instance of the class
     TODO: for now batch_size = difference_number_samples, in future flags can be added to have different behaviours
     """
     def UpdateBatch(self):
@@ -357,33 +361,36 @@ class MonteCarlo(object):
 
     """
     function finalizing the MC phase
+    input:  self: an instance of the class
     """
     def FinalizeMCPhase(self):
-        level = self.current_level
-        """update statistics of the QoI"""
-        for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
-            self.QoI.UpdateOnePassMomentsVariance(level,i_sample)
-            self.QoI.UpdateOnePassPowerSums(level,i_sample)
-        """compute the central moments we can't derive from the unbiased h statistics
-        we compute expensively the absolute central moment because we can't retrieve it from the h statistics"""
+        current_level = self.current_level
+        # update statistics of the QoI
+        for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
+            self.QoI.UpdateOnePassMomentsVariance(current_level,i_sample)
+            self.QoI.UpdateOnePassPowerSums(current_level,i_sample)
+        # compute the central moments we can't derive from the unbiased h statistics
+        # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
         self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-        self.QoI.ComputeSampleCentralMomentsFromScratch(level) # consider also to give as input the number of samples computed up to this point,
-                                                               # i.e. self.number_samples[level], instead of using self.StatisticalVariable.number_samples[level]
-        self.QoI.ComputeHStatistics(level)
-        self.QoI.ComputeSkewnessKurtosis(level)
-        self.CheckConvergence(level)
-        """synchronization point needed to launch new tasks if convergence is false
-        put the synchronization point as in the end as possible"""
+        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level) # consider also to give as input the number of samples computed up to this point,
+                                                                       # i.e. self.number_samples[current_level], instead of using self.StatisticalVariable.number_samples[current_level] inside the function
+        self.QoI.ComputeHStatistics(current_level)
+        self.QoI.ComputeSkewnessKurtosis(current_level)
+        self.CheckConvergence(current_level)
+        # synchronization point needed to launch new tasks if convergence is false
+        # put the synchronization point as in the end as possible
         self.convergence = get_value_from_remote(self.convergence)
 
     """
     function printing informations about initializing MLMC phase
+    input:  self: an instance of the class
     """
     def ScreeningInfoInitializeMCPhase(self):
         print("\n","#"*50," MC iter =  ",self.iteration_counter,"#"*50,"\n")
 
     """
     function printing informations about finalizing MC phase
+    input:  self: an instance of the class
     """
     def ScreeningInfoFinalizeMCPhase(self):
         # print("values computed of QoI = ",self.QoI.values)
@@ -395,23 +402,30 @@ class MonteCarlo(object):
 
     """
     function setting the convergence criteria the algorithm will exploit
+    input:  self: an instance of the class
     """
-    def SetConvergenceCriteria(self,convergence_string_name):
-        self.convergence_criteria = convergence_string_name
+    def SetConvergenceCriteria(self):
+        convergence_criteria = self.settings["convergence_criteria"].GetString()
+        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule"):
+            raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
+        self.convergence_criteria = convergence_criteria
 
 
 """
 auxiliary function of CheckConvergence for the MC_higher_moments_sequential_stopping_rule criteria
+input:  x:    parameter of the function
+        beta: parameter of the function
 """
 def _ComputeBoundFunction(x,beta):
     return np.minimum(0.3328 * (beta + 0.429), 18.1139 * beta / (1 + (np.abs(x)**3)))
 
 
 """
-function computing the cumulative distribution function for the standard normal distribution
+function computing the cumulative distribution function of the standard normal distribution
+input:  x: probability that real-valued random variable X, or just distribution function of X, will take a value less than or equal to x
 """
 def _ComputeCDFStandardNormalDistribution(x):
-    'cumulative distribution function (CDF) for the standard normal distribution'
+    # cumulative distribution function (CDF) for the standard normal distribution
     return (1.0 + erf(x / sqrt(2.0))) / 2.0
 
 
@@ -422,9 +436,9 @@ class MonteCarloResults(object):
         Keyword arguments:
         self : an instance of a class
         """
-        """Quantity of Interest"""
+        # Quantity of Interest
         self.QoI = [[] for _ in range (number_levels+1)]
-        """time cost"""
+        # time cost
         self.time_ML = [[] for _ in range (number_levels+1)]
-        """level of QoI and time_ML"""
+        # level of QoI and time_ML
         self.finer_level = number_levels
