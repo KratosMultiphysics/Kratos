@@ -12,16 +12,27 @@ namespace Kratos {
     }
 
     AutonHuntPrudhommeInviscidForceLaw::AutonHuntPrudhommeInviscidForceLaw(Parameters& r_parameters)
-        :mDoApplyFaxenCorrections(false)
     {
+        Parameters default_parameters( R"(
+            {
+                "do_apply_faxen_corrections": false
+            }  )" );
 
+        r_parameters.ValidateAndAssignDefaults(default_parameters);
+        mDoApplyFaxenCorrections = r_parameters["do_apply_faxen_corrections"].GetBool();
     }
 
     void AutonHuntPrudhommeInviscidForceLaw::Initialize(const ProcessInfo& r_process_info){}
 
     std::string AutonHuntPrudhommeInviscidForceLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Standard inviscid force law";
+        std::string type_of_law = "Auton Hunt and Prud'Homme inviscid force law";
         return type_of_law;
+    }
+
+    double AutonHuntPrudhommeInviscidForceLaw::GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
+                                                                         const array_1d<double, 3>& acceleration_number)
+    {
+        return 0.5;
     }
 
     void AutonHuntPrudhommeInviscidForceLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
@@ -32,11 +43,11 @@ namespace Kratos {
     {
         const array_1d<double, 3>& fluid_acc = r_geometry[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
-        const double virtual_mass_coeff = 0.5;
-        const double fluid_mass = displaced_volume * fluid_density;
-        mLastVirtualMassAddedMass = virtual_mass_coeff * fluid_mass;
 
         array_1d<double, 3> slip_acc = fluid_acc; // the particle acceleration is assumed to be treated implicitly through the added_mass
+        const double fluid_mass = displaced_volume * fluid_density;
+        const double virtual_mass_coeff = this->GetVirtualMassCoefficient(r_geometry, slip_acc);
+        mLastVirtualMassAddedMass = virtual_mass_coeff * fluid_mass;
 
         if (mDoApplyFaxenCorrections) {
             const array_1d<double, 3>& fluid_vel_laplacian_rate = r_geometry[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);

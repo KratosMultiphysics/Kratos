@@ -43,9 +43,16 @@ namespace Kratos {
                                     double fluid_density,
                                     const ProcessInfo& r_current_process_info){return mLastVirtualMassAddedMass;}
 
+        double ComputeParticleAccelerationNumber(const double particle_radius,
+                                                 const array_1d<double, 3>& slip_velocity,
+                                                 const array_1d<double, 3>& slip_acceleration);
+
     protected:
 
         double mLastVirtualMassAddedMass;
+
+        virtual double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
+                                                 const array_1d<double, 3>& acceleration_number){return 0.0;}
 
     private:
 
