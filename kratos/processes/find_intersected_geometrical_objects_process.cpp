@@ -48,19 +48,40 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+template<>
+void FindIntersectedGeometricalObjectsProcess<Element>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
     const SizeType number_of_elements = mrModelPart1.NumberOfElements();
-    auto& r_elements = mrModelPart1.ElementsArray();
+    auto& r_elements_array = mrModelPart1.ElementsArray();
     OtreeCellVectorType leaves;
 
+    IndexType counter = 0;
     rResults.resize(number_of_elements);
-    for (IndexType i = 0; i < number_of_elements; i++) {
-        auto p_element_1 = r_elements[i];
+    for (auto& r_element : r_elements_array) {
         leaves.clear();
-        mOctree.GetIntersectedLeaves(p_element_1, leaves);
-        FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
+        mOctree.GetIntersectedLeaves(r_element, leaves);
+        FindIntersectedSkinObjects(*r_element, leaves, rResults[counter]);
+        ++counter;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindIntersectedGeometricalObjectsProcess<Condition>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+{
+    const SizeType number_of_conditions = mrModelPart1.NumberOfConditions();
+    auto& r_conditions_array = mrModelPart1.ConditionsArray();
+    OtreeCellVectorType leaves;
+
+    IndexType counter = 0;
+    rResults.resize(number_of_conditions);
+    for (auto& r_condition : r_conditions_array) {
+        leaves.clear();
+        mOctree.GetIntersectedLeaves(r_condition, leaves);
+        FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
+        ++counter;
     }
 }
 
@@ -97,7 +118,7 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 template<class TEntity>
 OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<TEntity>::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess<TEntity>::GetOctreePointer()
 {
-    return &mOctree;
+    return& mOctree;
 }
 
 /***********************************************************************************/
@@ -112,22 +133,46 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Clear()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
+template<>
+void FindIntersectedGeometricalObjectsProcess<Element>::Execute()
 {
-    GenerateOctree();
+    // Calling initialize first (initialize Octree)
+    ExecuteInitialize();
 
     OtreeCellVectorType leaves;
-    const int number_of_entities = static_cast<int>(mrModelPart1.NumberOfElements());
+    const int number_of_elements = static_cast<int>(mrModelPart1.NumberOfElements());
 
-    const auto it_entity_begin = mrModelPart1.ElementsBegin();
+    const auto it_elem_begin = mrModelPart1.ElementsBegin();
 
     #pragma omp parallel for private(leaves)
-    for (int i = 0; i < number_of_entities; i++) {
-        auto it_entity = it_entity_begin + i;
+    for (int i = 0; i < number_of_elements; i++) {
+        auto it_elem = it_elem_begin + i;
         leaves.clear();
-        mOctree.GetIntersectedLeaves(*(it_entity.base()), leaves);
-        MarkIfIntersected(**(it_entity.base()), leaves);
+        mOctree.GetIntersectedLeaves(*(it_elem.base()), leaves);
+        MarkIfIntersected(**(it_elem.base()), leaves);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindIntersectedGeometricalObjectsProcess<Condition>::Execute()
+{
+    // Calling initialize first (initialize Octree)
+    ExecuteInitialize();
+
+    OtreeCellVectorType leaves;
+    const int number_of_conditions = static_cast<int>(mrModelPart1.NumberOfConditions());
+
+    const auto it_cond_begin = mrModelPart1.ConditionsBegin();
+
+    #pragma omp parallel for private(leaves)
+    for (int i = 0; i < number_of_conditions; i++) {
+        auto it_cond = it_cond_begin + i;
+        leaves.clear();
+        mOctree.GetIntersectedLeaves(*(it_cond.base()), leaves);
+        MarkIfIntersected(**(it_cond.base()), leaves);
     }
 }
 
@@ -135,7 +180,41 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::GenerateOctree() {
+void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
+{
+    GenerateOctree();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
+{
+    this->SetOctreeBoundingBox();
+
+    // Adding mrModelPart2 to the octree
+    for (auto it_node = mrModelPart2.NodesBegin(); it_node != mrModelPart2.NodesEnd(); it_node++) {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        mOctree.Insert(it_node->Coordinates().data());
+
+#else
+        mOctree.Insert(it_node->Coordinates().data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
+    }
+
+    // Iterate over the elements
+    for (auto it_elem = mrModelPart2.ElementsBegin(); it_elem != mrModelPart2.ElementsEnd(); it_elem++) {
+        mOctree.Insert(*(it_elem).base());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
+{
     this->SetOctreeBoundingBox();
 
     // Adding mrModelPart2 to the octree
@@ -148,8 +227,9 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::GenerateOctree() {
 #endif // ifdef KRATOS_USE_AMATRIX
     }
 
-    for (auto it_entity = mrModelPart2.ElementsBegin(); it_entity != mrModelPart2.ElementsEnd(); it_entity++) {
-        mOctree.Insert(*(it_entity).base());
+    // Iterate over the conditons
+    for (auto it_cond = mrModelPart2.ConditionsBegin(); it_cond != mrModelPart2.ConditionsEnd(); it_cond++) {
+        mOctree.Insert(*(it_cond).base());
     }
 }
 
@@ -164,7 +244,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 
     // Loop over all nodes in first modelpart
     for (auto it_node = mrModelPart1.NodesBegin(); it_node != mrModelPart1.NodesEnd(); it_node++) {
-        const array_1d<double,3> &r_coordinates = it_node->Coordinates();
+        const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
             high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
@@ -204,10 +284,10 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 template<class TEntity>
 void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
     TEntity& rEntity1,
-    OtreeCellVectorType& leaves
+    OtreeCellVectorType& rLeaves
     )
 {
-    for (auto p_leaf : leaves) {
+    for (auto p_leaf : rLeaves) {
         for (auto p_element_2 : *(p_leaf->pGetObjects())) {
             if (HasIntersection(rEntity1.GetGeometry(),p_element_2->GetGeometry())) {
                 rEntity1.Set(SELECTED);
@@ -282,8 +362,8 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection3D(
 
 template<class TEntity>
 bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
-    GeometryType &rFirstGeometry,
-    GeometryType &rSecondGeometry
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
     )
 {
     const auto work_dim = rFirstGeometry.WorkingSpaceDimension();
@@ -300,11 +380,11 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
 template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(
     TEntity& rEntity1,
-    FindIntersectedGeometricalObjectsProcess<TEntity>::OtreeCellVectorType& leaves,
+    FindIntersectedGeometricalObjectsProcess<TEntity>::OtreeCellVectorType& rLeaves,
     PointerVector<GeometricalObject>& rResults
     )
 {
-    for (auto p_leaf : leaves) {
+    for (auto p_leaf : rLeaves) {
         for (auto p_entity_2 : *(p_leaf->pGetObjects())) {
             if (HasIntersection(rEntity1.GetGeometry(), p_entity_2->GetGeometry())) {
                 rEntity1.Set(SELECTED);
@@ -318,6 +398,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class FindIntersectedGeometricalObjectsProcess<Condition>;
 template class FindIntersectedGeometricalObjectsProcess<Element>;
 
 }  // namespace Kratos.

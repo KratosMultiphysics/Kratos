@@ -357,6 +357,9 @@ public:
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
 
+    /// Definition of the entity container type
+    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -429,6 +432,11 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief this function is designed for being called at the beginning of the computations right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -471,6 +479,16 @@ private:
      * @brief This method generates a new Octree class
      */
     void GenerateOctree();
+
+    /**
+     * @brief This method generates a new Octree class (elements)
+     */
+    void GenerateOctreeElements();
+
+    /**
+     * @brief This method generates a new Octree class (conditions)
+     */
+    void GenerateOctreeConditions();
 
     /**
      * @brief This method sets the Octree bounding box
