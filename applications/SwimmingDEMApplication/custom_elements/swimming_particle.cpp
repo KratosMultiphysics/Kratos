@@ -107,6 +107,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> magnus_lift_force;
     array_1d<double, 3> brownian_motion_force;
     array_1d<double, 3>& basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
+    array_1d<double, 3> steady_viscous_torque;
     Geometry<Node<3> >& r_geometry = GetGeometry();
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
@@ -149,11 +150,9 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                             mFluidDensity,
                                                             mKinematicViscosity,
                                                             mSlipVel,
-                                                            vorticity_induced_lift,
+                                                            steady_viscous_torque,
                                                             r_current_process_info);
 
-    ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
-    ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
     mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
                                                      mRadius,
                                                      mFluidDensity,
@@ -162,7 +161,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                      basset_force,
                                                      r_current_process_info);
 
-    // Adding all forces except Basset's, since they might get averaged in time in a different way
+    // Adding all fluid-related forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += drag_force
                                 + virtual_mass_plus_undisturbed_flow_force
                                 + vorticity_induced_lift
@@ -170,6 +169,9 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                 + brownian_motion_force
                                 + buoyancy
                                 + weight;
+
+    // Adding all fluid-related moments
+    noalias(non_contact_moment) += steady_viscous_torque;
 
     const double inviscid_added_mass =  mHydrodynamicInteractionLaw->GetInviscidAddedMass(GetGeometry(),
                                                                                           mFluidDensity,
@@ -179,8 +181,6 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                                                                    r_current_process_info);
 
     const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + history_force_added_mass);
-
-    //const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + mLastHistoryForceAddedMass);
 
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 

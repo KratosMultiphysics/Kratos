@@ -12,6 +12,7 @@
 #include "history_force_laws/history_force_law.h"
 #include "vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "rotation_induced_lift_laws/rotation_induced_lift_law.h"
+#include "steady_viscous_torque_laws/steady_viscous_torque_law.h"
 
 namespace Kratos {
 
@@ -32,6 +33,7 @@ public:
     void SetHistoryForceLaw(const HistoryForceLaw& r_law){mpHistoryForceLaw = r_law.Clone();}
     void SetVorticityInducedLiftLaw(const VorticityInducedLiftLaw& r_law){mpVorticityInducedLiftLaw = r_law.Clone();}
     void SetRotationInducedLiftLaw(const RotationInducedLiftLaw& r_law){mpRotationInducedLiftLaw = r_law.Clone();}
+    void SetSteadyViscousTorqueLaw(const SteadyViscousTorqueLaw& r_law){mpSteadyViscousTorqueLaw = r_law.Clone();}
 
     virtual void Initialize(const ProcessInfo& r_process_info);
 
@@ -51,6 +53,7 @@ public:
     virtual HistoryForceLaw::Pointer CloneHistoryForceLaw() const;
     virtual VorticityInducedLiftLaw::Pointer CloneVorticityInducedLiftLaw() const;
     virtual RotationInducedLiftLaw::Pointer CloneRotationInducedLiftLaw() const;
+    virtual SteadyViscousTorqueLaw::Pointer CloneSteadyViscousTorqueLaw() const;
 
     double ComputeParticleReynoldsNumber(const double particle_radius,
                                          const double fluid_kinematic_viscosity,
@@ -115,6 +118,7 @@ protected:
     HistoryForceLaw::Pointer mpHistoryForceLaw;
     VorticityInducedLiftLaw::Pointer mpVorticityInducedLiftLaw;
     RotationInducedLiftLaw::Pointer mpRotationInducedLiftLaw;
+    SteadyViscousTorqueLaw::Pointer mpSteadyViscousTorqueLaw;
 
 private:
 

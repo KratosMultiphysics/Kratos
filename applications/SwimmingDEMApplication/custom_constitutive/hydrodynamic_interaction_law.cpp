@@ -9,7 +9,8 @@ namespace Kratos {
         mpInviscidForceLaw(InviscidForceLaw().Clone()),
         mpHistoryForceLaw(HistoryForceLaw().Clone()),
         mpVorticityInducedLiftLaw(VorticityInducedLiftLaw().Clone()),
-        mpRotationInducedLiftLaw(RotationInducedLiftLaw().Clone()){}
+        mpRotationInducedLiftLaw(RotationInducedLiftLaw().Clone()),
+        mpSteadyViscousTorqueLaw(SteadyViscousTorqueLaw().Clone()){}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
     {
@@ -19,6 +20,7 @@ namespace Kratos {
         mpHistoryForceLaw = rHydrodynamicInteractionLaw.CloneHistoryForceLaw();
         mpVorticityInducedLiftLaw = rHydrodynamicInteractionLaw.CloneVorticityInducedLiftLaw();
         mpRotationInducedLiftLaw = rHydrodynamicInteractionLaw.CloneRotationInducedLiftLaw();
+        mpSteadyViscousTorqueLaw = rHydrodynamicInteractionLaw.CloneSteadyViscousTorqueLaw();
     }
 
     void HydrodynamicInteractionLaw::Initialize(const ProcessInfo& r_process_info) {
@@ -60,6 +62,10 @@ namespace Kratos {
 
     RotationInducedLiftLaw::Pointer HydrodynamicInteractionLaw::CloneRotationInducedLiftLaw() const {
         return mpRotationInducedLiftLaw->Clone();
+    }
+
+    SteadyViscousTorqueLaw::Pointer HydrodynamicInteractionLaw::CloneSteadyViscousTorqueLaw() const {
+        return mpSteadyViscousTorqueLaw->Clone();
     }
 
     HydrodynamicInteractionLaw::~HydrodynamicInteractionLaw(){}

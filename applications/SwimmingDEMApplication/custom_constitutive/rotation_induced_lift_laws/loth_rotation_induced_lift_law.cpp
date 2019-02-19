@@ -42,7 +42,7 @@ namespace Kratos {
                                               rotation_induced_lift,
                                               r_current_process_info);
 
-        //Then apply Lith's correction
+        // Then apply Loth's correction
         Node<3>& node = r_geometry[0];
         const array_1d<double, 3> slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));

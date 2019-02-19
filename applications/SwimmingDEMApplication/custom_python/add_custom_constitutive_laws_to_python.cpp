@@ -40,10 +40,16 @@
 #include "../custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.h"
 #include "../custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.h"
 
+// Rotation-induced lift laws
 #include "../custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
 #include "../custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.h"
 #include "../custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.h"
 #include "../custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.h"
+
+// Steady viscous torque laws
+#include "../custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.h"
+#include "../custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.h"
+#include "../custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -56,6 +62,7 @@ typedef InviscidForceLaw BaseInviscidForceLawType;
 typedef HistoryForceLaw BaseHistoryForceLaw;
 typedef VorticityInducedLiftLaw BaseVorticityInducedLiftLawType;
 typedef RotationInducedLiftLaw BaseRotationInducedLiftLawType;
+typedef SteadyViscousTorqueLaw BaseSteadyViscousTorqueLaw;
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
@@ -203,6 +210,25 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<LothRotationInducedLiftLaw, LothRotationInducedLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "LothRotationInducedLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    // Steady viscous torque laws
+    py::class_<SteadyViscousTorqueLaw, SteadyViscousTorqueLaw::Pointer>(m, "SteadyViscousTorqueLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        .def("Clone", &SteadyViscousTorqueLaw::Clone)
+        .def("SetSteadyViscousTorqueLawInProperties", &SteadyViscousTorqueLaw::SetSteadyViscousTorqueLawInProperties)
+        .def("GetTypeOfLaw", &SteadyViscousTorqueLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<RubinowAndKellerTorqueLaw, RubinowAndKellerTorqueLaw::Pointer, BaseSteadyViscousTorqueLaw>(m, "RubinowAndKellerTorqueLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<LothSteadyViscousTorqueLaw, LothSteadyViscousTorqueLaw::Pointer, BaseSteadyViscousTorqueLaw>(m, "LothSteadyViscousTorqueLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;
