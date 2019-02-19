@@ -22,8 +22,8 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<IncompressiblePotentialFlowElement>(
+        NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -32,8 +32,8 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
-        NewId, pGeom, pProperties));
+    return Kratos::make_shared<IncompressiblePotentialFlowElement>(
+        NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -42,8 +42,8 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
-        NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+    return Kratos::make_shared<IncompressiblePotentialFlowElement>(
+        NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     KRATOS_CATCH("");
 }
 
@@ -598,7 +598,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
         ComputeVelocityUpperWakeElement(velocity);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, abs(internal_energy));
+    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
 template <int Dim, int NumNodes>
