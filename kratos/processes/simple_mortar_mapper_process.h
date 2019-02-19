@@ -457,13 +457,14 @@ private:
 
     double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
-    bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
-    bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
+    bool mDiscontinuousInterface = false;         /// A bool that defines if the origin variables is historical
+    bool mOriginHistorical = true;                /// A bool that defines if the origin variables is historical
+    bool mDestinationHistorical = true;           /// A bool that defines if the destination variables is historical
 
-    unsigned int mEchoLevel;                      /// The verbosity level
+    unsigned int mEchoLevel = 0;                  /// The verbosity level
     Parameters mThisParameters;                   /// The configuration parameters
 
-    LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
+    LinearSolverType::Pointer mpThisLinearSolver; /// The linear solver used to compute the solution
 
     ///@}
     ///@name Private Operators

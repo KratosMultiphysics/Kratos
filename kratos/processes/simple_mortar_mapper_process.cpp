@@ -46,6 +46,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -78,6 +79,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -106,7 +108,12 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
+    // Setting MODIFIED flag
+    const bool using_average_nodal_normal = mThisParameters["using_average_nodal_normal"].GetBool();
+    this->Set(MODIFIED, !using_average_nodal_normal);
+
     // We set some values
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -918,6 +925,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
     {
         "echo_level"                       : 0,
         "using_average_nodal_normal"       : true,
+        "compute_discontinuous_interface"  : false,
         "absolute_convergence_tolerance"   : 1.0e-9,
         "relative_convergence_tolerance"   : 1.0e-4,
         "max_number_iterations"            : 10,
