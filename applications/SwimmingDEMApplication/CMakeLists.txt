@@ -69,6 +69,8 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     # Rotation-Induced Lift Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp

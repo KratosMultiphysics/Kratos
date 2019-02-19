@@ -144,7 +144,14 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                              vorticity_induced_lift,
                                                              r_current_process_info);
 
-    ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
+    mHydrodynamicInteractionLaw->ComputeRotationInducedLift(r_geometry,
+                                                            mRadius,
+                                                            mFluidDensity,
+                                                            mKinematicViscosity,
+                                                            mSlipVel,
+                                                            vorticity_induced_lift,
+                                                            r_current_process_info);
+
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
     mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,

@@ -42,6 +42,8 @@
 
 #include "../custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
 #include "../custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.h"
+#include "../custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.h"
+#include "../custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -191,6 +193,16 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<RubinowAndKellerLiftLaw, RubinowAndKellerLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "RubinowAndKellerLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<OesterleAndDinhLiftLaw, OesterleAndDinhLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "OesterleAndDinhLiftLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<LothRotationInducedLiftLaw, LothRotationInducedLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "LothRotationInducedLiftLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

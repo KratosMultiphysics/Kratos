@@ -44,7 +44,14 @@ namespace Kratos {
 
 
     protected:
+        double ComputeParticleRotationReynoldsNumber(const double norm_of_slip_rot,
+                                                     const double particle_radius,
+                                                     const double fluid_kinematic_viscosity);
 
+        double ComputeNondimensionalRotVelocity(const double norm_of_slip_vel,
+                                                const double norm_of_slip_rot,
+                                                const double particle_radius,
+                                                const double fluid_kinematic_viscosity);
     private:
 
         friend class Serializer;
