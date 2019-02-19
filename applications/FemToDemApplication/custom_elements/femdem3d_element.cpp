@@ -282,19 +282,19 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
 	// Loop Over Integration Points
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++) {
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		double detJ = 0;
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[point_number], InvJ, detJ);
 
 		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 )" << std::endl;
 		
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[point_number], InvJ);
 
 		//set shape functions for this integration point
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, point_number);
 
 		//b.-compute infinitessimal strain
 		this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
@@ -321,7 +321,7 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 
 		//CALL THE CONSTITUTIVE LAW (for this integration point)
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
-		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+		mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 		this->SetValue(STRESS_VECTOR, Values.GetStressVector());
 	}
 }
@@ -387,20 +387,20 @@ void FemDem3DElement::CalculateLocalSystem(
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++) {
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		double detJ = 0;
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[point_number], InvJ, detJ);
 
-		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		double integration_weight = integration_points[point_number].Weight() * detJ;
 
 		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0" << std::endl;
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[point_number], InvJ);
 
 		//set shape functions for this integration point
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, point_number);
 
 		//b.-compute infinitessimal strain
 		this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
@@ -426,7 +426,7 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		//CALL THE CONSTITUTIVE LAW (for this integration point)
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
-		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+		mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 		const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 		bool is_damaging = false;
 
@@ -534,20 +534,20 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++) {
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		double detJ = 0;
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[point_number], InvJ, detJ);
 
-		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		double integration_weight = integration_points[point_number].Weight() * detJ;
 		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 " << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[point_number], InvJ);
 
 		//set shape functions for this integration point
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, point_number);
 
 		//b.-compute infinitessimal strain
 		this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
@@ -573,7 +573,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
 		//CALL THE CONSTITUTIVE LAW (for this integration point)
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
-		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+		mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 		Matrix constitutive_matrix = Values.GetConstitutiveMatrix();
 		this->CalculateDeformationMatrix(B, DN_DX);
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
@@ -611,16 +611,16 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++) {
 
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		double detJ = 0;
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		MathUtils<double>::InvertMatrix(J[point_number], InvJ, detJ);
+		noalias(DN_DX) = prod(DN_De[point_number], InvJ);
 
-		Vector N = row(Ncontainer, PointNumber);
-		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		Vector N = row(Ncontainer, point_number);
+		double integration_weight = integration_points[point_number].Weight() * detJ;
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
 		for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -688,7 +688,7 @@ void FemDem3DElement::CalculateConstitutiveMatrix(
 	rConstitutiveMatrix(2, 1) = rConstitutiveMatrix(0, 1);
 }
 
-void FemDem3DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
+void FemDem3DElement::CalculateDN_DX(Matrix &rDN_DX, int point_number)
 {
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -709,11 +709,11 @@ void FemDem3DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 	//calculating the inverse of the jacobian for this integration point[d�/dx_n]
 	Matrix InvJ = ZeroMatrix(dimension, dimension);
 	double detJ;
-	MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+	MathUtils<double>::InvertMatrix(J[point_number], InvJ, detJ);
 	KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = "<< detJ << std::endl;
 
 	//compute cartesian derivatives for this integration point  [dN/dx_n]
-	rDN_DX = prod(DN_De[PointNumber], InvJ);
+	rDN_DX = prod(DN_De[point_number], InvJ);
 }
 
 void FemDem3DElement::CalculateInfinitesimalStrain(Vector &rStrainVector, const Matrix &rDN_DX)
@@ -900,27 +900,27 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 {
 	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = mDamage;
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mDamage;
 		}
 	} else if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = double(this->GetValue(IS_DAMAGED));
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = mThreshold;
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mThreshold;
 		}
 	} else if (rVariable == EQUIVALENT_STRESS_VM) {
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
 			const Vector stress_vector = this->GetValue(STRESS_VECTOR);
 			const double I1 = this->CalculateI1Invariant(stress_vector);
 			Vector deviator;
 			this->CalculateDeviatorVector(deviator, stress_vector, I1);
 			const double J2 = this->CalculateJ2Invariant(deviator);
-			rOutput[PointNumber] = double(std::sqrt(3.0 * J2));
+			rOutput[point_number] = double(std::sqrt(3.0 * J2));
 		}
 	}
 }
@@ -1583,12 +1583,12 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 	const ProcessInfo &rCurrentProcessInfo)
 {
 	if (rVariable == DAMAGE_ELEMENT) {
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			mDamage = rValues[PointNumber];
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			mDamage = rValues[point_number];
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			mThreshold = rValues[PointNumber];
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			mThreshold = rValues[point_number];
 		}
 	} else {
 		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
