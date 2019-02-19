@@ -29,10 +29,24 @@
 namespace Kratos
 {
 namespace Internals {
+    /**
+     * @class DistanceSpatialContainersConfigure
+     * @ingroup KratosCore
+     * @brief This class contains the tools related with the distance spatial container cell data
+     * @details The CellNodeData is defined as an internal class
+     * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
+     * @author Pooyan Dadvand
+     */
     template<class TEntity = Element>
     class DistanceSpatialContainersConfigure
     {
     public:
+        /**
+         * @class CellNodeData
+         * @ingroup KratosCore
+         * @brief This class contains the cell node data
+         * @author Pooyan Dadvand
+         */
         class CellNodeData
         {
             double mDistance;
@@ -62,14 +76,26 @@ namespace Internals {
         ///@name Type Definitions
         ///@{
 
-        typedef Point                                                      PointType;
-        typedef std::vector<double>::iterator                   DistanceIteratorType;
-        typedef ModelPart::ElementsContainerType::ContainerType        ContainerType;
-        typedef ContainerType::value_type                                PointerType;
-        typedef ContainerType::iterator                                 IteratorType;
-        typedef ModelPart::ElementsContainerType::ContainerType  ResultContainerType;
-        typedef ResultContainerType::value_type                    ResultPointerType;
-        typedef ResultContainerType::iterator                     ResultIteratorType;
+        /// Definition of the index type
+        typedef std::size_t IndexType;
+
+        /// Definition of the point type
+        typedef Point PointType;
+
+        /// Definition of the distance iterator type
+        typedef std::vector<double>::iterator DistanceIteratorType;
+
+        /// Definition of the entity container type
+        typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+
+        /// Definition of the container type
+        typedef typename EntityContainerType::ContainerType    ContainerType;
+
+        /// Defintion of the pointer type
+        typedef typename ContainerType::value_type               PointerType;
+
+        /// Definition of the ietartor type
+        typedef typename ContainerType::iterator                IteratorType;
 
         /// Definition of the node type
         typedef Node<3> NodeType;
@@ -77,11 +103,14 @@ namespace Internals {
         /// Definition of the geometry type
         typedef Geometry<NodeType> GeometryType;
 
-        typedef TEntity::Pointer                                   EntityPointerType;
-        typedef CellNodeData                CellNodeDataType;
+        /// Definition of the cell node data
+        typedef CellNodeData CellNodeDataType;
+
+        /// Definition of the cell data type
         typedef std::vector<CellNodeData*> CellDataType;
 
-        typedef std::vector<PointerType>::iterator             PointerTypeIterator;
+        /// Definition of the pointer type iterator
+        typedef typename std::vector<PointerType>::iterator PointerTypeIterator;
 
         /// Pointer definition of DistanceSpatialContainersConfigure
         KRATOS_CLASS_POINTER_DEFINITION(DistanceSpatialContainersConfigure);
@@ -106,74 +135,144 @@ namespace Internals {
         ///@name Operations
         ///@{
 
+        /**
+         * @brief This method allocates the cell data
+         */
         static CellDataType* AllocateData() {
             return new CellDataType(27, (CellNodeData*)NULL);
         }
 
-        static void CopyData(CellDataType* source, CellDataType* destination) {
-            *destination = *source;
-        }
-
-        static void DeleteData(CellDataType* data) {
-            delete data;
-        }
-
-        static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
+        /**
+         * @brief This method copies the data from a cell
+         * @param pSource The data cell to be copied
+         * @param pDestination The data cell where to copy
+         */
+        static void CopyData(
+            CellDataType* pSource,
+            CellDataType* pDestination
+            )
         {
-            rHighPoint = rObject->GetGeometry().GetPoint(0);
-            rLowPoint = rObject->GetGeometry().GetPoint(0);
+            *pDestination = *pSource;
+        }
 
-            for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
-            {
-                for (std::size_t i = 0; i<3; i++)
-                {
-                    rLowPoint[i] = (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i]) ? rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i];
-                    rHighPoint[i] = (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i]) ? rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+        /**
+         * @brief This method deletes the data from a cell data
+         * @param pData The data cell to be deleted
+         */
+        static void DeleteData(CellDataType* pData) {
+            delete pData;
+        }
+
+        /**
+         * @brief This method computes the bounding box of an object
+         * @param pObject The pointer to the object
+         * @param rLowPoint The lowest point of the box
+         * @param rHighPoint The highest point of the box
+         */
+        static inline void CalculateBoundingBox(
+            const PointerType& pObject,
+            PointType& rLowPoint,
+            PointType& rHighPoint
+            )
+        {
+            // Getting the geoemtry
+            auto& r_geometry = pObject->GetGeometry();
+
+            // Initializing the highest and lowest point
+            rHighPoint = r_geometry.GetPoint(0);
+            rLowPoint = r_geometry.GetPoint(0);
+
+            // Iterating over the nodes
+            for (IndexType point = 0; point< r_geometry.PointsNumber(); ++point) {
+                for (IndexType i = 0; i<3; i++) {
+                    rLowPoint[i] = (rLowPoint[i]  >  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rLowPoint[i];
+                    rHighPoint[i] = (rHighPoint[i] <  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rHighPoint[i];
                 }
             }
         }
 
-        static inline void GetBoundingBox(const PointerType rObject, double* rLowPoint, double* rHighPoint)
+        /**
+         * @brief This method computes the bounding box of an object (using C arrays)
+         * @param pObject The pointer to the object
+         * @param rLowPoint The lowest point of the box
+         * @param rHighPoint The highest point of the box
+         */
+        static inline void GetBoundingBox(
+            const PointerType pObject,
+            double* rLowPoint,
+            double* rHighPoint
+            )
         {
+            // Getting the geoemtry
+            auto& r_geometry = pObject->GetGeometry();
 
-            for (std::size_t i = 0; i<3; ++i) {
-                rLowPoint[i] = rObject->GetGeometry().GetPoint(0)[i];
-                rHighPoint[i] = rObject->GetGeometry().GetPoint(0)[i];
+            // Initializing the highest and lowest point
+            for (IndexType i = 0; i<3; ++i) {
+                rLowPoint[i] = r_geometry.GetPoint(0)[i];
+                rHighPoint[i] = r_geometry.GetPoint(0)[i];
             }
 
-            for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); ++point) {
-                for (std::size_t i = 0; i<3; i++)
-                {
-                    rLowPoint[i] = (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i]) ? rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i];
-                    rHighPoint[i] = (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i]) ? rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+            // Iterating over the nodes
+            for (IndexType point = 0; point< r_geometry.PointsNumber(); ++point) {
+                for (IndexType i = 0; i<3; i++) {
+                    rLowPoint[i] = (rLowPoint[i]  >  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rLowPoint[i];
+                    rHighPoint[i] = (rHighPoint[i] <  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rHighPoint[i];
                 }
             }
         }
 
-        static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
+        /**
+         * @brief This method computes if there is an intersection between two objects
+         * @param pObj1 The pointer to the first object
+         * @param pObj2 The pointer to the second object
+         * @return True if there is an intersection
+         */
+        static inline bool Intersection(
+            const PointerType& pObj1,
+            const PointerType& pObj2
+            )
         {
-            GeometryType& geom_1 = rObj_1->GetGeometry();
-            GeometryType& geom_2 = rObj_2->GetGeometry();
-            return  geom_1.HasIntersection(geom_2);
-
+            GeometryType& r_geom_1 = pObj1->GetGeometry();
+            GeometryType& r_geom_2 = pObj2->GetGeometry();
+            return r_geom_1.HasIntersection(r_geom_2);
         }
 
-
-        static inline bool  IntersectionBox(const PointerType& rObject, const PointType& rLowPoint, const PointType& rHighPoint)
+        /**
+         * @brief This computes the intersection between an object and a box
+         * @param pObject The pointer to the object
+         * @param rLowPoint The lowest point of the box
+         * @param rHighPoint The highest point of the box
+         * @return True if there is an intersection
+         */
+        static inline bool IntersectionBox(
+            const PointerType& pObject,
+            const PointType& rLowPoint,
+            const PointType& rHighPoint
+            )
         {
-            return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
+            return pObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
         }
 
-
-        static  inline bool  IsIntersected(const TEntity::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
+        /**
+         * @brief This method checks if the objects intersects the low and hight points provided
+         * @param pObject The pointer to the object of interest
+         * @param Tolerance The tolerance considered
+         * @param rLowPoint The lowest point of the box
+         * @param rHighPoint The highest point of the box
+         */
+        static inline bool IsIntersected(
+            const PointerType pObject,
+            double Tolerance,
+            const double* rLowPoint,
+            const double* rHighPoint
+            )
         {
-            Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-            Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+            PointType low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+            PointType high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
-            KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
-                //return HasIntersection(rObject->GetGeometry(), low_point, high_point);
+            KRATOS_ERROR << "Not Implemented method" << std::endl;
+//             return HasIntersection(pObject->GetGeometry(), low_point, high_point);
         }
-
 
         ///@}
         ///@name Input and output
@@ -190,7 +289,6 @@ namespace Internals {
 
         /// Print object's data.
         virtual void PrintData(std::ostream& rOStream) const {}
-
 
         ///@}
 
@@ -220,6 +318,7 @@ namespace Internals {
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag.
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
+ * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
  * @author Pooyan Dadvand
 */
 template<class TEntity = Element>
