@@ -42,7 +42,6 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 
 
 # TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
-# TODO: use better names in CheckConvergence and CheckConvergenceAux_Task functions
 
 
 """
@@ -64,47 +63,48 @@ def AddResultsAux_Task(simulation_results,level):
 
 """
 auxiliary function of CheckConvergence of the MonteCarlo class
-input:  curr_number_samples:                   current number of samples computed
-        curr_mean:                             current mean
-        curr_sample_variance:                  current sample variance
-        curr_h2:                               current h2 statistics
-        curr_h3:                               current h3 statistics
-        curr_sample_central_moment_3_absolute: current third absolute central moment
-        curr_h4:                               current h4 statistics
-        curr_tol:                              current tolerance
-        curr_delta:                            current convergence probability
-        convergence_criteria:                  convergence criteria exploited to check convergence
+input:  current_number_samples:                   current number of samples computed
+        current_mean:                             current mean
+        current_sample_variance:                  current sample variance
+        current_h2:                               current h2 statistics
+        current_h3:                               current h3 statistics
+        current_sample_central_moment_3_absolute: current third absolute central moment
+        current_h4:                               current h4 statistics
+        current_tol:                              current tolerance
+        current_delta:                            current convergence probability
+        convergence_criteria:                     convergence criteria exploited to check convergence
 output: convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1)
-def CheckConvergenceAux_Task(curr_number_samples,curr_mean,curr_sample_variance,curr_h2,curr_h3,curr_sample_central_moment_3_absolute,curr_h4,curr_tol,curr_delta,convergence_criteria):
+def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
-        curr_coefficient_to_compute_convergence = np.sqrt(curr_number_samples) * curr_tol / np.sqrt(curr_sample_variance)
+        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
         # evaluate probability of failure
-        main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(curr_coefficient_to_compute_convergence))
-        if(main_contribute < curr_delta):
+        main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        if(main_contribute < current_delta):
             convergence_boolean = True
     elif(convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
         # define local variables
-        curr_second_sample_moment = np.sqrt(curr_h2)
-        curr_third_sample_moment_absolute = curr_sample_central_moment_3_absolute / (curr_second_sample_moment**3)
-        curr_third_sample_moment = curr_h3 / (curr_second_sample_moment**3)
-        curr_fourth_sample_moment = (curr_h4 / (curr_second_sample_moment**4)) - 3
-        curr_coefficient_to_compute_convergence = np.sqrt(curr_number_samples) * curr_tol / np.sqrt(curr_second_sample_moment)
+        current_moment_2_coefficient = np.sqrt(current_h2)
+        current_moment_3_absolute_coefficient = current_sample_central_moment_3_absolute / (current_moment_2_coefficient**3)
+        current_moment_3_coefficient = current_h3 / (current_moment_2_coefficient**3)
+        current_moment_4_coefficient = (current_h4 / (current_moment_2_coefficient**4)) - 3
+        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_moment_2_coefficient)
         # evaluate probability of failure and penalty term
-        main_contribute = 2 * (1 - _ComputeCDFStandardNormalDistribution(curr_coefficient_to_compute_convergence))
-        penalty_contribute = 2 * np.minimum(4 * (2/(curr_number_samples - 1) + (curr_fourth_sample_moment / curr_number_samples)), 1) * \
-            _ComputeBoundFunction(curr_coefficient_to_compute_convergence,curr_third_sample_moment_absolute) / np.sqrt(curr_number_samples) + \
-            (1 - np.minimum(4 * (2/(curr_number_samples - 1) + (curr_fourth_sample_moment / curr_number_samples)), 1)) * \
-            np.abs((curr_number_samples * curr_tol**2 / (curr_second_sample_moment**2)) - 1) * \
-            np.exp(- curr_number_samples * (curr_tol**2) / (curr_second_sample_moment**2)) * np.abs(curr_third_sample_moment) / \
-            (3 * np.sqrt(2 * np.pi * curr_number_samples))
-        if (main_contribute + penalty_contribute < curr_delta):
+        main_contribute = 2 * (1 - _ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        penalty_contribute = 2 * np.minimum(4 * (2/(current_number_samples - 1) + (current_moment_4_coefficient / current_number_samples)), 1) * \
+            _ComputeBoundFunction(current_convergence_coefficient,current_moment_3_absolute_coefficient) / np.sqrt(current_number_samples) + \
+            (1 - np.minimum(4 * (2/(current_number_samples - 1) + (current_moment_4_coefficient / current_number_samples)), 1)) * \
+            np.abs((current_number_samples * current_tol**2 / (current_moment_2_coefficient**2)) - 1) * \
+            np.exp(- current_number_samples * (current_tol**2) / (current_moment_2_coefficient**2)) * np.abs(current_moment_3_coefficient) / \
+            (3 * np.sqrt(2 * np.pi * current_number_samples))
+        if (main_contribute + penalty_contribute < current_delta):
             convergence_boolean = True
     else:
         convergence_boolean = False
+        raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
     return convergence_boolean
 
 
@@ -304,19 +304,18 @@ class MonteCarlo(object):
             level: working level
     """
     def CheckConvergence(self,level):
-        curr_number_samples = self.QoI.number_samples[level]
-        curr_mean = self.QoI.mean[level]
-        curr_sample_variance = self.QoI.sample_variance[level]
-        curr_h2 = self.QoI.h_statistics_2[level]
-        curr_h3 = self.QoI.h_statistics_3[level]
-        curr_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
-        curr_h4 = self.QoI.h_statistics_4[level]
-        curr_tol = self.settings["tolerance"].GetDouble()
-        curr_delta = self.settings["cphi"].GetDouble()
+        current_number_samples = self.QoI.number_samples[level]
+        current_mean = self.QoI.mean[level]
+        current_sample_variance = self.QoI.sample_variance[level]
+        current_h2 = self.QoI.h_statistics_2[level]
+        current_h3 = self.QoI.h_statistics_3[level]
+        current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
+        current_h4 = self.QoI.h_statistics_4[level]
+        current_tol = self.settings["tolerance"].GetDouble()
+        current_delta = self.settings["cphi"].GetDouble()
         convergence_criteria = self.convergence_criteria
-
-        convergence_boolean = CheckConvergenceAux_Task(curr_number_samples,curr_mean,curr_sample_variance,curr_h2,\
-            curr_h3,curr_sample_central_moment_3_absolute,curr_h4,curr_tol,curr_delta,convergence_criteria)
+        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,\
+            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria)
         self.convergence = convergence_boolean
 
     """
@@ -340,6 +339,8 @@ class MonteCarlo(object):
     """
     def InitializeMCPhase(self):
         current_level = self.current_level
+        if (current_level != 0):
+            raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update iteration counter
         self.iteration_counter = self.iteration_counter + 1
         # update number of samples (MonteCarlo.number_samples) and batch size
@@ -365,6 +366,8 @@ class MonteCarlo(object):
     """
     def FinalizeMCPhase(self):
         current_level = self.current_level
+        if (current_level != 0):
+            raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update statistics of the QoI
         for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
             self.QoI.UpdateOnePassMomentsVariance(current_level,i_sample)
