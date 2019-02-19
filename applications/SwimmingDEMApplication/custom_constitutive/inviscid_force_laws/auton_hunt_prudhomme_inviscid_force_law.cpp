@@ -30,7 +30,7 @@ namespace Kratos {
     }
 
     double AutonHuntPrudhommeInviscidForceLaw::GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                                                         const array_1d<double, 3>& acceleration_number)
+                                                                         const array_1d<double, 3>& slip_acc)
     {
         return 0.5;
     }

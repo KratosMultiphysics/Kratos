@@ -55,6 +55,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     # Inviscid Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.cpp
 
     # History Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/history_force_law.cpp

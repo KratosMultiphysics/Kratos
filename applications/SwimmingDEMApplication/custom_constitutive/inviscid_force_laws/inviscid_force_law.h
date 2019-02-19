@@ -52,7 +52,7 @@ namespace Kratos {
         double mLastVirtualMassAddedMass;
 
         virtual double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                                 const array_1d<double, 3>& acceleration_number){return 0.0;}
+                                                 const array_1d<double, 3>& slip_acc){return 0.0;}
 
     private:
 

@@ -29,6 +29,7 @@
 // Inviscid force laws
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
 #include "../custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
+#include "../custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.h"
 
 // History force laws
 #include "../custom_constitutive/history_force_laws/history_force_law.h"
@@ -148,6 +149,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<AutonHuntPrudhommeInviscidForceLaw, AutonHuntPrudhommeInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "AutonHuntPrudhommeInviscidForceLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<ZuberInviscidForceLaw, ZuberInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "ZuberInviscidForceLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;
