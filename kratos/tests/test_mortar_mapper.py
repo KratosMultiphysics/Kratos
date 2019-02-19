@@ -55,7 +55,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
                 #node.Set(KratosMultiphysics.TO_ERASE)
             #cond.Set(KratosMultiphysics.TO_ERASE)
 
-            #self.main_model_part.CreateNewCondition("SurfaceCondition3D3N", counter_conditions, list_nodes, self.main_model_part.GetProperties()[1])
+            #self.model_part_slave.CreateNewCondition("SurfaceCondition3D3N", counter_conditions, list_nodes, self.main_model_part.GetProperties()[1])
 
         #self.main_model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
         #self.main_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
