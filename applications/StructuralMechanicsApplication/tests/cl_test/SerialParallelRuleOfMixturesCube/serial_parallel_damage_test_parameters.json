@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "SPRoM",
+        "problem_name"    : "serial_parallel_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
@@ -15,10 +15,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "SPRoM"
+            "input_filename" : "serial_parallel_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "serial_parallel_damage_test_materials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
