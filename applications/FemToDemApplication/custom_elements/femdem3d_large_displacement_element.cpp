@@ -481,11 +481,11 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddInternalForcesVector(
 
 // Methods to compute the tangent tensor by numerical derivation
 void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
-	Matrix& rTangentTensor,
-	const Vector& rStrainVectorGP,
-	const Vector& rStressVectorGP,
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
     const Matrix& rDeformationGradientGP,
-	const Matrix& rElasticMatrix
+    const Matrix& rElasticMatrix
 	)
 {
 	const double number_components = rStrainVectorGP.size();
