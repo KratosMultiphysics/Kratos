@@ -51,12 +51,12 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+    const SizeType number_of_elements = mrModelPart1.NumberOfElements();
     auto& r_elements = mrModelPart1.ElementsArray();
     OtreeCellVectorType leaves;
 
     rResults.resize(number_of_elements);
-    for (std::size_t i = 0; i < number_of_elements; i++) {
+    for (IndexType i = 0; i < number_of_elements; i++) {
         auto p_element_1 = r_elements[i];
         leaves.clear();
         mOctree.GetIntersectedLeaves(p_element_1, leaves);
@@ -118,7 +118,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
     GenerateOctree();
 
     OtreeCellVectorType leaves;
-    const int number_of_entities = mrModelPart1.NumberOfElements();
+    const int number_of_entities = static_cast<int>(mrModelPart1.NumberOfElements());
 
     const auto it_entity_begin = mrModelPart1.ElementsBegin();
 
@@ -159,13 +159,13 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::GenerateOctree() {
 template<class TEntity>
 void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 {
-    Point low(mrModelPart1.NodesBegin()->Coordinates());
-    Point high(mrModelPart1.NodesBegin()->Coordinates());
+    PointType low(mrModelPart1.NodesBegin()->Coordinates());
+    PointType high(mrModelPart1.NodesBegin()->Coordinates());
 
     // Loop over all nodes in first modelpart
     for (auto it_node = mrModelPart1.NodesBegin(); it_node != mrModelPart1.NodesEnd(); it_node++) {
         const array_1d<double,3> &r_coordinates = it_node->Coordinates();
-        for (int i = 0; i < 3; i++) {
+        for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
             high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
         }
@@ -174,7 +174,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
     // Loop over all skin nodes
     for (auto it_node = mrModelPart2.NodesBegin(); it_node != mrModelPart2.NodesEnd(); it_node++) {
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
-        for (int i = 0; i < 3; i++) {
+        for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
             high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
         }
@@ -183,7 +183,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
     // Slightly increase the bounding box size to avoid problems with geometries in the borders
     // Note that std::numeric_limits<double>::double() is added for the 2D cases. Otherwise, the
     // third component will be 0, breaking the octree behaviour.
-        for(int i = 0 ; i < 3; i++) {
+    for(IndexType i = 0 ; i < 3; i++) {
         low[i] -= std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
         high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
     }
@@ -203,14 +203,14 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 
 template<class TEntity>
 void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
-    Element& rElement1,
+    TEntity& rEntity1,
     OtreeCellVectorType& leaves
     )
 {
     for (auto p_leaf : leaves) {
         for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-            if (HasIntersection(rElement1.GetGeometry(),p_element_2->GetGeometry())) {
-                rElement1.Set(SELECTED);
+            if (HasIntersection(rEntity1.GetGeometry(),p_element_2->GetGeometry())) {
+                rEntity1.Set(SELECTED);
                 return;
             }
         }
@@ -256,7 +256,8 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection2D(
 template<class TEntity>
 bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection3D(
     GeometryType& rFirstGeometry,
-    GeometryType& rSecondGeometry)
+    GeometryType& rSecondGeometry
+    )
 {
     // Check the intersection of each face against the intersecting object
     auto faces = rFirstGeometry.Faces();
@@ -298,17 +299,17 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
 
 template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(
-    Element& rElement1,
+    TEntity& rEntity1,
     FindIntersectedGeometricalObjectsProcess<TEntity>::OtreeCellVectorType& leaves,
     PointerVector<GeometricalObject>& rResults
     )
 {
     for (auto p_leaf : leaves) {
-        for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-            if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
-                rElement1.Set(SELECTED);
-                if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_element_2) == rResults.ptr_end())
-                    rResults.push_back(p_element_2);
+        for (auto p_entity_2 : *(p_leaf->pGetObjects())) {
+            if (HasIntersection(rEntity1.GetGeometry(), p_entity_2->GetGeometry())) {
+                rEntity1.Set(SELECTED);
+                if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_entity_2) == rResults.ptr_end())
+                    rResults.push_back(p_entity_2);
             }
         }
     }

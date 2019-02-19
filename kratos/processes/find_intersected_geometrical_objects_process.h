@@ -89,13 +89,13 @@ namespace Internals {
         typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
         /// Definition of the container type
-        typedef typename EntityContainerType::ContainerType    ContainerType;
+        typedef typename EntityContainerType::ContainerType ContainerType;
 
         /// Defintion of the pointer type
-        typedef typename ContainerType::value_type               PointerType;
+        typedef typename ContainerType::value_type PointerType;
 
         /// Definition of the ietartor type
-        typedef typename ContainerType::iterator                IteratorType;
+        typedef typename ContainerType::iterator IteratorType;
 
         /// Definition of the node type
         typedef Node<3> NodeType;
@@ -104,10 +104,13 @@ namespace Internals {
         typedef Geometry<NodeType> GeometryType;
 
         /// Definition of the cell node data
-        typedef CellNodeData CellNodeDataType;
+        typedef CellNodeData cell_node_data_type;
 
         /// Definition of the cell data type
-        typedef std::vector<CellNodeData*> CellDataType;
+        typedef std::vector<CellNodeData*> data_type;
+
+        /// The definition of the pointer type
+        typedef PointerType pointer_type;
 
         /// Definition of the pointer type iterator
         typedef typename std::vector<PointerType>::iterator PointerTypeIterator;
@@ -138,8 +141,8 @@ namespace Internals {
         /**
          * @brief This method allocates the cell data
          */
-        static CellDataType* AllocateData() {
-            return new CellDataType(27, (CellNodeData*)NULL);
+        static data_type* AllocateData() {
+            return new data_type(27, (CellNodeData*)NULL);
         }
 
         /**
@@ -148,8 +151,8 @@ namespace Internals {
          * @param pDestination The data cell where to copy
          */
         static void CopyData(
-            CellDataType* pSource,
-            CellDataType* pDestination
+            data_type* pSource,
+            data_type* pDestination
             )
         {
             *pDestination = *pSource;
@@ -159,7 +162,7 @@ namespace Internals {
          * @brief This method deletes the data from a cell data
          * @param pData The data cell to be deleted
          */
-        static void DeleteData(CellDataType* pData) {
+        static void DeleteData(data_type* pData) {
             delete pData;
         }
 
@@ -336,8 +339,17 @@ public:
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure<TEntity>;
     using CellType = OctreeBinaryCell<ConfigurationType>;
     using OctreeType = OctreeBinary<CellType>;
-    using CellNodeDataType = typename ConfigurationType::CellNodeDataType;
-    using OtreeCellVectorType = std::vector<OctreeType::cell_type*>;
+    using CellNodeDataType = typename ConfigurationType::cell_node_data_type;
+    typedef std::vector<typename OctreeType::cell_type*> OtreeCellVectorType;
+
+    /// Definition of the index type
+    typedef std::size_t IndexType;
+
+    /// Definition of the size type
+    typedef std::size_t SizeType;
+
+    /// Definition of the point type
+    typedef Point PointType;
 
     /// Definition of the node type
     using NodeType = Node<3>;
@@ -371,20 +383,50 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
+     * @todo This should be moved to ExecuteInitialize (base class of Process)
+     */
     virtual void Initialize();
 
+    /**
+     * @brief This method finds the intersected objects with the skin
+     * @param rResults The vector containing the intersected objects with the skin
+     */
     virtual void FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults);
 
+    /**
+     * @brief This method finds different intersections
+     */
     virtual void FindIntersections();
 
+    /**
+     * @brief This method returns the intersections
+     * @return The vector containing the intersections found
+     */
     virtual std::vector<PointerVector<GeometricalObject>>& GetIntersections();
 
+    /**
+     * @brief Returns the first model part
+     * @return The first model part
+     */
     virtual ModelPart& GetModelPart1();
 
+    /**
+     * @brief This method returns the Octree conatined in the class
+     * @return The octree contained in this process
+     */
     virtual OctreeBinary<OctreeBinaryCell<ConfigurationType>>* GetOctreePointer();
 
+    /**
+     * @brief This clears the database
+     * @warning This conflicts with flags Clear
+     */
     virtual void Clear();
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override;
 
     ///@}
@@ -425,36 +467,67 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method generates a new Octree class
+     */
     void GenerateOctree();
 
+    /**
+     * @brief This method sets the Octree bounding box
+     */
     void SetOctreeBoundingBox();
 
+    /**
+     * @brief This method marks if intersected
+     * @param rEntity1 The entity of interest
+     * @param rLeaves The Octree cells vectors
+     */
     void MarkIfIntersected(
         TEntity& rEntity1,
-        std::vector<OctreeType::cell_type*>& leaves
+        OtreeCellVectorType& rLeaves
         );
 
+    /**
+     * @brief This method check if there is an intersection between two geometries
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
     bool HasIntersection(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
         );
 
+    /**
+     * @brief This method check if there is an intersection between two geometries in 2D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
     bool HasIntersection2D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
         );
 
+    /**
+     * @brief This method check if there is an intersection between two geometries in 3D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
     bool HasIntersection3D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
         );
 
+    /**
+     * @brief This method finds intected skin objects
+     * @param rEntity1 The entity of interest
+     * @param rLeaves The Octree cells vectors
+     * @param rResults The expected results
+     */
     void FindIntersectedSkinObjects(
         TEntity& rEntity1,
-        OtreeCellVectorType& leaves,
+        OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
-
 
     ///@}
     ///@name Un accessible methods

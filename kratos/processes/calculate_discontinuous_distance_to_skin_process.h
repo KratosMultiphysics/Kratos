@@ -77,7 +77,7 @@ public:
     /// Copy constructor.
     CalculateDiscontinuousDistanceToSkinProcess(CalculateDiscontinuousDistanceToSkinProcess const& rOther);
 
-    FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
+    FindIntersectedGeometricalObjectsProcess<Element> mFindIntersectedObjectsProcess;
 
     ///@}
     ///@name Operations
