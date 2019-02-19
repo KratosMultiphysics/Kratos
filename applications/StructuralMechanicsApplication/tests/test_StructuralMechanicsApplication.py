@@ -165,6 +165,9 @@ from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityT
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
 from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
+# Serial-Parallel Tests
+from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
+
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 from structural_mechanics_test_factory import RigidBlockTest as TRigidBlockTest
@@ -412,6 +415,7 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    validationSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
