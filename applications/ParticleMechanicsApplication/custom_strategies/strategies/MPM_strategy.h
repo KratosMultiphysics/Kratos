@@ -589,7 +589,9 @@ public:
         array_1d<double,3> MPC_Displacement = ZeroVector(3);
         array_1d<double,3> MPC_Imposed_Displacement = ZeroVector(3);
         array_1d<double,3> MPC_Velocity = ZeroVector(3);
+        array_1d<double,3> MPC_Imposed_Velocity = ZeroVector(3);
         array_1d<double,3> MPC_Acceleration = ZeroVector(3);
+        array_1d<double,3> MPC_Imposed_Acceleration = ZeroVector(3);
         array_1d<double,3> MPC_Contact_Force = ZeroVector(3);
 
         double MPC_Area = 0.0;
@@ -805,9 +807,9 @@ public:
                         if (i->Has(DISPLACEMENT))
                             MPC_Imposed_Displacement = i->GetValue(DISPLACEMENT);
                         if (i->Has(VELOCITY))
-                            MPC_Velocity = i->GetValue(VELOCITY);
+                            MPC_Imposed_Velocity = i->GetValue(VELOCITY);
                         if (i->Has(ACCELERATION))
-                            MPC_Acceleration = i->GetValue(ACCELERATION);
+                            MPC_Imposed_Acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             MPC_Penalty_Factor = i->GetValue(PENALTY_FACTOR);
                         const bool is_slip = i->Is(SLIP);
@@ -881,7 +883,9 @@ public:
                             p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
                             p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, MPC_Imposed_Displacement);
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
+                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, MPC_Imposed_Velocity);
                             p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
+                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, MPC_Imposed_Acceleration);
                             p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
                             if (is_slip)
                                 p_condition->Set(SLIP);
@@ -928,7 +932,9 @@ public:
                             p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
                             p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, MPC_Imposed_Displacement);
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
+                            p_condition->SetValue(MPC_IMPOSED_VELOCITY, MPC_Imposed_Velocity);
                             p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
+                            p_condition->SetValue(MPC_IMPOSED_ACCELERATION, MPC_Imposed_Acceleration);
                             p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
                             if (is_slip)
                                 p_condition->Set(SLIP);
