@@ -46,7 +46,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -79,7 +79,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -113,7 +113,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetDouble();
+    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
