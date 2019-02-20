@@ -379,7 +379,8 @@ public:
      */
     FindIntersectedGeometricalObjectsProcess(
         ModelPart& rPart1,
-        ModelPart& rPart2
+        ModelPart& rPart2,
+        const double BoundingBoxFactor = -1.0
         );
 
     /**
@@ -488,11 +489,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart1; /// First model part
-    ModelPart& mrModelPart2; /// Second model part
-    OctreeType mOctree;      /// The octree structucture that performs the search
+    ModelPart& mrModelPart1;          /// First model part
+    ModelPart& mrModelPart2;          /// Second model part
+    OctreeType mOctree;               /// The octree structucture that performs the search
 
-//     Parameters mThisParameters; /// The configuration parameters with advance parameters
+    double mBoundingBoxFactor = -1.0; /// The factor to be consider when computing the bounding box (if negative not considered)
 
     ///@}
     ///@name Private Operations
@@ -549,11 +550,31 @@ private:
         );
 
     /**
+     * @brief This method check if there is an intersection between two geometries in 2D (considering the bounding box of the geometries)
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    bool HasIntersectionWithBoundingBox2D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        );
+
+    /**
      * @brief This method check if there is an intersection between two geometries in 3D
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
     bool HasIntersection3D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        );
+
+    /**
+     * @brief This method check if there is an intersection between two geometries in 3D (considering the bounding box of the geometries)
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    bool HasIntersectionWithBoundingBox3D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
         );
