@@ -68,7 +68,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if is_remeshing:
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				# KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
-				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 3).Execute()
 
 				# we eliminate the nodal DEM forces
 				self.RemoveDummyNodalForces()
@@ -110,7 +110,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.DEM_Solution.time = self.FEM_Solution.time
 		self.DEM_Solution.step = self.FEM_Solution.step
 
-		self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts, self.DEM_Solution.time,self.DEM_Solution.solver.dt,self.DEM_Solution.step, self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
+		self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts, self.DEM_Solution.time,self.DEM_Solution.solver.dt,self.DEM_Solution.step, self.DEM_Solution.IsTimeToPrintPostProcess())
 		self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
 
 		#### SOLVE DEM #########################################
@@ -118,7 +118,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		########################################################
 		self.DEM_Solution.AfterSolveOperations()
 
-        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+		self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 		self.UpdateDEMVariables() # to print DEM with the FEM coordinates
 
 		self.PrintDEMResultsForGid()
@@ -822,44 +822,56 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Print the general file
 		time = self.FEM_Solution.time
-		TotalReaction_x     = 0.0
-		TotalDisplacement_x = 0.0
-		TotalReaction_y     = 0.0
-		TotalDisplacement_y = 0.0
-		TotalReaction_z     = 0.0
-		TotalDisplacement_z = 0.0
+		total_reaction_x     = 0.0
+		total_displacement_x = 0.0
+		total_reaction_y     = 0.0
+		total_displacement_y = 0.0
+		total_reaction_z     = 0.0
+		total_displacement_z = 0.0
 		interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
 
-
 		if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
+			if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
+				if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
+					for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+						IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
+						node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+						total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+						total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+						total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+				else:
+					for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+						submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
+						for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+							total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+							total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+							total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
 
-			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
-				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
-				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-				TotalDisplacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-				TotalDisplacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-				TotalDisplacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+				if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
+					for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+						IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
+						node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+						total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+						total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+						total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+				else:
+					for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+						submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
+						for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+							total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+							total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+							total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)	
 
-			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
-				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
-				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-				TotalReaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
-				TotalReaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
-				TotalReaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
-
-			self.PlotFile = open("PlotFile.txt","a")
-			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_x).rjust(11) +
-				"    " + "{0:.4e}".format(TotalDisplacement_y).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_z).rjust(11) +
-				"    " + "{0:.4e}".format(TotalReaction_x).rjust(11) + "    " + "{0:.4e}".format(TotalReaction_y).rjust(11) + "    " +
-				"{0:.4e}".format(TotalReaction_z).rjust(11) + "\n")
-
-			self.PlotFile.close()
+				self.PlotFile = open("PlotFile.txt","a")
+				self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
+					"    " + "{0:.4e}".format(total_displacement_y).rjust(11) + "    " + "{0:.4e}".format(total_displacement_z).rjust(11) +
+					"    " + "{0:.4e}".format(total_reaction_x).rjust(11) + "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "    " +
+					"{0:.4e}".format(total_reaction_z).rjust(11) + "\n")
+				self.PlotFile.close()
 
 			# Print the selected nodes files
 			if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
-
 				NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
-
 				for inode in range(0, NumNodes):
 					IdNode = self.PlotFilesNodesIdList[inode]
 					node = self.FEM_Solution.main_model_part.GetNode(IdNode)
@@ -888,7 +900,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					 "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " +
 					 "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " +
 					 "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "    " + "{0:.4e}".format(Rz).rjust(11) + "\n")
-
 					self.PlotFilesNodesList[inode].close()
 
 			# print the selected element files
@@ -927,9 +938,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					 "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) +
 					 "    " + "{0:.4e}".format(Exz).rjust(11) +
 					 "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
-
 					self.PlotFilesElementsList[iElem].close()
-
 			self.TimePreviousPlotting = time
 
 #============================================================================================================================
@@ -950,11 +959,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# open plots for nodes selected
 		if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
-
 			NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
-
 			for node in range(0, NumNodes):
-
 				Id = self.FEM_Solution.ProjectParameters["watch_nodes_list"][node].GetInt()
 				iPlotFileNode = open("PlotNode_" + str(Id) + ".txt","w")
 				iPlotFileNode.write("\n")
@@ -965,11 +971,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# open plots for elements selected
 		if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
-
 			NumNElements = self.FEM_Solution.ProjectParameters["watch_elements_list"].size()
-
 			for elem in range(0, NumNElements):
-
 				Id = self.FEM_Solution.ProjectParameters["watch_elements_list"][elem].GetInt()
 				iPlotFileElem = open("PlotElement_" + str(Id) + ".txt","w")
 				iPlotFileElem.write("\n")
@@ -987,7 +990,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 
 	def InitializeSolutionAfterRemeshing(self):
-
 		# Initialize the "flag" IS_DEM in all the nodes
 		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
 		# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
