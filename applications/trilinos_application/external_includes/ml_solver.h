@@ -163,31 +163,31 @@ public:
 
     void SetScalingType(ScalingType val)
     {
-      mScalingType = val;
+        mScalingType = val;
     }
 
     ScalingType GetScalingType()
     {
-      return mScalingType;
+        return mScalingType;
     }
 
     void SetReformPrecAtEachStep(bool val)
     {
-      mReformPrecAtEachStep = val;
+        mReformPrecAtEachStep = val;
     }
 
     void ResetPreconditioner()
     {
-      if(mMLPrecIsInitialized == true)
-      {
-          mpMLPrec.reset();
-          mMLPrecIsInitialized = false;
-      }
+        if(mMLPrecIsInitialized == true)
+        {
+            mpMLPrec.reset();
+            mMLPrecIsInitialized = false;
+        }
     }
 
     void Clear() override
     {
-      ResetPreconditioner();
+        ResetPreconditioner();
     }
 
     /**
@@ -205,11 +205,11 @@ public:
 
         if (this->GetScalingType() == LeftScaling)
         {
-          // don't use this with conjugate gradient
-          // it destroys the symmetry
-          Epetra_Vector scaling_vect(rA.RowMap());
-          rA.InvColSums(scaling_vect);
-          AztecProblem.LeftScale(scaling_vect);
+            // don't use this with conjugate gradient
+            // it destroys the symmetry
+            Epetra_Vector scaling_vect(rA.RowMap());
+            rA.InvColSums(scaling_vect);
+            AztecProblem.LeftScale(scaling_vect);
         }
 
         mMLParameterList.set("PDE equations", mndof);
@@ -224,10 +224,10 @@ public:
         if (mReformPrecAtEachStep == true ||
             mMLPrecIsInitialized == false)
         {
-          this->ResetPreconditioner();
-          MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
-          mpMLPrec.swap(tmp);
-          mMLPrecIsInitialized = true;
+            this->ResetPreconditioner();
+            MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
+            mpMLPrec.swap(tmp);
+            mMLPrecIsInitialized = true;
         }
 
         // create an AztecOO solver
@@ -256,7 +256,7 @@ public:
         return false;
     }
 
-    	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+        /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
      * which require knowledge on the spatial position of the nodes associated to a given dof.
@@ -281,36 +281,35 @@ public:
         ModelPart& r_model_part
     ) override
     {
-      int old_ndof = -1;
-      unsigned int old_node_id = rdof_set.begin()->Id();
-      int ndof=0;
-      for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-      {
-        unsigned int id = it->Id();
-        if(id != old_node_id)
+        int old_ndof = -1;
+        unsigned int old_node_id = rdof_set.begin()->Id();
+        int ndof=0;
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
-          old_node_id = id;
-          if(old_ndof == -1) old_ndof = ndof;
-          else if(old_ndof != ndof) //if it is different than the block size is 1
-          {
-            old_ndof = -1;
-            break;
-          }
-
-          ndof=1;
+            unsigned int id = it->Id();
+            if(id != old_node_id)
+            {
+                old_node_id = id;
+                if(old_ndof == -1) old_ndof = ndof;
+                else if(old_ndof != ndof) //if it is different than the block size is 1
+                {
+                    old_ndof = -1;
+                    break;
+                }
+                ndof=1;
+            }
+            else
+            {
+                ndof++;
+            }
         }
+
+        r_model_part.GetCommunicator().MinAll(old_ndof);
+
+        if(old_ndof == -1)
+            mndof = 1;
         else
-        {
-          ndof++;
-        }
-      }
-
-      r_model_part.GetCommunicator().MinAll(old_ndof);
-
-      if(old_ndof == -1)
-        mndof = 1;
-      else
-        mndof = ndof;
+            mndof = ndof;
     }
 
     /**
