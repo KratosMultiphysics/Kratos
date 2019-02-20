@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_AZTEC_SOLVER_H_INCLUDED )
-#define  KRATOS_AZTEC_SOLVER_H_INCLUDED
+#if !defined (KRATOS_AZTEC_SOLVER_H_INCLUDED)
+#define KRATOS_AZTEC_SOLVER_H_INCLUDED
 
 // External includes
 #include "string.h"
@@ -27,8 +27,6 @@
 #include "Teuchos_ParameterList.hpp"
 #include "Ifpack.h"
 #include "Ifpack_ConfigDefs.h"
-
-
 
 namespace Kratos
 {
@@ -70,7 +68,6 @@ public:
         }  )" );
 
         settings.ValidateAndAssignDefaults(default_settings);
-
 
         //settings for the AZTEC solver
         mtol = settings["tolerance"].GetDouble();
@@ -115,7 +112,6 @@ public:
         {
             KRATOS_ERROR << " the solver type specified : " << settings["solver_type"].GetString()  << " is not supported";
         }
-
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
         for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
@@ -169,8 +165,6 @@ public:
             else if(it->IsBool()) mpreconditioner_parameter_list.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mpreconditioner_parameter_list.set(it.name(), it->GetDouble());
         }
-
-
     }
 
     /**
@@ -189,9 +183,6 @@ public:
         moverlap_level = overlap_level;
 
         mscaling_type = LeftScaling;
-
-        /*			if(overlap_level == 0)
-        				KRATOS_THROW_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
     }
 
     /**
@@ -220,7 +211,6 @@ public:
 
         Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 
-
         //perform GS1 scaling if required
         if(mscaling_type == SymmetricScaling)
         {
@@ -240,7 +230,6 @@ public:
             rA.InvColSums(scaling_vect);
 
             AztecProblem.LeftScale(scaling_vect);
-
         }
 
         AztecOO aztec_solver(AztecProblem);
@@ -249,7 +238,6 @@ public:
         //here we verify if we want a preconditioner
         if( mIFPreconditionerType!=std::string("AZ_none") )
         {
-
             //ifpack preconditioner type
             Ifpack Factory;
 
@@ -274,12 +262,6 @@ public:
             aztec_solver.Iterate(mmax_iter,mtol);
         }
 
-// 		for( int i=0 ; i<(rX).MyLength() ; ++i )
-// 		{
-// 		     (&rX)[i] = (&rX)[i]/scaling_vect[i] ;
-// 		}
-
-
         rA.Comm().Barrier();
 
         return true;
@@ -296,7 +278,6 @@ public:
      */
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
-
         return false;
     }
 
@@ -328,8 +309,6 @@ private:
     Teuchos::ParameterList mpreconditioner_parameter_list;
     int moverlap_level;
 
-
-
     /**
      * Assignment operator.
      */
@@ -340,8 +319,7 @@ private:
      */
     AztecSolver(const AztecSolver& Other);
 
-}; // Class SkylineLUFactorizationSolver
-
+}; // Class AztecSolver
 
 /**
  * input stream function
@@ -368,7 +346,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_AZTEC_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_AZTEC_SOLVER_H_INCLUDED defined
