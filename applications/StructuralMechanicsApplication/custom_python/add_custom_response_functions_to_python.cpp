@@ -105,15 +105,15 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<DirectSensitivityResponseFunction, DirectSensitivityResponseFunction::Pointer>
         (m, "DirectSensitivityResponseFunction")
-        .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters, std::string&>());
 
     py::class_<DirectSensitivityLocalStressResponseFunction, DirectSensitivityLocalStressResponseFunction::Pointer, DirectSensitivityResponseFunction >
         (m, "DirectSensitivityLocalStressResponseFunction")
-        .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters, std::string&>());
 
     py::class_<DirectSensitivityNodalDisplacementResponseFunction, DirectSensitivityNodalDisplacementResponseFunction::Pointer, DirectSensitivityResponseFunction >
         (m, "DirectSensitivityNodalDisplacementResponseFunction")
-        .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters, std::string&>());
      
     // Adjoint postprocess
     py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
@@ -127,7 +127,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Direct sensitivity postprocess
     py::class_<DirectSensitivityPostprocess, DirectSensitivityPostprocess::Pointer>
       (m, "DirectSensitivityPostprocess")
-      .def(py::init<ModelPart&, DirectSensitivityResponseFunction&, DirectSensitivityVariable&, Parameters>())
+      .def(py::init<ModelPart&, DirectSensitivityVariable&, Parameters>())
       .def("Initialize", &DirectSensitivityPostprocess::Initialize)
       .def("InitializeSolutionStep", &DirectSensitivityPostprocess::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &DirectSensitivityPostprocess::FinalizeSolutionStep)
