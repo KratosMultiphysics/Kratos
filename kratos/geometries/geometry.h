@@ -446,7 +446,7 @@ public:
         // Clear lumping factors
         if (rResult.size() != number_of_nodes)
             rResult.resize(number_of_nodes, false);
-        rResult = ZeroVector(number_of_nodes);
+        noalias(rResult) = ZeroVector(number_of_nodes);
 
         if (LumpingMethod == LumpingMethods::ROW_SUM) {
             const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
