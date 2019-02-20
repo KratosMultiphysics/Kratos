@@ -415,11 +415,6 @@ if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
 endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(external_libraries/mpi_python)
-endif(${MPI_NEEDED} MATCHES ON )
-
 # Set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
