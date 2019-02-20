@@ -40,6 +40,26 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 /***********************************************************************************/
 
 template<class TEntity>
+FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : mrModelPart1(rModel.GetModelPart(ThisParameters["first_model_part_name"].GetString())),
+        mrModelPart2(rModel.GetModelPart(ThisParameters["second_model_part_name"].GetString()))
+{
+    const Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const std::string& r_first_model_part_name = ThisParameters["first_model_part_name"].GetString();
+    const std::string& r_second_model_part_name = ThisParameters["second_model_part_name"].GetString();
+
+    KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
+    KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 {
     GenerateOctree();
@@ -393,6 +413,21 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParameters()
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "first_model_part_name"  : "",
+        "second_model_part_name" : "",
+    })" );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/

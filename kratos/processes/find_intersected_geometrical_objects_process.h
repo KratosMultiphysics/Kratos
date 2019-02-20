@@ -23,7 +23,8 @@
 
 // Project includes
 #include "processes/process.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
+#include "includes/kratos_parameters.h"
 #include "spatial_containers/octree_binary.h"
 
 namespace Kratos
@@ -322,6 +323,7 @@ namespace Internals {
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag.
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
  * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
+ * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Pooyan Dadvand
 */
 template<class TEntity = Element>
@@ -364,15 +366,34 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default constructor.
+     * @details Removed
+     */
     FindIntersectedGeometricalObjectsProcess() = delete;
+
+    /**
+     * @brief Constructor to be used.
+     * @param rPart1 First model part (the one to compute the intersection)
+     * @param rPart2 Second model part (the "skin" model part)
+     */
+    FindIntersectedGeometricalObjectsProcess(
+        ModelPart& rPart1,
+        ModelPart& rPart2
+        );
+
+    /**
+     * @brief Constructor to be used. (with model and Parameters)
+     * @param rModel The model containing all model parts
+     * @param ThisParameters The configuration parameters
+     */
+    FindIntersectedGeometricalObjectsProcess(
+        Model& rModel,
+        Parameters ThisParameters
+        );
 
     /// Copy constructor.
     FindIntersectedGeometricalObjectsProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
-
-    /// Constructor to be used.
-    FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2);
-
 
     /// Destructor.
     ~FindIntersectedGeometricalObjectsProcess() override {}
@@ -471,6 +492,8 @@ private:
     ModelPart& mrModelPart2; /// Second model part
     OctreeType mOctree;      /// The octree structucture that performs the search
 
+//     Parameters mThisParameters; /// The configuration parameters with advance parameters
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -546,6 +569,11 @@ private:
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods
