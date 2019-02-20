@@ -10,10 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_MULTILEVEL_SOLVER_H_INCLUDED )
-#define  KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
-
-// #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
+#if !defined (KRATOS_MULTILEVEL_SOLVER_H_INCLUDED)
+#define KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
 
 // External includes
 
@@ -28,7 +26,6 @@
 #include "ml_include.h"
 #include "ml_MultiLevelPreconditioner.h"
 #include "Teuchos_ParameterList.hpp"
-
 
 namespace Kratos
 {
@@ -142,8 +139,6 @@ public:
             else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mMLParameterList.set(it.name(), it->GetDouble());
         }
-
-
     }
 
     MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
@@ -258,7 +253,6 @@ public:
      */
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
-
         return false;
     }
 
@@ -292,8 +286,6 @@ public:
       int ndof=0;
       for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
       {
-        //			if(it->EquationId() < rdof_set.size() )
-        //			{
         unsigned int id = it->Id();
         if(id != old_node_id)
         {
@@ -311,7 +303,6 @@ public:
         {
           ndof++;
         }
-        //			}
       }
 
       r_model_part.GetCommunicator().MinAll(old_ndof);
@@ -320,7 +311,6 @@ public:
         mndof = 1;
       else
         mndof = ndof;
-     //   	KRATOS_WATCH(mndof);
     }
 
     /**
@@ -360,8 +350,7 @@ private:
      */
     MultiLevelSolver(const MultiLevelSolver& Other);
 
-}; // Class SkylineLUFactorizationSolver
-
+}; // Class MultiLevelSolver
 
 /**
  * input stream function
@@ -388,7 +377,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED defined
