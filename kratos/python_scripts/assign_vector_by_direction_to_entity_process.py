@@ -38,18 +38,18 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         """)
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
-        if(settings.Has("modulus")):
-            if(settings["modulus"].IsString()):
+        if settings.Has("modulus"):
+            if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
 
-        if(settings.Has("direction")):
-            if(settings["direction"].IsString()):
+        if settings.Has("direction"):
+            if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
 
         # Detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString()):
-                if(settings["interval"][1].GetString() == "End"):
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
@@ -87,8 +87,8 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         z_params.AddValue("entities",settings["entities"])
 
         # "Automatic" direction: get the inwards direction
-        if(settings["direction"].IsString()):
-            if ((settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal")):
+        if settings["direction"].IsString():
+            if (settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal"):
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
@@ -106,7 +106,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
                     unit_direction = (-1)*unit_direction
 
         # Direction is given as a vector
-        elif(settings["direction"].IsArray()):
+        elif settings["direction"].IsArray():
             # Normalize direction
             direction_norm = math.sqrt(pow(settings["direction"][0].GetDouble(),2) +
                                        pow(settings["direction"][1].GetDouble(),2) +
@@ -120,12 +120,12 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
 
         # Set the remainding parameters
-        if(settings["modulus"].IsNumber()):
+        if settings["modulus"].IsNumber():
             modulus = settings["modulus"].GetDouble()
             x_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[0])
             y_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[1])
             z_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[2])
-        elif(settings["modulus"].IsString()):
+        elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
             x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+modulus+")")

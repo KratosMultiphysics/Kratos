@@ -26,9 +26,9 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             )
         #example of admissible values for "value" : [10.0, "3*t", "x+y"]
 
-        ##trick to ensure that if someone sets constrained as a single bool, it is transformed to a vector
-        if(settings.Has("constrained")):
-            if(settings["constrained"].IsBool()):
+        ## Trick to ensure that if someone sets constrained as a single bool, it is transformed to a vector
+        if settings.Has("constrained"):
+            if settings["constrained"].IsBool():
                 is_fixed = settings["constrained"].GetBool()
                 #print("is_fixed = ",is_fixed)
                 settings["constrained"] = default_settings["constrained"]
@@ -38,7 +38,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
+        if type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable:
             msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
@@ -48,9 +48,9 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
         import assign_scalar_variable_process
 
-        # loop over components X, Y and Z
+        # Loop over components X, Y and Z
         for indice,variable in enumerate(["_X", "_Y", "_Z"]):
-            if(not settings["value"][indice].IsNull()):
+            if not settings["value"][indice].IsNull():
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
                 i_params.AddValue("mesh_id",settings["mesh_id"])

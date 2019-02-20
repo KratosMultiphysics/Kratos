@@ -39,19 +39,17 @@ class AssignVectorVariableToConstraintProcess(assign_vector_variable_to_entities
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Here i do a trick, since i want to allow "value" to be a string or a double value
-        if(settings.Has("value")):
+        if settings.Has("value"):
             for i in range(settings["value"].size()):
-                if(settings["value"][i].IsString()):
+                if settings["value"][i].IsString():
                     raise Exception("The value can only be number for constraints:"+settings["value"][i].PrettyPrintJsonString())
 
         # Ensure proper entities
-        if (settings["entities"].size() != 1):
+        if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if (settings["entities"][0].GetString() != "constraints"):
+            if settings["entities"][0].GetString() != "constraints":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
         super(AssignVectorVariableToConstraintProcess, self).__init__(Model, settings)
-
-

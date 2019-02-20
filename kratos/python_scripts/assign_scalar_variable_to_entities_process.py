@@ -48,8 +48,8 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
         # Here i do a trick, since i want to allow "value" to be a string or a double value
-        if(settings.Has("value")):
-            if(settings["value"].IsString()):
+        if settings.Has("value"):
+            if settings["value"].IsString():
                 default_settings["value"].SetString("0.0")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -59,7 +59,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self.value_is_numeric = False
 
         # Define entities
-        if (settings["entities"].size() == 0):
+        if settings["entities"].size() == 0:
            raise Exception("This process requires a list of entities. The options are: conditions, elements and constraints")
         self.entities = []
         for i in range(settings["entities"].size()):
@@ -102,7 +102,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(self.interval.IsInInterval(current_time)):
+        if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             for process in self.aux_processes:
                 #process.ExecuteInitializeSolutionStep() # WARNING: Should be this one, for retrocompatibility we consider the Execute!!!

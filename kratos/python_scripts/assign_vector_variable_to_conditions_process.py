@@ -39,13 +39,11 @@ class AssignVectorVariableToConditionProcess(assign_vector_variable_to_entities_
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Ensure proper entities
-        if (settings["entities"].size() != 1):
+        if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if (settings["entities"][0].GetString() != "conditions"):
+            if settings["entities"][0].GetString() != "conditions":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
         super(AssignVectorVariableToConditionProcess, self).__init__(Model, settings)
-
-

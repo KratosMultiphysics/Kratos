@@ -13,32 +13,32 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-                "mesh_id"              : 0,
-                "model_part_name"      : "please_specify_model_part_name",
-                "variable_name"        : "SPECIFY_VARIABLE_NAME",
-                "interval"             : [0.0, 1e30],
-                "modulus"              : 1.0,
-                "constrained"          : true,
-                "direction"            : [1.0, 0.0, 0.0],
-                "local_axes"           : {}
-            }
-            """)
+        {
+            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
+            "mesh_id"              : 0,
+            "model_part_name"      : "please_specify_model_part_name",
+            "variable_name"        : "SPECIFY_VARIABLE_NAME",
+            "interval"             : [0.0, 1e30],
+            "modulus"              : 1.0,
+            "constrained"          : true,
+            "direction"            : [1.0, 0.0, 0.0],
+            "local_axes"           : {}
+        }
+        """)
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
-        if(settings.Has("modulus")):
-            if(settings["modulus"].IsString()):
+        if settings.Has("modulus"):
+            if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
 
-        if(settings.Has("direction")):
-            if(settings["direction"].IsString()):
+        if settings.Has("direction"):
+            if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
 
         # Detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString()):
-                if(settings["interval"][1].GetString() == "End"):
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
@@ -77,8 +77,8 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         z_params.AddValue("local_axes",settings["local_axes"])
 
         # "Automatic" direction: get the inwards direction
-        if(settings["direction"].IsString()):
-            if ((settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal")):
+        if settings["direction"].IsString():
+            if (settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal"):
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
@@ -96,7 +96,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                     unit_direction = (-1)*unit_direction
 
         # Direction is given as a vector
-        elif(settings["direction"].IsArray()):
+        elif settings["direction"].IsArray():
             # Normalize direction
             direction_norm = math.sqrt(pow(settings["direction"][0].GetDouble(),2) +
                                        pow(settings["direction"][1].GetDouble(),2) +
@@ -108,14 +108,13 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
             for i in range(0,3):
                 unit_direction.append(settings["direction"][i].GetDouble()/direction_norm)
 
-
         # Set the remainding parameters
-        if(settings["modulus"].IsNumber()):
+        if settings["modulus"].IsNumber():
             modulus = settings["modulus"].GetDouble()
             x_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[0])
             y_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[1])
             z_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[2])
-        elif(settings["modulus"].IsString()):
+        elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
             x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+modulus+")")

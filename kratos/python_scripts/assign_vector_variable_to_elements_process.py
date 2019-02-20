@@ -39,10 +39,10 @@ class AssignVectorVariableToElementProcess(assign_vector_variable_to_entities_pr
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Ensure proper entities
-        if (settings["entities"].size() != 1):
+        if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if (settings["entities"][0].GetString() != "elements"):
+            if settings["entities"][0].GetString() != "elements":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.

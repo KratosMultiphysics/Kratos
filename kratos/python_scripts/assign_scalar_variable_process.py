@@ -14,31 +14,31 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
         #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
-                "mesh_id"         : 0,
-                "model_part_name" : "please_specify_model_part_name",
-                "variable_name"   : "SPECIFY_VARIABLE_NAME",
-                "interval"        : [0.0, 1e30],
-                "constrained"     : true,
-                "value"           : 0.0,
-                "local_axes"      : {}
-            }
-            """
-            )
+        {
+            "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
+            "mesh_id"         : 0,
+            "model_part_name" : "please_specify_model_part_name",
+            "variable_name"   : "SPECIFY_VARIABLE_NAME",
+            "interval"        : [0.0, 1e30],
+            "constrained"     : true,
+            "value"           : 0.0,
+            "local_axes"      : {}
+        }
+        """
+        )
 
-        #assign this here since it will change the "interval" prior to validation
+        # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        #here i do a trick, since i want to allow "value" to be a string or a double value
-        if(settings.Has("value")):
-            if(settings["value"].IsString()):
+        # Here i do a trick, since i want to allow "value" to be a string or a double value
+        if settings.Has("value"):
+            if settings["value"].IsString():
                 default_settings["value"].SetString("0.0")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if(type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable):
+        if type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable:
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
@@ -54,10 +54,10 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             self.function_string = settings["value"].GetString()
             self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
-            if(self.aux_function.DependsOnSpace()):
+            if self.aux_function.DependsOnSpace():
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
 
-        #construct a variable_utils object to speedup fixing
+        # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
         self.step_is_active = False
 
@@ -67,11 +67,11 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(self.interval.IsInInterval(current_time)):
+        if self.interval.IsInInterval(current_time):
 
             self.step_is_active = True
 
-            if(self.is_fixed):
+            if self.is_fixed:
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
             if self.value_is_numeric:
@@ -86,9 +86,9 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(self.step_is_active):
-            #here we free all of the nodes in the mesh
-            if(self.is_fixed):
+        if self.step_is_active:
+            # Here we free all of the nodes in the mesh
+            if self.is_fixed:
                 fixity_status  = False
                 self.variable_utils.ApplyFixity(self.variable, fixity_status, self.mesh.Nodes)
 

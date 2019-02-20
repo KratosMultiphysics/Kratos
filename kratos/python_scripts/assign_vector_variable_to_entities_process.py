@@ -45,9 +45,9 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         )
 
         # Detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString() ):
-                if(settings["interval"][1].GetString() == "End"):
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
@@ -55,7 +55,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
+        if type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable:
             msg = "Error in AssignVectorToConditionProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
@@ -66,7 +66,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         import assign_scalar_variable_to_entities_process
 
         # Component X
-        if(not settings["value"][0].IsNull()):
+        if not settings["value"][0].IsNull():
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddValue("mesh_id",settings["mesh_id"])
@@ -77,7 +77,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, x_params) )
 
         # Component Y
-        if(not settings["value"][1].IsNull()):
+        if not settings["value"][1].IsNull():
             y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
             y_params.AddValue("mesh_id",settings["mesh_id"])
@@ -88,7 +88,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, y_params) )
 
         # Component Z
-        if(not settings["value"][2].IsNull()):
+        if not settings["value"][2].IsNull():
             z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
             z_params.AddValue("mesh_id",settings["mesh_id"])

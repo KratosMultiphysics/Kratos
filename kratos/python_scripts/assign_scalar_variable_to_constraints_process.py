@@ -37,22 +37,18 @@ class AssignScalarVariableToConstraintsProcess(assign_scalar_variable_to_entitie
         )
 
         # Here i do a trick, since i want to allow "value" to be a string or a double value
-        if(settings.Has("value")):
-            if(settings["value"].IsString()):
+        if settings.Has("value"):
+            if settings["value"].IsString():
                 raise Exception("The value can only be number for constraints:"+settings["value"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Ensure proper entities
-        if (settings["entities"].size() != 1):
+        if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if (settings["entities"][0].GetString() != "constraints"):
+            if settings["entities"][0].GetString() != "constraints":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
         super(AssignScalarVariableToConstraintsProcess, self).__init__(Model, settings)
-
-
-
-
