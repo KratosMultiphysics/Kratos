@@ -71,6 +71,13 @@ class MmgProcess(KratosMultiphysics.Process):
                 "perform_nodal_h_averaging"           : false,
                 "max_iterations"                      : 3
             },
+            "discretization_type"                  : "Standard",
+            "isosurface_parameters"                :
+            {
+                "isosurface_variable"              : "DISTANCE",
+                "nonhistorical_variable"           : false,
+                "remove_regions"                   : false
+            },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
             {
@@ -106,6 +113,12 @@ class MmgProcess(KratosMultiphysics.Process):
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
             "maximal_size"                     : 10.0,
+            "sizing_parameters":
+            {
+                "reference_variable_name"          : "DISTANCE",
+                "boundary_layer_max_distance"      : 1.0,
+                "interpolation"                    : "constant"
+            },
             "advanced_parameters"                  :
             {
                 "force_hausdorff_value"               : false,
@@ -265,6 +278,8 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters = KratosMultiphysics.Parameters("""{"force_sizes":{}}""")
         mmg_parameters.AddValue("filename",self.settings["filename"])
         mmg_parameters.AddValue("framework",self.settings["framework"])
+        mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
+        mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
@@ -343,6 +358,8 @@ class MmgProcess(KratosMultiphysics.Process):
         if self.strategy == "LevelSet":
             level_set_parameters = KratosMultiphysics.Parameters("""{}""")
             level_set_parameters.AddValue("minimal_size",self.settings["minimal_size"])
+            level_set_parameters.AddValue("maximal_size",self.settings["maximal_size"])
+            level_set_parameters.AddValue("sizing_parameters",self.settings["sizing_parameters"])
             level_set_parameters.AddValue("enforce_current",self.settings["enforce_current"])
             level_set_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             level_set_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])

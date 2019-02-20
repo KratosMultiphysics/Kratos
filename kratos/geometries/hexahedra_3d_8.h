@@ -221,7 +221,7 @@ public:
         this->Points().push_back( pPoint8 );
     }
 
-    Hexahedra3D8( const PointsArrayType& ThisPoints )
+    explicit Hexahedra3D8( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )
@@ -254,7 +254,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
