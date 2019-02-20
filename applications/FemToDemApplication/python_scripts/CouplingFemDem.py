@@ -151,7 +151,7 @@ class FEMDEM_Solution:
             # we reconstruct the pressure load
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
             while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
-                KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part,).Execute()
+                KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part, 2).Execute()
 
         # we create the new DEM of this time step
         self.GenerateDEM()
