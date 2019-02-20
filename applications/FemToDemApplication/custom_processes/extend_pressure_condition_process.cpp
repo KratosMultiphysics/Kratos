@@ -279,10 +279,9 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
 					                    p_properties, 0);
 
     // adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond3);
-
+    r_sub_model_part.AddCondition(r_line_cond1);
+    r_sub_model_part.AddCondition(r_line_cond2);
+    r_sub_model_part.AddCondition(r_line_cond3);
 }
 
 /***********************************************************************************/
