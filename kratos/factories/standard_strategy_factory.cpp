@@ -44,7 +44,6 @@ namespace Kratos
         typedef ExplicitStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ExplicitStrategyType;
 
         //NOTE: here we must create persisting objects for the builder and solvers
-//         static auto SolvingStrategyFactory = StandardStrategyFactory<SolvingStrategyType>();
         static auto ResidualBasedLinearStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedLinearStrategyType>();
         static auto ResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedNewtonRaphsonStrategyType>();
         static auto AdaptiveResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, AdaptiveResidualBasedNewtonRaphsonStrategyType>();
@@ -52,16 +51,10 @@ namespace Kratos
         static auto ExplicitStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ExplicitStrategyType>();
 
         // Registration of convergence solvers
-//         KRATOS_REGISTER_STRATEGY("Strategy", StrategyFactory);
-        KRATOS_REGISTER_STRATEGY("ResidualBasedLinearStrategy", ResidualBasedLinearStrategyFactory);
         KRATOS_REGISTER_STRATEGY("linear_strategy", ResidualBasedLinearStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("ResidualBasedNewtonRaphsonStrategy", ResidualBasedNewtonRaphsonStrategyFactory);
         KRATOS_REGISTER_STRATEGY("newton_raphson_strategy", ResidualBasedNewtonRaphsonStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("AdaptiveResidualBasedNewtonRaphsonStrategy", AdaptiveResidualBasedNewtonRaphsonStrategyFactory);
         KRATOS_REGISTER_STRATEGY("adaptative_newton_raphson_strategy", AdaptiveResidualBasedNewtonRaphsonStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("LineSearchStrategy", LineSearchStrategyFactory);
         KRATOS_REGISTER_STRATEGY("line_search_strategy", LineSearchStrategyFactory);
-        KRATOS_REGISTER_STRATEGY("ExplicitStrategy", ExplicitStrategyFactory);
         KRATOS_REGISTER_STRATEGY("explicit_strategy", ExplicitStrategyFactory);
     };
 } // Namespace Kratos

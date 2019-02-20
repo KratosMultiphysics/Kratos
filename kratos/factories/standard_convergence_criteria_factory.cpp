@@ -40,21 +40,15 @@ namespace Kratos
         typedef Or_Criteria<SpaceType,  LocalSpaceType> Or_CriteriaType;
 
         //NOTE: here we must create persisting objects for the linear solvers
-//         static auto ConvergenceCriteriaFactory = StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, ConvergenceCriteriaType>();
         static auto DisplacementCriteriaFactory = StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, DisplacementCriteriaType>();
         static auto ResidualCriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, ResidualCriteriaType>();
         static auto And_CriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, And_CriteriaType>();
         static auto Or_CriteriaFactory= StandardConvergenceCriteriaFactory<ConvergenceCriteriaType, Or_CriteriaType>();
 
         // Registration of convergence solvers
-//         KRATOS_REGISTER_CONVERGENCE_CRITERIA("ConvergenceCriteria", ConvergenceCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("DisplacementCriteria", DisplacementCriteriaFactory);
         KRATOS_REGISTER_CONVERGENCE_CRITERIA("displacement_criteria", DisplacementCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("ResidualCriteria", ResidualCriteriaFactory);
         KRATOS_REGISTER_CONVERGENCE_CRITERIA("residual_criteria", ResidualCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("And_Criteria",And_CriteriaFactory );
         KRATOS_REGISTER_CONVERGENCE_CRITERIA("and_criteria",And_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("Or_Criteria",Or_CriteriaFactory );
         KRATOS_REGISTER_CONVERGENCE_CRITERIA("or_criteria",Or_CriteriaFactory );
     };
 } // Namespace Kratos

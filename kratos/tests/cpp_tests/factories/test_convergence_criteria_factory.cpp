@@ -46,7 +46,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteriaFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"name" : "DisplacementCriteria"})");
+            Parameters this_parameters = Parameters(R"({"name" : "displacement_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "DisplacementCriteria");
         }
@@ -56,7 +56,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualCriteriaFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"name" : "ResidualCriteria"})");
+            Parameters this_parameters = Parameters(R"({"name" : "residual_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "ResidualCriteria");
         }
@@ -66,7 +66,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(And_CriteriaFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"name" : "And_Criteria"})");
+            Parameters this_parameters = Parameters(R"({"name" : "and_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "And_Criteria");
         }
@@ -76,7 +76,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(Or_CriteriaFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"name" : "Or_Criteria"})");
+            Parameters this_parameters = Parameters(R"({"name" : "or_criteria"})");
             ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "Or_Criteria");
         }
