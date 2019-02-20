@@ -906,7 +906,7 @@ public:
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            if (std::abs(distance) > 1.0e0 * Length()) {
+            if (std::abs(distance) > 5.0e-1 * Length()) {
                 rResult(0) = 100.0; // Very very far
                 rResult(1) = 100.0;
 
