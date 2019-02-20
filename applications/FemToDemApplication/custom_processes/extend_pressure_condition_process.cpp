@@ -22,7 +22,6 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 {
 }
 
-
 template <>
 void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
@@ -39,6 +38,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     std::vector<IndexType> condition_nodes_id(2);
     ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
 
+    // We add the node to the submodel
     auto& r_geom = (*itElem)->GetGeometry();
     r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[LocalId].Id()));
 
@@ -110,8 +110,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
     std::vector<IndexType> inactive_nodes_id;
     std::vector<int> inactive_nodes_local_id;
 
-    const auto& process_info = mrModelPart.GetProcessInfo();
-	const int counter_of_affected_nodes = process_info[ITER];
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+	const int counter_of_affected_nodes = r_process_info[ITER];
     if (counter_of_affected_nodes != 1) this->CalculateNumberOfElementsOnNodes();
 
     for (IndexType i = 0; i < (*itElem)->GetGeometry().size(); ++i) {
@@ -246,6 +246,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
     const IndexType id_2 = local_id == 0 ? 1 : local_id == 1 ? 2 : 0;
     const IndexType id_3 = local_id == 0 ? 2 : local_id == 1 ? 0 : 1;
 
+    // We add the nodes to the submodel
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+
     // Set the 2 new nodes to wet nodes
     mNodeIdContainer.push_back(r_geom[id_2].Id());
     mNodeIdContainer.push_back(r_geom[id_3].Id());
@@ -373,8 +377,8 @@ void ExtendPressureConditionProcess<2>::Execute()
             }
         }
     }
-    auto& process_info = mrModelPart.GetProcessInfo();
-    process_info[ITER] = counter_of_affected_nodes;
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    r_process_info[ITER] = counter_of_affected_nodes;
 
     for (IndexType i = 0; i < mNodeIdContainer.size(); ++i) {
         mrModelPart.GetNode(mNodeIdContainer[i]).SetValue(PRESSURE_ID, mNodePressureIdContainer[i]);
