@@ -23,8 +23,8 @@ namespace Kratos
 {
 
     /// Constructor.
-    DirectSensitivityResponseFunction::DirectSensitivityResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
-      : mrModelPart(rModelPart)
+    DirectSensitivityResponseFunction::DirectSensitivityResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings, std::string& ResponseVariableName)
+      : mrModelPart(rModelPart), mResponseVariableName(ResponseVariableName)
     {
         KRATOS_TRY;
 
@@ -76,10 +76,18 @@ namespace Kratos
         KRATOS_ERROR << "CalculatePartialSensitivity() needs to be implemented by the derived class.\n";  
     }
     
-    std::vector<std::string> DirectSensitivityResponseFunction::GetResponseSensitivityVariableVector()
+        
+    std::string DirectSensitivityResponseFunction::GetResponseVariableName()
     {
-        KRATOS_ERROR << "GetResponseSensitivityVariableVector() needs to be implemented by the derived class.\n";
+        return mResponseVariableName;
     }
+
+    std::string DirectSensitivityResponseFunction::GetEvaluationFlag()
+    {
+        KRATOS_ERROR << "GetEvaluationFlag() needs to be implemented by the derived class.\n";
+        std::string flag = "undefined";
+        return flag;
+    } 
     
 };
 

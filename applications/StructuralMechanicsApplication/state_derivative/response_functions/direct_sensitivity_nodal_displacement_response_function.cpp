@@ -29,8 +29,8 @@ namespace Kratos
 {
     /// Constructor.
     DirectSensitivityNodalDisplacementResponseFunction::DirectSensitivityNodalDisplacementResponseFunction(ModelPart& rModelPart, 
-                            Parameters ResponseSettings)
-      :  DirectSensitivityResponseFunction(rModelPart, ResponseSettings)
+                            Parameters ResponseSettings, std::string& ResponseVariableName)
+      :  DirectSensitivityResponseFunction(rModelPart, ResponseSettings, ResponseVariableName)
     {
         KRATOS_TRY;
         
@@ -54,6 +54,8 @@ namespace Kratos
                                     std::vector<array_1d<double, 3>>& rOutput, 
                                     const ProcessInfo& rProcessInfo)
     {
+        KRATOS_TRY;
+        
         // Size rOutput
         rOutput.resize(3);        
 
@@ -63,7 +65,9 @@ namespace Kratos
         for (IndexType dir_it = 0; dir_it < 3; ++dir_it)
             for(IndexType dof_it = 0; dof_it < 3; ++dof_it)
                 if (dir_it == dof_it)
-                    rOutput[dof_it][dir_it] = 1;         
+                    rOutput[dof_it][dir_it] = 1;
+
+        KRATOS_CATCH("");         
     }
     
 
@@ -74,11 +78,22 @@ namespace Kratos
                                     array_1d<double, 3>& rOutput, 
                                     const ProcessInfo& rProcessInfo)
     {   
+        KRATOS_TRY;
+        
         if (rOutput.size() != 0) 
             rOutput.resize(0);
         
-        VectorMath::SetToZero(rOutput); 
+        VectorMath::SetToZero(rOutput);
+
+        KRATOS_CATCH("");
     }
+
+
+    std::string DirectSensitivityNodalDisplacementResponseFunction::GetEvaluationFlag()
+    {
+        std::string flag = "on_node";
+        return flag;
+    } 
 
     
 };

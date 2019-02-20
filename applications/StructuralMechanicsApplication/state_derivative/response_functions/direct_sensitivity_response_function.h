@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    DirectSensitivityResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings, std::string& ResponseVariableName);
 
 
     /// Destructor.
@@ -84,7 +84,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
+    
     ///@}
     ///@name Operations
     ///@{
@@ -113,10 +113,10 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             array_1d<double, 3>& rOutput, 
                             const ProcessInfo& rProcessInfo);
+    
+    virtual std::string GetResponseVariableName();
 
-    virtual std::vector<std::string> GetResponseSensitivityVariableVector();
-    
-    
+    virtual std::string GetEvaluationFlag(); 
 
     ///@}
 
@@ -126,6 +126,8 @@ protected:
 
     ModelPart& mrModelPart;
     unsigned int mGradientMode;
+    std::string mResponseVariableName;
+    //std::string mResponseVariableName;
     
     ///@}
     ///@name Protected Operators

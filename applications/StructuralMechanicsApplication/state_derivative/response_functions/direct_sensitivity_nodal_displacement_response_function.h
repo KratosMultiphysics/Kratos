@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    DirectSensitivityNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings, std::string& ResponseVariableName);
 
     /// Destructor.
      ~DirectSensitivityNodalDisplacementResponseFunction();
@@ -86,6 +86,8 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             array_1d<double, 3>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
+
+    std::string GetEvaluationFlag() override;
     
     ///@}
 
