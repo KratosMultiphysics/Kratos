@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_AMESOS_SOLVER_H_INCLUDED )
-#define  KRATOS_AMESOS_SOLVER_H_INCLUDED
+#if !defined (KRATOS_AMESOS_SOLVER_H_INCLUDED)
+#define KRATOS_AMESOS_SOLVER_H_INCLUDED
 
 // External includes
 
@@ -22,7 +22,6 @@
 //aztec solver includes
 #include "Amesos.h"
 #include "Epetra_LinearProblem.h"
-
 
 namespace Kratos
 {
@@ -203,7 +202,7 @@ private:
      */
     AmesosSolver(const AmesosSolver& Other);
 
-}; // Class SkylineLUFactorizationSolver
+}; // Class AmesosSolver
 
 
 /**
@@ -231,9 +230,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED defined
 
 
