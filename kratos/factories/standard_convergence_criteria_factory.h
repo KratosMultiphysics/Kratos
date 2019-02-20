@@ -74,7 +74,7 @@ protected:
      */
     typename ConvergenceCriteriaType::Pointer CreateClass(Kratos::Parameters Settings) const override
     {
-        return typename ConvergenceCriteriaType::Pointer(new TCustomConvergenceCriteriaType(Settings));
+        return Kratos::make_shared<TCustomConvergenceCriteriaType>(Settings);
     }
 
     ///@}

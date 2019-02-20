@@ -78,7 +78,7 @@ protected:
      */
     typename BuilderAndSolverType::Pointer CreateClass(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) const override
     {
-        return typename BuilderAndSolverType::Pointer(new TCustomBuilderAndSolverType(pLinearSolver, Settings));
+        return Kratos::make_shared<TCustomBuilderAndSolverType>(pLinearSolver, Settings);
     }
 
     ///@}

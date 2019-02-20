@@ -74,7 +74,7 @@ protected:
      */
     typename StrategyType::Pointer CreateClass(ModelPart& rModelPart, Kratos::Parameters Settings) const override
     {
-        return typename StrategyType::Pointer(new TCustomStrategyType(rModelPart, Settings));
+        return Kratos::make_shared<TCustomStrategyType>(rModelPart, Settings);
     }
 
     ///@}

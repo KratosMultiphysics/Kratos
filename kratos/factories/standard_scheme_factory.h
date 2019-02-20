@@ -74,7 +74,7 @@ protected:
      */
     typename SchemeType::Pointer CreateClass(Kratos::Parameters Settings) const override
     {
-        return typename SchemeType::Pointer(new TCustomSchemeType(Settings));
+        return Kratos::make_shared<TCustomSchemeType>(Settings);
     }
 
     ///@}
