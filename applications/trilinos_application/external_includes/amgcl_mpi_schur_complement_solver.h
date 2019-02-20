@@ -372,16 +372,9 @@ private:
 
     std::vector< char > mPressureMask; //pressure mask
     boost::property_tree::ptree mprm;
-
-
-
-
 };
 
-
-/**
- * output stream function
- */
+//// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << ( std::ostream& rOStream,
                                    const AmgclMPISchurComplementSolver<TSparseSpaceType,

@@ -195,20 +195,7 @@ private:
 
 }; // Class AmesosSolver
 
-
-/**
- * input stream function
- */
-template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, AmesosSolver< TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
-{
-    return rIStream;
-}
-
-/**
- * output stream function
- */
+/// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const AmesosSolver<TSparseSpaceType,

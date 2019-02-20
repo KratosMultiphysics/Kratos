@@ -127,7 +127,6 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("Create",&TrilinosLinearSolverFactoryType::Create)
         .def("Has",&TrilinosLinearSolverFactoryType::Has)
         ;
-
 }
 
 } // namespace Python.
