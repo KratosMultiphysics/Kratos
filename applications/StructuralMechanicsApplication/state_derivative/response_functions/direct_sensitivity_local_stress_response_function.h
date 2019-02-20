@@ -59,7 +59,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    DirectSensitivityLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings, std::string& ResponseVariableName);
 
     /// Destructor.
      ~DirectSensitivityLocalStressResponseFunction();    
@@ -87,7 +87,9 @@ public:
                             std::vector<array_1d<double, 3>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
 
-    std::vector<std::string> GetResponseSensitivityVariableVector() override;
+    std::string GetEvaluationFlag() override;
+
+    
 
     
 
@@ -124,11 +126,18 @@ private:
     ///@name Private Operations
     ///@{
     
+    template <typename TDataType>
     void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
-                            DirectSensitivityVariable& rDesignVariable,
-                            Variable<array_1d<double, 3>> const& rStressVariable,
-                            std::vector<std::vector<array_1d<double, 3>>>& rOutput,
-                            const ProcessInfo& rProcessInfo);
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    Variable<TDataType> const& rStressVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput,
+                                    const ProcessInfo& rProcessInfo);
+
+    template <typename TDataType>
+    void CalculateElementContributionToGradient(Element& rDirectElement,
+                                    Variable<TDataType> const& rStressVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput,
+                                    const ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const std::vector<array_1d<double, 3>>& rStressDerivativesMatrix,
                             std::vector<array_1d<double, 3>>& rOutput);

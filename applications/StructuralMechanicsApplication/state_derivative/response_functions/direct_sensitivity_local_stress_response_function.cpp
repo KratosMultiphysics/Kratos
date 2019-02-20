@@ -29,20 +29,11 @@ namespace Kratos
 
     /// Constructor.
     DirectSensitivityLocalStressResponseFunction::DirectSensitivityLocalStressResponseFunction(ModelPart& rModelPart, 
-                            Parameters ResponseSettings)
-      :  DirectSensitivityResponseFunction(rModelPart, ResponseSettings)
+                            Parameters ResponseSettings, std::string& ResponseVariableName)
+      :  DirectSensitivityResponseFunction(rModelPart, ResponseSettings, ResponseVariableName)
     {
         KRATOS_TRY;   
-              
-        // Get list of traced stresses (forces, moments )
-        const SizeType num_traced_stress = ResponseSettings["response_functions"]["local_stress"].size();
-
-        if (mTracedStressesVector.size() != num_traced_stress)
-            mTracedStressesVector.resize(num_traced_stress);
-
-        for ( IndexType i = 0; i < num_traced_stress; i++ )
-            mTracedStressesVector[i] = ResponseSettings["response_functions"]["local_stress"][i].GetString();  
-                      
+                            
         // Get info how and where to treat the stress
         mStressTreatment = 
             StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
@@ -88,6 +79,15 @@ namespace Kratos
                             std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                             const ProcessInfo& rProcessInfo)
     {
+        this->CalculateElementContributionToGradient(rDirectElement, rStressVariable, rOutput, rProcessInfo);
+    }
+
+    template <typename TDataType>
+    void DirectSensitivityLocalStressResponseFunction::CalculateElementContributionToGradient(Element& rDirectElement,
+                                    Variable<TDataType> const& rStressVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput,
+                                    const ProcessInfo& rProcessInfo)
+    {
         KRATOS_TRY;
         
         // To get the number of Dofs
@@ -99,7 +99,7 @@ namespace Kratos
         const SizeType num_dofs = dofs_of_element.size();
 
         // Define working variables
-        std::vector<std::vector<array_1d<double, 3>>> response_gradient;
+        std::vector<std::vector<TDataType>> response_gradient;
         VectorMath::SetToZero(response_gradient);
 
         // Compute Derivative
@@ -125,6 +125,7 @@ namespace Kratos
         
         KRATOS_CATCH("");
     }
+
 
     // Derivative of the response function "local stress" w.r.t the design variable 
     void DirectSensitivityLocalStressResponseFunction::CalculatePartialSensitivity(Element& rDirectElement, 
@@ -154,16 +155,16 @@ namespace Kratos
                 this->ExtractGaussPointStressDerivative(sensitivity_gradient[0], rOutput);
         }
         
-        OutputUtility::OutputOnTerminal("SensitivityGradient", rOutput);
+        //OutputUtility::OutputOnTerminal("SensitivityGradient", rOutput);
 
         KRATOS_CATCH("");
     }
 
-    //template <typename TDataType>
+    template <typename TDataType>
     void DirectSensitivityLocalStressResponseFunction::CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
                                     DirectSensitivityVariable& rDesignVariable,
-                                    Variable<array_1d<double, 3>> const& rStressVariable,
-                                    std::vector<std::vector<array_1d<double, 3>>>& rOutput,
+                                    Variable<TDataType> const& rStressVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput,
                                     const ProcessInfo& rProcessInfo)
     {
         // Get the name of the design variable 
@@ -243,12 +244,12 @@ namespace Kratos
     }
 
     
-    std::vector<std::string> DirectSensitivityLocalStressResponseFunction::GetResponseSensitivityVariableVector()
+    std::string DirectSensitivityLocalStressResponseFunction::GetEvaluationFlag()
     {
-        return mTracedStressesVector;
-    }
-
-
+        std::string flag = "on_gauss_point";
+        return flag;
+    } 
+    
 };
 
 
