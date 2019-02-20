@@ -28,7 +28,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const unsigned int LocalId,
     const int PressureId,
-	int& MaximumConditionId,
+	int& rMaximumConditionId,
     std::vector<IndexType>& ToEraseConditionsId
     )
 {
@@ -52,19 +52,19 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2(
 
     condition_nodes_id[0] = r_geom[id_2].Id();
     condition_nodes_id[1] = r_geom[id_1].Id();
-	MaximumConditionId++;
+	rMaximumConditionId++;
     const auto& line_cond1 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
-					                    MaximumConditionId,
+					                    rMaximumConditionId,
 					                    condition_nodes_id,
 					                    p_properties, 0);
 
     condition_nodes_id[0] = r_geom[id_1].Id();
     condition_nodes_id[1] = r_geom[id_3].Id();
-    MaximumConditionId++;
+    rMaximumConditionId++;
     const auto& line_cond2 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
-					                    MaximumConditionId,
+					                    rMaximumConditionId,
 					                    condition_nodes_id,
 					                    p_properties, 0);
 
@@ -93,7 +93,7 @@ template <>
 void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const int PressureId,
-	int& MaximumConditionId,
+	int& rMaximumConditionId,
     std::vector<IndexType>& ToEraseConditionsId
     )
 {
@@ -131,10 +131,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
 
         condition_nodes_id[0] = r_geom[id_2].Id();
         condition_nodes_id[1] = r_geom[id_3].Id();
-        MaximumConditionId++;
+        rMaximumConditionId++;
         const auto& line_cond = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
-                                        MaximumConditionId,
+                                        rMaximumConditionId,
                                         condition_nodes_id,
                                         p_properties, 0);
         // adding the conditions to the computing model part
@@ -163,10 +163,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
 
         condition_nodes_id[0] = r_geom[id_2].Id();
         condition_nodes_id[1] = r_geom[id_3].Id();
-        MaximumConditionId++;
+        rMaximumConditionId++;
         const auto& line_cond = r_sub_model_part.CreateNewCondition(
                                            "LineLoadCondition2D2N",
-                                           MaximumConditionId,
+                                           rMaximumConditionId,
                                            condition_nodes_id,
                                            p_properties, 0);
 
@@ -217,13 +217,13 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
 /***********************************************************************************/
 template <>
 void ExtendPressureConditionProcess<2>::GetMaximumConditionIdOnSubmodelPart(
-      int& MaximumConditionId
+      int& rMaximumConditionId
 )
 {
-    MaximumConditionId = 0;
-    for (ModelPart::ConditionIterator it_cond = mr_model_part.ConditionsBegin();
+    rMaximumConditionId = 0;
+    for (auto it_cond = mr_model_part.ConditionsBegin();
          it_cond != mr_model_part.ConditionsEnd(); it_cond++) {
-        if (((*it_cond)).Id() > MaximumConditionId) MaximumConditionId = ((*it_cond)).Id();
+        if (((*it_cond)).Id() > rMaximumConditionId) rMaximumConditionId = ((*it_cond)).Id();
     }
 }
 
