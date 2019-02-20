@@ -139,19 +139,10 @@ public:
     ///@name Input and output
     ///@{
 
-    /**
-     * Print information about this object.
-     */
+    /// Print information about this object.
     void  PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AMGCL MPI solver finished.";
-    }
-
-    /**
-     * Print object's data.
-     */
-    void  PrintData(std::ostream& rOStream) const override
-    {
+        rOStream << "AMGCL-MPI-Solver";
     }
 
     ///@}

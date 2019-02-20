@@ -281,9 +281,7 @@ public:
         return false;
     }
 
-    /**
-     * Print information about this object.
-     */
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Trilinos Aztec-Solver";

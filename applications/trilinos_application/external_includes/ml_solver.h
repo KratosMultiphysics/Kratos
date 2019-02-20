@@ -312,9 +312,7 @@ public:
             mndof = ndof;
     }
 
-    /**
-     * Print information about this object.
-     */
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Trilinos MultiLevel-Solver";
