@@ -55,9 +55,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp  
 
   ## DIRECT SENSITIVITY POSTPROCESS
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_postprocess.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_postprocess.cpp  
 
-  ## DIRECT SENSITIVITY RESPONSE FUNCTIONS
+  ## DIRECT SENSITIVITY RESPONSE FUNCTIONSs
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_nodal_displacement_response_function.cpp
