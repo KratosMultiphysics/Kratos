@@ -70,7 +70,7 @@ public:
     bool CheckIfHasConditionId(const IndexType Id);
 protected:
     // Member Variables
-    ModelPart &mr_model_part;
+    ModelPart& mrModelPart;
     std::vector<IndexType> mNodeIdContainer;
     std::vector<int> mNodePressureIdContainer;
 
