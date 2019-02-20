@@ -33,6 +33,13 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::vector<array_1d<double,3>> mMomentSensitivity;
+    std::vector<array_1d<double,3>> mForceSensitivity;
+
+    void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;
+
 protected:
 
 

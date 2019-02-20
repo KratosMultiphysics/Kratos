@@ -101,6 +101,30 @@ void AdjointFiniteDifferenceCrBeamElement::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
 }
 
+void AdjointFiniteDifferenceCrBeamElement::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+{   
+    mForceSensitivity.resize(rValues.size());
+    mMomentSensitivity.resize(rValues.size());
+
+	if (rVariable == FORCE_SENSITIVITY) {
+		for (IndexType i = 0; i < 3; i++) {
+			mForceSensitivity[i] = rValues[i];
+		}
+	} 
+    else if (rVariable == MOMENT_SENSITIVITY) {
+		for (IndexType i = 0; i < 3; i++) {
+			mMomentSensitivity[i] = rValues[i];
+		}
+	}
+    /*else {
+		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
+			this->SetValue(rVariable, rValues[point_number]);
+		}
+	}*/
+}
+
 } // namespace Kratos.
 
 
