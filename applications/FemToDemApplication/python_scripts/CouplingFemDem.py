@@ -66,7 +66,10 @@ class FEMDEM_Solution:
             self.InitializeMMGvariables()
             self.RemeshingProcessMMG.ExecuteInitialize()
 
-        self.pressure_load = False #hard coded
+        if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+            self.pressure_load = False
+        else:
+            self.pressure_load = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
@@ -997,7 +1000,10 @@ class FEMDEM_Solution:
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
 
-        self.pressure_load = False #hard coded
+        if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+            self.pressure_load = False
+        else:
+            self.pressure_load = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
