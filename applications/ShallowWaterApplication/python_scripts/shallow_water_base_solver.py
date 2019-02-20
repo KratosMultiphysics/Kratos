@@ -28,18 +28,19 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.condition_name = None
         self.min_buffer_size = 2
 
-        # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
+        # Either retrieve the model parts from the model or create a new one
+        self.topographic_name = "topographic_model_part"
+        self.model_part_name = self.settings["model_part_name"].GetString()
 
-        if model_part_name == "":
+        if self.model_part_name == "":
             raise Exception('Please specify a model_part name!')
 
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
+        # The internal function either retrieves the model part or creates a new one
+        self.topographic_model_part = self._GetModelPart(self.topographic_name)
+        self.main_model_part = self._GetModelPart(self.model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
+        self.topographic_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         ## Construct the linear solver
@@ -54,6 +55,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.FREE_SURFACE_ELEVATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
         # Auxiliary variables
@@ -62,12 +64,16 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
+        # Topographic model part
+        self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
+        self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY)
+
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+        self._ImportModelPart(self.topographic_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         # Defining the variables
@@ -102,10 +108,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            ## Replace default elements and conditions
-            self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process (Create computing_model_part)
             self._ExecuteCheckAndPrepare()
+            ## Replace default elements and conditions
+            self._ReplaceElementsAndConditions()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
 
@@ -162,6 +168,9 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        self.topographic_model_part.CloneTimeStep(new_time)
+        self.topographic_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
         return new_time
 
@@ -282,6 +291,13 @@ class ShallowWaterBaseSolver(PythonSolver):
         ## Call the replace elements and conditions process
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
+    def _GetModelPart(self, model_part_name):
+        if self.model.HasModelPart(model_part_name):
+            model_part = self.model.GetModelPart(model_part_name)
+        else:
+            model_part = self.model.CreateModelPart(model_part_name)
+        return model_part
+
     def _GetElementNumNodes(self):
         if self.main_model_part.NumberOfElements() != 0:
             element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes()) # python3 syntax
@@ -293,7 +309,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
         else:
             condition_num_nodes = 0
 
@@ -301,4 +317,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):
-        pass
+        ## Check that the input read has the shape we like
+        prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
+        prepare_model_part_settings.AddEmptyValue("topographic_model_part_name").SetString(self.topographic_name)
+        prepare_model_part_settings.AddEmptyValue("computing_model_part_name").SetString(self.model_part_name)
+
+        import check_and_prepare_model_process_shallow
+        check_and_prepare_model_process_shallow.CheckAndPrepareModelProcess(self.model, prepare_model_part_settings).Execute()

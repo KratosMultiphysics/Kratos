@@ -21,6 +21,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
+#include "custom_utilities/prepare_shallow_model_utility.h"
 
 
 namespace Kratos
@@ -68,6 +69,11 @@ namespace Python
         .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
         .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
         .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
+        ;
+    
+    py::class_< PrepareShallowModelUtility > (m, "PrepareShallowModelUtility")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CopyTopographicModelPart", &PrepareShallowModelUtility::CopyTopographicModelPart)
         ;
   }
 
