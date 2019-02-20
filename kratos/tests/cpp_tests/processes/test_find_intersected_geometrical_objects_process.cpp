@@ -7,13 +7,15 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
+//  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
+//                   Vicente Mataix Ferrandiz
 //
 //
 
 // Project includes
 #include "testing/testing.h"
-// #include "includes/gid_io.h"
+#include "includes/gid_io.h"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -23,6 +25,9 @@
 
 namespace Kratos {
     namespace Testing {
+
+        typedef Node<3> NodeType; // TODO: Replace in the rest of the test
+        typedef Geometry<NodeType> GeometryType;
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
         {
@@ -82,6 +87,38 @@ namespace Kratos {
             KRATOS_CHECK_IS_FALSE((surface_part.Elements()[15]).Is(SELECTED));
             KRATOS_CHECK_IS_FALSE((surface_part.Elements()[16]).Is(SELECTED));
             KRATOS_CHECK_IS_FALSE((surface_part.Elements()[17]).Is(SELECTED));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcess2D, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
+            r_surface_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_surface_part.CreateNewNode(2, 0.0, 1.0, 0.0);
+            r_surface_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            r_surface_part.CreateNewNode(4, 1.0, 0.0, 0.0);
+            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
+            r_skin_part.CreateNewNode(5, -0.3, 0.5, 0.0);
+            r_skin_part.CreateNewNode(6, 0.6, 0.5, 0.0);
+            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
+            r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
+            r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
+            r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
+            FindIntersectedGeometricalObjectsProcess<Condition> find_intersections(r_surface_part, r_skin_part);
+            find_intersections.Execute();
+
+//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+//             gid_io.InitializeMesh(0.0);
+//             gid_io.WriteMesh(r_main_model_part.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
+//             gid_io.FinalizeResults();
+
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
         }
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection2D, KratosCoreFastSuite)
@@ -188,7 +225,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection3D, KratosCoreFastSuite)
         {
             // Generate the tetrahedron element
-              Model current_model;
+            Model current_model;
             ModelPart &volume_part = current_model.CreateModelPart("Volume");
             volume_part.CreateNewNode(34, 0.865646, 0.657938, 0.222985);
             volume_part.CreateNewNode(58, 0.770744, 0.570027, 0.204129);
