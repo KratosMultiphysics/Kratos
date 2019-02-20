@@ -60,8 +60,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_elementwise.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -425,10 +424,12 @@ namespace Kratos
             .def(py::init<LinearSolverType::Pointer, Parameters >() )
             .def(py::init< LinearSolverType::Pointer > ());
 
-            typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
-            py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-            .def(py::init<LinearSolverType::Pointer, Parameters >() )
-            .def(py::init< LinearSolverType::Pointer > ());
+            typedef ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType;
+            py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType, 
+                        ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType::Pointer,
+                        BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise")
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
 
             //********************************************************************
             //********************************************************************

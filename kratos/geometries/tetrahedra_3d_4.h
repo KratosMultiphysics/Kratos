@@ -209,7 +209,7 @@ public:
         this->Points().push_back(pPoint4);
     }
 
-    Tetrahedra3D4( const PointsArrayType& ThisPoints)
+    explicit Tetrahedra3D4( const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
@@ -242,7 +242,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
+    template<class TOtherPointType> explicit Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
         : BaseType(rOther)
     {
     }
@@ -325,8 +325,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);

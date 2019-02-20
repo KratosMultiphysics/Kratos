@@ -72,7 +72,7 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      Logger(std::string const& TheLabel);
+      explicit Logger(std::string const& TheLabel);
 
       Logger();
 
