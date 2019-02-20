@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED )
-#define  KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED
+#if !defined (KRATOS_EPETRA_DEFAULT_SETTER_H_INCLUDED)
+#define KRATOS_EPETRA_DEFAULT_SETTER_H_INCLUDED
 
 // System includes
 
@@ -240,6 +240,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_EPETRA_DEFAULT_SETTER_H_INCLUDED defined
 
 
