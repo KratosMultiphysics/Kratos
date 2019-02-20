@@ -72,12 +72,12 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
-    
+
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -187,54 +187,6 @@ bool ElasticIsotropic3D::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ElasticIsotropic3D::Has(const Variable<int>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ElasticIsotropic3D::Has(const Variable<double>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ElasticIsotropic3D::Has(const Variable<Vector>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ElasticIsotropic3D::Has(const Variable<Matrix>& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ElasticIsotropic3D::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ElasticIsotropic3D::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
-{
-    return BaseType::Has(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool& ElasticIsotropic3D::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     if (rThisVariable == REQUIRES_MATERIAL_INITIALIZATION) {
@@ -246,56 +198,6 @@ bool& ElasticIsotropic3D::GetValue(const Variable<bool>& rThisVariable, bool& rV
     }
 
     return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int& ElasticIsotropic3D::GetValue(const Variable<int>& rThisVariable, int& rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double& ElasticIsotropic3D::GetValue(const Variable<double>& rThisVariable, double& rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Vector& ElasticIsotropic3D::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Matrix& ElasticIsotropic3D::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double, 3 > & ElasticIsotropic3D::GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
-        array_1d<double, 3 > & rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double, 6 > & ElasticIsotropic3D::GetValue(const Variable<array_1d<double, 6 > >& rThisVariable,
-        array_1d<double, 6 > & rValue)
-{
-    return BaseType::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
