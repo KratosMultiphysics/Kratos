@@ -24,7 +24,7 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 
 
 template <>
-void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2(
+void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const unsigned int LocalId,
     const int PressureId,
@@ -90,7 +90,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2(
 /***********************************************************************************/
 
 template <>
-void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
+void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const int PressureId,
 	int& rMaximumConditionId,
@@ -203,18 +203,56 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
-                        (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
+                           (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
-                        (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
+                           (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
+
+template <>
+void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    const int PressureId,
+	int& rMaximumConditionId,
+    std::vector<IndexType>& ToEraseConditionsId
+    )
+{
+    std::string sub_model_name;
+	sub_model_name = "Normal_Load-auto-" + std::to_string(PressureId);
+    auto& r_sub_model_part = mr_model_part.GetSubModelPart(sub_model_name);
+
+    std::vector<IndexType> condition_nodes_id(2);
+    auto p_properties = r_sub_model_part.pGetProperties(1);
+
+    IndexType local_id;
+    auto& r_geom = (*itElem)->GetGeometry();
+    // Let's identify the node with the pressure load
+	for (IndexType i = 0; i < r_geom.PointsNumber(); ++i) {
+        if (r_geom[i].GetValue(PRESSURE_ID) != 0) {
+            local_id = i;
+            break;
+        }
+    }
+
+    // auto& r_geom = (*itElem)->GetGeometry();
+    // r_sub_model_part.AddNode(mr_model_part.pGetNode(r_geom[LocalId].Id()));
+    // Set the vectors
+    // mNodeIdContainer.push_back(r_geom[LocalId].Id());
+    // mNodePressureIdContainer.push_back(PressureId);
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <>
 void ExtendPressureConditionProcess<2>::GetMaximumConditionIdOnSubmodelPart(
       int& rMaximumConditionId
@@ -264,6 +302,7 @@ void ExtendPressureConditionProcess<2>::Execute()
     std::vector<IndexType> ToEraseConditionsId;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
 
+    // Loop over the elements in order to extrapolate the pressure load on its nodes if necessary
     for (auto it_elem = mr_model_part.Elements().ptr_begin();  it_elem != mr_model_part.Elements().ptr_end(); ++it_elem) {
         bool condition_is_active = true;
         if ((*it_elem)->IsDefined(ACTIVE)) {
@@ -272,22 +311,28 @@ void ExtendPressureConditionProcess<2>::Execute()
         // it_elem's going to be removed
         if (condition_is_active == false && (*it_elem)->GetValue(SMOOTHING) == false) {
             unsigned int local_id, counter = 0, pressure_id;
+            auto& r_geometry = (*it_elem)->GetGeometry();
             // Loop over nodes in order to check if there's pressure on nodes
-            for (IndexType i = 0; i < (*it_elem)->GetGeometry().PointsNumber(); ++i) {
-                if ((*it_elem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID) != 0) {
-                    pressure_id = (*it_elem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID);
+            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                if (r_geometry.GetPoint(i).GetValue(PRESSURE_ID) != 0) {
+                    pressure_id = r_geometry.GetPoint(i).GetValue(PRESSURE_ID);
                     counter++;
                 } else {
                     local_id = i;
                 }
             }
-            if (counter == 2) {
-                this->CreateAndAddPressureConditions2(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
+            if (counter == 1) {
+                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                counter_of_affected_nodes++;
+                // We use this flag to enter once on each element
+                (*it_elem)->SetValue(SMOOTHING, true);
+            } else if (counter == 2) {
+                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (counter == 3) {
-                this->CreateAndAddPressureConditions3(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions3Nodes(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
@@ -315,7 +360,7 @@ void ExtendPressureConditionProcess<2>::Execute()
 template <>
 void ExtendPressureConditionProcess<3>::Execute()
 {
-
+    // todo implementation in 3D
 }
 
 /***********************************************************************************/

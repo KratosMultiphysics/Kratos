@@ -44,14 +44,20 @@ public:
 
     void Execute() override;
 
-    void CreateAndAddPressureConditions2(
+    void CreateAndAddPressureConditions2Nodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         const unsigned int LocalId,
         const int PressureId,
         int& MaximumConditionId,
         std::vector<IndexType>& ToEraseConditionsId);
 
-    void CreateAndAddPressureConditions3(
+    void CreateAndAddPressureConditions3Nodes(
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        const int PressureId,
+        int& MaximumConditionId,
+        std::vector<IndexType>& ToEraseConditionsId);
+
+    void CreateAndAddPressureConditions1Node(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         const int PressureId,
         int& MaximumConditionId,
