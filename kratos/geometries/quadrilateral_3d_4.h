@@ -88,6 +88,11 @@ public:
     typedef Line3D2<TPointType> EdgeType;
 
     /**
+     * Type of face geometry
+     */
+    typedef Quadrilateral3D4<TPointType> FaceType;
+
+    /**
      * Pointer definition of Quadrilateral3D4
      */
     KRATOS_CLASS_POINTER_DEFINITION( Quadrilateral3D4 );
@@ -994,15 +999,6 @@ public:
         return 4;
     }
 
-
-    /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
-    */
-    SizeType FacesNumber() const override
-    {
-        return EdgesNumber();
-    }
-
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -1023,6 +1019,30 @@ public:
         edges.push_back( EdgePointerType( new EdgeType( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) ) );
         return edges;
+    }
+
+    /**
+     * @brief FacesNumber
+     * @return SizeType containes number of this geometry edges/faces.
+     */
+    SizeType FacesNumber() const override
+    {
+        return 2;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry
+     * @see EdgesNumber
+     * @see Edges
+     * @see FacesNumber
+     */
+    GeometriesArrayType Faces( void ) override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 3 )) );
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 3 ), this->pGetPoint( 2 ), this->pGetPoint( 1 ), this->pGetPoint( 0 )) );
+        return faces;
     }
 
     //Connectivities of faces required
@@ -1082,20 +1102,6 @@ public:
         if      ( triangle_0.HasIntersection(rLowPoint, rHighPoint) ) return true;
         else if ( triangle_1.HasIntersection(rLowPoint, rHighPoint) ) return true;
         else return false;
-    }
-
-
-    /**
-     * Returns all faces of the current geometry.
-     * This is only implemented for 3D geometries, since 2D geometries
-     * only have edges but no faces
-     * @see EdgesNumber
-     * @see Edges
-     * @see FacesNumber
-    */
-    GeometriesArrayType Faces( void ) override
-    {
-        return GeometriesArrayType();
     }
 
     ///@}
