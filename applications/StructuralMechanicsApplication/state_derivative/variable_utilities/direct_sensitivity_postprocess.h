@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityPostprocess(ModelPart& rModelPart, DirectSensitivityResponseFunction& rResponseFunction, DirectSensitivityVariable& rDirectSensitivityVariable,
+    DirectSensitivityPostprocess(ModelPart& rModelPart, DirectSensitivityVariable& rDirectSensitivityVariable,
                        Parameters VariableSettings);
 
     /// Destructor.
@@ -95,7 +95,7 @@ public:
 
     virtual void Clear();
 
-    virtual void UpdateSensitivities();
+    virtual void UpdateSensitivities(DirectSensitivityResponseFunction& Resp);
 
     ///@}
 
@@ -116,30 +116,18 @@ protected:
     void SetAllSensitivityVariablesToZero();
     
     template <typename TDataType>
-    void UpdateSensitivityOnGaussPoint(Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivityOnGaussPoint(DirectSensitivityResponseFunction& Resp, Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
     
     template <typename TDataType>
-    void UpdateSensitivityOnNode(Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivityOnNode(DirectSensitivityResponseFunction& Resp, Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
 
-    void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Element::GeometryType& rGeom);
+    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rSensitivityVariable,
+                                            array_1d<double,3> const& rSensitivityVector, Node<3>& rNode);
 
-    void AssembleNodalSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Element::GeometryType& rGeom);
-
-    void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Element& rElement);
-
-    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Element& rElement);
-
-    void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Condition& rCondition);
-
-    void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                            Vector const& rSensitivityVector, Condition& rCondition);
+    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
+                                            std::vector<array_1d<double,3>>& rSensitivityVector, Element& rElement);
 
     
     
@@ -151,7 +139,6 @@ private:
 
     ModelPart* mpSensitivityModelPart = nullptr;
     ModelPart& mrModelPart;
-    DirectSensitivityResponseFunction& mrResponseFunction;
     DirectSensitivityVariable& mrDirectSensitivityVariable;
     std::string mBuildMode;
     std::string mVariableType;
