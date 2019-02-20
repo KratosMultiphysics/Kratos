@@ -4,6 +4,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from python_solver import PythonSolver
 
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ShallowWaterApplication")
+
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
@@ -245,7 +248,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "skin_parts"               : [""],
             "no_skin_parts"            : [""],
             "linear_solver_settings"   : {
-                "solver_type"              : "amgcl",
+                "solver_type"              : "AMGCL",
                 "smoother_type"            : "ilu0",
                 "krylov_type"              : "gmres",
                 "coarsening_type"          : "aggregation",
