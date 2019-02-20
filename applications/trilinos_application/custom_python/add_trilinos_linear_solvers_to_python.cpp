@@ -31,7 +31,7 @@
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-#include "external_includes/epetra_default_utility.h"
+#include "external_includes/epetra_default_setter.h"
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
