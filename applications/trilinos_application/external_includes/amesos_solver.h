@@ -177,14 +177,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Amesos solver finished.";
-    }
-
-    /**
-     * Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override
-    {
+        rOStream << "Trilinos Amesos-Solver finished.";
     }
 
 private:

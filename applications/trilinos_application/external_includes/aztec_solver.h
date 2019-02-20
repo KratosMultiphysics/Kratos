@@ -286,14 +286,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-//                rOStream << "Aztec solver finished.";
-    }
-
-    /**
-     * Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override
-    {
+        rOStream << "Trilinos Aztec-Solver";
     }
 
 private:
