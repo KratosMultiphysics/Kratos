@@ -28,7 +28,7 @@ namespace Kratos {
     {
         double drag_coeff  = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(slip_velocity);
 
-        drag_coeff *= 24 / reynolds_number * (1 + 0.15 * pow(reynolds_number, 0.687));
+        drag_coeff *= 24 / reynolds_number * (1 + 0.15 * std::pow(reynolds_number, 0.687));
         noalias(drag_force) = drag_coeff * slip_velocity;
     }
 } // namespace Kratos
