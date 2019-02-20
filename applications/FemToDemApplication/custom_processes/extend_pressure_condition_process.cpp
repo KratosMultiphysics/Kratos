@@ -50,10 +50,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     const IndexType id_2 = LocalId == 0 ? 1 : LocalId == 1 ? 2 : 0;
     const IndexType id_3 = LocalId == 0 ? 2 : LocalId == 1 ? 0 : 1;
 
-    condition_nodes_id[0] = r_geom[id_2].Id();
-    condition_nodes_id[1] = r_geom[id_1].Id();
+    condition_nodes_id[0] = r_geom[id_1].Id();
+    condition_nodes_id[1] = r_geom[id_2].Id();
 	rMaximumConditionId++;
-    const auto& line_cond1 = r_sub_model_part.CreateNewCondition(
+    const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
 					                    rMaximumConditionId,
 					                    condition_nodes_id,
@@ -62,7 +62,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     condition_nodes_id[0] = r_geom[id_1].Id();
     condition_nodes_id[1] = r_geom[id_3].Id();
     rMaximumConditionId++;
-    const auto& line_cond2 = r_sub_model_part.CreateNewCondition(
+    const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
 					                    rMaximumConditionId,
 					                    condition_nodes_id,
@@ -132,7 +132,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         condition_nodes_id[0] = r_geom[id_2].Id();
         condition_nodes_id[1] = r_geom[id_3].Id();
         rMaximumConditionId++;
-        const auto& line_cond = r_sub_model_part.CreateNewCondition(
+        const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
                                         rMaximumConditionId,
                                         condition_nodes_id,
@@ -164,7 +164,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         condition_nodes_id[0] = r_geom[id_2].Id();
         condition_nodes_id[1] = r_geom[id_3].Id();
         rMaximumConditionId++;
-        const auto& line_cond = r_sub_model_part.CreateNewCondition(
+        const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
                                            "LineLoadCondition2D2N",
                                            rMaximumConditionId,
                                            condition_nodes_id,
@@ -234,7 +234,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
 
     IndexType local_id;
     auto& r_geom = (*itElem)->GetGeometry();
-    // Let's identify the node with the pressure load
+    // Let's identify the node with the pressure load (wet)
 	for (IndexType i = 0; i < r_geom.PointsNumber(); ++i) {
         if (r_geom[i].GetValue(PRESSURE_ID) != 0) {
             local_id = i;
@@ -242,11 +242,29 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
         }
     }
 
-    // auto& r_geom = (*itElem)->GetGeometry();
-    // r_sub_model_part.AddNode(mr_model_part.pGetNode(r_geom[LocalId].Id()));
-    // Set the vectors
-    // mNodeIdContainer.push_back(r_geom[LocalId].Id());
-    // mNodePressureIdContainer.push_back(PressureId);
+    const IndexType id_1 = local_id == 0 ? 0 : local_id == 1 ? 1 : 2;
+    const IndexType id_2 = local_id == 0 ? 1 : local_id == 1 ? 2 : 0;
+    const IndexType id_3 = local_id == 0 ? 2 : local_id == 1 ? 0 : 1;
+
+    // Set the 2 new nodes to wet nodes
+    mNodeIdContainer.push_back(r_geom[id_2].Id());
+    mNodeIdContainer.push_back(r_geom[id_3].Id());
+    mNodePressureIdContainer.push_back(PressureId);
+    mNodePressureIdContainer.push_back(PressureId);
+
+    // We create the new pressure conditions
+    condition_nodes_id[0] = r_geom[id_1].Id();
+    condition_nodes_id[1] = r_geom[id_2].Id();
+	rMaximumConditionId++;
+    const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
+					                    "LineLoadCondition2D2N",
+					                    rMaximumConditionId,
+					                    condition_nodes_id,
+					                    p_properties, 0);
+
+
+
+
 
 }
 
