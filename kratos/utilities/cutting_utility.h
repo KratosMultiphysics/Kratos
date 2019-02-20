@@ -53,7 +53,6 @@
 #include "utilities/split_triangle.c"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-#include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 
 
