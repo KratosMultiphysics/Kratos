@@ -1,10 +1,12 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# Importing the Kratos Library
 import KratosMultiphysics
+
 import sys
 from math import *
 
-
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarVariableProcess(Model, settings["Parameters"])
 
