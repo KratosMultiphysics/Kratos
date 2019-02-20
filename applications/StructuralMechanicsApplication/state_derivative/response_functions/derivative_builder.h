@@ -61,7 +61,12 @@ public:
         {
             std::array<std::string, 3> moments = { std::string("MX"), std::string("MY"), std::string("MZ") };
             DeriveStressVariable(DerivativeFlag, rDirectElement, moments , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }        
+        }
+        if (rResponseVariable == FORCE)
+        {
+            std::array<std::string, 3> forces = { std::string("FX"), std::string("FY"), std::string("FZ") };
+            DeriveStressVariable(DerivativeFlag, rDirectElement, forces , rResponseVariable, rOutput, rCurrentProcessInfo);
+        }              
     }
     
     
