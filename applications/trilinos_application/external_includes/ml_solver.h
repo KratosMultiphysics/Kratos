@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Philipp Bucher
 //
 
 #if !defined (KRATOS_MULTILEVEL_SOLVER_H_INCLUDED)
@@ -29,15 +30,26 @@
 
 namespace Kratos
 {
+///@name Kratos Classes
+///@{
+
+/// Wrapper for Trilinos-ML Solver.
+/** ML is Sandia’s main multigrid preconditioning package.
+ * ML is designed to solve large sparse linear systems of equations
+ * arising primarily from elliptic PDE discretizations.
+ * https://trilinos.org/packages/ml/
+*/
+
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class MultiLevelSolver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:
-    /**
-     * Counted pointer of MultiLevelSolver
-     */
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MultiLevelSolver
     KRATOS_CLASS_POINTER_DEFINITION(MultiLevelSolver);
 
     enum ScalingType {NoScaling, LeftScaling};
@@ -52,10 +64,13 @@ public:
 
     typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
 
-    typedef typename BaseType::VectorPointerType VectorPointerType;
-
     typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor with Parameters.
     MultiLevelSolver(Parameters settings)
     {
         Parameters default_settings( R"(
@@ -115,7 +130,6 @@ public:
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
-            //mMLParameterListf.set("coarse: type", "Amesos-Superludist")
         }
         else
         {
@@ -124,7 +138,6 @@ public:
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("increasing or decreasing", "increasing");
             mMLParameterList.set("aggregation: type", "MIS");
-            //mMLParameterList.set("coarse: type", "Amesos-Superludist");
             mMLParameterList.set("smoother: type", "Chebyshev");
             mMLParameterList.set("smoother: sweeps", 3);
             mMLParameterList.set("smoother: pre or post", "both");
@@ -153,13 +166,25 @@ public:
         mReformPrecAtEachStep = true;
     }
 
-    /**
-     * Destructor
-     */
-    virtual ~MultiLevelSolver()
+    /// Copy constructor.
+    MultiLevelSolver(const MultiLevelSolver& Other) = delete;
+
+    /// Destructor.
+    ~MultiLevelSolver() override
     {
         Clear();
     }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    MultiLevelSolver& operator=(const MultiLevelSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     void SetScalingType(ScalingType val)
     {
@@ -319,6 +344,9 @@ public:
     }
 
 private:
+    ///@name Member Variables
+    ///@{
+
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
     SparseMatrixPointerType mpA;
@@ -330,15 +358,7 @@ private:
     int mmax_iter;
     int mndof  = 1;
 
-    /**
-     * Assignment operator.
-     */
-    MultiLevelSolver& operator=(const MultiLevelSolver& Other);
-
-    /**
-     * Copy constructor.
-     */
-    MultiLevelSolver(const MultiLevelSolver& Other);
+    ///@}
 
 }; // Class MultiLevelSolver
 
