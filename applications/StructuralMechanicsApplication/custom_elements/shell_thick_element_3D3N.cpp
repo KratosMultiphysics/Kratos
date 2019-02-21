@@ -2155,7 +2155,7 @@ void ShellThickElement3D3N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
     bool is_derived = (nullptr != dynamic_cast<ShellT3_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
-    rSerializer.save("en", is_derived);
+    rSerializer.save("is_derived", is_derived);
     rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
@@ -2163,7 +2163,7 @@ void ShellThickElement3D3N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
     bool is_derived;
-    rSerializer.load("en", is_derived);
+    rSerializer.load("is_derived", is_derived);
     if (is_derived) {
         mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(pGetGeometry());
     } else {

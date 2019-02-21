@@ -2421,12 +2421,21 @@ ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior(
 void ShellThinElement3D4N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
-    rSerializer.save("CTr", mpCoordinateTransformation);
+    bool is_derived = (nullptr != dynamic_cast<ShellQ4_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
+    rSerializer.save("is_derived", is_derived);
+    rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
 void ShellThinElement3D4N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
-    rSerializer.load("CTr", mpCoordinateTransformation);
+    bool is_derived;
+    rSerializer.load("is_derived", is_derived);
+    if (is_derived) {
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CorotationalCoordinateTransformation>(pGetGeometry());
+    } else {
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CoordinateTransformation>(pGetGeometry());
+    }
+    rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 }
