@@ -251,18 +251,9 @@ namespace Testing {
         distances[2] = -0.3;
         distances[2] = 0.2;
         array_1d<Point, 4> intersection_points;
-        GeometryUtils::CalculateTetrahedraIntersectionPoints(tetrahedra, distances, intersection_points);
+        const int intersections = GeometryUtils::CalculateTetrahedraIntersectionPoints(tetrahedra, distances, intersection_points);
 
-        const double tolerance = 1.0e-6;
-
-        KRATOS_CHECK_NEAR(intersection_points[0].X(), 1.0, tolerance);
-        KRATOS_CHECK_NEAR(intersection_points[0].Y(), 1.0, tolerance);
-        KRATOS_CHECK_NEAR(intersection_points[0].Z(), 1.0, tolerance);
-        for (int i = 1; i < 4; ++i) {
-            KRATOS_CHECK_NEAR(intersection_points[i].X(), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(intersection_points[i].Y(), 0.0, tolerance);
-            KRATOS_CHECK_NEAR(intersection_points[i].Z(), 0.0, tolerance);
-        }
+        KRATOS_CHECK_EQUAL(intersections, 1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsSeveralUtilities, KratosCoreFastSuite)
