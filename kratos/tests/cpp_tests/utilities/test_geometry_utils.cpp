@@ -26,6 +26,7 @@ namespace Kratos {
 namespace Testing {
 
     typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
 
     Line2D2 <NodeType> GenerateExampleLine()
     {
@@ -261,6 +262,81 @@ namespace Testing {
             KRATOS_CHECK_NEAR(intersection_points[i].X(), 0.0, tolerance);
             KRATOS_CHECK_NEAR(intersection_points[i].Y(), 0.0, tolerance);
             KRATOS_CHECK_NEAR(intersection_points[i].Z(), 0.0, tolerance);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsSeveralUtilities, KratosCoreFastSuite)
+    {
+        Triangle2D3 <NodeType> triangle = GenerateExampleTriangle();
+
+        // Getting reference solution
+        BoundedMatrix<double,3,2> reference_DN_DX; // NOTE: On reference configuration
+        array_1d<double,3> N;
+        double area;
+
+        GeometryUtils::CalculateGeometryData(triangle, reference_DN_DX, N, area); // NOTE: COmputing here, this method always computes on current configuration
+
+        // Adding some deformation
+        triangle[0].X() += 0.01;
+
+        // Computing jacobian
+        const auto integration_method = triangle.GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = triangle.IntegrationPoints( integration_method );
+        Matrix J0(2, 2);
+        GeometryUtils::JacobianOnInitialConfiguration(triangle, integration_points[0], J0);
+
+        const double tolerance = 1.0e-6;
+
+        // Checking jacobian
+        KRATOS_CHECK_NEAR(J0(0, 0), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(J0(1, 0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(J0(0, 1), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(J0(1, 1), 1.0, tolerance);
+
+        Matrix auxiliar_J0(2, 2);
+        GeometryUtils::DirectJacobianOnInitialConfiguration<Matrix>(triangle, auxiliar_J0, 0, integration_method);
+
+        for (std::size_t i = 0; i < 2; ++i) {
+            for (std::size_t j = 0; j < 2; ++j) {
+                KRATOS_CHECK_NEAR(J0(i, j), auxiliar_J0(i, j), tolerance);
+            }
+        }
+
+        // Computing
+        double detJ0;
+        Matrix InvJ0(2, 2);
+        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+        Matrix DN_De(3, 2);
+        triangle.ShapeFunctionsLocalGradients( DN_De, integration_points[0].Coordinates() );
+        Matrix DN_DX(3, 2);
+        GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DN_DX);
+
+        // Comparing
+        for (std::size_t i = 0; i < DN_DX.size1(); ++i) {
+            for (std::size_t j = 0; j < DN_DX.size2(); ++j) {
+                KRATOS_CHECK_NEAR(DN_DX(i, j), reference_DN_DX(i, j), tolerance);
+            }
+        }
+
+        // Computing deformation gradient
+        Matrix J;
+        J = triangle.Jacobian(J, 0, integration_method);
+        Matrix F(2, 2);
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+
+        // Checking deformation gradient
+        KRATOS_CHECK_NEAR(F(0, 0), 0.99, tolerance);
+        KRATOS_CHECK_NEAR(F(1, 0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(F(0, 1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(F(1, 1), 1.0, tolerance);
+
+        Matrix auxiliar_J(2, 2);
+        GeometryUtils::DirectJacobianOnCurrentConfiguration<Matrix>(triangle, integration_points[0].Coordinates(), auxiliar_J);
+
+        for (std::size_t i = 0; i < 2; ++i) {
+            for (std::size_t j = 0; j < 2; ++j) {
+                KRATOS_CHECK_NEAR(J(i, j), auxiliar_J(i, j), tolerance);
+            }
         }
     }
 
