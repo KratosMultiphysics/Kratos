@@ -208,11 +208,7 @@ public:
 
     Communicator::Pointer Create() override
     {
-        KRATOS_TRY
-
         return Create(DataCommunicator::GetDefault());
-
-        KRATOS_CATCH("");
     }
 
     Communicator::Pointer Create(const DataCommunicator& rDataCommunicator)
