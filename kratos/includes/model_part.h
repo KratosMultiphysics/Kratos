@@ -33,7 +33,7 @@
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
 #include "containers/pointer_hash_map_set.h"
-#include "containers/variable_list.h"
+#include "containers/variables_list.h"
 #include "input_output/logger.h"
 
 namespace Kratos
