@@ -75,7 +75,8 @@ class SwimmingStrategy(BaseStrategy):
                     return p['hydrodynamic_law_parameters']
         return None
 
-    def CreateHydrodynamicLaw(self, properties, hydrodynamic_law_parameters):
+    @staticmethod
+    def CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters):
 
         hydrodynamic_law_name = hydrodynamic_law_parameters['name'].GetString()
         HydrodynamicInteractionLaw = globals().get(hydrodynamic_law_name)(properties, hydrodynamic_law_parameters)
@@ -137,7 +138,7 @@ class SwimmingStrategy(BaseStrategy):
 
         hydrodynamic_law_parameters = self.GetHydrodynamicLawParametersIfItExists(properties)
         if hydrodynamic_law_parameters:
-            self.CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters)
+            SwimmingStrategy.CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters)
 
         if not param:
             if not properties.Has(PARTICLE_SPHERICITY):

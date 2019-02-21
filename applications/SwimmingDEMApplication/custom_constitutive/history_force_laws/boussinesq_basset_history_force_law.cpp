@@ -339,7 +339,7 @@ namespace Kratos {
     double BoussinesqBassetHistoryForceLaw::Phi(const double x)
     {
         if (std::abs(x) < 1e-10){
-            return (std::exp(x) - 1) / x;
+            return std::expm1(x) / x;
         }
         else {
             return 1 + 0.5 * x + 1.0 / 6 * x * x;
