@@ -27,14 +27,13 @@
 
 
 // External includes
-
-
+#include "mpi.h"
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "includes/define.h"
-#include "includes/stream_serializer.h"
 #include "includes/model_part.h"
-#include "mpi.h"
+#include "includes/stream_serializer.h"
 
 #include "utilities/openmp_utils.h"
 
@@ -185,11 +184,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-
     MPICommunicator(VariablesList* Variables_list) : BaseType(), mpVariables_list(Variables_list)
-    {
-    }
+    {}
+
+    MPICommunicator(VariablesList* pVariablesList, const DataCommunicator& rDataCommunicator)
+    : BaseType(rDataCommunicator)
+    , mpVariables_list(pVariablesList)
+    {}
 
     /// Copy constructor.
 
@@ -208,9 +209,18 @@ public:
     {
         KRATOS_TRY
 
-        return Communicator::Pointer(new MPICommunicator(mpVariables_list));
+        return Create(DataCommunicator::GetDefault());
 
         KRATOS_CATCH("");
+    }
+
+    Communicator::Pointer Create(const DataCommunicator& rDataCommunicator)
+    {
+        KRATOS_TRY
+
+        return Kratos::make_shared<MPICommunicator>(mpVariables_list, rDataCommunicator);
+
+        KRATOS_CATCH("")
     }
 
 
@@ -220,11 +230,8 @@ public:
 
     /// Assignment operator.
 
-    MPICommunicator & operator=(MPICommunicator const& rOther)
-    {
-        BaseType::operator=(rOther);
-        return *this;
-    }
+    MPICommunicator & operator=(MPICommunicator const& rOther) = delete;
+
 
     int MyPID() const override
     {

@@ -29,13 +29,12 @@
 // External includes
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "includes/define.h"
-// #include "includes/process_info.h"
-// #include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
 #include "includes/condition.h"
-
+#include "includes/element.h"
+#include "includes/mesh.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -173,8 +172,24 @@ public:
 
     Communicator() : mNumberOfColors(1)
         , mpLocalMesh(MeshType::Pointer(new MeshType))
-        , mpGhostMesh(MeshType::Pointer(new MeshType)),
-        mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mpGhostMesh(MeshType::Pointer(new MeshType))
+        , mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mrDataCommunicator(ParallelEnvironment::GetDataCommunicator("Serial"))
+
+    {
+        MeshType mesh;
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+
+    /// Constructor using a custom DataCommunicator
+    Communicator(const DataCommunicator& rDataCommunicator)
+        : mNumberOfColors(1)
+        , mpLocalMesh(MeshType::Pointer(new MeshType))
+        , mpGhostMesh(MeshType::Pointer(new MeshType))
+        , mpInterfaceMesh(MeshType::Pointer(new MeshType))
+        , mrDataCommunicator(rDataCommunicator)
     {
         MeshType mesh;
         mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -193,16 +208,22 @@ public:
         , mLocalMeshes(rOther.mLocalMeshes)
         , mGhostMeshes(rOther.mGhostMeshes)
         , mInterfaceMeshes(rOther.mInterfaceMeshes)
+        , mrDataCommunicator(rOther.mrDataCommunicator)
     {
+    }
+
+    virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator)
+    {
+        KRATOS_TRY;
+
+        return Kratos::make_shared<Communicator>(rDataCommunicator);
+
+        KRATOS_CATCH("");
     }
 
     virtual Communicator::Pointer Create()
     {
-        KRATOS_TRY
-
-        return Communicator::Pointer(new Communicator);
-
-        KRATOS_CATCH("");
+        return Create(ParallelEnvironment::GetDataCommunicator("Serial"));
     }
 
     /// Destructor.
@@ -218,21 +239,7 @@ public:
 
     /// Assignment operator.
 
-    Communicator & operator=(Communicator const& rOther)
-    {
-        mNumberOfColors = rOther.mNumberOfColors;
-        mNeighbourIndices = rOther.mNeighbourIndices;
-        mpLocalMesh = rOther.mpLocalMesh;
-        mpGhostMesh = rOther.mpGhostMesh;
-        mpInterfaceMesh = rOther.mpInterfaceMesh;
-        mLocalMeshes = rOther.mLocalMeshes;
-        mGhostMeshes = rOther.mGhostMeshes;
-        mInterfaceMeshes = rOther.mInterfaceMeshes;
-
-        return *this;
-    }
-
-
+    Communicator & operator=(Communicator const& rOther) = delete;
 
     ///@}
     ///@name Access
@@ -975,6 +982,8 @@ protected:
     // To store interfaces ghost+local entities
     MeshesContainerType mInterfaceMeshes;
 
+    // Interface to MPI communication
+    const DataCommunicator& mrDataCommunicator;
 
     ///@}
     ///@name Protected Operators
