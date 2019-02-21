@@ -357,7 +357,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.project_parameters.Has('sdem_output_processes') and self.pp.CFD_DEM["do_print_results_option"].GetBool():
             gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-            write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
+            write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditions"
             deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
             old_gid_output_post_options_dict = {'GiD_PostAscii':'Ascii','GiD_PostBinary':'Binary','GiD_PostAsciiZipped':'AsciiZipped'}
             old_gid_output_multiple_file_option_dict = {'SingleFile':'Single','MultipleFiles':'Multiples'}

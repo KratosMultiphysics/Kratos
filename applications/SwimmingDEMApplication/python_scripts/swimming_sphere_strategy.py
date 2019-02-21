@@ -76,7 +76,7 @@ class SwimmingStrategy(BaseStrategy):
         buoyancy_law = ArchimedesBuoyancyLaw(buoyancy_parameters)
 
         drag_parameters = Parameters("{}")
-        drag_law = StokesDragLaw(drag_parameters)
+        drag_law = BeetstraDragLaw(drag_parameters)
 
         inviscid_parameters = Parameters("{}")
         inviscid_force_law = AutonHuntPrudhommeInviscidForceLaw(inviscid_parameters)
