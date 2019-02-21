@@ -247,12 +247,12 @@ public:
 
     virtual int MyPID() const
     {
-        return 0;
+        return mrDataCommunicator.Rank();
     }
 
     virtual int TotalProcesses() const
     {
-        return 1;
+        return mrDataCommunicator.Size();
     }
 
     SizeType GetNumberOfColors() const
@@ -476,9 +476,7 @@ public:
 
     virtual void Barrier() const
     {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
+        mrDataCommunicator.Barrier();
     }
 
     virtual bool SumAll(int& rValue) const

@@ -229,22 +229,6 @@ public:
 
     MPICommunicator & operator=(MPICommunicator const& rOther) = delete;
 
-
-    int MyPID() const override
-    {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        return rank;
-    }
-
-    int TotalProcesses() const override
-    {
-        int nproc;
-        MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-        return nproc;
-
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -253,11 +237,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void Barrier() const override
-    {
-        MPI_Barrier(MPI_COMM_WORLD);
-    }
 
     bool SumAll(int& rValue) const override
     {
