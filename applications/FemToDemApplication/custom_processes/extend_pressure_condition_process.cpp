@@ -129,8 +129,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         const IndexType id_2 = local_id == 0 ? 1 : local_id == 1 ? 2 : 0;
         const IndexType id_3 = local_id == 0 ? 2 : local_id == 1 ? 0 : 1;
 
-        condition_nodes_id[0] = r_geom[id_2].Id();
-        condition_nodes_id[1] = r_geom[id_3].Id();
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
         rMaximumConditionId++;
         const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
@@ -163,8 +163,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
         const IndexType id_3 = inactive_nodes_local_id[0] == 0 ? 2 : inactive_nodes_local_id[0] == 1 ? 0 : 1;
 
-        condition_nodes_id[0] = r_geom[id_2].Id();
-        condition_nodes_id[1] = r_geom[id_3].Id();
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
         rMaximumConditionId++;
         const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
                                            "LineLoadCondition2D2N",
@@ -229,8 +229,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
         const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
 
-        condition_nodes_id[0] = r_geom[id_1].Id();
-        condition_nodes_id[1] = r_geom[id_2].Id();
+        condition_nodes_id[0] = r_geom[id_2].Id();
+        condition_nodes_id[1] = r_geom[id_1].Id();
         rMaximumConditionId++;
         const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
@@ -240,8 +240,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         // adding the conditions to the computing model part
         mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
 
-        condition_nodes_id[0] = r_geom[id_3].Id();
-        condition_nodes_id[1] = r_geom[id_1].Id();
+        condition_nodes_id[0] = r_geom[id_1].Id();
+        condition_nodes_id[1] = r_geom[id_3].Id();
         rMaximumConditionId++;
         const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
