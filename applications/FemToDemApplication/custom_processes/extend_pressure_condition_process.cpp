@@ -44,8 +44,12 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[LocalId].Id()));
 
     // Set the vectors
-    mNodeIdContainer.push_back(r_geom[LocalId].Id());
-    mNodePressureIdContainer.push_back(PressureId);
+    // mNodeIdContainer.push_back(r_geom[LocalId].Id());
+    // mNodePressureIdContainer.push_back(PressureId);
+    // test
+    mrModelPart.pGetNode(r_geom[LocalId].Id())->SetValue(PRESSURE_ID, PressureId);
+
+    KRATOS_WATCH(r_geom[LocalId].Id())
 
     const IndexType id_1 = LocalId == 0 ? 0 : LocalId == 1 ? 1 : 2;
     const IndexType id_2 = LocalId == 0 ? 1 : LocalId == 1 ? 2 : 0;
@@ -306,10 +310,12 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
     r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
 
     // Set the 2 new nodes to wet nodes
-    mNodeIdContainer.push_back(r_geom[id_2].Id());
-    mNodeIdContainer.push_back(r_geom[id_3].Id());
-    mNodePressureIdContainer.push_back(PressureId);
-    mNodePressureIdContainer.push_back(PressureId);
+    // mNodeIdContainer.push_back(r_geom[id_2].Id());
+    // mNodeIdContainer.push_back(r_geom[id_3].Id());
+    // mNodePressureIdContainer.push_back(PressureId);
+    // mNodePressureIdContainer.push_back(PressureId);
+    mrModelPart.pGetNode(r_geom[id_2].Id())->SetValue(PRESSURE_ID, PressureId);
+    mrModelPart.pGetNode(r_geom[id_3].Id())->SetValue(PRESSURE_ID, PressureId);
 
     // We create the new pressure conditions
     condition_nodes_id[0] = r_geom[id_1].Id();
@@ -407,6 +413,7 @@ void ExtendPressureConditionProcess<2>::Execute()
         }
         // it_elem's going to be removed
         if (condition_is_active == false && (*it_elem)->GetValue(SMOOTHING) == false) {
+            KRATOS_WATCH((*it_elem)->Id())
             unsigned int local_id, counter = 0, pressure_id;
             auto& r_geometry = (*it_elem)->GetGeometry();
             // Loop over nodes in order to check if there's pressure on nodes
@@ -418,13 +425,15 @@ void ExtendPressureConditionProcess<2>::Execute()
                     local_id = i;
                 }
             }
-            if (counter == 1) {
-                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+            if (counter == 2) {
+                std::cout << "22222222222222" << std::endl;
+                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
-            } else if (counter == 2) {
-                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
+            } else if (counter == 1) {
+                std::cout << "11111111111111111111" << std::endl;
+                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
@@ -439,11 +448,11 @@ void ExtendPressureConditionProcess<2>::Execute()
     auto& r_process_info = mrModelPart.GetProcessInfo();
     r_process_info[ITER] = counter_of_affected_nodes;
 
-    for (IndexType i = 0; i < mNodeIdContainer.size(); ++i) {
-        mrModelPart.GetNode(mNodeIdContainer[i]).SetValue(PRESSURE_ID, mNodePressureIdContainer[i]);
-    }
-    mNodeIdContainer.clear();
-    mNodePressureIdContainer.clear();
+    // for (IndexType i = 0; i < mNodeIdContainer.size(); ++i) {
+    //     mrModelPart.GetNode(mNodeIdContainer[i]).SetValue(PRESSURE_ID, mNodePressureIdContainer[i]);
+    // }
+    // mNodeIdContainer.clear();
+    // mNodePressureIdContainer.clear();
 
     for (IndexType i = 0; i < ToEraseConditionsId.size(); ++i) {
         mrModelPart.RemoveConditionFromAllLevels(ToEraseConditionsId[i]);
