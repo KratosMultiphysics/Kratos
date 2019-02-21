@@ -189,5 +189,19 @@ namespace Testing {
         KRATOS_CHECK_NEAR(DN_DX(1,0), 1.0,tolerance);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsSideLenghts2D, KratosCoreFastSuite2)
+    {
+        Triangle2D3 <NodeType> triangle = GenerateExampleTriangle();
+
+        // Computing the info
+        double hmin, hmax;
+        GeometryUtils::SideLenghts2D(triangle, hmin, hmax);
+
+        const double tolerance = 1.0e-8;
+
+        KRATOS_CHECK_NEAR(hmin, 1.0,tolerance);
+        KRATOS_CHECK_NEAR(hmax, std::sqrt(2.0),tolerance);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.

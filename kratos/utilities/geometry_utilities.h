@@ -194,8 +194,8 @@ public:
 
     /**
      * @brief This function compute the maximum and minimum edge lenghts
-     * @details It assumes that it is a line
-     * @param rGeometry it is the array of nodes. It expects a line
+     * @details It assumes that it is a triangle
+     * @param rGeometry it is the array of nodes. It expects a triangle
      * @param hmin The minimum length
      * @param hmax The maximum length
      */
