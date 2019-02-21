@@ -1913,7 +1913,7 @@ void ShellThickElement3D4N::save(Serializer& rSerializer) const
 
 void ShellThickElement3D4N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
     rSerializer.load("EAS", mEASStorage);
 }
