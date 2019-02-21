@@ -70,6 +70,7 @@
 #include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/mohr_coulomb_v1_model.hpp"
 #include "custom_models/plasticity_models/tresca_model.hpp"
+#include "custom_models/plasticity_models/real_casm_soil_model.hpp"
 
 
 namespace Kratos
@@ -302,6 +303,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       .def( py::init<>() )
       ;
 
+  py::class_< RealCasmModel, typename RealCasmModel::Pointer, ConstitutiveModelBaseType >
+      (m, "RealCasmModel")
+      .def( py::init<>() )
+      ;
   py::class_< TrescaModel, typename TrescaModel::Pointer, ConstitutiveModelBaseType >
       (m, "TrescaModel")
       .def( py::init<>() )

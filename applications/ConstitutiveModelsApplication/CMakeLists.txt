@@ -57,6 +57,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/mohr_coulomb_v1_hardening_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/casm_hardening_rule.cpp
 
         #utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_layout.cpp

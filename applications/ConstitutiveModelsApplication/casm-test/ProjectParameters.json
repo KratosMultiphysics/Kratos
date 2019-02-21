@@ -1,0 +1,30 @@
+{
+            "model_part_name" : "MaterialDomain",
+            "properties_id"   : 1,
+            "material_name"   : "steel",
+            "constitutive_law": {
+                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
+                "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.RealCasmModel"
+            },
+            "variables": {
+                "KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.085,
+                "KratosMultiphysics.SWELLING_SLOPE": 0.0078,
+                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 50000.0,
+                "KratosMultiphysics.ALPHA_SHEAR": 0.0,
+                "KratosMultiphysics.CRITICAL_STATE_LINE": 0.90,
+                "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 80.0,
+                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.SHAPE_PARAMETER": 1.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.SPACING_RATIO": 2.7183
+            },
+            "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+            "strain": {
+                "deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+                "jacobian": 1.0
+            },
+            "echo_level" : 0,
+	    "parametric_analysis_variable": "PRE_CONSOLIDATION_STRESS",
+	    "parametric_analysis_values": [ 80.0, 160, 240],
+	    "initial_stress_state": [-80.0, -80.0, -80.0]
+}
