@@ -27,7 +27,7 @@ class GeoBuilding( GeoProcessor ):
             KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Model part has to be set, first.")
             return
 
-        self._generate_building_model_part()
+        self._generate_building_model_part("ModelPart"+file_name)
 
         # function to load form MDPA to MODEL_PART
         file_path = os.path.dirname(os.path.realpath(__file__))
@@ -100,13 +100,77 @@ class GeoBuilding( GeoProcessor ):
             elif ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) < -1000.0 ):
         	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0 )
 
-        # variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
-        # variational_distance_process.Execute()
+        if (size_reduction != 0.0):
+            variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
+            variational_distance_process.Execute()
 
         for node in aux_model_part.Nodes:
             source = node
             destination = self.ModelPart.GetNodes()[source.Id]
             destination.SetSolutionStepValue( KratosMultiphysics.DISTANCE, source.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) + size_reduction )
+
+        self.HasDistanceField = True
+
+
+    def AddDistanceFieldFromHull( self, invert_distance_field = False, size_reduction = 0.0 ):
+
+        if not self.HasModelPart:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Model part has to be set, first.")
+            return
+
+        if not self.HasBuildingHull:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Function ComputeDistanceFieldFromHull requires to import a building hull, first.")
+            return
+
+        aux_model_part_name = "AuxModelPart"
+        current_model = self.ModelPart.GetModel()
+
+        if current_model.HasModelPart(aux_model_part_name):
+            # clear the existing model part (to be sure)
+            aux_model_part = current_model.GetModelPart( aux_model_part_name )
+            aux_model_part.Elements.clear()
+            aux_model_part.Conditions.clear()
+            aux_model_part.Nodes.clear()
+        else:
+            # create the model part from scratch
+            aux_model_part = current_model.CreateModelPart(aux_model_part_name)
+            aux_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+            aux_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+            aux_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+
+        # populating the empty model part (copy, do not just assign!)
+        prop = self.ModelPart.Properties[0]
+        for node in self.ModelPart.Nodes:
+            n = aux_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
+        for elem in self.ModelPart.Elements:
+            nodes = elem.GetNodes()
+            e = aux_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], prop)
+
+        KratosMultiphysics.CalculateDistanceToSkinProcess3D(aux_model_part, self.building_hull_model_part ).Execute()
+
+        # inversion of the distance field
+        if invert_distance_field:
+            for node in aux_model_part.Nodes:
+        	    node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, -node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) )
+
+        # getting rid of the +/- inf values around the zero level
+        for node in aux_model_part.Nodes:
+            if ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) > 1000.0 ):
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1.0 )
+            elif ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) < -1000.0 ):
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0 )
+
+        # full distance field only needed if shifts ae necessary
+        if (size_reduction != 0):
+            variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
+            variational_distance_process.Execute()
+
+        for node in aux_model_part.Nodes:
+            source = node
+            destination = self.ModelPart.GetNodes()[source.Id]
+            # finding the minimum
+            distance = min( source.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) + size_reduction, destination.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) )
+            destination.SetSolutionStepValue( KratosMultiphysics.DISTANCE, distance )
 
         self.HasDistanceField = True
 
@@ -142,7 +206,7 @@ class GeoBuilding( GeoProcessor ):
         level_set_param = KratosMultiphysics.Parameters("""
         	{
         		"minimal_size"                         : """ + str(min_size) + """,
-        		"enforce_current"                      : false,
+        		"enforce_current"                      : true,
         		"anisotropy_remeshing"                 : true,
         		"anisotropy_parameters": {
         			"hmin_over_hmax_anisotropic_ratio"      : 0.9,
@@ -172,6 +236,9 @@ class GeoBuilding( GeoProcessor ):
 
         ### moving procedure to another model part
         current_model = self.ModelPart.GetModel()
+        if current_model.HasModelPart( "MainModelPart" ):
+            current_model.DeleteModelPart( "MainModelPart" )
+
         main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -210,7 +277,7 @@ class GeoBuilding( GeoProcessor ):
         level_set_param = KratosMultiphysics.Parameters("""
         	{
         		"minimal_size"                         : 0.05,
-        		"enforce_current"                      : false,
+        		"enforce_current"                      : true,
         		"anisotropy_remeshing"                 : true,
         		"anisotropy_parameters": {
         			"hmin_over_hmax_anisotropic_ratio"      : 0.1,
@@ -288,32 +355,42 @@ class GeoBuilding( GeoProcessor ):
         self.ModelPart.Nodes.clear()
         self.ModelPart.Conditions.clear()
         self.ModelPart.Elements.clear()
+        self.ModelPart.RemoveSubModelPart("Parts_Fluid")
         self.ModelPart.CreateSubModelPart("Parts_Fluid")
+        self.ModelPart.RemoveSubModelPart("Complete_Boundary")
         self.ModelPart.CreateSubModelPart("Complete_Boundary")
 
         # Copying the content of the model
         for node in main_model_part.Nodes:
             n = self.ModelPart.CreateNewNode( node.Id, node.X, node.Y, node.Z )
             self.ModelPart.GetSubModelPart("Parts_Fluid").AddNode( n, 0 )
+            print( "Node " + str(node.Id) )
         for elem in main_model_part.Elements:
             nodes = elem.GetNodes()
             e = self.ModelPart.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
             self.ModelPart.GetSubModelPart("Parts_Fluid").AddElement( e, 0 )
+            print( "Element " + str(elem.Id) )
         for cond in main_model_part.Conditions:
             nodes = cond.GetNodes()
             c = self.ModelPart.CreateNewCondition("Condition3D3N", cond.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id], properties_0)
             self.ModelPart.GetSubModelPart("Complete_Boundary").AddCondition( c, 0 )
             for node in c.GetNodes():
                 self.ModelPart.GetSubModelPart("Complete_Boundary").AddNode( node, 0 )
+            print( "Condition " + str(cond.Id) )
+
 
 
 
 ### --- auxiliary functions --- ### -------------------------------------
 
-    def _generate_building_model_part( self ):
+    def _generate_building_model_part( self, name ):
 
         current_model = self.ModelPart.GetModel()
-        self.building_hull_model_part = current_model.CreateModelPart( "BuildingModelPart" )
+
+        if current_model.HasModelPart( name ):
+            current_model.DeleteModelPart( name )
+
+        self.building_hull_model_part = current_model.CreateModelPart( name )
         self.building_hull_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.building_hull_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
 
