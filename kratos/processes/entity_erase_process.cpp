@@ -95,6 +95,7 @@ void EntitiesEraseProcess<Element>::Execute()
     // If we assign flags
     if (mAssignFlag) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Elements());
 
+    // Remove elements
     if (mRemoveBelongings) {
         if (mRemoveFromAllLevels) {
             AuxiliarModelPartUtilities(mrModelPart).RemoveElementsAndBelongings(TO_ERASE);
@@ -123,6 +124,7 @@ void EntitiesEraseProcess<Condition>::Execute()
     // If we assign flags
     if (mAssignFlag) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
 
+    // Remove conditions
     if (mRemoveBelongings) {
         if (mRemoveFromAllLevels) {
             AuxiliarModelPartUtilities(mrModelPart).RemoveConditionsAndBelongings(TO_ERASE);
