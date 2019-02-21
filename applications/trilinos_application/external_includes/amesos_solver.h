@@ -20,7 +20,7 @@
 #include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 
-//aztec solver includes
+// Amesos solver includes
 #include "Amesos.h"
 #include "Epetra_LinearProblem.h"
 

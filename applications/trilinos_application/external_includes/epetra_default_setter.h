@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//  Collaboratos:    Philipp Bucher
 //
 
 #if !defined (KRATOS_EPETRA_DEFAULT_SETTER_H_INCLUDED)
@@ -18,32 +23,13 @@
 #include "ml_MultiLevelPreconditioner.h"
 #include "Teuchos_ParameterList.hpp"
 
-
 namespace Kratos
 {
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Helper-class to set defaults in the Teuchos::ParameterList
+/// using ML_Epetra::SetDefaults
 class EpetraDefaultSetter
 {
 public:
@@ -57,48 +43,31 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    EpetraDefaultSetter() {}
-
-    /// Destructor.
-    virtual ~EpetraDefaultSetter() {}
-
-    void SetDefaults(Teuchos::ParameterList& rlist, std::string settings_name)
-    {
-//	if(settings_name == std::string("SA") )
-        ML_Epetra::SetDefaults(settings_name.c_str(),rlist);
-//	else
-//	  std::cout << "WARNING: no defaults were set!!" << std::endl;
-
-    }
-
+    /// Copy constructor.
+    EpetraDefaultSetter(EpetraDefaultSetter const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    EpetraDefaultSetter& operator=(EpetraDefaultSetter const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
+    void SetDefaults(Teuchos::ParameterList& rParameterlist, const std::string& rSettingsName)
+    {
+        ML_Epetra::SetDefaults(rSettingsName.c_str(), rParameterlist);
+    }
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "EpetraDefaultSetter" ;
@@ -106,124 +75,21 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "EpetraDefaultSetter";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    EpetraDefaultSetter& operator=(EpetraDefaultSetter const& rOther)
-    {
-        return *this;
-    }
-
-    /// Copy constructor.
-    EpetraDefaultSetter(EpetraDefaultSetter const& rOther) {}
-
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
 
 }; // Class EpetraDefaultSetter
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  EpetraDefaultSetter& rThis)
-{
-    return rIStream;
-}
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
@@ -237,9 +103,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_EPETRA_DEFAULT_SETTER_H_INCLUDED defined
-
-
