@@ -151,6 +151,10 @@ protected:
         array_1d<double,TNumNodes> NodalQSource;
         array_1d<array_1d<double,3>, TNumNodes> NodalVel;
 
+        // array_1d<double,TNumNodes> Aux1;
+        // array_1d<double,TNumNodes> Aux2;
+
+
         ///Variables computed at each GP
         double IntegrationCoefficient;
         double QSource;

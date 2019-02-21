@@ -260,6 +260,9 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
     Variables.IterationNumber = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
+    // Variables.Aux1 = ZeroVector(TNumNodes);
+    // Variables.Aux2 = ZeroVector(TNumNodes);
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -298,14 +301,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
-
     }
-
-        // KRATOS_WATCH(this->Id())
-        // KRATOS_WATCH("contr velocidad")
-        // KRATOS_WATCH(Variables.Aux1)
-        // KRATOS_WATCH("contr diff")
-        // KRATOS_WATCH(Variables.Aux2)
 
     KRATOS_CATCH( "" )
 }
@@ -678,11 +674,16 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
                                         - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
     }
 
-    // On the first iteration, SC can't be used
-    if (rVariables.IterationNumber == 1)
+    if (rVariables.DifSC < 0.0)
     {
         rVariables.DifSC = 0.0;
     }
+
+    // On the first iteration, SC can't be used
+    // if (rVariables.IterationNumber == 1)
+    // {
+    //     rVariables.DifSC = 0.0;
+    // }
     noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
 
     //Calculate Dv and new lsc term for Dv
@@ -704,11 +705,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     }
 
     // On the first iteration, SC can't be used
-    if (rVariables.IterationNumber == 1)
-    {
-        rVariables.CosinusGradPhi = 1.0;
-        rVariables.CosinusNormals = 1.0;
-    }
+    // if (rVariables.IterationNumber == 1)
+    // {
+    //     rVariables.CosinusGradPhi = 1.0;
+    //     rVariables.CosinusNormals = 1.0;
+    // }
 
     noalias(rVariables.DifMatrixV) = 0.5 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
@@ -981,10 +982,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFICBeta(Eleme
     }
 
     // On the first iteration, SC can't be used
-    if (rVariables.IterationNumber == 1)
-    {
-        rVariables.Beta = 1.0;
-    }
+    // if (rVariables.IterationNumber == 1)
+    // {
+    //     rVariables.Beta = 1.0;
+    // }
 }
 
 //----------------------------------------------------------------------------------------
@@ -1069,10 +1070,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
         }
 
         // On the first iteration, SC can't be used
-        if (rVariables.IterationNumber == 1)
-        {
-            AuxScalar = 0.0;
-        }
+        // if (rVariables.IterationNumber == 1)
+        // {
+        //     AuxScalar = 0.0;
+        // }
 
         rVariables.HscVector = AuxScalar * rVariables.GradPhi / rVariables.NormGradPhi;
     }
@@ -1403,7 +1404,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
-    // rVariables.Aux1 += prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
+     //rVariables.Aux1 -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------
@@ -1417,7 +1418,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
 
     noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
-    // rVariables.Aux2 += prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
+    //rVariables.Aux2 -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 
@@ -1452,7 +1453,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rRightHandSideVector) -= (rVariables.N + 0.5 * prod(rVariables.GradNT,rVariables.HVector))*rVariables.QSource*rVariables.IntegrationCoefficient;
+    noalias(rRightHandSideVector) += (rVariables.N + 0.5 * prod(rVariables.GradNT,rVariables.HVector))*rVariables.QSource*rVariables.IntegrationCoefficient;
 
 }
 

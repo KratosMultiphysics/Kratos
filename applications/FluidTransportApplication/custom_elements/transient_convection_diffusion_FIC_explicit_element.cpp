@@ -148,7 +148,7 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
         for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
         {
             // LHS = Md lumped
-            rLeftHandSideMatrix (i,i) += MMatrixAux(i,j) / 3.0;
+            rLeftHandSideMatrix (i,i) += MMatrixAux(i,j);
         }
         // rLeftHandSideMatrix (i,i) = Geom.Area() / 3.0;
 
@@ -182,14 +182,6 @@ void TransientConvectionDiffusionFICExplicitElement<TDim, TNumNodes>::CalculateF
     //noalias(rRightHandSideVector) -= 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, aux_vector) + prod(MMatrixAux, aux_vector_2));
     noalias(rRightHandSideVector) += 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, Variables.NodalPhi));
     aux_vector = 1.0 / (Theta * DeltaTime) * (prod(rLeftHandSideMatrix, Variables.NodalPhi));
-
-    // KRATOS_WATCH("contr masa")
-    // KRATOS_WATCH(aux_vector)
-    // KRATOS_WATCH("LHS")
-    // KRATOS_WATCH(rLeftHandSideMatrix)
-    // KRATOS_WATCH("phi")
-    // KRATOS_WATCH(Variables.NodalPhi)
-
 
     KRATOS_CATCH("")
 }

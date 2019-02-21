@@ -444,7 +444,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     double NormAux2 = norm_2(NormAux1);
 
     rVariables.Residual = rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
-                            - NormAux2
+//                            - NormAux2
                             + rVariables.absorption * inner_prod(rVariables.N, NodalPhi0)
                             - rVariables.QSource;
 
@@ -546,21 +546,28 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         DoubleDotScalar += AuxMatrix4 (i,i);
     }
 
-    rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.Residual) / rVariables.NormGradPhi
+    rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.TransientResidual) / rVariables.NormGradPhi
                                         - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
 
     if (rVariables.NormGradPhi < rVariables.LowTolerance)
     {
-        rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.Residual) / rVariables.LowTolerance
+        rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.TransientResidual) / rVariables.LowTolerance
                                         - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
     }
 
-    // On the first iteration, SC can't be used
-    if (rVariables.IterationNumber == 1)
+    if (rVariables.DifSC < 0.0)
     {
         rVariables.DifSC = 0.0;
     }
+
+    // On the first iteration, SC can't be used
+    // if (rVariables.IterationNumber == 1)
+    // {
+    //     rVariables.DifSC = 0.0;
+    // }
     noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
+
+    // double producte = inner_prod (rVariables.VelInter , rVariables.GradPhi);
 
     //Calculate Dv and new lsc term for Dv
     this->CalculateNormalsAngle(rVariables);
@@ -581,11 +588,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     }
 
     // On the first iteration, SC can't be used
-    if (rVariables.IterationNumber == 1)
-    {
-        rVariables.CosinusGradPhi = 1.0;
-        rVariables.CosinusNormals = 1.0;
-    }
+    // if (rVariables.IterationNumber == 1)
+    // {
+    //     rVariables.CosinusGradPhi = 1.0;
+    //     rVariables.CosinusNormals = 1.0;
+    // }
 
     noalias(rVariables.DifMatrixV) = 0.5 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
@@ -688,10 +695,10 @@ KRATOS_TRY
         }
 
         // On the first iteration, SC can't be used
-        if (rVariables.IterationNumber == 1)
-        {
-            AuxScalar = 0.0;
-        }
+        // if (rVariables.IterationNumber == 1)
+        // {
+        //     AuxScalar = 0.0;
+        // }
 
         rVariables.HscVector = AuxScalar * rVariables.GradPhi / rVariables.NormGradPhi;
     }
@@ -915,7 +922,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrat
                 array_1d <double, 3> Velocity3;
                 ElementUtilities::FillArray1dOutput (Velocity3, Variables.VelInterHat);
 
-//                Variables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(Geom,Velocity3);
+                Variables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(Geom,Velocity3);
             }
 
             this->CalculateBoundaryLv(Variables);
