@@ -12,6 +12,7 @@
 //
 
 #include "custom_processes/extend_pressure_condition_process.h"
+#include "processes/find_elements_neighbours_process.h"
 
 namespace Kratos {
 
@@ -114,12 +115,12 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 	const int counter_of_affected_nodes = r_process_info[ITER];
     if (counter_of_affected_nodes != 1) this->CalculateNumberOfElementsOnNodes();
 
-    for (IndexType i = 0; i < (*itElem)->GetGeometry().size(); ++i) {
-        if ((*itElem)->GetGeometry()[i].GetValue(NUMBER_OF_ACTIVE_ELEMENTS) == 1) {
+    for (IndexType i = 0; i < r_geom.size(); ++i) {
+        if (r_geom[i].GetValue(NUMBER_OF_ACTIVE_ELEMENTS) == 1) {
             local_id = i;
             aux_counter++;
-        } else if ((*itElem)->GetGeometry()[i].GetValue(NUMBER_OF_ACTIVE_ELEMENTS) == 0) {
-            inactive_nodes_id.push_back((*itElem)->GetGeometry()[i].Id());
+        } else if (r_geom[i].GetValue(NUMBER_OF_ACTIVE_ELEMENTS) == 0) {
+            inactive_nodes_id.push_back(r_geom[i].Id());
             inactive_nodes_local_id.push_back(i);
         }
     }
@@ -142,20 +143,22 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 
         // We remove the condition regarding the erased edges...
         for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
-            if ((*it)->GetGeometry().size() > 1) { // avoid nodal forces
-                const IndexType Id1 = (*it)->GetGeometry()[0].Id();
-                const IndexType Id2 = (*it)->GetGeometry()[1].Id();
+            auto& r_it_geometry = (*it)->GetGeometry();
+            if (r_it_geometry.size() > 1) { // avoid nodal forces
+                const IndexType Id1 = r_it_geometry[0].Id();
+                const IndexType Id2 = r_it_geometry[1].Id();
 
                 // Remove the old conditions
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
-                        (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
+                           (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
+    // One inactive node
     } else if (inactive_nodes_id.size() == 1) {
         const IndexType id_1 = inactive_nodes_local_id[0] == 0 ? 0 : inactive_nodes_local_id[0] == 1 ? 1 : 2;
         const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
@@ -175,9 +178,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 
         // We remove the condition regarding the erased edges...
         for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
-            if ((*it)->GetGeometry().size() > 1) {
-                const IndexType Id1 = (*it)->GetGeometry()[0].Id();
-                const IndexType Id2 = (*it)->GetGeometry()[1].Id();
+            auto& r_it_geom = (*it)->GetGeometry();
+            if (r_it_geom.size() > 1) {
+                const IndexType Id1 = r_it_geom[0].Id();
+                const IndexType Id2 = r_it_geom[1].Id();
 
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
@@ -191,9 +195,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
     } else if (inactive_nodes_id.size() == 3) { // elem and nodes are removed afterwards
         // We remove the condition regarding the erased edges...
         for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
-            if ((*it)->GetGeometry().size() > 1) {
-                const IndexType Id1 = (*it)->GetGeometry()[0].Id();
-                const IndexType Id2 = (*it)->GetGeometry()[1].Id();
+            auto& r_it_geom = (*it)->GetGeometry();
+            if (r_it_geom.size() > 1) {
+                const IndexType Id1 = r_it_geom[0].Id();
+                const IndexType Id2 = r_it_geom[1].Id();
 
                 const IndexType id_1 = inactive_nodes_local_id[0] == 0 ? 0 : inactive_nodes_local_id[0] == 1 ? 1 : 2;
                 const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
@@ -207,6 +212,56 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
                     ToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
                            (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
+                    ToEraseConditionsId.push_back((*it)->Id());
+                }
+            }
+        }
+    } else if (aux_counter == 0 && inactive_nodes_id.size() == 0) {
+
+        WeakPointerVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+        IndexType alone_edge_local_id = 10;
+        for (IndexType i = 0; i < r_elem_neigb.size(); ++i) {
+            if ((*itElem)->Id() == r_elem_neigb[i].Id()) {
+                alone_edge_local_id = i;
+            }
+        }
+        KRATOS_ERROR_IF(alone_edge_local_id == 10) << "Unexpected error in extrapolating the pressure load..." << std::endl;
+        const IndexType id_1 = alone_edge_local_id == 0 ? 0 : alone_edge_local_id == 1 ? 1 : 2;
+        const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
+        const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
+
+        condition_nodes_id[0] = r_geom[id_1].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
+        rMaximumConditionId++;
+        const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
+                                        "LineLoadCondition2D2N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
+        // adding the conditions to the computing model part
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
+
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_1].Id();
+        rMaximumConditionId++;
+        const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
+                                        "LineLoadCondition2D2N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
+        // adding the conditions to the computing model part
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
+
+        // We remove the condition regarding the erased edge...
+        for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
+            auto& r_it_geometry = (*it)->GetGeometry();
+            if (r_it_geometry.size() > 1) { // avoid nodal forces
+                const IndexType Id1 = r_it_geometry[0].Id();
+                const IndexType Id2 = r_it_geometry[1].Id();
+
+                // Remove the old conditions
+                if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
+                    (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
                     ToEraseConditionsId.push_back((*it)->Id());
                 }
             }
@@ -283,9 +338,9 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
 					                    p_properties, 0);
 
     // adding the conditions to the computing model part
-    r_sub_model_part.AddCondition(r_line_cond1);
-    r_sub_model_part.AddCondition(r_line_cond2);
-    r_sub_model_part.AddCondition(r_line_cond3);
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond3);
 }
 
 /***********************************************************************************/
@@ -336,6 +391,10 @@ void ExtendPressureConditionProcess<TDim>::CalculateNumberOfElementsOnNodes()
 template <>
 void ExtendPressureConditionProcess<2>::Execute()
 {
+    // We search the neighbours for some purposes
+    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
+    find_neigh.Execute();
+
 	int maximum_condition_id, counter_of_affected_nodes = 0;
     std::vector<IndexType> ToEraseConditionsId;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
