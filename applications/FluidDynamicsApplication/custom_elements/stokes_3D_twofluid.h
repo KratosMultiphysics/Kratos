@@ -349,7 +349,8 @@ public:
                 strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
 
                 //create constitutive law parameters:
-                ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+                const Properties& r_properties = GetProperties();
+                ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
 
                 //set constitutive law flags:
                 Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -370,6 +371,34 @@ public:
 
                 Output = 0.5*inner_prod(data.stress, strain);
             }
+        }
+        else if(rVariable == EQ_STRAIN_RATE) //compute effective strain rate
+        {
+                const Properties& r_properties = GetProperties();
+                ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
+                Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
+                // std::cout <<"StrainRate: "<<Output <<std::endl;
+        } 
+        else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
+        {
+            double distance_center = 0.0;
+            for(unsigned int i=0; i<GetGeometry().size(); i++)
+                distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+            distance_center/=static_cast<double>(GetGeometry().size());
+            
+            if(distance_center > 0) //AIR 
+            {
+                const Properties& r_properties = GetProperties();
+                Output = r_properties[DYNAMIC_VISCOSITY]; 
+            }
+            else //OTHER MATERIAL
+            {
+                const Properties& r_properties = GetProperties();
+                ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
+                Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
+                //std::cout <<"Viscosity: "<< Output <<std::endl; 
+            }         
+                        
         }
 
         KRATOS_CATCH("")

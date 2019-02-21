@@ -984,7 +984,6 @@ int  SmallDisplacementBbar::Check( const ProcessInfo& rCurrentProcessInfo )
 
     void SmallDisplacementBbar::save(Serializer& rSerializer) const
     {
-        rSerializer.save("Name", "SmallDisplacementBbar");
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseSolidElement);
     }
 

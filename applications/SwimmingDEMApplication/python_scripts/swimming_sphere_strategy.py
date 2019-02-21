@@ -9,7 +9,7 @@ BaseStrategy = sphere_strategy.ExplicitStrategy
 class SwimmingStrategy(BaseStrategy):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters
-        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters, procedures)
+        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -38,7 +38,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
-        do_search_neighbours =  self.DEM_parameters["do_search_neighbours"].GetBool()
+        do_search_neighbours =  self.project_parameters["do_search_neighbours"].GetBool()
         strategy_parameters = self.DEM_parameters["strategy_parameters"]
 
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':

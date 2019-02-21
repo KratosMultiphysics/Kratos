@@ -95,6 +95,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor.
+    MortarUtilities(){}
+
+    /// Destructor.
+    virtual ~MortarUtilities(){}
+
     ///@}
     ///@name Access
     ///@{

@@ -13,7 +13,7 @@ namespace Kratos {
     void SchillerAndNaumannDragLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string SchillerAndNaumannDragLaw::GetTypeOfLaw() {
-        std::string type_of_law = "SchillerAndNaumannDragLaw";
+        std::string type_of_law = "Schiller and Naumann drag law";
         return type_of_law;
     }
 
@@ -26,9 +26,21 @@ namespace Kratos {
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
-        double drag_coeff  = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(slip_velocity);
+        StokesDragLaw::ComputeForce(r_geometry,
+                                    reynolds_number,
+                                    particle_radius,
+                                    fluid_density,
+                                    fluid_kinematic_viscosity,
+                                    slip_velocity,
+                                    drag_force,
+                                    r_current_process_info);
 
-        drag_coeff *= 24 / reynolds_number * (1 + 0.15 * std::pow(reynolds_number, 0.687));
-        noalias(drag_force) = drag_coeff * slip_velocity;
+        if (reynolds_number < 1000){
+            drag_force *= (1 + 0.15 * std::pow(reynolds_number, 0.687));
+        }
+
+        else {
+            drag_force *= 0.01826 * reynolds_number;
+        }
     }
 } // namespace Kratos
