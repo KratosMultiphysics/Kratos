@@ -66,7 +66,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -122,7 +122,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
@@ -167,7 +167,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
 			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
@@ -226,7 +226,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.023845, 1e-6);
 			KRATOS_CHECK_NEAR(RHS(1), 0.048607, 1e-6);
@@ -244,7 +244,7 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(RHS(13), 4.29637, 1e-2);
 			KRATOS_CHECK_NEAR(RHS(14), 5.67408, 1e-2);
 			KRATOS_CHECK_NEAR(RHS(15), 0.000903677, 1e-9);
-			
+
 		}
 	} // namespace Testing
 }  // namespace Kratos.

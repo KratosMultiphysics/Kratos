@@ -33,7 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_supports","PointLoad3D_pointload", "Structure"],
         "rotation_dofs"                      : false,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         }
     },

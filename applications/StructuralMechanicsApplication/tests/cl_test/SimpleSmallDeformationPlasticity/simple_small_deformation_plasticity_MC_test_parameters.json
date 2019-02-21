@@ -33,7 +33,7 @@
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto5","DISPLACEMENT_Displacement_Auto6"],
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
-                "solver_type": "AMGCL"
+                "solver_type": "amgcl"
         }
     },
     "processes" : {
