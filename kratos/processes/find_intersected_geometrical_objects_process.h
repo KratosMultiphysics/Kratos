@@ -172,6 +172,7 @@ namespace Internals {
          * @param pObject The pointer to the object
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
+         * @deprecated Remove this, is already defined on base geometry as BoundingBox
          */
         static inline void CalculateBoundingBox(
             const PointerType& pObject,
@@ -200,6 +201,7 @@ namespace Internals {
          * @param pObject The pointer to the object
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
+         * @deprecated Remove this, is already defined on base geometry as BoundingBox
          */
         static inline void GetBoundingBox(
             const PointerType pObject,
