@@ -15,6 +15,9 @@
 #define  KRATOS_MODEL_PART_H_INCLUDED
 
 // System includes
+#include <string>
+#include <iostream>
+#include <sstream>
 
 // External includes
 
@@ -24,9 +27,13 @@
 #include "includes/process_info.h"
 #include "includes/communicator.h"
 #include "includes/mesh.h"
+#include "includes/element.h"
+#include "includes/condition.h"
+#include "includes/master_slave_constraint.h"
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
 #include "containers/pointer_hash_map_set.h"
+#include "containers/variable_list.h"
 #include "input_output/logger.h"
 
 namespace Kratos
