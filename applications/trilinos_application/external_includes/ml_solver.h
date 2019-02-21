@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Wrapper for Trilinos-ML Solver.
+/// Wrapper for Trilinos-ML preconditioner using the Aztec-Solver.
 /** ML is Sandia’s main multigrid preconditioning package.
  * ML is designed to solve large sparse linear systems of equations
  * arising primarily from elliptic PDE discretizations.
