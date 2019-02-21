@@ -23,6 +23,7 @@ namespace Kratos
 void EmbeddedIgaModeler::Test()
 {
     const auto face = m_brep_model_vector[0].GetFaceVector()[0];
+
     std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
     std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
     
@@ -32,20 +33,58 @@ void EmbeddedIgaModeler::Test()
     std::vector<Matrix> triangulation_uv;
 
     EmbeddedIgaTriangulation embedded_triangulation; 
+    
     embedded_triangulation.CreateTriangulation(
         outer_polygon_uv, inner_polygon_uv, triangulation_uv);
+    
+    std::vector<Matrix> surface_approx; 
+    MapCartesianSpace(face, triangulation_uv, surface_approx);
 
-    std::vector<Matrix> gauss_points_uv; 
+
+
+
+
+    std::vector<Matrix> gauss_points_approx; 
+    EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
+        surface_approx,gauss_points_approx); 
+
+    std::vector<Matrix> gauss_points_exact; 
     EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(
-        triangulation_uv, gauss_points_uv); 
+        triangulation_uv, gauss_points_exact);
+
+    Vector error; 
+    EmbeddedIgaErrorEstimation::EstimateError(
+        gauss_points_exact, gauss_points_approx, error); 
+
+
+
+
+
+
+    
+
 
     // project the Gauss-Points onto the exact surface using the MapCartesianSpace member function
-    std::vector<Matrix> gauss_points_xyz; 
-    MapCartesianSpace(face, gauss_points_uv, gauss_points_xyz);
-    
-    KRATOS_WATCH(gauss_points_uv)
-    KRATOS_WATCH(gauss_points_xyz)
-    
+    // std::vector<Matrix> gauss_points_xyz; 
+    // MapCartesianSpace(face, gauss_points_uv, gauss_points_xyz);
+
+    // std::vector<std::vector<double>> gp_coords_xyz(
+    //         gauss_points_xyz.size() * gauss_points_xyz[0].size1(), 
+    //         std::vector<double>(3,0));
+
+
+    //     unsigned int point_index = 0; 
+    //     for (unsigned int i = 0; i < gauss_points_xyz.size(); ++i) 
+    //     {
+    //         for (unsigned int j = 0; j < gauss_points_xyz[0].size1(); ++j)
+    //         {
+    //             gp_coords_xyz[point_index][0] = gauss_points_xyz[i](j,0); 
+    //             gp_coords_xyz[point_index][1] = gauss_points_xyz[i](j,1);
+    //             gp_coords_xyz[point_index][2] = gauss_points_xyz[i](j,2); 
+    //             point_index++;
+    //         }
+    //     }       
+    //     return gp_coords_xyz; 
 }
 
 

@@ -2,7 +2,7 @@
 #define  KRATOS_EMBEDDED_IGA_ERROR_ESTIMATION_H_INCLUDED
 
 // System includes
-
+#include <cmath>
 // External includes
 
 // Project includes
@@ -32,6 +32,11 @@ public:
     static void InsertGaussPointsApproxSurface(
         const std::vector<Matrix>& rTriangulation_xyz,
         std::vector<Matrix>& rGaussPoints_xyz);
+    
+    static void EstimateError(
+        const std::vector<Matrix>& rGaussPointsExact, 
+        const std::vector<Matrix>& rGaussPointsApprox, 
+        Vector& rError);
         
     ///@}
     ///@name Life Cycle
