@@ -25,7 +25,7 @@ extern "C"
 #include "nurbs_brep_modeler.h"
 #include "embedded_iga/embedded_iga_tessellation.h"
 #include "embedded_iga/embedded_iga_triangulation.h"
-// #include "embedded_iga/embedded_iga_error_estimation.h"
+#include "embedded_iga/embedded_iga_error_estimation.h"
 
 
 namespace Kratos
@@ -42,9 +42,16 @@ namespace Kratos
         ///@}
         ///@name functions
         ///@{
-        
+
         void Test();
+        static void MapCartesianSpace(
+            const BrepFace& rFaceGeometry,
+            const std::vector<Matrix>& rTriangulation_uv,
+            std::vector<Matrix>& rTriangulation_xyz);
+        
+        std::vector<std::vector<double>> PrintMappedPoints();
         std::vector<std::vector<double>> PrintParametricTessellation(); 
+        std::vector<std::vector<double>> PrintParametricTriangulation();
 
 
 

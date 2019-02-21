@@ -38,7 +38,8 @@ public:
     
     void CreateTriangulation(
         const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
-        const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon);
+        const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
+        std::vector<Matrix>& rTriangulation);
     
     void InitTriangulationDataStructure(triangulateio& tr)
     {
