@@ -239,5 +239,30 @@ namespace Testing {
         KRATOS_CHECK_NEAR(distances[2], 0.6, tolerance);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsCalculateTetrahedraIntersectionPoints, KratosCoreFastSuite)
+    {
+        Tetrahedra3D4 <NodeType> tetrahedra = GenerateExampleTetrahedra();
+
+        // Computing the info
+        array_1d<double, 4> distances;
+        distances[0] = 0.1;
+        distances[1] = 0.2;
+        distances[2] = -0.3;
+        distances[2] = 0.2;
+        array_1d<Point, 4> intersection_points;
+        GeometryUtils::CalculateTetrahedraIntersectionPoints(tetrahedra, distances, intersection_points);
+
+        const double tolerance = 1.0e-6;
+
+        KRATOS_CHECK_NEAR(intersection_points[0].X(), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(intersection_points[0].Y(), 1.0, tolerance);
+        KRATOS_CHECK_NEAR(intersection_points[0].Z(), 1.0, tolerance);
+        for (int i = 1; i < 4; ++i) {
+            KRATOS_CHECK_NEAR(intersection_points[i].X(), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(intersection_points[i].Y(), 0.0, tolerance);
+            KRATOS_CHECK_NEAR(intersection_points[i].Z(), 0.0, tolerance);
+        }
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
