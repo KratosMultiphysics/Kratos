@@ -211,7 +211,7 @@ public:
         return Create(DataCommunicator::GetDefault());
     }
 
-    Communicator::Pointer Create(const DataCommunicator& rDataCommunicator)
+    Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) override
     {
         KRATOS_TRY
 
