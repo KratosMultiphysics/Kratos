@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Philipp Bucher
 //
 
 #if !defined (KRATOS_AZTEC_SOLVER_H_INCLUDED)
@@ -21,7 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 
-//aztec solver includes
+// Aztec solver includes
 #include "AztecOO.h"
 #include "Epetra_LinearProblem.h"
 #include "Teuchos_ParameterList.hpp"
@@ -30,7 +31,23 @@
 
 namespace Kratos
 {
+///@name  Enum's
+///@{
+
 enum AztecScalingType {NoScaling,LeftScaling,SymmetricScaling};
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Wrapper for Trilinos-Aztec Iterative Solvers.
+/** AztecOO provides an object-oriented interface the the well-known Aztec solver library.
+ * Furthermore, it allows flexible construction of matrix and vector arguments via Epetra
+ * matrix and vector classes. Finally, AztecOO provide additional functionality not found
+ * in Aztec and any future enhancements to the Aztec package will be available only
+ * through the AztecOO interfaces.
+ * https://trilinos.org/packages/aztecoo/
+*/
 
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
@@ -38,12 +55,11 @@ class AztecSolver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:
-    /**
-     * Counted pointer of AztecSolver
-     */
-    KRATOS_CLASS_POINTER_DEFINITION( AztecSolver );
+    ///@name Type Definitions
+    ///@{
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    /// Pointer definition of AztecSolver
+    KRATOS_CLASS_POINTER_DEFINITION(AztecSolver);
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
@@ -51,6 +67,11 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor with Parameters.
     AztecSolver(Parameters settings)
     {
         Parameters default_settings( R"(
@@ -167,9 +188,6 @@ public:
         }
     }
 
-    /**
-     * Default constructor
-     */
     AztecSolver(Teuchos::ParameterList& aztec_parameter_list, std::string IFPreconditionerType, Teuchos::ParameterList& preconditioner_parameter_list, double tol, int nit_max, int overlap_level)
     {
         //settings for the AZTEC solver
@@ -185,10 +203,22 @@ public:
         mscaling_type = LeftScaling;
     }
 
-    /**
-     * Destructor
-     */
-    virtual ~AztecSolver() {}
+    /// Copy constructor.
+    AztecSolver(const AztecSolver& Other) = delete;
+
+    /// Destructor.
+    ~AztecSolver() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    AztecSolver& operator=(const AztecSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     //function to set the scaling typedef
     void SetScalingType(AztecScalingType scaling_type)
@@ -288,6 +318,8 @@ public:
     }
 
 private:
+    ///@name Member Variables
+    ///@{
 
     //aztec solver settings
     Teuchos::ParameterList maztec_parameter_list;
@@ -300,15 +332,7 @@ private:
     Teuchos::ParameterList mpreconditioner_parameter_list;
     int moverlap_level;
 
-    /**
-     * Assignment operator.
-     */
-    AztecSolver& operator=(const AztecSolver& Other);
-
-    /**
-     * Copy constructor.
-     */
-    AztecSolver(const AztecSolver& Other);
+    ///@}
 
 }; // Class AztecSolver
 

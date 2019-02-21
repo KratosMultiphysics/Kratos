@@ -29,10 +29,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Wrapper for Trilinos-Amesos Solver.
+/// Wrapper for Trilinos-Amesos Direct Solvers.
 /** Amesos is the Direct Sparse Solver Package in Trilinos.
  * The goal of Amesos is to make AX=B as easy as it sounds, at least for direct methods.
  * Amesos provides clean and consistent interfaces to several third party libraries.
+ * https://trilinos.org/packages/amesos/
 */
 
 template< class TSparseSpaceType, class TDenseSpaceType,
@@ -44,7 +45,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of LinearSolver
+    /// Pointer definition of AmesosSolver
     KRATOS_CLASS_POINTER_DEFINITION(AmesosSolver);
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
