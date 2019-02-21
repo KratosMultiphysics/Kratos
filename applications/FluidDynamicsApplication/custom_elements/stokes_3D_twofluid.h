@@ -885,17 +885,16 @@ private:
 
         //getting data for the given geometry
         double Volume;
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, Volume);
+        BoundedMatrix<double,NumNodes,Dim> v, DN;
+        array_1d<double,NumNodes> N;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN, N, Volume);
 
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             for(unsigned int k=0; k<Dim; k++)
-                data.v(i,k)   = vel[k];
+                v(i,k)   = vel[k];
         }
-
-        const BoundedMatrix<double,NumNodes,Dim>& v = data.v;
-        const BoundedMatrix<double,NumNodes,Dim>& DN = data.DN_DX;
 
         Vector strain(strain_size);
         strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
