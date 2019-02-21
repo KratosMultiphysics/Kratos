@@ -55,10 +55,28 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     # Inviscid Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.cpp
 
     # History Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/history_force_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.cpp
+
+    # Vorticity-Induced Lift Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.cpp
+
+    # Rotation-Induced Lift Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.cpp
+
+    # Steady Viscous torque laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
@@ -72,7 +90,6 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swimming_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
 
     ## Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp

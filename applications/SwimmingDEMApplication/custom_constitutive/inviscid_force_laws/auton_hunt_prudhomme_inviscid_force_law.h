@@ -15,7 +15,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(AutonHuntPrudhommeInviscidForceLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
-        AutonHuntPrudhommeInviscidForceLaw(): mDoApplyFaxenCorrections(false){}
+        AutonHuntPrudhommeInviscidForceLaw(){}
 
         AutonHuntPrudhommeInviscidForceLaw(Parameters& r_parameters);
 
@@ -32,6 +32,11 @@ namespace Kratos {
                           const double displaced_volume,
                           array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
                           const ProcessInfo& r_current_process_info) override;
+
+    protected:
+
+        double GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
+                                         const array_1d<double, 3>& slip_acc) override;
 
     private:
         bool mDoApplyFaxenCorrections;

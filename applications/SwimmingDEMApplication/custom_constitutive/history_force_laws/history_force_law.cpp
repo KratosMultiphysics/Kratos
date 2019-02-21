@@ -8,7 +8,7 @@ namespace Kratos {
     void HistoryForceLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string HistoryForceLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Generic History Force Law";
+        std::string type_of_law = "Generic history force law";
         return type_of_law;
     }
 

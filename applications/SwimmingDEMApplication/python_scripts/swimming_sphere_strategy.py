@@ -88,6 +88,10 @@ class SwimmingStrategy(BaseStrategy):
         history_force_parameters.AddEmptyValue("quadrature_order").SetInt(quadrature_order)
         history_force_law = BoussinesqBassetHistoryForceLaw(history_force_parameters)
 
+        lift_force_type = self.project_parameters["lift_force_type"].GetInt()
+        vorticity_induced_lift_parameters = Parameters("{}")
+        vorticity_induced_lift_law = SaffmanLiftLaw(vorticity_induced_lift_parameters)
+
         hydrodynamic_parameters = Parameters("{}")
         HydrodynamicInteractionLawString = properties[SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME]
         HydrodynamicInteractionLawString = 'HydrodynamicInteractionLaw'
@@ -98,6 +102,10 @@ class SwimmingStrategy(BaseStrategy):
 
         if basset_force_type:
             HydrodynamicInteractionLaw.SetHistoryForceLaw(history_force_law)
+
+        if lift_force_type:
+            HydrodynamicInteractionLaw.SetVorticityInducedLiftLaw(vorticity_induced_lift_law)
+
         HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)
 
         if not param:

@@ -39,7 +39,6 @@
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
 #include "custom_elements/swimming_particle.h"
 
-#include "custom_elements/spheric_swimming_particle.h"
 #include "../DEMApplication/custom_elements/spheric_particle.h"
 #include "../DEMApplication/custom_elements/nanoparticle.h"
 #include "../DEMApplication/custom_elements/analytic_spheric_particle.h"
@@ -149,10 +148,6 @@ private:
     const ShellRigid mRigidShellElement;
 
     const SwimmingParticle<SphericParticle> mSwimmingParticle3D;
-
-    /// swimming derivation of spheric basic DEM element (SphericParticle) TODO: deprecated in favour of mSwimmingParticle3D
-    const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
-
     const SwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
     const SwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
     /// Assignment operator.

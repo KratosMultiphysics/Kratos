@@ -8,7 +8,7 @@ namespace Kratos {
     void BuoyancyLaw::Initialize(const ProcessInfo& r_process_info) {}
 
     std::string BuoyancyLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Generic Drag Law";
+        std::string type_of_law = "Generic buoyancy law";
         return type_of_law;
     }
 

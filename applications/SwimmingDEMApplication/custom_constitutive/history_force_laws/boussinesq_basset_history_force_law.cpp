@@ -28,7 +28,7 @@ namespace Kratos {
     }
 
     std::string BoussinesqBassetHistoryForceLaw::GetTypeOfLaw() {
-        std::string type_of_law = "Boussinesq-Basset History Force Law";
+        std::string type_of_law = "Boussinesq-Basset history force law";
         return type_of_law;
     }
 

@@ -28,6 +28,9 @@
 #include "custom_constitutive/drag_laws/drag_law.h"
 #include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
 #include "custom_constitutive/history_force_laws/history_force_law.h"
+#include "custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
+#include "custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
+#include "custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.h"
 
 namespace Kratos
 {
@@ -41,11 +44,16 @@ KRATOS_CREATE_VARIABLE(std::string, SDEM_BUOYANCY_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_INVISCID_FORCE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HISTORY_FORCE_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_VORTICITY_LIFT_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_ROTATION_LIFT_LAW_NAME)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_STEADY_VISCOUS_TORQUE_LAW_NAME)
 KRATOS_CREATE_VARIABLE(BuoyancyLaw::Pointer, SDEM_BUOYANCY_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(InviscidForceLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(HistoryForceLaw::Pointer, SDEM_HISTORY_FORCE_LAW_POINTER)
-
+KRATOS_CREATE_VARIABLE(VorticityInducedLiftLaw::Pointer, SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(RotationInducedLiftLaw::Pointer, SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(SteadyViscousTorqueLaw::Pointer, SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
 
 
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
@@ -74,7 +82,6 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeLaplacianSimplexCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
   mRigidShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
   mSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-  mSphericSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
   mSwimmingNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
   mSwimmingAnalyticParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
 {}
@@ -94,10 +101,16 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_VORTICITY_LIFT_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_ROTATION_LIFT_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_STEADY_VISCOUS_TORQUE_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_BUOYANCY_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_HISTORY_FORCE_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_VORTICITY_INDUCED_LIFT_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
 
   /* Define In Global variables.cpp */
 
@@ -107,7 +120,6 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak3D", mMonolithicDEMCoupledWeak3D)
   KRATOS_REGISTER_ELEMENT("RigidShellElement", mRigidShellElement)
   KRATOS_REGISTER_ELEMENT("SwimmingParticle3D", mSwimmingParticle3D)
-  KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingAnalyticParticle3D", mSwimmingAnalyticParticle3D)
   KRATOS_REGISTER_ELEMENT("ComputeLaplacianSimplex2D", mComputeLaplacianSimplex2D)
