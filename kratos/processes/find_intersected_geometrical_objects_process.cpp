@@ -404,29 +404,54 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersectionWithBound
     GeometryType& rSecondGeometry
     )
 {
-    // Check the intersection of each edge against the intersecting object
-    const array_1d<double, 3>& r_coordinates_second_geometry_1 = rSecondGeometry[0].Coordinates();
-    const array_1d<double, 3>& r_coordinates_second_geometry_2 = rSecondGeometry[1].Coordinates();
-    auto r_edges = rFirstGeometry.Edges();
-    PointType int_pt(0.0,0.0,0.0);
-    for (auto& edge : r_edges) {
-        const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<NodeType>>(
-            Line2D2<NodeType>{edge},
-            r_coordinates_second_geometry_1,
-            r_coordinates_second_geometry_2,
-            int_pt.Coordinates());
-
-        if (int_id != 0){
-            return true;
-        }
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
+//     // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
+//     NodeType first_geometry_low_node, first_geometry_high_node;
+//     rFirstGeometry.BoundingBox(first_geometry_low_node, first_geometry_high_node);
+//     NodeType second_geometry_low_node, second_geometry_high_node;
+//     rSecondGeometry.BoundingBox(second_geometry_low_node, second_geometry_high_node);
+//
+//     // In order to compute the extended bounding box we need to compute the tangents
+//     array_1d<double, 3> tangent_1 = first_geometry_high_node.Coordinates() - first_geometry_low_node.Coordinates();
+//     tangent_1 /= norm_2(tangent_1);
+//
+//     array_1d<double, 3> tangent_2 = second_geometry_high_node.Coordinates() - second_geometry_low_node.Coordinates();
+//     tangent_2 /= norm_2(tangent_2);
+//
+//     // Computing the normal to this tangents
+//     array_1d<double, 3> normal_1, normal_2;
+//     normal_1[0] = first_geometry_high_node[1] - first_geometry_low_node[1];
+//     normal_1[1] = first_geometry_low_node[0] - first_geometry_high_node[0];
+//     normal_1[2] = 0.0;
+//     normal_2[0] = second_geometry_high_node[1] - second_geometry_low_node[1];
+//     normal_2[1] = second_geometry_low_node[0] - second_geometry_high_node[0];
+//     normal_2[2] = 0.0;
+//
+//     // Creating the box
+//     std::vector<array_1d<array_1d<double, 3>, 2>> edges_1(4);
+//     std::vector<array_1d<array_1d<double, 3>, 2>> edges_2(4);
+//
+//     noalias(edges_1[0][0]) = first_geometry_high_node + mBoundingBoxFactor * (normal_1 + tangent_1);
+//     noalias(edges_1[0][1]) = first_geometry_low_node + mBoundingBoxFactor * (normal_1 - tangent_1);
+//     noalias(edges_1[1][0]) = edges_1[0][1];
+//
+//     // Now we do the check
+//     array_1d<double,3> int_pt = ZeroVector(3);
+//     for (auto& edge_1 : edges_1) {
+//         for (auto& edge_2 : edges_2) {
+//             const int int_id = IntersectionUtilities::ComputeLineLineIntersection(edge_1, edge_2[0], edge_2[1], int_pt);
+//
+//             if (int_id != 0){
+//                 return true;
+//             }
+//         }
+//     }
+//
+//     // Let check second geometry is inside the first one.
+//     // Considering that there are no intersection, if one point is inside all of it is inside.
+//     array_1d<double, 3> local_point;
+//     if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+//         return true;
+//     }
 
     return false;
 }
@@ -467,20 +492,20 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersectionWithBound
     GeometryType& rSecondGeometry
     )
 {
-    // Check the intersection of each face against the intersecting object
-    auto faces = rFirstGeometry.Faces();
-    for (auto& face : faces) {
-        if (face.HasIntersection(rSecondGeometry)){
-            return true;
-        }
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
-    }
+//     // Check the intersection of each face against the intersecting object
+//     auto faces = rFirstGeometry.Faces();
+//     for (auto& face : faces) {
+//         if (face.HasIntersection(rSecondGeometry)){
+//             return true;
+//         }
+//     }
+//
+//     // Let check second geometry is inside the first one.
+//     // Considering that there are no intersection, if one point is inside all of it is inside.
+//     array_1d<double, 3> local_point;
+//     if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+//         return true;
+//     }
 
     return false;
 }
