@@ -18,6 +18,7 @@
 #include "utilities/geometry_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 // #include "includes/gid_io.h"
 
@@ -54,6 +55,23 @@ namespace Testing {
         triangle_nodes[1] = p_node_2;
         triangle_nodes[2] = p_node_3;
         Triangle2D3 <NodeType> triangle( PointerVector<NodeType>{triangle_nodes} );
+
+        return triangle;
+    }
+
+    Triangle3D3 <NodeType> GenerateExampleTriangle3D()
+    {
+        // First we create the nodes
+        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_shared<NodeType>(3, 1.0 , 1.0 , 0.0);
+
+        // Now we create the geometry
+        std::vector<NodeType::Pointer> triangle_nodes (3);
+        triangle_nodes[0] = p_node_1;
+        triangle_nodes[1] = p_node_2;
+        triangle_nodes[2] = p_node_3;
+        Triangle3D3 <NodeType> triangle( PointerVector<NodeType>{triangle_nodes} );
 
         return triangle;
     }
@@ -189,7 +207,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(DN_DX(1,0), 1.0,tolerance);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsSideLenghts2D, KratosCoreFastSuite2)
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsSideLenghts2D, KratosCoreFastSuite)
     {
         Triangle2D3 <NodeType> triangle = GenerateExampleTriangle();
 
@@ -201,6 +219,24 @@ namespace Testing {
 
         KRATOS_CHECK_NEAR(hmin, 1.0,tolerance);
         KRATOS_CHECK_NEAR(hmax, std::sqrt(2.0),tolerance);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsCalculateTriangleDistances, KratosCoreFastSuite)
+    {
+        Triangle3D3 <NodeType> triangle = GenerateExampleTriangle3D();
+
+        // Computing the info
+        array_1d<double, 3> distances;
+        distances[0] = 0.1;
+        distances[1] = 0.2;
+        distances[2] = -0.3;
+        GeometryUtils::CalculateTriangleDistances(triangle, distances);
+
+        const double tolerance = 1.0e-6;
+
+        KRATOS_CHECK_NEAR(distances[0], 0.353553, tolerance);
+        KRATOS_CHECK_NEAR(distances[1], 0.392232, tolerance);
+        KRATOS_CHECK_NEAR(distances[2], 0.6, tolerance);
     }
 
 }  // namespace Testing.
