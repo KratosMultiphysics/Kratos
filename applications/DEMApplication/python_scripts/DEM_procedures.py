@@ -171,7 +171,7 @@ class PostUtils(object):
         self.DEM_parameters = DEM_parameters
         self.spheres_model_part = spheres_model_part
         self.post_utilities = PostUtilities()
-
+        print(self.DEM_parameters)
         self.vel_trap_graph_counter = 0
         # TODO: change the name of VelTrapGraphExportFreq to VelTrapGraphExportTimeInterval
         self.vel_trap_graph_frequency = int(self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))

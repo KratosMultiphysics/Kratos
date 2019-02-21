@@ -12,21 +12,6 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         self.sdem_parameters = project_parameters
         super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
 
-    def LoadParametersFile(self):
-        self.DEM_parameters = self.project_parameters
-
-    def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
-        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
-
-        import swimming_dem_default_input_parameters
-        only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
-
-        for key in only_swimming_defaults.keys():
-            dem_defaults.AddValue(key, only_swimming_defaults[key])
-
-        return dem_defaults
-
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy

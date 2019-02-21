@@ -8,7 +8,6 @@
 "Multifile"                        : "multiple_files",
 
 "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-"AutomaticTimestep"                : false,
 "MaxTimeStep"                      : 0.005,
 "FinalTime"                        : 1.0,
 "ControlTime"                      : 4.0,
@@ -292,7 +291,6 @@
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
-        "AutomaticTimestep"                : false,
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 0.005,
         "FinalTime"                        : 1.0,
@@ -323,10 +321,7 @@
         "PostAngularVelocity"              : false,
         "PostParticleMoment"               : false,
         "PostEulerAngles"                  : false,
-        "PostBoundingBox"                  : false,
-        "PostPressure"                     : false,
-        "PredefinedSkinOption"             : false,
-        "MeanRadius"                       : 0.0001
+        "PostBoundingBox"                  : false
     }
 
 }
