@@ -142,7 +142,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetDispersePhaseAlgorithm(self):
         import fluid_coupled_DEM_analysis as DEM_analysis
-        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.pp)
+        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 
