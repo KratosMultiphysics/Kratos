@@ -169,6 +169,16 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const Vector& rStrainVectorGP,
 		const Vector& rStressVectorGP,
 		const Matrix& rElasticMatrix);
+	void CalculateSecondOrderTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
+	void CalculateSecondOrderCentralDifferencesTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
 	void CalculatePerturbation(
 		const Vector& rStrainVectorGP,
 		double& rPerturbation,
@@ -185,6 +195,20 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void AssignComponentsToTangentTensor(
 		Matrix& rTangentTensor,
 		const Vector& rDeltaStress,
+		const double Perturbation,
+		const int Component);
+	void AssignComponentsToSecondOrderTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rGaussPointStress,
+		const Vector& rPerturbedStress,
+		const Vector& rTwicePerturbedStress,
+		const double Perturbation,
+		const int Component);
+	void AssignComponentsToSecondOrderCentralDifferencesTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rGaussPointStress,
+		const Vector& rPerturbedStress,
+		const Vector& rTwicePerturbedStress,
 		const double Perturbation,
 		const int Component);
 

@@ -315,7 +315,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void Mesher::SetNeighbours(ModelPart& rModelPart,
-				  MeshingParametersType& rMeshingVariables)
+                             MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
 
@@ -332,26 +332,28 @@ namespace Kratos
 
     for(unsigned int el = 0; el<rModelPart.Elements().size(); el++)
       {
-	ElementPointerVectorType& rE = (element_begin+el)->GetValue(NEIGHBOR_ELEMENTS);
+	ElementWeakPtrVectorType& nElements = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
 
-	for(unsigned int pn=0; pn<nds; pn++){
-	  if( (element_begin+el)->Id() == rE[pn]->Id() )
-	    ElementNeighbourList[el*nds+pn] = 0;
+        int counter = 0;
+        for(auto& i_nelem : nElements)
+        {
+	  if( (element_begin+el)->Id() == i_nelem.Id() )
+	    ElementNeighbourList[el*nds+counter] = 0;
 	  else
-	    ElementNeighbourList[el*nds+pn] = rE[pn]->Id();
+	    ElementNeighbourList[el*nds+counter] = i_nelem.Id();
+          ++counter;
 	}
 
       }
 
     KRATOS_CATCH( "" )
-
   }
 
   //*******************************************************************************************
   //*******************************************************************************************
 
   void Mesher::SetElementNeighbours(ModelPart& rModelPart,
-					 MeshingParametersType & rMeshingVariables)
+                                    MeshingParametersType & rMeshingVariables)
   {
     KRATOS_TRY
 
@@ -363,17 +365,14 @@ namespace Kratos
     ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin();
 
     int facecounter=0;
-    for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin();
-	iii != rModelPart.ElementsEnd(); ++iii)
+    for(ModelPart::ElementsContainerType::const_iterator ci_elem = rModelPart.ElementsBegin();
+	ci_elem != rModelPart.ElementsEnd(); ++ci_elem)
       {
+	int Id= ci_elem->Id() - 1;
 
-	int Id= iii->Id() - 1;
-	//std::cout<<" Id ELNEIG "<<Id<<std::endl;
-
-
-	int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	(iii->GetValue(NEIGHBOR_ELEMENTS)).resize(number_of_faces);
-	ElementPointerVectorType& neighb = iii->GetValue(NEIGHBOR_ELEMENTS);
+	int number_of_faces = ci_elem->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+	ElementWeakPtrVectorType& nElements = ci_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        nElements.resize(number_of_faces);
 
 	for(int i = 0; i<number_of_faces; i++)
 	  {
@@ -381,20 +380,16 @@ namespace Kratos
 
 	    if(index > 0)
 	      {
-		//std::cout<<" Element "<<Id<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
-		//std::cout<<" Index pre "<<index<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
 		index = rMeshingVariables.PreservedElements[index-1];
-		//std::cout<<" Index post "<<index<<std::endl;
 	      }
 
 	    if(index > 0)
 	      {
-		neighb[i] = (*((el_begin + index -1 ).base())).get();
+		nElements(i) = *(el_begin + index -1).base();
 	      }
 	    else
 	      {
-		//neighb(i) = Element::WeakPointer();
-		neighb[i] = (*(iii.base())).get();
+		nElements(i) = *ci_elem.base();
 		facecounter++;
 	      }
 	  }

@@ -1316,7 +1316,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      Node<3>::Pointer rCenterOfGravity = this->GetGeometry()(0);
 
      if( rCenterOfGravity->Is(SLAVE) ){
-       Element& MasterElement = *this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();
+       Element& MasterElement = this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();
        rCenterOfGravity = MasterElement.GetGeometry()(0);
      }
 

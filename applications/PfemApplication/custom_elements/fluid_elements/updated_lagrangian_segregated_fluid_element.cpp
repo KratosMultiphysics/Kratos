@@ -1477,11 +1477,11 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
   // }
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
-  ElementPointerVectorType& neighb_elems = this->GetValue(NEIGHBOR_ELEMENTS);
+  ElementWeakPtrVectorType& nElements = this->GetValue(NEIGHBOUR_ELEMENTS);
   unsigned int face=0;
-  for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+  for(auto& i_nelem : nElements)
   {
-    if ((*ne)->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
+    if(i_nelem.Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
     {
       std::vector<SizeType> Nodes;
       unsigned int WallNodes  = 0;

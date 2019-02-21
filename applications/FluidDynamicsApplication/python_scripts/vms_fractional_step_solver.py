@@ -398,7 +398,7 @@ def CreateSolver(model_part, config, periodic=False):
         fluid_solver.dynamic_tau = config.dynamic_tau
 
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "pressure_linear_solver_config")):
         fluid_solver.pressure_linear_solver = linear_solver_factory.ConstructSolver(
             config.pressure_linear_solver_config)

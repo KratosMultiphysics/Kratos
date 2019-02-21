@@ -30,7 +30,7 @@
       "residual_absolute_tolerance"        : 1e-9,
       "max_iteration"                      : 10,
       "linear_solver_settings"             : {
-          "solver_type" : "SuperLUSolver"
+          "solver_type" : "ExternalSolversApplication.super_lu"
       },
       "problem_domain_sub_model_part_list" : ["structure"],
       "processes_sub_model_part_list"      : ["corner_points","load_point"],

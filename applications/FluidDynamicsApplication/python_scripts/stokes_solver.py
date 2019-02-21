@@ -54,7 +54,7 @@ class StokesSolver:
         self.compute_reactions = settings.compute_reactions
         self.reform_dofs_at_each_step = settings.reform_dofs_at_each_step
 
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
 
         self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(model_part,2)

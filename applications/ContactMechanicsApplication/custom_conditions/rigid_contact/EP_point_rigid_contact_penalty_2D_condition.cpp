@@ -95,12 +95,12 @@ namespace Kratos
      if ( dimension != 2)
         return Area;
 
-     ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
+     ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
 
      std::vector< double > AreaVector;
-     for ( unsigned int el = 0; el < rE.size() ; el++) {
-
-        const Geometry< Node < 3 > > & rElemGeom = rE[el]->GetGeometry();
+     for(auto& i_nelem : nElements)
+     {
+        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
         unsigned int nBoundary = 0;
 
         std::vector< unsigned int > BoundaryNodes;

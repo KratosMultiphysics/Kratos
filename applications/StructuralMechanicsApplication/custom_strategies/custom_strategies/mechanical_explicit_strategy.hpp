@@ -21,6 +21,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -68,6 +69,10 @@ public:
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
+    /// DoF types definition
+    typedef typename Node<3>::DofType DofType;
+    typedef typename DofType::Pointer DofPointerType;
+
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
@@ -76,7 +81,7 @@ public:
     ///@{
 
     /**
-     * Default constructor
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param CalculateReactions The flag for the reaction calculation
@@ -89,15 +94,12 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag) {
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+          mpScheme(pScheme),
+          mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+          mCalculateReactionsFlag(CalculateReactions)
+    {
         KRATOS_TRY
-
-        // Set flags to default values
-        this->mCalculateReactionsFlag = CalculateReactions;
-        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        // Saving the scheme
-        this->mpScheme = pScheme;
 
         // Set EchoLevel to the default value (only time is displayed)
         BaseType::SetEchoLevel(1);
@@ -196,7 +198,7 @@ public:
     {
         return mReformDofSetAtEachStep;
     }
-
+//
     /**
      * @brief Initialization of member variables and prior operations
      */
@@ -220,9 +222,10 @@ public:
             // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
             if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
 
-            // Set Nodal Mass to zero
+            // Set Nodal Mass and Damping to zero
             NodesArrayType& r_nodes = r_model_part.Nodes();
             VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+            VariableUtils().SetNonHistoricalVariable(NODAL_DISPLACEMENT_DAMPING, 0.0, r_nodes);
 
             // Iterate over the elements
             ElementsArrayType& r_elements = r_model_part.Elements();
@@ -235,8 +238,9 @@ public:
             if (has_dof_for_rot_z) {
                 const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
 
-                #pragma omp parallel for firstprivate(dummy_vector)
+                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
@@ -245,7 +249,7 @@ public:
                     it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
                 }
             } else { // Only NODAL_MASS is needed
-                #pragma omp parallel for firstprivate(dummy_vector)
+                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
@@ -275,19 +279,28 @@ public:
         TSystemVectorType rDx = TSystemVectorType();
         TSystemVectorType rb = TSystemVectorType();
 
-        // initial operations ... things that are constant over the Solution Step
+        // Initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, rDx, rb);
 
-        if (BaseType::mRebuildLevel > 0) {
+        if (BaseType::mRebuildLevel > 0) { // TODO: Right now is computed in the Initialize() because is always zero, the option to set the RebuildLevel should be added in the constructor or in some place
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             ElementsArrayType& r_elements = r_model_part.Elements();
             const auto it_elem_begin = r_elements.begin();
+
+            // Set Nodal Mass and Damping to zero
+            NodesArrayType& r_nodes = r_model_part.Nodes();
+            VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+            VariableUtils().SetNonHistoricalVariable(NODAL_DISPLACEMENT_DAMPING, 0.0, r_nodes);
 
             Vector dummy_vector;
             // If we consider the rotation DoF
             const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
             if (has_dof_for_rot_z) {
-                #pragma omp parallel for firstprivate(dummy_vector)
+                const array_1d<double, 3> zero_array = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
+                VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
+
+                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
@@ -295,8 +308,8 @@ public:
                     auto it_elem = it_elem_begin + i;
                     it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
                 }
-            } else { // Only NODAL_MASS is needed
-                #pragma omp parallel for firstprivate(dummy_vector)
+            } else { // Only NODAL_MASS and NODAL_DISPLACEMENT_DAMPING are needed
+                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
                 for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
@@ -329,13 +342,13 @@ public:
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
         Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
 
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
             auto it_cond = r_conditions.begin() + i;
             pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
-        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
             auto it_elem = r_elements.begin() + i;
             pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
@@ -351,16 +364,29 @@ public:
     {
         typename TSchemeType::Pointer pScheme = GetScheme();
         ModelPart& r_model_part = BaseType::GetModelPart();
+
+        // Some dummy sets and matrices
         DofsArrayType dof_set_dummy;
         TSystemMatrixType rA = TSystemMatrixType();
         TSystemVectorType rDx = TSystemVectorType();
         TSystemVectorType rb = TSystemVectorType();
 
+        // Initialize the non linear iteration
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
+        // Compute residual forces on the model part
         this->CalculateAndAddRHS(pScheme, r_model_part);
 
-        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb); // Explicitly integrates the equation of motion.
+        // Explicitly integrates the equation of motion.
+        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb);
+
+        // Finalize the non linear iteration
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+
+        // We compute the MPC contributions
+        if(r_model_part.MasterSlaveConstraints().size() > 0) {
+            ComputeExplicitConstraintConstribution(pScheme, r_model_part);
+        }
 
         // Calculate reactions if required
         if (mCalculateReactionsFlag) {
@@ -461,6 +487,31 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the explicit contribution of the constraints
+     * @param pScheme The pointer to the integration scheme used
+     * @param rModelPart The model part which defines the problem
+     */
+    void ComputeExplicitConstraintConstribution(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        // First we reset the slave dofs
+        ConstraintUtilities::ResetSlaveDofs(rModelPart);
+
+        // Now we apply the constraints
+        ConstraintUtilities::ApplyConstraints(rModelPart);
+    }
+
+    /**
+     * @brief This method computes the reactions of the problem
+     * @param pScheme The pointer to the integration scheme used
+     * @param rModelPart The model part which defines the problem
+     * @param rA The LHS of the system (empty)
+     * @param rDx The solution of the system (empty)
+     * @param rb The RHS of the system (empty)
+     */
     void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -476,42 +527,51 @@ private:
         const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 
         // Auxiliar values
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> force_residual = ZeroVector(3);
         array_1d<double, 3> moment_residual = ZeroVector(3);
 
-        // Iterating nodes
+        // Getting
         const auto it_node_begin = r_nodes.begin();
-        #pragma omp parallel for firstprivate(force_residual, moment_residual)
+        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+        const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
+
+        // Iterating nodes
+        #pragma omp parallel for firstprivate(force_residual, moment_residual), schedule(guided,512)
         for(int i=0; i<static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = it_node_begin + i;
 
             noalias(force_residual) = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
             if (has_dof_for_rot_z) {
                 noalias(moment_residual) = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            } else {
+                noalias(moment_residual) = zero_array;
             }
 
-            for (auto& r_dof : it_node->GetDofs()) {
-                if (r_dof.IsFixed()) {
-                    const auto& r_var = r_dof.GetVariable();
-                    if (r_var == DISPLACEMENT_X) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_X);
-                        r_reaction = force_residual[0];
-                    } else if (r_var == DISPLACEMENT_Y) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
-                        r_reaction = force_residual[1];
-                    } else if (r_var == DISPLACEMENT_Z) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Z);
-                        r_reaction = force_residual[2];
-                    } else if (r_var == ROTATION_X) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_X);
-                        r_reaction = moment_residual[0];
-                    } else if (r_var == ROTATION_Y) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Y);
-                        r_reaction = moment_residual[1];
-                    } else if (r_var == ROTATION_Z) {
-                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Z);
-                        r_reaction = moment_residual[2];
-                    }
+            if (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_X);
+                r_reaction = force_residual[0];
+            }
+            if (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
+                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
+                r_reaction = force_residual[1];
+            }
+            if (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
+                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Z);
+                r_reaction = force_residual[2];
+            }
+            if (has_dof_for_rot_z) {
+                if (it_node->GetDof(ROTATION_X, rotppos).IsFixed()) {
+                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_X);
+                    r_reaction = moment_residual[0];
+                }
+                if (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed()) {
+                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Y);
+                    r_reaction = moment_residual[1];
+                }
+                if (it_node->GetDof(ROTATION_Z, rotppos + 2).IsFixed()) {
+                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Z);
+                    r_reaction = moment_residual[2];
                 }
             }
         }
@@ -542,7 +602,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme;
+    typename TSchemeType::Pointer mpScheme; /// The pointer to the integration scheme
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
@@ -551,7 +611,7 @@ protected:
         - false => form just one (more efficient)
         Default = false
     */
-    bool mReformDofSetAtEachStep;
+    bool mReformDofSetAtEachStep = false;
 
     /**
      * @brief Flag telling if it is needed or not to compute the reactions

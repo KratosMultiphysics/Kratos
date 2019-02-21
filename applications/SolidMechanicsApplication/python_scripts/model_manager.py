@@ -356,7 +356,7 @@ class ModelManager(object):
 
     #
     def _build_composite_solving_parts(self):
-
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
         print(self._class_prefix()+" Composite Solving Parts")
         solving_parts = self.settings["composite_solving_parts"]
         for i in range(0,solving_parts.size()):
