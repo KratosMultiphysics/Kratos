@@ -15,6 +15,7 @@ namespace Kratos {
     {
         Parameters default_parameters( R"(
             {
+                "name":"AutonHuntPrudhommeInviscidForceLaw",
                 "do_apply_faxen_corrections": false
             }  )" );
 

@@ -124,6 +124,26 @@
 "print_VELOCITY_LAPLACIAN_option"            : false,
 "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
 
+"properties": [{
+    "model_part_name": "settling_particles",
+    "properties_id": 1,
+    "hydrodynamic_law_parameters": {
+        "name": "HydrodynamicInteractionLaw",
+        "buoyancy_parameters": {
+            "name":"ArchimedesBuoyancyLaw"
+        },
+        "inviscid_force_parameters": {
+            "name":"AutonHuntPrudhommeInviscidForceLaw",
+            "do_apply_faxen_corrections": false
+        },
+        "drag_parameters": {
+            "name":"StokesDragLaw"
+        },
+        "vorticity_induced_lift_parameters": {
+            "name":"SaffmanLiftLaw"
+        }
+    }
+}],
 
 "problem_name" : "Candelier",
 
