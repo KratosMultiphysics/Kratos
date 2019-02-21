@@ -254,6 +254,7 @@ protected:
         Parameters default_parameters = Parameters(R"(
         {
             "echo_level"                       : 0,
+            "using_average_nodal_normal"       : true,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
@@ -265,6 +266,7 @@ protected:
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
             "destination_variable_historical"  : true,
+            "update_interface"                 : false,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,

@@ -19,7 +19,7 @@ class LegacyMPICommInterface(object):
                 "DataCommunicators can be obtained calling\n",
                 "  KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(\"World\")\n",
                 "(for the DataCommunicator based on MPI_COMM_WORLD) or \n",
-                "  KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()\n",
+                "  KratosMultiphysics.DataCommunicator.GetDefault()\n",
                 "See the tests in kratos/mpi/tests/test_mpi_data_communicator_python.py for examples of usage."
             ]
             KratosMultiphysics.Logger.PrintWarning("MPI Interface","".join(msg))

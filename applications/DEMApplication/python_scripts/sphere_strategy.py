@@ -55,6 +55,7 @@ class ExplicitStrategy(object):
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
         self.search_increment = 0.0
+        self.search_increment_for_walls = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
         self.search_control = 1
@@ -80,6 +81,10 @@ class ExplicitStrategy(object):
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
+
+
+        self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
+
 
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -209,7 +214,6 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
@@ -407,6 +411,9 @@ class ExplicitStrategy(object):
 
     def PrepareContactElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+
+    def AttachSpheresToStickyWalls(self):
+        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
