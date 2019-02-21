@@ -240,18 +240,18 @@ public:
         double& rLength
         )
     {
-        const double x10 = std::abs(rGeometry[1].X() - rGeometry[0].X());
+        const double lx = rGeometry[0].X() - rGeometry[1].X();
+        const double ly = rGeometry[0].Y() - rGeometry[1].Y();
+        const double detJ = 0.5 * std::sqrt(std::pow(lx, 2) + std::pow(ly, 2));
 
-        const double detJ = x10;
+        rDN_DX(0,0) = -0.5;
+        rDN_DX(1,0) = 0.5;
+        rDN_DX /= detJ;
 
-        rDN_DX(0,0) = 1.0/(rGeometry[0].X() - rGeometry[1].X());
-        rDN_DX(0,1) = 1.0/(rGeometry[1].X() - rGeometry[0].X());
-
-        //rDN_DX /= detJ;
         rN[0] = 0.5;
         rN[1] = 0.5;
 
-        rLength = detJ;
+        rLength = 2.0 * detJ;
     }
 
     /**

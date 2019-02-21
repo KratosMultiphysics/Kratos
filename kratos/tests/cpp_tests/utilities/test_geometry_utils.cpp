@@ -16,6 +16,7 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 // #include "includes/gid_io.h"
@@ -24,6 +25,21 @@ namespace Kratos {
 namespace Testing {
 
     typedef Node<3> NodeType;
+
+    Line2D2 <NodeType> GenerateExampleLine()
+    {
+        // First we create the nodes
+        NodeType::Pointer p_node_1 = Kratos::make_shared<NodeType>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_shared<NodeType>(2, 1.0 , 0.0 , 0.0);
+
+        // Now we create the geometry
+        std::vector<NodeType::Pointer> line_nodes (2);
+        line_nodes[0] = p_node_1;
+        line_nodes[1] = p_node_2;
+        Line2D2 <NodeType> line( PointerVector<NodeType>{line_nodes} );
+
+        return line;
+    }
 
     Triangle2D3 <NodeType> GenerateExampleTriangle()
     {
@@ -132,7 +148,7 @@ namespace Testing {
 
         const double tolerance = 1.0e-8;
 
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < 4; ++i)
             KRATOS_CHECK_NEAR(N[i], 1.0/4.0, tolerance);
 
         KRATOS_CHECK_NEAR(volume, 1.0/6.0, tolerance);
@@ -149,6 +165,28 @@ namespace Testing {
         KRATOS_CHECK_NEAR(DN_DX(3,0), 0.0,tolerance);
         KRATOS_CHECK_NEAR(DN_DX(3,1), 0.0,tolerance);
         KRATOS_CHECK_NEAR(DN_DX(3,2), 1.0, tolerance);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsCalculateGeometryDataLine, KratosCoreFastSuite)
+    {
+        Line2D2 <NodeType> line = GenerateExampleLine();
+
+        // Computing the info
+        BoundedMatrix<double,2,1> DN_DX;
+        array_1d<double,2> N;
+        double length;
+
+        GeometryUtils::CalculateGeometryData(line, DN_DX, N, length);
+
+        const double tolerance = 1.0e-8;
+
+        for (int i = 0; i < 2; ++i)
+            KRATOS_CHECK_NEAR(N[i], 1.0/2.0, tolerance);
+
+        KRATOS_CHECK_NEAR(length, 1.0, tolerance);
+
+        KRATOS_CHECK_NEAR(DN_DX(0,0), -1.0,tolerance);
+        KRATOS_CHECK_NEAR(DN_DX(1,0), 1.0,tolerance);
     }
 
 }  // namespace Testing.
