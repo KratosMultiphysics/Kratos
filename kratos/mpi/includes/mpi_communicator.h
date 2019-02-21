@@ -184,7 +184,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MPICommunicator(VariablesList* Variables_list) : BaseType(), mpVariables_list(Variables_list)
+    MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
     {}
 
     MPICommunicator(VariablesList* pVariablesList, const DataCommunicator& rDataCommunicator)
