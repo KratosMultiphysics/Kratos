@@ -43,20 +43,15 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     auto& r_geom = (*itElem)->GetGeometry();
     r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[LocalId].Id()));
 
-    // Set the vectors
-    // mNodeIdContainer.push_back(r_geom[LocalId].Id());
-    // mNodePressureIdContainer.push_back(PressureId);
-    // test
+    // Assign pressure to nwe wet node
     mrModelPart.pGetNode(r_geom[LocalId].Id())->SetValue(PRESSURE_ID, PressureId);
-
-    KRATOS_WATCH(r_geom[LocalId].Id())
 
     const IndexType id_1 = LocalId == 0 ? 0 : LocalId == 1 ? 1 : 2;
     const IndexType id_2 = LocalId == 0 ? 1 : LocalId == 1 ? 2 : 0;
     const IndexType id_3 = LocalId == 0 ? 2 : LocalId == 1 ? 0 : 1;
 
-    condition_nodes_id[0] = r_geom[id_1].Id();
-    condition_nodes_id[1] = r_geom[id_2].Id();
+    condition_nodes_id[0] = r_geom[id_2].Id();
+    condition_nodes_id[1] = r_geom[id_1].Id();
 	rMaximumConditionId++;
     const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
@@ -310,32 +305,28 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
     r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
 
     // Set the 2 new nodes to wet nodes
-    // mNodeIdContainer.push_back(r_geom[id_2].Id());
-    // mNodeIdContainer.push_back(r_geom[id_3].Id());
-    // mNodePressureIdContainer.push_back(PressureId);
-    // mNodePressureIdContainer.push_back(PressureId);
     mrModelPart.pGetNode(r_geom[id_2].Id())->SetValue(PRESSURE_ID, PressureId);
     mrModelPart.pGetNode(r_geom[id_3].Id())->SetValue(PRESSURE_ID, PressureId);
 
     // We create the new pressure conditions
-    condition_nodes_id[0] = r_geom[id_1].Id();
-    condition_nodes_id[1] = r_geom[id_2].Id();
+    condition_nodes_id[0] = r_geom[id_2].Id();
+    condition_nodes_id[1] = r_geom[id_1].Id();
 	rMaximumConditionId++;
     const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
 					                    rMaximumConditionId,
 					                    condition_nodes_id,
 					                    p_properties, 0);
-    condition_nodes_id[0] = r_geom[id_2].Id();
-    condition_nodes_id[1] = r_geom[id_3].Id();
+    condition_nodes_id[0] = r_geom[id_3].Id();
+    condition_nodes_id[1] = r_geom[id_2].Id();
 	rMaximumConditionId++;
     const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
 					                    rMaximumConditionId,
 					                    condition_nodes_id,
 					                    p_properties, 0);
-    condition_nodes_id[0] = r_geom[id_3].Id();
-    condition_nodes_id[1] = r_geom[id_1].Id();
+    condition_nodes_id[0] = r_geom[id_1].Id();
+    condition_nodes_id[1] = r_geom[id_3].Id();
 	rMaximumConditionId++;
     const auto& r_line_cond3 = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
@@ -413,7 +404,6 @@ void ExtendPressureConditionProcess<2>::Execute()
         }
         // it_elem's going to be removed
         if (condition_is_active == false && (*it_elem)->GetValue(SMOOTHING) == false) {
-            KRATOS_WATCH((*it_elem)->Id())
             unsigned int local_id, counter = 0, pressure_id;
             auto& r_geometry = (*it_elem)->GetGeometry();
             // Loop over nodes in order to check if there's pressure on nodes
@@ -426,13 +416,11 @@ void ExtendPressureConditionProcess<2>::Execute()
                 }
             }
             if (counter == 2) {
-                std::cout << "22222222222222" << std::endl;
                 this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (counter == 1) {
-                std::cout << "11111111111111111111" << std::endl;
                 this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
