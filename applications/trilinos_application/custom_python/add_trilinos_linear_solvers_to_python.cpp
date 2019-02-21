@@ -65,8 +65,10 @@ void  AddLinearSolvers(pybind11::module& m)
         .def(py::init<>())
         .def("Solve", Solve);
 
-    py::class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter").def( py::init<>())
-        .def("SetDefaults", &EpetraDefaultSetter::SetDefaults);
+    py::class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter")
+        .def( py::init<>())
+        .def("SetDefaults", &EpetraDefaultSetter::SetDefaults)
+        ;
 
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
