@@ -24,7 +24,7 @@ extern "C"
 #include "iga_application_variables.h"
 #include "nurbs_brep_modeler.h"
 #include "embedded_iga/embedded_iga_tessellation.h"
-// #include "embedded_iga/embedded_iga_triangulation.h"
+#include "embedded_iga/embedded_iga_triangulation.h"
 // #include "embedded_iga/embedded_iga_error_estimation.h"
 
 
@@ -43,7 +43,8 @@ namespace Kratos
         ///@name functions
         ///@{
         
-        std::vector<std::vector<double>> Test(); 
+        void Test();
+        std::vector<std::vector<double>> PrintParametricTessellation(); 
 
 
 

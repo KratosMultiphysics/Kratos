@@ -846,7 +846,7 @@ namespace Kratos {
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
-        .def("Test", &EmbeddedIgaModeler::Test)
+        .def("PrintParametricTessellation", &EmbeddedIgaModeler::PrintParametricTessellation)
 
         ;
 
