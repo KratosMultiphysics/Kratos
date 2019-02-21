@@ -57,7 +57,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<class TEntity>
-class EntitiesEraseProcess
+class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess
     : public Process
 {
 public:
