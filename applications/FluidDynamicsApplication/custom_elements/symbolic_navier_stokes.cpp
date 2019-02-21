@@ -150,8 +150,8 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryTraction(
     this->GetCurrentValuesVector(rData,values);
 
     rData.lhs *= rData.Weight;
-    noalias(rLHS) += rData.lhs;
-    noalias(rRHS) -= prod(rData.lhs,values);
+    noalias(rLHS) -= rData.lhs;
+    noalias(rRHS) += prod(rData.lhs,values);
 }
 
 template <>
