@@ -194,9 +194,10 @@ public:
 
     /// Copy constructor.
 
-    MPICommunicator(MPICommunicator const& rOther) : BaseType(rOther)
-    {
-    }
+    MPICommunicator(MPICommunicator const& rOther)
+    : BaseType(rOther)
+    , mpVariables_list(rOther.mpVariables_list)
+    {}
 
 
     /// Destructor.
