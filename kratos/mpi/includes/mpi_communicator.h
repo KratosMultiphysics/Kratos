@@ -243,69 +243,6 @@ public:
     ///@name Operations
     ///@{
 
-    bool SumAll(int& rValue) const override
-    {
-        int local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool SumAll(double& rValue) const override
-    {
-        double local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool SumAll(array_1d<double, 3>& rValue) const override
-    {
-        array_1d<double, 3> local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool MinAll(int& rValue) const override
-    {
-        int local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool MinAll(double& rValue) const override
-    {
-        double local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool MaxAll(int& rValue) const override
-    {
-        int local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool MaxAll(double& rValue) const override
-    {
-        double local_value = rValue;
-        MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool ScanSum(const double& send_partial, double& receive_accumulated) const override
-    {
-        double copy_of_send_partial = send_partial;
-        MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_DOUBLE, MPI_SUM , MPI_COMM_WORLD);
-        return true;
-    }
-
-    bool ScanSum(const int& send_partial, int& receive_accumulated) const override
-    {
-        int copy_of_send_partial = send_partial;
-        MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_INT, MPI_SUM , MPI_COMM_WORLD);
-        return true;
-    }
-
     bool SynchronizeElementalIds() override
     {
         int rank;

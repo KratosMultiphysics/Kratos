@@ -484,69 +484,55 @@ public:
 
     virtual bool SumAll(int& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
     virtual bool SumAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
     virtual bool SumAll(array_1d<double, 3>& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
     virtual bool MinAll(int& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
     virtual bool MinAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
     virtual bool MaxAll(int& rValue) const
     {
-        /*#if defined(KRATOS_USING_MPI )
-                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        #endif*/
+        rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
     virtual bool MaxAll(double& rValue) const
     {
-        // #if defined(KRATOS_USING_MPI )
-        // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-        // #endif
+        rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
     virtual bool ScanSum(const double& send_partial, double& receive_accumulated) const
     {
-        receive_accumulated = send_partial;
+        receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
     }
 
     virtual bool ScanSum(const int& send_partial, int& receive_accumulated) const
     {
-        receive_accumulated = send_partial;
+        receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
     }
 
