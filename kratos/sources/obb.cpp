@@ -24,7 +24,7 @@ OBB<TDim>::OBB(
     const BaseType& rCenterPoint,
     const array_1d<double, 3>& rOrientationVector,
     const double HalfDiagonal
-    ): BaseType(rPoint),
+    ): BaseType(rCenterPoint),
         mOrientationVector(rOrientationVector),
         mHalfDiagonal(HalfDiagonal)
 {}
@@ -86,7 +86,7 @@ array_1d<double, 3>& OBB<TDim>::GetOrientationVector()
 template<std::size_t TDim>
 void OBB<TDim>::SetOrientationVector(const array_1d<double, 3>& rOrientationVector)
 {
-    noalias(OrientationVector) = rOrientationVector;
+    noalias(mOrientationVector) = rOrientationVector;
 }
 
 /***********************************************************************************/
