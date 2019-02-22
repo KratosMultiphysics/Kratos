@@ -188,6 +188,37 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         self.assertEqual(self.world.Rank(), submodelpart.GetCommunicator().MyPID())
         self.assertEqual(self.world.Size(), submodelpart.GetCommunicator().TotalProcesses())
 
+    def testCommunicatorReduction(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        self._read_model_part_mpi(main_model_part)
+
+        self.world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+
+        comm = main_model_part.GetCommunicator()
+
+        self.assertEqual(comm.SumAll(1), self.world.Size())
+        self.assertEqual(comm.SumAll(2.0), 2.0*self.world.Size())
+        self.assertEqual(comm.MinAll(comm.MyPID()), self.world.MinAll(self.world.Rank()))
+        self.assertEqual(comm.MaxAll(comm.MyPID()), self.world.MaxAll(self.world.Rank()))
+        self.assertEqual(comm.ScanSum(1,1), self.world.Rank()+1)
+
+    def testCommunicatorReductionSerial(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+
+        # this one is not set, so it should be a serial Communicator
+        comm = main_model_part.GetCommunicator()
+
+        self.assertEqual(comm.SumAll(1), 1)
+        self.assertEqual(comm.SumAll(2.0), 2.0)
+        self.assertEqual(comm.MinAll(comm.MyPID()), 0)
+        self.assertEqual(comm.MaxAll(comm.MyPID()), 0)
+        self.assertEqual(comm.ScanSum(1,1), 1)
+
+
     #def test_model_part_io_properties_block(self):
     #    model_part = ModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
