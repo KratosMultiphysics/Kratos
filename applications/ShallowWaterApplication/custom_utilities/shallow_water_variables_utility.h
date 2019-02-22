@@ -317,7 +317,7 @@ public:
      * ExecuteBeforeOutputStep
      * @see ResetMeshPosition
      */
-    void SetMeshPosition()
+    void SetMeshPosition(bool DiscriminateWetDomain = false)
     {
         // Move mesh to the current position
         const int nodes = static_cast<int>(mrModelPart.Nodes().size());
@@ -328,15 +328,15 @@ public:
         {
             auto node = node_begin + i;
 
-            if (node->FastGetSolutionStepValue(HEIGHT) <= mDryHeight)
+            if (node->FastGetSolutionStepValue(HEIGHT) > mDryHeight && DiscriminateWetDomain)
             {
-                double value = node->FastGetSolutionStepValue(BATHYMETRY);
+                double value = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
                 node->Z() = value;
                 node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
             }
             else
             {
-                double value = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+                double value = node->FastGetSolutionStepValue(BATHYMETRY);
                 node->Z() = value;
                 node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
             }
@@ -348,7 +348,7 @@ public:
      * ExecuteAfterOutputStep
      * @see SetMeshPosition
      */
-    void ResetMeshPosition()
+    void ResetMeshPosition(bool SetToZero = false)
     {
         // Move mesh to the original position
         const int nodes = static_cast<int>(mrModelPart.Nodes().size());
@@ -358,7 +358,10 @@ public:
         for(int i = 0; i < nodes; i++)
         {
             auto node = node_begin + i;
-            node->Z() = node->Z0();
+            if (SetToZero)
+                node->Z() = 0.0;
+            else
+                node->Z() = node->Z0();
         }
     }
 

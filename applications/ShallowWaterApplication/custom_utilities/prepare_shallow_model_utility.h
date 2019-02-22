@@ -175,7 +175,7 @@ public:
             conds_collection[cond_tag.second].push_back(cond_tag.first);
         }
 
-        // And finally, populate the sub model parts
+        // And populate the sub model parts
         // Nodes
         for (auto collection : nodes_collection)
         {
@@ -218,6 +218,40 @@ public:
             }
         }
 
+
+        // Finally, we need to increase the ids and duplicate the properties, in order to have different meshes in the post-process
+        // TODO: We should renumber the computing model part id, but the move particles utility will renumber the ids again. In the future the move particles utility should not renumber ids
+        // NOTE: this is very dirty but it works in GiD
+        Properties::Pointer topographic_property = mrTopographicModelPart.CreateNewProperties(100);
+        IndexType node_id = num_nodes;
+        IndexType elem_id = num_elements;
+        IndexType cond_id = num_conditions;
+        // Nodes
+        const IndexType num_computing_nodes = mrTopographicModelPart.Nodes().size();
+        const auto it_computing_node_begin = mrTopographicModelPart.NodesBegin();
+        for (IndexType i = 0; i < num_computing_nodes; i++)
+        {
+            auto it_node = it_computing_node_begin + i;
+            it_node->SetId(++node_id);
+        }
+        // Elements
+        const IndexType num_computing_elements = mrTopographicModelPart.Elements().size();
+        const auto it_computing_element_begin = mrTopographicModelPart.ElementsBegin();
+        for (IndexType i = 0; i < num_computing_elements; i++)
+        {
+            auto it_elem = it_computing_element_begin + i;
+            it_elem->SetId(++elem_id);
+            it_elem->SetProperties(topographic_property);
+        }
+        // Conditions
+        const IndexType num_computing_conditions = mrTopographicModelPart.Conditions().size();
+        const auto it_computing_condition_begin = mrTopographicModelPart.ConditionsBegin();
+        for (IndexType i = 0; i < num_computing_conditions; i++)
+        {
+            auto it_cond = it_computing_condition_begin + i;
+            it_cond->SetId(++cond_id);
+            it_cond->SetProperties(topographic_property);
+        }
 
     }
 
