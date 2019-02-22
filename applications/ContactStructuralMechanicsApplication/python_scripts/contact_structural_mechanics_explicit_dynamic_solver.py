@@ -42,6 +42,9 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
 
+        # Getting delta_time_factor_for_contact
+        self.delta_time_factor_for_contact = self.contact_settings["delta_time_factor_for_contact"].GetDouble()
+
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
 
@@ -91,8 +94,11 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        # TODO: Add specific methods for updating the contact delta time
-        return super(ContactExplicitMechanicalSolver, self).ComputeDeltaTime()
+        self.delta_time = super(ContactExplicitMechanicalSolver, self).ComputeDeltaTime()
+        if self.GetComputingModelPart().Is(KM.CONTACT):
+            return self.delta_time_factor_for_contact * self.delta_time
+        else:
+            return self.delta_time
 
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
@@ -103,5 +109,3 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         KM.Logger.PrintWarning(" ".join(map(str,args)))
 
     #### Private functions ####
-
-

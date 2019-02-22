@@ -42,7 +42,7 @@
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.Super_LU"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",

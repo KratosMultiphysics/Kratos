@@ -163,19 +163,13 @@ namespace Kratos {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
                 if (print_debug_files) {
                     std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
-                    outputfile << alpha << "\n";
+                    outputfile <<" "<<cont_ini_neighbours_size<<" "<<external_sphere_area<<" "<<total_equiv_area<<" "<< alpha << "\n";
                     outputfile.close();
                 }
                 for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
                     total_mContIniNeighArea += cont_ini_neigh_area[i];
                 } //for every neighbor
-
-                if (print_debug_files) {
-                    std::ofstream outputfile2("total_mContIniNeighArea-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
-                    outputfile2 << total_mContIniNeighArea << "  " << total_equiv_area << "\n";
-                    outputfile2.close();
-                }
             }
 
             else {//skin sphere
@@ -185,7 +179,7 @@ namespace Kratos {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
                 } //for every neighbor
             }
-        }//if more than 3 neighbors
+        }//if more than 6 neighbors
     }
 
     double SphericContinuumParticle::EffectiveVolumeRadius() {
@@ -313,7 +307,7 @@ namespace Kratos {
             double TotalGlobalElasticContactForce[3] = {0.0};
             double OldLocalElasticContactForce[3] = {0.0};
 
-            FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
+            //FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 
@@ -581,16 +575,16 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& TempNeighbourElements) {
+    void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& temp_neighbour_elements) {
 
         KRATOS_TRY
 
         unsigned int current_neighbors_size = mNeighbourElements.size();
         unsigned int initial_neighbors_size = mIniNeighbourIds.size();
-        TempNeighbourElements.resize(initial_neighbors_size);
+        temp_neighbour_elements.resize(initial_neighbors_size);
 
         for (unsigned int i = 0; i < initial_neighbors_size; i++) {
-            TempNeighbourElements[i] = NULL;
+            temp_neighbour_elements[i] = NULL;
         }
 
         // Loop over current neighbors
@@ -601,7 +595,7 @@ namespace Kratos {
             for (unsigned int kk = 0; kk < initial_neighbors_size; kk++) {
 
                 if (static_cast<int>(i_neighbour->Id()) == mIniNeighbourIds[kk]) {
-                    TempNeighbourElements[kk] = i_neighbour;
+                    temp_neighbour_elements[kk] = i_neighbour;
                     found = true;
                     break;
                 }
@@ -616,12 +610,12 @@ namespace Kratos {
                 double indentation = radius_sum - distance;
 
                 if (indentation > 0.0) {
-                    TempNeighbourElements.push_back(i_neighbour);
+                    temp_neighbour_elements.push_back(i_neighbour);
                 }
             }
         }
 
-        mNeighbourElements.swap(TempNeighbourElements);
+        mNeighbourElements.swap(temp_neighbour_elements);
 
         if (mBondElements.size()) {
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
@@ -645,10 +639,10 @@ namespace Kratos {
         unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
         unsigned int initial_neighbors_size = mFemIniNeighbourIds.size();
 
-        std::vector<DEMWall*> TempNeighbourElements;
-        TempNeighbourElements.resize(initial_neighbors_size);
+        std::vector<DEMWall*> temp_neighbour_elements;
+        temp_neighbour_elements.resize(initial_neighbors_size);
 
-        for (unsigned int i = 0; i < initial_neighbors_size; i++) { TempNeighbourElements[i] = NULL; }
+        for (unsigned int i = 0; i < initial_neighbors_size; i++) { temp_neighbour_elements[i] = NULL; }
 
         // Loop over current neighbors
         for (unsigned int i = 0; i < current_neighbors_size; i++) {
@@ -657,16 +651,16 @@ namespace Kratos {
             // Loop over initial neighbors
             for (unsigned int k = 0; k < initial_neighbors_size; k++) {
                 if (static_cast<int>(i_neighbour->Id()) == mFemIniNeighbourIds[k]) {
-                    TempNeighbourElements[k] = i_neighbour;
+                    temp_neighbour_elements[k] = i_neighbour;
                     found = true;
                     break;
                 }
             }
 
-            if (!found) { TempNeighbourElements.push_back(i_neighbour); }
+            if (!found) { temp_neighbour_elements.push_back(i_neighbour); }
         }
 
-        mNeighbourRigidFaces.swap(TempNeighbourElements);
+        mNeighbourRigidFaces.swap(temp_neighbour_elements);
 
         KRATOS_CATCH("")
     }

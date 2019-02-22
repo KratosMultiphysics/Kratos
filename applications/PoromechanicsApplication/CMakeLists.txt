@@ -145,7 +145,8 @@ install(TARGETS KratosPoromechanicsCore DESTINATION libs )
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PoromechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PoromechanicsApplication.py" DESTINATION "KratosMultiphysics/PoromechanicsApplication" RENAME "__init__.py")
+
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

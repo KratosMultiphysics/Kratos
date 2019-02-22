@@ -11,7 +11,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-
 sys.stdout.flush()
 
 class Solution(object):

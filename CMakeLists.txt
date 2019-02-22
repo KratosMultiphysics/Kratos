@@ -16,7 +16,7 @@ endif(POLICY CMP0022)
 
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 6)
+set (KratosMultiphysics_MAJOR_VERSION 7)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
@@ -27,7 +27,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
-#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -342,7 +342,6 @@ if(${MPI_NEEDED} MATCHES ON )
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-  # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
 # Find zlib (for gidpost)
@@ -415,11 +414,6 @@ if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
 endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(external_libraries/mpi_python)
-endif(${MPI_NEEDED} MATCHES ON )
-
 # Set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
@@ -432,7 +426,6 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 ################################################################################
 # install core files for the KratosMultiphysics python module
-# note that this does not install KratosLoader.py, as it is different for installation and packaging runs (see next code block)
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
@@ -455,21 +448,8 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  #take care: do not indent the lines below
-  file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-import os.path
-kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
-kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
-kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
-kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
-sys.path.append(kratos_libs)
-sys.path.append(kratos_scripts)
-sys.path.append(kratos_tests)
-")
-
   file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
 
-  install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics )
   install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
   install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
 
@@ -478,19 +458,9 @@ sys.path.append(kratos_tests)
   set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
   #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
-  #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
+  #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
   Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
 
   INCLUDE(CPack)
-else(${INSTALL_PYTHON_FILES} MATCHES ON)
-  #take care: do not indent the lines below
-  file(WRITE ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics/KratosLoader.py "import sys
-kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
-kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
-sys.path.append(kratos_libs)
-sys.path.append(kratos_scripts)
-sys.path.append(kratos_tests) ")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)

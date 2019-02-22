@@ -177,7 +177,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Mohr_Coulomb")
         .def(py::init<>())
         ;
-    
+
     py::class_<DEM_KDEM_CamClay, DEM_KDEM_CamClay::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_CamClay")
         .def(py::init<>())
         ;
