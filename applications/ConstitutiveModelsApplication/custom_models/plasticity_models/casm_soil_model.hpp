@@ -199,29 +199,6 @@ namespace Kratos
          /**
           * Get Values
           */
-         void SetValue(const Variable<double>& rVariable,
-               const double& rValue,
-               const ProcessInfo& rCurrentProcessInfo) override 
-         {
-            KRATOS_TRY
-
-            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
-               this->mInternal.Variables[7] = rValue;
-            }
-            else if ( rVariable == NONLOCAL_PLASTIC_DEV_DEF) {
-               this->mInternal.Variables[8] = rValue;
-            }
-            else if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS) {
-               this->mInternal.Variables[9] = rValue;
-            }
-
-            KRATOS_CATCH("")
-         }
-
-
-         /**
-          * Get Values
-          */
          virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
             KRATOS_TRY
@@ -236,42 +213,10 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0]-this->mPreviousInternal.Variables[0];
             }
-            else if ( rThisVariable == PS)
-            {
-               rValue = this->mInternal.Variables[3];
-            }
-            else if ( rThisVariable == PT)
-            {
-               rValue = this->mInternal.Variables[4];
-            }
-            else if ( rThisVariable == PM)
+            /*else if (rThisVariable==PRECONSOLIDATION)
             {
                rValue = this->mInternal.Variables[5];
-            } 
-            else if ( rThisVariable == PLASTIC_VOL_DEF)
-            {
-               rValue = this->mInternal.Variables[1];
-            }
-            else if ( rThisVariable == PLASTIC_DEV_DEF)
-            {
-               rValue = this->mInternal.Variables[2];
-            }
-            else if ( rThisVariable == PLASTIC_VOL_DEF_ABS)
-            {
-               rValue = this->mInternal.Variables[6];
-            }
-            else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF)
-            {
-               rValue = this->mPreviousInternal.Variables[7];
-            }
-            else if ( rThisVariable == NONLOCAL_PLASTIC_DEV_DEF)
-            {
-               rValue = this->mPreviousInternal.Variables[8];
-            }
-            else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS)
-            {
-               rValue = this->mPreviousInternal.Variables[9];
-            }
+            }*/
             else {
                rValue = NonAssociativePlasticityModel<TElasticityModel, TYieldSurface>::GetValue( rThisVariable, rValue);
             }
@@ -503,18 +448,13 @@ namespace Kratos
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const Properties & rMaterialProperties = rModelData.GetProperties();
-               double rhos = rMaterialProperties[RHOS];
-               double rhot = rMaterialProperties[RHOT];
-               double chis = rMaterialProperties[CHIS];
-               double chit = rMaterialProperties[CHIT];
-               double k =  rMaterialProperties[KSIM];
-               // evaluate constitutive matrix and plastic flow
+               const double & rInitialPrecon = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
+               const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
+               const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+
                double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
-               //double & rPlasticMultiplier = rVariables.Internal.Variables[0];
                double & rPlasticDevDef = rVariables.Internal.Variables[2];
-               double & rPS     = rVariables.Internal.Variables[3];
-               double & rPT     = rVariables.Internal.Variables[4];
-               double & rPCstar = rVariables.Internal.Variables[5];
+               double & rPreconsolidation = rVariables.Internal.Variables[5];
 
                for (unsigned int i = 0; i < 150; i++) {
 
@@ -554,13 +494,8 @@ namespace Kratos
                   DevPlasticIncr = DeltaGamma/fabs(DeltaGamma) * sqrt(DevPlasticIncr);
                   rPlasticDevDef += DevPlasticIncr;
 
+                  rPreconsolidation = -rInitialPrecon * std::exp( -rPlasticVolDef/ ( rOtherSlope-rSwellingSlope) );
 
-                  double hs =  rhos * rPS * (VolPlasticIncr + chis * sqrt(2.0/3.0)* DevPlasticIncr);
-                  double ht = rhot * (-rPT) * ( fabs(VolPlasticIncr)  + chit*sqrt(2.0/3.0)*DevPlasticIncr);
-                  rPS -= hs;
-                  rPT -= ht;
-
-                  rPCstar = rPS + (1.0 + k)*rPT;
 
 
                   YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);

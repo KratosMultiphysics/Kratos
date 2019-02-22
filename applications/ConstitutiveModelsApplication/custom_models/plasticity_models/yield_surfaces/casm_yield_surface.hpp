@@ -135,16 +135,21 @@ namespace Kratos
 
       double MeanStress, LodeAngle;
       double DeviatoricQ; // == sqrt(3)*J2
-      
+
+
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
+
+      //std::cout << " stressMatrix " << rStressMatrix << " p " << MeanStress << " Q " << DeviatoricQ << " lode " << LodeAngle << std::endl;
+      //std::cout << " rPrecon " << rPreconsolidationStress << std::endl;
       double ThirdInvariantEffect = 1.0; // TO BE DONE
 
       rYieldCondition = pow(-DeviatoricQ/(rShearM/ThirdInvariantEffect*(MeanStress)), rShapeN );
-      rYieldCondition += 1/log(rSpacingR)*log(MeanStress/rPreconsolidationStress);
+      rYieldCondition += 1/std::log(rSpacingR)*std::log(MeanStress/rPreconsolidationStress);
 
+      //std::cout << " rYield " << rYieldCondition << std::endl;
       return rYieldCondition;
 
       KRATOS_CATCH(" ")
@@ -176,8 +181,8 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 
-double ThirdInvariantEffect = 1.0; // TO BE DONE
-      rDeltaStressYieldCondition = ( 1/( MeanStress * log(rSpacingR) ) + ( rShapeN * pow( pow(3,1/2)*J2 , rShapeN) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN+1) ) ) * V1;
+      double ThirdInvariantEffect = 1.0; // TO BE DONE
+      rDeltaStressYieldCondition = ( 1/( MeanStress * std::log(rSpacingR) ) + ( rShapeN * pow( pow(3,1/2)*J2 , rShapeN) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN+1) ) ) * V1;
       rDeltaStressYieldCondition += ( ( rShapeN * pow(3, rShapeN/2) * pow(J2, rShapeN-1) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN) ) ) * V2;
 
       return rDeltaStressYieldCondition;

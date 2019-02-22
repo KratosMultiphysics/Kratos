@@ -129,7 +129,7 @@ namespace Kratos
 
 
 
-    rDeltaHardening = 1.0/( rPreconsolidationStress * log( rSpacingR));
+    rDeltaHardening = 1.0/( rPreconsolidationStress * std::log( rSpacingR));
     Vector PlasticPot(6);
     PlasticPot = ConstitutiveModelUtilities::StrainTensorToVector( rPlasticPotentialDerivative, PlasticPot);
     rDeltaHardening *= MathUtils<double>::Dot( PreconDerivativeEpsVol, PlasticPot);
