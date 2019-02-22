@@ -30,8 +30,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
             "element_sensitivity_variables"    : [],
             "model_part_name"                  : "",
             "sensitivity_model_part_name"      : "",
-            "sensitivity_sub_model_part_list"  : [],
-            "time_frequency"                   : 1.00
+            "sensitivity_sub_model_part_list"  : []
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -65,10 +64,6 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
                 self.sensitivity_sub_model_parts.append(self.sensitivity_model_part.GetSubModelPart(mp_name))
 
         self.element_sensitivity_variables = self.__generate_variable_list_from_input(self.params["element_sensitivity_variables"])
-        self.frequency = self.params["time_frequency"].GetDouble()
-
-        # Initialize counter
-        self.time_counter = 0.0
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -78,24 +73,19 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        dt = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        self.time_counter += dt
-
-        if self.time_counter > self.frequency:
-            self.time_counter = 0.0
-            # loop over integration domains
-            for sub_mp_i in self.sensitivity_sub_model_parts:
-                # loop over sensitivty variables for which integration should performed
-                for variable_i in self.element_sensitivity_variables:
-                    value = 0.0
-                    # loop over elements in sensitivity sub model parts
-                    if next(sub_mp_i.Elements.__iter__() ).Has(variable_i):
-                        for elem_i in sub_mp_i.Elements:
-                            value += elem_i.GetValue(variable_i)
-                        for elem_i in sub_mp_i.Elements:
-                            elem_i.SetValue(variable_i, value)
-                    else:
-                        raise Exception(variable_i.Name() + " is not available for domain integration!")
+        # loop over integration domains
+        for sub_mp_i in self.sensitivity_sub_model_parts:
+            # loop over sensitivty variables for which integration should performed
+            for variable_i in self.element_sensitivity_variables:
+                value = 0.0
+                # loop over elements in sensitivity sub model parts
+                if next(sub_mp_i.Elements.__iter__() ).Has(variable_i):
+                    for elem_i in sub_mp_i.Elements:
+                        value += elem_i.GetValue(variable_i)
+                    for elem_i in sub_mp_i.Elements:
+                        elem_i.SetValue(variable_i, value)
+                else:
+                    raise Exception(variable_i.Name() + " is not available for domain integration!")
 
     def __generate_variable_list_from_input(self,param):
         """ Parse a list of variables from input.

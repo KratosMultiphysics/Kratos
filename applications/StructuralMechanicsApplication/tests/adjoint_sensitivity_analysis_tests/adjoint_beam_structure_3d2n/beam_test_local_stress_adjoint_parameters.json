@@ -111,21 +111,18 @@
             }
         }
     }],
-    "element_sensitivity_domain_integration" : [
-        {
-            "python_module"   : "element_sensitivity_domain_integration_process",
-            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-            "help"                  : "",
-            "process_name"          : "ElementSensitivityDomainIntegrationProcess",
-            "Parameters"            : {
-                "element_sensitivity_variables"    : ["I22_SENSITIVITY"],
-                "model_part_name"                  : "Structure",
-                "sensitivity_model_part_name"      : "sensitivity_mp",
-                "sensitivity_sub_model_part_list"  : ["sensitivity_mp_1"],
-                "time_frequency"                   : -2.0
-            }
+    "element_sensitivity_domain_integration" : [{
+        "python_module"   : "element_sensitivity_domain_integration_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ElementSensitivityDomainIntegrationProcess",
+        "Parameters"            : {
+            "element_sensitivity_variables"    : ["I22_SENSITIVITY"],
+            "model_part_name"                  : "Structure",
+            "sensitivity_model_part_name"      : "sensitivity_mp",
+            "sensitivity_sub_model_part_list"  : ["sensitivity_mp_1"]
         }
-        ],
+    }],
     "json_check_process" : [
         {
             "python_module"   : "from_json_check_result_process",
