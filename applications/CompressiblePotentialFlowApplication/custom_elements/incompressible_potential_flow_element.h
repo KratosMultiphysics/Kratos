@@ -13,10 +13,6 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
@@ -25,22 +21,6 @@
 #include "utilities/enrichment_utilities.h"
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -202,50 +182,8 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Operators
     ///@{
 

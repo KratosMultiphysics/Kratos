@@ -51,6 +51,7 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
+    std::cout << "TE ELEMENT = " << this->Id() << std::endl;
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
         rLeftHandSideMatrix.size2() != 2 * NumNodes)

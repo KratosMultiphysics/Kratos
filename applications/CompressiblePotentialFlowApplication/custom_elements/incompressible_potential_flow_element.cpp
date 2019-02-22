@@ -405,6 +405,7 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
+    std::cout << "WAKE WRONG ELEMENT = " << this->Id() << std::endl;
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
         rLeftHandSideMatrix.size2() != 2 * NumNodes)
