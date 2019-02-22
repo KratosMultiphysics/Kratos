@@ -85,10 +85,7 @@ public:
         const BaseType& rCenterPoint,
         const array_1d<double, 3>& rOrientationVector,
         const double HalfDiagonal
-        ): BaseType(rPoint),
-           mOrientationVector(OrientationVector),
-           mHalfDiagonal(HalfDiagonal)
-    {}
+        );
     
     /**
      * @brief Default constructors with point
@@ -100,10 +97,7 @@ public:
         const array_1d<double, 3>& rCenterCoords,
         const array_1d<double, 3>& rOrientationVector,
         const double HalfDiagonal
-        ): BaseType(rCenterCoords),
-           mOrientationVector(rOrientationVector),
-           mHalfDiagonal(HalfDiagonal)
-    {}
+        );
 
     ///Copy constructor  (not really required)
     OBB(const OBB& rhs):
@@ -128,75 +122,48 @@ public:
      * @brief Returns the point that defines the center of the OBB
      * @return The center point of the OBB
      */
-    BaseType GetCenter()
-    {
-        BaseType Point(this->Coordinates());
-
-        return Point;
-    }
+    BaseType GetCenter();
 
     /**
      * @brief Set the point that defines the center of the OBB
      * @param rCenterPoint The point that defines the center of the OBB
      */
-    void SetCenter(const BaseType& rCenterPoint)
-    {
-        this->Coordinates() = rCenterPoint.Coordinates();
-    }
+    void SetCenter(const BaseType& rCenterPoint);
 
     /**
      * @brief Set the point that defines the center of the OBB
      * @param rCenterCoords The coordinates that defines the center of the OBB
      */
-    void SetCenter(const array_1d<double, 3>& rCenterCoords)
-    {
-        this->Coordinates() = rCenterCoords;
-    }
+    void SetCenter(const array_1d<double, 3>& rCenterCoords);
 
     /**
      * @brief Returns the vector that defines the orientation of the axis
      * @return The orientation vector
      */
-    array_1d<double, 3>& GetOrientationVector()
-    {
-        return mOrientationVector;
-    }
+    array_1d<double, 3>& GetOrientationVector();
     
     /**
      * @brief Set the vector that defines the orientation of the axis
      * @param rOrientationVector The orientation vector
      */
-    void SetOrientationVector(const array_1d<double, 3>& rOrientationVector)
-    {
-        noalias(OrientationVector) = rOrientationVector;
-    }
+    void SetOrientationVector(const array_1d<double, 3>& rOrientationVector);
 
     /**
      * @brief Returns the length of the half of the diagonal
      * @return The length of the half of the diagonal
      */
-    double& GetHalfDiagonal()
-    {
-        return mHalfDiagonal;
-    }
+    double& GetHalfDiagonal();
 
     /**
      * @brief Set the length of the half of the diagonal
      * @param HalfDiagonal The length of the half of the diagonal
      */
-    void SetHalfDiagonal(const double HalfDiagonal)
-    {
-        mHalfDiagonal = HalfDiagonal;
-    }
+    void SetHalfDiagonal(const double HalfDiagonal);
 
     /**
      * @brief Computes the intersection between two OBB (current and new)
      */
-    bool HasIntersection(const OBB& rOtherOBB)
-    {
-        // TODO Finish
-        return false;
-    }
+    bool HasIntersection(const OBB& rOtherOBB);
 
 protected:
 
