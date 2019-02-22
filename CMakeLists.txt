@@ -438,7 +438,7 @@ message("-- Configuring external applications (ENV):")
 if(DEFINED ENV{KRATOS_EXT_APP})
     foreach(APPLICATION_PATH $ENV{KRATOS_EXT_APP})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
-#        add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
+        add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_EXT_APP})
 endif(DEFINED ENV{KRATOS_EXT_APP})
 
