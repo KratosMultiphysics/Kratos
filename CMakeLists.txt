@@ -27,7 +27,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
-#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -445,20 +445,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed lapack = " ${LAPACK_LIBRARIES})
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-
-# Configure and install KratosPaths.py, containing routes to installed kratos modules.
-set(KratosMultiphysics_KRATOS_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
-if (${INSTALL_PYTHON_FILES} MATCHES ON)
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_INSTALL_PREFIX})
-else ()
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_SOURCE_DIR})
-endif (${INSTALL_PYTHON_FILES} MATCHES ON)
-
-configure_file(
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
-)
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
