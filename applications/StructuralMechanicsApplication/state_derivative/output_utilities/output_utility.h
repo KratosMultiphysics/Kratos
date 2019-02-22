@@ -92,7 +92,30 @@ public:
         std::cout << std::endl;
         std::cout << std::endl;
     }
+    
 
+    static void OutputOnTerminal(const std::string output_name, const std::vector<Matrix>& output_vector)
+    {
+        std::cout << output_name << std::endl; 
+        for(IndexType k = 0; k < output_vector.size(); ++k)
+        {   
+            for(IndexType i = 0; i < output_vector[k].size2(); ++i)
+            {
+                std::cout << "    |";
+                for(IndexType j = 0; j < output_vector[k].size1(); ++j)
+                {   
+                    if (j == output_vector[k].size1()-1)
+                        std::cout << std::setw(8) << output_vector[k](j, i) << "|";
+                    else
+                        std::cout << std::setw(8) << output_vector[k](j, i) << " : ";
+                }
+                std::cout << std::endl; 
+            }                
+            std::cout << "    |                                  |" << std::endl;
+            std::cout << "    |                                  |" <<std::endl;
+        }
+    } 
+    
     static void OutputOnTerminal(const std::string output_name, const Matrix& output_vector)
     {
         std::cout << output_name << std::endl; 

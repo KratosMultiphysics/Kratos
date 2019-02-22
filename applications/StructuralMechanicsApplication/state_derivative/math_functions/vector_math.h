@@ -64,6 +64,13 @@ static void Addition( array_1d<double, 3>& rOutput, const array_1d<double, 3>& r
         rOutput[dir_it] += rInput[dir_it];
 }
 
+static void Addition( Matrix& rOutput, const Matrix& rInput )
+{    
+   for( IndexType i = 0; i < rOutput.size1(); ++i )
+        for( IndexType j = 0; j < rOutput.size2(); ++j )
+            rOutput(i,j) += rInput(i,j); 
+}
+
 
 // These functions set all entries of a vector to zero.
 
@@ -87,6 +94,13 @@ static void SetToZero( array_1d<double, 3>& rOutput )
         rOutput[dir_it] = 0;
 }
 
+static void SetToZero(Matrix& rOutput)
+{    
+   for( IndexType i = 0; i < rOutput.size1(); ++i )
+        for( IndexType j = 0; j < rOutput.size2(); ++j )
+            rOutput(i,j) = 0; 
+}
+
 // These functions multiply a vector by a scalar factor
 
 template <typename TDataType>
@@ -107,6 +121,13 @@ static void MultiplyByFactor(array_1d<double, 3>& rOutput , const double& rFacto
 {    
    for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
         rOutput[dir_it] *= rFactor; 
+}
+
+static void MultiplyByFactor(Matrix& rOutput , const double& rFactor)
+{    
+   for( IndexType i = 0; i < rOutput.size1(); ++i )
+        for( IndexType j = 0; j < rOutput.size2(); ++j )
+            rOutput(i,j) *= rFactor; 
 }
 
 // These functions compute a scalar product of two vectors. One of the vectors is filled with double components, the other with
@@ -137,30 +158,16 @@ static void ScalarProduct(const std::vector<TDataType>& rFactor1 ,
 // and a component of TDataType. Needed in direct sensitivity Postprocess.
 
 template <typename TDataType>
-static void ScalarProduct(const std::vector<TDataType>& rFactor1,
+static void Product(const std::vector<TDataType>& rFactor1,
                             const TDataType& rFactor2,
-                            std::vector<TDataType>& rScalarProduct)
+                            TDataType& rScalarProduct)
 {
     SetToZero(rScalarProduct);
     for(IndexType i = 0; i < rFactor1.size(); ++i)
-        MultiplyFactorsForScalarProduct(rScalarProduct, rFactor1[i], rFactor2);
+        MultiplyFactorsForProduct(rScalarProduct, rFactor1[i], rFactor2);
 }
 
 
-/*static void ScalarProduct(const std::vector<std::vector<array_1d<double, 3>>>& rScalarFactor1 ,
-                                    const Vector& rScalarFactor2,
-                                    std::vector<array_1d<double, 3>>& rScalarProduct)
-{
-    // Define Sizes
-    const SizeType num_dofs = rScalarFactor1.size();
-    const SizeType num_traced_integr_pts = rScalarFactor1[0].size();  
-        
-    SetToZero(rScalarProduct);
-    for(IndexType deriv_it = 0; deriv_it < num_dofs; ++deriv_it)
-        for( IndexType gp_it = 0; gp_it < num_traced_integr_pts; ++gp_it )
-            for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
-                rScalarProduct[gp_it][dir_it] += rScalarFactor1[deriv_it][gp_it][dir_it] * rScalarFactor2[deriv_it];
-}*/
     
 private:
 
@@ -170,14 +177,19 @@ static void MultiplyFactorsForScalarProduct( array_1d<double, 3>& rScalarProduct
         rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2; 
 }
 
-static void MultiplyFactorsForScalarProduct( array_1d<double, 3>& rScalarProduct ,const array_1d<double, 3>& rFactor1 , const array_1d<double, 3>& rFactor2)
+static void MultiplyFactorsForProduct( array_1d<double, 3>& rScalarProduct ,const array_1d<double, 3>& rFactor1 , const array_1d<double, 3>& rFactor2)
 {    
    for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
         rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2[dir_it]; 
 }
 
-    
-    
+static void MultiplyFactorsForScalarProduct( Matrix& rScalarProduct ,const Matrix& rFactor1 , const double& rFactor2)
+{    
+   for( IndexType i = 0; i < rFactor1.size1(); ++i )
+        for( IndexType j = 0; j < rFactor1.size2(); ++j )
+            rScalarProduct(i,j) += rFactor1(i,j) * rFactor2; 
+}
+
     
 }; // class DerivativeBuilder
 
