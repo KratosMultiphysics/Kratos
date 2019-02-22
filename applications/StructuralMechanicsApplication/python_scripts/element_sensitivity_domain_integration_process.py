@@ -1,18 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.json_utilities import read_external_json
-
-# Import KratosUnittest
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ElementSensitivityDomainIntegrationProcess(model, settings["Parameters"])
 
-class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
+class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
     """
         This class integrates scalar element sensitivities (material and cross-section
         properties like CROSS_AREA or YOUNGS_MODULUS) within defined domains.
