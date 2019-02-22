@@ -183,6 +183,9 @@ namespace Internals {
             // Getting the geoemtry
             auto& r_geometry = pObject->GetGeometry();
 
+            // Using geometry bounding box
+            r_geometry.BoundingBox(rLowPoint, rHighPoint);
+
             // Initializing the highest and lowest point
             rHighPoint = r_geometry.GetPoint(0);
             rLowPoint = r_geometry.GetPoint(0);
@@ -381,8 +384,7 @@ public:
      */
     FindIntersectedGeometricalObjectsProcess(
         ModelPart& rPart1,
-        ModelPart& rPart2,
-        const double BoundingBoxFactor = -1.0
+        ModelPart& rPart2
         );
 
     /**
@@ -481,7 +483,65 @@ public:
     }
 
     ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method check if there is an intersection between two geometries
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    virtual bool HasIntersection(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        );
+
+    /**
+     * @brief This method check if there is an intersection between two geometries in 2D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    virtual bool HasIntersection2D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        );
+
+    /**
+     * @brief This method check if there is an intersection between two geometries in 3D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    virtual bool HasIntersection3D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        );
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -494,8 +554,6 @@ private:
     ModelPart& mrModelPart1;          /// First model part
     ModelPart& mrModelPart2;          /// Second model part
     OctreeType mOctree;               /// The octree structucture that performs the search
-
-    double mBoundingBoxFactor = -1.0; /// The factor to be consider when computing the bounding box (if negative not considered)
 
     ///@}
     ///@name Private Operations
@@ -529,56 +587,6 @@ private:
     void MarkIfIntersected(
         TEntity& rEntity1,
         OtreeCellVectorType& rLeaves
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    bool HasIntersection(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    bool HasIntersection2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 2D (considering the bounding box of the geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    bool HasIntersectionWithBoundingBox2D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    bool HasIntersection3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
-        );
-
-    /**
-     * @brief This method check if there is an intersection between two geometries in 3D (considering the bounding box of the geometries)
-     * @param rFirstGeometry The first geometry
-     * @param rSecondGeometry The second geometry
-     */
-    bool HasIntersectionWithBoundingBox3D(
-        GeometryType& rFirstGeometry,
-        GeometryType& rSecondGeometry
         );
 
     /**

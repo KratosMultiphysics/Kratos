@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -206,7 +207,7 @@ namespace Kratos {
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
             r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
-            FindIntersectedGeometricalObjectsProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2);
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
