@@ -34,8 +34,6 @@ NodalConcentratedFluidElement::NodalConcentratedFluidElement(
     : Element(NewId, pGeometry)
 
 {
-    mScalingParameter = 1.0;
-    mIsDynamic = false;
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -47,16 +45,13 @@ NodalConcentratedFluidElement::NodalConcentratedFluidElement(
     : Element(NewId, pGeometry, pProperties)
 
 {
-
-    mScalingParameter = 1.0;
-    mIsDynamic = false;
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
 NodalConcentratedFluidElement::NodalConcentratedFluidElement(NodalConcentratedFluidElement const &rOther)
-    : Element(rOther), mScalingParameter(rOther.mScalingParameter), mIsDynamic(rOther.mIsDynamic)
+    : Element(rOther)
 {
 }
 
@@ -131,10 +126,18 @@ void NodalConcentratedFluidElement::GetDofList(
 
     rElementalDofList.resize(0);
 
-    rElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_X));
-    rElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_Y));
-    if (dimension == 3)
-        rElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_Z));
+    SizeType number_of_master_nodes = mMasterNodes.size();
+
+    for (IndexType i_node = 0; i_node < number_of_master_nodes; ++i_node)
+    {
+        Node<3> &node = mMasterNodes[i_node];
+
+        rElementalDofList.push_back(node.pGetDof(DISPLACEMENT_X));
+        rElementalDofList.push_back(node.pGetDof(DISPLACEMENT_Y));
+
+        if (dimension == 3)
+            rElementalDofList.push_back(node.pGetDof(DISPLACEMENT_Z));
+    }
 }
 
 //************************************************************************************
@@ -147,13 +150,21 @@ void NodalConcentratedFluidElement::EquationIdVector(
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if (rResult.size() != dimension)
-        rResult.resize(dimension, false);
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    rResult[0] = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
-    rResult[1] = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
-    if (dimension == 3)
-        rResult[2] = GetGeometry()[0].GetDof(DISPLACEMENT_Z).EquationId();
+    if (rResult.size() != sys_size)
+        rResult.resize(sys_size, false);
+
+    for (IndexType i_node = 0; i_node < number_of_master_nodes; ++i_node)
+    {
+        Node<3> &node = mMasterNodes[i_node];
+        IndexType index = i_node * dimension;
+        rResult[index] = node.GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = node.GetDof(DISPLACEMENT_Y).EquationId();
+        if (dimension == 3)
+            rResult[index + 2] = node.GetDof(DISPLACEMENT_Z).EquationId();
+    }
 }
 
 //*********************************DISPLACEMENT***************************************
@@ -163,15 +174,23 @@ void NodalConcentratedFluidElement::GetValuesVector(Vector &rValues, int Step)
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    if (rValues.size() != dimension)
-        rValues.resize(dimension, false);
+    if (rValues.size() != sys_size)
+        rValues.resize(sys_size, false);
 
-    rValues[0] = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X, Step);
-    rValues[1] = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y, Step);
+    for (IndexType i_node = 0; i_node < number_of_master_nodes; ++i_node)
+    {
+        Node<3> &node = mMasterNodes[i_node];
+        IndexType index = i_node * dimension;
+        const array_1d<double, 3> &displacement = node.FastGetSolutionStepValue(DISPLACEMENT, Step);
 
-    if (dimension == 3)
-        rValues[2] = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z, Step);
+        for (IndexType i_dim = 0; i_node < dimension; ++i_dim)
+        {
+            rValues[index + i_dim] = displacement[i_dim];
+        }
+    }
 }
 
 //************************************VELOCITY****************************************
@@ -181,15 +200,23 @@ void NodalConcentratedFluidElement::GetFirstDerivativesVector(Vector &rValues, i
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    if (rValues.size() != dimension)
-        rValues.resize(dimension, false);
+    if (rValues.size() != sys_size)
+        rValues.resize(sys_size, false);
 
-    rValues[0] = GetGeometry()[0].GetSolutionStepValue(VELOCITY_X, Step);
-    rValues[1] = GetGeometry()[0].GetSolutionStepValue(VELOCITY_Y, Step);
+    for (IndexType i_node = 0; i_node < number_of_master_nodes; ++i_node)
+    {
+        Node<3> &node = mMasterNodes[i_node];
+        IndexType index = i_node * dimension;
+        const array_1d<double, 3> &velocity = node.FastGetSolutionStepValue(VELOCITY, Step);
 
-    if (dimension == 3)
-        rValues[2] = GetGeometry()[0].GetSolutionStepValue(VELOCITY_Z, Step);
+        for (IndexType i_dim = 0; i_node < dimension; ++i_dim)
+        {
+            rValues[index + i_dim] = velocity[i_dim];
+        }
+    }
 }
 
 //*********************************ACCELERATION***************************************
@@ -199,15 +226,23 @@ void NodalConcentratedFluidElement::GetSecondDerivativesVector(Vector &rValues, 
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    if (rValues.size() != dimension)
-        rValues.resize(dimension, false);
+    if (rValues.size() != sys_size)
+        rValues.resize(sys_size, false);
 
-    rValues[0] = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_X, Step);
-    rValues[1] = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_Y, Step);
+    for (IndexType i_node = 0; i_node < number_of_master_nodes; ++i_node)
+    {
+        Node<3> &node = mMasterNodes[i_node];
+        IndexType index = i_node * dimension;
+        const array_1d<double, 3> &acceleration = node.FastGetSolutionStepValue(ACCELERATION, Step);
 
-    if (dimension == 3)
-        rValues[2] = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_Z, Step);
+        for (IndexType i_dim = 0; i_node < dimension; ++i_dim)
+        {
+            rValues[index + i_dim] = acceleration[i_dim];
+        }
+    }
 }
 
 //************* STARTING - ENDING  METHODS
@@ -217,20 +252,7 @@ void NodalConcentratedFluidElement::GetSecondDerivativesVector(Vector &rValues, 
 void NodalConcentratedFluidElement::Initialize()
 {
 
-    if (Has(STIFFNESS_SCALING))
-        mScalingParameter = GetValue(STIFFNESS_SCALING);
-    else
-        mScalingParameter = 1.0;
-
-    if (Has(IS_DYNAMIC))
-        mIsDynamic = GetValue(IS_DYNAMIC);
-    else
-        mIsDynamic = false;
-
-    KRATOS_WATCH(mScalingParameter);
-    KRATOS_WATCH(mIsDynamic);
-
-    Vector normal = pGetProperties()->GetValue(FREE_SURFACE_NORMAL);
+    /*     Vector normal = pGetProperties()->GetValue(FREE_SURFACE_NORMAL);
 
     double norm_normal = norm_2(normal);
     if (norm_normal > std::numeric_limits<double>::epsilon())
@@ -258,10 +280,9 @@ void NodalConcentratedFluidElement::Initialize()
 
     double target_volume = pGetProperties()->GetValue(FLUID_VOLUME);
 
-    this->GetValue(NODAL_MASS) = target_volume * pGetProperties()->GetValue(SPECIFIC_WEIGHT) / 9.81;
+    this->GetValue(NODAL_MASS) = target_volume * pGetProperties()->GetValue(SPECIFIC_WEIGHT) / 9.81; */
 
     pGetProperties()->GetValue(FREE_SURFACE_CENTRE) = GetGeometry()[0].Coordinates();
-
     mMasterConditions = GetValue(MASTER_CONDITIONS);
     mMasterNodes = GetValue(MASTER_NODES);
 }
@@ -287,15 +308,24 @@ void NodalConcentratedFluidElement::InitializeNonLinearIteration(ProcessInfo &rC
     pGetProperties()->GetValue(FREE_SURFACE_CENTRE) = centre;
     double radius = pGetProperties()->GetValue(FREE_SURFACE_RADIUS);
     Vector normal = pGetProperties()->GetValue(FREE_SURFACE_NORMAL);
+    double target_volume = pGetProperties()->GetValue(FLUID_VOLUME);
 
     VolumeCalculationUnderPlaneUtility VolumeCalculator(centre, radius, normal);
-    VolumeCalculator.CalculateVolumeForConditions(mMasterConditions, mMasterNodes);
+    VolumeCalculator.UpdatePositionOfPlaneBasedOnTargetVolumeForConditions(mMasterConditions, mMasterNodes, target_volume);
 
-    pGetProperties()->GetValue(CURRENT_FLUID_VOLUME) = VolumeCalculator.GetVolume();
+    //pGetProperties()->GetValue(CURRENT_FLUID_VOLUME) = VolumeCalculator.GetVolume();
     pGetProperties()->GetValue(FREE_SURFACE_AREA) = VolumeCalculator.GetIntersectedArea();
+    pGetProperties()->GetValue(FREE_SURFACE_CENTRE) = VolumeCalculator.GetCentre();
+    GetGeometry()[0].Coordinates() = VolumeCalculator.GetCentre();
+
+    Vector displacement = GetGeometry()[0].Coordinates() - GetGeometry()[0].GetInitialPosition();
+
+    GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+
+    std::cout << " Displacement " << GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
 
     KRATOS_CATCH("");
-} // namespace Kratos
+}
 
 ////************************************************************************************
 ////************************************************************************************
@@ -325,15 +355,7 @@ void NodalConcentratedFluidElement::CalculateLocalSystem(MatrixType &rLeftHandSi
 {
 
     KRATOS_TRY;
-    //##############################################
 
-    Initialize();
-
-    InitializeSolutionStep(rCurrentProcessInfo);
-
-    InitializeNonLinearIteration(rCurrentProcessInfo);
-
-    //##############################################
     /* Calculate elemental system */
 
     // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
@@ -354,14 +376,15 @@ void NodalConcentratedFluidElement::CalculateRightHandSide(VectorType &rRightHan
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the RHS
-    const unsigned int system_size = dimension;
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    if (rRightHandSideVector.size() != system_size)
-        rRightHandSideVector.resize(system_size, false);
+    if (rRightHandSideVector.size() != sys_size)
+        rRightHandSideVector.resize(sys_size, false);
 
-    rRightHandSideVector = ZeroVector(system_size); //resetting RHS
+    rRightHandSideVector = ZeroVector(sys_size); //resetting RHS
 
-    double target_volume = pGetProperties()->GetValue(FLUID_VOLUME);
+    /* double target_volume = pGetProperties()->GetValue(FLUID_VOLUME);
     double current_volume = pGetProperties()->GetValue(CURRENT_FLUID_VOLUME);
 
     // Calculate forces from all the conditions
@@ -399,7 +422,7 @@ void NodalConcentratedFluidElement::CalculateRightHandSide(VectorType &rRightHan
         }
     }
     else
-        rRightHandSideVector[mNormalDirection] += (target_volume - current_volume) * mScalingParameter; // For volume conservation in normal direction
+        rRightHandSideVector[mNormalDirection] += (target_volume - current_volume) * mScalingParameter; // For volume conservation in normal direction */
 }
 
 //***********************************************************************************
@@ -408,16 +431,16 @@ void NodalConcentratedFluidElement::CalculateRightHandSide(VectorType &rRightHan
 void NodalConcentratedFluidElement::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_master_nodes = mMasterNodes.size();
+    SizeType sys_size = number_of_master_nodes * dimension;
 
-    // Resizing as needed the LHS
-    const unsigned int system_size = dimension;
+    std::cout << "nodal_element sys size ::  " << sys_size << std::endl;
+    if (rLeftHandSideMatrix.size1() != sys_size)
+        rLeftHandSideMatrix.resize(sys_size, sys_size, false);
 
-    if (rLeftHandSideMatrix.size1() != system_size)
-        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(sys_size, sys_size); //resetting LHS
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size); //resetting LHS
-
-    // We add the nodal stiffness
+    /*  // We add the nodal stiffness
     double nodal_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
 
     if (!mIsDynamic)
@@ -428,13 +451,70 @@ void NodalConcentratedFluidElement::CalculateLeftHandSide(MatrixType &rLeftHandS
     else
     {
         rLeftHandSideMatrix(mNormalDirection, mNormalDirection) += nodal_area * mScalingParameter;
+    } */
+
+    // Adding volume conserving stiffness on the wetted nodes
+    Matrix Kij(dimension, dimension);
+    double intersected_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
+    double specific_weight = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
+    array_1d<double, 3> nodal_normal_m;
+    array_1d<double, 3> nodal_normal_n;
+    double coeff;
+
+    for (IndexType m = 0; m < number_of_master_nodes; m++)
+    {
+
+        const IndexType RowIndex = m * dimension;
+        Node<3> &node_m = mMasterNodes[m];
+        nodal_normal_m = node_m.FastGetSolutionStepValue(NORMAL);
+
+        for (IndexType n = 0; n < number_of_master_nodes; n++)
+
+        {
+
+            const IndexType ColIndex = n * dimension;
+            Node<3> &node_n = mMasterNodes[n];
+
+            nodal_normal_n = node_n.FastGetSolutionStepValue(NORMAL);
+
+            DyadicProduct(Kij, nodal_normal_m, nodal_normal_n);
+
+            coeff = -specific_weight / intersected_area;
+
+            Kij *= coeff;
+
+            MathUtils<double>::SubtractMatrix(rLeftHandSideMatrix, Kij, RowIndex, ColIndex);
+        }
     }
+}
+
+void NodalConcentratedFluidElement::DyadicProduct(Matrix &M, const array_1d<double, 3> &U, const array_1d<double, 3> &V)
+{
+    KRATOS_TRY;
+
+    if (U.size() == V.size())
+    {
+
+        for (IndexType i = 0; i < U.size(); ++i)
+        {
+
+            for (IndexType j = 0; j < U.size(); ++j)
+            {
+
+                M(i, j) = U[i] * V[j];
+            }
+        }
+    }
+    else
+        KRATOS_ERROR << "The size of the two input vectors don't match" << std::endl;
+
+    KRATOS_CATCH("")
 }
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
 
-Matrix &NodalConcentratedFluidElement::CalculateDeltaPosition(Matrix &rDeltaPosition)
+/* Matrix &NodalConcentratedFluidElement::CalculateDeltaPosition(Matrix &rDeltaPosition)
 {
     KRATOS_TRY;
 
@@ -452,7 +532,7 @@ Matrix &NodalConcentratedFluidElement::CalculateDeltaPosition(Matrix &rDeltaPosi
     return rDeltaPosition;
 
     KRATOS_CATCH("");
-}
+} */
 
 //************************************************************************************
 //************************************************************************************
@@ -471,16 +551,16 @@ void NodalConcentratedFluidElement::CalculateMassMatrix(MatrixType &rMassMatrix,
     rMassMatrix = ZeroMatrix(system_size, system_size);
 
     // We get the reference
-    const auto &rconst_this = *this;
+    //const auto &rconst_this = *this;
 
-    // Get the nodal mass
+    /* // Get the nodal mass
     const double nodal_mass = rconst_this.GetValue(NODAL_MASS);
 
     for (unsigned int j = 0; j < dimension; ++j)
     {
         if (j != mNormalDirection)
             rMassMatrix(j, j) += nodal_mass; // Dynamics in normal direction is absent
-    }
+    } */
 
     KRATOS_CATCH("");
 }
@@ -502,10 +582,10 @@ void NodalConcentratedFluidElement::CalculateDampingMatrix(
 
     rDampingMatrix = ZeroMatrix(system_size, system_size);
 
-    const array_1d<double, 3> &nodal_damping_ratio = this->GetValue(NODAL_DAMPING_RATIO);
+    /* const array_1d<double, 3> &nodal_damping_ratio = this->GetValue(NODAL_DAMPING_RATIO);
     for (unsigned int j = 0; j < dimension; ++j)
         if (j != mNormalDirection)
-            rDampingMatrix(j, j) += nodal_damping_ratio[j]; // Dynamics in normal direction is absent
+            rDampingMatrix(j, j) += nodal_damping_ratio[j]; // Dynamics in normal direction is absent */
 
     KRATOS_CATCH("");
 }

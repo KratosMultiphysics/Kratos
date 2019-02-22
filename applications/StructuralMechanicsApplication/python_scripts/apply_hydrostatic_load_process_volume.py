@@ -24,7 +24,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
                     "specific_weight"              : 200.0,
                     "interval"                      : [0.0, 1e30],
                     "local_axes"                    : {},
-                    "fluid_volume"                  : 1.5,
+                    "fluid_volume"                  : 2.0,
                     "centre"                        : [0.0,0.0,0.0],
                     "plane_normal"                  : [0.0,0.0,1.0],
                     "initial_free_surface_radius"   : 0.0              
@@ -36,40 +36,40 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         #assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        #here i do a trick, since i want to allow "specific_weight" to be a string or a double specific_weight
-        if(settings.Has("specific_weight")):
-            if(settings["specific_weight"].IsString()):
-                default_settings["specific_weight"].SetString("0.0")
+        #here i do a trick, since i want to allow "fluid_volume" to be a string or a double fluid_volume
+        if(settings.Has("fluid_volume")):
+            if(settings["fluid_volume"].IsString()):
+                default_settings["fluid_volume"].SetString("0.0")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.variable = KratosMultiphysics.KratosGlobals.GetVariable("SPECIFIC_WEIGHT")
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable("FLUID_VOLUME")
 
         if(type(self.variable) != KratosMultiphysics.DoubleVariable):
-            msg = "Error in ApplyHydrostaticLoadProcess. Variable type of variable specific_weight is incorrect . Must be a scalar "
+            msg = "Error in ApplyHydrostaticLoadProcess. Variable type of variable fluid_volume is incorrect . Must be a scalar "
             raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.main_model_part = Model[settings["main_model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
-        self.specific_weight_is_numeric = False
+        self.fluid_volume_is_numeric = False
 
-        if settings["specific_weight"].IsNumber():
-            self.specific_weight_is_numeric = True
-            self.specific_weight = settings["specific_weight"].GetDouble()
+        if settings["fluid_volume"].IsNumber():
+            self.fluid_volume_is_numeric = True
+            self.fluid_volume = settings["fluid_volume"].GetDouble()
         else:
-            self.function_string = settings["specific_weight"].GetString()
+            self.function_string = settings["fluid_volume"].GetString()
             self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if(self.aux_function.DependsOnSpace()):
-                raise RuntimeError("Specific density varying in space is not yet implemented")
+                raise RuntimeError("fluid volume cannot vary in space")
 
         self.step_is_active = False
 
 
 
         
-        self.fluid_volume = settings["fluid_volume"].GetDouble()
+        self.specific_weight = settings["specific_weight"].GetDouble()
         x = settings["centre"].GetVector()[0]
         y = settings["centre"].GetVector()[1]
         z = settings["centre"].GetVector()[2]
@@ -93,19 +93,18 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
  
 
-        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_RADIUS, self.initial_free_surface_radius)
-        self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)      
-        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, self.plane_normal) 
-        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE, self.free_surface_centre)   
 
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_RADIUS, self.initial_free_surface_radius)
+        self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, 0.0)
+        self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, self.specific_weight)
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, self.plane_normal)
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE, self.free_surface_centre)
         self.VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
-        vol = self.VolumeCalcUtilty.CalculateVolume(self.model_part)
-        print("Initial vol ::", vol)
-        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())   
-        
-        
+     
         avg_nodes = 10
         avg_elems = 10
+
+        self.VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
 
         neighbhor_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part,avg_elems, avg_nodes)
 
@@ -117,25 +116,30 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
-
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.properties.SetValue(
             StructuralMechanicsApplication.DO_RANK_ONE_UPDATE, False)
-
-        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if(self.interval.IsInInterval(current_time)):
 
             self.step_is_active = True
 
-            if self.specific_weight_is_numeric:
-                self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, self.specific_weight)
+            if self.fluid_volume_is_numeric:
+                self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)
+                self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(self.model_part, self.fluid_volume, 1E-6,20)
+                self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
+                        
+       
             else:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
-                    self.specific_weight = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
-                    self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, self.specific_weight)
+                    self.fluid_volume = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
+                    self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)
+                    self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(self.model_part, self.fluid_volume, 1E-6,20)
+                    self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
+
                     
                 else: #most general case - space varying function (possibly also time varying)
-                    raise RuntimeError("Specific density varying in space is not yet implemented")
+                    raise RuntimeError("fluid volume cannot vary in space")
 
                    
 
@@ -145,7 +149,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         if (self.step_is_active):
 
             centre = self.properties.GetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE)
-            specific_wt = self.properties.GetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT)
+            fluid_volume = self.properties.GetValue(StructuralMechanicsApplication.FLUID_VOLUME)
             
 
             self.VolumeCalcUtilty.SetPlaneParameters(centre,self.initial_free_surface_radius,self.plane_normal)
@@ -153,7 +157,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
             area = self.VolumeCalcUtilty.GetIntersectedArea()
             
             print("#######################################")
-            print("Specific_wt ::", specific_wt)
+            print("Fluid_vol ::", fluid_volume)
             print("Free Surface Centre :: ", centre)
             print("Fluid volume :: ", vol)
             print("Free surface area :: ", area)

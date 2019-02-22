@@ -315,9 +315,9 @@ class VtkOutput
         if (model_part.NumberOfElements() > 0)
         {
             outputFile << "CELL_DATA " << model_part.NumberOfElements() << "\n";
-                         outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
+            outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
 
-             // write element results for active
+            // write element results for active
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
             {
                 //outputFile << numberOfNodes;
@@ -329,7 +329,7 @@ class VtkOutput
 
                 else
                     outputFile << "1\n";
-            }  
+            }
 
             for (unsigned int entry = 0; entry < elementResults.size(); entry++)
             {
@@ -629,7 +629,7 @@ class VtkOutput
         {
             // write cells header
             outputFile << "\nCELL_DATA " << model_part.NumberOfElements() << "\n";
-          outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
+            outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
 
             // write element results for active
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
@@ -651,7 +651,7 @@ class VtkOutput
                     outputFile.write((char *)(&is_active), sizeof(float));
                 }
             }
- 
+
             for (unsigned int entry = 0; entry < elementResults.size(); entry++)
             {
 
@@ -826,7 +826,12 @@ class VtkOutput
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-        std::string outputFilename = model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
+        std::string outputFilename;
+        if (mcaseName != "")
+            outputFilename = mcaseName + '_' + model_part.Name() + "_" + std::to_string(rank) + "_" + "_" + std::to_string(step) + ".vtk";
+        else
+            outputFilename = model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
+
         return outputFilename;
     }
 

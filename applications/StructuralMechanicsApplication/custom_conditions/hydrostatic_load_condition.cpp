@@ -181,7 +181,7 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
 
             coeff = -rSpecificWeight * N[m] * N[n] * Weight;
             DyadicProduct(Kij, Normal, rW);
-            Kij *= -coeff; // because normal is flipped in the implementation following surface_load_condition
+            Kij *= -coeff; // (-ve)because normal  is flipped in the implementation following surface_load_condition
 
             MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
         }
@@ -231,61 +231,6 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostaticSym(
     KRATOS_CATCH("")
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
-void HydrostaticLoadCondition::CalculateAndSubKpVolume(
-    Matrix &K,
-    const double &rSpecificWeight,
-    const double &rIntersectedArea)
-{
-    KRATOS_TRY
-    array_1d<double, 3> nodal_normal_m;
-    array_1d<double, 3> nodal_normal_n;
-    GeometryType &geom = GetGeometry();
-    const SizeType number_of_nodes = geom.size();
-    Matrix Kij(3, 3);
-    double coeff;
-    unsigned int number_of_common_elements;
-
-    /// Tangent stiffness accounting for change in pressure due to deformation.
-
-    for (IndexType m = 0; m < number_of_nodes; m++)
-    {
-
-        const IndexType RowIndex = m * 3;
-        nodal_normal_m = geom[m].FastGetSolutionStepValue(NORMAL);
-        const SizeType nr_elems_m = geom[m].GetValue(NEIGHBOUR_ELEMENTS).size();
-
-        if (nr_elems_m < 1)
-            KRATOS_ERROR << "Require neighbhoring element of node information. Check if the function FindNodalNeighboursProcess is called before" << std::endl;
-
-        for (IndexType n = 0; n < number_of_nodes; n++)
-
-        {
-
-            const IndexType ColIndex = n * 3;
-
-            nodal_normal_n = geom[n].FastGetSolutionStepValue(NORMAL);
-
-            DyadicProduct(Kij, nodal_normal_m, nodal_normal_n);
-
-            coeff = -rSpecificWeight / rIntersectedArea;
-
-            number_of_common_elements = NumberOfCommonElements(geom[m], geom[n]);
-
-            //std::cout << "Neighbhor elements between " << geom[m].Id() << ", " << geom[n].Id() << " :: " << number_of_common_elements<<std::endl;
-
-            coeff /= number_of_common_elements;
-
-            Kij *= coeff;
-
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
-        }
-    }
-
-    KRATOS_CATCH("")
-}
 
 //***********************************************************************************
 //***********************************************************************************
@@ -443,15 +388,7 @@ void HydrostaticLoadCondition::CalculateAll(
         }
     }
 
-    if (CalculateStiffnessMatrixFlag == true)
-    {
-
-        if (fabs(intersected_area) > std::numeric_limits<double>::epsilon())
-        {
-
-            CalculateAndSubKpVolume(rLeftHandSideMatrix, specific_wt, intersected_area);
-        }
-    }
+   
 
     if (is_split)
     {
@@ -519,7 +456,6 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
     Matrix DN_De;
     const GeometryType::IntegrationPointsArrayType &integration_points = rSubGeom.IntegrationPoints(rIntegrationMethod);
 
-    //const double specific_wt = rCurrentProcessInfo.GetValue(SPECIFIC_WEIGHT);
     const double specific_wt = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
 
     for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
@@ -529,7 +465,9 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
         geom.ShapeFunctionsValues(N, local_coords);
         geom.ShapeFunctionsLocalGradients(DN_De, local_coords);
 
-        const double integration_weight = GetIntegrationWeight(integration_points, point_number, jacobians_values[point_number]);
+        const double det_j = jacobians_values[point_number];
+        const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
+        double integration_weight_without_detj = integration_weight / det_j;
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;
@@ -543,12 +481,13 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
         {
             if (fabs(pressure) > std::numeric_limits<double>::epsilon())
             {
-                //CalculateAndSubKpSym(rLeftHandSideMatrix, rGe, rGn, DN_De, N, rNormal, pressure, integration_weight);
-                CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight);
+                //CalculateAndSubKpSym(rLeftHandSideMatrix, rGe, rGn, DN_De, N, rNormal, pressure, integration_weight_without_detj);
+                CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight_without_detj);
             }
 
             if (fabs(specific_wt) > std::numeric_limits<double>::epsilon())
             {
+
                 CalculateAndSubKpHydrostatic(rLeftHandSideMatrix, N, rNormal, specific_wt, rW, integration_weight);
             }
         }
@@ -559,6 +498,9 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
             if (pressure != 0.0)
             {
                 CalculateAndAddPressureForce(rRightHandSideVector, N, rNormal, pressure, integration_weight, rCurrentProcessInfo);
+
+                 if (pGetProperties()->GetValue(DO_RANK_ONE_UPDATE))
+                    CalculateAndAddPressureForce(rRightHandSideVector, N, rNormal, 1.0, integration_weight, rCurrentProcessInfo); 
             }
         }
     }

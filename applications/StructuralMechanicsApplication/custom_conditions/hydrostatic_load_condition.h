@@ -176,10 +176,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
         const array_1d<double, 3> &rW,
         const double &Weight);
 
-    void CalculateAndSubKpVolume(
-        Matrix &K,
-        const double &rSpecificWeight,
-        const double &rIntersectedArea);
 
     void DyadicProduct(Matrix &M,
                        const array_1d<double, 3> &U,

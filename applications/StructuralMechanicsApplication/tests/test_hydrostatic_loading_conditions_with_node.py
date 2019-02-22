@@ -18,15 +18,15 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         
         #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
-        mp.CreateNewNode(2,0.0,1.0,0.0)
-        mp.CreateNewNode(3,0.0,0.0,1.0)
-        mp.CreateNewNode(4,0.0,1.0,1.0)
+        mp.CreateNewNode(2,1.0,0.0,0.0)
+        mp.CreateNewNode(3,0.0,1.0,0.0)
+        mp.CreateNewNode(4,1.0,1.0,0.0)
 
        
 
         specific_weight= 10.0
 
-        centre = [0.0,0.0,0.5]
+        centre = [0.0,0.0,1.0]
         radius = 10.0
         normal = [0.0,0.0,1.0]
         fluid_volume = 2.0
@@ -66,8 +66,8 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         elem2 = mp.CreateNewElement("ShellThinElement3D3N", 2, nodeIds2, mp.GetProperties()[1])
         nodal_elem = mp.CreateNewElement("NodalConcentratedFluidElement3D1N", 3, nodeIDs2, mp.GetProperties()[1])
 
-        nodal_elem.SetValue(StructuralMechanicsApplication.STIFFNESS_SCALING,2.0)
-        nodal_elem.SetValue(StructuralMechanicsApplication.IS_DYNAMIC, True)
+        #nodal_elem.SetValue(StructuralMechanicsApplication.STIFFNESS_SCALING,2.0)
+        #nodal_elem.SetValue(StructuralMechanicsApplication.IS_DYNAMIC, True)
 
         
 
@@ -80,16 +80,24 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 1,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 1,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 1,0.0)
+
+        
+        VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(
+            centre, radius, normal)
+        vol = VolumeCalcUtilty.CalculateVolume(mp)
+        intersected_area = VolumeCalcUtilty.GetIntersectedArea()
+        self.properties.SetValue(
+            StructuralMechanicsApplication.FREE_SURFACE_AREA, intersected_area)
             
 
-        avg_nodes = 10
+        """ avg_nodes = 10
         avg_elems = 10
 
         
 
         neighbhor_finder = KratosMultiphysics.FindNodalNeighboursProcess(mp,avg_elems, avg_nodes)
 
-        neighbhor_finder.Execute()
+        neighbhor_finder.Execute() """
         
        
 
@@ -99,21 +107,19 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         lhs_cond2 = KratosMultiphysics.Matrix(0,0)
         rhs_cond2 = KratosMultiphysics.Vector(0)
 
-        lhs_elem = KratosMultiphysics.Matrix(0,0)
-        rhs_elem = KratosMultiphysics.Vector(0)
+        lhs_nodal_elem = KratosMultiphysics.Matrix(0,0)
+        rhs_nodal_elem = KratosMultiphysics.Vector(0)
 
-        print(mp)
 
         master_creator = StructuralMechanicsApplication.BuildMasterConditionsForHydrostaticLoadingProcess(mp,nodal_elem)
         master_creator.Execute()
 
-        
-        nodal_elem.CalculateLocalSystem(lhs_elem,rhs_elem,mp.ProcessInfo)
+        nodal_elem.Initialize()
+        nodal_elem.CalculateLocalSystem(lhs_nodal_elem,rhs_nodal_elem,mp.ProcessInfo)
         cond_hydro1.CalculateLocalSystem(lhs_cond1,rhs_cond1,mp.ProcessInfo)
         cond_hydro2.CalculateLocalSystem(lhs_cond2,rhs_cond2,mp.ProcessInfo)
-        print("Current volume :: ",self.properties.GetValue(StructuralMechanicsApplication.CURRENT_FLUID_VOLUME))
+       
         
-
         for node in mp.Nodes:
             print("Nodal Normal :: ",node.GetSolutionStepValue(KratosMultiphysics.NORMAL),0)
         #print(lhs_elem)
@@ -130,17 +136,10 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         print(rhs_cond2)
 
         print('########Nodal Element#########')
-        print(lhs_elem)
+        print(lhs_nodal_elem)
         print('##########################################################')
-        print(rhs_elem)
-        force = 0.0
-        for i in range(0,len(rhs_cond1)):
-            force += rhs_cond1[i]
-            force += rhs_cond2[i]
-
-        print(force)
-
-
+        print(rhs_nodal_elem)
+   
 
         self.assertAlmostEqual(0,0)
         

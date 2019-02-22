@@ -434,9 +434,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         IntegrationPointsArrayType gauss_pts;
         gauss_pts = rGeom.IntegrationPoints(IntegrationMethod);
 
-        Vector jacobians_values;
-        rGeom.DeterminantOfJacobian(jacobians_values, IntegrationMethod);
-
         // Compute the area dot plane normal at every gauss points
         for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
         {

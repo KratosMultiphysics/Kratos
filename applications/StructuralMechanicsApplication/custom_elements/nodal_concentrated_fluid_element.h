@@ -211,6 +211,11 @@ class NodalConcentratedFluidElement
         MatrixType &rLeftHandSideMatrix,
         ProcessInfo &rCurrentProcessInfo) override;
 
+    
+    void DyadicProduct(Matrix &M,
+                       const array_1d<double, 3> &U,
+                       const array_1d<double, 3> &V);
+
     /**
       * this is called during the assembling process in order
       * to calculate the elemental mass matrix
@@ -289,7 +294,7 @@ class NodalConcentratedFluidElement
     /**
      * Calculation of the Delta Position
      */
-    Matrix &CalculateDeltaPosition(Matrix &rDeltaPosition);
+    //Matrix &CalculateDeltaPosition(Matrix &rDeltaPosition);
 
     ///@}
     ///@name Protected  Access
@@ -324,9 +329,7 @@ class NodalConcentratedFluidElement
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    double mScalingParameter;
-    bool mIsDynamic;
-    IndexType mNormalDirection;
+
     WeakPointerVector<Condition> mMasterConditions;
     WeakPointerVector<Node<3>> mMasterNodes;
 

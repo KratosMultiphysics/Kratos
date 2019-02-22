@@ -212,7 +212,11 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
                 KratosMultiphysics.NORMAL), 0)
 
         dirichelet_nodes = [1, 4]
-        ApplyDiricheletCondition(lhs_hydro, dirichelet_nodes)
+        #ApplyDiricheletCondition(lhs_hydro, dirichelet_nodes)
+
+        print("intersected_area ::", intersected_area)
+        print("specific_weight ::", specific_weight)
+
 
         # print(lhs_hydro_1)
         print('#################')
@@ -236,13 +240,13 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
 
         eigen_hydro = np.linalg.eig(lhs_hydro)
 
-        print("###########Hydrostatic EigenValues#######")
+        """ print("###########Hydrostatic EigenValues#######")
 
         for i in range(0, lhs_hydro.shape[0]):
             if(math.fabs(np.real(eigen_hydro[0][i])) > 1e-15):
                 print("Eigen value :: ", eigen_hydro[0][i])
                 print("Eigen vector :: ", eigen_hydro[1][:, i])
-                ApplyDisplacement(mp, eigen_hydro[1][:, i])
+                ApplyDisplacement(mp, eigen_hydro[1][:, i]) """
 
         #reference_res = [-44.872685126136794,46.372685126136815,0.0,-44.87268512613681,46.3726851261368,0.0,-56.657798145912594,58.1577981459126,0.0,-56.65779814591261,58.157798145912615,0.0]
         # for i in range(len(rhs)):

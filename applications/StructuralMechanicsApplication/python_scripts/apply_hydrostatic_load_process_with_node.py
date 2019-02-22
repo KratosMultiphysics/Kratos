@@ -22,7 +22,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
                     "properties_id"                 : 0,
                     "main_model_part_name"          : "Structure",
                     "model_part_name"               : "SurfacePressure3D_hemisphere",
-                    "specific_weight"               : "200*t",
+                    "specific_weight"               : 200.0,
                     "interval"                      : [0.0, 1e30],
                     "local_axes"                    : {},
                     "fluid_volume"                  : 1.5,
@@ -131,18 +131,18 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         self.properties.SetValue(
             StructuralMechanicsApplication.FREE_SURFACE_CENTRE, self.free_surface_centre)
 
-        avg_nodes = 10
+        """ avg_nodes = 10
         avg_elems = 10
 
         neighbhor_finder = KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elems, avg_nodes)
 
-        neighbhor_finder.Execute()
+        neighbhor_finder.Execute() """
 
-        self.nodal_elem.SetValue(
+        """ self.nodal_elem.SetValue(
             StructuralMechanicsApplication.STIFFNESS_SCALING, 1.0)
         self.nodal_elem.SetValue(
-            StructuralMechanicsApplication.IS_DYNAMIC, False)
+            StructuralMechanicsApplication.IS_DYNAMIC, False) """
 
         master_creator = StructuralMechanicsApplication.BuildMasterConditionsForHydrostaticLoadingProcess(
             self.model_part, self.nodal_elem)
@@ -160,6 +160,8 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.properties.SetValue(
+            StructuralMechanicsApplication.DO_RANK_ONE_UPDATE, False)
 
         if(self.interval.IsInInterval(current_time)):
 
@@ -190,7 +192,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
                 StructuralMechanicsApplication.SPECIFIC_WEIGHT)
 
             self.VolumeCalcUtilty.SetPlaneParameters(
-                centre, self.free_surface_radius, self.plane_normal)
+                centre, self.initial_free_surface_radius, self.plane_normal)
             vol = self.VolumeCalcUtilty.CalculateVolume(self.main_model_part)
             area = self.VolumeCalcUtilty.GetIntersectedArea()
 
