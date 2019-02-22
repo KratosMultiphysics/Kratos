@@ -73,31 +73,35 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         nodal_distances_to_wake = KratosMultiphysics.Vector(3)
 
+        the_id = self.fluid_model_part.NumberOfElements() + 1
+
         for elem in self.fluid_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
                 nodal_distances_to_wake = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-                the_id = elem.Id
                 the_properties = elem.Properties
                 the_node_ids = [node.Id for node in elem.GetNodes()]
+                elem.Set(KratosMultiphysics.TO_ERASE)
                 if(elem.Is(KratosMultiphysics.STRUCTURE)):
-                    self.fluid_model_part.RemoveElement(elem)
                     new_elem_name = "IncompressiblePotentialFlowTrailingEdgeElement2D3N"
                     new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
                     new_element.Set(KratosMultiphysics.STRUCTURE)
                 else:
-                    self.fluid_model_part.RemoveElement(elem)
                     new_elem_name = "IncompressiblePotentialFlowWakeElement2D3N"
                     new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
                 new_element.SetValue(CPFApp.WAKE, True)
                 new_element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, nodal_distances_to_wake)
+                the_id += 1
             elif(elem.GetValue(CPFApp.KUTTA)):
-                the_id = elem.Id
                 the_properties = elem.Properties
                 the_node_ids = [node.Id for node in elem.GetNodes()]
-                self.fluid_model_part.RemoveElement(elem)
+                elem.Set(KratosMultiphysics.TO_ERASE)
                 new_elem_name = "IncompressiblePotentialFlowKuttaElement2D3N"
                 new_element = self.fluid_model_part.CreateNewElement(new_elem_name, the_id, the_node_ids, the_properties)
                 new_element.SetValue(CPFApp.KUTTA, True)
+                the_id += 1
+
+        KratosMultiphysics.Logger.PrintInfo('...Removing elements...')
+        self.fluid_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
 
         KratosMultiphysics.Logger.PrintInfo('...Replacing elements finished...')
 
