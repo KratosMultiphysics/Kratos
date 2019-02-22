@@ -7,7 +7,7 @@
         "end_time"        : 1
     },
     "solver_settings"                  : {
-        "solver_type"            : "Potential_flow",
+        "solver_type"            : "potential_flow",
         "domain_size"     : 2,
         "model_part_name" : "MainModelPart",
         "model_import_settings"  : {
