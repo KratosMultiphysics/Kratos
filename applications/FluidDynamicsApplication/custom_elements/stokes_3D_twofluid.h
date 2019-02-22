@@ -330,13 +330,6 @@ public:
 
                 Vector strain = CalculateStrain();
                 Values.SetStrainVector(strain);
-                //MODIFICATION: Add limits to the strain. In order to do so, we call the consitutive model of the element:
-                const double gamma_dot = std::sqrt(2.*strain[0] * strain[0] + 2.*strain[1] * strain[1] + 2.*strain[2] * strain[2]
-                    + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]); 
-                double gamma_dot_from_constitutive_law = mp_constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
-                double ratio = fabs(gamma_dot_from_constitutive_law/gamma_dot);
-                if(ratio>1.0 || ratio<1e-20) ratio = 1.0;
-                strain*=ratio; 
 
                 Vector stress(strain_size);
                 Values.SetStressVector(stress); //this is an ouput parameter
@@ -737,7 +730,7 @@ public:
 
         double max_diag = 0.0;
         for(unsigned int k=0; k<Dim+1; k++)
-            if(fabs(Kee_tot(k,k) ) > max_diag) max_diag = fabs(Kee_tot(k,k) );
+            if(std::abs(Kee_tot(k,k) ) > max_diag) max_diag = std::abs(Kee_tot(k,k) );
         if(max_diag == 0) max_diag = 1.0;
 
         if(positive_volume/Vol < min_area_ratio)
@@ -764,11 +757,11 @@ public:
         //"weakly" impose continuity
         for(unsigned int i=0; i<Dim; i++)
         {
-            const double di = fabs(distances[i]);
+            const double di = std::abs(distances[i]);
 
             for(unsigned int j=i+1; j<Dim+1; j++)
             {
-                const double dj =  fabs(distances[j]);
+                const double dj =  std::abs(distances[j]);
 
                 if( distances[i]*distances[j] < 0.0) //cut edge
                 {
