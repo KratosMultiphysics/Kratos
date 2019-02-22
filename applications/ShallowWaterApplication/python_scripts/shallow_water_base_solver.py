@@ -64,9 +64,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         # Topographic model part
         self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
         self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY)
-        self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.HEIGHT)
-        self.topographic_model_part.AddNodalSolutionStepVariable(Shallow.FREE_SURFACE_ELEVATION)
-        self.topographic_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
