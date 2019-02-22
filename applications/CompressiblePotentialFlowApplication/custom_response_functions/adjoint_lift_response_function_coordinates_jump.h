@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "adjoint_structural_response_function.h"
+#include "adjoint_potential_response_function.h"
 
 
 namespace Kratos

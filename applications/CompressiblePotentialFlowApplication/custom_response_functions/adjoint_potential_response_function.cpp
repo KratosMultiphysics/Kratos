@@ -16,7 +16,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
-#include "adjoint_structural_response_function.h"
+#include "adjoint_potential_response_function.h"
 #include "utilities/variable_utils.h"
 
 
