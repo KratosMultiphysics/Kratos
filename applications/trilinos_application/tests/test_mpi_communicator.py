@@ -173,7 +173,20 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 2.0)
 
+    def testCommunicatorRankSize(self):
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
+        self._read_model_part_mpi(main_model_part)
+
+        self.world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        self.assertEqual(self.world.Rank(), main_model_part.GetCommunicator().MyPID())
+        self.assertEqual(self.world.Size(), main_model_part.GetCommunicator().TotalProcesses())
+
+        submodelpart = main_model_part.GetSubModelPart("Skin")
+        self.assertEqual(self.world.Rank(), submodelpart.GetCommunicator().MyPID())
+        self.assertEqual(self.world.Size(), submodelpart.GetCommunicator().TotalProcesses())
 
     #def test_model_part_io_properties_block(self):
     #    model_part = ModelPart("Main")
