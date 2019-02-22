@@ -169,7 +169,6 @@ public:
     ///@{
 
     /// Default constructor.
-
     Communicator() : mNumberOfColors(1)
         , mpLocalMesh(MeshType::Pointer(new MeshType))
         , mpGhostMesh(MeshType::Pointer(new MeshType))
@@ -183,7 +182,11 @@ public:
         mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     }
 
-    /// Constructor using a custom DataCommunicator
+    /// Constructor using a custom DataCommunicator.
+    /** This constructor is intended for use from derived classes,
+     *  since the base Communicator class will often not use the communicator at all.
+     *  @param rDataCommunicator Reference to a DataCommunicator.
+     */
     Communicator(const DataCommunicator& rDataCommunicator)
         : mNumberOfColors(1)
         , mpLocalMesh(MeshType::Pointer(new MeshType))

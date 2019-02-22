@@ -184,9 +184,14 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor using the VariablesList of the ModelPart that will use this communicator.
     MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
     {}
 
+    /// Constructor using the VariablesList and a custom DataCommunicator.
+    /** @param pVariablesList Pointer to the VariablesList of the ModelPart that will use this communicator.
+     *  @param rDataCommunicator Reference to a DataCommunicator, which will be used for MPI calls.
+     */
     MPICommunicator(VariablesList* pVariablesList, const DataCommunicator& rDataCommunicator)
     : BaseType(rDataCommunicator)
     , mpVariables_list(pVariablesList)
