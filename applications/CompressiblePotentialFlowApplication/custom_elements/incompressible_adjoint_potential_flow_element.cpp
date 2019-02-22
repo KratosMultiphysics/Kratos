@@ -275,7 +275,7 @@ namespace Kratos
                                             const ProcessInfo& rCurrentProcessInfo) 
     {
         KRATOS_TRY;
-        const double delta = 1e-6;//this->GetPerturbationSize(rDesignVariable);
+        const double delta = this->GetPerturbationSize();
         ProcessInfo process_info = rCurrentProcessInfo;
 
         Vector RHS;
@@ -532,10 +532,9 @@ namespace Kratos
     /*PRIVATE*/
 
     template <int Dim, int NumNodes>
-    double IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::GetPerturbationSize(const Variable<double>& rDesignVariable)
+    double IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::GetPerturbationSize()
     {
-        // const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-        const double delta = 1e-9;//this->GetValue(PERTURBATION_SIZE);
+        const double delta = this->GetValue(SCALE_FACTOR);
         KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
         return delta;
     }

@@ -281,7 +281,7 @@ private:
     ///@name Serialization
     ///@{
 
-    double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize();
 
     friend class Serializer;
 
