@@ -819,13 +819,11 @@ class MaterialTest(object):
 
   def GenerateGraphics(self):
 
-        ##os.ch.dir("/media/----/Data/Simulations/debugger_december2016/debugger_specimen_v1-0.gid/test")
         ## PROBLEM DATA
         area = 0.000001 ### 1mm2
         grad_p = 1 ## Pa/m
 
         ## Read Data
-        ##data_file_name0 = self.parameters.problem_name + "_graph.grf"
         data_file_name0 = "test.grf"
         data0 = loadtxt(data_file_name0)
         strain = array(data0[:,0])

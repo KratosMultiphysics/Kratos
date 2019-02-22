@@ -244,7 +244,8 @@ class BuildModelPartBoundaryProcess
 
     bool found=false;
 
-    //std::cout<<" [ START SEARCH CONDITIONS MASTERS : "<<std::endl;
+    if(mEchoLevel > 1)
+      std::cout<<" [ START SEARCH CONDITIONS MASTERS : "<<std::endl;
 
     for(auto& i_cond : mrModelPart.Conditions())
     {
@@ -256,12 +257,12 @@ class BuildModelPartBoundaryProcess
         ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
         if(MasterElements.size()!=0){
           if(!MasterElements(0).expired())
-            std::cout<<" ME="<<MasterElements.front().Id();
+            std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
         }
         NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
         if(MasterNodes.size()!=0){
           if(!MasterNodes(0).expired())
-            std::cout<<" MN= "<<MasterNodes.front().Id();
+            std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
         }
         std::cout<<std::endl;
       }
@@ -309,17 +310,18 @@ class BuildModelPartBoundaryProcess
 
                   if(j_nelem->Id() == i_nelem->Id() && !found){
 
-                    ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
+                    ElementWeakPtrVectorType& rMasterElements = i_cond.GetValue(MASTER_ELEMENTS);
 
-                    if(MasterElements.size()){
-                      this->CheckMasterElement(i_cond.Id(),MasterElements(0),*i_nelem.base());
+                    if(rMasterElements.size()){
+                      this->CheckMasterElement(i_cond.Id(),rMasterElements(0),*i_nelem.base());
+                      rMasterElements.clear();
                     }
                     else{
                       if(mEchoLevel >= 1)
                         std::cout<<" First Assignment of Master Elements "<<i_cond.Id()<<std::endl;
                     }
 
-                    MasterElements.push_back(*i_nelem.base());
+                    rMasterElements.push_back(*i_nelem.base());
 
                     GeometryType& eGeometry = i_nelem->GetGeometry();
 
@@ -340,17 +342,18 @@ class BuildModelPartBoundaryProcess
                     }
 
                     if(found){
-                      NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
+                      NodeWeakPtrVectorType& rMasterNodes = i_cond.GetValue(MASTER_NODES);
 
-                      if(MasterNodes.size()){
-                        this->CheckMasterNode(i_cond.Id(),MasterNodes(0),eGeometry(lpofa(0,node)));
+                      if(rMasterNodes.size()){
+                        this->CheckMasterNode(i_cond.Id(),rMasterNodes(0),eGeometry(lpofa(0,node)));
+                        rMasterNodes.clear();
                       }
                       else{
                         if(mEchoLevel >= 1)
                           std::cout<<" First Assignment of Master Nodes "<<i_cond.Id()<<std::endl;
                       }
 
-                      MasterNodes.push_back(eGeometry(lpofa(0,node)));
+                      rMasterNodes.push_back(eGeometry(lpofa(0,node)));
                     }
                     else{
                       std::cout<<" 2N Geometry MASTER_NODE not FOUND : something is wrong "<<std::endl;
@@ -384,17 +387,18 @@ class BuildModelPartBoundaryProcess
                       if(!k_nelem.base()->expired()){
                         if(k_nelem->Id() == i_nelem->Id() && !found)
                         {
-                          ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
+                          ElementWeakPtrVectorType& rMasterElements = i_cond.GetValue(MASTER_ELEMENTS);
 
-                          if(MasterElements.size()){
-                            this->CheckMasterElement(i_cond.Id(),MasterElements(0),*i_nelem.base());
+                          if(rMasterElements.size()){
+                            this->CheckMasterElement(i_cond.Id(),rMasterElements(0),*i_nelem.base());
+                            rMasterElements.clear();
                           }
                           else{
                             if(mEchoLevel >= 1)
                               std::cout<<" First Assignment of Master Elements "<<i_cond.Id()<<std::endl;
                           }
 
-                          MasterElements.push_back(*i_nelem.base());
+                          rMasterElements.push_back(*i_nelem.base());
 
                           GeometryType& eGeometry = i_nelem->GetGeometry();
 
@@ -416,17 +420,18 @@ class BuildModelPartBoundaryProcess
 
                           if(found){
 
-                            NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
+                            NodeWeakPtrVectorType& rMasterNodes = i_cond.GetValue(MASTER_NODES);
 
-                            if(MasterNodes.size()){
-                              this->CheckMasterNode(i_cond.Id(),MasterNodes(0),eGeometry(lpofa(0,node)));
+                            if(rMasterNodes.size()){
+                              this->CheckMasterNode(i_cond.Id(),rMasterNodes(0),eGeometry(lpofa(0,node)));
+                              rMasterNodes.clear();
                             }
                             else{
                               if(mEchoLevel >= 1)
                                 std::cout<<" First Assignment of Master Nodes "<<i_cond.Id()<<std::endl;
                             }
 
-                            MasterNodes.push_back(eGeometry(lpofa(0,node)));
+                            rMasterNodes.push_back(eGeometry(lpofa(0,node)));
 
                           }
                           else{
@@ -452,12 +457,12 @@ class BuildModelPartBoundaryProcess
         ElementWeakPtrVectorType MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
         if(MasterElements.size()!=0){
           if(!MasterElements(0).expired())
-            std::cout<<" ME="<<MasterElements.front().Id();
+            std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
         }
         NodeWeakPtrVectorType MasterNodes = i_cond.GetValue(MASTER_NODES);
         if(MasterNodes.size()!=0){
           if(!MasterNodes(0).expired())
-            std::cout<<" MN= "<<MasterNodes.front().Id();
+            std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
         }
         std::cout<<std::endl;
       }
@@ -466,7 +471,6 @@ class BuildModelPartBoundaryProcess
         ++counter;
 
     }
-
 
     if(counter == total_conditions){
       if(mEchoLevel >= 1)
@@ -483,8 +487,8 @@ class BuildModelPartBoundaryProcess
       if(mEchoLevel >= 1)
         std::cout<<"   Condition Masters (ModelPart "<<mrModelPart.Name()<<"): LOCATED ["<<counter<<"] COMPOSITE ["<<composite_conditions<<"] NO MATCH"<<std::endl;
 
-
-    //std::cout<<"   END SEARCH CONDITIONS MASTERS ] "<<found<<std::endl;
+    if(mEchoLevel > 1)
+      std::cout<<"   END SEARCH CONDITIONS MASTERS ] "<<found<<std::endl;
 
     return found;
 
@@ -561,11 +565,11 @@ class BuildModelPartBoundaryProcess
 
     for(auto& i_cond : rTemporaryConditions)
     {
-      ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
-      MasterElements.clear();
+      i_cond.GetValue(MASTER_ELEMENTS).clear();
+      i_cond.GetValue(MASTER_NODES).clear();
 
-      NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
-      MasterNodes.clear();
+      KRATOS_ERROR_IF(i_cond.GetValue(MASTER_ELEMENTS).size() || i_cond.GetValue(MASTER_NODES).size())<<
+          " Master Entities not cleared "<<std::endl;
     }
 
     return true;

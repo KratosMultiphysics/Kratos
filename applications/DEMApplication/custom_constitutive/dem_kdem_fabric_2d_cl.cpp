@@ -36,13 +36,13 @@ namespace Kratos {
                                                     double indentation) {
         KRATOS_TRY
 
-        double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
+        double rotational_moment_coefficient = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
 
         DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
                                                    ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
 
-        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
-        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
+        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coefficient);
+        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coefficient);
 
         //mContactMoment *= 1.0; // TODO: Hardcoded the reduction of a 90% of the flection in relation to KDEM
 

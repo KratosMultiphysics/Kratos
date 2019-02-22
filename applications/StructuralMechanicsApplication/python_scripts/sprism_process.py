@@ -6,7 +6,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 def Factory(settings, Model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SPRISMProcess(Model, settings["Parameters"])
 
@@ -38,6 +38,7 @@ class SPRISMProcess(KM.Process):
             "help"                           :"This class is used in order to compute some pre and post process on the SPRISM solid shell elements",
             "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
+            "explicit_simulation"            : false,
             "preprocess_shell_to_solidshell" : false,
             "parameters_shell_to_solidshell" : {
                 "element_name"                         : "SolidShellElementSprism3D6N",
@@ -74,8 +75,13 @@ class SPRISMProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
+        # If explicit simulation we set the variable EXPLICIT_RHS_COMPUTATION
+        if self.settings["preprocess_shell_to_solidshell"].GetBool():
+            for prop in self.solid_shell_model_part.GetProperties():
+                prop.SetValue(SMA.EXPLICIT_RHS_COMPUTATION, True)
+
         # We preprocess from triangle shells to SPRISM solid-shells
-        if (self.settings["preprocess_shell_to_solidshell"].GetBool() is True):
+        if self.settings["preprocess_shell_to_solidshell"].GetBool():
             parameters_shell_to_solidshell = KM.Parameters("""{}""")
             parameters_shell_to_solidshell.AddValue("element_name", self.settings["parameters_shell_to_solidshell"]["element_name"])
             parameters_shell_to_solidshell.AddValue("new_constitutive_law_name", self.settings["parameters_shell_to_solidshell"]["new_constitutive_law_name"])
@@ -94,14 +100,6 @@ class SPRISMProcess(KM.Process):
         # We compute the neighbours
         self.sprism_neighbour_search.Execute()
 
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed before starting the time loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
@@ -109,7 +107,7 @@ class SPRISMProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         # We compute the neighbours if we have remeshed the problem
-        if (self.main_model_part.Is(KM.MODIFIED)):
+        if self.main_model_part.Is(KM.MODIFIED):
             self.sprism_neighbour_search.Execute()
 
     def ExecuteFinalizeSolutionStep(self):
@@ -120,27 +118,3 @@ class SPRISMProcess(KM.Process):
         """
         # We compute the thickness of the solid shell element
         self.thickness_compute_process.Execute()
-
-    def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        """ This method is executed right after the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
-    def ExecuteFinalize(self):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass

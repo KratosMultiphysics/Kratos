@@ -15,6 +15,8 @@
 
 #include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_3D_condition.hpp"
 
+#include "custom_friction/coulomb_adhesion_friction_law.hpp"
+
 #include "contact_mechanics_application_variables.h"
 #include "includes/mat_variables.h"
 namespace Kratos
@@ -46,6 +48,7 @@ namespace Kratos
       : PointRigidContactPenalty3DCondition(NewId, pGeometry, pProperties, pRigidWall)
    {
       //DO NOT ADD DOFS HERE!!!
+      this->mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
    }
 
    //************************************************************************************
@@ -472,7 +475,8 @@ namespace Kratos
          }
       }
 
-      if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_STRESS) ) {
+      if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_STRESS) && 
+            GetGeometry()[0].SolutionStepsDataHas(EFFECTIVE_CONTACT_FORCE) ) {
          double Area = this->CalculateSomeSortOfArea();
          array_1d<double, 3 >& ECF = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_FORCE);
          array_1d<double, 3 >& ECS = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_STRESS);

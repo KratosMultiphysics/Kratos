@@ -31,7 +31,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "relative_tolerance" : 1e-3,
             "absolute_tolerance" : 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,

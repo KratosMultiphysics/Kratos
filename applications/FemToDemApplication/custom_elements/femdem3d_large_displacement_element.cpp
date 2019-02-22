@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
+//  Collaborator:    Vicente Mataix
 //
 
 #include "custom_elements/femdem3d_large_displacement_element.hpp"
@@ -193,26 +194,28 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
+        Vector strain_vector;
+        this->CalculateGreenLagrangeStrainVector(strain_vector, F);
 		bool is_damaging = false;
 
 		// Loop over edges of the element
-        const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+        const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
-			Vector AverageStressVector, AverageStrainVector, IntegratedStressVectorOnEdge;
+			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
+			Vector average_stress_vector, average_strain_vector;
 
-			this->CalculateAverageStressOnEdge(AverageStressVector, EdgeNeighbours);
-			this->CalculateAverageStrainOnEdge(AverageStrainVector, EdgeNeighbours);
+			this->CalculateAverageStressOnEdge(average_stress_vector, p_edge_neighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_vector, p_edge_neighbours);
 
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
 
 			this->IntegrateStressDamageMechanics(threshold, 
 												 damage_edge,
-												 AverageStrainVector, 
-				                                 AverageStressVector, 
+												 average_strain_vector, 
+				                                 average_stress_vector, 
 												 edge, 
-												 characteristic_lengths[edge],
+												 r_characteristic_lengths[edge],
 											     is_damaging);
 			this->SetNonConvergedDamages(damage_edge, edge);
 			mNonConvergedDamages[edge] = damage_edge;
@@ -221,12 +224,20 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
-        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+		Vector stress_vector = ZeroVector(6);
+		this->CalculateStressVectorPredictor(stress_vector, constitutive_matrix, strain_vector);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+        Matrix tangent_tensor;
 
-        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
-        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
-        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
+        if (is_damaging == true) { // Tangent Tensor
+            this->CalculateTangentTensor(tangent_tensor, strain_vector, r_integrated_stress_vector, F, constitutive_matrix);
+            rLeftHandSideMatrix += integration_weigth * prod(trans(B), Matrix(prod(tangent_tensor, B)));
+        } else { // Secant
+            this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
+        }
+
+        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
 } // CalculateLocalSystem
 
@@ -341,9 +352,9 @@ void FemDem3DLargeDisplacementElement::CalculateRightHandSide(VectorType& rRight
 
         const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
-        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
-        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
 }
 
@@ -468,5 +479,210 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddInternalForcesVector(
     noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(rB), rStressVector);
 }
 
+// Methods to compute the tangent tensor by numerical derivation
+void FemDem3DLargeDisplacementElement::CalculateTangentTensor(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rDeformationGradientGP,
+    const Matrix& rElasticMatrix
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	rTangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+    Matrix perturbed_deformation_gradient;
+    const double size_1 = rDeformationGradientGP.size1();
+    const double size_2 = rDeformationGradientGP.size2();
+	
+	for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+	    for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+            double perturbation;
+            const int component_voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
+            this->CalculatePerturbation(rStrainVectorGP, perturbation, component_voigt_index);
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient, rDeformationGradientGP, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain, perturbed_deformation_gradient);
+            this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+            const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
+            this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component_voigt_index);
+        }
+	}
+}
+
+void FemDem3DLargeDisplacementElement::PerturbateDeformationGradient(
+    Matrix& rPerturbedDeformationGradient,
+    const Matrix& rDeformationGradientGP,
+    const double Perturbation,
+    const int ComponentI,
+    const int ComponentJ
+)
+{
+    rPerturbedDeformationGradient = rDeformationGradientGP;
+    if (ComponentI == ComponentJ) {
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
+    } else {
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += 0.5 * Perturbation;
+        rPerturbedDeformationGradient(ComponentJ, ComponentI) += 0.5 * Perturbation;
+    }
+}
+
+void FemDem3DLargeDisplacementElement::IntegratePerturbedDeformationGradient(
+    Vector& rPerturberStressVector,
+    const Vector& rPerturbedStrainVector,
+    const Matrix& rElasticMatrix,
+    const Matrix& rPerturbedDeformationGradient
+    )
+{
+}
+
+
+int FemDem3DLargeDisplacementElement::CalculateVoigtIndex(
+    const SizeType VoigtSize,
+    const int ComponentI,
+    const int ComponentJ
+    )
+{
+    if (VoigtSize == 6) {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 5;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 4;
+                    default:
+                        return 0;
+                }
+            case 2:
+                switch(ComponentJ) {
+                    case 0:
+                        return 5;
+                    case 1:
+                        return 4;
+                    case 2:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    } else {
+        switch(ComponentI) {
+            case 0:
+                switch(ComponentJ) {
+                    case 0:
+                        return 0;
+                    case 1:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            case 1:
+                switch(ComponentJ) {
+                    case 0:
+                        return 2;
+                    case 1:
+                        return 1;
+                    default:
+                        return 0;
+                }
+            default:
+                return 0;
+        }
+    }
+}
+
+// 	VECTOR VARIABLES
+void FemDem3DLargeDisplacementElement::CalculateOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRESS_VECTOR || rVariable == CAUCHY_STRESS_VECTOR) {
+		rOutput[0] = this->GetValue(STRESS_VECTOR);
+	} else if (rVariable == STRAIN_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+		rOutput[0] = this->GetValue(STRAIN_VECTOR);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		rOutput[0] = (1.0 - mDamage) * (this->GetValue(STRESS_VECTOR));
+	}
+}
+
+// 	TENSOR VARIABLES
+void FemDem3DLargeDisplacementElement::CalculateOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rOutput,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+	if (rOutput[0].size2() != dimension)
+		rOutput[0].resize(dimension, dimension, false);
+
+	if (rVariable == STRESS_TENSOR ) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
+	} else if (rVariable == STRAIN_TENSOR) {
+		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * (this->GetValue(STRESS_VECTOR)));
+	} else if (rVariable == CAUCHY_STRESS_TENSOR) {
+		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
+    }
+}
+
+// Vector Values
+void FemDem3DLargeDisplacementElement::GetValueOnIntegrationPoints(
+	const Variable<Vector> &rVariable,
+	std::vector<Vector> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == CAUCHY_STRESS_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
+
+// Tensor variables
+void FemDem3DLargeDisplacementElement::GetValueOnIntegrationPoints(
+	const Variable<Matrix> &rVariable,
+	std::vector<Matrix> &rValues,
+	const ProcessInfo &rCurrentProcessInfo)
+{
+	if (rVariable == STRAIN_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == CAUCHY_STRESS_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	} else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+}
 
 } // namespace Kratos
