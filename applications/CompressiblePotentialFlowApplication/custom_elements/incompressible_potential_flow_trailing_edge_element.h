@@ -13,10 +13,6 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_TRAILING_EDGE_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_TRAILING_EDGE_ELEMENT_H
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
@@ -25,22 +21,6 @@
 #include "utilities/enrichment_utilities.h"
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -78,7 +58,6 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    [[deprecated("Using deprecated IncompressiblePotentialFlowTrailingEdgeElement constructor")]]
     explicit IncompressiblePotentialFlowTrailingEdgeElement(IndexType NewId = 0){}
 
     /**
@@ -203,72 +182,12 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Operators
     ///@{
 
     void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
-
-    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
-
-    void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
-
-    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
-
-    void GetDofListNormalElement(DofsVectorType& rElementalDofList) const;
-
-    void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
-
-    void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
-
-    void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector);
-
-    void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector);
 
     void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
 
@@ -297,10 +216,8 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
-
-    void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances) const;
+    void GetPotential(Vector& split_element_values,
+                      const array_1d<double, NumNodes>& distances) const;
 
     void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
                                         const array_1d<double, NumNodes>& distances) const;
@@ -308,29 +225,13 @@ private:
     void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
                                         const array_1d<double, NumNodes>& distances) const;
 
-    void ComputeVelocityUpper(array_1d<double, Dim>& velocity) const;
+    void ComputeUpperVelocity(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityLower(array_1d<double, Dim>& velocity) const;
+    void ComputeLowerVelocity(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
+    double ComputeUpperPressure(const ProcessInfo& rCurrentProcessInfo) const;
 
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
-
-    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
+    double ComputeLowerPressure(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Serialization
@@ -343,29 +244,7 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class IncompressiblePotentialFlowTrailingEdgeElement
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

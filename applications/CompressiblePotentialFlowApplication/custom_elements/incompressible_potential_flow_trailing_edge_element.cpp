@@ -51,13 +51,36 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
+    // Note that the lhs and rhs have double the size
+    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
+        rLeftHandSideMatrix.size2() != 2 * NumNodes)
+        rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
+    if (rRightHandSideVector.size() != 2 * NumNodes)
+        rRightHandSideVector.resize(2 * NumNodes, false);
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
 
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
-    else // Wake element
-        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    GetWakeDistances(data.distances);
+
+    Matrix lhs_total = ZeroMatrix(NumNodes, NumNodes);
+
+    ComputeLHSGaussPointContribution(data.vol, lhs_total, data);
+
+    Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
+    Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
+
+    CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative);
+    AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
+                                       lhs_negative, lhs_total, data);
+
+    Vector split_element_values(2*NumNodes);
+    GetPotential(split_element_values,data.distances);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
@@ -73,73 +96,68 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
+    if (rResult.size() != 2 * NumNodes)
+        rResult.resize(2 * NumNodes, false);
 
-    if (wake == 0) // Normal element
+    array_1d<double, NumNodes> distances;
+    GetWakeDistances(distances);
+
+    // Positive part
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (rResult.size() != NumNodes)
-            rResult.resize(NumNodes, false);
-
-        const int kutta = r_this.GetValue(KUTTA);
-
-        if (kutta == 0)
-            GetEquationIdVectorNormalElement(rResult);
+        if (distances[i] > 0.0)
+            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
-            GetEquationIdVectorKuttaElement(rResult);
+            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
-    else // Wake element
-    {
-        if (rResult.size() != 2 * NumNodes)
-            rResult.resize(2 * NumNodes, false);
 
-        GetEquationIdVectorWakeElement(rResult);
+    // Negative part
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        if (distances[i] < 0.0)
+            rResult[NumNodes + i] =
+                GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        else
+            rResult[NumNodes + i] =
+                GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                   ProcessInfo& CurrentProcessInfo)
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofList(
+    DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
+    if (rElementalDofList.size() != 2 * NumNodes)
+        rElementalDofList.resize(2 * NumNodes);
 
-    if (wake == 0) // Normal element
+    array_1d<double, NumNodes> distances;
+    GetWakeDistances(distances);
+
+    // Positive part
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (rElementalDofList.size() != NumNodes)
-            rElementalDofList.resize(NumNodes);
-
-        const int kutta = r_this.GetValue(KUTTA);
-
-        if (kutta == 0)
-            GetDofListNormalElement(rElementalDofList);
+        if (distances[i] > 0)
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else
-            GetDofListKuttaElement(rElementalDofList);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
-    else // wake element
-    {
-        if (rElementalDofList.size() != 2 * NumNodes)
-            rElementalDofList.resize(2 * NumNodes);
 
-        GetDofListWakeElement(rElementalDofList);
+    // Negative part
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        if (distances[i] < 0)
+            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
+        else
+            rElementalDofList[NumNodes + i] =
+                GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
-
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake != 0 && active == true)
-    {
-        CheckWakeCondition();
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
+    CheckWakeCondition();
+    ComputePotentialJump(rCurrentProcessInfo);
     ComputeElementInternalEnergy();
 }
 
@@ -164,6 +182,7 @@ int IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::Check(const P
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,this->GetGeometry()[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUXILIARY_VELOCITY_POTENTIAL,this->GetGeometry()[i]);
     }
 
     return out;
@@ -182,12 +201,12 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIn
 
     if (rVariable == PRESSURE)
     {
-        double p = ComputePressureUpper(rCurrentProcessInfo);
+        double p = ComputeUpperPressure(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == PRESSURE_LOWER)
     {
-        double p = ComputePressureLower(rCurrentProcessInfo);
+        double p = ComputeLowerPressure(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == WAKE)
@@ -203,16 +222,11 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIn
 {
     if (rValues.size() != 1)
         rValues.resize(1);
+
     if (rVariable == TRAILING_EDGE)
         rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if (rVariable == KUTTA)
-        rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == WAKE)
         rValues[0] = this->GetValue(WAKE);
-    else if (rVariable == ZERO_VELOCITY_CONDITION)
-        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
-    else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
-        rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
 }
 
 template <int Dim, int NumNodes>
@@ -227,7 +241,7 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIn
     {
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux;
-        ComputeVelocityUpper(vaux);
+        ComputeUpperVelocity(vaux);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -236,7 +250,7 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetValueOnIn
     {
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux;
-        ComputeVelocityLower(vaux);
+        ComputeLowerVelocity(vaux);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -284,162 +298,6 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
     noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
-{
-    // Kutta elements have only negative part
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-        else
-            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
-{
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    // Positive part
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (distances[i] > 0.0)
-            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-        else
-            rResult[i] =
-                GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL, 0).EquationId();
-    }
-
-    // Negative part - sign is opposite to the previous case
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (distances[i] < 0.0)
-            rResult[NumNodes + i] =
-                GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
-        else
-            rResult[NumNodes + i] =
-                GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListNormalElement(DofsVectorType& rElementalDofList) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
-{
-    // Kutta elements have only negative part
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
-        else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
-{
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    // Positive part
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (distances[i] > 0)
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
-        else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
-    }
-
-    // Negative part - sign is opposite to the previous case
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        if (distances[i] < 0)
-            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
-        else
-            rElementalDofList[NumNodes + i] =
-                GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
-{
-    if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
-        rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes, false);
-    rLeftHandSideMatrix.clear();
-
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    ComputeLHSGaussPointContribution(data.vol, rLeftHandSideMatrix, data);
-
-    GetPotentialOnNormalElement(data.phis);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
-{
-    // Note that the lhs and rhs have double the size
-    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
-        rLeftHandSideMatrix.size2() != 2 * NumNodes)
-        rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
-    if (rRightHandSideVector.size() != 2 * NumNodes)
-        rRightHandSideVector.resize(2 * NumNodes, false);
-    rLeftHandSideMatrix.clear();
-    rRightHandSideVector.clear();
-
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    GetWakeDistances(data.distances);
-
-    Matrix lhs_total = ZeroMatrix(NumNodes, NumNodes);
-
-    ComputeLHSGaussPointContribution(data.vol, lhs_total, data);
-
-    if (this->Is(STRUCTURE))
-    {
-        Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
-        Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
-
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative);
-        AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
-                                           lhs_negative, lhs_total, data);
-    }
-    else
-        AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
-
-    Vector split_element_values(2*NumNodes);
-    GetPotentialOnWakeElement(split_element_values,data.distances);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
@@ -553,11 +411,11 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::CheckWakeCondition() const
 {
     array_1d<double, Dim> upper_wake_velocity;
-    ComputeVelocityUpperWakeElement(upper_wake_velocity);
+    ComputeUpperVelocity(upper_wake_velocity);
     const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
     array_1d<double, Dim> lower_wake_velocity;
-    ComputeVelocityLowerWakeElement(lower_wake_velocity);
+    ComputeLowerVelocity(lower_wake_velocity);
     const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
     if (std::abs(vupnorm - vlownorm) > 0.1)
@@ -597,38 +455,14 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeEleme
     double internal_energy = 0.0;
     array_1d<double, Dim> velocity;
 
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        ComputeVelocityNormalElement(velocity);
-    else // Wake element
-        ComputeVelocityUpperWakeElement(velocity);
+    ComputeUpperVelocity(velocity);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, abs(internal_energy));
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnNormalElement(
-    array_1d<double, NumNodes>& phis) const
-{
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int kutta = r_this.GetValue(KUTTA);
-
-    if (kutta == 0)
-        for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-    else
-        for (unsigned int i = 0; i < NumNodes; i++)
-            if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-            else
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotentialOnWakeElement(
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotential(
     Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
 {
     array_1d<double, NumNodes> upper_phis;
@@ -667,51 +501,10 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::GetPotential
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeUpperVelocity(array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityLowerWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    GetPotentialOnNormalElement(data.phis);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
@@ -726,9 +519,10 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVeloc
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity) const
+void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeLowerVelocity(array_1d<double, Dim>& velocity) const
 {
+    velocity.clear();
+
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
@@ -743,31 +537,7 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeVeloc
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
-{
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        return ComputePressureNormalElement(rCurrentProcessInfo);
-    else
-        return ComputePressureUpperWakeElement(rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
-{
-    const IncompressiblePotentialFlowTrailingEdgeElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        return ComputePressureNormalElement(rCurrentProcessInfo);
-    else
-        return ComputePressureLowerWakeElement(rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeUpperPressure(const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -777,26 +547,7 @@ double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePre
         << "vinfinity_norm2 must be larger than zero." << std::endl;
 
     array_1d<double, Dim> v;
-    ComputeVelocityNormalElement(v);
-
-    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
-               vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-    return pressure_coefficient;
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-    const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
+    ComputeUpperVelocity(v);
 
     double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
@@ -805,8 +556,7 @@ double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePre
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
-    const ProcessInfo& rCurrentProcessInfo) const
+double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeLowerPressure(const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -816,7 +566,7 @@ double IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputePre
         << "vinfinity_norm2 must be larger than zero." << std::endl;
 
     array_1d<double, Dim> v;
-    ComputeVelocityLowerWakeElement(v);
+    ComputeLowerVelocity(v);
 
     double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
