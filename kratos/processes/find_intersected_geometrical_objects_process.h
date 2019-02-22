@@ -172,7 +172,6 @@ namespace Internals {
          * @param pObject The pointer to the object
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
-         * @deprecated Remove this, is already defined on base geometry as BoundingBox
          */
         static inline void CalculateBoundingBox(
             const PointerType& pObject,
@@ -183,18 +182,16 @@ namespace Internals {
             // Getting the geoemtry
             auto& r_geometry = pObject->GetGeometry();
 
-            // Using geometry bounding box
-            r_geometry.BoundingBox(rLowPoint, rHighPoint);
-
             // Initializing the highest and lowest point
             rHighPoint = r_geometry.GetPoint(0);
             rLowPoint = r_geometry.GetPoint(0);
 
             // Iterating over the nodes
-            for (IndexType point = 0; point< r_geometry.PointsNumber(); ++point) {
-                for (IndexType i = 0; i<3; i++) {
-                    rLowPoint[i] = (rLowPoint[i]  >  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rLowPoint[i];
-                    rHighPoint[i] = (rHighPoint[i] <  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rHighPoint[i];
+            for (IndexType point = 1; point< r_geometry.PointsNumber(); ++point) {
+                const auto& r_point = r_geometry.GetPoint(point);
+                for (IndexType i = 0; i < 3; ++i) {
+                    rLowPoint[i] = (rLowPoint[i]  >  r_point[i]) ? r_point[i] : rLowPoint[i];
+                    rHighPoint[i] = (rHighPoint[i] <  r_point[i]) ? r_point[i] : rHighPoint[i];
                 }
             }
         }
@@ -204,7 +201,6 @@ namespace Internals {
          * @param pObject The pointer to the object
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
-         * @deprecated Remove this, is already defined on base geometry as BoundingBox
          */
         static inline void GetBoundingBox(
             const PointerType pObject,
@@ -222,10 +218,11 @@ namespace Internals {
             }
 
             // Iterating over the nodes
-            for (IndexType point = 0; point< r_geometry.PointsNumber(); ++point) {
-                for (IndexType i = 0; i<3; i++) {
-                    rLowPoint[i] = (rLowPoint[i]  >  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rLowPoint[i];
-                    rHighPoint[i] = (rHighPoint[i] <  r_geometry.GetPoint(point)[i]) ? r_geometry.GetPoint(point)[i] : rHighPoint[i];
+            for (IndexType point = 1; point< r_geometry.PointsNumber(); ++point) {
+                const auto& r_point = r_geometry.GetPoint(point);
+                for (IndexType i = 0; i < 3; ++i) {
+                    rLowPoint[i] = (rLowPoint[i]  >  r_point[i]) ? r_point[i] : rLowPoint[i];
+                    rHighPoint[i] = (rHighPoint[i] <  r_point[i]) ? r_point[i] : rHighPoint[i];
                 }
             }
         }
