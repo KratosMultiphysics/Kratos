@@ -64,17 +64,21 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             adjoint_analysis.Run()
 
             # Check sensitivities for the parameter I22
-            reference_values = [-87.62277093392399, 38.125186783868, 0.6250049974719261, 0.15624887499699122]
+            reference_values = [-87.62277093392399, 9.497391494932984, 38.125186783868, 0.6250049974719261, 0.15624887499699122]
             sensitivities_to_check = []
-            element_list = [1,6,10]
+            element_list = [1,2,3,4,5,6,10]
             for element_id in element_list:
                 sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
             sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2])
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 3)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 3)
-        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 3)
-        self.assertAlmostEqual(sensitivities_to_check[3], reference_values[3], 5)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[1], 3)
+        self.assertAlmostEqual(sensitivities_to_check[3], reference_values[1], 3)
+        self.assertAlmostEqual(sensitivities_to_check[4], reference_values[1], 3)
+        self.assertAlmostEqual(sensitivities_to_check[5], reference_values[2], 3)
+        self.assertAlmostEqual(sensitivities_to_check[6], reference_values[3], 3)
+        self.assertAlmostEqual(sensitivities_to_check[7], reference_values[4], 5)
 
     def test_nodal_displacement_response(self):
         # Create the adjoint solver
