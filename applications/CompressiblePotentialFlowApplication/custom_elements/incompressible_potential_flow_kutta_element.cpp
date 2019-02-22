@@ -152,21 +152,11 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrati
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PRESSURE)
-    {
+    if (rVariable == PRESSURE){
         double p = ComputePressure(rCurrentProcessInfo);
         rValues[0] = p;
     }
-    else if (rVariable == PRESSURE_LOWER)
-    {
-        double p = ComputePressure(rCurrentProcessInfo);
-        rValues[0] = p;
-    }
-    else if (rVariable == WAKE)
-    {
-        const IncompressiblePotentialFlowKuttaElement& r_this = *this;
-        rValues[0] = r_this.GetValue(WAKE);
-    }
+
 }
 
 template <int Dim, int NumNodes>
@@ -175,16 +165,10 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrati
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if (rVariable == TRAILING_EDGE)
-        rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if (rVariable == KUTTA)
+
+    if (rVariable == KUTTA){
         rValues[0] = this->GetValue(KUTTA);
-    else if (rVariable == WAKE)
-        rValues[0] = this->GetValue(WAKE);
-    else if (rVariable == ZERO_VELOCITY_CONDITION)
-        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
-    else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
-        rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -195,34 +179,15 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrati
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if (rVariable == VELOCITY)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
-        for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
-        rValues[0] = v;
-    }
-    else if (rVariable == VELOCITY_LOWER)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
-        for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
-        rValues[0] = v;
-    }
-}
 
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-    if (rVariable == TRAILING_EDGE)
-        rValues[0] = this->GetValue(TRAILING_EDGE);
+    if (rVariable == VELOCITY){
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux;
+        ComputeVelocity(vaux);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
+        rValues[0] = v;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
