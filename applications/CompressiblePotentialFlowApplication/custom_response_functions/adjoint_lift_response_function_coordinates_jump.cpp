@@ -22,7 +22,7 @@
 namespace Kratos
 {
     AdjointLiftJumpCoordinatesResponseFunction::AdjointLiftJumpCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
-     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
+     : AdjointPotentialResponseFunction(rModelPart, ResponseSettings)
     {
         // This response function currently only works in 2D!
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();

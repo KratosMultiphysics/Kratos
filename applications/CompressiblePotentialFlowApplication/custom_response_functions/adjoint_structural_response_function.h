@@ -9,8 +9,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
-#define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_POTENTIAL_RESPONSE_FUNCTION_H
+#define ADJOINT_POTENTIAL_RESPONSE_FUNCTION_H
 
 // System includes
 
@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-// #include "structural_mechanics_application_variables.h"
 #include "response_functions/adjoint_response_function.h"
 
 
@@ -31,18 +30,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStructuralResponseFunction
-*
-* This is the response base class for responses in structural mechanics.
-* It is designed to be used in adjoint sensitivity analysis.
-*/
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction : public AdjointResponseFunction
+class  AdjointPotentialResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointPotentialResponseFunction);
 
     typedef std::size_t IndexType;
 
@@ -56,10 +50,10 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointPotentialResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-     ~AdjointStructuralResponseFunction() override
+     ~AdjointPotentialResponseFunction() override
     {
     }
 
@@ -116,10 +110,7 @@ private:
     ///@}
 };
 
-///@} // Kratos Classes
-
-///@} //Structural Mechanics Application group
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_STRUCTURAL_RESPONSE_FUNCTION defined */
+#endif /*  defined */

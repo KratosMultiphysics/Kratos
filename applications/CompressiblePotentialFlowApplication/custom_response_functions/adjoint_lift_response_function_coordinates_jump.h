@@ -48,7 +48,7 @@ namespace Kratos
 * This is a response function which traces a chosen displacement or rotation of a single
 * node as response. It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLiftJumpCoordinatesResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLiftJumpCoordinatesResponseFunction : public AdjointPotentialResponseFunction
 {
 public:
     ///@name Type Definitions

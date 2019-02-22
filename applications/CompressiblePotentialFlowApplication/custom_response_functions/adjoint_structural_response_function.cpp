@@ -24,7 +24,7 @@ namespace Kratos
 {
 
     /// Constructor.
-    AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    AdjointPotentialResponseFunction::AdjointPotentialResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
       : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
@@ -46,7 +46,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::Initialize()
+    void AdjointPotentialResponseFunction::Initialize()
     {
         KRATOS_TRY;
 
@@ -59,7 +59,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
+    void AdjointPotentialResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -74,7 +74,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointStructuralResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointPotentialResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_ERROR << "CalculateValue needs to be implemented by the derived class.\n";
     }
