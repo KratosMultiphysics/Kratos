@@ -15,7 +15,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
   	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
-  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_structural_response_function.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp
 )
 ## define compressible potential application test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
