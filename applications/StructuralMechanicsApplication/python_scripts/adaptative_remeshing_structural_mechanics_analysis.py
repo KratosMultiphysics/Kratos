@@ -4,23 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.MeshingApplication as MA
-    KratosMultiphysics.Logger.PrintInfo("MeshingApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("MeshingApplication", "not imported")
-
 # Other imports
 import sys
 
@@ -181,7 +164,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:

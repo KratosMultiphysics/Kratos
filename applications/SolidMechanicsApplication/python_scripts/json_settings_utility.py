@@ -4,9 +4,6 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 #Utility class to manage json settings
 class JsonSettingsUtility(object):
 

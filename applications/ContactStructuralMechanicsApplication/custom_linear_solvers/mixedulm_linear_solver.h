@@ -106,6 +106,9 @@ public:
     /// The node type
     typedef Node<3> NodeType;
 
+    /// The definition of the dof type
+    typedef typename ModelPart::DofType DofType;
+
     /// The array containing the dofs
     typedef typename ModelPart::DofsArrayType DofsArrayType;
 
@@ -121,14 +124,8 @@ public:
     /// The index type
     typedef std::size_t IndexType;
 
-    /// The signed index type
-    typedef std::ptrdiff_t  SignedIndexType;
-
     /// A vector of indexes
     typedef DenseVector<IndexType> IndexVectorType;
-
-    /// A vector of indexes (signed)
-    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     /// A vector of types
     typedef DenseVector<BlockType> BlockTypeVectorType;
@@ -409,6 +406,20 @@ public:
         VectorType& rB
         ) override
     {
+        // We print the system before condensate (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("RHS BEFORE CONDENSATION") << "RHS  = " << rB << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS BEFORE CONDENSATION") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("RHS BEFORE CONDENSATION") << "RHS  = " << rB << std::endl;
+        } else if (mEchoLevel >= 4) { //print to matrix market file
+            const std::string matrix_market_name = "before_condensation_A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), rA, false);
+
+            const std::string matrix_market_vectname = "before_condensation_b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
+        }
+
         if (mIsInitialized == false)
             this->Initialize (rA,rX,rB);
 
@@ -427,13 +438,11 @@ public:
             KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
         } else if (mEchoLevel >= 4) { //print to matrix market file
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << mFileCreated << ".mm";
-            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+            const std::string matrix_market_name = "A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), mKDispModified, false);
 
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
-            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
+            const std::string matrix_market_vectname = "b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), mResidualDisp);
             mFileCreated++;
         }
 
@@ -491,22 +500,44 @@ public:
         SizeType n_master_dofs = 0;
         SizeType n_slave_inactive_dofs = 0, n_slave_active_dofs = 0;
         SizeType tot_active_dofs = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    tot_active_dofs++;
+                    if (IsLMDof(i_dof)) {
+                        if (node.Is(ACTIVE))
+                            n_lm_active_dofs++;
+                        else
+                            n_lm_inactive_dofs++;
+                    } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (node.Is(MASTER)) {
+                            n_master_dofs++;
+                        } else if (node.Is(SLAVE)) {
+                            if (node.Is(ACTIVE))
+                                n_slave_active_dofs++;
+                            else
+                                n_slave_inactive_dofs++;
+                        }
+                    }
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
                 tot_active_dofs++;
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
+                } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
                     if (node.Is(MASTER)) {
                         n_master_dofs++;
                     } else if (node.Is(SLAVE)) {
@@ -519,7 +550,7 @@ public:
             }
         }
 
-        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map" << std::endl;
+        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map: " << tot_active_dofs << " vs " << rA.size1() << std::endl;
 
         // Resize arrays as needed
         if (mMasterIndices.size() != n_master_dofs)
@@ -555,14 +586,66 @@ public:
         SizeType slave_inactive_counter = 0, slave_active_counter = 0;
         SizeType other_counter = 0;
         IndexType global_pos = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                    if (node.Is(ACTIVE)) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    if (IsLMDof(i_dof)) {
+                        if (r_node.Is(ACTIVE)) {
+                            mLMActiveIndices[lm_active_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_active_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                            ++lm_active_counter;
+                        } else {
+                            mLMInactiveIndices[lm_inactive_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                            ++lm_inactive_counter;
+                        }
+                    } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (r_node.Is(MASTER)) {
+                            mMasterIndices[master_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = master_counter;
+                            mWhichBlockType[global_pos] = BlockType::MASTER;
+                            ++master_counter;
+                        } else if (r_node.Is(SLAVE)) {
+                            if (r_node.Is(ACTIVE)) {
+                                mSlaveActiveIndices[slave_active_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_active_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                                ++slave_active_counter;
+                            } else {
+                                mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
+                                ++slave_inactive_counter;
+                            }
+                        } else { // We need to consider always an else to ensure that the system size is consistent
+                            mOtherIndices[other_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = other_counter;
+                            mWhichBlockType[global_pos] = BlockType::OTHER;
+                            ++other_counter;
+                        }
+                    } else {
+                        mOtherIndices[other_counter] = global_pos;
+                        mGlobalToLocalIndexing[global_pos] = other_counter;
+                        mWhichBlockType[global_pos] = BlockType::OTHER;
+                        ++other_counter;
+                    }
+                    ++global_pos;
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (IsLMDof(i_dof)) {
+                    if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
@@ -573,17 +656,14 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if ( node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
-                    if (node.Is(MASTER)) {
+                } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                    if (r_node.Is(MASTER)) {
                         mMasterIndices[master_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = master_counter;
                         mWhichBlockType[global_pos] = BlockType::MASTER;
                         ++master_counter;
-                    } else if (node.Is(SLAVE)) {
-                        if (node.Is(ACTIVE)) {
+                    } else if (r_node.Is(SLAVE)) {
+                        if (r_node.Is(ACTIVE)) {
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
@@ -818,42 +898,42 @@ protected:
         // We initialize the blocks sparse matrix
         std::partial_sum(KMLMA_ptr, KMLMA_ptr + master_size + 1, KMLMA_ptr);
         const std::size_t KMLMA_nonzero_values = KMLMA_ptr[master_size];
-        SignedIndexType* aux_index2_KMLMA= new SignedIndexType[KMLMA_nonzero_values];
+        IndexType* aux_index2_KMLMA= new IndexType[KMLMA_nonzero_values];
         double* aux_val_KMLMA= new double[KMLMA_nonzero_values];
 
         std::partial_sum(mKSAN_ptr, mKSAN_ptr + slave_active_size + 1, mKSAN_ptr);
         const std::size_t mKSAN_nonzero_values = mKSAN_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAN= new SignedIndexType[mKSAN_nonzero_values];
+        IndexType* aux_index2_mKSAN= new IndexType[mKSAN_nonzero_values];
         double* aux_val_mKSAN= new double[mKSAN_nonzero_values];
 
         std::partial_sum(mKSAM_ptr, mKSAM_ptr + slave_active_size + 1, mKSAM_ptr);
         const std::size_t mKSAM_nonzero_values = mKSAM_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAM= new SignedIndexType[mKSAM_nonzero_values];
+        IndexType* aux_index2_mKSAM= new IndexType[mKSAM_nonzero_values];
         double* aux_val_mKSAM= new double[mKSAM_nonzero_values];
 
         std::partial_sum(mKSASI_ptr, mKSASI_ptr + slave_active_size + 1, mKSASI_ptr);
         const std::size_t mKSASI_nonzero_values = mKSASI_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASI= new SignedIndexType[mKSASI_nonzero_values];
+        IndexType* aux_index2_mKSASI= new IndexType[mKSASI_nonzero_values];
         double* aux_val_mKSASI= new double[mKSASI_nonzero_values];
 
         std::partial_sum(mKSASA_ptr, mKSASA_ptr + slave_active_size + 1, mKSASA_ptr);
         const std::size_t mKSASA_nonzero_values = mKSASA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASA= new SignedIndexType[mKSASA_nonzero_values];
+        IndexType* aux_index2_mKSASA= new IndexType[mKSASA_nonzero_values];
         double* aux_val_mKSASA = new double[mKSASA_nonzero_values];
 
         std::partial_sum(KSALMA_ptr, KSALMA_ptr + slave_active_size + 1, KSALMA_ptr);
         const std::size_t KSALMA_nonzero_values = KSALMA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_KSALMA= new SignedIndexType[KSALMA_nonzero_values];
+        IndexType* aux_index2_KSALMA= new IndexType[KSALMA_nonzero_values];
         double* aux_val_KSALMA = new double[KSALMA_nonzero_values];
 
         std::partial_sum(KLMILMI_ptr, KLMILMI_ptr + lm_inactive_size + 1, KLMILMI_ptr);
         const std::size_t KLMILMI_nonzero_values = KLMILMI_ptr[lm_inactive_size];
-        SignedIndexType* aux_index2_KLMILMI= new SignedIndexType[KLMILMI_nonzero_values];
+        IndexType* aux_index2_KLMILMI= new IndexType[KLMILMI_nonzero_values];
         double* aux_val_KLMILMI = new double[KLMILMI_nonzero_values];
 
         std::partial_sum(KLMALMA_ptr, KLMALMA_ptr + lm_active_size + 1, KLMALMA_ptr);
         const std::size_t KLMALMA_nonzero_values = KLMALMA_ptr[lm_active_size];
-        SignedIndexType* aux_index2_KLMALMA = new SignedIndexType[KLMALMA_nonzero_values];
+        IndexType* aux_index2_KLMALMA = new IndexType[KLMALMA_nonzero_values];
         double* aux_val_KLMALMA = new double[KLMALMA_nonzero_values];
 
         #pragma omp parallel
@@ -866,8 +946,8 @@ protected:
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
 
                 if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
-                    SignedIndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
-                    SignedIndexType KMLMA_row_end = KMLMA_row_beg;
+                    IndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
+                    IndexType KMLMA_row_end = KMLMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
@@ -879,16 +959,16 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
-                    SignedIndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
-                    SignedIndexType mKSAN_row_end = mKSAN_row_beg;
-                    SignedIndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
-                    SignedIndexType mKSAM_row_end = mKSAM_row_beg;
-                    SignedIndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
-                    SignedIndexType mKSASI_row_end = mKSASI_row_beg;
-                    SignedIndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
-                    SignedIndexType mKSASA_row_end = mKSASA_row_beg;
-                    SignedIndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
-                    SignedIndexType KSALMA_row_end = KSALMA_row_beg;
+                    IndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
+                    IndexType mKSAN_row_end = mKSAN_row_beg;
+                    IndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
+                    IndexType mKSAM_row_end = mKSAM_row_beg;
+                    IndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
+                    IndexType mKSASI_row_end = mKSASI_row_beg;
+                    IndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
+                    IndexType mKSASA_row_end = mKSASA_row_beg;
+                    IndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
+                    IndexType KSALMA_row_end = KSALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         const double value = values[j];
@@ -916,8 +996,8 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
-                    SignedIndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
-                    SignedIndexType KLMILMI_row_end = KLMILMI_row_beg;
+                    IndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
+                    IndexType KLMILMI_row_end = KLMILMI_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
@@ -929,8 +1009,8 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
-                    SignedIndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
-                    SignedIndexType KLMALMA_row_end = KLMALMA_row_beg;
+                    IndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
+                    IndexType KLMALMA_row_end = KLMALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
@@ -1033,7 +1113,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux1, K_disp_modified_ptr_aux1 + nrows + 1, K_disp_modified_ptr_aux1);
         const SizeType nonzero_values_aux1 = K_disp_modified_ptr_aux1[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux1 = new SignedIndexType[nonzero_values_aux1];
+        IndexType* aux_index2_K_disp_modified_aux1 = new IndexType[nonzero_values_aux1];
         double* aux_val_K_disp_modified_aux1 = new double[nonzero_values_aux1];
 
         #pragma omp parallel
@@ -1123,7 +1203,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
         const SizeType nonzero_values_aux2 = K_disp_modified_ptr_aux2[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux2 = new SignedIndexType[nonzero_values_aux2];
+        IndexType* aux_index2_K_disp_modified_aux2 = new IndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
         #pragma omp parallel
@@ -1359,7 +1439,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals
         )
     {
@@ -1426,7 +1506,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals
         )
     {
@@ -1503,7 +1583,7 @@ private:
      */
     inline void ComputeAuxiliarValuesBlocks(
         const SparseMatrixType& AuxK,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -1850,7 +1930,7 @@ private:
         const SizeType NRows,
         const SizeType NCols,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVal
         )
     {
@@ -1906,9 +1986,9 @@ private:
 //             }
 //         }
 
-        SignedIndexType* ptr = new SignedIndexType[size_A + 1];
+        IndexType* ptr = new IndexType[size_A + 1];
         ptr[0] = 0;
-        SignedIndexType* aux_index2 = new SignedIndexType[size_A];
+        IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
         #pragma omp parallel for
@@ -1928,6 +2008,40 @@ private:
         delete[] ptr;
         delete[] aux_index2;
         delete[] aux_val;
+    }
+
+    /**
+     * @brief Checks if the degree of freedom belongs to a displacement DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a displacement dof
+     */
+    static inline bool IsDisplacementDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == DISPLACEMENT_X ||
+            r_variable == DISPLACEMENT_Y ||
+            r_variable == DISPLACEMENT_Z) {
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Checks if the degree of freedom belongs to a LM DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a LM dof
+     */
+    static inline bool IsLMDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == VECTOR_LAGRANGE_MULTIPLIER_X ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Y ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                return true;
+        }
+
+        return false;
     }
 
     /**

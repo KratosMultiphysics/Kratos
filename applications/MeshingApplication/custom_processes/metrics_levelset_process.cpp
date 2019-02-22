@@ -29,6 +29,13 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                         : 0.1,
+        "maximal_size"                         : 1.0,
+        "sizing_parameters":
+        {
+            "reference_variable_name"          : "DISTANCE",
+            "boundary_layer_max_distance"      : 1.0,
+            "interpolation"                    : "constant"
+        },
         "enforce_current"                      : true,
         "anisotropy_remeshing"                 : true,
         "anisotropy_parameters":
@@ -36,12 +43,16 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
             "reference_variable_name"              : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"      : 1.0,
             "boundary_layer_max_distance"           : 1.0,
-            "interpolation"                         : "Linear"
+            "interpolation"                         : "linear"
         }
     })" );
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
+    mMaxSize = ThisParameters["maximal_size"].GetDouble();
+    mSizeReferenceVariable = ThisParameters["sizing_parameters"]["reference_variable_name"].GetString();
+    mSizeBoundLayer = ThisParameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
+    mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
 
     // In case we have isotropic remeshing (default values)
@@ -70,14 +81,30 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
-    const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+    const auto& ani_reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
+    // Size reference variable
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mSizeReferenceVariable)) << "Variable " << mSizeReferenceVariable << " is not a double variable" << std::endl;
+    const auto& size_reference_var = KratosComponents<Variable<double>>::Get(mSizeReferenceVariable);
 
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+
+    // Setting metric in case not defined
+    if (!nodes_array.begin()->Has(tensor_variable)) {
+        // Declaring auxiliar vector
+        const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetValue(tensor_variable, aux_zero_vector);
+        }
+    }
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i)  {
@@ -87,14 +114,18 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
         // Isotropic by default
         double ratio = 1.0;
+        if (it_node->SolutionStepsDataHas(ani_reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(ani_reference_var);
+            ratio = CalculateAnisotropicRatio(ratio_reference);
+        }
 
+        // MinSize by default
         double element_size = mMinSize;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
-        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-        if (it_node->SolutionStepsDataHas(reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
-            ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
-            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
+        const double nodal_h = it_node->GetValue(NODAL_H);
+        if (it_node->SolutionStepsDataHas(size_reference_var)) {
+            const double size_reference = it_node->FastGetSolutionStepValue(size_reference_var);
+            element_size = CalculateElementSize(size_reference, nodal_h);
+            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(size_reference) > mSizeBoundLayer))
                 element_size = nodal_h;
         } else {
             if (((element_size > nodal_h) && (mEnforceCurrent)))
@@ -188,22 +219,19 @@ array_1d<double, 6> ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTen
 
 template<SizeType TDim>
 double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
-    const double Distance,
-    const double AnisotropicRatio,
-    const double BoundLayer,
-    const Interpolation& rInterpolation
+    const double Distance
     )
 {
     const double tolerance = 1.0e-12;
     double ratio = 1.0; // NOTE: Isotropic mesh
-    if (AnisotropicRatio < 1.0) {
-        if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Interpolation::CONSTANT)
-                ratio = AnisotropicRatio;
-            else if (rInterpolation == Interpolation::LINEAR)
-                ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Interpolation::EXPONENTIAL) {
-                ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
+    if (mAnisotropicRatio < 1.0) {
+        if (std::abs(Distance) <= mBoundLayer) {
+            if (mInterpolation == Interpolation::CONSTANT)
+                ratio = mAnisotropicRatio;
+            else if (mInterpolation == Interpolation::LINEAR)
+                ratio = mAnisotropicRatio + (std::abs(Distance)/mBoundLayer) * (1.0 - mAnisotropicRatio);
+            else if (mInterpolation == Interpolation::EXPONENTIAL) {
+                ratio = - std::log(std::abs(Distance)/mBoundLayer) * mAnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
         }
@@ -212,6 +240,27 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     return ratio;
 }
 
+template<SizeType TDim>
+double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
+    const double Distance,
+    const double NodalH
+    )
+{
+    double size = NodalH;
+    if (std::abs(Distance) <= mSizeBoundLayer) {
+        if (mSizeInterpolation == Interpolation::CONSTANT)
+            size = mMinSize;
+        else if (mSizeInterpolation == Interpolation::LINEAR)
+            size = mMinSize + (std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize);
+        else if (mSizeInterpolation == Interpolation::EXPONENTIAL) {
+            size = - std::log(1-std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
+            if (size > mMaxSize) size = mMaxSize;
+        }
+    }
+    
+
+    return size;
+}
 /***********************************************************************************/
 /***********************************************************************************/
 

@@ -33,20 +33,8 @@
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
-// #include "Epetra_Vector.h"
-// #include "epetra_test_err.h"
-
-
-//aztec solver includes
-#include "AztecOO.h"
-
-#include "Amesos.h"
-// #include "AmesosClassType.h"
-#include "Epetra_LinearProblem.h"
-
 
 namespace Kratos
 {
@@ -329,11 +317,12 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void SystemSolve(
+    void SystemSolveWithPhysics(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
+        TSystemVectorType& b,
+        ModelPart& rModelPart
+    )
     {
         KRATOS_TRY
 
@@ -348,6 +337,9 @@ public:
         {
             if (this->GetEchoLevel()>1)
                 if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
+
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
             this->mpLinearSystemSolver->Solve(A,Dx,b);
 
@@ -406,7 +398,7 @@ public:
 
         boost::timer solve_time;
 
-        SystemSolve(A,Dx,b);
+        SystemSolveWithPhysics(A,Dx,b, r_model_part);
 
         if (BaseType::GetEchoLevel()>0)
         {
@@ -438,7 +430,7 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme,r_model_part,b);
-        SystemSolve(A,Dx,b);
+        SystemSolveWithPhysics(A,Dx,b, r_model_part);
 
         KRATOS_CATCH("")
     }
@@ -1118,7 +1110,7 @@ public:
 
             Element::EquationIdVectorType EquationId;
             ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-            
+
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {

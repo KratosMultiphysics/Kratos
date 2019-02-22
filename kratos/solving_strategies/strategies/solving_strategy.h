@@ -308,27 +308,20 @@ public:
     {
         KRATOS_TRY
 
-        if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-        {
-            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-        }
+        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         NodesArrayType& NodesArray = GetModelPart().Nodes();
         const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)
-        {
+        for(int i = 0; i < numNodes; ++i) {
             auto it_node = NodesArray.begin() + i;
 
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
-
-        if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
-            std::cout<<" MESH MOVED "<<std::endl;
-        }
+             
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
     }

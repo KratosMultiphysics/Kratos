@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {

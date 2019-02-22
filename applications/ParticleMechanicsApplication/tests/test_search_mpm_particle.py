@@ -34,6 +34,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Create element and nodes
         sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 1)
         if is_structured:
             self._create_nodes_structured(sub_mp, dimension, geometry_element)
         else:
@@ -61,9 +62,9 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Initialize solver
         if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", geometry_element, 1, False, False)
+            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
         else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", geometry_element, 1, False, False)
+            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -183,10 +184,10 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Apply  before search
         for mpm in material_model_part.Elements:
-            mpm.SetValue(KratosParticle.GAUSS_COORD, new_coordinate)
+            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
 
         # Search element
-        self.solver.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        self.solver.SearchElement(max_num_results, specific_tolerance)
 
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):

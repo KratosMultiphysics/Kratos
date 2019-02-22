@@ -7,7 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 # generate variables with the sources
@@ -54,4 +54,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FemToDemApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FemToDemApplication.py" DESTINATION "KratosMultiphysics/FemToDemApplication" RENAME "__init__.py")

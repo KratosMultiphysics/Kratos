@@ -15,18 +15,9 @@
 #if !defined(KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED )
 #define  KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-
-
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 
 #ifdef KRATOS_USE_METIS_5

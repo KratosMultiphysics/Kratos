@@ -19,6 +19,7 @@
 #include "custom_elements/cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 CableElement3D2N::CableElement3D2N(IndexType NewId,
@@ -97,10 +98,10 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
     rRightHandSideVector = ZeroVector(msLocalSize);
     // update Residual
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
-
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -120,10 +121,10 @@ void CableElement3D2N::CalculateRightHandSide(
 
 
     noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
-
-    // add bodyforces
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -137,8 +138,8 @@ void CableElement3D2N::UpdateInternalForces(
 
   this->CreateTransformationMatrix(transformation_matrix);
 
-  const double l = this->CalculateCurrentLength();
-  const double L0 = this->CalculateReferenceLength();
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;
@@ -171,6 +172,48 @@ void CableElement3D2N::UpdateInternalForces(
   noalias(rInternalForces) = prod(transformation_matrix, f_local);
   KRATOS_CATCH("");
 }
+
+
+BoundedVector<double,TrussElement3D2N::msLocalSize>
+  CableElement3D2N::GetConstitutiveLawTrialResponse(
+   const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables)
+{
+    KRATOS_TRY;
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
+    Vector stress_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
+    strain_vector[0] = this->CalculateGreenLagrangeStrain();
+
+    Matrix temp_matrix;
+    Vector temp_vector;
+
+    this->mpConstitutiveLaw->CalculateMaterialResponse(strain_vector,
+    temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,this->GetProperties(),
+    this->GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
+
+    BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double A = this->GetProperties()[CROSS_AREA];
+    double prestress = 0.00;
+    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+      prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+    }
+
+    const double normal_force =
+        ((stress_vector[0] + prestress) * l * A) / L0;
+
+    this->mIsCompressed = false;
+    if ((normal_force < 0.00)&&(std::abs(l-L0)>numerical_limit)) this->mIsCompressed = true;
+
+    internal_forces[0] = -1.0 * normal_force;
+    internal_forces[3] = +1.0 * normal_force;
+
+    return internal_forces;
+    KRATOS_CATCH("");
+}
+
+
 
 
 void CableElement3D2N::save(Serializer &rSerializer) const {

@@ -46,7 +46,7 @@
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-//TODO: move to the Kratos DEM_application or eventually to the FluidDynamicsAsNeeded
+//TODO: move to the Kratos DEMApplication or eventually to the FluidDynamicsAsNeeded
 namespace Kratos
 {
      //for DEM Application:

@@ -3,16 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication","MetisApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
-
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
 from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 import trilinos_import_model_part_utility
@@ -33,12 +27,13 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "MultiLevelSolver"
+                "solver_type" : "multi_level"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -123,18 +118,20 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
+        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
@@ -159,8 +156,8 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize()
-
-        (self.solver).Check()
+        (self.response_function).Initialize()
+        (self.sensitivity_builder).Initialize()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())

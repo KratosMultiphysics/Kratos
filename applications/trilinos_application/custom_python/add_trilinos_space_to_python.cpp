@@ -16,25 +16,13 @@
 // External includes
 
 //Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
 #include "includes/define.h"
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
-// #include "spaces/ublas_space.h"
-// #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
 
 // Teuchos parameter list

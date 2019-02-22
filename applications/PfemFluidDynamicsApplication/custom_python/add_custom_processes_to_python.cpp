@@ -43,6 +43,7 @@
 #include "custom_processes/build_mesh_boundary_for_fluids_process.hpp"
 #include "custom_processes/build_model_part_boundary_for_fluids_process.hpp"
 #include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
+#include "custom_processes/lagrangian_rotation_process.hpp"
 
 //Processes
 
@@ -146,7 +147,10 @@ namespace Kratos
       .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-
+      py::class_<LagrangianRotationProcess, LagrangianRotationProcess::Pointer, ProcessBaseType>
+      (m,"LagrangianRotationProcess")
+      .def( py::init< ModelPart&, Parameters>());
+      ;
 
     }
 

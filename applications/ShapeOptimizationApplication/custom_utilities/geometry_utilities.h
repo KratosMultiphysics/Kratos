@@ -63,6 +63,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // For better reading
     typedef array_1d<double,3> array_3d;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 

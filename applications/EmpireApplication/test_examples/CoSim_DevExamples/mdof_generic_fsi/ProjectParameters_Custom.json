@@ -1,0 +1,403 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "90_Direction",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 3,
+        "start_step"      : 0.0,
+        "end_time"        : 120,
+        "time_step"       : 0.04
+    },
+    "structure_data"                   : {
+        "type"              : "beam",
+        "height"            : 180,
+        "length"            : 45,
+        "width"             : 30,
+        "levels"            : 45,
+        "density"           : 160,
+        "elastic_modulus"   : 200e9,
+        "mass"              : 27360000,
+        "rot_inertia"       : 5e13,
+        "eigen_frequencies" : [0.23, 0.20, 0.40],
+        "zeta"              : [0.05, 0.05, 0.05],
+        "rho_inf"           : 0.16,
+        "initial_disp"      : [0.0, 0.0, 0.0],
+        "initial_vel"       : [0.0, 0.0, 0.0],
+        "initial_acc_X"     : [0.0, 0.0, 0.0],
+        "model_part_name"   : "NoSlip3D_structure",
+        "output_filename_X"   : "Results/Structure/direction_X.dat",
+        "output_filename_Y"   : "Results/Structure/direction_Y.dat",
+        "output_filename_R"   : "Results/Structure/rotation.dat",
+        "output_filename_Result"   : "Results/Structure/Base/result"
+    },
+        "FSI_parameters"                   : {
+        "abs_residual"      : 1e-5,
+        "rel_residual"      : 1e-2,
+        "relax_coef"        : 0.9,
+        "max_FSI_iteration" : 10
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 5,
+            "body_output"         : false,
+            "node_output"         : true,
+            "skin_output"         : false,
+            "plane_output"        : [{
+                "point"  : [0.0,0.0,120.0],
+                "normal" : [0.0,0,121.0]
+            },{
+                "point"  : [0.0,0.0,0.0],
+                "normal" : [0.0,1.0,0.0]
+            },{
+                "point"  : [0.0,0.0,0.0],
+                "normal" : [1.0,0.0,0.0]
+            }],
+            "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","PRESSURE","ACCELERATION","VELOCITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                     : "ale_navier_stokes_solver_fractionalstep",
+        "ale_solver_type"              : "mesh_solver_structural_similarity",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "90_Direction"
+        },
+        "predictor_corrector"             : false,
+        "maximum_velocity_iterations"     : 15,
+        "maximum_pressure_iterations"     : 15,
+        "velocity_tolerance"              : 0.001,
+        "pressure_tolerance"              : 0.001,
+        "echo_level"                      : 1,
+        "consider_periodic_conditions"    : false,
+        "time_order"                      : 2,
+        "dynamic_tau"                     : 0.001,
+        "compute_reactions"               : true,
+        "divergence_clearance_steps"      : 0,
+        "reform_dofs_at_each_step"   : false,
+        "velocity_linear_solver_settings" : {
+            "solver_type"   : "bicgstab",
+	    "preconditioner_type" : "ilu0",
+            "max_iteration" : 200,
+            "tolerance"     : 1e-6,
+            "scaling"       : false
+        },
+        "pressure_linear_solver_settings" : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 200,
+            "tolerance"           : 1e-6,
+            "provide_coordinates" : true,
+            "smoother_type"       : "damped_jacobi",
+            "krylov_type"         : "cg",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 0
+        },
+        "volume_model_part_name"          : "Parts_fluid",
+        "skin_parts"                      : ["Inlet3D_inlet","Outlet3D_outlet","Slip3D_top","Slip3D_wall","NoSlip3D_bottom","NoSlip3D_structure","VelocityConstraints3D_perimeter"]
+    },
+    "initial_conditions_process_list"  : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "VELOCITY_inlet",
+            "variable_name"   : "VELOCITY",
+            "modulus"          : 0,
+            "direction"       : [0.0,-1,0.0]
+        }
+    },{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantScalarValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PRESSURE_outlet",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0
+        }
+    }],
+    "boundary_conditions_process_list" : [{
+        "python_module"   : "impose_vector_value_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes all the components of a given vector variable",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "ImposeVectorValueByDirectionProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Inlet3D_inlet",
+            "variable_name"   : "VELOCITY",
+            "modulus"          : 0,
+            "direction"       : [0.0,-1,0.0]
+        }
+    },{
+        "python_module"   : "impose_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the given scalar variable",
+        "process_name"          : "ImposeScalarValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet3D_outlet",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0.0
+        }
+    },{
+        "python_module"   : "impose_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the given scalar variable",
+        "process_name"          : "ImposeScalarValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Slip3D_top",
+            "variable_name"   : "VELOCITY_Z",
+            "value"           : 0.0
+        }
+    },{
+        "python_module"   : "impose_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the given scalar variable",
+        "process_name"          : "ImposeScalarValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Slip3D_wall",
+            "variable_name"   : "VELOCITY_X",
+            "value"           : 0.0
+        }
+    },{
+        "python_module"   : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"          : "ApplyNoSlipProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip3D_bottom"
+        }
+    },{
+        "python_module"   : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"          : "ApplyNoSlipProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip3D_structure"
+        }
+    },{
+        "python_module"   : "impose_custom_inlet_velocity_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeCustomInletVelocityProcess",
+        "Parameters"            : {
+        "mesh_id"         : 0,
+        "model_part_name" : "Inlet3D_inlet",
+        "inlet_type"      : "PowerLawInletVelocity",
+	    "ramp_up": true,
+	    "ramp_up_time": 20,
+	    "inlet_parameters": {
+            	"mean_velocity"                   : 40,
+                "reference_height_z"              : 180,
+                "alpha"                           : 0.25
+        	},
+            "output_inlet_coordinates_filename" : "Results/Inlet/inlet_coordinates.dat",
+            "output_inlet_velocity_filename" : "Results/Inlet/inlet_velocity.dat"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"          : 0,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "list_of_line_outputs" :[{
+        "python_module"   : "line_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, first sample",
+        "process_name"    : "LineOutputProcess",
+        "Parameters" : {
+            "start_point"      : [0.0,720.0,0.0],
+            "end_point"        : [0.0,-720,720.0],
+            "number_of_points" : 36,
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Line_output/first_sample/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     },{
+        "python_module"   : "line_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, second sample",
+        "process_name"    : "LineOutputProcess",
+        "Parameters" : {
+            "start_point"      : [0.0,540.0,0.0],
+            "end_point"        : [0.0,540.0,720.0],
+            "number_of_points" : 36,
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Line_output/second_sample/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     },{
+        "python_module"   : "line_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, third sample",
+        "process_name"    : "LineOutputProcess",
+        "Parameters" : {
+            "start_point"      : [0.0,360.0,0.0],
+            "end_point"        : [0.0,360.0,720.0],
+            "number_of_points" : 36,
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Line_output/third_sample/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     },{
+        "python_module"   : "line_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, fourth sample",
+        "process_name"    : "LineOutputProcess",
+        "Parameters" : {
+            "start_point"      : [0.0,180.0,0.0],
+            "end_point"        : [0.0,180.0,720.0],
+            "number_of_points" : 36,
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Line_output/fourth_sample/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     },{
+        "python_module"   : "line_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, fifth sample",
+        "process_name"    : "LineOutputProcess",
+        "Parameters" : {
+            "start_point"      : [0.0,5.0,0.0],
+            "end_point"        : [0.0,5.0,720.0],
+            "number_of_points" : 36,
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Line_output/fifth_sample/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     }],
+     "list_of_point_outputs":[{
+        "python_module"   : "multiple_points_output_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "pressure taps at sampling points",
+        "process_name"    : "MultiplePointsOutputProcess",
+        "Parameters" : {
+            "locations"      : [[0.0, 720.0, 120.0],
+			                    [0.0, 540.0, 120.0],
+				                [0.0, 360.0, 120.0],
+                                [0.0, 180.0, 120.0],
+				                [0.0, 5.0, 120.0]],
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Point_output/pressure_taps/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_Y"]
+        }
+     },{
+        "python_module"   : "multiple_points_output_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "pressure taps to verify Boundary Conditions",
+        "process_name"    : "MultiplePointsOutputProcess",
+        "Parameters" : {
+            "locations"      : [[-720.0, 720, 0.0],
+			                    [-720.0, 720, 720.0],
+				                [720.0, 720, 0.0],
+                                [720.0, 720, 720.0],
+				                [-720.0, -2160.0, 0.0],
+			                    [-720.0, -2160.0, 720.0],
+				                [720.0, -2160.0, 0.0],
+                                [720.0, -2160.0, 720.0],
+                                [-720.0, -720, 0.0],
+			                    [-720.0, -720, 720.0],
+				                [720.0, -720, 0.0],
+                                [720.0, -720, 720.0]],
+            "model_part_name"  : "Parts_fluid",
+            "output_filename" : "Results/Point_output/bounding_box/pressure_at",
+            "output_file_format": ".dat",
+            "output_variables" : ["PRESSURE", "VELOCITY_X", "VELOCITY_Y", "VELOCITY_Z"]
+        }
+     }],
+    "compute_total_force"                          : [{
+        "python_module"   : "compute_total_force_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "ComputeTotalForceProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip3D_structure",
+            "rotation_angle": 90,
+            "output_filename" : "Results/Aerodynamic/Total/Reaction",
+            "output_file_format": ".dat"
+        }
+    }],
+    "compute_level_force"                          : [{
+        "python_module"   : "compute_level_force_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "ComputeLevelForceProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip3D_structure",
+            "rotation_angle": 90,
+            "total_height": 180,
+            "level_number": 45,
+            "output_filename_flow" : "Results/Aerodynamic/Level/Force_Attached/level",
+            "output_filename_body" : "Results/Aerodynamic/Level/Body_Attached/level",
+            "output_file_format": ".dat"
+        }
+    }],
+    "aerodynamic_forces"                          : [{
+        "python_module"   : "compute_total_old_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "ComputeTotalForceProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip3D_structure",
+            "output_filename" : "Results/Aerodynamic/Aerodynamic_old_force",
+            "output_file_format": ".dat"
+        }
+    }],
+    "perimeter_results" :[{
+        "python_module"   : "node_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, building front",
+        "process_name"    : "ModelpartOutputProcess",
+        "Parameters" : {
+            "model_part_name"  : "VelocityConstraints3D_perimeter",
+            "output_filename" : "Results/Node_output/Perimeter/results_at",
+            "output_file_format": ".dat"
+        }
+     }],
+    "top_results" :[{
+        "python_module"   : "output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"            : "points on a line defined by start and end, building front",
+        "process_name"    : "ModelpartOutputProcess",
+        "Parameters" : {
+            "model_part_name"  : "NoSlip3D_structure",
+            "output_filename" : "Results/Node_output/Top/results_at",
+            "output_file_format": ".dat",
+            "ID" : 241215
+        }
+     }]
+}

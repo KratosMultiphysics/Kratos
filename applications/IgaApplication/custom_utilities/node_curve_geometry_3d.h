@@ -20,6 +20,7 @@
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "anurbs.h"
+#include "iga_application_variables.h"
 
 namespace Kratos {
 
@@ -65,7 +66,7 @@ public:
      * 
      * @return Kratos node at the given index.
      */
-    NodePointer Node(
+    NodePointer GetNode(
         const int Index
     ) const
     {
@@ -99,7 +100,7 @@ public:
     VectorType Pole(
         const int Index) const override
     {
-        const NodeType& node = *Node(Index);
+        const NodeType& node = *GetNode(Index);
  
         VectorType pole;
         for (std::size_t i = 0; i < 3; i++) {
@@ -118,7 +119,7 @@ public:
         const int Index,
         const VectorType& Value) override
     {
-        NodeType& node = *Node(Index);
+        NodeType& node = *GetNode(Index);
 
         for (std::size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
@@ -143,7 +144,7 @@ public:
     ScalarType Weight(
         const int Index) const override
     {
-        const NodeType& node = *Node(Index);
+        const NodeType& node = *GetNode(Index);
  
         if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
             return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
@@ -161,7 +162,7 @@ public:
         const int Index,
         const ScalarType Value) override
     {
-        NodeType& node = *Node(Index);
+        NodeType& node = *GetNode(Index);
 
         node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
@@ -179,7 +180,7 @@ public:
         const double T) const
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
+            return GetNode(i)->GetValue(Variable);
         }, T);
     }
 
@@ -199,7 +200,7 @@ public:
         const int Order) const
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
+            return GetNode(i)->GetValue(Variable);
         }, T, Order);
     }
 };

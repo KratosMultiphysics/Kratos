@@ -178,7 +178,7 @@ public:
      */
     void UpdatePoint()
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
 #else
         noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
@@ -279,6 +279,20 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
+    SimpleMortarMapperProcess(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        Parameters ThisParameters = Parameters(R"({})" ),
+        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        );
+
+    /**
+     * @brief Default constructor
+     * @param rOriginModelPart The origin model part to compute
+     * @param rDestinationModelPart The destination model part to compute
      * @param rThisVariable The variable to transfer and be transfered
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
@@ -342,6 +356,26 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method is a direct map between the origin and destination modelpart with custom variables
+     * @param rOriginVariable The origin model part
+     * @param rDestinationVariable The destination model part
+     * @param Flag The flags to special settings. Right now does nothing
+     */
+    void Map(
+        TVarType& rOriginVariable,
+        TVarType& rDestinationVariable,
+        const Flags Flag = Flags()
+        )
+    {
+        // Reassign the variables
+        mOriginVariable = rOriginVariable;
+        mDestinationVariable = rDestinationVariable;
+
+        // Execute the process
+        Execute();
+    }
 
     ///@}
     ///@name Access
@@ -420,6 +454,8 @@ private:
     ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
+
+    double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
     bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
@@ -640,20 +676,20 @@ private:
         std::vector<IndexType> indexes_to_remove, conditions_to_erase;
 
         // Geometrical values
-        const array_1d<double, 3>& slave_normal = itCond->GetValue(NORMAL);
-        GeometryType& slave_geometry = itCond->GetGeometry();
+        const array_1d<double, 3>& r_slave_normal = itCond->GetValue(NORMAL);
+        GeometryType& r_slave_geometry = itCond->GetGeometry();
 
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair);
             Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-            const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
-            GeometryType& master_geometry = p_cond_master->GetGeometry();
+            const array_1d<double, 3>& r_master_normal = p_cond_master->GetValue(NORMAL);
+            GeometryType& r_master_geometry = p_cond_master->GetGeometry();
 
             const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
             // Reading integration points
             std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
-            const bool is_inside = rIntegrationUtility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+            const bool is_inside = rIntegrationUtility.GetExactIntegration(r_slave_geometry, r_slave_normal, r_master_geometry, r_master_normal, conditions_points_slave);
 
             if (is_inside) {
                 // Initialize general variables for the current master element
@@ -662,16 +698,18 @@ private:
                 // Initialize the mortar operators
                 rThisMortarOperators.Initialize();
 
-                const BoundedMatrixType Ae = CalculateAe(slave_geometry, rThisKineticVariables, conditions_points_slave, this_integration_method);
+                const BoundedMatrixType Ae = CalculateAe(r_slave_geometry, rThisKineticVariables, conditions_points_slave, this_integration_method);
 
-                AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal, rThisKineticVariables, rThisMortarOperators, this_integration_method, Ae);
+                AssemblyMortarOperators( conditions_points_slave, r_slave_geometry, r_master_geometry,r_master_normal, rThisKineticVariables, rThisMortarOperators, this_integration_method, Ae);
 
                 /* We compute the residual */
                 const IndexType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
                 Matrix residual_matrix(TNumNodes, size_to_compute);
-                ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, rThisMortarOperators);
+                ComputeResidualMatrix(residual_matrix, r_slave_geometry, r_master_geometry, rThisMortarOperators);
 
-                MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                if (!TImplicit) {
+                    MortarUtilities::AddValue<TVarType, NonHistorical>(r_slave_geometry, aux_variable, residual_matrix);
+                }
 
                 // We check if DOperator is diagonal
                 if (mEchoLevel > 1) {
@@ -691,15 +729,17 @@ private:
                     if (TImplicit) {
                         /* We compute the residual and assemble */
                         const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                        AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
+                        AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                            slave_geometry[i_node].GetValue(NODAL_AREA) += rThisMortarOperators.DOperator(i_node, i_node);
+                            double& r_nodal_area = r_slave_geometry[i_node].GetValue(NODAL_AREA);
+                            #pragma omp atomic
+                            r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
                         }
                     }
                 } else if (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                    AssembleRHS(rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase);
+                    AssembleRHS(rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase);
                 }
             } else { // NOTE: The condition considered maybe is to tight
                 indexes_to_remove.push_back(master_id);
@@ -719,6 +759,16 @@ private:
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
         }
     }
+
+    /**
+     * @brief Reset the interface database
+     * This method resets the mapping database saved in the destination database.
+     * Note that this needs to be done if such modelpart has changed its number
+     * of nodes or conditions. This needs to be done even though the mapping
+     * instance is deleted since such information is saved in the destination
+     * nodes and conditions.
+     */
+    void UpdateInterface();
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

@@ -48,20 +48,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_GID_TRILINOS_GAUSS_POINT_CONTAINER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
-#include "gidpost/source/gidpost.h"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/gid_io.h"
-#include "geometries/geometry_data.h"
-#include "trilinos_application.h"
 
 namespace Kratos
 {
@@ -155,6 +146,11 @@ public:
             }
             GiD_fEndResult(ResultFile );
         }
+    }
+
+    void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int value_index ) override
+    {
     }
 
     void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,

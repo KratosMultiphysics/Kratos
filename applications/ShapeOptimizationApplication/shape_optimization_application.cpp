@@ -83,6 +83,22 @@ namespace Kratos
     // For Mapping
     KRATOS_CREATE_VARIABLE(int,MAPPING_ID);
 
+    // For bead optimization
+    KRATOS_CREATE_VARIABLE(double,ALPHA);
+    KRATOS_CREATE_VARIABLE(double,ALPHA_MAPPED);
+    KRATOS_CREATE_VARIABLE(double,DF1DALPHA);
+    KRATOS_CREATE_VARIABLE(double,DF1DALPHA_MAPPED);
+    KRATOS_CREATE_VARIABLE(double,DPDALPHA);
+    KRATOS_CREATE_VARIABLE(double,DPDALPHA_MAPPED);
+    KRATOS_CREATE_VARIABLE(double,DLDALPHA);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BEAD_DIRECTION);
+
+    // For auxiliary operations
+    KRATOS_CREATE_VARIABLE(double,SCALAR_VARIABLE);
+    KRATOS_CREATE_VARIABLE(double,SCALAR_VARIABLE_MAPPED);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -97,10 +113,11 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
-        std::cout << std::endl << "     KRATOS  __| |  |   \\   _ \\ __|              " << std::endl;
-        std::cout              << "           \\__ \\ __ |  _ \\  __/ _|              " << std::endl;
-        std::cout              << "           ____/_| _|_/  _\\_|  ___| OPTIMIZATION  " << std::endl;
-        std::cout              << "Initializing KratosShapeOptimizationApplication... " << std::endl << std::endl;
+
+        KRATOS_INFO("") << "    KRATOS   __| |  |   \\   _ \\ __|\n"
+                        << "           \\__ \\ __ |  _ \\  __/ _|\n"
+                        << "           ____/_| _|_/  _\\_|  ___| OPTIMIZATION\n"
+                        << "Initializing KratosShapeOptimizationApplication..." << std::endl;
 
         // Register variables
 
@@ -144,6 +161,22 @@ namespace Kratos
 
         // For mapping
         KRATOS_REGISTER_VARIABLE(MAPPING_ID);
+
+        // For bead optimization
+        KRATOS_REGISTER_VARIABLE(ALPHA);
+        KRATOS_REGISTER_VARIABLE(ALPHA_MAPPED);
+        KRATOS_REGISTER_VARIABLE(DF1DALPHA);
+        KRATOS_REGISTER_VARIABLE(DF1DALPHA_MAPPED);
+        KRATOS_REGISTER_VARIABLE(DPDALPHA);
+        KRATOS_REGISTER_VARIABLE(DPDALPHA_MAPPED);
+        KRATOS_REGISTER_VARIABLE(DLDALPHA);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BEAD_DIRECTION);
+
+        // For auxiliary operations
+        KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE);
+        KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE_MAPPED);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );

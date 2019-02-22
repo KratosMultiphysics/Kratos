@@ -14,42 +14,24 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 #include "custom_python/add_trilinos_convergence_criterias_to_python.h"
 
 //Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
-#include "includes/define.h"
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-#include "add_trilinos_linear_solvers_to_python.h"
-#include "includes/model_part.h"
 
 //convergence criterias
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
-//#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 
-//teuchos parameter list
-#include "Teuchos_ParameterList.hpp"
 
 namespace Kratos
 {

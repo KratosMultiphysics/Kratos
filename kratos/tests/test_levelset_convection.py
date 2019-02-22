@@ -43,9 +43,9 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             if node.X < 0.001:
                 node.Fix(KratosMultiphysics.DISTANCE)
 
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "SkylineLUFactorizationSolver"}"""))
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(
+            KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
 
         model_part.CloneTimeStep(40.0)
 

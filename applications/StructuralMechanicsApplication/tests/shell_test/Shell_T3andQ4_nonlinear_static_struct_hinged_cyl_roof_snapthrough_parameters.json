@@ -30,11 +30,11 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 50,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_Q4_thin","Parts_Surface_Q4_thick","Parts_Surface_T3_thick"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edge","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_point_load"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_hinged_edge","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_point_load"],
         "rotation_dofs"                      : true
     },
     "processes" : {

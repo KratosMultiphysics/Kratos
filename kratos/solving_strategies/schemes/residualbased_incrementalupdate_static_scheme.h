@@ -91,10 +91,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /** Default onstructor.
     */
     explicit ResidualBasedIncrementalUpdateStaticScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+        : BaseType()
     {}
 
     /** Copy Constructor.

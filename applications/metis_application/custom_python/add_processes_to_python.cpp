@@ -18,12 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/io.h"
-#include "includes/model_part.h"
-#include "includes/model_part_io.h"
-
-#include "processes/process.h"
-
 #include "custom_python/add_processes_to_python.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"

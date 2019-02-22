@@ -35,7 +35,7 @@ namespace Testing
     // Generate 3x3 test matrix
     Matrix CreateTestMatrix3x3()
     {
-        Matrix matrix = ZeroMatrix(3);
+        Matrix matrix = ZeroMatrix(3,3);
         matrix(0,0) = -2.0;
         matrix(0,1) = -4.0;
         matrix(0,2) =  2.0;
@@ -51,7 +51,7 @@ namespace Testing
     // Generate 2x2 test matrix
     Matrix CreateTestMatrix2x2()
     {
-        Matrix matrix = ZeroMatrix(2);
+        Matrix matrix = ZeroMatrix(2,2);
         matrix(0,0) =  2.0;
         matrix(0,1) =  2.0;
         matrix(1,0) =  5.0;
@@ -62,7 +62,7 @@ namespace Testing
     // Generate 3x3 test matrix
     Matrix CreateSymmetricTestMatrix3x3()
     {
-        Matrix matrix = ZeroMatrix(3);
+        Matrix matrix = ZeroMatrix(3,3);
         matrix(0,0) =  3.0;
         matrix(1,1) =  0.0;
         matrix(2,2) =  3.0;
@@ -78,7 +78,7 @@ namespace Testing
     // Generate 3x3 test matrix
     Matrix CreateSymmetricTest2Matrix3x3()
     {
-        Matrix matrix = ZeroMatrix(3);
+        Matrix matrix = ZeroMatrix(3,3);
         matrix(0,0) =  2.0;
         matrix(1,1) =  8.0;
         matrix(2,2) =  6.0;
@@ -94,7 +94,7 @@ namespace Testing
     // Generate 3x3 test matrix
     Matrix CreateSymmetricTest3Matrix3x3()
     {
-        Matrix matrix = ZeroMatrix(3);
+        Matrix matrix = ZeroMatrix(3,3);
         matrix(0,0) =  1.0;
         matrix(1,1) =  0.0;
         matrix(2,2) =  1.0;
@@ -130,8 +130,8 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsQRFactorizationCalculation, KratosParticleMechanicsFastSuite)
     {
         // Initialize vectors and matrices
-        Matrix Q = ZeroMatrix(3);
-        Matrix R = ZeroMatrix(3);
+        Matrix Q = ZeroMatrix(3,3);
+        Matrix R = ZeroMatrix(3,3);
 
         // QR Factorization
         Matrix A = CreateSymmetricTest3Matrix3x3();
@@ -174,7 +174,7 @@ namespace Testing
         // Initialize vectors and matrices
         Vector eigen_values_2  = ZeroVector(2);
         Vector eigen_values_3  = ZeroVector(3);
-        Matrix eigen_vectors_3 = ZeroMatrix(3);
+        Matrix eigen_vectors_3 = ZeroMatrix(3,3);
 
         // 1. Compute EigenValues
         Matrix A = CreateTestMatrix3x3();

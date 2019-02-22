@@ -3,9 +3,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -42,7 +39,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
@@ -55,7 +52,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
@@ -94,7 +91,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self._is_printing_rank = True
 
         ## Construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
@@ -190,8 +187,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         (self.solver).Initialize()
-
-        self.solver.Check()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Solver initialization finished.")
 

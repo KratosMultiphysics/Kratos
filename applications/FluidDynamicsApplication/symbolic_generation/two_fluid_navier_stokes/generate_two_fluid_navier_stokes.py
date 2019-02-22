@@ -83,6 +83,7 @@ for dim in dim_vector:
     dyn_tau = Symbol('dyn_tau', positive = True)
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
+    K_darcy = Symbol('K_darcy', positive = True)
 
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
@@ -109,10 +110,11 @@ for dim in dim_vector:
         vconv_gauss_norm += vconv_gauss[i]**2
     vconv_gauss_norm = sqrt(vconv_gauss_norm)
 
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
+    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
 
 
+    ## Values at Gauss point
     accel_gauss = (bdf0*v +bdf1*vn + bdf2*vnn).transpose()*N
     p_gauss = p.transpose()*N
     penr_gauss = penr.transpose()*Nenr
@@ -141,16 +143,19 @@ for dim in dim_vector:
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)
 
+    ## Galerkin Functional
+    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
+    rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
 
     if (divide_by_rho):
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+        rv_galerkin -= q_gauss*div_v
     else:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
+        rv_galerkin -= rho*q_gauss*div_v
 
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p - K_darcy*v_gauss
 
     # Mass conservation residual
     if (divide_by_rho):
@@ -170,6 +175,7 @@ for dim in dim_vector:
     rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
     #rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
+    rv_stab -= w_gauss.transpose()*K_darcy*vel_subscale
 
     ## Add the stabilization terms to the original residual terms
     if (ASGS_stabilization):
@@ -207,7 +213,7 @@ for dim in dim_vector:
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
 
-    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p - grad_penr
+    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p - K_darcy*v_gauss - grad_penr
     vel_subscale_enr = vel_residual_enr * tau1
 
     rv_galerkin_enriched = div_w*penr_gauss
@@ -222,6 +228,7 @@ for dim in dim_vector:
         rv_stab_enriched -= rho*grad_q.transpose()*tau1*grad_penr
 
     rv_stab_enriched -= rho*vconv_gauss.transpose()*grad_w*tau1*grad_penr
+    rv_stab_enriched += w_gauss.transpose()*K_darcy*tau1*grad_penr
     #rv_stab_enriched -= rho*div_vconv*w_gauss.transpose()*tau1*grad_penr
     
     rv_enriched = rv_galerkin_enriched

@@ -388,6 +388,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateGradient", &DerivativeRecovery <3>::CalculateGradient< Variable<double> >)
         .def("SmoothVectorField", &DerivativeRecovery <3>::SmoothVectorField)
         .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <3>::CalculateVectorMaterialDerivative)
+        .def("RecoverLagrangianAcceleration", &DerivativeRecovery <3>::RecoverLagrangianAcceleration)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
         ;

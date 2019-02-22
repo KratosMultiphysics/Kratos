@@ -94,7 +94,6 @@ namespace Kratos
         * Checks the correct work of the shell to solid process
         * Test 1 layer
         */
-
         KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
@@ -112,7 +111,7 @@ namespace Kratos
                 "number_of_layers": 1
             })" );
 
-            ShellToSolidShellProcess<3> prism_neighbours_process = ShellToSolidShellProcess<3>(this_model_part, parameters);
+            ShellToSolidShellProcess<3> prism_neighbours_process(this_model_part, parameters);
             prism_neighbours_process.Execute();
 
 //             // DEBUG
@@ -126,7 +125,6 @@ namespace Kratos
         * Checks the correct work of the shell to solid process
         * Test 2 layer
         */
-
         KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
@@ -144,7 +142,7 @@ namespace Kratos
                 "number_of_layers": 2
             })" );
 
-            ShellToSolidShellProcess<3> prism_neighbours_process = ShellToSolidShellProcess<3>(this_model_part, parameters);
+            ShellToSolidShellProcess<3> prism_neighbours_process(this_model_part, parameters);
             prism_neighbours_process.Execute();
 
 //             // DEBUG
@@ -158,7 +156,6 @@ namespace Kratos
         * Checks the correct work of the shell to solid process
         * Test 2 layer with external conditions
         */
-
         KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
@@ -177,7 +174,7 @@ namespace Kratos
                 "number_of_layers": 2
             })" );
 
-            ShellToSolidShellProcess<3> prism_neighbours_process = ShellToSolidShellProcess<3>(this_model_part, parameters);
+            ShellToSolidShellProcess<3> prism_neighbours_process(this_model_part, parameters);
             prism_neighbours_process.Execute();
 
             // We compute the normal
@@ -196,6 +193,48 @@ namespace Kratos
                 KRATOS_CHECK_NEAR(node.FastGetSolutionStepValue(NORMAL)[2],  1.0, 1.0e-12);
             for (auto& node : this_model_part.GetSubModelPart("Lower_").Nodes())
                 KRATOS_CHECK_NEAR(node.FastGetSolutionStepValue(NORMAL)[2], -1.0, 1.0e-12);
+        }
+
+        /**
+        * Checks the correct work of the shell to solid process
+        */
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess4, KratosStructuralMechanicsFastSuite)
+        {
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
+            this_model_part.SetBufferSize(2);
+
+            this_model_part.AddNodalSolutionStepVariable(NORMAL);
+            ShellToSolidShellProcessCreateModelPart(this_model_part);
+
+            Parameters extrude_parameters = Parameters(R"(
+            {
+                "element_name"    : "SolidShellElementSprism3D6N",
+                "model_part_name" : "",
+                "computing_model_part_name" : "",
+                "number_of_layers": 1
+            })" );
+
+            ShellToSolidShellProcess<3> prism_neighbours_process_extrude(this_model_part, extrude_parameters);
+            prism_neighbours_process_extrude.Execute();
+
+            Parameters collapse_parameters = Parameters(R"(
+            {
+                "element_name"    : "Element3D3N",
+                "model_part_name" : "",
+                "computing_model_part_name" : "",
+                "number_of_layers": 1,
+                "collapse_geometry" : true
+            })" );
+
+            ShellToSolidShellProcess<3> prism_neighbours_process_collapse(this_model_part, collapse_parameters);
+            prism_neighbours_process_collapse.Execute();
+
+//             // DEBUG
+//             ShellToSolidShellProcessGiDIODebug(this_model_part);
+
+            for (auto& elem : this_model_part.Elements())
+                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 3);
         }
 
     } // namespace Testing
