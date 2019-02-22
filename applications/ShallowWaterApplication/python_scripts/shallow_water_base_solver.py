@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ShallowWaterApplication")
-
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 

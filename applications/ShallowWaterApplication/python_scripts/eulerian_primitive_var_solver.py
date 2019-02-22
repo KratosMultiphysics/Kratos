@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from shallow_water_base_solver import ShallowWaterBaseSolver
 

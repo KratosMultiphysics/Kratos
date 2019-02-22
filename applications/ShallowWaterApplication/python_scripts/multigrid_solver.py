@@ -4,9 +4,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 import KratosMultiphysics.MeshingApplication as Meshing
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from eulerian_primitive_var_solver import EulerianPrimitiveVarSolver
 from multiscale_refining_process import MultiscaleRefiningProcess
@@ -40,7 +37,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         ## Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def ImportModelPart(self):

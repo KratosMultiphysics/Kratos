@@ -18,7 +18,7 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
-                "variable_name"        : "BATYMETRY",
+                "variable_name"        : "BATHYMETRY",
                 "constrained"          : false,
                 "value"                : "z"
             }
@@ -33,5 +33,3 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess2D(
-            self.model_part, Shallow.BATHYMETRY, Shallow.TOPOGRAPHY_GRADIENT, KratosMultiphysics.NODAL_AREA)
