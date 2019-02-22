@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from python_solver import PythonSolver
 from potential_flow_solver import LaplacianSolver
-# import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
     return PotentialAdjointSolver(model, custom_settings)
@@ -54,7 +54,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
-        self.adjoint_postprocess = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
+        self.adjoint_postprocess=KratosMultiphysics.StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
         self.adjoint_postprocess.Initialize()
 
         scheme = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialStaticScheme(self.scheme_settings, self.response_function)
