@@ -41,6 +41,9 @@ class TestVariables(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(new_double_variable)
         model_part.AddNodalSolutionStepVariable(new_array_3_variable)
 
+        new_array_3_variable = KratosMultiphysics.KratosGlobals.GetVariable("DISPLACEMENT")
+        model_part.AddNodalSolutionStepVariable(new_array_3_variable)
+
         new_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         new_node.SetSolutionStepValue(new_double_variable, 0, 1.5)
