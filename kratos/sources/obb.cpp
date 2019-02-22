@@ -21,23 +21,10 @@ namespace Kratos
 {
 template<std::size_t TDim>
 OBB<TDim>::OBB(
-    const BaseType& rCenterPoint,
-    const array_1d<double, 3>& rOrientationVector,
-    const double HalfDiagonal
-    ): BaseType(rCenterPoint),
-        mOrientationVector(rOrientationVector),
-        mHalfDiagonal(HalfDiagonal)
-{}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim>
-OBB<TDim>::OBB(
     const array_1d<double, 3>& rCenterCoords,
     const array_1d<double, 3>& rOrientationVector,
     const double HalfDiagonal
-    ): BaseType(rCenterCoords),
+    ) : mPointCenter(rCenterCoords),
         mOrientationVector(rOrientationVector),
         mHalfDiagonal(HalfDiagonal)
 {}
@@ -46,20 +33,9 @@ OBB<TDim>::OBB(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-Point OBB<TDim>::GetCenter()
+array_1d<double, 3> OBB<TDim>::GetCenter()
 {
-    BaseType ThisPoint(this->Coordinates());
-
-    return ThisPoint;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim>
-void OBB<TDim>::SetCenter(const BaseType& rCenterPoint)
-{
-    this->Coordinates() = rCenterPoint.Coordinates();
+    return mPointCenter;
 }
 
 /***********************************************************************************/
@@ -68,7 +44,7 @@ void OBB<TDim>::SetCenter(const BaseType& rCenterPoint)
 template<std::size_t TDim>
 void OBB<TDim>::SetCenter(const array_1d<double, 3>& rCenterCoords)
 {
-    this->Coordinates() = rCenterCoords;
+    noalias(mPointCenter) = rCenterCoords;
 }
 
 /***********************************************************************************/

@@ -10,15 +10,15 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 // 
 
-#if !defined(OBB_H_DEFINED )
-#define  OBB_H_DEFINED
+#if !defined(OBB_CLASS_H_DEFINED )
+#define  OBB_CLASS_H_DEFINED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "geometries/point.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -59,14 +59,11 @@ namespace Kratos
  */
 template<std::size_t TDim>
 class OBB
-    : public Point
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    
-    typedef Point BaseType; 
     
     /// Counted pointer of OBB
     KRATOS_CLASS_POINTER_DEFINITION( OBB );
@@ -74,21 +71,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Default constructors with point
-     * @param rCenterPoint The center of the OBB
-     * @param rOrientationVector The orientation vector of the diagonal
-     * @param HalfDiagonal The half length of the diagonal
-     */
-    OBB(
-        const BaseType& rCenterPoint,
-        const array_1d<double, 3>& rOrientationVector,
-        const double HalfDiagonal
-        );
     
     /**
-     * @brief Default constructors with point
+     * @brief Default constructors
      * @param rCenterPoint The center of the OBB
      * @param rOrientationVector The orientation vector of the diagonal
      * @param HalfDiagonal The half length of the diagonal
@@ -101,14 +86,16 @@ public:
 
     ///Copy constructor  (not really required)
     OBB(const OBB& rhs):
-        BaseType(rhs),
+        mPointCenter(rhs.mPointCenter),
         mOrientationVector(rhs.mOrientationVector),
         mHalfDiagonal(rhs.mHalfDiagonal)
     {
     }
 
     /// Destructor.
-    ~OBB() override= default;
+    ~OBB()
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -122,13 +109,7 @@ public:
      * @brief Returns the point that defines the center of the OBB
      * @return The center point of the OBB
      */
-    BaseType GetCenter();
-
-    /**
-     * @brief Set the point that defines the center of the OBB
-     * @param rCenterPoint The point that defines the center of the OBB
-     */
-    void SetCenter(const BaseType& rCenterPoint);
+    array_1d<double, 3> GetCenter();
 
     /**
      * @brief Set the point that defines the center of the OBB
@@ -202,6 +183,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    array_1d<double, 3> mPointCenter;       /// This defines the center point of the box
     array_1d<double, 3> mOrientationVector; /// This defines the orientation vector of the OBB
     double mHalfDiagonal;                   /// This defines the half of the distance between the highest point and the lowest point
 
@@ -245,4 +227,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // OBB_H_DEFINED  defined
+#endif // OBB_CLASS_H_DEFINED  defined
