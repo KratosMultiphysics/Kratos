@@ -102,7 +102,7 @@ public:
     ///Copy constructor  (not really required)
     OBB(const OBB& rhs):
         BaseType(rhs),
-        mOrientationVector(rhs.mOrientationVector)
+        mOrientationVector(rhs.mOrientationVector),
         mHalfDiagonal(rhs.mHalfDiagonal)
     {
     }
