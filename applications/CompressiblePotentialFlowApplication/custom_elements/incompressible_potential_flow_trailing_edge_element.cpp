@@ -459,7 +459,7 @@ void IncompressiblePotentialFlowTrailingEdgeElement<Dim, NumNodes>::ComputeEleme
     ComputeUpperVelocity(velocity);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, abs(internal_energy));
+    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
 template <int Dim, int NumNodes>
