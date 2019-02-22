@@ -6,7 +6,7 @@ import KratosMultiphysics
 
 
 def IsDistributed():
-    return KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed()
+    return KratosMultiphysics.DataCommunicator.GetDefault().IsDistributed()
 
 
 def InsertSingleSetting(dest, key, parameters):
