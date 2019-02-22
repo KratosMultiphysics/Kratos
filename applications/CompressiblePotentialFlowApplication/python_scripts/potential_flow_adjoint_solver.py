@@ -13,7 +13,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_settings" : {
-                "scheme_type": "adjoint_structural"
+                "scheme_type": "adjoint_potential"
             },
             "element_replace_settings" : {
                 "element_name":"IncompressibleAdjointPotentialFlowElement",
