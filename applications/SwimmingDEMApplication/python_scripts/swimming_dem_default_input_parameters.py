@@ -157,6 +157,7 @@ def GetDefaultInputParameters():
             "problem_name" : "",
             "PredefinedSkinOption"             : false,
             "MeanRadius"                       : 0.0001,
+            "properties": [{}],
             "fluid_parameters" : {},
             "dem_parameters" : {}
             }""")

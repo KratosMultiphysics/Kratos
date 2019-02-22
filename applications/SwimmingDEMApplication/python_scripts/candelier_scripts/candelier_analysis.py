@@ -67,7 +67,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
             if candelier_pp.include_lift:
                 node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, 0.0)
                 node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, 0.0)
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 0.5 * candelier_pp.omega)
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 2 * candelier_pp.omega)
 
     def _CreateSolver(self):
         import candelier_scripts.candelier_dem_solver as sdem_solver

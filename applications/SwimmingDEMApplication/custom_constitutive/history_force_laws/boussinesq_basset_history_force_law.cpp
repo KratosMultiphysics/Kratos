@@ -15,13 +15,24 @@ namespace Kratos {
     {
         Parameters default_parameters( R"(
             {
-                "basset_force_type": 4,
-                "quadrature_order": 2
-            }  )" );
+                "name":"BoussinesqBassetHistoryForceLaw",
+                "quadrature_order": 2,
+                "mae_parameters": {
+                    "do_use_mae": false,
+                    "m": 10,
+                    "window_time_interval": 0.1,
+                    "type":4
+                }
+            }
+            )" );
 
         r_parameters.ValidateAndAssignDefaults(default_parameters);
+        mBassetForceType = 2;
 
-        mBassetForceType = r_parameters["basset_force_type"].GetInt();
+        if (r_parameters["mae_parameters"]["do_use_mae"].GetBool()){
+            mBassetForceType = r_parameters["mae_parameters"]["type"].GetInt();
+        }
+
         mQuadratureOrder = r_parameters["quadrature_order"].GetInt();
         mOldBassetTerm = ZeroVector(3);
         mOldDaitchePresentCoefficient = 0.0;
@@ -328,7 +339,7 @@ namespace Kratos {
     double BoussinesqBassetHistoryForceLaw::Phi(const double x)
     {
         if (std::abs(x) < 1e-10){
-            return (std::exp(x) - 1) / x;
+            return std::expm1(x) / x;
         }
         else {
             return 1 + 0.5 * x + 1.0 / 6 * x * x;
