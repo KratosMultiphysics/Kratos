@@ -95,7 +95,7 @@ public:
 
     virtual void Clear();
 
-    virtual void UpdateSensitivities(DirectSensitivityResponseFunction& Resp);
+    virtual void UpdateSensitivities(DirectSensitivityResponseFunction& rResponseFunction);
 
     ///@}
 
@@ -113,17 +113,17 @@ protected:
 
             
 
-    void SetAllSensitivityVariablesToZero();
+    void SetAllSensitivityVariablesToZero(DirectSensitivityResponseFunction& rResponseFunction);
     
     template <typename TDataType>
-    void UpdateSensitivityOnGaussPoint(DirectSensitivityResponseFunction& Resp, Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivitiesOnGaussPoints(DirectSensitivityResponseFunction& rResponseFunction, Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
     
     template <typename TDataType>
-    void UpdateSensitivityOnNode(DirectSensitivityResponseFunction& Resp, Variable<TDataType> const& rResponseVariable, 
+    void UpdateSensitivitiesOnNodes(DirectSensitivityResponseFunction& rResponseFunction, Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
 
-    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rSensitivityVariable,
+    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rVariable,
                                             array_1d<double,3> const& rSensitivityVector, Node<3>& rNode);
 
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
@@ -151,10 +151,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-        Variable<double> ReadScalarSensitivityVariables(std::string const& rVariableName);
-    
-        Variable<array_1d<double,3>> ReadVectorSensitivityVariables(std::string const& rVariableName);
-        
+                
     ///@}
 };
 
