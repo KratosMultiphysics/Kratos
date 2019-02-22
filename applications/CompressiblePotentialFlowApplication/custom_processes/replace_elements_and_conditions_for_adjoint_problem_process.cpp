@@ -32,51 +32,9 @@ namespace Kratos
     {
         KRATOS_ERROR_IF(mrModelPart.IsSubModelPart()) << "The replacement process can only be done for the root model part!" << std::endl;
 
-        // if ( (!mrModelPart.GetProcessInfo().Has(IS_ADJOINT)) || (!mrModelPart.GetProcessInfo()[IS_ADJOINT]) )
-        // {
-        std::cout<<"starting replace to adjoint"<< std::endl;
         this->ReplaceToAdjoint();
-        std::cout<<"replace to adjoint completed"<< std::endl;
-            // mrModelPart.GetProcessInfo()[IS_ADJOINT] = true;
-        // }
-        // else
-        // {
-        //     this->ReplaceToPrimal();
-        //     mrModelPart.GetProcessInfo()[IS_ADJOINT] = false;
-        // }
     }
-
-    // void ReplaceElementsAndConditionsAdjointProcess::ReplaceToPrimal()
-    // {
-    //     #pragma omp parallel for
-    //     for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    //     {
-    //         const auto it = mrModelPart.ElementsBegin() + i;
-
-    //         AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(*it.base());
-    //         if (p_adjoint_element != nullptr)
-    //         {
-    //             (*it.base()) = p_adjoint_element->pGetPrimalElement();
-    //         }
-    //     }
-
-    //     #pragma omp parallel for
-    //     for(int i=0; i<static_cast<int>(mrModelPart.NumberOfConditions()); ++i)
-    //     {
-    //         const auto it = mrModelPart.ConditionsBegin() + i;
-
-    //         AdjointSemiAnalyticBaseCondition::Pointer p_adjoint_condition = dynamic_pointer_cast<AdjointSemiAnalyticBaseCondition>(*it.base());
-    //         if (p_adjoint_condition != nullptr)
-    //         {
-    //             (*it.base()) = p_adjoint_condition->pGetPrimalCondition();
-    //         }
-    //     }
-
-    //     //change the sons
-    //     for (ModelPart::SubModelPartIterator i_sub_model_part = mrModelPart.SubModelPartsBegin(); i_sub_model_part != mrModelPart.SubModelPartsEnd(); i_sub_model_part++)
-    //         UpdateSubModelPart( *i_sub_model_part, mrModelPart );
-    // }
-
+    
     void ReplaceElementsAndConditionsAdjointProcess::ReplaceToAdjoint()
     {
 
