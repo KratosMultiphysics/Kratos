@@ -20,9 +20,11 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-//#include "state_derivative/direct_sensitivity_response_functions/direct_sensitivity_response_function.h"
+#include "state_derivative/response_functions/direct_sensitivity_response_function.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
-#include "response_functions/adjoint_response_function.h"
+#include "state_derivative/math_functions/vector_math.h"
+#include "state_derivative/output_utilities/output_utility.h"
+
 
 //#include "state_derivative/new_adjoint_response_functions/new_adjoint_response_function.h"
 
@@ -71,7 +73,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityPostprocess(ModelPart& rModelPart, AdjointResponseFunction& rResponseFunction, DirectSensitivityVariable& rDirectSensitivityVariable,
+    DirectSensitivityPostprocess(ModelPart& rModelPart, DirectSensitivityVariable& rDirectSensitivityVariable,
                        Parameters VariableSettings);
 
     /// Destructor.
@@ -93,7 +95,7 @@ public:
 
     virtual void Clear();
 
-    virtual void UpdateSensitivities();
+    virtual void UpdateSensitivities(DirectSensitivityResponseFunction& rResponseFunction);
 
     ///@}
 
@@ -109,30 +111,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void SetAllSensitivityVariablesToZero();
+            
+
+    void SetAllSensitivityVariablesToZero(DirectSensitivityResponseFunction& rResponseFunction);
     
     template <typename TDataType>
-    void UpdateElementContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    void UpdateSensitivitiesOnGaussPoints(DirectSensitivityResponseFunction& rResponseFunction, Variable<TDataType> const& rResponseVariable, 
+                                            Variable<TDataType> const& rOutputVariable);
+    
     template <typename TDataType>
-    void UpdateConditionContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    void UpdateSensitivitiesOnNodes(DirectSensitivityResponseFunction& rResponseFunction, Variable<TDataType> const& rResponseVariable, 
+                                            Variable<TDataType> const& rOutputVariable);
 
-    void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Element::GeometryType& rGeom);
+    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rVariable,
+                                            array_1d<double,3> const& rSensitivityVector, Node<3>& rNode);
 
-    void AssembleNodalSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Element::GeometryType& rGeom);
-
-    void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector, Element& rElement);
-
-    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector, Element& rElement);
-
-    void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Condition& rCondition);
-
-    void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector, Condition& rCondition);
+    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
+                                            std::vector<array_1d<double,3>>& rSensitivityVector, Element& rElement);
 
     
     
@@ -144,7 +139,6 @@ private:
 
     ModelPart* mpSensitivityModelPart = nullptr;
     ModelPart& mrModelPart;
-    AdjointResponseFunction& mrResponseFunction;
     DirectSensitivityVariable& mrDirectSensitivityVariable;
     std::string mBuildMode;
     std::string mVariableType;
@@ -157,9 +151,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-        Variable<double> ReadScalarSensitivityVariables(std::string const& rVariableName);
-    
-        Variable<array_1d<double,3>> ReadVectorSensitivityVariables(std::string const& rVariableName);
+                
     ///@}
 };
 

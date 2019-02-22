@@ -101,6 +101,79 @@ void AdjointFiniteDifferenceCrBeamElement::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
 }
 
+void AdjointFiniteDifferenceCrBeamElement::SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+{   
+    const SizeType  write_points_number = GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+    
+    if (mForceSensitivity.size() != write_points_number )
+        mForceSensitivity.resize(write_points_number);
+    if (mMomentSensitivity.size() != write_points_number)
+        mMomentSensitivity.resize(write_points_number);    
+    
+    if (rValues.size() == write_points_number)
+    {
+	    if (rVariable == FORCE_SENSITIVITY)
+		    for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber) 
+                mForceSensitivity[PointNumber] = rValues[PointNumber];
+        
+        else if (rVariable == MOMENT_SENSITIVITY) 
+		    for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)                 
+			    mMomentSensitivity[PointNumber] = rValues[PointNumber];
+    }
+    else
+        KRATOS_ERROR << "Size of sensitivity vector is unequal to number of integration points" << std::endl;
+    
+}
+
+void AdjointFiniteDifferenceCrBeamElement::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+{ 
+    const SizeType  write_points_number = GetGeometry()
+            .IntegrationPointsNumber(this->GetIntegrationMethod());
+    
+    if (rValues.size() != write_points_number)
+            rValues.resize(write_points_number);
+
+    if (rVariable == FORCE_SENSITIVITY)
+    {
+        if(mForceSensitivity.size() == write_points_number)
+        {
+              for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber) 
+                rValues[PointNumber] = mForceSensitivity[PointNumber];
+        }
+        else if(this->Has(rVariable))
+        {
+            const array_1d<double, 3 >& output_value = this->GetValue(rVariable);
+            for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
+                rValues[PointNumber] = output_value;
+        }
+        else
+            KRATOS_ERROR << "Error at getting " << rVariable << " values on integration points." << std::endl; 
+    }
+    else if (rVariable == MOMENT_SENSITIVITY)
+    {
+        if(mMomentSensitivity.size() == write_points_number)
+        {
+            for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)                 
+                rValues[PointNumber] = mMomentSensitivity[PointNumber];
+        }
+        else if(this->Has(rVariable))
+        {
+            const array_1d<double, 3 >& output_value = this->GetValue(rVariable);
+            for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
+                rValues[PointNumber] = output_value;
+        }
+        else
+            KRATOS_ERROR << "Error at getting " << rVariable << " values on integration points." << std::endl; 
+    }
+    else
+        KRATOS_ERROR << "Sensitivity Variable "<< rVariable <<" is not compatible with adjoint_finite_difference_cr_beam_element_3D2N." << std::endl;    
+}  
+
 } // namespace Kratos.
 
 
