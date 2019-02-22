@@ -129,10 +129,6 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
-    Element::WeakPointer FindParentElement(std::vector<IndexType> &NodeIds,
-                            std::vector<IndexType> &ElementNodeIds,
-                            WeakPointerVector<Element> ElementCandidates);
-                            
     ///@}
     ///@name Access
     ///@{
@@ -190,8 +186,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mInitialLift;
-    bool mComputeLift=true;
     Element::Pointer mpNeighboringElement;
 
 
@@ -204,8 +198,7 @@ private:
     ///@{
 
     void GetNeighboringElementPointer();
-    void GetKuttaNodeId();
-
+    
     ///@}
     ///@name Private  Access
     ///@{

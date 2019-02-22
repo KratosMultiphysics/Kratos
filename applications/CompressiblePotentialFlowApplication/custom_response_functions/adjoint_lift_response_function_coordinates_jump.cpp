@@ -28,12 +28,8 @@ namespace Kratos
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const int domain_size = r_current_process_info[DOMAIN_SIZE];
         KRATOS_ERROR_IF(domain_size != 2) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
-        // Get id of node where a displacement should be traced
-        // const int id_traced_node = this->GetKuttaNodeId();
 
-        // Get pointer to traced node
-        // mpTracedNode = rModelPart.pGetNode(id_traced_node);
-
+        // Get pointer to element that contains the traced node
         this->GetNeighboringElementPointer();
     }
 
