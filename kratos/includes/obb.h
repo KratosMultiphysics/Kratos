@@ -75,19 +75,19 @@ public:
     /**
      * @brief Default constructors
      * @param rCenterPoint The center of the OBB
-     * @param rOrientationVector The orientation vector of the diagonal
+     * @param rOrientationVectors The orientation vector of the diagonal
      * @param rHalfLength The half sides
      */
     OBB(
         const array_1d<double, 3>& rCenterCoords,
-        const array_1d<double, 3>& rOrientationVector,
+        const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors,
         const array_1d<double, TDim>& rHalfLength
         );
 
     ///Copy constructor  (not really required)
     OBB(const OBB& rhs):
         mPointCenter(rhs.mPointCenter),
-        mOrientationVector(rhs.mOrientationVector),
+        mOrientationVectors(rhs.mOrientationVectors),
         mHalfLength(rhs.mHalfLength)
     {
     }
@@ -121,13 +121,13 @@ public:
      * @brief Returns the vector that defines the orientation of the axis
      * @return The orientation vector
      */
-    array_1d<double, 3>& GetOrientationVector();
+    array_1d<array_1d<double, 3>, TDim>& GetOrientationVectors();
 
     /**
      * @brief Set the vector that defines the orientation of the axis
-     * @param rOrientationVector The orientation vector
+     * @param rOrientationVectors The orientation vector
      */
-    void SetOrientationVector(const array_1d<double, 3>& rOrientationVector);
+    void SetOrientationVectors(const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors);
 
     /**
      * @brief Returns the length of the half of the diagonal
@@ -183,9 +183,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    array_1d<double, 3> mPointCenter;       /// This defines the center point of the box
-    array_1d<double, 3> mOrientationVector; /// This defines the orientation vector of the OBB
-    array_1d<double, TDim> mHalfLength;     /// This defines the half of the distance which defines the walls of the box of the OBB
+    array_1d<double, 3> mPointCenter;                        /// This defines the center point of the box
+    array_1d<array_1d<double, 3>, TDim> mOrientationVectors; /// This defines the orientation vectors of the OBB
+    array_1d<double, TDim> mHalfLength;                      /// This defines the half of the distance which defines the walls of the box of the OBB
 
     ///@}
     ///@name Private Operators

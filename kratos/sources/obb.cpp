@@ -22,10 +22,10 @@ namespace Kratos
 template<std::size_t TDim>
 OBB<TDim>::OBB(
     const array_1d<double, 3>& rCenterCoords,
-    const array_1d<double, 3>& rOrientationVector,
+    const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors,
     const array_1d<double, TDim>& rHalfLength
     ) : mPointCenter(rCenterCoords),
-        mOrientationVector(rOrientationVector),
+        mOrientationVectors(rOrientationVectors),
         mHalfLength(rHalfLength)
 {}
 
@@ -51,18 +51,20 @@ void OBB<TDim>::SetCenter(const array_1d<double, 3>& rCenterCoords)
 /***********************************************************************************/
 
 template<std::size_t TDim>
-array_1d<double, 3>& OBB<TDim>::GetOrientationVector()
+array_1d<array_1d<double, 3>, TDim>& OBB<TDim>::GetOrientationVectors()
 {
-    return mOrientationVector;
+    return mOrientationVectors;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::SetOrientationVector(const array_1d<double, 3>& rOrientationVector)
+void OBB<TDim>::SetOrientationVectors(const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors)
 {
-    noalias(mOrientationVector) = rOrientationVector;
+    for (std::size_t i_dim = 0; i_dim < TDim; ++i_dim) {
+        noalias(mOrientationVectors[i_dim]) = rOrientationVectors[i_dim];
+    }
 }
 
 /***********************************************************************************/
