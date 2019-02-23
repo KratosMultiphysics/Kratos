@@ -263,9 +263,9 @@ template<std::size_t TDim>
 void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords) const
 {
     array_1d<double, 4> old_coords;
-    old_coords[0] = rCoords[0];
-    old_coords[1] = rCoords[1];
-    old_coords[2] = rCoords[2];
+    old_coords[0] = rCoords[0] - mPointCenter[0];
+    old_coords[1] = rCoords[1] - mPointCenter[1];
+    old_coords[2] = rCoords[2] - mPointCenter[2];
     old_coords[3] = 1.0;
 
     BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
@@ -286,6 +286,9 @@ void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords) const
     rCoords[0] = new_coords[0];
     rCoords[1] = new_coords[1];
     rCoords[2] = new_coords[2];
+
+    // Restore movement
+    noalias(rCoords) += mPointCenter;
 }
 
 /***********************************************************************************/

@@ -174,7 +174,7 @@ namespace Kratos {
      *  Here we check the HasIntersection function of the OBB 3D
      * We compare with the intersection of two quadrilaterals
      */
-    KRATOS_TEST_CASE_IN_SUITE(OBBHasIntersection3DSimple, KratosCoreFastSuite2)
+    KRATOS_TEST_CASE_IN_SUITE(OBBHasIntersection3DSimple, KratosCoreFastSuite)
     {
         array_1d<double, 3> first_center;
         first_center[0] = 0.5;
@@ -276,7 +276,7 @@ namespace Kratos {
 //         second_center[1] = 0.5;
 //         second_obb.SetCenter(second_center);
 //         second_hexa = second_obb.GetEquivalentGeometry();
-
+//
 //         // Debug
 //         first_obb.GetEquivalentRotatedGeometry(second_hexa);
 //         first_obb.GetEquivalentRotatedGeometry(first_hexa);
@@ -304,24 +304,24 @@ namespace Kratos {
 //         gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //         gid_io.FinalizeResults();
 
-//         has_intersection_reference = false;
-//
-//         for (auto& r_point : first_hexa) {
-//             if (second_hexa.IsInside(r_point.Coordinates(), local_coords)) {
-//                 has_intersection_reference = true;
-//                 break;
-//             }
-//         }
-//         for (auto& r_point : second_hexa) {
-//             if (first_hexa.IsInside(r_point.Coordinates(), local_coords)) {
-//                 has_intersection_reference = true;
-//                 break;
-//             }
-//         }
-//
-//         has_intersection = first_obb.HasIntersection(second_obb);
-//
-//         KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
+        has_intersection_reference = false;
+
+        for (auto& r_point : first_hexa) {
+            if (second_hexa.IsInside(r_point.Coordinates(), local_coords)) {
+                has_intersection_reference = true;
+                break;
+            }
+        }
+        for (auto& r_point : second_hexa) {
+            if (first_hexa.IsInside(r_point.Coordinates(), local_coords)) {
+                has_intersection_reference = true;
+                break;
+            }
+        }
+
+        has_intersection = first_obb.HasIntersection(second_obb);
+
+        KRATOS_CHECK_EQUAL(has_intersection_reference, has_intersection);
     }
 
     }
