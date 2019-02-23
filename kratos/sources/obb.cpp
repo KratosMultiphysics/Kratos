@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
 // System includes
 
@@ -23,10 +23,10 @@ template<std::size_t TDim>
 OBB<TDim>::OBB(
     const array_1d<double, 3>& rCenterCoords,
     const array_1d<double, 3>& rOrientationVector,
-    const double HalfDiagonal
+    const array_1d<double, TDim>& rHalfLength
     ) : mPointCenter(rCenterCoords),
         mOrientationVector(rOrientationVector),
-        mHalfDiagonal(HalfDiagonal)
+        mHalfLength(rHalfLength)
 {}
 
 /***********************************************************************************/
@@ -69,18 +69,18 @@ void OBB<TDim>::SetOrientationVector(const array_1d<double, 3>& rOrientationVect
 /***********************************************************************************/
 
 template<std::size_t TDim>
-double& OBB<TDim>::GetHalfDiagonal()
+array_1d<double, TDim>& OBB<TDim>::GetHalfLength()
 {
-    return mHalfDiagonal;
+    return mHalfLength;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::SetHalfDiagonal(const double HalfDiagonal)
+void OBB<TDim>::SetHalfLength(const array_1d<double, TDim>& rHalfLength)
 {
-    mHalfDiagonal = HalfDiagonal;
+    mHalfLength = rHalfLength;
 }
 
 /***********************************************************************************/

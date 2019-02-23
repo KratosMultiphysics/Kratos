@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
 #if !defined(OBB_CLASS_H_DEFINED )
 #define  OBB_CLASS_H_DEFINED
@@ -28,11 +28,11 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -64,31 +64,31 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
     /// Counted pointer of OBB
     KRATOS_CLASS_POINTER_DEFINITION( OBB );
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * @brief Default constructors
      * @param rCenterPoint The center of the OBB
      * @param rOrientationVector The orientation vector of the diagonal
-     * @param HalfDiagonal The half length of the diagonal
+     * @param rHalfLength The half sides
      */
     OBB(
         const array_1d<double, 3>& rCenterCoords,
         const array_1d<double, 3>& rOrientationVector,
-        const double HalfDiagonal
+        const array_1d<double, TDim>& rHalfLength
         );
 
     ///Copy constructor  (not really required)
     OBB(const OBB& rhs):
         mPointCenter(rhs.mPointCenter),
         mOrientationVector(rhs.mOrientationVector),
-        mHalfDiagonal(rhs.mHalfDiagonal)
+        mHalfLength(rhs.mHalfLength)
     {
     }
 
@@ -122,7 +122,7 @@ public:
      * @return The orientation vector
      */
     array_1d<double, 3>& GetOrientationVector();
-    
+
     /**
      * @brief Set the vector that defines the orientation of the axis
      * @param rOrientationVector The orientation vector
@@ -133,13 +133,13 @@ public:
      * @brief Returns the length of the half of the diagonal
      * @return The length of the half of the diagonal
      */
-    double& GetHalfDiagonal();
+    array_1d<double, TDim>& GetHalfLength();
 
     /**
      * @brief Set the length of the half of the diagonal
-     * @param HalfDiagonal The length of the half of the diagonal
+     * @param rHalfLength The length of the half of the diagonal
      */
-    void SetHalfDiagonal(const double HalfDiagonal);
+    void SetHalfLength(const array_1d<double, TDim>& rHalfLength);
 
     /**
      * @brief Computes the intersection between two OBB (current and new)
@@ -185,7 +185,7 @@ private:
 
     array_1d<double, 3> mPointCenter;       /// This defines the center point of the box
     array_1d<double, 3> mOrientationVector; /// This defines the orientation vector of the OBB
-    double mHalfDiagonal;                   /// This defines the half of the distance between the highest point and the lowest point
+    array_1d<double, TDim> mHalfLength;     /// This defines the half of the distance which defines the walls of the box of the OBB
 
     ///@}
     ///@name Private Operators

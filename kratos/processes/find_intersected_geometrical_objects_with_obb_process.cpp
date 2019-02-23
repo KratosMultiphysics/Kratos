@@ -103,54 +103,53 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
     GeometryType& rSecondGeometry
     )
 {
-    // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-    NodeType first_geometry_low_node, first_geometry_high_node;
-    rFirstGeometry.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-    NodeType second_geometry_low_node, second_geometry_high_node;
-    rSecondGeometry.BoundingBox(second_geometry_low_node, second_geometry_high_node);
+    // The edges
+    auto r_edges_1 = rFirstGeometry.Edges();
+    auto r_edges_2 = rSecondGeometry.Edges();
 
-    // In order to compute the extended bounding box we need to compute the tangents
-    array_1d<double, 3> tangent_1 = first_geometry_high_node.Coordinates() - first_geometry_low_node.Coordinates();
-    tangent_1 /= norm_2(tangent_1);
+    // First geometry
+    for (auto& r_edge_1 : r_edges_1) {
+        // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
+        NodeType first_geometry_low_node, first_geometry_high_node;
+        r_edge_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
 
-    array_1d<double, 3> tangent_2 = second_geometry_high_node.Coordinates() - second_geometry_low_node.Coordinates();
-    tangent_2 /= norm_2(tangent_2);
+        // Creating the box points
+        Line2D2<Point> first_edge(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
 
-    // Computing the normal to this tangents
-    array_1d<double, 3> normal_1, normal_2;
-    normal_1[0] = first_geometry_high_node[1] - first_geometry_low_node[1];
-    normal_1[1] = first_geometry_low_node[0] - first_geometry_high_node[0];
-    normal_1[2] = 0.0;
-    normal_2[0] = second_geometry_high_node[1] - second_geometry_low_node[1];
-    normal_2[1] = second_geometry_low_node[0] - second_geometry_high_node[0];
-    normal_2[2] = 0.0;
+        // Creating OBB
+        array_1d<double, 3> first_direction_vector = first_geometry_high_node - first_geometry_low_node;
+        const double norm_first_direction_vector = norm_2(first_direction_vector);
+        first_direction_vector /= norm_first_direction_vector;
+        const array_1d<double, 3> first_center_point = first_edge.Center().Coordinates();
+        array_1d<double, 2> first_half_distances;
+        first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
+        first_half_distances[1] = mBoundingBoxFactor;
+        OBB<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
-    // Creating the box points
-    Line2D2<Point> first_edge(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
-    Line2D2<Point> second_edge(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
+        // Second geometry
+        for (auto& r_edge_2 : r_edges_2) {
+            // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
+            NodeType second_geometry_low_node, second_geometry_high_node;
+            r_edge_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
 
-    // Computing edges
-    const array_1d<double, 3> first_high_obb_coordinates = first_geometry_high_node + mBoundingBoxFactor * (normal_1 + tangent_1);
-    const array_1d<double, 3> first_low_obb_coordinates = first_geometry_low_node - mBoundingBoxFactor * (normal_1 + tangent_1);
-    const array_1d<double, 3> second_high_obb_coordinates = second_geometry_high_node + mBoundingBoxFactor * (normal_2 + tangent_2);
-    const array_1d<double, 3> second_low_obb_coordinates = second_geometry_low_node - mBoundingBoxFactor * (normal_2 + tangent_2);
+            // Creating the box points
+            Line2D2<Point> second_edge(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
 
-    // Creating OBB
-    array_1d<double, 3> first_direction_vector = first_high_obb_coordinates - first_low_obb_coordinates;
-    const double norm_first_direction_vector = norm_2(first_direction_vector);
-    first_direction_vector /= norm_first_direction_vector;
-    const array_1d<double, 3> first_center_point = first_edge.Center().Coordinates();
-    OBB<2> first_obb(first_center_point, first_direction_vector, 0.5 * norm_first_direction_vector);
+            // Creating OBB
+            array_1d<double, 3> second_direction_vector = second_geometry_high_node - second_geometry_low_node;
+            const double norm_second_direction_vector = norm_2(second_direction_vector);
+            second_direction_vector /= norm_second_direction_vector;
+            const array_1d<double, 3> second_center_point = second_edge.Center().Coordinates();
+            array_1d<double, 2> second_half_distances;
+            second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
+            second_half_distances[1] = mBoundingBoxFactor;
+            OBB<2> second_obb(second_center_point, second_direction_vector, second_half_distances);
 
-    array_1d<double, 3> second_direction_vector = second_high_obb_coordinates - second_low_obb_coordinates;
-    const double norm_second_direction_vector = norm_2(second_direction_vector);
-    second_direction_vector /= norm_second_direction_vector;
-    const array_1d<double, 3> second_center_point = second_edge.Center().Coordinates();
-    OBB<2> second_obb(second_center_point, second_direction_vector, 0.5 * norm_second_direction_vector);
-
-    // Computing intersection OBB
-    if (first_obb.HasIntersection(second_obb)){
-        return true;
+            // Computing intersection OBB
+            if (first_obb.HasIntersection(second_obb)){
+                return true;
+            }
+        }
     }
 
     // Let check second geometry is inside the first one.
@@ -172,50 +171,55 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
     GeometryType& rSecondGeometry
     )
 {
-    // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-    NodeType first_geometry_low_node, first_geometry_high_node;
-    rFirstGeometry.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-    NodeType second_geometry_low_node, second_geometry_high_node;
-    rSecondGeometry.BoundingBox(second_geometry_low_node, second_geometry_high_node);
+    // The edges
+    auto r_faces_1 = rFirstGeometry.Faces();
+    auto r_faces_2 = rSecondGeometry.Faces();
 
-    // In order to compute the extended bounding box we need to compute the tangents
-    array_1d<double, 3> tangent_1 = first_geometry_high_node.Coordinates() - first_geometry_low_node.Coordinates();
-    tangent_1 /= norm_2(tangent_1);
+    // First geometry
+    for (auto& r_face_1 : r_faces_1) {
+        // Check the intersection of each face of the object bounding box against the intersecting object bounding box
+        NodeType first_geometry_low_node, first_geometry_high_node;
+        r_face_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
 
-    array_1d<double, 3> tangent_2 = second_geometry_high_node.Coordinates() - second_geometry_low_node.Coordinates();
-    tangent_2 /= norm_2(tangent_2);
+        // Creating the box points
+        Line3D2<Point> first_face(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
 
-    // Computing the normal to this tangents
-    array_1d<double, 3> normal_1a, normal_1b, normal_2a, normal_2b;
-    MathUtils<double>::OrthonormalBasis(tangent_1, normal_1a, normal_1b);
-    MathUtils<double>::OrthonormalBasis(tangent_2, normal_2a, normal_2b);
+        // Creating OBB
+        array_1d<double, 3> first_direction_vector = first_geometry_high_node - first_geometry_low_node;
+        const double norm_first_direction_vector = norm_2(first_direction_vector);
+        first_direction_vector /= norm_first_direction_vector;
+        const array_1d<double, 3> first_center_point = first_face.Center().Coordinates();
+        array_1d<double, 3> first_half_distances;
+        first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
+        first_half_distances[1] = mBoundingBoxFactor;
+        first_half_distances[2] = mBoundingBoxFactor;
+        OBB<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
-    // Creating the box points
-    Line3D2<Point> first_edge(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
-    Line3D2<Point> second_edge(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
+        // Second geometry
+        for (auto& r_face_2 : r_faces_2) {
+            // Check the intersection of each face of the object bounding box against the intersecting object bounding box
+            NodeType second_geometry_low_node, second_geometry_high_node;
+            r_face_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
 
-    // Computing edges
-    const array_1d<double, 3> first_high_obb_coordinates = first_geometry_high_node + mBoundingBoxFactor * (normal_1a + normal_1b + tangent_1);
-    const array_1d<double, 3> first_low_obb_coordinates = first_geometry_low_node - mBoundingBoxFactor * (normal_1a + normal_1b + tangent_1);
-    const array_1d<double, 3> second_high_obb_coordinates = second_geometry_high_node + mBoundingBoxFactor * (normal_2a + normal_2b + tangent_2);
-    const array_1d<double, 3> second_low_obb_coordinates = second_geometry_low_node - mBoundingBoxFactor * (normal_2a + normal_2b + tangent_2);
+            // Creating the box points
+            Line3D2<Point> second_face(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
 
-    // Creating OBB
-    array_1d<double, 3> first_direction_vector = first_high_obb_coordinates - first_low_obb_coordinates;
-    const double norm_first_direction_vector = norm_2(first_direction_vector);
-    first_direction_vector /= norm_first_direction_vector;
-    const array_1d<double, 3> first_center_point = first_edge.Center().Coordinates();
-    OBB<3> first_obb(first_center_point, first_direction_vector, 0.5 * norm_first_direction_vector);
+            // Creating OBB
+            array_1d<double, 3> second_direction_vector = second_geometry_high_node - second_geometry_low_node;
+            const double norm_second_direction_vector = norm_2(second_direction_vector);
+            second_direction_vector /= norm_second_direction_vector;
+            const array_1d<double, 3> second_center_point = second_face.Center().Coordinates();
+            array_1d<double, 3> second_half_distances;
+            second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
+            second_half_distances[1] = mBoundingBoxFactor;
+            second_half_distances[2] = mBoundingBoxFactor;
+            OBB<3> second_obb(second_center_point, second_direction_vector, second_half_distances);
 
-    array_1d<double, 3> second_direction_vector = second_high_obb_coordinates - second_low_obb_coordinates;
-    const double norm_second_direction_vector = norm_2(second_direction_vector);
-    second_direction_vector /= norm_second_direction_vector;
-    const array_1d<double, 3> second_center_point = second_edge.Center().Coordinates();
-    OBB<3> second_obb(second_center_point, second_direction_vector, 0.5 * norm_second_direction_vector);
-
-    // Computing intersection OBB
-    if (first_obb.HasIntersection(second_obb)){
-        return true;
+            // Computing intersection OBB
+            if (first_obb.HasIntersection(second_obb)){
+                return true;
+            }
+        }
     }
 
     return false;
