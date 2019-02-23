@@ -278,7 +278,7 @@ bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
     // We move to X-Y alignment
     RotateNode2D(rCoords);
 
-    return (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]);
+    return (std::abs(rCoords[0] - mPointCenter[0]) <= mHalfLength[0] + ZeroTolerance) && (std::abs(rCoords[1] - mPointCenter[1]) <= mHalfLength[1] + ZeroTolerance);
 }
 
 /***********************************************************************************/
@@ -290,7 +290,7 @@ bool OBB<TDim>::CheckIsInside3D(array_1d<double, 3>& rCoords) const
     // We move to X-Y-Z alignment
     RotateNode3D(rCoords);
 
-    return (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]) && (rCoords[2] > mPointCenter[2] - mHalfLength[2]) && (rCoords[2] < mPointCenter[2] + mHalfLength[2]);
+    return (std::abs(rCoords[0] - mPointCenter[0]) <= mHalfLength[0] + ZeroTolerance) && (std::abs(rCoords[1] - mPointCenter[1]) <= mHalfLength[1] + ZeroTolerance) && (std::abs(rCoords[2] - mPointCenter[2]) <= mHalfLength[2] + ZeroTolerance);
 }
 
 /***********************************************************************************/

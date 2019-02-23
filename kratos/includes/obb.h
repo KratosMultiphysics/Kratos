@@ -68,6 +68,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     /// Definition of the output type
     typedef typename std::conditional<TDim == 2, Quadrilateral2D4<Point>, Hexahedra3D8<Point> >::type  OutpuType;
 
