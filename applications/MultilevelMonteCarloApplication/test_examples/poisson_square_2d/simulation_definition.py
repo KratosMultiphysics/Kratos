@@ -42,7 +42,8 @@ class SimulationScenario(AnalysisStage):
     input:  self: an instance of the class
     """
     def ModifyInitialProperties(self):
-        for node in self.model.GetModelPart("MLMCLaplacianModelPart").Nodes:
+        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+        for node in self.model.GetModelPart(model_part_name).Nodes:
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
