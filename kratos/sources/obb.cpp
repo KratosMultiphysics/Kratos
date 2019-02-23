@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/obb.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -261,12 +262,30 @@ void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 template<std::size_t TDim>
 void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords) const
 {
-    array_1d<double, 3> old_coords;
+    array_1d<double, 4> old_coords;
     old_coords[0] = rCoords[0];
     old_coords[1] = rCoords[1];
     old_coords[2] = rCoords[2];
+    old_coords[3] = 1.0;
 
-    //TODO
+    BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
+    for (std::size_t i = 0; i < 3; ++i) {
+        rotation_matrix(i, 0) = mOrientationVectors[0][i];
+        rotation_matrix(i, 1) = mOrientationVectors[1][i];
+        rotation_matrix(i, 2) = mOrientationVectors[2][i];
+        rotation_matrix(i, 3) = 0.0;
+        rotation_matrix(3, i) = 0.0;
+    }
+    rotation_matrix(3, 3) = 1.0;
+
+    double det_rotation_matrix;
+    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
+
+    const array_1d<double, 4> new_coords = prod(inverted_rotation_matrix, old_coords);
+
+    rCoords[0] = new_coords[0];
+    rCoords[1] = new_coords[1];
+    rCoords[2] = new_coords[2];
 }
 
 /***********************************************************************************/
