@@ -208,6 +208,12 @@ private:
     void RotateNode2D(array_1d<double, 3>& rCoords);
 
     /**
+     * @brief This method does a 3D rotation of a point
+     * @param rCoords The coordinates of the point of interest
+     */
+    void RotateNode3D(array_1d<double, 3>& rCoords);
+
+    /**
      * @brief This method does a check in 2D if the point is inside the OBB
      * @param rCoords The coordinates of the point of interest
      * @return True is is inside, false otherwise

@@ -209,6 +209,20 @@ void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords)
 /***********************************************************************************/
 
 template<std::size_t TDim>
+void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords)
+{
+    array_1d<double, 3> old_coords;
+    old_coords[0] = rCoords[0];
+    old_coords[1] = rCoords[1];
+    old_coords[2] = rCoords[2];
+
+    //TODO
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
 bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords)
 {
     // We move to X-Y alignment
@@ -223,7 +237,10 @@ bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords)
 template<std::size_t TDim>
 bool OBB<TDim>::CheckIsInside3D(array_1d<double, 3>& rCoords)
 {
-    return false;
+    // We move to X-Y-Z alignment
+    RotateNode3D(rCoords);
+
+    return (rCoords[2] > mPointCenter[2] - mHalfLength[2]) && (rCoords[2] < mPointCenter[2] + mHalfLength[2]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]) && (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]);
 }
 
 /***********************************************************************************/
