@@ -97,8 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructural
     smtsss::PrimalTestSolver solver{&primal_model_part, response_node_id};
     const double delta = 1e-7;
     const double response_value0 = solver.CalculateResponseValue();
-    ModelPart& adjoint_model_part =
-        CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
+    ModelPart& adjoint_model_part = CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
     smtsss::AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
     for (unsigned i_node : {1, 2, 3})
     {
