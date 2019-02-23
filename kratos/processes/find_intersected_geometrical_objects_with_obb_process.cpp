@@ -16,8 +16,6 @@
 
 // Project includes
 #include "includes/obb.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 #include "utilities/math_utils.h"
 #include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 
@@ -103,43 +101,47 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
     GeometryType& rSecondGeometry
     )
 {
+    // The local dimensions
+    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
+    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
+
     // The edges
-    auto r_edges_1 = rFirstGeometry.Edges();
-    auto r_edges_2 = rSecondGeometry.Edges();
+    PointerVector<GeometryType> r_edges_1 = rFirstGeometry.Edges();
+    const std::size_t number_of_edges_1 = (local_dimension_1 < 2) ? 1 : r_edges_1.size();
+    PointerVector<GeometryType> r_edges_2 = rSecondGeometry.Edges();
+    const std::size_t number_of_edges_2 = (local_dimension_2 < 2) ? 1 : r_edges_2.size();
 
     // First geometry
-    for (auto& r_edge_1 : r_edges_1) {
+    for (std::size_t i_1 = 0; i_1 < number_of_edges_1; ++i_1) {
+        auto& r_edge_1 = *(r_edges_1.begin() + i_1);
+
         // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
         NodeType first_geometry_low_node, first_geometry_high_node;
         r_edge_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-
-        // Creating the box points
-        Line2D2<Point> first_edge(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
 
         // Creating OBB
         array_1d<double, 3> first_direction_vector = first_geometry_high_node - first_geometry_low_node;
         const double norm_first_direction_vector = norm_2(first_direction_vector);
         first_direction_vector /= norm_first_direction_vector;
-        const array_1d<double, 3> first_center_point = first_edge.Center().Coordinates();
+        const array_1d<double, 3> first_center_point = 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
         array_1d<double, 2> first_half_distances;
         first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
         first_half_distances[1] = mBoundingBoxFactor;
         OBB<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
         // Second geometry
-        for (auto& r_edge_2 : r_edges_2) {
+        for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
+            auto& r_edge_2 = *(r_edges_2.begin() + i_2);
+
             // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
             NodeType second_geometry_low_node, second_geometry_high_node;
             r_edge_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
-
-            // Creating the box points
-            Line2D2<Point> second_edge(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
 
             // Creating OBB
             array_1d<double, 3> second_direction_vector = second_geometry_high_node - second_geometry_low_node;
             const double norm_second_direction_vector = norm_2(second_direction_vector);
             second_direction_vector /= norm_second_direction_vector;
-            const array_1d<double, 3> second_center_point = second_edge.Center().Coordinates();
+            const array_1d<double, 3> second_center_point = 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
             array_1d<double, 2> second_half_distances;
             second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
             second_half_distances[1] = mBoundingBoxFactor;
@@ -171,24 +173,30 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
     GeometryType& rSecondGeometry
     )
 {
-    // The edges
-    auto r_faces_1 = rFirstGeometry.Faces();
-    auto r_faces_2 = rSecondGeometry.Faces();
+    // The local dimensions
+    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
+    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
+
+    // The faces
+    PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
+    const std::size_t number_of_faces_1 = (local_dimension_1 < 2) ? 1 : r_faces_1.size();
+
+    PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
+    const std::size_t number_of_faces_2 = (local_dimension_2 < 2) ? 1 : r_faces_2.size();
 
     // First geometry
-    for (auto& r_face_1 : r_faces_1) {
+    for (std::size_t i_1 = 0; i_1 < number_of_faces_1; ++i_1) {
+        auto& r_face_1 = *(r_faces_1.begin() + i_1);
+
         // Check the intersection of each face of the object bounding box against the intersecting object bounding box
         NodeType first_geometry_low_node, first_geometry_high_node;
         r_face_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-
-        // Creating the box points
-        Line3D2<Point> first_face(Kratos::make_shared<Point>(first_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(first_geometry_high_node.Coordinates()));
 
         // Creating OBB
         array_1d<double, 3> first_direction_vector = first_geometry_high_node - first_geometry_low_node;
         const double norm_first_direction_vector = norm_2(first_direction_vector);
         first_direction_vector /= norm_first_direction_vector;
-        const array_1d<double, 3> first_center_point = first_face.Center().Coordinates();
+        const array_1d<double, 3> first_center_point = 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
         array_1d<double, 3> first_half_distances;
         first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
         first_half_distances[1] = mBoundingBoxFactor;
@@ -196,19 +204,18 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         OBB<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
         // Second geometry
-        for (auto& r_face_2 : r_faces_2) {
+        for (std::size_t i_2 = 0; i_2 < number_of_faces_2; ++i_2) {
+            auto& r_face_2 = *(r_faces_2.begin() + i_2);
+
             // Check the intersection of each face of the object bounding box against the intersecting object bounding box
             NodeType second_geometry_low_node, second_geometry_high_node;
             r_face_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
-
-            // Creating the box points
-            Line3D2<Point> second_face(Kratos::make_shared<Point>(second_geometry_low_node.Coordinates()), Kratos::make_shared<Point>(second_geometry_high_node.Coordinates()));
 
             // Creating OBB
             array_1d<double, 3> second_direction_vector = second_geometry_high_node - second_geometry_low_node;
             const double norm_second_direction_vector = norm_2(second_direction_vector);
             second_direction_vector /= norm_second_direction_vector;
-            const array_1d<double, 3> second_center_point = second_face.Center().Coordinates();
+            const array_1d<double, 3> second_center_point = 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
             array_1d<double, 3> second_half_distances;
             second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
             second_half_distances[1] = mBoundingBoxFactor;
