@@ -18,7 +18,8 @@
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
+#include "geometries/point.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -47,10 +48,10 @@ namespace Kratos
  * @brief This class defines the Oriented bounding box class
  * @details The geometrical definition of the OBB can be done as the
  *                      ` *
- *             direction / `
- *                  *   / half diagonal
+ *            directions / `
+ *                  * \ / half diagonals
  *                  `  *C  *
- *                  ` /   `
+ *                  ` / \ `
  *                  `/  `
  *                  * `
  * For more details https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
@@ -109,7 +110,7 @@ public:
      * @brief Returns the point that defines the center of the OBB
      * @return The center point of the OBB
      */
-    array_1d<double, 3> GetCenter();
+    const array_1d<double, 3>& GetCenter() const;
 
     /**
      * @brief Set the point that defines the center of the OBB
@@ -121,7 +122,7 @@ public:
      * @brief Returns the vector that defines the orientation of the axis
      * @return The orientation vector
      */
-    array_1d<array_1d<double, 3>, TDim>& GetOrientationVectors();
+    const array_1d<array_1d<double, 3>, TDim>& GetOrientationVectors() const;
 
     /**
      * @brief Set the vector that defines the orientation of the axis
@@ -133,7 +134,7 @@ public:
      * @brief Returns the length of the half of the diagonal
      * @return The length of the half of the diagonal
      */
-    array_1d<double, TDim>& GetHalfLength();
+    const array_1d<double, TDim>& GetHalfLength() const;
 
     /**
      * @brief Set the length of the half of the diagonal
@@ -145,6 +146,11 @@ public:
      * @brief Computes the intersection between two OBB (current and new)
      */
     bool HasIntersection(const OBB& rOtherOBB);
+
+    /**
+     * @brief This method egnerates an equiavelent geometry (debugging)
+     */
+    Geometry<Point> GetEquiavelentGeometry();
 
 protected:
 
@@ -194,6 +200,26 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method does a 2D rotation of a point
+     * @param rCoords The coordinates of the point of interest
+     */
+    void RotateNode2D(array_1d<double, 3>& rCoords);
+
+    /**
+     * @brief This method does a check in 2D if the point is inside the OBB
+     * @param rCoords The coordinates of the point of interest
+     * @return True is is inside, false otherwise
+     */
+    bool CheckIsInside2D(array_1d<double, 3>& rCoords);
+
+    /**
+     * @brief This method does a check in 3D if the point is inside the OBB
+     * @param rCoords The coordinates of the point of interest
+     * @return True is is inside, false otherwise
+     */
+    bool CheckIsInside3D(array_1d<double, 3>& rCoords);
 
     ///@}
     ///@name Private  Access
