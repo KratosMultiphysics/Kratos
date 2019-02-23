@@ -159,8 +159,15 @@ public:
 
     /**
      * @brief This method egnerates an equiavelent geometry (debugging)
+     * @return Getting the OBB geometry
      */
-    OutpuType GetEquiavelentGeometry();
+    OutpuType GetEquivalentGeometry();
+
+    /**
+     * @brief This method egnerates an equiavelent geometry (debugging)
+     * @param rGeometry Geometry to rotate
+     */
+    void GetEquivalentRotatedGeometry(OutpuType& rGeometry);
 
 protected:
 

@@ -68,8 +68,8 @@ namespace Kratos {
 
         OBB<2> second_obb(second_center, second_directions, second_half_lenghts);
 
-        auto first_quad = first_obb.GetEquiavelentGeometry();
-        auto second_quad = second_obb.GetEquiavelentGeometry();
+        auto first_quad = first_obb.GetEquivalentGeometry();
+        auto second_quad = second_obb.GetEquivalentGeometry();
 
         bool has_intersection_reference = false;
 
@@ -80,8 +80,17 @@ namespace Kratos {
                 break;
             }
         }
+        for (auto& r_point : second_quad) {
+            if (first_quad.IsInside(r_point.Coordinates(), local_coords)) {
+                has_intersection_reference = true;
+                break;
+            }
+        }
 
 //         // Debug
+//         first_obb.GetEquivalentRotatedGeometry(second_quad);
+//         first_obb.GetEquivalentRotatedGeometry(first_quad);
+//
 //         Model current_model;
 //         ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
 //         ModelPart& r_model_part1 = r_main_model_part.CreateSubModelPart("1");
@@ -95,8 +104,8 @@ namespace Kratos {
 //         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
 //         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
 //
-//         r_model_part1.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
-//         r_model_part2.CreateNewElement("Element3D4N", 2, {5, 6, 7, 8}, p_properties_1);
+//         r_model_part1.CreateNewElement("Element2D4N", 1, {1, 2, 3, 4}, p_properties_0);
+//         r_model_part2.CreateNewElement("Element2D4N", 2, {5, 6, 7, 8}, p_properties_1);
 //
 //         GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
 //         gid_io.InitializeMesh(0.0);
@@ -112,9 +121,12 @@ namespace Kratos {
         // Moving up tyhe second OBBHasIntersection2D
         second_center[1] = 0.5;
         second_obb.SetCenter(second_center);
-        second_quad = second_obb.GetEquiavelentGeometry();
+        second_quad = second_obb.GetEquivalentGeometry();
 
 //         // Debug
+//         first_obb.GetEquivalentRotatedGeometry(second_quad);
+//         first_obb.GetEquivalentRotatedGeometry(first_quad);
+//
 //         Model current_model;
 //         ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
 //         ModelPart& r_model_part1 = r_main_model_part.CreateSubModelPart("1");
@@ -128,8 +140,8 @@ namespace Kratos {
 //         Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
 //         Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
 //
-//         r_model_part1.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
-//         r_model_part2.CreateNewElement("Element3D4N", 2, {5, 6, 7, 8}, p_properties_1);
+//         r_model_part1.CreateNewElement("Element2D4N", 1, {1, 2, 3, 4}, p_properties_0);
+//         r_model_part2.CreateNewElement("Element2D4N", 2, {5, 6, 7, 8}, p_properties_1);
 //
 //         GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
 //         gid_io.InitializeMesh(0.0);
@@ -142,6 +154,12 @@ namespace Kratos {
 
         for (auto& r_point : first_quad) {
             if (second_quad.IsInside(r_point.Coordinates(), local_coords)) {
+                has_intersection_reference = true;
+                break;
+            }
+        }
+        for (auto& r_point : second_quad) {
+            if (first_quad.IsInside(r_point.Coordinates(), local_coords)) {
                 has_intersection_reference = true;
                 break;
             }

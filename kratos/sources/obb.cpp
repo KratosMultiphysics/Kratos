@@ -163,7 +163,7 @@ bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
 /***********************************************************************************/
 
 template<>
-Quadrilateral2D4<Point> OBB<2>::GetEquiavelentGeometry()
+Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry()
 {
     // Signs
     constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
@@ -186,7 +186,7 @@ Quadrilateral2D4<Point> OBB<2>::GetEquiavelentGeometry()
 /***********************************************************************************/
 
 template<>
-Hexahedra3D8<Point> OBB<3>::GetEquiavelentGeometry()
+Hexahedra3D8<Point> OBB<3>::GetEquivalentGeometry()
 {
     // Signs
     constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
@@ -209,13 +209,33 @@ Hexahedra3D8<Point> OBB<3>::GetEquiavelentGeometry()
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void OBB<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+{
+    for (std::size_t i_point = 0; i_point < 4; ++i_point) {
+        array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();
+        RotateNode2D(r_coordinates);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void OBB<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+{
+    for (std::size_t i_point = 0; i_point < 8; ++i_point) {
+        array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();
+        RotateNode3D(r_coordinates);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<std::size_t TDim>
 void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 {
-    array_1d<double, 2> old_coords;
-    old_coords[0] = rCoords[0];
-    old_coords[1] = rCoords[1];
-
     // Compute angle
     const double angle = - std::atan2(mOrientationVectors[0][1], mOrientationVectors[0][0]);
 
@@ -224,9 +244,15 @@ void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
         return void();
     }
 
+    array_1d<double, 2> old_coords;
+    old_coords[0] = rCoords[0];
+    old_coords[1] = rCoords[1];
+
     // Rotate
-    rCoords[0] = std::cos(angle) * (old_coords[0] - mPointCenter[0]) - std::sin(angle) * (old_coords[1] - mPointCenter[1]);
-    rCoords[1] = std::cos(angle) * (old_coords[1] - mPointCenter[1]) + std::sin(angle) * (old_coords[0] - mPointCenter[0]);
+    old_coords[0] -= mPointCenter[0];
+    old_coords[1] -= mPointCenter[1];
+    rCoords[0] = std::cos(angle) * old_coords[0] - std::sin(angle) * old_coords[1] + mPointCenter[0];
+    rCoords[1] = std::cos(angle) * old_coords[1] + std::sin(angle) * old_coords[0] + mPointCenter[1];
 }
 
 /***********************************************************************************/
@@ -252,7 +278,7 @@ bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
     // We move to X-Y alignment
     RotateNode2D(rCoords);
 
-    return (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]) && (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]);
+    return (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]);
 }
 
 /***********************************************************************************/
@@ -264,7 +290,7 @@ bool OBB<TDim>::CheckIsInside3D(array_1d<double, 3>& rCoords) const
     // We move to X-Y-Z alignment
     RotateNode3D(rCoords);
 
-    return (rCoords[2] > mPointCenter[2] - mHalfLength[2]) && (rCoords[2] < mPointCenter[2] + mHalfLength[2]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]) && (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]);
+    return (rCoords[0] > mPointCenter[0] - mHalfLength[0]) && (rCoords[0] < mPointCenter[0] + mHalfLength[0]) && (rCoords[1] > mPointCenter[1] - mHalfLength[1]) && (rCoords[1] < mPointCenter[1] + mHalfLength[1]) && (rCoords[2] > mPointCenter[2] - mHalfLength[2]) && (rCoords[2] < mPointCenter[2] + mHalfLength[2]);
 }
 
 /***********************************************************************************/
