@@ -378,27 +378,27 @@ public:
                 ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
                 Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
                 // std::cout <<"StrainRate: "<<Output <<std::endl;
-        } 
+        }
         else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
         {
             double distance_center = 0.0;
             for(unsigned int i=0; i<GetGeometry().size(); i++)
                 distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
             distance_center/=static_cast<double>(GetGeometry().size());
-            
-            if(distance_center > 0) //AIR 
+
+            if(distance_center > 0) //AIR
             {
                 const Properties& r_properties = GetProperties();
-                Output = r_properties[DYNAMIC_VISCOSITY]; 
+                Output = r_properties[DYNAMIC_VISCOSITY];
             }
             else //OTHER MATERIAL
             {
                 const Properties& r_properties = GetProperties();
                 ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
                 Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
-                //std::cout <<"Viscosity: "<< Output <<std::endl; 
-            }         
-                        
+                //std::cout <<"Viscosity: "<< Output <<std::endl;
+            }
+
         }
 
         KRATOS_CATCH("")
@@ -792,7 +792,8 @@ public:
 
         //add to LHS enrichment contributions
         double det;
-        BoundedMatrix<double,4,4> inverse_diag = MathUtils<double>::InvertMatrix<4>(Kee_tot,det);
+        BoundedMatrix<double,4,4> inverse_diag;
+        MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det);
 
         const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
