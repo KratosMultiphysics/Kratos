@@ -72,9 +72,9 @@ class AutomaticRayleighComputationProcess(KM.Process):
         """
 
         import KratosMultiphysics.kratos_utilities as kratos_utils
-        if kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+        if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
             from KratosMultiphysics import ExternalSolversApplication
-        elif kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+        elif kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             from KratosMultiphysics import EigenSolversApplication
         else:
             raise Exception("ExternalSolversApplication or EigenSolversApplication not available")
