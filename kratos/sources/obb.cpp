@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/obb.h"
 #include "utilities/math_utils.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -149,6 +150,7 @@ bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
 template<std::size_t TDim>
 bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
 {
+    /* We check if points are inside */
     // Checking one combination
     if (this->IsInside(rOtherOBB))
         return true;
@@ -157,6 +159,40 @@ bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
     if (rOtherOBB.IsInside(*this))
         return true;
 
+    /* We check for intersection of edges/faces */
+    auto geom1 = this->GetEquivalentGeometry();
+    auto geom2 = rOtherOBB.GetEquivalentGeometry();
+
+    // Id 2D we check edges
+    if (TDim == 2) {
+        auto r_edges_1 = geom1.Edges();
+        auto r_edges_2 = geom2.Edges();
+        Point int_pt(0.0,0.0,0.0);
+        for (auto& r_edge_1 : r_edges_1) {
+            for (auto& r_edge_2 : r_edges_2) {
+                const int int_id = IntersectionUtilities::ComputeLineLineIntersection(
+                    r_edge_1,
+                    r_edge_2[0].Coordinates(),
+                    r_edge_2[1].Coordinates(),
+                    int_pt.Coordinates());
+
+                if (int_id != 0){
+                    return true;
+                }
+            }
+        }
+    } else { // If 3D we check faces
+        auto faces_1 = geom1.Faces();
+        auto faces_2 = geom2.Faces();
+        for (auto& r_face_1 : faces_1) {
+            for (auto& r_face_2 : faces_2) {
+                if (r_face_1.HasIntersection(r_face_2)){
+                    return true;
+                }
+            }
+        }
+    }
+
     return false;
 }
 
@@ -164,7 +200,7 @@ bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
 /***********************************************************************************/
 
 template<>
-Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry()
+Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry() const
 {
     // Signs
     constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
@@ -187,7 +223,7 @@ Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry()
 /***********************************************************************************/
 
 template<>
-Hexahedra3D8<Point> OBB<3>::GetEquivalentGeometry()
+Hexahedra3D8<Point> OBB<3>::GetEquivalentGeometry() const
 {
     // Signs
     constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};

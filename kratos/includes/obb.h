@@ -164,7 +164,7 @@ public:
      * @brief This method egnerates an equiavelent geometry (debugging)
      * @return Getting the OBB geometry
      */
-    OutpuType GetEquivalentGeometry();
+    OutpuType GetEquivalentGeometry() const;
 
     /**
      * @brief This method egnerates an equiavelent geometry (debugging)
