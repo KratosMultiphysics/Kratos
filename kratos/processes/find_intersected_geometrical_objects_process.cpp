@@ -41,6 +41,21 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 
 template<class TEntity>
 FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
+    ModelPart& rPart1,
+    ModelPart& rPart2,
+    const double* NewScaleFactor,
+    const double* NewOffset
+    ) : mrModelPart1(rPart1),
+        mrModelPart2(rPart2),
+        mOctree(OctreeType(NewScaleFactor, NewOffset))
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPart1(rModel.GetModelPart(ThisParameters["first_model_part_name"].GetString())),
@@ -55,6 +70,21 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
+
+    // Getting scale factor and offset
+    double* new_scale_factor = new double[3];
+    double* new_offset = new double[3];
+
+    Vector scale_factor = ThisParameters["scale_factor"].GetVector();
+    KRATOS_ERROR_IF_NOT(scale_factor.size() == 3) << "scale_factor is not correct size: " << scale_factor.size() << std::endl;
+    Vector offset = ThisParameters["offset"].GetVector();
+    KRATOS_ERROR_IF_NOT(offset.size() == 3) << "offset is not correct size: " << offset.size() << std::endl;
+    for (std::size_t i = 0; i < 3; ++i) {
+        new_scale_factor[i] = scale_factor[i];
+        new_offset[i] = offset[i];
+    }
+
+    mOctree = OctreeType(new_scale_factor, new_offset);
 }
 
 /***********************************************************************************/
@@ -437,7 +467,9 @@ Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParamete
     Parameters default_parameters = Parameters(R"(
     {
         "first_model_part_name"  : "",
-        "second_model_part_name" : ""
+        "second_model_part_name" : "",
+        "scale_factor"           : [1.0, 1.0, 1.0],
+        "offset"                 : [0.0, 0.0, 0.0]
     })" );
 
     return default_parameters;

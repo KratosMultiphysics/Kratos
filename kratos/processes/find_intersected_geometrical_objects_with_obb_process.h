@@ -73,6 +73,12 @@ public:
     /// Definition of the point type
     typedef Point PointType;
 
+    /// Definition of the base type
+    typedef FindIntersectedGeometricalObjectsProcess<TEntity> BaseType;
+
+    /// Octree type definition
+    typedef typename BaseType::OctreeType OctreeType;
+
     /// Definition of the node type
     using NodeType = Node<3>;
 
@@ -81,9 +87,6 @@ public:
 
     /// Definition of the entity container type
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
-
-    /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess<TEntity> BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -103,6 +106,22 @@ public:
     FindIntersectedGeometricalObjectsWithOBBProcess(
         ModelPart& rPart1,
         ModelPart& rPart2,
+        const double BoundingBoxFactor = -1.0,
+        const bool DebugOBB = false
+        );
+
+    /**
+     * @brief Constructor to be used.
+     * @param rPart1 First model part (the one to compute the intersection)
+     * @param rPart2 Second model part (the "skin" model part)
+     * @param NewScaleFactor The scalar factors ofthe Octree
+     * @param NewOffset The offsets of the Octree
+     */
+    FindIntersectedGeometricalObjectsWithOBBProcess(
+        ModelPart& rPart1,
+        ModelPart& rPart2,
+        const double* NewScaleFactor,
+        const double* NewOffset,
         const double BoundingBoxFactor = -1.0,
         const bool DebugOBB = false
         );

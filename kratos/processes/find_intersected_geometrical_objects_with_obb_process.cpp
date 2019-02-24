@@ -19,7 +19,6 @@
 
 namespace Kratos
 {
-
 template<class TEntity>
 FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
     ModelPart& rPart1,
@@ -27,6 +26,36 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     const double BoundingBoxFactor,
     const bool DebugOBB
     ) : BaseType(rPart1, rPart2),
+        mBoundingBoxFactor(BoundingBoxFactor),
+        mDebugOBB(DebugOBB)
+{
+    // In case we consider the bounding box we set the BOUNDARY flag
+    if (mBoundingBoxFactor > 0.0)
+        this->Set(BOUNDARY, true);
+    else
+        this->Set(BOUNDARY, false);
+
+    // We create new properties for debugging
+    if (mDebugOBB) {
+        rPart1.CreateNewProperties(10001);
+        rPart1.CreateSubModelPart(rPart1.Name() + "_AUXILIAR_DEBUG_OBB");
+        rPart2.CreateNewProperties(10002);
+        rPart2.CreateSubModelPart(rPart2.Name() + "_AUXILIAR_DEBUG_OBB");
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
+    ModelPart& rPart1,
+    ModelPart& rPart2,
+    const double* NewScaleFactor,
+    const double* NewOffset,
+    const double BoundingBoxFactor,
+    const bool DebugOBB
+    ) : BaseType(rPart1, rPart2, NewScaleFactor, NewOffset),
         mBoundingBoxFactor(BoundingBoxFactor),
         mDebugOBB(DebugOBB)
 {
@@ -64,6 +93,21 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
+
+    // Getting scale factor and offset
+    double* new_scale_factor = new double[3];
+    double* new_offset = new double[3];
+
+    Vector scale_factor = ThisParameters["scale_factor"].GetVector();
+    KRATOS_ERROR_IF_NOT(scale_factor.size() == 3) << "scale_factor is not correct size: " << scale_factor.size() << std::endl;
+    Vector offset = ThisParameters["offset"].GetVector();
+    KRATOS_ERROR_IF_NOT(offset.size() == 3) << "offset is not correct size: " << offset.size() << std::endl;
+    for (std::size_t i = 0; i < 3; ++i) {
+        new_scale_factor[i] = scale_factor[i];
+        new_offset[i] = offset[i];
+    }
+
+    *(this->GetOctreePointer()) = OctreeType(new_scale_factor, new_offset);
 
     // Setting the bounding box factor
     mBoundingBoxFactor = ThisParameters["bounding_box_factor"].GetDouble();
@@ -354,6 +398,8 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::GetDefaultP
     {
         "first_model_part_name"  : "",
         "second_model_part_name" : "",
+        "scale_factor"           : [1.0, 1.0, 1.0],
+        "offset"                 : [0.0, 0.0, 0.0],
         "bounding_box_factor"    : -1.0,
         "debug_obb"              : false
     })" );
