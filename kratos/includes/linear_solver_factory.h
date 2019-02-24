@@ -100,14 +100,19 @@ public:
      */
     virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer Create(Kratos::Parameters Settings)
     {
-        if(KratosComponents< FactoryType >::Has( Settings["solver_type"].GetString())== false) {
+        std::string solver_name = Settings["solver_type"].GetString();
+        // remove name of the application (if passed)
+        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
+        solver_name = solver_name.substr(solver_name.find(".") + 1);
+
+        if (!KratosComponents< FactoryType >::Has(solver_name)) {
             KRATOS_ERROR << "Trying to construct a Linear solver with solver_type:\n\""
-                << Settings["solver_type"].GetString() << "\" which does not exist.\n"
+                << solver_name << "\" which does not exist.\n"
                 << "The list of available options (for currently loaded applications) is:\n"
                 << KratosComponents< FactoryType >() << std::endl;
         }
-        const auto& aux = KratosComponents< FactoryType >::Get( Settings["solver_type"].GetString()  );
-        return aux.CreateSolver( Settings );
+        const auto& r_aux_solver = KratosComponents< FactoryType >::Get(solver_name);
+        return r_aux_solver.CreateSolver( Settings );
     }
 
     ///@}
