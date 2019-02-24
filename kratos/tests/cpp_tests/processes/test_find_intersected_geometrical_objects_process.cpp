@@ -207,7 +207,7 @@ namespace Kratos {
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
             r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
-            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2);
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2, false);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
@@ -217,10 +217,10 @@ namespace Kratos {
 //             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
 //             gid_io.FinalizeResults();
 
-//             KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-//             KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
-//             KRATOS_CHECK((r_surface_part.Conditions()[3]).IsNot(SELECTED));
-//             KRATOS_CHECK((r_surface_part.Conditions()[4]).Is(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[2]).IsNot(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[3]).IsNot(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
         }
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)

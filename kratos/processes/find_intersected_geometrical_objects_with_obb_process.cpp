@@ -79,9 +79,9 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 
     // We create new properties for debugging
     if (mDebugOBB) {
-        this->GetModelPart1().CreateNewProperties(10001);
+        this->GetModelPart1().CreateNewProperties(1001);
         this->GetModelPart1().CreateSubModelPart(this->GetModelPart1().Name() + "_AUXILIAR_DEBUG_OBB");
-        this->GetModelPart2().CreateNewProperties(10002);
+        this->GetModelPart2().CreateNewProperties(1002);
         this->GetModelPart2().CreateSubModelPart(this->GetModelPart2().Name() + "_AUXILIAR_DEBUG_OBB");
     }
 }
@@ -154,7 +154,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
 
         // We create new elements for debugging
         if (mDebugOBB) {
-            auto p_prop = this->GetModelPart1().pGetProperties(10001);
+            auto p_prop = this->GetModelPart1().pGetProperties(1001);
             CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
         }
 
@@ -182,7 +182,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
 
             // We create new elements for debugging
             if (mDebugOBB) {
-                auto p_prop = this->GetModelPart2().pGetProperties(10002);
+                auto p_prop = this->GetModelPart2().pGetProperties(1002);
                 CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
             }
 
