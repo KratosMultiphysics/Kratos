@@ -56,13 +56,12 @@ void ReplaceElementsAndConditionsProcess::Execute()
         p_condition->Set(Flags(*it_cond));
 
         (*it_cond.base()) = p_condition;
-
     }
 
     // Change the submodelparts
-    for (auto& i_sub_model_part : r_root_model_part.SubModelParts())
+    for (auto& i_sub_model_part : r_root_model_part.SubModelParts()) {
         UpdateSubModelPart( i_sub_model_part, r_root_model_part );
-
+    }
 }
 
 /***********************************************************************************/
@@ -89,9 +88,9 @@ void ReplaceElementsAndConditionsProcess::UpdateSubModelPart(
     }
 
     // Change the submodelparts
-    for (auto& i_sub_model_part : rModelPart.SubModelParts())
+    for (auto& i_sub_model_part : rModelPart.SubModelParts()) {
         UpdateSubModelPart( i_sub_model_part, rRootModelPart );
-
+    }
 }
 
 }  // namespace Kratos.

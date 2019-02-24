@@ -81,15 +81,18 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /// Copy constructor.
+    ReplaceElementsAndConditionsProcess(ReplaceElementsAndConditionsProcess const& rOther) = delete;
 
     /// Destructor.
-    ~ReplaceElementsAndConditionsProcess() override {}
-
+    ~ReplaceElementsAndConditionsProcess() override = default;
 
     ///@}
     ///@name Operators
     ///@{
+
+    /// Assignment operator.
+    ReplaceElementsAndConditionsProcess& operator=(ReplaceElementsAndConditionsProcess const& rOther) = delete;
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
@@ -97,23 +100,12 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
     /// Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
     void Execute() override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -136,24 +128,18 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 protected:
+    ///@name Member Variables
+    ///@{
 
     ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
     Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
 
-private:
-    ///@name Static Member Variables
-    ///@{
-
     ///@}
-    ///@name Un accessible methods
+
+private:
+    ///@name Private Operations
     ///@{
 
     /**
@@ -166,27 +152,13 @@ private:
         ModelPart& rRootModelPart
         );
 
-    /// Assignment operator.
-    ReplaceElementsAndConditionsProcess& operator=(ReplaceElementsAndConditionsProcess const& rOther);
-
-    /// Copy constructor.
-    //ReplaceElementsAndConditionsProcess(ReplaceElementsAndConditionsProcess const& rOther);
-
-
     ///@}
 
 }; // Class ReplaceElementsAndConditionsProcess
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -204,9 +176,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined
-
-
