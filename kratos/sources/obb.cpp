@@ -121,6 +121,20 @@ bool OBB<2>::IsInside(const OBB<2>& rOtherOBB)  const
 template<>
 bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
 {
+    // Getting inverted rotation matrix
+    BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
+    for (std::size_t i = 0; i < 3; ++i) {
+        rotation_matrix(i, 0) = mOrientationVectors[0][i];
+        rotation_matrix(i, 1) = mOrientationVectors[1][i];
+        rotation_matrix(i, 2) = mOrientationVectors[2][i];
+        rotation_matrix(i, 3) = 0.0;
+        rotation_matrix(3, i) = 0.0;
+    }
+    rotation_matrix(3, 3) = 1.0;
+
+    double det_rotation_matrix;
+    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
+
     // Signs
     constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
     constexpr static std::array<double, 8> sign_components_Y3D = {-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0};
@@ -136,7 +150,7 @@ bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
         array_1d<double, 3> second_point = r_second_obb_center + sign_components_X3D[i_point] *  r_second_obb_orientation_vectors[0] * r_second_obb_half_length[0] + sign_components_Y3D[i_point] * r_second_obb_orientation_vectors[1] * r_second_obb_half_length[1] + sign_components_Z3D[i_point] * r_second_obb_orientation_vectors[2] * r_second_obb_half_length[2];
 
         // Check if inside
-        if (CheckIsInside3D(second_point)) {
+        if (CheckIsInside3D(second_point, inverted_rotation_matrix)) {
             return true;
         }
     }
@@ -261,9 +275,23 @@ void OBB<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 template<>
 void OBB<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 {
+    // Getting inverted rotation matrix
+    BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
+    for (std::size_t i = 0; i < 3; ++i) {
+        rotation_matrix(i, 0) = mOrientationVectors[0][i];
+        rotation_matrix(i, 1) = mOrientationVectors[1][i];
+        rotation_matrix(i, 2) = mOrientationVectors[2][i];
+        rotation_matrix(i, 3) = 0.0;
+        rotation_matrix(3, i) = 0.0;
+    }
+    rotation_matrix(3, 3) = 1.0;
+
+    double det_rotation_matrix;
+    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
+
     for (std::size_t i_point = 0; i_point < 8; ++i_point) {
         array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();
-        RotateNode3D(r_coordinates);
+        RotateNode3D(r_coordinates, inverted_rotation_matrix);
     }
 }
 
@@ -296,7 +324,10 @@ void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords) const
+void OBB<TDim>::RotateNode3D(
+    array_1d<double, 3>& rCoords,
+    BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+    ) const
 {
     array_1d<double, 4> old_coords;
     old_coords[0] = rCoords[0] - mPointCenter[0];
@@ -304,20 +335,7 @@ void OBB<TDim>::RotateNode3D(array_1d<double, 3>& rCoords) const
     old_coords[2] = rCoords[2] - mPointCenter[2];
     old_coords[3] = 1.0;
 
-    BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
-    for (std::size_t i = 0; i < 3; ++i) {
-        rotation_matrix(i, 0) = mOrientationVectors[0][i];
-        rotation_matrix(i, 1) = mOrientationVectors[1][i];
-        rotation_matrix(i, 2) = mOrientationVectors[2][i];
-        rotation_matrix(i, 3) = 0.0;
-        rotation_matrix(3, i) = 0.0;
-    }
-    rotation_matrix(3, 3) = 1.0;
-
-    double det_rotation_matrix;
-    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
-
-    const array_1d<double, 4> new_coords = prod(inverted_rotation_matrix, old_coords);
+    const array_1d<double, 4> new_coords = prod(rInvertedRotationMatrix, old_coords);
 
     rCoords[0] = new_coords[0];
     rCoords[1] = new_coords[1];
@@ -343,10 +361,13 @@ bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool OBB<TDim>::CheckIsInside3D(array_1d<double, 3>& rCoords) const
+bool OBB<TDim>::CheckIsInside3D(
+    array_1d<double, 3>& rCoords,
+    BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+    ) const
 {
     // We move to X-Y-Z alignment
-    RotateNode3D(rCoords);
+    RotateNode3D(rCoords, rInvertedRotationMatrix);
 
     return (std::abs(rCoords[0] - mPointCenter[0]) <= mHalfLength[0] + ZeroTolerance) && (std::abs(rCoords[1] - mPointCenter[1]) <= mHalfLength[1] + ZeroTolerance) && (std::abs(rCoords[2] - mPointCenter[2]) <= mHalfLength[2] + ZeroTolerance);
 }

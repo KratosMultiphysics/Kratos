@@ -230,8 +230,12 @@ private:
     /**
      * @brief This method does a 3D rotation of a point
      * @param rCoords The coordinates of the point of interest
+     * @param rInvertedRotationMatrix The inverted matrix of rotation
      */
-    void RotateNode3D(array_1d<double, 3>& rCoords) const;
+    void RotateNode3D(
+        array_1d<double, 3>& rCoords,
+        BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+        ) const;
 
     /**
      * @brief This method does a check in 2D if the point is inside the OBB
@@ -243,9 +247,13 @@ private:
     /**
      * @brief This method does a check in 3D if the point is inside the OBB
      * @param rCoords The coordinates of the point of interest
+     * @param rInvertedRotationMatrix The inverted matrix of rotation
      * @return True is is inside, false otherwise
      */
-    bool CheckIsInside3D(array_1d<double, 3>& rCoords) const;
+    bool CheckIsInside3D(
+        array_1d<double, 3>& rCoords,
+        BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+        ) const;
 
     ///@}
     ///@name Private  Access
