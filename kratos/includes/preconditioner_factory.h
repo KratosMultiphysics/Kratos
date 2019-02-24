@@ -112,8 +112,8 @@ public:
             << raw_precond_name << "\" which does not exist.\n"
             << "The list of available options (for currently loaded applications) is:\n"
             << KratosComponents< FactoryType >() << std::endl;
-        }
-        const auto& aux = KratosComponents< FactoryType >::Get( raw_precond_name );
+
+        const auto& aux = KratosComponents< FactoryType >::Get(raw_precond_name);
         return aux.CreatePreconditioner();
     }
     ///@}
