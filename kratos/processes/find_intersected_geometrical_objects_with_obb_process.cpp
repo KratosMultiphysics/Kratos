@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/obb.h"
-#include "utilities/math_utils.h"
 #include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 
 namespace Kratos
@@ -26,15 +24,25 @@ template<class TEntity>
 FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
     ModelPart& rPart1,
     ModelPart& rPart2,
-    const double BoundingBoxFactor
+    const double BoundingBoxFactor,
+    const bool DebugOBB
     ) : BaseType(rPart1, rPart2),
-        mBoundingBoxFactor(BoundingBoxFactor)
+        mBoundingBoxFactor(BoundingBoxFactor),
+        mDebugOBB(DebugOBB)
 {
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
         this->Set(BOUNDARY, true);
     else
         this->Set(BOUNDARY, false);
+
+    // We create new properties for debugging
+    if (mDebugOBB) {
+        rPart1.CreateNewProperties(10001);
+        rPart1.CreateSubModelPart(rPart1.Name() + "_AUXILIAR_DEBUG_OBB");
+        rPart2.CreateNewProperties(10002);
+        rPart2.CreateSubModelPart(rPart2.Name() + "_AUXILIAR_DEBUG_OBB");
+    }
 }
 
 /***********************************************************************************/
@@ -65,6 +73,17 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
         this->Set(BOUNDARY, true);
     else
         this->Set(BOUNDARY, false);
+
+    // If we debug OBB
+    mDebugOBB = ThisParameters["debug_obb"].GetBool();
+
+    // We create new properties for debugging
+    if (mDebugOBB) {
+        this->GetModelPart1().CreateNewProperties(10001);
+        this->GetModelPart1().CreateSubModelPart(this->GetModelPart1().Name() + "_AUXILIAR_DEBUG_OBB");
+        this->GetModelPart2().CreateNewProperties(10002);
+        this->GetModelPart2().CreateSubModelPart(this->GetModelPart2().Name() + "_AUXILIAR_DEBUG_OBB");
+    }
 }
 
 /***********************************************************************************/
@@ -133,6 +152,12 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
         first_half_distances[1] = mBoundingBoxFactor;
         OBB<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
+        // We create new elements for debugging
+        if (mDebugOBB) {
+            auto p_prop = this->GetModelPart1().pGetProperties(10001);
+            CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
+        }
+
         // Second geometry
         for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
             auto& r_edge_2 = *(r_edges_2.begin() + i_2);
@@ -155,18 +180,17 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
             second_half_distances[1] = mBoundingBoxFactor;
             OBB<2> second_obb(second_center_point, second_direction_vector, second_half_distances);
 
+            // We create new elements for debugging
+            if (mDebugOBB) {
+                auto p_prop = this->GetModelPart2().pGetProperties(10002);
+                CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
+            }
+
             // Computing intersection OBB
             if (first_obb.HasIntersection(second_obb)){
                 return true;
             }
         }
-    }
-
-    // Let check second geometry is inside the first one.
-    // Considering that there are no intersection, if one point is inside all of it is inside.
-    array_1d<double, 3> local_point;
-    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-        return true;
     }
 
     return false;
@@ -244,13 +268,60 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
 /***********************************************************************************/
 
 template<class TEntity>
+void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB2D(
+    ModelPart& rModelPart,
+    Properties::Pointer pProperties,
+    OBB<2>& rOBB
+    )
+{
+    ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
+
+    const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
+    auto quad = rOBB.GetEquivalentGeometry();
+    std::vector<NodeType::Pointer> element_nodes (4);
+    for (int i = 0; i < 4; ++i) {
+        element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, quad[i].X(), quad[i].Y(), quad[i].Z());
+    }
+
+    const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
+    r_sub_model_part.CreateNewElement("Element2D4N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB3D(
+    ModelPart& rModelPart,
+    Properties::Pointer pProperties,
+    OBB<3>& rOBB
+    )
+{
+    ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
+
+    const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
+    auto hexa = rOBB.GetEquivalentGeometry();
+    std::vector<NodeType::Pointer> element_nodes (8);
+    for (int i = 0; i < 8; ++i) {
+        element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, hexa[i].X(), hexa[i].Y(), hexa[i].Z());
+    }
+
+    const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
+    r_sub_model_part.CreateNewElement("Element3D8N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
         "first_model_part_name"  : "",
         "second_model_part_name" : "",
-        "bounding_box_factor"    : -1.0
+        "bounding_box_factor"    : -1.0,
+        "debug_obb"              : false
     })" );
 
     return default_parameters;

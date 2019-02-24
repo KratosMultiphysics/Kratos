@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/obb.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
 namespace Kratos
@@ -102,7 +103,8 @@ public:
     FindIntersectedGeometricalObjectsWithOBBProcess(
         ModelPart& rPart1,
         ModelPart& rPart2,
-        const double BoundingBoxFactor = -1.0
+        const double BoundingBoxFactor = -1.0,
+        const bool DebugOBB = false
         );
 
     /**
@@ -195,6 +197,30 @@ protected:
         GeometryType& rSecondGeometry
         ) override;
 
+    /**
+     * @brief This creates auxiliar elements with the provided OBB (2D)
+     * @param rModelPart The model part where to add the elements
+     * @param pProperties Pointer to the considered properties
+     * @param rOBB The bounding box to be postprocessed
+     */
+    void CreateDebugOBB2D(
+        ModelPart& rModelPart,
+        Properties::Pointer pProperties,
+        OBB<2>& rOBB
+        );
+
+    /**
+     * @brief This creates auxiliar elements with the provided OBB (3D)
+     * @param rModelPart The model part where to add the elements
+     * @param pProperties Pointer to the considered properties
+     * @param rOBB The bounding box to be postprocessed
+     */
+    void CreateDebugOBB3D(
+        ModelPart& rModelPart,
+        Properties::Pointer pProperties,
+        OBB<3>& rOBB
+        );
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -219,6 +245,7 @@ private:
     ///@{
 
     double mBoundingBoxFactor = -1.0; /// The factor to be consider when computing the bounding box (if negative not considered)
+    bool mDebugOBB = false;           /// If we debug the boxes
 
     ///@}
     ///@name Private Operations
