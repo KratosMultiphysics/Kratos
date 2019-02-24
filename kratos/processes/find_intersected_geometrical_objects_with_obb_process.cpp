@@ -230,16 +230,18 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         const double norm_first_direction_vector = norm_2(first_direction_vector[0]);
         first_direction_vector[0] /= norm_first_direction_vector;
         MathUtils<double>::OrthonormalBasis(first_direction_vector[0], first_direction_vector[1], first_direction_vector[2]);
-        const array_1d<double, 3> first_center_point = 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
+        const array_1d<double, 3> first_center_point = r_face_1.Center().Coordinates();// 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
         array_1d<double, 3> first_half_distances;
-        first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
+        double distance_0 = 0;
         double distance_1 = 0;
         double distance_2 = 0;
         for (auto& r_node : r_face_1) {
             const array_1d<double, 3> vector_points = r_node.Coordinates() - first_center_point;
+            distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, first_direction_vector[0])));
             distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, first_direction_vector[1])));
             distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, first_direction_vector[2])));
         }
+        first_half_distances[0] = distance_0 + mBoundingBoxFactor;
         first_half_distances[1] = distance_1 + mBoundingBoxFactor;
         first_half_distances[2] = distance_2 + mBoundingBoxFactor;
         OBB<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
@@ -264,16 +266,18 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
             const double norm_second_direction_vector = norm_2(second_direction_vector[0]);
             second_direction_vector[0] /= norm_second_direction_vector;
             MathUtils<double>::OrthonormalBasis(second_direction_vector[0], second_direction_vector[1], second_direction_vector[2]);
-            const array_1d<double, 3> second_center_point = 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
+            const array_1d<double, 3> second_center_point = r_face_2.Center().Coordinates();// 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
             array_1d<double, 3> second_half_distances;
-            second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
+            distance_0 = 0;
             distance_1 = 0;
             distance_2 = 0;
             for (auto& r_node : r_face_2) {
                 const array_1d<double, 3> vector_points = r_node.Coordinates() - second_center_point;
+                distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, second_direction_vector[0])));
                 distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, second_direction_vector[1])));
                 distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, second_direction_vector[2])));
             }
+            second_half_distances[0] = distance_0 + mBoundingBoxFactor;
             second_half_distances[1] = distance_1 + mBoundingBoxFactor;
             second_half_distances[2] = distance_2 + mBoundingBoxFactor;
             OBB<3> second_obb(second_center_point, second_direction_vector, second_half_distances);
