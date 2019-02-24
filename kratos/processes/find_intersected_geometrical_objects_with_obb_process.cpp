@@ -236,11 +236,9 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         double distance_1 = 0;
         double distance_2 = 0;
         for (auto& r_node : r_face_1) {
-            if (r_node.Id() != first_geometry_low_node.Id() && r_node.Id() != first_geometry_high_node.Id()) {
-                const array_1d<double, 3> vector_points = r_node.Coordinates() - first_center_point;
-                distance_1 = std::max(distance_1, inner_prod(vector_points, first_direction_vector[1]));
-                distance_2 = std::max(distance_2, inner_prod(vector_points, first_direction_vector[2]));
-            }
+            const array_1d<double, 3> vector_points = r_node.Coordinates() - first_center_point;
+            distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, first_direction_vector[1])));
+            distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, first_direction_vector[2])));
         }
         first_half_distances[1] = distance_1 + mBoundingBoxFactor;
         first_half_distances[2] = distance_2 + mBoundingBoxFactor;
@@ -272,11 +270,9 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
             distance_1 = 0;
             distance_2 = 0;
             for (auto& r_node : r_face_2) {
-                if (r_node.Id() != second_geometry_low_node.Id() && r_node.Id() != second_geometry_high_node.Id()) {
-                    const array_1d<double, 3> vector_points = r_node.Coordinates() - second_center_point;
-                    distance_1 = std::max(distance_1, inner_prod(vector_points, second_direction_vector[1]));
-                    distance_2 = std::max(distance_2, inner_prod(vector_points, second_direction_vector[2]));
-                }
+                const array_1d<double, 3> vector_points = r_node.Coordinates() - second_center_point;
+                distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, second_direction_vector[1])));
+                distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, second_direction_vector[2])));
             }
             second_half_distances[1] = distance_1 + mBoundingBoxFactor;
             second_half_distances[2] = distance_2 + mBoundingBoxFactor;
