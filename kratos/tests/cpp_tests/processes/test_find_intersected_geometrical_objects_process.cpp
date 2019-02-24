@@ -274,7 +274,7 @@ namespace Kratos {
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", number_of_conditions + 1, {{ 9, 10, 11 }}, p_properties_1);
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", number_of_conditions + 2, {{ 10, 11, 12 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, true);
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, false);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
