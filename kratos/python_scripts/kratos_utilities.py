@@ -68,4 +68,13 @@ def AreApplicationsAvailable(list_application_names):
         if app_name not in available_apps:
             return False
 
+def CheckIfApplicationsAvailable(*application_names):
+    """Returns whether the inquired applications are available
+    """
+    available_apps = GetListOfAvailableApplications()
+
+    for app_name in application_names:
+        if app_name not in available_apps:
+            return False
+
     return True
