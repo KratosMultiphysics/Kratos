@@ -137,6 +137,15 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 /***********************************************************************************/
 
 template<class TEntity>
+ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart2()
+{
+    return mrModelPart2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<TEntity>::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess<TEntity>::GetOctreePointer()
 {
     return& mOctree;
@@ -240,7 +249,7 @@ void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
 
     // Adding mrModelPart2 to the octree
     for (auto it_node = mrModelPart2.NodesBegin(); it_node != mrModelPart2.NodesEnd(); it_node++) {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         mOctree.Insert(it_node->Coordinates().data());
 
 #else
@@ -291,7 +300,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     mOctree.SetBoundingBox(low.data(), high.data());
 #else
     mOctree.SetBoundingBox(low.data().data(), high.data().data());

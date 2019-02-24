@@ -439,6 +439,12 @@ public:
     virtual ModelPart& GetModelPart1();
 
     /**
+     * @brief Returns the second model part
+     * @return The second model part
+     */
+    virtual ModelPart& GetModelPart2();
+
+    /**
      * @brief This method returns the Octree conatined in the class
      * @return The octree contained in this process
      */
