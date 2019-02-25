@@ -19,12 +19,12 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 //temporary
 //#include "gid_boundingbox.h"
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -74,7 +74,7 @@ namespace Kratos {
         ///@{
 
         /// Pointer definition of Octree
-        //KRATOS_CLASS_POINTER_DEFINITION(Octree_Pooyan);
+        //KRATOS_CLASS_POINTER_DEFINITION(OctreeBinary);
 
         typedef TCellType cell_type;
 
@@ -120,7 +120,68 @@ namespace Kratos {
         virtual ~OctreeBinary() {
             delete root_;
         }
-        
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+         * @brief This method sets manually the scale factors of the BB
+         * @param NewScaleFactor The scalar factors to be set
+         */
+        void SetScaleFactor(const double*  NewScaleFactor)
+        {
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                mScaleFactor[i] = NewScaleFactor[i];
+            }
+        }
+
+        /**
+         * @brief This method sets manually the offsets of the BB
+         * @param NewOffset The offsets to be set
+         */
+        void SetOffset(const double*  NewOffset)
+        {
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                mOffset[i] = NewOffset[i];
+            }
+        }
+
+        /**
+         * @brief This method gets the scale factors of the BB
+         * @return The scalar factors of the octree
+         */
+        double* GetScaleFactor()
+        {
+            double* scale_factor = new double[DIMENSION];
+
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                scale_factor[i] = mScaleFactor[i];
+            }
+
+            return scale_factor;
+        }
+
+        /**
+         * @brief This method gets the offsets of the BB
+         * @return The offsets of the octree
+         */
+        double* GetOffset()
+        {
+            double* offset = new double[DIMENSION];
+
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                offset[i] = mOffset[i];
+            }
+
+            return offset;
+        }
+
         void SetBoundingBox(const coordinate_type * Low, const coordinate_type * High)
         {
             for(int i = 0 ; i < DIMENSION ; i++)
@@ -136,8 +197,8 @@ namespace Kratos {
             return (1 << cell->GetLevel()) * scale; // I'm doing it in this way to avoid division
         }
 
-        double CalcMinCellNormalizedSize() const{          
-          const double scale = 1.00 / (1 << ROOT_LEVEL);    
+        double CalcMinCellNormalizedSize() const{
+          const double scale = 1.00 / (1 << ROOT_LEVEL);
           return (1 << MIN_LEVEL) * scale; // I'm doing it in this way to avoid division
         }
 
@@ -195,15 +256,6 @@ namespace Kratos {
             }
 
         }
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-
-        ///@}
-        ///@name Operations
-        ///@{
 
         //pooyan. uncomment this when needed
         //key_type CalcKey(coordinate_type coordinate) const {
@@ -624,7 +676,7 @@ namespace Kratos {
             KRATOS_WATCH(number_of_leaves_);
 #endif
         }
-               
+
         void GetLeavesInBoundingBoxNormalized(const double* coord1, const double* coord2,
           std::vector<cell_type*>& leaves) const
         {
@@ -814,7 +866,7 @@ namespace Kratos {
         }
 
         cell_type * pGetTopCell(const cell_type * p_cell) {
-          key_type keys[3];       
+          key_type keys[3];
           if (p_cell->GetTopKey(keys)) {
             return pGetCell(keys);
           }
@@ -936,10 +988,10 @@ namespace Kratos {
               }
             }
 
-          
+
           return 0;
         }
-               
+
         void InsertNormalized(typename cell_type::pointer_type object){
 
             const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL) ; // 0.1% of the min size
@@ -1331,7 +1383,7 @@ namespace Kratos {
     {
         const auto box_min_point = rBoxCenter - rBoxHalfSize; // Bounding box min point
         const auto box_max_point = rBoxCenter + rBoxHalfSize; // Bounding box max point
-       
+
         const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
             box_min_point,
             box_max_point,
@@ -1737,7 +1789,7 @@ namespace Kratos {
                 cell_type* cell = leaves[i];
                 double min_point[3];
                 cell->GetMinPoint(min_point);
-                
+
                 double cell_size = cell->CalcSize();
 
                 for (std::size_t j = 0; j < 2; j++)
