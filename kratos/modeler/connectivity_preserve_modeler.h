@@ -83,8 +83,8 @@ public:
     void GenerateModelPart(
         ModelPart& OriginModelPart,
         ModelPart& DestinationModelPart,
-        Element const& rReferenceElement,
-        Condition const& rReferenceBoundaryCondition
+        const Element& rReferenceElement,
+        const Condition& rReferenceBoundaryCondition
     ) override;
 
     ///@}
@@ -93,35 +93,35 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart) const;
+    void CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const;
 
-    void ResetModelPart(ModelPart &rDestinationModelPart) const;
+    void ResetModelPart(ModelPart& rDestinationModelPart) const;
 
     void CopyCommonData(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
     ) const;
 
     void DuplicateElements(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart,
-        Element const &rReferenceElement
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Element& rReferenceElement
     ) const;
 
     void DuplicateConditions(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart,
-        Condition const &rReferenceBoundaryCondition
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Condition& rReferenceBoundaryCondition
     ) const;
 
     void DuplicateCommunicatorData(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
     ) const;
 
     void DuplicateSubModelParts(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
     ) const;
 
     ///@}
