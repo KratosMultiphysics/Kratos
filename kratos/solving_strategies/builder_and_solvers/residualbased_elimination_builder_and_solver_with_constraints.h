@@ -159,7 +159,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "name"               : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
+            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
             "check_constraint_relation"            : true,
             "reset_relation_matrix_each_iteration" : true
         })" );
