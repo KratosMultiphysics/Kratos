@@ -578,6 +578,12 @@ private:
     ///@{
 
     /**
+     * @brief Returns the current working space dimension
+     * @return The current working space dimension
+     */
+    std::size_t WorkingSpaceDimension();
+
+    /**
      * @brief This method generates a new Octree class
      */
     void GenerateOctree();

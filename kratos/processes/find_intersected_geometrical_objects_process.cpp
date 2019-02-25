@@ -255,6 +255,24 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
 /***********************************************************************************/
 
 template<>
+std::size_t FindIntersectedGeometricalObjectsProcess<Element>::WorkingSpaceDimension()
+{
+    return mrModelPart1.Elements().begin()->GetGeometry().WorkingSpaceDimension();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+std::size_t FindIntersectedGeometricalObjectsProcess<Condition>::WorkingSpaceDimension()
+{
+    return mrModelPart1.Conditions().begin()->GetGeometry().WorkingSpaceDimension();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
 {
     this->SetOctreeBoundingBox();
@@ -341,7 +359,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
     KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
 
     // Adding offset
-    for (IndexType i = 0; i < 3; ++i) {
+    for (IndexType i = 0; i < WorkingSpaceDimension(); ++i) {
         low[i] -= r_offset[i];
         high[i] += r_offset[i];
     }
@@ -352,13 +370,6 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 #else
     mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
-
-    // Adding rescale
-    double* scale_factor = mOctree.GetScaleFactor();
-    for (IndexType i = 0; i < 3; ++i) {
-        scale_factor[i] *= r_scale_factor[i];
-    }
-    mOctree.SetScaleFactor(scale_factor);
 }
 
 /***********************************************************************************/
