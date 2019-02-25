@@ -55,7 +55,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
             for mp_name in sensitivity_sub_model_part_names:
                 self.sensitivity_sub_model_parts.append(self.sensitivity_model_part.GetSubModelPart(mp_name))
 
-        self.element_sensitivity_variables = self.__generate_variable_list_from_input(parameter["element_sensitivity_variables"])
+        self.element_sensitivity_variables = self.__GenerateVariableListFromInput(parameter["element_sensitivity_variables"])
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -66,19 +66,18 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        # loop over integration domains
-        for sub_mp_i in self.sensitivity_sub_model_parts:
-            # loop over sensitivty variables for which integration should performed
-            for variable_i in self.element_sensitivity_variables:
-                domain_sensitivity = 0.0
-                if self.__check_availability_of_sensitivities(variable_i, sub_mp_i):
+        # loop over sensitivty variables for which integration should performed
+        for variable_i in self.element_sensitivity_variables:
+            if self.__CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
+                # loop over integration domains
+                for sub_mp_i in self.sensitivity_sub_model_parts:
                     domain_sensitivity = KratosMultiphysics.VariableUtils().SumElementScalarVariable(variable_i, sub_mp_i)
-                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Elements )
-                else:
-                    raise Exception(variable_i.Name() + " is not available for domain integration!")
+                    KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(variable_i, domain_sensitivity, sub_mp_i.Elements)
+            else:
+                raise Exception(variable_i.Name() + " is not available for domain integration!")
 
 
-    def __generate_variable_list_from_input(self, parameter):
+    def __GenerateVariableListFromInput(self, parameter):
         """ Parse a list of variables from input.
 
         Keyword arguments:
@@ -100,7 +99,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         return variable_list
 
 
-    def __check_availability_of_sensitivities(self, variable, model_part):
+    def __CheckAvailabilityOfSensitivities(self, variable, model_part):
         """ Check if element sensitivities w.r.t. given variable are available.
 
         Keyword arguments:
@@ -109,10 +108,8 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         model_part -- sub model part of the sensitivity model part.
         """
 
-        has_sensitivities = False
         if sys.version_info[0] >= 3: # python3 syntax
-            has_sensitivities = model_part.Elements.__iter__().__next__().Has(variable)
+            return model_part.Elements.__iter__().__next__().Has(variable)
         else: # python2 syntax
-            has_sensitivities = model_part.Elements.__iter__().next().Has(variable)
+            return model_part.Elements.__iter__().next().Has(variable)
 
-        return has_sensitivities
