@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-dependencies_are_available = KratosUtils.AreApplicationsAvailable(["StructuralMechanicsApplication", "FluidDynamicsApplication"])
+dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 if dependencies_are_available:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     import KratosMultiphysics.StructuralMechanicsApplication
