@@ -57,7 +57,7 @@ namespace Kratos
  *                  `/  `
  *                  * `
  * For more details https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
- * @tparam
+ * @tparam TDim The dimension of the space
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TDim>
