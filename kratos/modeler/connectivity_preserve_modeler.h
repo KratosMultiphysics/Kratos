@@ -27,7 +27,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 #include "modeler/modeler.h"
 
 
