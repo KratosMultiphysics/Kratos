@@ -110,8 +110,8 @@
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
-    }],
-    "element_sensitivity_domain_integration" : [{
+    },
+    {
         "python_module"   : "element_sensitivity_domain_integration_process",
         "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"                  : "",
