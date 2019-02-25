@@ -14,6 +14,7 @@
 #include "linear_isotropic_damage_traction_only_3D_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -225,10 +226,36 @@ void LinearIsotropicDamageTractionOnly3D::CalculateStressResponse(
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Vector& r_stress_vector = rValues.GetStressVector();
+        Vector r_stress_vector_pos(6);
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(rMaterialProperties, r_constitutive_matrix);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-        const double strain_norm = std::sqrt(inner_prod(r_stress_vector, r_strain_vector));
+
+        BoundedMatrix<double, 3, 3> eigen_values(3, 3);
+        eigen_values.clear();
+        BoundedMatrix<double, 3, 3> eigen_vectors(3, 3);
+        eigen_vectors.clear();
+        BoundedMatrix<double, 3, 3> stress_matrix;
+        stress_matrix = MathUtils<double>::StressVectorToTensor(r_stress_vector);
+
+        MathUtils<double>::EigenSystem<3> (stress_matrix, eigen_vectors, eigen_values);
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            if (eigen_values(i, i) < 0.)
+            {
+                //eigen_values(i, i) = 0.;
+            }
+        }
+        KRATOS_WATCH(stress_matrix)
+        KRATOS_WATCH(eigen_vectors)
+        KRATOS_WATCH(eigen_values)
+
+        noalias(eigen_values) = prod( eigen_values, eigen_vectors);
+        noalias(stress_matrix) = prod(trans(eigen_vectors), eigen_values);
+        r_stress_vector_pos = MathUtils<double>::StressTensorToVector(stress_matrix);
+        //KRATOS_WATCH(r_stress_vector_pos)
+
+        const double strain_norm = std::sqrt(inner_prod(r_stress_vector_pos, r_strain_vector));
 
         if (strain_norm <= mStrainVariable)
         {
@@ -251,7 +278,8 @@ void LinearIsotropicDamageTractionOnly3D::CalculateStressResponse(
             const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
                                        / (rStrainVariable * rStrainVariable * rStrainVariable);
             r_constitutive_matrix *= (1. - damage_variable);
-            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector);
+            //r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector_pos, r_stress_vector);
+            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
             r_stress_vector *= (1. - damage_variable);
         }
     }
