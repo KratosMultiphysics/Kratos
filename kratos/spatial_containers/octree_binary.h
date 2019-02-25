@@ -74,7 +74,7 @@ namespace Kratos {
         ///@{
 
         /// Pointer definition of Octree
-        //KRATOS_CLASS_POINTER_DEFINITION(Octree_Pooyan);
+        //KRATOS_CLASS_POINTER_DEFINITION(OctreeBinary);
 
         typedef TCellType cell_type;
 
@@ -121,6 +121,19 @@ namespace Kratos {
             delete root_;
         }
 
+        ///@}
+        ///@name Operators
+        ///@{
+
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+         * @brief This method sets manually the scale factors of the BB
+         * @param NewScaleFactor The scalar factors to be set
+         */
         void SetScaleFactor(const double*  NewScaleFactor)
         {
             for(int i = 0 ; i < DIMENSION ; i++) {
@@ -128,11 +141,45 @@ namespace Kratos {
             }
         }
 
+        /**
+         * @brief This method sets manually the offsets of the BB
+         * @param NewOffset The offsets to be set
+         */
         void SetOffset(const double*  NewOffset)
         {
             for(int i = 0 ; i < DIMENSION ; i++) {
                 mOffset[i] = NewOffset[i];
             }
+        }
+
+        /**
+         * @brief This method gets the scale factors of the BB
+         * @return The scalar factors of the octree
+         */
+        double* GetScaleFactor()
+        {
+            double* scale_factor = new double[DIMENSION];
+
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                scale_factor[i] = mScaleFactor[i];
+            }
+
+            return scale_factor;
+        }
+
+        /**
+         * @brief This method gets the offsets of the BB
+         * @return The offsets of the octree
+         */
+        double* GetOffset()
+        {
+            double* offset = new double[DIMENSION];
+
+            for(int i = 0 ; i < DIMENSION ; i++) {
+                offset[i] = mOffset[i];
+            }
+
+            return offset;
         }
 
         void SetBoundingBox(const coordinate_type * Low, const coordinate_type * High)
@@ -209,15 +256,6 @@ namespace Kratos {
             }
 
         }
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-
-        ///@}
-        ///@name Operations
-        ///@{
 
         //pooyan. uncomment this when needed
         //key_type CalcKey(coordinate_type coordinate) const {
