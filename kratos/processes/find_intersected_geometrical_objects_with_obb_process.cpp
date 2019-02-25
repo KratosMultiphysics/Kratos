@@ -86,10 +86,11 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    BaseType::mThisParameters = ThisParameters;
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_first_model_part_name = ThisParameters["first_model_part_name"].GetString();
-    const std::string& r_second_model_part_name = ThisParameters["second_model_part_name"].GetString();
+    const std::string& r_first_model_part_name = BaseType::mThisParameters["first_model_part_name"].GetString();
+    const std::string& r_second_model_part_name = BaseType::mThisParameters["second_model_part_name"].GetString();
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
@@ -98,9 +99,9 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     double* new_scale_factor = new double[3];
     double* new_offset = new double[3];
 
-    const Vector& r_scale_factor = ThisParameters["scale_factor"].GetVector();
+    const Vector& r_scale_factor = BaseType::mThisParameters["scale_factor"].GetVector();
     KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
-    const Vector& r_offset = ThisParameters["offset"].GetVector();
+    const Vector& r_offset = BaseType::mThisParameters["offset"].GetVector();
 
     KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
     for (std::size_t i = 0; i < 3; ++i) {
@@ -112,7 +113,7 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     BaseType::mOctree.SetOffset(new_offset);
 
     // Setting the bounding box factor
-    mBoundingBoxFactor = ThisParameters["bounding_box_factor"].GetDouble();
+    mBoundingBoxFactor = BaseType::mThisParameters["bounding_box_factor"].GetDouble();
 
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
@@ -121,7 +122,7 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    mDebugOBB = ThisParameters["debug_obb"].GetBool();
+    mDebugOBB = BaseType::mThisParameters["debug_obb"].GetBool();
 
     // We create new properties for debugging
     if (mDebugOBB) {

@@ -34,6 +34,8 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     ) : mrModelPart1(rPart1),
         mrModelPart2(rPart2)
 {
+    const Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 }
 
 /***********************************************************************************/
@@ -49,6 +51,8 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
         mrModelPart2(rPart2),
         mOctree(OctreeType(NewScaleFactor, NewOffset))
 {
+    const Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 }
 
 /***********************************************************************************/
@@ -59,14 +63,15 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPart1(rModel.GetModelPart(ThisParameters["first_model_part_name"].GetString())),
-        mrModelPart2(rModel.GetModelPart(ThisParameters["second_model_part_name"].GetString()))
+        mrModelPart2(rModel.GetModelPart(ThisParameters["second_model_part_name"].GetString())),
+        mThisParameters(ThisParameters)
 {
     const Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_first_model_part_name = ThisParameters["first_model_part_name"].GetString();
-    const std::string& r_second_model_part_name = ThisParameters["second_model_part_name"].GetString();
+    const std::string& r_first_model_part_name = mThisParameters["first_model_part_name"].GetString();
+    const std::string& r_second_model_part_name = mThisParameters["second_model_part_name"].GetString();
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
@@ -75,9 +80,9 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     double* new_scale_factor = new double[3];
     double* new_offset = new double[3];
 
-    Vector scale_factor = ThisParameters["scale_factor"].GetVector();
+    Vector scale_factor = mThisParameters["scale_factor"].GetVector();
     KRATOS_ERROR_IF_NOT(scale_factor.size() == 3) << "scale_factor is not correct size: " << scale_factor.size() << std::endl;
-    Vector offset = ThisParameters["offset"].GetVector();
+    Vector offset = mThisParameters["offset"].GetVector();
     KRATOS_ERROR_IF_NOT(offset.size() == 3) << "offset is not correct size: " << offset.size() << std::endl;
     for (std::size_t i = 0; i < 3; ++i) {
         new_scale_factor[i] = scale_factor[i];
@@ -329,6 +334,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
         high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
     }
 
+    // TODO: Add computation of the extended Bounding Box
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
