@@ -3,7 +3,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-have_external_solvers = KratosUtilities.IsApplicationAvailable("ExternalSolversApplication")
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedCouetteImposedTest(UnitTest.TestCase):
