@@ -18,17 +18,6 @@ namespace Kratos
 
 // Public methods //////////////////////////////////////////////////////////////
 
-ConnectivityPreserveModeler::ConnectivityPreserveModeler():
-    Modeler()
-{
-}
-
-
-ConnectivityPreserveModeler::~ConnectivityPreserveModeler()
-{
-}
-
-
 void ConnectivityPreserveModeler::GenerateModelPart(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
