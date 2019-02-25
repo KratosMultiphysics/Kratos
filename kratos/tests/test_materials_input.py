@@ -114,7 +114,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input_with_subproperties_cpp(self):
 
-        if (missing_external_dependencies is True):
+        if not dependencies_are_available:
             self.skipTest("{} is not available".format(missing_application))
         self._prepare_test("materials_with_subproperties.json")
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
@@ -123,7 +123,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     @KratosUnittest.expectedFailure
     def test_input_with_subproperties_cpp_expected_failure(self):
 
-        if (missing_external_dependencies is True):
+        if not dependencies_are_available:
             self.skipTest("{} is not available".format(missing_application))
         self._prepare_test("materials_with_subproperties_expected_failure.json")
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
@@ -170,7 +170,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
         with self.assertRaisesRegex(Exception, expected_error_msg):
             read_materials_process.Factory(test_settings, current_model)
-
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("wrong_materials_input","wrong_materials_4.json")))
