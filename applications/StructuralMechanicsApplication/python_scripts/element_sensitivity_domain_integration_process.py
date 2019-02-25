@@ -8,6 +8,18 @@ def Factory(settings, model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ElementSensitivityDomainIntegrationProcess(model, settings["Parameters"])
 
+def CheckAvailabilityOfSensitivities(variable, model_part):
+    """ Check if element sensitivities w.r.t. given variable are available.
+    Keyword arguments:
+    variable -- traced variable within sensitivity analysis.
+    model_part -- sub model part of the sensitivity model part.
+    """
+
+    if sys.version_info[0] >= 3: # python3 syntax
+        return model_part.Elements.__iter__().__next__().Has(variable)
+    else: # python2 syntax
+        return model_part.Elements.__iter__().next().Has(variable)
+
 class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
     """
         This class integrates scalar element sensitivities (material and cross-section
@@ -68,7 +80,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         """
         # loop over sensitivty variables for which integration should performed
         for variable_i in self.element_sensitivity_variables:
-            if self.__CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
+            if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
                 # loop over integration domains
                 for sub_mp_i in self.sensitivity_sub_model_parts:
                     domain_sensitivity = KratosMultiphysics.VariableUtils().SumElementScalarVariable(variable_i, sub_mp_i)
@@ -79,7 +91,6 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
 
     def __GenerateVariableListFromInput(self, parameter):
         """ Parse a list of variables from input.
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         parameter -- Kratos parameters containing process settings.
@@ -99,17 +110,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         return variable_list
 
 
-    def __CheckAvailabilityOfSensitivities(self, variable, model_part):
-        """ Check if element sensitivities w.r.t. given variable are available.
 
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        variable -- traced variable within sensitivity analysis.
-        model_part -- sub model part of the sensitivity model part.
-        """
 
-        if sys.version_info[0] >= 3: # python3 syntax
-            return model_part.Elements.__iter__().__next__().Has(variable)
-        else: # python2 syntax
-            return model_part.Elements.__iter__().next().Has(variable)
+
 
