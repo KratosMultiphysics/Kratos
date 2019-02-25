@@ -229,27 +229,6 @@ class DEMAnalysisStage(AnalysisStage):
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
-    # def SetSolverStrategy(self):    # TODO should be deleted as soon as posible. check compatibilities
-
-    #     # TODO: Ugly fix. Change it. I don't like this to be in the main...
-    #     # Strategy object
-    #     if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
-    #         import sphere_strategy as SolverStrategy
-    #     elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-    #         import continuum_sphere_strategy as SolverStrategy
-    #     elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
-    #         import thermal_continuum_sphere_strategy as SolverStrategy
-    #     elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
-    #         import thermal_sphere_strategy as SolverStrategy
-    #     elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
-    #         import thermal_continuum_sphere_strategy as SolverStrategy
-    #     elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
-    #         import ice_continuum_sphere_strategy as SolverStrategy
-    #     else:
-    #         self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
-
-    #     return SolverStrategy
-
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
         return self._CreateSolver()
 
@@ -268,14 +247,6 @@ class DEMAnalysisStage(AnalysisStage):
                                                      self.dem_fem_search,
                                                      self.DEM_parameters,
                                                      self.procedures)
-
-    # def _CreateSolver(self):
-    #     # TODO. should be deleted as soon as json writing is modified to write strategy instead of elementType(get rid of awful IF-tree)
-    #     return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
-    #                                                  self.creator_destructor,
-    #                                                  self.dem_fem_search,
-    #                                                  self.DEM_parameters,
-    #                                                  self.procedures)
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self._solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -330,7 +301,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
-        max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
+        max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)   # TODO this seems not be longer required
         #self.creator_destructor.SetMaxNodeId(max_Id)
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
@@ -359,11 +330,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetInitialNodalValues()
 
         self.KRATOSprint(self.report.BeginReport(timer))
-
-    # def AddAllDofs(self):
-    #     self._solver.AddDofs(self.spheres_model_part)
-    #     self._solver.AddDofs(self.cluster_model_part)
-    #     self._solver.AddDofs(self.DEM_inlet_model_part)
 
     def SetSearchStrategy(self):
         self._solver.search_strategy = self.parallelutils.GetSearchStrategy(self._solver, self.spheres_model_part)
@@ -442,10 +408,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
-    def RunMainTemporalLoop(self): # deprecated
+    def RunMainTemporalLoop(self):   # DEPRECATED
         self.RunSolutionLoop()
 
-    def RunSolutionLoop(self):
+    def RunSolutionLoop(self):      # TODO,  parent RunSolutionLoop() must be improved to include custom stop criteria
         while self.TheSimulationMustGoOn():
             self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
             self.InitializeSolutionStep()
