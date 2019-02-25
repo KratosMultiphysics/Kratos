@@ -20,6 +20,8 @@ extern "C"
 // Project includes
 #include "iga_application_variables.h"
 #include "custom_utilities/nurbs_brep_modeler.h"
+#include "custom_utilities/embedded_iga_modeler.h"
+#include "custom_utilities/embedded_iga/embedded_iga_error_estimation.h"
 
 namespace Kratos
 {
@@ -37,6 +39,7 @@ public:
     ///@{
     
     void CreateTriangulation(
+        const BrepFace& rFaceGeometry,
         const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
         const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
         std::vector<Matrix>& rTriangulation);

@@ -1,22 +1,12 @@
 #if !defined(KRATOS_EMBEDDED_IGA_MODELER_H_INCLUDED )
 #define  KRATOS_EMBEDDED_IGA_MODELER_H_INCLUDED
 
-extern "C" 
-{
-    #ifdef SINGLE
-        #define REAL float
-    #else /* not SINGLE */
-        #define REAL double
-    #endif /* not SINGLE */
-    void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);    
-}
-
 
 // System includes
 
 // External includes
 #include "anurbs.h"
-// #include "triangle.h"   
+
 
 // Project includes
 #include "containers/model.h"
@@ -26,6 +16,7 @@ extern "C"
 #include "embedded_iga/embedded_iga_tessellation.h"
 #include "embedded_iga/embedded_iga_triangulation.h"
 #include "embedded_iga/embedded_iga_error_estimation.h"
+#include "embedded_iga/embedded_iga_mapper.h"
 
 
 namespace Kratos

@@ -81,7 +81,7 @@ void EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
     }
 }
 
-void EmbeddedIgaErrorEstimation::EstimateError(
+void EmbeddedIgaErrorEstimation::GetError(
     const std::vector<Matrix>& rGaussPointsExact, 
     const std::vector<Matrix>& rGaussPointsApprox, 
     Vector& rError)
@@ -89,8 +89,7 @@ void EmbeddedIgaErrorEstimation::EstimateError(
     const auto number_tri = rGaussPointsExact.size();
     const auto number_points = rGaussPointsExact[0].size1();
     rError = ZeroVector(number_tri); 
-    
-    
+
     double ele_error; 
 
     for (unsigned int tri_i = 0; tri_i < number_tri; ++tri_i)
@@ -104,10 +103,6 @@ void EmbeddedIgaErrorEstimation::EstimateError(
         }
         rError[tri_i] = ele_error; 
     }
-
-    KRATOS_WATCH(rGaussPointsApprox)
-    KRATOS_WATCH(rGaussPointsExact)
-    KRATOS_WATCH(rError)
 }
 
 

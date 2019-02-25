@@ -33,7 +33,7 @@ public:
         const std::vector<Matrix>& rTriangulation_xyz,
         std::vector<Matrix>& rGaussPoints_xyz);
     
-    static void EstimateError(
+    static void GetError(
         const std::vector<Matrix>& rGaussPointsExact, 
         const std::vector<Matrix>& rGaussPointsApprox, 
         Vector& rError);
