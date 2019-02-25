@@ -1411,20 +1411,19 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
-    {
-        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
-        p_model_part->SetParentModelPart(this);
-        p_model_part->mBufferSize = this->mBufferSize;
-        p_model_part->mpProcessInfo = this->mpProcessInfo;
-        mSubModelParts.insert(p_model_part);
-        return *p_model_part;
-    }
-    else
-        // Here a warning would be enough. To be disscussed. Pooyan.
-        KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
-    }
+    // Here a warning would be enough. To be disscussed. Pooyan.
+    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+        << "There is an already existing sub model part with name \"" << NewSubModelPartName
+        << "\" in model part: \"" << Name() << "\"" << std::endl;
+
+    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
+    p_model_part->SetParentModelPart(this);
+    p_model_part->mBufferSize = this->mBufferSize;
+    p_model_part->mpProcessInfo = this->mpProcessInfo;
+    mSubModelParts.insert(p_model_part);
+    return *p_model_part;
+}
 
 /** Remove a sub modelpart with given name.
 */
