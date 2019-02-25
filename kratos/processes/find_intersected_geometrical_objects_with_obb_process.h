@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "includes/obb.h"
+#include "includes/oriented_bounding_box.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
 namespace Kratos
