@@ -238,8 +238,9 @@ public:
   
 
         // Get element stiffness matrix
-        pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        rLHS_Contribution=trans(rLHS_Contribution);
+        LocalSystemMatrixType aux;
+        pCurrentElement->CalculateLeftHandSide(aux, rCurrentProcessInfo);
+        rLHS_Contribution=trans(aux); //compute transpose
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
