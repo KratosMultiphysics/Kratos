@@ -62,7 +62,6 @@ void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart
 
 void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPart) const
 {
-
     for(auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); it++)
         it->Set(TO_ERASE);
     rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
@@ -82,22 +81,18 @@ void ConnectivityPreserveModeler::CopyCommonData(
     ModelPart &rDestinationModelPart) const
 {
     // Do not try to change some of the things we need to change if the destination is a SubModelPart
-    if( rDestinationModelPart.IsSubModelPart() )
-    {
+    if( rDestinationModelPart.IsSubModelPart() ) {
         if( !(rOriginModelPart.GetNodalSolutionStepVariablesList() == rDestinationModelPart.GetNodalSolutionStepVariablesList()) )
         {
             KRATOS_ERROR << "Attempting to change the SolutionStepVariablesList of the Destination Model Part, which is a SubModelPart." << std::endl
                          << "Aborting, since this would break its parent ModelPart." << std::endl;
         }
 
-        if( rDestinationModelPart.GetBufferSize() != rOriginModelPart.GetBufferSize() )
-        {
+        if( rDestinationModelPart.GetBufferSize() != rOriginModelPart.GetBufferSize() ) {
             KRATOS_ERROR << "Attempting to change the BufferSize of the Destination Model Part, which is a SubModelPart." << std::endl
                          << "Aborting, since this would break its parent ModelPart." << std::endl;
         }
-    }
-    else
-    {
+    } else {
         rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
         rDestinationModelPart.SetBufferSize( rOriginModelPart.GetBufferSize() );
     }
@@ -120,8 +115,7 @@ void ConnectivityPreserveModeler::DuplicateElements(
     // Generate the elements
     ModelPart::ElementsContainerType temp_elements;
     temp_elements.reserve(rOriginModelPart.NumberOfElements());
-    for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem)
-    {
+    for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem) {
         Properties::Pointer properties = i_elem->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
@@ -142,8 +136,7 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     // Generate the conditions
     ModelPart::ConditionsContainerType temp_conditions;
     temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
-    for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond)
-    {
+    for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
         Properties::Pointer properties = i_cond->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
@@ -170,8 +163,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
     pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
     pDestinationComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-    for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
-    {
+    for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++) {
         pDestinationComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
         pDestinationComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
         pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
@@ -181,14 +173,12 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
     bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
 
-    if (is_mpi)
-    {
+    if (is_mpi) {
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
         rDestinationLocalElements.reserve(rDestinationModelPart.NumberOfElements());
-        for (auto i_elem = rDestinationModelPart.Elements().ptr_begin(); i_elem != rDestinationModelPart.Elements().ptr_end(); ++i_elem)
-        {
+        for (auto i_elem = rDestinationModelPart.Elements().ptr_begin(); i_elem != rDestinationModelPart.Elements().ptr_end(); ++i_elem) {
             rDestinationLocalElements.push_back(*i_elem);
         }
 
@@ -200,9 +190,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         {
             rDestinationLocalConditions.push_back(*i_cond);
         }
-    }
-    else
-    {
+    } else {
         pDestinationComm->LocalMesh().pElements() = rDestinationModelPart.pElements();
         pDestinationComm->LocalMesh().pConditions() = rDestinationModelPart.pConditions();
     }
@@ -214,10 +202,10 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
     ModelPart &rOriginModelPart,
     ModelPart &rDestinationModelPart) const
 {
-    for(auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part)
-    {
-        if( ! rDestinationModelPart.HasSubModelPart(i_part->Name()))
+    for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
+        if(!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
             rDestinationModelPart.CreateSubModelPart(i_part->Name());
+        }
 
         ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
