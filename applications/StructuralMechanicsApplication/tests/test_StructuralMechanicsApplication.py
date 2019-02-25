@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import subprocess
 
-if kratos_utilities.IsApplicationAvailable("ExternalSolversApplication"):
+if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
     has_external_solvers_application = True
 else:
     has_external_solvers_application = False
