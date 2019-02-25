@@ -163,11 +163,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
     }
 
-    // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
-    // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
-    bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
-
-    if (is_mpi) {
+    if (DataCommunicator::GetDefault().IsDistributed()) {
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
@@ -180,8 +176,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         ModelPart::ConditionsContainerType& rDestinationLocalConditions = pDestinationComm->LocalMesh().Conditions();
         rDestinationLocalConditions.clear();
         rDestinationLocalConditions.reserve(rDestinationModelPart.NumberOfConditions());
-        for (auto i_cond = rDestinationModelPart.Conditions().ptr_begin(); i_cond != rDestinationModelPart.Conditions().ptr_end(); ++i_cond)
-        {
+        for (auto i_cond = rDestinationModelPart.Conditions().ptr_begin(); i_cond != rDestinationModelPart.Conditions().ptr_end(); ++i_cond) {
             rDestinationLocalConditions.push_back(*i_cond);
         }
     } else {
