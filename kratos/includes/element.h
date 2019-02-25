@@ -190,19 +190,6 @@ public:
     }
 
     ///@}
-    ///@name Informations
-    ///@{
-
-    /** Dimensional space of the element geometry
-	@return SizeType, working space dimension of this geometry.
-    */
-
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
-    {
-         return pGetGeometry()->WorkingSpaceDimension();
-    }
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -430,23 +417,6 @@ public:
 	  rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this function provides a more general interface to the element.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices container with the output left hand side matrices
-     * @param rLHSVariables paramter describing the expected LHSs
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      const ProcessInfo& rCurrentProcessInfo)
-    {
     }
 
     /**
@@ -1016,9 +986,6 @@ public:
         if (rOutput.size1() != 0)
             rOutput.resize(0, 0, false);
     }
-
-
-    //METHODS TO BE CLEANED: DEPRECATED end
 
     ///@}
     ///@name Access
