@@ -269,8 +269,7 @@ namespace Kratos
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
-               VectorType PlasticPotentialDerivative;
-               PlasticPotentialDerivative = DeltaStressYieldCondition; // LMV
+               VectorType PlasticPotentialDerivative = this->mYieldSurface.CalculateDeltaPlasticPotential( rVariables, PlasticPotentialDerivative);
 
 
                MatrixType PlasticPotDerTensor;
@@ -323,8 +322,7 @@ namespace Kratos
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
-               VectorType PlasticPotentialDerivative;
-               PlasticPotentialDerivative = DeltaStressYieldCondition; // LMV
+               VectorType PlasticPotentialDerivative = this->mYieldSurface.CalculateDeltaPlasticPotential( rVariables, PlasticPotentialDerivative);
 
                MatrixType PlasticPotDerTensor;
                PlasticPotDerTensor = ConstitutiveModelUtilities::StrainVectorToTensor( PlasticPotentialDerivative, PlasticPotDerTensor);
@@ -359,14 +357,14 @@ namespace Kratos
                rPlasticMultiplier += DeltaGamma;
                double VolPlasticIncr = 0.0;
                for (unsigned int i = 0; i < 3; i++)
-                  VolPlasticIncr += DeltaGamma * DeltaStressYieldCondition(i);
+                  VolPlasticIncr += DeltaGamma * PlasticPotentialDerivative(i);
                rPlasticVolDef += VolPlasticIncr;
 
                double DevPlasticIncr = 0.0;
                for (unsigned int i = 0; i < 3; i++)
-                  DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
+                  DevPlasticIncr += pow( DeltaGamma * PlasticPotentialDerivative(i) - VolPlasticIncr/3.0, 2.0);
                for (unsigned int i = 3; i < 6; i++)
-                  DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
+                  DevPlasticIncr += 2.0 * pow( DeltaGamma *  PlasticPotentialDerivative(i) /2.0 , 2.0);
                DevPlasticIncr = sqrt(DevPlasticIncr);
                rPlasticDevDef += DevPlasticIncr;
 
@@ -432,8 +430,7 @@ namespace Kratos
                   this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
                   VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
-                  VectorType PlasticPotentialDerivative;
-                  PlasticPotentialDerivative = DeltaStressYieldCondition; // LMV
+                  VectorType PlasticPotentialDerivative = this->mYieldSurface.CalculateDeltaPlasticPotential( rVariables, PlasticPotentialDerivative);
 
                   MatrixType PlasticPotDerTensor;
                   PlasticPotDerTensor = ConstitutiveModelUtilities::StrainVectorToTensor( PlasticPotentialDerivative, PlasticPotDerTensor);
@@ -452,12 +449,12 @@ namespace Kratos
 
                   double VolPlasticIncr = 0.0;
                   for (unsigned int i = 0; i < 3; i++)
-                     VolPlasticIncr += DeltaGamma * DeltaStressYieldCondition(i);
+                     VolPlasticIncr += DeltaGamma * PlasticPotentialDerivative(i);
                   rPlasticVolDef += VolPlasticIncr;
 
                   double DevPlasticIncr = 0.0;
                   for (unsigned int i = 0; i < 3; i++)
-                     DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
+                     DevPlasticIncr += pow( DeltaGamma * PlasticPotentialDerivative(i) - VolPlasticIncr/3.0, 2.0);
                   for (unsigned int i = 3; i < 6; i++)
                      DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
                   DevPlasticIncr = DeltaGamma/fabs(DeltaGamma) * sqrt(DevPlasticIncr);

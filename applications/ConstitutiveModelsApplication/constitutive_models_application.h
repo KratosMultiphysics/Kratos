@@ -107,6 +107,7 @@
 #include "custom_models/plasticity_models/yield_surfaces/mohr_coulomb_v1_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/tresca_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/casm_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/non_associative_yield_surface.hpp"
 
 //hardening rules
 #include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"

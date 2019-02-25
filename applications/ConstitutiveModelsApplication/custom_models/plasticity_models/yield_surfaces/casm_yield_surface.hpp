@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/non_associative_yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
 #include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
 
@@ -57,7 +57,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmYieldSurface : public YieldSurface<THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmYieldSurface : public NonAssociativeYieldSurface<THardeningRule>
   {    
   public:
 
@@ -69,8 +69,8 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
 
-    typedef YieldSurface<THardeningRule>                                 BaseType;
-    typedef typename BaseType::Pointer                            BaseTypePointer;
+    typedef NonAssociativeYieldSurface<THardeningRule>                   BaseType;
+    typedef typename YieldSurface<THardeningRule>::Pointer        BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
     /// Pointer definition of CasmYieldSurface
@@ -82,6 +82,10 @@ namespace Kratos
 
     /// Default constructor.
     CasmYieldSurface() : BaseType() {}
+
+    /// Default constructor.
+    CasmYieldSurface(BaseTypePointer const & rpPlasticPotential) : 
+       BaseType(rpPlasticPotential) {}
 
     /// Copy constructor.
     CasmYieldSurface(CasmYieldSurface const& rOther) : BaseType(rOther) {}

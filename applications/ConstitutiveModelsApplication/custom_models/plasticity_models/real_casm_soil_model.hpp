@@ -20,6 +20,8 @@
 #include "custom_models/plasticity_models/yield_surfaces/casm_yield_surface.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 
+#include "custom_models/plasticity_models/yield_surfaces/plastic_potential/modified_cam_clay_yield_surface.hpp"
+
 namespace Kratos
 {
    ///@addtogroup ConstitutiveModelsApplication
@@ -85,7 +87,13 @@ namespace Kratos
          ///@{
 
          /// Default constructor.
-         RealCasmModel() : BaseType() {}
+         RealCasmModel() : BaseType() {
+            ModifiedCamClayPlasticPotential<CasmHardeningRule> AuxiliarObject;
+            YieldSurface<CasmHardeningRule>::Pointer pPlasticPotential = AuxiliarObject.Clone();
+            std::cout << " thisPointer " << pPlasticPotential << std::endl;
+            mYieldSurface = CasmYieldSurface<CasmHardeningRule>( pPlasticPotential);
+            //mYieldSurface = CasmYieldSurface<CasmHardeningRule>( );
+         }
 
          /// Copy constructor.
          RealCasmModel(RealCasmModel const& rOther) : BaseType(rOther) {}
