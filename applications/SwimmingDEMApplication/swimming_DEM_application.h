@@ -147,7 +147,7 @@ private:
 
     const ShellRigid mRigidShellElement;
 
-    const SwimmingParticle<SphericParticle> SphericSwimmingParticle3D;
+    const SwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
     const SwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
     const SwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
     /// Assignment operator.
