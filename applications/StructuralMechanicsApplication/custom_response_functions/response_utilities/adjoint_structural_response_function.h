@@ -73,6 +73,8 @@ public:
 
     virtual void Initialize() override;
 
+    using AdjointResponseFunction::CalculateGradient;
+
     virtual void CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
