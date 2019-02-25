@@ -10,7 +10,7 @@ from simulation_definition import SimulationScenario
 import KratosMultiphysics.MultilevelMonteCarloApplication.mc_utilities as mc_utilities
 import KratosMultiphysics.MultilevelMonteCarloApplication.cmlmc_utilities as cmlmc_utilities
 
-# TODO: use json file instead of defining in the main file
+# TODO: use json file instead of defining in the main file all the parameters
 
 if __name__ == '__main__':
 
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     """
 
     # set the ProjectParameters.json path
-    project_parameters_path = "problem_settings/parameters_poisson_coarse.json"
+    project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
     # customize setting parameters of the MC simulation"""
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     """
 
     # set the ProjectParameters.json path
-    project_parameters_path = "problem_settings/parameters_poisson_coarse.json"
+    project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
     # customize setting parameters of the MLMC simulation
     settings_MLMC_simulation = KratosMultiphysics.Parameters("""
     {

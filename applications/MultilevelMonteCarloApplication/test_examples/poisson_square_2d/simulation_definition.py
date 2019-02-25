@@ -13,19 +13,17 @@ from  KratosMultiphysics.analysis_stage import AnalysisStage
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-
 """
-This Analysis Stage solves the elliptic PDE in domain = (0,1)^2 with zero Dirichlet boundary conditions
--lapl(u) = \varepsilon*f    u \in domain
-u = 0                       u \in \partial(domain)
+SimulationScenario is inherited from the Analysis Stage class and solves the Poisson PDE in domain \Omega = (0,1)^2 with zero Dirichlet boundary conditions
+-lapl(u) = \varepsilon*f    u \in \Omega
+u = 0                       u \in \partial(\Omega)
 where
 \varepsilon \sim Beta(2,6)
-and f may be
-f= -432*x*(x-1)*y*(y-1)
-or
-f= -432*(x**2+y**2-x-y)
+and f = f1 or f = f2, with
+f1= -432*x*(x-1)*y*(y-1)
+f2= -432*(x**2+y**2-x-y)
 the QoI is
-QoI = \int_(domain) u(x,y)dxdy
+QoI = \int_(\Omega) u(x,y)dxdy
 """
 class SimulationScenario(AnalysisStage):
     def __init__(self,input_model,input_parameters,sample):
@@ -47,7 +45,7 @@ class SimulationScenario(AnalysisStage):
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
-            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents the below commented analytical solution
+            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
     """
