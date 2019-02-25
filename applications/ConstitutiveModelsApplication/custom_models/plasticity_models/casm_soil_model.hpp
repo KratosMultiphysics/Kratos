@@ -196,35 +196,6 @@ namespace Kratos
          }
 
 
-         /**
-          * Get Values
-          */
-         virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
-         {
-            KRATOS_TRY
-
-            rValue=0;
-
-            if (rThisVariable==PLASTIC_STRAIN)
-            {
-               rValue = this->mInternal.Variables[0];
-            }
-            else if (rThisVariable==DELTA_PLASTIC_STRAIN)
-            {
-               rValue = this->mInternal.Variables[0]-this->mPreviousInternal.Variables[0];
-            }
-            /*else if (rThisVariable==PRECONSOLIDATION)
-            {
-               rValue = this->mInternal.Variables[5];
-            }*/
-            else {
-               rValue = NonAssociativePlasticityModel<TElasticityModel, TYieldSurface>::GetValue( rThisVariable, rValue);
-            }
-            return rValue;
-
-            KRATOS_CATCH("")
-         }
-
          ///@}
          ///@name Inquiry
          ///@{
@@ -434,8 +405,6 @@ namespace Kratos
             virtual void ReturnStressToYieldSurface( ModelDataType & rValues, PlasticDataType & rVariables) override
             {
                KRATOS_TRY
-
-               return;
 
                double Tolerance = 1e-6;
 

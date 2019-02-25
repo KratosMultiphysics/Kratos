@@ -182,8 +182,8 @@ namespace Kratos
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 
       double ThirdInvariantEffect = 1.0; // TO BE DONE
-      rDeltaStressYieldCondition = ( 1/( MeanStress * std::log(rSpacingR) ) + ( rShapeN * pow( pow(3,1/2)*J2 , rShapeN) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN+1) ) ) * V1;
-      rDeltaStressYieldCondition += ( ( rShapeN * pow(3, rShapeN/2) * pow(J2, rShapeN-1) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN) ) ) * V2;
+      rDeltaStressYieldCondition = ( 1.0/( MeanStress * std::log(rSpacingR) ) + ( rShapeN * pow( sqrt(3.0)*J2 , rShapeN) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN+1.0) ) ) * V1;
+      rDeltaStressYieldCondition += ( ( rShapeN * pow(3.0, rShapeN/2.0) * pow(J2, rShapeN-1.0) )/( pow(rShearM/ThirdInvariantEffect,rShapeN) * pow(-MeanStress,rShapeN) ) ) * V2;
 
       return rDeltaStressYieldCondition;
 
