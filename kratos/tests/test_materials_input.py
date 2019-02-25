@@ -115,8 +115,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input_with_subproperties_cpp(self):
 
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
+        if not dependencies_are_available:
+            self.skipTest("Dependencies are not available")
         self._prepare_test("materials_with_subproperties.json")
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results_with_subproperties()
@@ -124,8 +124,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     @KratosUnittest.expectedFailure
     def test_input_with_subproperties_cpp_expected_failure(self):
 
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
+        if not dependencies_are_available:
+            self.skipTest("Dependencies are not available")
         self._prepare_test("materials_with_subproperties_expected_failure.json")
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         # An error shall be thrown while reading the input since the format is not correct
