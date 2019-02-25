@@ -1276,8 +1276,8 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw>(m, "SmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D").def(py::init<>())
     ;
 
-    py::class_< DamageDPlusDMinusMasonry2DLaw, typename DamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw>
-    (m, "SmallStrainDplusDminusDamagePlaneStressMasonry2D").def(py::init<>())
+        py::class_< DamageDPlusDMinusMasonry2DLaw, typename DamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw >
+    (m, "DamageDPlusDMinusPlaneStressMasonry2DLaw").def(py::init<>())
     ;
 }
 

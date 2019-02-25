@@ -6,10 +6,12 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Philip Kalkbrenner 
+//  Main authors:    Philip Kalkbrenner
+//                   Alejandro Cornejo 
 //  
 //
-
+#if !defined(KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED)
+#define KRATOS_PLANE_STRESS_D_PLUS_D_MINUS_DAMAGE_MASONRY_2D_H_INCLUDED
 
 // System includes
 
@@ -29,6 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
+
     
 ///@}
 ///@name  Enum's
@@ -52,6 +55,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = 2;
 
@@ -59,7 +63,11 @@ public:
     static constexpr SizeType VoigtSize = 3;
     
     /// Definition of the base class
-    typedef DamageDPlusDMinusMasonry2DLaw BaseType;
+    typedef LinearPlaneStress BaseType;
+
+    // Adding the respective using to avoid overload conflicts
+    using BaseType::Has;
+    using BaseType::GetValue;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(DamageDPlusDMinusMasonry2DLaw);
@@ -96,8 +104,10 @@ public:
     /**
     * Clone.
     */
-    ConstitutiveLaw::Pointer Clone() const override;
-	
+    ConstitutiveLaw::Pointer Clone() const override
+	{
+        return Kratos::make_shared<DamageDPlusDMinusMasonry2DLaw>(*this);
+    }
     /**
      * @brief Dimension of the law:
      */
@@ -133,7 +143,9 @@ public:
     /**
     * Destructor.
     */
-    ~DamageDPlusDMinusMasonry2DLaw() override;
+    ~DamageDPlusDMinusMasonry2DLaw() override
+    {
+    }
 
    /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -167,6 +179,7 @@ public:
         const double F_tension, 
         DamageParameters& Parameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
+        const array_1d<double,3> rIntegratedStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -178,6 +191,7 @@ public:
         const double F_compression, 
         DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
+        array_1d<double, VoigtSize> rIntegratedStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -379,7 +393,7 @@ public:
     ///@}
 
 protected:
-   ///@name Protected static Member Variables
+    ///@name Protected static Member Variables
     ///@{
 
     ///@}
@@ -478,7 +492,37 @@ private:
      */
     void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
 	
-	
+
+	// Serialization
+
+    friend class Serializer;
+
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("TensionDamage", mTensionDamage);
+        rSerializer.save("TensionThreshold", mTensionThreshold);
+        rSerializer.save("NonConvTensionDamage", mNonConvTensionDamage);
+        rSerializer.save("NonConvTensionThreshold", mNonConvTensionThreshold);
+        rSerializer.save("CompressionDamage", mCompressionDamage);
+        rSerializer.save("CompressionThreshold", mCompressionThreshold);
+        rSerializer.save("NonConvCompressionnDamage", mNonConvCompressionDamage);
+        rSerializer.save("NonConvCompressionThreshold", mNonConvCompressionThreshold);
+    }
+
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("TensionDamage", mTensionDamage);
+        rSerializer.load("TensionThreshold", mTensionThreshold);
+        rSerializer.load("NonConvTensionDamage", mNonConvTensionDamage);
+        rSerializer.load("NonConvTensionThreshold", mNonConvTensionThreshold);
+        rSerializer.load("CompressionDamage", mCompressionDamage);
+        rSerializer.load("CompressionThreshold", mCompressionThreshold);
+        rSerializer.load("NonConvCompressionnDamage", mNonConvCompressionDamage);
+        rSerializer.load("NonConvCompressionThreshold", mNonConvCompressionThreshold);
+    }
+
 	/**
 	 * @brief This method computes the equivalent stress in Tension
 	 * @param rValues The constitutive law parameters and flags
@@ -538,6 +582,7 @@ private:
 	 *         CharacteristicLength The finite element charecteristic length
 	 *         rDamage The tension damage variable filled by the method
 	 */
+
 	void CalculateExponentialDamageTension(
 	const double UniaxialStress,
 	const double Threshold,
@@ -571,6 +616,40 @@ private:
 	 *		  rThreshold The Damage Threshold in Compression
 	 *        CharacteristicLength The finite element charecteristic length
 	 */
+     /***********************************************************************************/
+    /*  UNIAXIAL BEZIER COMPRESSION DAMAGE
+        {I}   Linear Elastic 
+        {II}  Hardening Quadratic Bezier Curve 
+                Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
+        {III} Softening Quadratic Bezier Curve 
+                Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
+        {IV}  Softening Quadratic Bezier Curve 
+                Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
+        {V}   Residual Strength
+
+        STRESS                 
+        ^
+        /|\
+        |                     (P)
+    s_p = |------------(I)+----#####--+(J) 
+    s_i = |               ' ###  ' ####
+    s_j   |              ###     '    ####
+        |            ###'      '    ' ###
+    s_k   |-----------##--+------+----+--## (K)
+    s_0   |---------##(0) '      '    '   ### 
+        |        ## '   '      '    '    '##
+        |       ##  '   '      '    '    '   ####
+        |      ##   '   '      '    '    '      #####
+        |     ##    '   '      '    '    '          #####
+        |    ##     '   '      '    '    '    (R)       ######## (U)
+    s_r = |---##------+---+------'----+----+-----+-----------------######################
+    s_u   |  ##       '   '      '    '    '     '                 '                                    
+        |_##________+___+______+____+____+_____+_________________+______________________________\
+                    e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
+            '          '          '         '                       '
+            '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
+            '          '          '         '                       '
+    /***********************************************************************************/
 	void CalculateBezier3DamageCompression(
 	const double UniaxialStress,
 	double& rDamage,
@@ -599,24 +678,18 @@ private:
 	double& BezierG,
 	const double x1, const double x2, const double x3,
 	const double y1, const double y2, const double y3);
-	
-	/**
-	 * 
-	 */
-	void
-	
-	/**
-	 * 
-	 */
-	void
-	
-	/**
-	 * 
-	 */
-	void
-	
-	
-	
+
+    /**
+     * @brief This method returns the bezier damage parameter  
+     * @param Xi Strain-like counterpart of the uniaxial compression stress
+     *        x1, x2, x3 Necesarry Stress values to define the uniaxial compression damage bezier curve
+     *        y1, y2, y3 Necesarry Strain vlaues to define the uniaxial compression damage bezier curve
+     */
+    double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
+    const double Xi, 
+    const double x1, double x2, const double x3, 
+    const double y1, const double y2, const double y3);
+
 
     ///@}
     ///@name Private  Access
@@ -630,39 +703,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("TensionDamage", mTensionDamage);
-        rSerializer.save("TensionThreshold", mTensionThreshold);
-        rSerializer.save("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.save("NonConvTensionThreshold", mNonConvTensionThreshold);
-        rSerializer.save("CompressionDamage", mCompressionDamage);
-        rSerializer.save("CompressionThreshold", mCompressionThreshold);
-        rSerializer.save("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.save("NonConvCompressionThreshold", mNonConvCompressionThreshold);
-    }
-
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("TensionDamage", mTensionDamage);
-        rSerializer.load("TensionThreshold", mTensionThreshold);
-        rSerializer.load("NonConvTensionDamage", mNonConvTensionDamage);
-        rSerializer.load("NonConvTensionThreshold", mNonConvTensionThreshold);
-        rSerializer.load("CompressionDamage", mCompressionDamage);
-        rSerializer.load("CompressionThreshold", mCompressionThreshold);
-        rSerializer.load("NonConvCompressionnDamage", mNonConvCompressionDamage);
-        rSerializer.load("NonConvCompressionThreshold", mNonConvCompressionThreshold);
-    }
+    
 
     ///@}
 
-} // Class DamageDPlusDMinusMasonry2DLaw  
+}; // Class DamageDPlusDMinusMasonry2DLaw  
 }// namespace Kratos
-
+#endif
 
