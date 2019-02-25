@@ -98,13 +98,14 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     double* new_scale_factor = new double[3];
     double* new_offset = new double[3];
 
-    Vector scale_factor = ThisParameters["scale_factor"].GetVector();
-    KRATOS_ERROR_IF_NOT(scale_factor.size() == 3) << "scale_factor is not correct size: " << scale_factor.size() << std::endl;
-    Vector offset = ThisParameters["offset"].GetVector();
-    KRATOS_ERROR_IF_NOT(offset.size() == 3) << "offset is not correct size: " << offset.size() << std::endl;
+    const Vector& r_scale_factor = ThisParameters["scale_factor"].GetVector();
+    KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
+    const Vector& r_offset = ThisParameters["offset"].GetVector();
+
+    KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
     for (std::size_t i = 0; i < 3; ++i) {
-        new_scale_factor[i] = scale_factor[i];
-        new_offset[i] = offset[i];
+        new_scale_factor[i] = r_scale_factor[i];
+        new_offset[i] = r_offset[i];
     }
 
     BaseType::mOctree.SetScaleFactor(new_scale_factor);

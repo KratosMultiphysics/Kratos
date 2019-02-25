@@ -208,7 +208,19 @@ namespace Kratos {
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
             r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
-            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2, false);
+
+            Parameters parameters = Parameters(R"(
+            {
+                "first_model_part_name"  : "Surface",
+                "second_model_part_name" : "Boundaries",
+                "scale_factor"           : [1.0, 1.0, 1.0],
+                "offset"                 : [0.0, 0.0, 0.0],
+                "bounding_box_factor"    : 0.2,
+                "debug_obb"              : false
+            })" );
+
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(current_model, parameters);
+//             FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.2);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
