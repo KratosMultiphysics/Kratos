@@ -18,11 +18,6 @@ def GetFilePath(fileName):
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def tearDown(self):
         # Clean up temporary files
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
