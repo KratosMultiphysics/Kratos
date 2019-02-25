@@ -80,13 +80,13 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     double* new_scale_factor = new double[3];
     double* new_offset = new double[3];
 
-    Vector scale_factor = mThisParameters["scale_factor"].GetVector();
-    KRATOS_ERROR_IF_NOT(scale_factor.size() == 3) << "scale_factor is not correct size: " << scale_factor.size() << std::endl;
-    Vector offset = mThisParameters["offset"].GetVector();
-    KRATOS_ERROR_IF_NOT(offset.size() == 3) << "offset is not correct size: " << offset.size() << std::endl;
-    for (std::size_t i = 0; i < 3; ++i) {
-        new_scale_factor[i] = scale_factor[i];
-        new_offset[i] = offset[i];
+    const Vector& r_scale_factor = mThisParameters["scale_factor"].GetVector();
+    KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
+    const Vector& r_offset = mThisParameters["offset"].GetVector();
+    KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
+    for (IndexType i = 0; i < 3; ++i) {
+        new_scale_factor[i] = r_scale_factor[i];
+        new_offset[i] = r_offset[i];
     }
 
     mOctree.SetScaleFactor(new_scale_factor);
@@ -334,7 +334,17 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
         high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
     }
 
-    // TODO: Add computation of the extended Bounding Box
+    // Adding offset and scale
+    const Vector& r_scale_factor = mThisParameters["scale_factor"].GetVector();
+    KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
+    const Vector& r_offset = mThisParameters["offset"].GetVector();
+    KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
+
+    // Adding offset
+    for (IndexType i = 0; i < 3; ++i) {
+        low[i] -= r_offset[i];
+        high[i] += r_offset[i];
+    }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
@@ -343,6 +353,12 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
     mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
 
+    // Adding rescale
+    double* scale_factor = mOctree.GetScaleFactor();
+    for (IndexType i = 0; i < 3; ++i) {
+        scale_factor[i] *= r_scale_factor[i];
+    }
+    mOctree.SetScaleFactor(scale_factor);
 }
 
 /***********************************************************************************/
@@ -373,7 +389,7 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
     GeometryType& rSecondGeometry
     )
 {
-    const std::size_t work_dim = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
+    const IndexType work_dim = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
     if (work_dim == 2) {
         return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
     } else {

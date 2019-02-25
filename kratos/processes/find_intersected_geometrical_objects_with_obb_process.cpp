@@ -102,7 +102,6 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     const Vector& r_scale_factor = BaseType::mThisParameters["scale_factor"].GetVector();
     KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
     const Vector& r_offset = BaseType::mThisParameters["offset"].GetVector();
-
     KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
     for (std::size_t i = 0; i < 3; ++i) {
         new_scale_factor[i] = r_scale_factor[i];
