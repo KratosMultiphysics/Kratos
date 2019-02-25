@@ -237,7 +237,7 @@ void TrussElement3D2N::GetSecondDerivativesVector(Vector &rValues, int Step) con
 
 void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   this->CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
   this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
