@@ -1661,14 +1661,23 @@ ShellCrossSection::SectionBehaviorType ShellThinElement3D3N::GetSectionBehavior(
 
 void ShellThinElement3D3N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
-    rSerializer.save("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
+    bool is_corotational = (nullptr != dynamic_cast<ShellT3_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
+    rSerializer.save("is_corotational", is_corotational);
+    rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
-    rSerializer.load("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
+    bool is_corotational;
+    rSerializer.load("is_corotational", is_corotational);
+    if (is_corotational) {
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(pGetGeometry());
+    } else {
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CoordinateTransformation>(pGetGeometry());
+    }
+    rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
 }
