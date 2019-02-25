@@ -20,6 +20,7 @@ def CheckAvailabilityOfSensitivities(variable, model_part):
     else: # python2 syntax
         return model_part.Elements.__iter__().next().Has(variable)
 
+
 class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
     """
         This class integrates scalar element sensitivities (material and cross-section
@@ -70,14 +71,23 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         self.element_sensitivity_variables = self.__GenerateVariableListFromInput(parameter["element_sensitivity_variables"])
 
 
-    def ExecuteFinalizeSolutionStep(self):
-        """ This method is executed in order to finalize the current step
-
-        Here the dictionary containing the solution is filled
-
+    def ExecuteInitialize(self):
+        """ This method is executed at the begining to initialize the process
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        # Check integration domains
+        for sub_mp_i in self.sensitivity_sub_model_parts:
+            if len(sub_mp_i.Elements) < 1:
+                raise Exception("sensitivity sub model part has no elements!")
+
+
+    def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
         # loop over sensitivty variables for which integration should performed
         for variable_i in self.element_sensitivity_variables:
             if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
