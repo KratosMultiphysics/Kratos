@@ -12,6 +12,7 @@
 //
 
 #include "modeler/connectivity_preserve_modeler.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -65,16 +66,12 @@ void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart
 
 void ConnectivityPreserveModeler::ResetModelPart(ModelPart& rDestinationModelPart) const
 {
-    for(auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); it++)
-        it->Set(TO_ERASE);
+    VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Nodes());
+    VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Elements());
+    VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Conditions());
+
     rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-
-    for(auto it = rDestinationModelPart.ElementsBegin(); it != rDestinationModelPart.ElementsEnd(); it++)
-        it->Set(TO_ERASE);
     rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-
-    for(auto it = rDestinationModelPart.ConditionsBegin(); it != rDestinationModelPart.ConditionsEnd(); it++)
-        it->Set(TO_ERASE);
     rDestinationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
