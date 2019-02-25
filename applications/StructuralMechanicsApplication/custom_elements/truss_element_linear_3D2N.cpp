@@ -65,27 +65,6 @@ TrussElementLinear3D2N::CreateElementStiffnessMatrix(
   KRATOS_CATCH("")
 }
 
-void TrussElementLinear3D2N::CalculateLocalSystem(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY;
-  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-  this->UpdateInternalForces(internal_forces);
-
-  // resizing the matrices + create memory for LHS
-  rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-  // creating LHS
-  rLeftHandSideMatrix = this->CreateElementStiffnessMatrix(rCurrentProcessInfo);
-
-  rRightHandSideVector = ZeroVector(msLocalSize);
-  noalias(rRightHandSideVector) -= internal_forces;
-  noalias(rRightHandSideVector) += this->CalculateBodyForces();
-  this->AddPrestressLinear(rRightHandSideVector);
-
-  KRATOS_CATCH("")
-}
-
 void TrussElementLinear3D2N::AddPrestressLinear(
     VectorType &rRightHandSideVector) {
   KRATOS_TRY;
@@ -113,19 +92,11 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
   KRATOS_TRY
   rRightHandSideVector = ZeroVector(msLocalSize);
 
+  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+  this->UpdateInternalForces(internal_forces);
 
-  BoundedVector<double,msLocalSize> internal_forces =
-    this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,false);
+  noalias(rRightHandSideVector) -= internal_forces;
 
-  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
-      ZeroMatrix(msLocalSize, msLocalSize);
-  this->CreateTransformationMatrix(transformation_matrix);
-
-  internal_forces = prod(transformation_matrix, internal_forces);
-
-
-
-  rRightHandSideVector -= internal_forces;
   this->AddPrestressLinear(rRightHandSideVector);
 
   // add bodyforces
@@ -257,14 +228,6 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 
   rInternalForces = prod(transformation_matrix, rInternalForces);
 
-  KRATOS_CATCH("");
-}
-
-
-void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-  KRATOS_TRY;
-  this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,true);
   KRATOS_CATCH("");
 }
 

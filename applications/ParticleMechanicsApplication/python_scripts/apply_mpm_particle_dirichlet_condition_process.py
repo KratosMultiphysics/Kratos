@@ -51,6 +51,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             self.is_contact_boundary = True
         elif (self.constrained == "slip"):
             self.is_slip_boundary = True
+        elif (self.constrained == "contact_slip"):
+            self.is_contact_boundary = True
+            self.is_slip_boundary = True
         else:
             err_msg =  "The requested type of constrain: \"" + self.constrained + "\" is not available!\n"
             err_msg += "Available options are: \"fixed\", \"contact\" and \"slip\"."
