@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/obb.h"
+#include "includes/oriented_bounding_box.h"
 #include "utilities/math_utils.h"
 #include "utilities/intersection_utilities.h"
 
