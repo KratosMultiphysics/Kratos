@@ -76,7 +76,7 @@ public:
 
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
-    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+    static constexpr TDataType ZeroTolerance = std::numeric_limits<TDataType>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -418,7 +418,7 @@ public:
         const TMatrix1& rInputMatrix,
         TMatrix2& rInvertedMatrix,
         TDataType& rInputMatrixDet,
-        const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size = rInputMatrix.size2();
