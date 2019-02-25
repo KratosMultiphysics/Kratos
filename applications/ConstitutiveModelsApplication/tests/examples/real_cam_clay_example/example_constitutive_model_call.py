@@ -6,7 +6,8 @@ nnodes = 3
 dim = 3
 
 #define a model part and create new nodes
-model_part = ModelPart("test")
+model = Model()
+model_part = model.CreateModelPart("test")
 node1 = model_part.CreateNewNode(1,0.0,0.0,0.0)
 node2 = model_part.CreateNewNode(2,1.0,0.0,0.0)
 node3 = model_part.CreateNewNode(3,0.0,1.0,0.0)
@@ -105,8 +106,6 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 #cl.FinalizeMaterialResponsePK2( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
-
 
 print("\n The Material Response Kirchhoff")
 cl.CalculateMaterialResponseKirchhoff( cl_params )
@@ -115,7 +114,6 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseKirchhoff( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 print("\n The Material Response Cauchy")
 cl.CalculateMaterialResponseCauchy( cl_params )
@@ -124,5 +122,3 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseCauchy( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
-

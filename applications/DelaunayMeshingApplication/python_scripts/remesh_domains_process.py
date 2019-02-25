@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
-KratosMultiphysics.CheckForPreviousImport()
 
 #from multiprocessing import Pool
 
@@ -49,7 +48,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.next_meshing = 0.0
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
 
-        self.Model = Model
+        self.model = Model
 
         #construct meshing domains
         self.meshing_domains = []
@@ -64,8 +63,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
-        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
-
+        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # mesh mesher initial values
@@ -123,7 +121,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
-                self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
                     self.RemeshDomains()
 
@@ -132,7 +129,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
-                self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
                     self.RemeshDomains()
 
@@ -156,23 +152,16 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ExecuteMeshing()
 
-
-        #parallel (not working pickling instances not enabled)
-        #domains_number = len(self.meshing_domains)
-        #if(domains_number>8):
-        #    domains_number = 8
-
-        #pool = Pool(domains_number)
-        #pool.map(self.ExecuteMeshing,self.meshing_domains)
-        #pool.close()
-        #pool.joint()
-        #
+        if(self.echo_level>1):
+            print("")
+            print(self.main_model_part)
 
         self.model_manager.ExecuteFinalize()
 
         self.counter += 1
 
-        self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = True
+        # set meshing step time
+        self.SetMeshingStepTime()
 
         # schedule next meshing
         if(self.meshing_frequency > 0.0): # note: if == 0 always active
@@ -195,6 +184,11 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         return self.counter
 
     #
+    def SetMeshingStepTime(self):
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME, current_time)
+
+    #
     def IsMeshingStep(self):
 
         if(self.meshing_control_is_time):
@@ -205,8 +199,8 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-
-        nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
+        import domain_utilities
+        nodal_variables = domain_utilities.DomainUtilities().GetVariables()
         nodal_variables = nodal_variables + ['DETERMINANT_F'] # variables smoothing
         nodal_variables = nodal_variables + ['MEAN_ERROR'] # removing nodes
 
@@ -214,7 +208,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             nodal_variables = nodal_variables + domain.GetVariables()
 
-        #print(self._class_prefix()+" Variables added")
+        # print(self._class_prefix()+" Variables added")
 
         return nodal_variables
 

@@ -36,7 +36,7 @@ def shape_perturbation_correction_factor(node_1, node_2):
 
 def create_property_perturbed_elements(model_part, delta, new_element_name):
     dim = 3
-    perturbed_model_part = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
+    perturbed_model_part = model_part.GetModel().CreateModelPart("Property_Perturbed_Elements")
     perturbed_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
     add_variables(perturbed_model_part)
     perturbed_model_part.CreateNewNode(1, model_part.Nodes[1].X, model_part.Nodes[1].Y, model_part.Nodes[1].Z)
@@ -59,7 +59,7 @@ def create_property_perturbed_elements(model_part, delta, new_element_name):
 
 def create_shape_perturbed_elements(model_part, delta, new_element_name):
     dim=3
-    perturbed_model_part = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
+    perturbed_model_part = model_part.GetModel().CreateModelPart("Shape_Perturbed_Elements")
     add_variables(perturbed_model_part)
 
     x1 = model_part.Nodes[1].X
@@ -129,7 +129,9 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
     def setUp(self):
         # create test model part
         dim=3
-        self.model_part = KratosMultiphysics.ModelPart("test")
+        self.current_model = KratosMultiphysics.Model()
+
+        self.model_part = self.current_model.CreateModelPart("test")
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -198,7 +200,8 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
     def setUp(self):
         # create test model part
         dim=3
-        self.model_part = KratosMultiphysics.ModelPart("test")
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("test")
 
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         add_variables(self.model_part)

@@ -165,33 +165,33 @@ void TriRegenerateulf_pressure(TriGenModeler& Mesher,ModelPart& model_part,doubl
 void  AddMeshersToPython(pybind11::module& m)
 {
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<TetGenModeler >(m,"TetGenModeler")
-    .def(init< >())
+    py::class_<TetGenModeler >(m,"TetGenModeler")
+    .def(py::init< >())
     // .def("ReGenerateMesh",TetRegenerate)
     // .def("ReGenerateMesh_Lagrangian",TetRegenerateLagrangian)
     .def("ReGenerateUpdatedLagrangian3D",TetRegenerateUpdatedLagrangian)
     .def("ReGenerateUpdatedLagrangian3Dinc",TetRegenerateUpdatedLagrangianInc)
     ;
 
-    class_<TetGenPfemModeler >(m,"TetGenPfemModeler")
-    .def(init< >())
+    py::class_<TetGenPfemModeler >(m,"TetGenPfemModeler")
+    .def(py::init< >())
     .def("ReGenerateMeshPfemUlf3D",TetRegeneratePfemUlf3D)
     .def("ReGenerateMeshPfemUlf3Dinc",TetRegeneratePfemUlf3DInc)
     .def("ReGenerateMeshPfem3Dinc",TetRegeneratePfem3DInc)
     ;
 
-    class_<TriGenModeler >(m,"TriGenModeler")
-    .def(init< >())
+    py::class_<TriGenModeler >(m,"TriGenModeler")
+    .def(py::init< >())
     .def("ReGenerateMesh",TriRegenerate)
     .def("ReGenerateMeshCoupled",TriRegenerateCoupled)
     .def("ReGenerateUpdatedLagrangian",TriRegenerateUpdatedLagrangian)
     .def("RegenerateUpdatedLagrangian2Dinc",TriRegenerateUpdatedLagrangianTest)
     // .def("ReGenerateulf_pressure",TriRegenerateulf_pressure)
     ;
-    class_<TriGenCDTrefine >(m,"TriRefine")
-    .def(init< >())
+    py::class_<TriGenCDTrefine >(m,"TriRefine")
+    .def(py::init< >())
     .def("RefineMesh",RefineCDT)
     ;
 

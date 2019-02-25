@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.01,
-        "end_time"   : 0.1
+        "end_time"   : 10
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -20,7 +20,7 @@
     },
     "problem_data"        : {
 	"echo_level"      : 0,
-        "threads"         : 1,
+        "threads"         : 2,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings" : {
@@ -35,6 +35,7 @@
 			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
+			"reform_dofs_at_each_step"    : true,
 			"iterative_update"            : false,
 			"max_iteration"               : 20
 		    },
@@ -45,7 +46,7 @@
 		    "linear_solver_settings"    : {
 		    "solver_type"         : "BICGSTABSolver",
 			"max_iteration"       : 5000,
-			"tolerance"           : 1e-5,
+			"tolerance"           : 1e-6,
 			"preconditioner_type" : "None",
 			"scaling"             : false
 		    },
@@ -62,6 +63,7 @@
 			"time_integration_order" : 1
 		    },
 		    "solving_strategy_settings" : {
+			"reform_dofs_at_each_step"    : true,
 			"iterative_update"            : false,
 			"compute_reactions"           : false,
 			"max_iteration"               : 22
@@ -91,7 +93,7 @@
         "Parameters"    : {
             "model_part_name"       : "main_domain",
             "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1.0,
+            "meshing_frequency"     : 5.0,
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
@@ -200,7 +202,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "check_process_list" : [
+    "_check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -226,7 +228,7 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -238,7 +240,8 @@
             "output_control_type" : "step",
             "output_frequency"    : 1,
             "node_output"         : true,
-            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE"],
+            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
+	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }
     }

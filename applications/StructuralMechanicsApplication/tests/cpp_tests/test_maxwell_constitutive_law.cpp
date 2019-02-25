@@ -16,11 +16,11 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
-
+#include "containers/model.h"
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "structural_mechanics_application_variables.h"
@@ -42,7 +42,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     ProcessInfo process_info;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -66,6 +67,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     material_properties.SetValue(VISCOUS_PARAMETER, 0.15);
 
     Flags cl_options;
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     process_info.SetValue(DELTA_TIME, 0.1);
@@ -80,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
-    ViscousGeneralizedMaxwell3D maxwell_cl = ViscousGeneralizedMaxwell3D();
+    ViscousGeneralizedMaxwell<ElasticIsotropic3D> maxwell_cl = ViscousGeneralizedMaxwell<ElasticIsotropic3D>();
 
     std::vector<double> maxwell_res;
     maxwell_res = {-5.37455e+06, -5.37455e+06, -1.90552e+07, 0, 0, -1.44853e-10};

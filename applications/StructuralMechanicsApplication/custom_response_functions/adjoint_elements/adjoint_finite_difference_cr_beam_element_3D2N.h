@@ -31,18 +31,12 @@ public:
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
-    void Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
 
 private:
-    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
@@ -16,14 +16,12 @@
 // System includes
 
 // External includes
-#include "mpi.h"
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/communicator.h"
+#include "containers/model.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/levelset_convection_process.h"
-// #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 namespace Kratos
 {
@@ -55,10 +53,10 @@ class TrilinosLevelSetConvectionProcess
     : public LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-    
+
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -89,14 +87,14 @@ public:
         const double CrossWindStabilizationFactor = 0.7,
         const unsigned int MaxSubSteps = 0)
         : LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(
-            rLevelSetVar, 
-            rBaseModelPart, 
-            MaxCFL, 
+            rLevelSetVar,
+            rBaseModelPart,
+            MaxCFL,
             MaxSubSteps),
         mrEpetraCommunicator(rEpetraCommunicator)
     {
         KRATOS_TRY
-        
+
         // Check that there is at least one element and node in the model
         int n_nodes = rBaseModelPart.NumberOfNodes();
         int n_elems = rBaseModelPart.NumberOfElements();
@@ -107,10 +105,10 @@ public:
         }
 
         if(TDim == 2){
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
@@ -119,7 +117,7 @@ public:
 
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
-        
+
         // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
         if( rBaseModelPart.GetProcessInfo().Has(DYNAMIC_TAU) == false){
             rBaseModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU,0.0);
@@ -151,7 +149,7 @@ public:
         const bool calculate_norm_Dx_flag = false;
 
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
-            *(this->mpDistanceModelPart),
+            *BaseType::mpDistanceModelPart,
             p_scheme,
             pLinearSolver,
             p_builder_and_solver,
@@ -160,9 +158,9 @@ public:
             calculate_norm_Dx_flag);
 
         (this->mpSolvingStrategy)->SetEchoLevel(0);
-        
+
         rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, CrossWindStabilizationFactor);
-        
+
         //TODO: check flag DO_EXPENSIVE_CHECKS
         (this->mpSolvingStrategy)->Check();
 
@@ -235,24 +233,28 @@ protected:
 
         // Check buffer size
         const auto base_buffer_size = rBaseModelPart.GetBufferSize();
-        KRATOS_ERROR_IF(base_buffer_size < 2) << 
+        KRATOS_ERROR_IF(base_buffer_size < 2) <<
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
+        if(rBaseModelPart.GetModel().HasModelPart("DistanceConvectionPart"))
+            rBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
+
+        BaseType::mpDistanceModelPart= &(rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart"));
+
+
         // Generate
-        Kratos::unique_ptr<ModelPart> p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
-        (this->mpDistanceModelPart).swap(p_aux_model_part);
 
-        (this->mpDistanceModelPart)->Nodes().clear();
-        (this->mpDistanceModelPart)->Conditions().clear();
-        (this->mpDistanceModelPart)->Elements().clear();
+        BaseType::mpDistanceModelPart->Nodes().clear();
+        BaseType::mpDistanceModelPart->Conditions().clear();
+        BaseType::mpDistanceModelPart->Elements().clear();
 
-        (this->mpDistanceModelPart)->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
-        (this->mpDistanceModelPart)->SetBufferSize(base_buffer_size);
-        (this->mpDistanceModelPart)->SetProperties(rBaseModelPart.pProperties());
-        (this->mpDistanceModelPart)->Tables() = rBaseModelPart.Tables();
+        BaseType::mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
+        BaseType::mpDistanceModelPart->SetBufferSize(base_buffer_size);
+        BaseType::mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        BaseType::mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
-        (this->mpDistanceModelPart)->Nodes() = rBaseModelPart.Nodes();
+        BaseType::mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof< Variable < double> >(this->mrLevelSetVar, rBaseModelPart);
@@ -272,10 +274,10 @@ protected:
             p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
         }
 
-        (this->mpDistanceModelPart)->SetCommunicator(p_new_comm);
+        BaseType::mpDistanceModelPart->SetCommunicator(p_new_comm);
 
         // Generating the elements
-        ((this->mpDistanceModelPart)->Elements()).reserve(rBaseModelPart.NumberOfElements());
+        (BaseType::mpDistanceModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
@@ -284,13 +286,13 @@ protected:
 
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
-            
-            ((this->mpDistanceModelPart)->Elements()).push_back(p_element);
-            ((this->mpDistanceModelPart)->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
+
+            (BaseType::mpDistanceModelPart->Elements()).push_back(p_element);
+            (BaseType::mpDistanceModelPart->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
         }
-       
+
         // Resize the arrays
-        const auto n_nodes = (this->mpDistanceModelPart)->NumberOfNodes();
+        const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();
         (this->mVelocity).resize(n_nodes);
         (this->mVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);
@@ -365,6 +367,6 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 ///@}
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined 
+#endif // KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
 
 

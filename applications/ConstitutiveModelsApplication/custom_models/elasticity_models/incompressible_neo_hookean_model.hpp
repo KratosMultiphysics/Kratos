@@ -105,12 +105,11 @@ namespace Kratos
     /**
      * Check
      */
-    int Check(const Properties& rMaterialProperties,
-		      const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
-      IsochoricNeoHookeanModel::Check(rMaterialProperties,rCurrentProcessInfo);
+      IsochoricNeoHookeanModel::Check(rProperties,rCurrentProcessInfo);
 
       return 0;
 
@@ -194,17 +193,46 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    //specialized methods:
 
-    double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
-						       const unsigned int& a, const unsigned int& b,
-						       const unsigned int& c, const unsigned int& d) override
+    void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
-      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      rFactor = 1.0;
 
       KRATOS_CATCH(" ")
     }
+
+    void CalculatePressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      this->CalculateVolumetricFactor(rVariables,rFactor);
+
+      rFactor *= rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
+
+      KRATOS_CATCH(" ")
+    }
+
+    void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = 1.0;
+
+      KRATOS_CATCH(" ")
+    }
+
+    void CalculateConstitutiveMatrixPressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
+
+      KRATOS_CATCH(" ")
+    }
+
 
     //************// dW
 

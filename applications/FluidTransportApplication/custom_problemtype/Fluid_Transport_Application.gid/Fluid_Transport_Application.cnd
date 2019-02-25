@@ -4,12 +4,14 @@ CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces volumes
+QUESTION: Conductivity
+VALUE: 1.0
+QUESTION: Specific_Heat
+VALUE: 1.0
 QUESTION: Fluid_Density
 VALUE: 1.0
 HELP: Units in IS: Kg/m3
-QUESTION: Specific_Heat
-VALUE: 1.0
-QUESTION: Conductivity
+QUESTION: Absorption
 VALUE: 1.0
 END CONDITION
 
@@ -73,13 +75,16 @@ CONDMESHTYPE: over nodes
 GROUPALLOW: points lines surfaces volumes
 QUESTION: Phi_Value
 VALUE: 0.0
-HELP: Units in IS: 
+HELP: Units in IS:
 QUESTION: Fixed#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_Pressure,Constant)(true,RESTORE,Imposed_Pressure,#CURRENT#)
-QUESTION: Imposed_Pressure#CB#(Constant,Table_Interpolation)
+DEPENDENCIES: (false,HIDE,Imposed_Phi_Value,Constant)(true,RESTORE,Imposed_Phi_Value,#CURRENT#)
+QUESTION: Imposed_Phi_Value#CB#(Constant,Table_Interpolation)
 VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Phi_Value_Table,#CURRENT#)(Table_Interpolation,RESTORE,Phi_Value_Table,#CURRENT#)
+QUESTION: Phi_Value_Table(Time,Value)
+VALUE: #N# 2 0.0 0.0
 END CONDITION
 
 
@@ -95,5 +100,18 @@ QUESTION: Imposed_Face_Heat_Flux#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Heat_Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Heat_Flux_Table,#CURRENT#)
 QUESTION: Face_Heat_Flux_Table(Time,Face_Heat_Flux)
+VALUE: #N# 2 0.0 0.0
+END CONDITION
+
+CONDITION: Q_Source
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: surfaces volumes
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Imposed_Q_Source#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Q_Source_Table,#CURRENT#)(Table_Interpolation,RESTORE,Q_Source_Table,#CURRENT#)
+QUESTION: Q_Source_Table(Time,Q_Source)
 VALUE: #N# 2 0.0 0.0
 END CONDITION

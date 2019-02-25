@@ -10,11 +10,10 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-try:
-    from KratosMultiphysics.HDF5Application import *
-    has_hdf5_application = True
-except ImportError:
-    has_hdf5_application = False
+if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+    has_eigensolvers_application = True
+else:
+    has_eigensolvers_application = False
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
@@ -47,14 +46,9 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
-            model_part = KratosMultiphysics.ModelPart(self.problem_name)
 
-            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model_part)
-
-            # import model part
-            model_part_io = KratosMultiphysics.ModelPartIO(parameters["problem_data"]["problem_name"].GetString())
-            model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
-            model_part_io.ReadModelPart(model_part)
+            model = KratosMultiphysics.Model()
+            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
 
             # call response function
             self.response_function.Initialize()
@@ -80,7 +74,6 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             kratos_utils.DeleteFileIfExisting(self.problem_name + "-1.0000.h5")
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
 
-@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "adjoint_strain_energy_response"
 
@@ -92,7 +85,6 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
         self.assertAlmostEqual(self.gradient[4][1], 0.1774595908085034)
         self.assertAlmostEqual(self.gradient[4][2], -0.00012299112980707286)
 
-@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "adjoint_displacement_response"
 
@@ -110,7 +102,6 @@ class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFact
         self.assertAlmostEqual(self.gradient[4][1], 0.03549149963347915)
         self.assertAlmostEqual(self.gradient[4][2], -2.4598478882490207e-06, 9)
 
-@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "adjoint_stress_response"
 
@@ -133,6 +124,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 2943.7499999999995)
 
@@ -146,14 +138,26 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00606275111915477)
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.011324859625486555, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
+        self.assertAlmostEqual(self.gradient[4][0], -1.132485962510845)
+        self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
+        self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
+@KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
+class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "eigenfrequency_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+
+        self.assertAlmostEqual(self.value, 0.014123803835107267)
+
+        self.assertAlmostEqual(self.gradient[19][0], -2.629125898327006e-09)
+        self.assertAlmostEqual(self.gradient[19][1], -0.0070165270383214864)
+        self.assertAlmostEqual(self.gradient[19][2], 1.0549911195848093e-08)
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
@@ -163,6 +167,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.runTests(suites)

@@ -51,7 +51,7 @@ namespace Kratos
 
 /** Detail class definition.
 */
-class NewTrescaYieldCriterion
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NewTrescaYieldCriterion
 	: public TrescaYieldCriterion 
 {
     public:

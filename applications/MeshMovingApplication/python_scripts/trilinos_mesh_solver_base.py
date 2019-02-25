@@ -3,26 +3,21 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication", "TrilinosApplication")
-
 # Import applications
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
 import KratosMultiphysics.mpi as KratosMPI
-import mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
-def CreateSolver(mesh_model_part, custom_settings):
-    return TrilinosMeshSolverBase(mesh_model_part, custom_settings)
-
-
-class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
+class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         if not custom_settings.Has("mesh_motion_linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "AmesosSolver",
+                "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("mesh_motion_linear_solver_settings", linear_solver_settings)
@@ -34,11 +29,20 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
     def AddVariables(self):
         super(TrilinosMeshSolverBase, self).AddVariables()
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
+        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: Variables ADDED.")
 
-    def AddDofs(self):
-        super(TrilinosMeshSolverBase, self).AddDofs()
-        self.print_on_rank_zero("::[MeshSolverBase]:: DOFs ADDED.")
+    def ImportModelPart(self):
+        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: ", "Importing model part.")
+        from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
+        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.mesh_model_part, self.settings)
+        self.trilinos_model_part_importer.ImportModelPart()
+        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
+
+    def PrepareModelPart(self):
+        super(TrilinosMeshSolverBase, self).PrepareModelPart()
+        # Construct the mpi-communicator
+        self.trilinos_model_part_importer.CreateCommunicators()
+        self.print_on_rank_zero("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
     #### Specific internal functions ####
 

@@ -92,12 +92,12 @@ namespace Kratos
     rVariables.SetModelData(rValues);
     rVariables.SetState(rValues.State);
 
-    // ConstitutiveModelData::StressMeasure_Kirchhoff  allowed only
+    // ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff  allowed only
 
     // symmetric spatial velocity gradient
     noalias(rVariables.StrainMatrix) = 0.5 * (rValues.StrainMatrix + trans(rValues.StrainMatrix)); // spatial velocity gradient is rValues.StrainMatrix
 
-    rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+    rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu;
 
     KRATOS_CATCH(" ")
@@ -149,7 +149,7 @@ namespace Kratos
     const double& rDeltaTime                   = rValues.GetProcessInfo()[DELTA_TIME];
 
     // Skewsymmetric spatial velocity gradient
-    MatrixType W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
+    Matrix W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
 
     // Exponential map using quaternions
     Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
@@ -505,18 +505,18 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int HypoElasticModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int HypoElasticModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+    if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS] <= 0.00)
       KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
     if(POISSON_RATIO.Key() == 0){
       KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
     }
     else{
-      const double& nu = rMaterialProperties[POISSON_RATIO];
+      const double& nu = rProperties[POISSON_RATIO];
       if( (nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01) )
 	KRATOS_ERROR << "POISSON_RATIO has an invalid value" << std::endl;
     }

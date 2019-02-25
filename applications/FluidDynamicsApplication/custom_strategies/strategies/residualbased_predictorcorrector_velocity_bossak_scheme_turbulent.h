@@ -578,9 +578,9 @@ namespace Kratos {
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
-                if (rModelPart.GetCommunicator().MyPID() == 0)
-                    std::cout << "Computing OSS projections" << std::endl;
 
+                KRATOS_INFO_IF("ResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+                    << "Computing OSS projections" << std::endl;
 
                 const int nnodes = static_cast<int>(rModelPart.Nodes().size());
                 auto nbegin = rModelPart.NodesBegin();
@@ -598,8 +598,7 @@ namespace Kratos {
                 }//end of loop over nodes
 
                 //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
-                array_1d<double, 3 > output(3,0.0);
-
+                array_1d<double, 3 > output = ZeroVector(3);
 
                 const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
@@ -825,7 +824,7 @@ namespace Kratos {
             unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
             double nodal_area = 0.0;
-            array_1d<double,3> momentum_projection(3,0.0);
+            array_1d<double,3> momentum_projection = ZeroVector(3);
             double mass_projection = 0.0;
             for ( unsigned int i = 0; i < nodes_in_cond; i++ )
             {
@@ -922,45 +921,58 @@ namespace Kratos {
 
         //****************************************************************************
 
-        /**
-        bdyn = b - M*acc - D*vel
-
+        /// Add Bossak contributions from the inertial term to the RHS vector.
+        /** This essentially performs bdyn = b - M*acc for the current element.
+         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element itself.
+         *  @param[in] rCurrentElement The fluid element we are assembling.
+         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
+         *  @param[in] rD The elemental velocity/pressure LHS matrix.
+         *  @param[in] rM The elemental acceleration LHS matrix.
+         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
          */
         void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-                              LocalSystemVectorType& RHS_Contribution,
-                              LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
+                              LocalSystemVectorType& rRHS_Contribution,
+                              LocalSystemMatrixType& rD,
+                              LocalSystemMatrixType& rM,
+                              ProcessInfo& rCurrentProcessInfo)
         {
-            //adding inertia contributionDISPLACEMENT
-
-            if (M.size1() != 0) {
+            //adding inertia contribution
+            if (rM.size1() != 0) {
                 int k = OpenMPUtils::ThisThread();
                 rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
                 rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
-                noalias(RHS_Contribution) -= prod(M, macc[k]);
+                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
         }
 
+        /// Add Bossak contributions from the inertial term to the RHS vector.
+        /** This essentially performs bdyn = b - M*acc for the current condition.
+         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element condition.
+         *  @param[in] rCurrentCondition The fluid condition we are assembling.
+         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
+         *  @param[in] rD The elemental velocity/pressure LHS matrix.
+         *  @param[in] rM The elemental acceleration LHS matrix.
+         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
+         */
         void AddDynamicsToRHS(
-                              Condition::Pointer rCurrentElement,
-                              LocalSystemVectorType& RHS_Contribution,
+                              Condition::Pointer rCurrentCondition,
+                              LocalSystemVectorType& rRHS_Contribution,
                               LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
+                              LocalSystemMatrixType& rM,
+                              ProcessInfo& rCurrentProcessInfo)
         {
-            //adding inertia contributionDISPLACEMENT
-            if (M.size1() != 0)
+            //adding inertia contribution
+            if (rM.size1() != 0)
             {
                 int k = OpenMPUtils::ThisThread();
-                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
+                rCurrentCondition->GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
+                rCurrentCondition->GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
 
-                noalias(RHS_Contribution) -= prod(M, macc[k]);
+                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
         }
 

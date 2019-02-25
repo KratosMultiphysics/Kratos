@@ -273,6 +273,8 @@ namespace Kratos
      in.segmentmarkerlist          = new int[in.numberofsegments];
      in.segmentlist                = new int[in.numberofsegments*2];
 
+     for(unsigned int i = 0; i<in.numberofsegments; i++)
+       in.segmentmarkerlist[i] = 0;
 
       ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
 
@@ -286,7 +288,7 @@ namespace Kratos
 	  Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	  in.segmentlist[base]   = rGeometry[0].Id();
 	  in.segmentlist[base+1] = rGeometry[1].Id();
-
+         
 	  base+=2;
 	}
 
@@ -512,13 +514,30 @@ namespace Kratos
     }
 
     //if p is switched then in and out are pointed:(free only once)
+
     if(tr.segmentlist) trifree(tr.segmentlist);
+    // if(tr.segmentlist){
+    //   delete [] tr.segmentlist;
+    //   tr.numberofsegments = 0;
+    // }
+
     if(tr.segmentmarkerlist) trifree(tr.segmentmarkerlist);
+    // if(tr.segmentmarkerlist)
+    //   delete [] tr.segmentmarkerlist;
 
-    if(tr.holelist) trifree(tr.holelist);
+    
+    // if(tr.holelist) trifree(tr.holelist);
+    if(tr.holelist){
+      delete [] tr.holelist;
+      tr.numberofholes = 0;
+    }
 
-    if(tr.regionlist) trifree(tr.regionlist);
-
+    // if(tr.regionlist) trifree(tr.regionlist);
+    if(tr.regionlist){
+      delete [] tr.regionlist;
+      tr.numberofregions = 0;
+    }
+    
     if(tr.edgelist) trifree(tr.edgelist);
     if(tr.edgemarkerlist) trifree(tr.edgemarkerlist);
     if(tr.normlist) trifree(tr.normlist);

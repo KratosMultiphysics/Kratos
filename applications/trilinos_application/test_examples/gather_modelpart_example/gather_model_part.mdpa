@@ -16,7 +16,7 @@ Begin Nodes
 8   3.00000 1.00000 0.00000
 End Nodes
 
-Begin Elements VMS2D
+Begin Elements Element2D3N
 1 0 1 3 4
 2 0 1 2 3
 3 0 2 6 3

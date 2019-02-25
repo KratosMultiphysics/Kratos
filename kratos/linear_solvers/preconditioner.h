@@ -2,34 +2,27 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                    
+//  Main authors:    Pooyan Dadvand
 //
-
+//
 
 #if !defined(KRATOS_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_PRECONDITIONER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -401,7 +394,6 @@ inline std::ostream& operator << (std::ostream& OStream,
     return OStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 

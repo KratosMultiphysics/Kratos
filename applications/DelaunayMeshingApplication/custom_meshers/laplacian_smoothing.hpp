@@ -39,11 +39,11 @@
 
 
 //VARIABLES used:
-//Data:     NEIGHBOUR_NODES
+//Data:
 //StepData: DISPLACEMENT, CONTACT_FORCE, NORMAL, OFFSET
-//Flags:    (checked) BOUNDARY, TO_ERASE, VISITED
+//Flags:    (checked) BOUNDARY, TO_ERASE, INSIDE
 //          (set)
-//          (modified) VISITED
+//          (modified) INSIDE
 //          (reset)
 
 namespace Kratos
@@ -134,10 +134,10 @@ namespace Kratos
       //NEIGHBOUR NODES:
 
       std::vector<int> EmptyVector(0);
-      std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
-      std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
+      std::vector<std::vector<int> >  NeigbourNodesList(rNodes.size());
+      std::fill( NeigbourNodesList.begin(), NeigbourNodesList.end(), EmptyVector );
 
-      this->GetNeighborNodes(NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+      this->GetNeigbourNodes(NeigbourNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
 
 
       //*******************************************************************
@@ -187,7 +187,7 @@ namespace Kratos
 	for(unsigned int in = 0; in<rNodes.size(); in++)
 	  {
 
-	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
+	    unsigned int NumberOfNeighbours = NeigbourNodesList[in+1].size();
 
 	    if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(RIGID) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)
 	      {
@@ -207,9 +207,9 @@ namespace Kratos
 		for(unsigned int i = 0; i < NumberOfNeighbours; ++i)
 		  {
 		    //neighbour position
-		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
-		    Q[2] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
+		    Q[0] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->X();
+		    Q[1] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->Y();
+		    Q[2] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->Z();
 
 		    D = P-Q;
 
@@ -229,11 +229,11 @@ namespace Kratos
 			Weight = 0;
 		    }
 
-		    if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->Is(BOUNDARY) ){
+		    if( (nodes_begin+(NeigbourNodesList[in+1][i]-1))->Is(BOUNDARY) ){
 
 		      contact_active = false;
-		      if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->SolutionStepsDataHas(CONTACT_FORCE) ){
-			array_1d<double, 3 > & ContactForce = (nodes_begin+(NeighborNodesList[in+1][i]-1))->FastGetSolutionStepValue(CONTACT_FORCE);
+		      if( (nodes_begin+(NeigbourNodesList[in+1][i]-1))->SolutionStepsDataHas(CONTACT_FORCE) ){
+			array_1d<double, 3 > & ContactForce = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->FastGetSolutionStepValue(CONTACT_FORCE);
 			if( norm_2(ContactForce) !=0 )
 			  contact_active = true;
 		      }
@@ -295,7 +295,7 @@ namespace Kratos
 
       //*******************************************************************
       //MOVE NODES: BOUNDARY PROJECTION
-      //SetInsideProjection (rModelPart, out, NeighborNodesList);
+      //SetInsideProjection (rModelPart, out, NeigbourNodesList);
 
       //*******************************************************************
       //TRANSFER VARIABLES TO NEW NODES POSITION:
@@ -475,7 +475,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -494,9 +494,9 @@ namespace Kratos
 		i_node->Z0() = i_node->Z() - disp[2];
 
 	      }
-	      else if ( i_node->Is(BOUNDARY) && i_node->Is(VISITED) ){ // Set the position of boundary laplacian
+	      else if ( i_node->Is(BOUNDARY) && i_node->Is(INSIDE) ){ // Set the position of boundary laplacian
 
-		i_node->Set(VISITED, false);
+		i_node->Set(INSIDE, false);
 
 		//recover the original position of the node
 		id = i_node->Id();
@@ -534,7 +534,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -576,9 +576,9 @@ namespace Kratos
 	    }
 
 	    //Set the position of boundary laplacian (Reset the flag)
-	    if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+	    if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(INSIDE) )
 	      {
-		i_node->Set(VISITED, false); //LMV.
+		i_node->Set(INSIDE, false); //LMV.
 	      }
 
 	  }
@@ -609,13 +609,13 @@ namespace Kratos
 
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
-      std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
-      std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
+      std::vector<std::vector<int> >  NeigbourNodesList(rNodes.size());
+      std::fill( NeigbourNodesList.begin(), NeigbourNodesList.end(), EmptyVector );
 
-      this->GetBoundaryNeighborNodes(rNodes, NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+      this->GetBoundaryNeigbourNodes(rNodes, NeigbourNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
 
       //*******************************************************************
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
@@ -656,10 +656,10 @@ namespace Kratos
 
 	for(unsigned int in = 0; in<rNodes.size(); ++in)
 	  {
-	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
+	    unsigned int NumberOfNeighbours = NeigbourNodesList[in+1].size();
 
 	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && rNodes[in+1].IsNot(BOUNDARY) &&
-	       rNodes[in+1].Is(VISITED) && NumberOfNeighbours>1 )
+	       rNodes[in+1].Is(INSIDE) && NumberOfNeighbours>1 )
 	      {
 		TotalDistance.clear();
 		TotalWeight = 0;
@@ -677,9 +677,9 @@ namespace Kratos
 		for(unsigned int i = 0; i < NumberOfNeighbours; ++i)
 		  {
 		    //neighbour position
-		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
-		    Q[2] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
+		    Q[0] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->X();
+		    Q[1] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->Y();
+		    Q[2] = (nodes_begin+(NeigbourNodesList[in+1][i]-1))->Z();
 
 
 		    D = P-Q;
@@ -727,7 +727,7 @@ namespace Kratos
 
 	      }
 
-	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
+	    //rNodes[in+1].Set(INSIDE,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
 	  }
 
 
@@ -879,7 +879,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void GetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    void GetNeigbourNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
     {
 
       KRATOS_TRY
@@ -930,7 +930,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void GetBoundaryNeighborNodes (NodesContainerType& rNodes, std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    void GetBoundaryNeigbourNodes (NodesContainerType& rNodes, std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
     {
 
       KRATOS_TRY

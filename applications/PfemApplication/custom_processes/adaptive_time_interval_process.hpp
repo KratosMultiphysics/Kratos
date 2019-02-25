@@ -33,10 +33,10 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType                      NodesContainerType;
-typedef  ModelPart::ElementsContainerType                ElementsContainerType;
-typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
-
+typedef ModelPart::NodesContainerType                      NodesContainerType;
+typedef ModelPart::ElementsContainerType                ElementsContainerType;
+typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+typedef WeakPointerVector<Node<3> >                     NodeWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's
@@ -215,7 +215,7 @@ class AdaptiveTimeIntervalProcess
       ModelPart::NodeIterator NodeBegin;
       ModelPart::NodeIterator NodeEnd;
       OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
-      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+      for(ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
       {
         if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
           const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -225,10 +225,10 @@ class AdaptiveTimeIntervalProcess
           }
           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
           double unsafetyFactor=0;
-          WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-          for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
+          NodeWeakPtrVectorType& nNodes = itNode->GetValue(NEIGHBOUR_NODES);
+          for(auto i_nnode : nNodes)
           {
-            array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
+            array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-i_nnode.Coordinates();
             double squaredDistance=0;
             for (unsigned int d = 0; d < 3; ++d){
               squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];
@@ -476,68 +476,49 @@ class AdaptiveTimeIntervalProcess
  protected:
   ///@name Protected static Member Variables
   ///@{
-
-
   ///@}
   ///@name Protected member Variables
   ///@{
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-
+  ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
   ///@}
   ///@name Protected  Access
   ///@{
-
-
   ///@}
   ///@name Protected Inquiry
   ///@{
-
-
   ///@}
   ///@name Protected LifeCycle
   ///@{
-
-
   ///@}
 
  private:
-  ///@name Static Member Variables
+  ///@name Private Static Member Variables
   ///@{
+
   ModelPart& mrModelPart;
 
   int mEchoLevel;
 
-
   ///@}
-  ///@name Member Variables
+  ///@name Private Member Variables
   ///@{
-
-
   ///@}
   ///@name Private Operators
   ///@{
-
-
   ///@}
   ///@name Private Operations
   ///@{
-
-
   ///@}
   ///@name Private  Access
   ///@{
-
-
   ///@}
   ///@name Private Inquiry
   ///@{
-
-
   ///@}
   ///@name Un accessible methods
   ///@{

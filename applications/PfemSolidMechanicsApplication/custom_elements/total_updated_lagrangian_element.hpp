@@ -42,7 +42,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class TotalUpdatedLagrangianElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) TotalUpdatedLagrangianElement
     : public UpdatedLagrangianElement
 {
 public:

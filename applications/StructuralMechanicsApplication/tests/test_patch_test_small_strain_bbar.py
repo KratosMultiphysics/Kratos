@@ -37,18 +37,17 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 5.5)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         if(dim == 2):
-            cl = StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
+            cl = StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+            cl = StructuralMechanicsApplication.SmallStrainJ2Plasticity3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _define_movement(self,dim):
@@ -219,7 +218,9 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
 
     def test_SmallDisplacementBbarElement_2D_quadrilateral(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -259,7 +260,8 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
 
     def test_SmallDisplacementBbarElement_3D_hexa(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 

@@ -1,0 +1,820 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Kratos_KMat_DB version="1.2.30">
+  <Materials>
+    <MaterialGroup id="Metal" pid="Solid" state="hidden" icon="grey.gif" help="Helptext" open="1">
+      <Material id="Steel_AISI1059" pid="Steel_AISI1059" state="hidden" icon="grey.gif" help="Helptext" open="0">
+        <Container id="General" pid="General" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="Description" pid="Description" value="High Carbon Steel" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="Density" pid="Density" value="7870" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Structural" pid="Structural" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+              <Property id="YoungModulus" pid="Young modulus" value="200.0e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="ShearModulus" pid="Shear modulus" value="80e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatio" pid="Poisson ratio" value="0.29" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" class="normal" state="hiddenAll" help="General" open="0">
+              <Property id="YoungModulusE11" pid="Young modulus E11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE22" pid="Young modulus E22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE33" pid="Young modulus E33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG12" pid="Shear modulus G12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG13" pid="Shear modulus G13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG23" pid="Shear modulus G23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+            </Container>
+          </Container>
+          <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="YieldStress" pid="Yield Stress" value="0.450e3" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0.12924e3" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="16.93" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0.450e3" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0.715e3" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="DSofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear,Exponential" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DTensileStrength" pid="Tensile strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DCompressiveStrength" pid="Compressive strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DTensileFractureEnergy" pid="Tensile fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DCompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+            <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Fluid" pid="Fluid" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+          <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+          <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+          <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+          <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+          <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+          <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+        </Container>
+        <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Material>
+      <Material id="Aluminium_7021" pid="Aluminium_7021" state="hiddenAll" icon="grey.gif" help="Helptext" open="0">
+        <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="Description" pid="Description" value="Aluminium 7021-T62" unit=" " icon="prop.gif" state="normal" help="Helptext" open="1"/>
+          <Property id="Density" pid="Density" value="2780" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+              <Property id="YoungModulus" pid="Young modulus" value="72e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="ShearModulus" pid="Shear modulus" value="27e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatio" pid="Poisson ratio" value="0.33" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Property id="YoungModulusE11" pid="Young modulus E11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE22" pid="Young modulus E22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE33" pid="Young modulus E33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG12" pid="Shear modulus G12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG13" pid="Shear modulus G13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG23" pid="Shear modulus G23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+            </Container>
+          </Container>
+          <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear,Exponential" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileStrength" pid="Tensile strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveStrength" pid="Compressive strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileFractureEnergy" pid="Tensile fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+            <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+          <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+          <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+          <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+          <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+          <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+          <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+        </Container>
+        <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Material>
+    </MaterialGroup>
+    <MaterialGroup id="Fluid" pid="Fluid" state="hidden" icon="blue.gif" help="Helptext" open="1">
+      <Material id="Air" pid="Air" icon="blue.gif" state="hiddenAll" help="Helptext" open="0">
+        <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="Description" pid="Description" value="Air" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="Density" pid="Density" value="1" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+              <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Property id="YoungModulusE11" pid="Young modulus E11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE22" pid="Young modulus E22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE33" pid="Young modulus E33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG12" pid="Shear modulus G12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG13" pid="Shear modulus G13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG23" pid="Shear modulus G23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+            </Container>
+          </Container>
+          <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear,Exponential" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileStrength" pid="Tensile strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveStrength" pid="Compressive strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileFractureEnergy" pid="Tensile fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+          <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="15e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+          <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+          <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+          <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+          <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+          <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+        </Container>
+        <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Material>
+      <Material id="Water" pid="Water" state="hiddenAll" icon="blue.gif" help="Helptext" open="0">
+        <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="Description" pid="Description" value="Water H2O" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="Density" pid="Density" value="998.23" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+              <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Property id="YoungModulusE11" pid="Young modulus E11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE22" pid="Young modulus E22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE33" pid="Young modulus E33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG12" pid="Shear modulus G12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG13" pid="Shear modulus G13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG23" pid="Shear modulus G23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+            </Container>
+          </Container>
+          <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear,Exponential" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileStrength" pid="Tensile strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveStrength" pid="Compressive strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileFractureEnergy" pid="Tensile fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="1">
+          <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+          <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+          <Property id="BulkModulus" pid="Bulk Modulus" value="2.2e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+          <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+          <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+          <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+          <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+        </Container>
+        <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Material>
+    </MaterialGroup>
+    <MaterialGroup id="Plastic" pid="Plastic" state="hidden" icon="red.gif" help="Helptext" open="1"/>
+    <MaterialGroup id="Composite" pid="Composite" state="hidden" icon="green.gif" help="Helptext" open="1">
+      <Material id="HexPly_8551-7_IM7" pid="HexPly_8551-7_IM7" state="hiddenAll" icon="green.gif" help="Composite1" open="0">
+        <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="1">
+          <Property id="Description" pid="Description" value="Hexcel HexPly 8551-7 Epoxy Matrix, IM7 Fiber, 60% Fiber Volume" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="Density" pid="Density" value="1577" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+              <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Property id="YoungModulusE11" pid="Young modulus E11" value="159e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE22" pid="Young modulus E22" value="8.34e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="YoungModulusE33" pid="Young modulus E33" value="8.34e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG12" pid="Shear modulus G12" value="5.86e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG13" pid="Shear modulus G13" value="5.86e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="ShearModulusG23" pid="Shear modulus G23" value="5.86e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0.22" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0.22" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0.22" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+              <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+              <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+                <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              </Container>
+            </Container>
+          </Container>
+          <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+            <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileStrength" pid="Tensile strength" value="2760e6" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveStrength" pid="Compressive strength" value="1620e06" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="TensileFractureEnergy" pid="Tensile fracture energy" value="27.6" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="276" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+            <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+            <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+        </Container>
+        <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+          <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+          <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+          <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+          <Property id="PowerLawN" pid="Power Law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law N value"/>
+          <Property id="PowerLawK" pid="Power Law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+          <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength value"/>
+        </Container>
+        <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+      </Material>
+    </MaterialGroup>
+    <MaterialGroup id="DEMMaterial" pid="DEM" icon="grey.gif" help="DEM material" open="1">
+      <Material id="DEM-DefaultMaterial" pid="DEM-DefaultMaterial" icon="grey.gif" help="Material name" open="0">
+        <Property id="Density" pid="Density (Kg/m3)" value="2550.0" unit=" " icon="prop.gif" state="normal" help="Material density" open="0"/>
+        <Property id="YoungModulus" pid="Young modulus (Pa)" value="35e9" unit=" " icon="prop.gif" state="normal" help="Material stiffness" open="0"/>
+        <Property id="PoissonRatio" pid="Poisson ratio" value="0.20" unit=" " icon="prop.gif" state="normal" help="Poisson coefficient of the material" open="0"/>
+        <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
+        <Property id="ParticleCohesion" pid="Particle cohesion (Pa)" value="0.0" unit=" " icon="prop.gif" state="normal" help="Particle cohesion" open="0"/>
+        <Property id="ParticleFrictionAngle" pid="Friction angle (deg)" value="30.0" unit="deg" icon="prop.gif" state="normal" help="Particle dynamic friction angle" open="0"/>
+        <Property id="CoefficientOfRestitution" pid="Coefficient of Restitution" value="0.2" unit=" " icon="prop.gif" state="normal" help="Related to the material damping. Set to 0 for maximum energy reduction" open="0"/>
+        <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction between material particles" open="0"/>
+        <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction with walls" open="0"/>
+        <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
+        <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,Linear_HighStiffness" values="Linear,Hertz,LinearCustomized,Linear_HighStiffness" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
+        <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
+        <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
+        <Property id="DEM_ConstitutiveLaw" pid="Constitutive Law" class="DEM-ConstitutiveLaw" value="KDEM" ivalues="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" values="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" delvalues="" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+        <Property id="DEM_internal_cohesion" pid="Mohr Coulomb Cohesion (MPa)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Cohesion parameter for the Mohr Coulomb failure criterion" open="0"/>
+        <Property id="DEM_internal_friction_angle" pid="Mohr Coulomb Friction Angle (deg)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Friction Angle parameter for the Mohr Coulomb failure criterion" open="0"/>
+        <Property id="DEM_CamClay_Slope" pid="CamClay slope" DEM-ConstitutiveLaw="KDEM_CamClay" value="1.2" unit=" " icon="prop.gif" state="normal" help="The value of the M parameter in Cam Clay, the slope of the Critical State Line" open="0"/>
+        <Property id="DEM_Preconsolidation_Pressure" pid="CamClay Preconsolidation Pressure" DEM-ConstitutiveLaw="KDEM_CamClay" value="1e7" unit="Pa" icon="prop.gif" state="normal" help="The value of the p_c parameter in Cam Clay, equal to the preconsolitation pressure" open="0"/>
+        <Property id="DEM_stress_limit_growth_slope" pid="Stress limit growth slope" DEM-ConstitutiveLaw="KDEM_Fissured_Rock" value="0.1" unit=" " icon="prop.gif" state="normal" help="The growth rate of the limit stress, which is multiplied by the compression stresses" open="0"/>
+        <Property id="DEM_Fabric_Coefficient" pid="Fabric coefficient" DEM-ConstitutiveLaw="KDEMFabric" value="0.1" unit=" " icon="prop.gif" state="normal" help="Its value goes from 0 to 1. It refers to the moment resistance, 0 meaning no resistance at all and 1 maximum resistance, equivalent to KDEM" open="0"/>
+        <Property id="TangentialStrength" pid="Tangential Strength (MPa)" value="25" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Maximum shear strength of the material" open="0"/>
+        <Property id="NormalTensileStrength" pid="Normal Tensile Strength (MPa)" value="5" DEM-ConstitutiveLaw="KDEM,DEMPack,KDEM_Rankine,KDEM_Fissured_Rock,KDEMFabric" unit=" " icon="prop.gif" state="normal" help="Maximum tensile strength of the material" open="0"/>
+        <Property id="InternalFrictionAngleCoeff" pid="Internal Friction Angle Coefficient" value="1" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Static friction coefficient" open="0"/>
+        <Property id="LCS1" pid="LCS1 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="20" unit=" " icon="prop.gif" state="normal" help="First stiffness reduction point" open="0"/>
+        <Property id="LCS2" pid="LCS2 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="24" unit=" " icon="prop.gif" state="normal" help="Second stiffness reduction point" open="0"/>
+        <Property id="LCS3" pid="LCS3 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="28" unit=" " icon="prop.gif" state="normal" help="Third stiffness reduction point" open="0"/>
+        <Property id="YRC1" pid="YRC1" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="First reduction coefficient" open="0"/>
+        <Property id="YRC2" pid="YRC2" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Second reduction coefficient" open="0"/>
+        <Property id="YRC3" pid="YRC3" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Third reduction coefficient" open="0"/>
+        <Property id="PlasticYoungModulus" pid="Plastic Young Modulus (Pa)" DEM-ConstitutiveLaw="DEMPack" value="35e9" unit=" " icon="prop.gif" state="normal" help="Material stiffness in the plastic zone" open="0"/>
+        <Property id="PlasticYieldStress" pid="Plastic Yield Stress (MPa)" DEM-ConstitutiveLaw="DEMPack" value="1000" unit=" " icon="prop.gif" state="normal" help="Plastic yield point" open="0"/>
+        <Property id="DamageDeformationFactor" pid="Damage Deformation Factor" DEM-ConstitutiveLaw="DEMPack" value="0.2" unit=" " icon="prop.gif" state="normal" help="Energy stored after bond fracture" open="0"/>
+        <Property id="ShearEnergyCoeff" pid="Shear Energy Coefficient" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Energy stored due shear effects" open="0"/>
+        <Property id="Color" pid="Material postprocess color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
+        <Container id="ThermalParameters" pid="Thermal Parameters" icon="prop.gif" state="normal" class="normal" help="Thermal data" open="0">
+          <Property id="ThermalConductivity" pid="Thermal Conductivity (W/(m.K))" value="50" unit="W/(m.K)" icon="prop.gif"  help="Material conductivity" open="0"/>
+          <Property id="SpecificHeat" pid="Specific heat (J/(Kg.K))" value="450" unit="J/(Kg.K)" icon="prop.gif" state="normal" help="Material specific heat" open="0"/>
+        </Container>
+      </Material>
+      <Material id="DEM-IceMaterial" pid="DEM-IceMaterial" icon="grey.gif" help="Material name" open="0">
+        <Property id="Density" pid="Density (Kg/m3)" value="917.0" unit=" " icon="prop.gif" state="normal" help="Material density" open="0"/>
+        <Property id="YoungModulus" pid="Young modulus (Pa)" value="1e9" unit=" " icon="prop.gif" state="normal" help="Material stiffness" open="0"/>
+        <Property id="PoissonRatio" pid="Poisson ratio" value="0.20" unit=" " icon="prop.gif" state="normal" help="Poisson coefficient of the material" open="0"/>
+        <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
+        <Property id="ParticleCohesion" pid="Particle cohesion (Pa)" value="0.0" unit=" " icon="prop.gif" state="normal" help="Particle cohesion" open="0"/>
+        <Property id="ParticleFrictionAngle" pid="Friction angle (deg)" value="30.0" unit="deg" icon="prop.gif" state="normal" help="Particle dynamic friction angle" open="0"/>
+        <Property id="CoefficientOfRestitution" pid="Coefficient of Restitution" value="0.01" unit=" " icon="prop.gif" state="normal" help="Related to the material damping. Set to 0 for maximum energy reduction" open="0"/>
+        <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction between material particles" open="0"/>
+        <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction with walls" open="0"/>
+        <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
+        <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized" values="Linear,Hertz,LinearCustomized" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
+        <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
+        <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
+        <Property id="DEM_ConstitutiveLaw" pid="Constitutive Law" class="DEM-ConstitutiveLaw" value="KDEM" ivalues="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" values="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" delvalues="" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+        <Property id="DEM_internal_cohesion" pid="Mohr Coulomb Cohesion (MPa)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Cohesion parameter for the Mohr Coulomb failure criterion" open="0"/>
+        <Property id="DEM_internal_friction_angle" pid="Mohr Coulomb Friction Angle (deg)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Friction Angle parameter for the Mohr Coulomb failure criterion" open="0"/>
+        <Property id="DEM_CamClay_Slope" pid="CamClay slope" DEM-ConstitutiveLaw="KDEM_CamClay" value="1.2" unit=" " icon="prop.gif" state="normal" help="The value of the M parameter in Cam Clay, the slope of the Critical State Line" open="0"/>
+        <Property id="DEM_Preconsolidation_Pressure" pid="CamClay Preconsolidation Pressure" DEM-ConstitutiveLaw="KDEM_CamClay" value="1e7" unit="Pa" icon="prop.gif" state="normal" help="The value of the p_c parameter in Cam Clay, equal to the preconsolitation pressure" open="0"/>
+        <Property id="DEM_stress_limit_growth_slope" pid="Stress limit growth slope" DEM-ConstitutiveLaw="KDEM_Fissured_Rock" value="0.1" unit=" " icon="prop.gif" state="normal" help="The growth rate of the limit stress, which is multiplied by the compression stresses" open="0"/>
+        <Property id="DEM_Fabric_Coefficient" pid="Fabric coefficient" DEM-ConstitutiveLaw="KDEMFabric" value="0.1" unit=" " icon="prop.gif" state="normal" help="Its value goes from 0 to 1. It refers to the moment resistance, 0 meaning no resistance at all and 1 maximum resistance, equivalent to KDEM" open="0"/>
+        <Property id="TangentialStrength" pid="Tangential Strength (MPa)" value="6.5" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Maximum shear strength of the material" open="0"/>
+        <Property id="NormalTensileStrength" pid="Normal Tensile Strength (MPa)" value="3.0" DEM-ConstitutiveLaw="KDEM,DEMPack,KDEM_Rankine,KDEM_Fissured_Rock,KDEMFabric" unit=" " icon="prop.gif" state="normal" help="Maximum tensile strength of the material" open="0"/>
+        <Property id="InternalFrictionAngleCoeff" pid="Internal Friction Angle Coefficient" value="1" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Static friction coefficient" open="0"/>
+        <Property id="LCS1" pid="LCS1 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="20" unit=" " icon="prop.gif" state="normal" help="First stiffness reduction point" open="0"/>
+        <Property id="LCS2" pid="LCS2 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="24" unit=" " icon="prop.gif" state="normal" help="Second stiffness reduction point" open="0"/>
+        <Property id="LCS3" pid="LCS3 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="28" unit=" " icon="prop.gif" state="normal" help="Third stiffness reduction point" open="0"/>
+        <Property id="YRC1" pid="YRC1" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="First reduction coefficient" open="0"/>
+        <Property id="YRC2" pid="YRC2" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Second reduction coefficient" open="0"/>
+        <Property id="YRC3" pid="YRC3" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Third reduction coefficient" open="0"/>
+        <Property id="PlasticYoungModulus" pid="Plastic Young Modulus (Pa)" DEM-ConstitutiveLaw="DEMPack" value="35e9" unit=" " icon="prop.gif" state="normal" help="Material stiffness in the plastic zone" open="0"/>
+        <Property id="PlasticYieldStress" pid="Plastic Yield Stress (MPa)" DEM-ConstitutiveLaw="DEMPack" value="1000" unit=" " icon="prop.gif" state="normal" help="Plastic yield point" open="0"/>
+        <Property id="DamageDeformationFactor" pid="Damage Deformation Factor" DEM-ConstitutiveLaw="DEMPack" value="0.2" unit=" " icon="prop.gif" state="normal" help="Energy stored after bond fracture" open="0"/>
+        <Property id="ShearEnergyCoeff" pid="Shear Energy Coefficient" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Energy stored due shear effects" open="0"/>
+        <Property id="Color" pid="Material postprocess color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
+        <Container id="ThermalParameters" pid="Thermal Parameters" icon="prop.gif" state="normal" class="normal" help="Thermal data" open="0">
+          <Property id="ThermalConductivity" pid="Thermal Conductivity (W/(m.K))" value="50" unit="W/(m.K)" icon="prop.gif"  help="Material conductivity" open="0"/>
+          <Property id="SpecificHeat" pid="Specific heat (J/(Kg.K))" value="450" unit="J/(Kg.K)" icon="prop.gif" state="normal" help="Material specific heat" open="0"/>
+        </Container>
+      </Material>
+    </MaterialGroup>
+    <ClassConfiguration>
+      <Class>DEM-ConstitutiveLaw,DEMContactLaw</Class>
+    </ClassConfiguration>
+  </Materials>
+  <Units>
+    <!-- Kratos unit properties -->
+  </Units>
+  <Templates>
+    <Template id="NewMaterial" help="Helptext" open="1">
+      <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="1">
+        <Property id="Description" pid="Description" value="material description" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        <Property id="Density" pid="Density" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+      </Container>
+      <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" help="General" open="0">
+        <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" help="General" open="0">
+          <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
+            <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Property id="YoungModulusE11" pid="Young modulus E11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="YoungModulusE22" pid="Young modulus E22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="YoungModulusE33" pid="Young modulus E33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="ShearModulusG12" pid="Shear modulus G12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="ShearModulusG13" pid="Shear modulus G13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="ShearModulusG23" pid="Shear modulus G23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="PoissonRatiov12" pid="Poisson ratio v12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="PoissonRatiov13" pid="Poisson ratio v13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Property id="PoissonRatiov23" pid="Poisson ratio v23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          </Container>
+          <Container id="Anisotropic" pid="Anisotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+            <Container id="MatrixA" pid="Matrix A" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+              <Property id="A11" pid="A11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A12" pid="A12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A13" pid="A13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A21" pid="A21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A22" pid="A22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A23" pid="A23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A31" pid="A31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A32" pid="A32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="A33" pid="A33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="MatrixB" pid="Matrix B" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+              <Property id="B11" pid="B11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B12" pid="B12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B13" pid="B13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B21" pid="B21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B22" pid="B22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B23" pid="B23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B31" pid="B31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B32" pid="B32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="B33" pid="B33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+            <Container id="MatrixD" pid="Matrix D" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+              <Property id="D11" pid="D11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D12" pid="D12" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D13" pid="D13" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D21" pid="D21" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D22" pid="D22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D23" pid="D23" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D31" pid="D31" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D32" pid="D32" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+              <Property id="D33" pid="D33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            </Container>
+          </Container>
+        </Container>
+        <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
+          <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="HardeningType" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="SaturationLaw" pid="Saturation law" class="SaturationLaw" value="None" ivalues="None,Linear,Exponential" values="None,Linear,Exponential" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="HardeningExponent" pid="Hardening exponent" SaturationLaw="Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="ReferenceHardeningModulus" pid="Reference hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="InfinityHardeningModulus" pid="Infinity hardening modulus" SaturationLaw="Linear,Exponential" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="FlowRule" pid="Flow rule" class="FlowRule" value="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+          <Property id="ImplicitIteration" pid="Backward Euler iterations" FlowRule="Non-Linear" value="30" unit=" " icon="prop.gif" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Damage" pid="Damage" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+          <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear,Exponential" values="Linear,Exponential" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="TensileStrength" pid="Tensile strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="CompressiveStrength" pid="Compressive strength" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="TensileFractureEnergy" pid="Tensile fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Container>
+      <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+        <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+          <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+          <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        </Container>
+        <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
+          <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="K22" pid="K22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="K33" pid="K33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="alfa11" pid="alfa 11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="alfa22" pid="alfa 22" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+          <Property id="alfa33" pid="alfa 33" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        </Container>
+      </Container>
+      <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
+        <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+        <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+        <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+        <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+        <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+        <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+        <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+        <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+      </Container>
+      <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
+        <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+        <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+      </Container>
+    </Template>
+    <Template id="NewDEMMaterial" help="New DEM material type" open="1">
+      <Property id="Density" pid="Density (Kg/m3)" value="2500.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
+      <Property id="YoungModulus" pid="Young modulus (Pa)" value="1.0e9" unit=" " icon="prop.gif" state="normal" help="Young Modulus" open="0"/>
+      <Property id="PoissonRatio" pid="Poisson ratio" value="0.20" unit=" " icon="prop.gif" state="normal" help="Poisson Ratio" open="0"/>
+      <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
+      <Property id="ParticleCohesion" pid="Particle cohesion (Pa)" value="0.0" unit=" " icon="prop.gif" state="normal" help="Particle cohesion" open="0"/>
+      <Property id="ParticleFrictionAngle" pid="Friction angle (deg)" value="45.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle" open="0"/>
+      <Property id="CoefficientOfRestitution" pid="Coefficient of Restitution" value="0.2" unit=" " icon="prop.gif" state="normal" help="Coefficient of Restitution" open="0"/>
+      <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction" open="0"/>
+      <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="normal" help="Rolling friction with walls" open="0"/>
+      <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
+      <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,Linear_HighStiffness" values="Linear,Hertz,LinearCustomized,Linear_HighStiffness" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
+      <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="K Normal" open="0"/>
+      <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="K Tangential" open="0"/>
+      <Property id="DEM_ConstitutiveLaw" pid="Constitutive Law" class="DEM-ConstitutiveLaw" value="KDEM" ivalues="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" values="DEMPack,KDEM,KDEM_Rankine,KDEM_Mohr_Coulomb,KDEM_CamClay,KDEM_Fissured_Rock,KDEMFabric" delvalues="" unit=" " icon="prop.gif" help="DEM Constitutive Law" open="0"/>
+      <Property id="DEM_internal_cohesion" pid="Mohr Coulomb Cohesion (MPa)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Cohesion parameter for the Mohr Coulomb failure criterion" open="0"/>
+      <Property id="DEM_internal_friction_angle" pid="Mohr Coulomb Friction Angle (deg)" DEM-ConstitutiveLaw="KDEM_Mohr_Coulomb" value="1.0" unit=" " icon="prop.gif" state="normal" help="The value of the Friction Angle parameter for the Mohr Coulomb failure criterion" open="0"/>
+      <Property id="DEM_CamClay_Slope" pid="CamClay slope" DEM-ConstitutiveLaw="KDEM_CamClay" value="1.2" unit=" " icon="prop.gif" state="normal" help="The value of the M parameter in Cam Clay, the slope of the Critical State Line" open="0"/>
+      <Property id="DEM_Preconsolidation_Pressure" pid="CamClay Preconsolidation Pressure" DEM-ConstitutiveLaw="KDEM_CamClay" value="1e7" unit="Pa" icon="prop.gif" state="normal" help="The value of the p_c parameter in Cam Clay, equal to the preconsolitation pressure" open="0"/>
+      <Property id="DEM_stress_limit_growth_slope" pid="Stress limit growth slope" DEM-ConstitutiveLaw="KDEM_Fissured_Rock" value="0.1" unit=" " icon="prop.gif" state="normal" help="The growth rate of the limit stress, which is multiplied by the compression stresses" open="0"/>
+      <Property id="DEM_Fabric_Coefficient" pid="Fabric coefficient" DEM-ConstitutiveLaw="KDEMFabric" value="0.1" unit=" " icon="prop.gif" state="normal" help="Its value goes from 0 to 1. It refers to the moment resistance, 0 meaning no resistance at all and 1 maximum resistance, equivalent to KDEM" open="0"/>
+      <Property id="TangentialStrength" pid="Tangential Strength (MPa)" value="25" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Maximum shear strength of the material" open="0"/>
+      <Property id="NormalTensileStrength" pid="Normal Tensile Strength (MPa)" value="5" DEM-ConstitutiveLaw="KDEM,DEMPack,KDEM_Rankine,KDEM_Fissured_Rock,KDEMFabric" unit=" " icon="prop.gif" state="normal" help="Maximum tensile strength of the material" open="0"/>
+      <Property id="InternalFrictionAngleCoeff" pid="Internal Friction Angle Coefficient" value="1" DEM-ConstitutiveLaw="KDEM,DEMPack" unit=" " icon="prop.gif" state="normal" help="Static friction coefficient" open="0"/>
+      <Property id="LCS1" pid="LCS1 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="20" unit=" " icon="prop.gif" state="normal" help="First stiffness reduction point" open="0"/>
+      <Property id="LCS2" pid="LCS2 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="24" unit=" " icon="prop.gif" state="normal" help="Second stiffness reduction point" open="0"/>
+      <Property id="LCS3" pid="LCS3 (MPa)" DEM-ConstitutiveLaw="DEMPack" value="28" unit=" " icon="prop.gif" state="normal" help="Third stiffness reduction point" open="0"/>
+      <Property id="YRC1" pid="YRC1" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="First reduction coefficient" open="0"/>
+      <Property id="YRC2" pid="YRC2" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Second reduction coefficient" open="0"/>
+      <Property id="YRC3" pid="YRC3" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Third reduction coefficient" open="0"/>
+      <Property id="PlasticYoungModulus" pid="Plastic Young Modulus (Pa)" DEM-ConstitutiveLaw="DEMPack" value="35e9" unit=" " icon="prop.gif" state="normal" help="Material stiffness in the plastic zone" open="0"/>
+      <Property id="PlasticYieldStress" pid="Plastic Yield Stress (MPa)" DEM-ConstitutiveLaw="DEMPack" value="1000" unit=" " icon="prop.gif" state="normal" help="Plastic yield point" open="0"/>
+      <Property id="DamageDeformationFactor" pid="Damage Deformation Factor" DEM-ConstitutiveLaw="DEMPack" value="0.2" unit=" " icon="prop.gif" state="normal" help="Energy stored after bond fracture" open="0"/>
+      <Property id="ShearEnergyCoeff" pid="Shear Energy Coefficient" DEM-ConstitutiveLaw="DEMPack" value="1" unit=" " icon="prop.gif" state="normal" help="Energy stored due shear effects" open="0"/>
+      <Property id="Color" pid="Material postprocess color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
+      <Container id="ThermalParameters" pid="Thermal Parameters" icon="prop.gif" state="normal" class="normal" help="Thermal Parameters" open="0">
+        <Property id="ThermalConductivity" pid="Thermal Conductivity (W/(m.K))" value="50" unit="W/(m.K) " icon="prop.gif"  help="Thermal Conductivity" open="0"/>
+        <Property id="SpecificHeat" pid="Specific heat (J/(Kg.K))" value="450" unit="J/(kg.K)" icon="prop.gif" state="normal" help="Specific Heat" open="0"/>
+      </Container>
+    </Template>
+  </Templates>
+</Kratos_KMat_DB>

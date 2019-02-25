@@ -105,32 +105,32 @@ namespace Kratos
         /**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
-        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
+        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material() const;
 
         /**
          * @brief This function calculates the geometric part of the total stiffness matrix
          */
-        BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
+        BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry() const;
 
         /**
          * @brief This function calculates the element stiffness w.r.t. deformation modes
          */
-        virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+        virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const;
 
         /**
          * @brief This function calculates a transformation matrix from deformation modes to real deformations
          */
-        BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+        BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS() const;
 
         /**
          * @brief This function calculates the current nodal position
          */
-        BoundedVector<double,msLocalSize> GetCurrentNodalPosition();
+        BoundedVector<double,msLocalSize> GetCurrentNodalPosition() const;
 
         /**
          * @brief This function calculates the internal element forces
          */
-        BoundedVector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
+        BoundedVector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference) const;
 
 
         /**
@@ -145,7 +145,7 @@ namespace Kratos
         /**
          * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
          */
-        BoundedMatrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
+        BoundedMatrix<double,msElementSize,msElementSize> CalculateInitialLocalCS() const;
 
 
         /**
@@ -178,7 +178,7 @@ namespace Kratos
          */
         void CalculateLumpedMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) const;
 
 
         /**
@@ -188,7 +188,7 @@ namespace Kratos
          */
         void CalculateConsistentMassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) const;
 
 
         /**
@@ -202,7 +202,7 @@ namespace Kratos
          */
         void BuildSingleMassMatrix(
             MatrixType& rMassMatrix,
-            const double Phi, const double CT, const double CR, const double L, const double dir);
+            const double Phi, const double CT, const double CR, const double L, const double dir) const;
 
         void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
@@ -231,7 +231,7 @@ namespace Kratos
          * @param BigMatrix The total global rotation matrix
          */
         void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
-            msElementSize,msElementSize>& BigMatrix);
+            msElementSize,msElementSize>& BigMatrix) const;
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -241,22 +241,12 @@ namespace Kratos
          * @param I The second moment of area
          * @param A_eff The shear-effective area
          */
-        double CalculatePsi(const double I, const double A_eff);
+        double CalculatePsi(const double I, const double A_eff) const;
 
         /**
          * @brief This function calculates shear modulus from user input values
          */
-        double CalculateShearModulus();
-
-        /**
-         * @brief This function calculates the reference length
-         */
-        double CalculateReferenceLength();
-
-        /**
-         * @brief This function calculates the current length
-         */
-        double CalculateCurrentLength();
+        double CalculateShearModulus() const;
 
         /**
          * @brief This function updates incremental deformation w.r.t. to current and previous deformations
@@ -267,7 +257,7 @@ namespace Kratos
         /**
          * @brief This function calculates self-weight forces
          */
-        BoundedVector<double,msElementSize> CalculateBodyForces();
+        BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
         void CalculateOnIntegrationPoints(
             const Variable<array_1d<double, 3 > >& rVariable,
@@ -278,17 +268,6 @@ namespace Kratos
             const Variable<array_1d<double, 3 > >& rVariable,
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector >& rVariable,
-            std::vector< Vector >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
 
         IntegrationMethod GetIntegrationMethod() const override;
 
@@ -302,20 +281,20 @@ namespace Kratos
         void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
             const BoundedVector<double,msDimension> ForceInput,
             BoundedVector<double,msElementSize>& rRightHandSideVector,
-            const double GeometryLength);
+            const double GeometryLength) const;
 
 
         /**
          * @brief This function calculates the symmetric deformation modes
          * @param VectorDifference The vector differences of the quaternions
          */
-        Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference);
+        Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference) const;
 
         /**
          * @brief This function calculates the antisymmetric deformation modes
          * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
          */
-        Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix);
+        Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix) const;
 
         /**
          * @brief This function calculates the local nodal forces

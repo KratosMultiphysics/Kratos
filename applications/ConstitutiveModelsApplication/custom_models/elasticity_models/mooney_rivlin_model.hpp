@@ -90,7 +90,7 @@ namespace Kratos
     /**
      * Check
      */
-    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -492,5 +492,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_MOONEY_RIVLIN_MODEL_H_INCLUDED  defined
-
-

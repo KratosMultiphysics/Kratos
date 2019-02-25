@@ -83,7 +83,7 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      BoussinesqForceProcess(ModelPart* pModelPart, Parameters& rParameters);
+      BoussinesqForceProcess(ModelPart& rModelPart, Parameters& rParameters);
 
       /// Destructor.
       ~BoussinesqForceProcess() override;
@@ -184,7 +184,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      ModelPart* mpModelPart;
+      ModelPart& mrModelPart;
 
       array_1d<double,3> mrGravity;
 

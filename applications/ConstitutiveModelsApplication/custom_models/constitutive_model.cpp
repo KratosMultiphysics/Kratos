@@ -25,8 +25,9 @@ namespace Kratos
   //************************************************************************************
 
   ConstitutiveModel::ConstitutiveModel()
+      :mHistoryVector(ZeroVector(6))
   {
-    this->mHistoryVector.clear();
+    //this->mHistoryVector.clear();
   }
 
   //******************************COPY CONSTRUCTOR**************************************
@@ -137,7 +138,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ConstitutiveModel::InitializeMaterial(const Properties& rMaterialProperties)
+  void ConstitutiveModel::InitializeMaterial(const Properties& rProperties)
   {
     KRATOS_TRY
 
@@ -278,7 +279,7 @@ namespace Kratos
   }
 
 
-  int ConstitutiveModel::Check(const Properties& rMaterialProperties,
+  int ConstitutiveModel::Check(const Properties& rProperties,
 			       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY

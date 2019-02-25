@@ -30,10 +30,13 @@
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 
 namespace Kratos
 {
@@ -41,33 +44,40 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
-
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-    class_< Euler2DLaw, Euler2DLaw::Pointer, ConstitutiveLaw >(m,"Euler2DLaw")
-    .def(  init<>() );
+    py::class_< Euler2DLaw, Euler2DLaw::Pointer, ConstitutiveLaw >(m,"Euler2DLaw")
+    .def(  py::init<>() );
 
-    class_< Euler3DLaw, Euler3DLaw::Pointer, ConstitutiveLaw >(m,"Euler3DLaw")
-    .def( init<>() );
-    
-    class_< Bingham3DLaw, Bingham3DLaw::Pointer, ConstitutiveLaw >(m,"Bingham3DLaw")
-    .def( init<>() );
+    py::class_< Euler3DLaw, Euler3DLaw::Pointer, ConstitutiveLaw >(m,"Euler3DLaw")
+    .def( py::init<>() );
 
-    class_< Newtonian2DLaw, Newtonian2DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian2DLaw")
-    .def( init<>() );
-     
-    class_< Newtonian3DLaw, Newtonian3DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian3DLaw")
-    .def( init<>() );
-  
-    class_< HerschelBulkley3DLaw, HerschelBulkley3DLaw::Pointer, ConstitutiveLaw >(m,"HerschelBulkley3DLaw")
-    .def( init<>() );
+    py::class_< Bingham3DLaw, Bingham3DLaw::Pointer, ConstitutiveLaw >(m,"Bingham3DLaw")
+    .def( py::init<>() );
 
-    class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
-    .def( init<>() );
-    
+    py::class_< Newtonian2DLaw, Newtonian2DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian2DLaw")
+    .def( py::init<>() );
+
+    py::class_< Newtonian3DLaw, Newtonian3DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian3DLaw")
+    .def( py::init<>() );
+
+    py::class_< HerschelBulkley3DLaw, HerschelBulkley3DLaw::Pointer, ConstitutiveLaw >(m,"HerschelBulkley3DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTwoFluid2DLaw, NewtonianTwoFluid2DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid2DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTemperatureDependent2DLaw, NewtonianTemperatureDependent2DLaw::Pointer, Newtonian2DLaw >(m,"NewtonianTemperatureDependent2DLaw")
+    .def( py::init<>() );
+
+    py::class_< NewtonianTemperatureDependent3DLaw, NewtonianTemperatureDependent3DLaw::Pointer, Newtonian3DLaw >(m,"NewtonianTemperatureDependent3DLaw")
+    .def( py::init<>() );
+
 }
 
 }  // namespace Python.

@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -40,7 +40,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -56,35 +56,35 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //
 
 
-    class_< ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    py::class_< ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
             BaseSolvingStrategyType >
             (m,"ResidualBasedConvectionDiffusionStrategy")
-            .def(init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
+            .def(py::init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
-    
-    class_< ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+
+    py::class_< ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
             BaseSolvingStrategyType >
             (m,"ResidualBasedEulerianConvectionDiffusionStrategy")
-            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+            .def(py::init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
             .def("Clear",&ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
-            
-    class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+
+    py::class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
             BaseSolvingStrategyType >
             (m,"ResidualBasedSemiEulerianConvectionDiffusionStrategy")
-            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+            .def(py::init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
             .def("Clear",&ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
-            ;        
+            ;
 
-    class_< ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    py::class_< ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
             BaseSolvingStrategyType >
             (m,"ResidualBasedConvectionDiffusionStrategyNonLinear")
-            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
+            .def(py::init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
 }

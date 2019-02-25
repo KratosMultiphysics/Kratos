@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "containers/model.h"
 // DEBUG
 #include "includes/gid_io.h"
 
@@ -45,7 +46,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     for (IndexType i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, rMasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
@@ -502,7 +503,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, rMasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
@@ -972,7 +973,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
         // Integrating the mortar operators
         for (unsigned int point_number = 0; point_number < local_integration_slave.size(); ++point_number) {
             const double weight =  local_integration_slave[point_number].Weight();
-            const PointType local_point_decomp = local_integration_slave[point_number].Coordinates();
+            const auto local_point_decomp = PointType{local_integration_slave[point_number].Coordinates()};
             PointType local_point_parent;
             PointType gp_global;
             decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -1112,7 +1113,8 @@ template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMast
 void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGiDDebug(ModelPart& rMainModelPart)
 {
     if (TDim == 3) {
-        ModelPart aux_model_part;
+        Model& current_model = rMainModelPart.GetModel();
+        ModelPart& aux_model_part = current_model.CreateModelPart("exact_mortar_aux_model_part");
 
         IndexType node_counter = 1;
         IndexType cond_counter = 1;
@@ -1172,6 +1174,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
         pgidio->WriteMesh(aux_model_part.GetMesh());
         pgidio->FinalizeMesh();
         pgidio->CloseResultFile();
+
+        current_model.DeleteModelPart("exact_mortar_aux_model_part");
     }
 }
 

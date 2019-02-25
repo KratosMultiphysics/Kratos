@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mesher (the base class for the mesher derivation)
 import mesher
 
@@ -18,8 +15,6 @@ class PostRefiningMesher(mesher.Mesher):
     def __init__(self, main_model_part, meshing_parameters):
 
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
-
-        print("::[PostRefining_Mesher]:: -BUILT-")
 
     #
     def InitializeMeshing(self):

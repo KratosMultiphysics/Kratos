@@ -87,10 +87,10 @@ public:
     ///@{
 
     /// Default constructor.
-    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters optimizationSettings )
+    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
           mrDampingRegions( subModelPartsForDamping ),
-          mDampingSettings( optimizationSettings["design_variables"]["damping"]["damping_regions"] )
+          mDampingSettings( DampingSettings["damping_regions"] )
     {
         BuiltinTimer timer;
         std::cout << "\n> Creating search tree to perform damping..." << std::endl;

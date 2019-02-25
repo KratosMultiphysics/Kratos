@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 
 // Application includes
 #include "tests/test_utils.h"
@@ -29,11 +29,12 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
 {
-    ModelPart test_model_part;
-    TestModelPartFactory::CreateModelPart(test_model_part);
-    KRATOS_CHECK(test_model_part.NumberOfNodes() > 0);
+    Model this_model;
+    ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
+    TestModelPartFactory::CreateModelPart(r_test_model_part);
+    KRATOS_CHECK(r_test_model_part.NumberOfNodes() > 0);
     HDF5::Internals::PointsData data;
-    data.SetData(test_model_part.Nodes());
+    data.SetData(r_test_model_part.Nodes());
     auto test_file = GetTestSerialFile();
     HDF5::WriteInfo info;
     data.WriteData(test_file, "/Nodes", info);
@@ -42,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
     data.ReadData(test_file, "/Nodes", info.StartIndex, info.BlockSize);
     HDF5::NodesContainerType new_nodes;
     data.CreateNodes(new_nodes);
-    CompareNodes(new_nodes, test_model_part.Nodes());
+    CompareNodes(new_nodes, r_test_model_part.Nodes());
 }
 
 } // namespace Testing

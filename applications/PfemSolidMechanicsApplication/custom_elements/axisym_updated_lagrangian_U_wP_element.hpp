@@ -38,7 +38,7 @@ namespace Kratos
 /// Axisymmetric Updated Lagrangian Large Displacement Lagrangian U-Pw Element.
 
 
-class AxisymUpdatedLagrangianUwPElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) AxisymUpdatedLagrangianUwPElement
     : public AxisymmetricUpdatedLagrangianElement
 {
 public:

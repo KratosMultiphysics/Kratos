@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ THE SOFTWARE.
 /**
  * \file   amgcl/relaxation/as_preconditioner.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  Use an amgcl smoother as standalone preconditioner.
+ * \brief  Use an amgcl smoother as a standalone preconditioner.
  */
 
 #include <vector>

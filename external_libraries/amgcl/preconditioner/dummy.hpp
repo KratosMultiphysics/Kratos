@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -81,6 +81,10 @@ class dummy {
 
         const matrix& system_matrix() const {
             return *A;
+        }
+
+        size_t bytes() const {
+            return 0;
         }
     private:
         std::shared_ptr<matrix>   A;

@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Larese
@@ -87,14 +87,14 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 {
 
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<GidIOType, GidIOType::Pointer>(pymodule, "EdgebasedGidIO")
-        .def(init<std::string const&, GiD_PostMode,
+    py::class_<GidIOType, GidIOType::Pointer>(pymodule, "EdgebasedGidIO")
+        .def(py::init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
-    //.def(init<std::string const&>())
+    //.def(py::init<std::string const&>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
 

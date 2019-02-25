@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -302,6 +302,48 @@ class preconditioner {
 
         size_t size() const {
             return backend::rows( system_matrix() );
+        }
+
+        size_t bytes() const {
+            switch(_class) {
+                case precond_class::amg:
+                    {
+                        typedef
+                            amgcl::amg<Backend, runtime::coarsening::wrapper, runtime::relaxation::wrapper>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::relaxation:
+                    {
+                        typedef
+                            amgcl::relaxation::as_preconditioner<Backend, runtime::relaxation::wrapper>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::dummy:
+                    {
+                        typedef
+                            amgcl::preconditioner::dummy<Backend>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::nested:
+                    {
+                        typedef
+                            make_solver<
+                                preconditioner,
+                                runtime::solver::wrapper<Backend>
+                                >
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                default:
+                    throw std::invalid_argument("Unsupported preconditioner class");
+            }
         }
 
         friend std::ostream& operator<<(std::ostream &os, const preconditioner &p)

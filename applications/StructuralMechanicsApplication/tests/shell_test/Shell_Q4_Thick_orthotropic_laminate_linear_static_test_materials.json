@@ -7,9 +7,8 @@
                 "name" : "LinearElasticOrthotropic2DLaw"
             },
             "Variables"        : {
-                "THICKNESS"     : 1.0,
-                "DENSITY"       : 7850.0,
-				"SHELL_ORTHOTROPIC_LAYERS" : [[0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],[0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]]
+                "SHELL_ORTHOTROPIC_LAYERS" : [[0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
+                                              [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]]
 			},
             "Tables"           : {}
         }

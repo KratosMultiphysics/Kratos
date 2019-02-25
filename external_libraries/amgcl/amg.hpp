@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -518,8 +518,8 @@ class amg {
                     AMGCL_TOC("coarse");
                 } else {
                     AMGCL_TIC("relax");
-                    lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t);
-                    lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t);
+                    for(size_t i = 0; i < prm.npre;  ++i) lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t);
+                    for(size_t i = 0; i < prm.npost; ++i) lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t);
                     AMGCL_TOC("relax");
                 }
             } else {
@@ -593,21 +593,6 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
     os.precision(fp);
     return os;
 }
-
-namespace backend {
-
-template <
-    class B,
-    template <class> class C,
-    template <class> class R
-    >
-struct bytes_impl< amg<B, C, R> > {
-    static size_t get(const amg<B, C, R> &A) {
-        return A.bytes();
-    }
-};
-
-} // namespace backend
 
 } // namespace amgcl
 

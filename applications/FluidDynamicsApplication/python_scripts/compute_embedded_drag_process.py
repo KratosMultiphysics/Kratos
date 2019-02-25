@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -23,7 +20,7 @@ class ComputeEmbeddedDragProcess(ComputeDragProcess):
     """
     def _GetFileHeader(self):
         header  = '# Embedded drag for model part ' + self.params["model_part_name"].GetString() + '\n'
-        header += '# Time Fx Fy Fz \n'
+        header += '# Time Fx Fy Fz\n'
         return header
 
     def _PrintToScreen(self, result_msg):

@@ -107,7 +107,7 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
 }
 
 template <class TElementData>
-void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
+void SymbolicNavierStokes<TElementData>::AddBoundaryTraction(
     TElementData& rData, const Vector& rUnitNormal, MatrixType& rLHS,
     VectorType& rRHS) {
 

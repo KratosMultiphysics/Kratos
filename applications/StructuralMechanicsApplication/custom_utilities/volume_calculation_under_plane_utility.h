@@ -396,7 +396,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
         {
 
-            area_normal = rGeom.AreaNormal(gauss_pts[i_gauss].Coordinates());
+            area_normal = rGeom.Normal(gauss_pts[i_gauss].Coordinates());
             area = norm_2(area_normal);
             if (area > std::numeric_limits<double>::epsilon())
                 area_normal /= area;
@@ -438,7 +438,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
         {
 
-            array_1d<double, 3> area_normal = rGeom.AreaNormal(gauss_pts[i_gauss].Coordinates());
+            array_1d<double, 3> area_normal = rGeom.Normal(gauss_pts[i_gauss].Coordinates());
 
             area_dot_n_normal = MathUtils<double>::Dot(area_normal, mNormal);
 
@@ -468,7 +468,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             CoordinatesArrayType local_coords = ZeroVector(3);
 
             // Degubbing navaneeth
-            area_normal = rSubGeom.AreaNormal(gauss_pts[i_gauss].Coordinates());
+            area_normal = rSubGeom.Normal(gauss_pts[i_gauss].Coordinates());
             area = norm_2(area_normal);
 
             if (area > std::numeric_limits<double>::epsilon())
@@ -522,7 +522,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
             {
 
-                area_normal = rSubGeom.AreaNormal(gauss_pts[i_gauss].Coordinates());
+                area_normal = rSubGeom.Normal(gauss_pts[i_gauss].Coordinates());
                 area = norm_2(area_normal);
 
                 if (area > std::numeric_limits<double>::epsilon())

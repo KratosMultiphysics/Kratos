@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
@@ -31,7 +30,7 @@ class ApplyLoadVectorDamTableProcess(Process):
                 self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, x_params))
             else:
                 x_params.AddValue("table",settings["table"])
-                self.components_process_list.append(ApplyComponentTableProcess(model_part, x_params))
+                self.components_process_list.append(ApplyComponentTableProcessDam(model_part, x_params))
 
         if abs(self.value[1])>1.0e-15:
             y_params = Parameters("{}")
@@ -42,7 +41,7 @@ class ApplyLoadVectorDamTableProcess(Process):
                 self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, y_params))
             else:
                 y_params.AddValue("table",settings["table"])
-                self.components_process_list.append(ApplyComponentTableProcess(model_part, y_params))
+                self.components_process_list.append(ApplyComponentTableProcessDam(model_part, y_params))
 
         if abs(self.value[2])>1.0e-15:
             z_params = Parameters("{}")
@@ -53,7 +52,7 @@ class ApplyLoadVectorDamTableProcess(Process):
                 self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, z_params))
             else:
                 z_params.AddValue("table",settings["table"])
-                self.components_process_list.append(ApplyComponentTableProcess(model_part, z_params))
+                self.components_process_list.append(ApplyComponentTableProcessDam(model_part, z_params))
 
     def ExecuteInitialize(self):
 

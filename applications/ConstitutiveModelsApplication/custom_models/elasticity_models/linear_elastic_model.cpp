@@ -101,7 +101,7 @@ namespace Kratos
        rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
     }
 
-    rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+    rValues.SetStrainMeasure( ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu;
 
     KRATOS_CATCH(" ")
@@ -216,7 +216,7 @@ namespace Kratos
     double MeanPressure = 0;
     for (unsigned int i = 0; i < 3; i++)
        MeanPressure += rStressMatrix(i,i)/3.0;
-    rStressMatrix = identity_matrix<double>(3);
+    rStressMatrix = IdentityMatrix(3);
     rStressMatrix *= MeanPressure;
 
 
@@ -450,18 +450,18 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int LinearElasticModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int LinearElasticModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+    if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS] <= 0.00)
       KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
     if(POISSON_RATIO.Key() == 0){
       KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
     }
     else{
-      const double& nu = rMaterialProperties[POISSON_RATIO];
+      const double& nu = rProperties[POISSON_RATIO];
       if( (nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01) )
 	KRATOS_ERROR << "POISSON_RATIO has an invalid value" << std::endl;
     }

@@ -146,7 +146,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
     void CalculateAll(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo,
+        const ProcessInfo &rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
 
@@ -199,7 +199,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
         const array_1d<double, 3> &rW,
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo,
+        const ProcessInfo &rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
     ///@}

@@ -17,23 +17,15 @@
 #define  KRATOS_LINEAR_SOLVER_H_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "reorderer.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -243,8 +235,8 @@ public:
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
-        ModelPart& r_model_part
+        typename ModelPart::DofsArrayType& rDoFSet,
+        ModelPart& rModelPart
     )
     {}
 
@@ -416,7 +408,7 @@ private:
 
     ///@}
 
-}; // Class LinearSolver
+}; 
 
 ///@}
 

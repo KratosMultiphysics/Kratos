@@ -23,22 +23,32 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 
 PYBIND11_MODULE(KratosUmatApplication,m)
 {
 
-  class_<KratosUmatApplication,
+  py::class_<KratosUmatApplication,
          KratosUmatApplication::Pointer,
          KratosApplication>(m,"KratosUmatApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomConstitutiveLawsToPython(m);
 
   //registering variables in python
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ALPHA )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BETA )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CC )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MM )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KSIS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RHOM )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PC0 )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOID_RATIO )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_MULTIPLIER )
 
 }
 

@@ -29,6 +29,7 @@ KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, DOFS_INITIALIZED,          2 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ADAPTIVE_SOLUTION,         5 );
 
 /**
  * Flags for the solution options

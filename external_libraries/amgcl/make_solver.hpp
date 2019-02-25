@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ template <
     class Precond,
     class IterativeSolver
     >
-class make_solver {
+class make_solver : public amgcl::detail::non_copyable {
     static_assert(
             backend::backends_compatible<
                 typename IterativeSolver::backend_type,
@@ -320,7 +320,7 @@ template <
     class Precond,
     class IterativeSolver
     >
-class make_scaling_solver {
+class make_scaling_solver : public amgcl::detail::non_copyable {
     public:
         typedef typename Precond::backend_type             backend_type;
         typedef typename backend_type::value_type          value_type;
@@ -383,16 +383,6 @@ class make_scaling_solver {
         std::shared_ptr<vector> t;
 };
 
-namespace backend {
-
-template <class P, class S>
-struct bytes_impl< make_solver<P, S> > {
-    static size_t get(const make_solver<P, S> &s) {
-        return s.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

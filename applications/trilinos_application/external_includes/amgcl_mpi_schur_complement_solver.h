@@ -17,8 +17,9 @@
 
 
 #ifndef AMGCL_PARAM_UNKNOWN
+#include "input_output/logger.h"
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
-      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+    Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
 
@@ -199,8 +200,8 @@ public:
     {
         KRATOS_TRY
 
-        using amgcl::prof;
-        prof.reset();
+        //using amgcl::prof;
+        //prof.reset();
 
         amgcl::mpi::communicator world ( MPI_COMM_WORLD );
         if ( mVerbosity >=0 && world.rank == 0 ) {
@@ -241,15 +242,15 @@ public:
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));
         mprm.put("precond.pmask_size", mPressureMask.size());
 
-        prof.tic ( "setup" );
-        SDD solve ( world, amgcl::backend::map ( rA ), mprm );
-        double tm_setup = prof.toc ( "setup" );
+        //prof.tic ( "setup" );
+        SDD solve ( world, amgcl::adapter::map ( rA ), mprm );
+        //double tm_setup = prof.toc ( "setup" );
 
-        prof.tic ( "Solve" );
+        //prof.tic ( "Solve" );
         size_t iters;
         double resid;
         std::tie ( iters, resid ) = solve ( frange, xrange );
-        double solve_tm = prof.toc ( "Solve" );
+        //double solve_tm = prof.toc ( "Solve" );
 
 
 
@@ -258,14 +259,14 @@ public:
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
                         << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << resid   << std::endl
-                        << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl;
+                        << "Error           : " << resid   << std::endl;
+                        //<< "amgcl setup time: " << tm_setup   << std::endl
+                        //<< "amgcl solve time: " << solve_tm   << std::endl;
             }
 
-            if ( mVerbosity > 1 ) {
-                std::cout << prof  << std::endl;
-            }
+            // if ( mVerbosity > 1 ) {
+            //     std::cout << prof  << std::endl;
+            // }
         }
 
 

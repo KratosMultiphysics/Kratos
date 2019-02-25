@@ -118,6 +118,7 @@ namespace Kratos
 
       //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
       if( mrMainModelPart.GetProcessInfo()[IS_RESTARTED] == true ){
+        std::cout<<" Search conditions masters "<<std::endl;
       	BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
       	BuildBoundaryProcess.SearchConditionMasters();
       }

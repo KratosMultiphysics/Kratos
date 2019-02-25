@@ -40,7 +40,7 @@ namespace Kratos
    /// This is the element from Chapter 5, Vol 2. of Z
 
 
-   class UpdatedLagrangianUJPElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJPElement
       : public UpdatedLagrangianUJElement
    {
 

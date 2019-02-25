@@ -276,7 +276,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::array_1d<double, 3>(Kratos::ZeroVector(3))); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
                   component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
@@ -515,8 +515,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #endif
 #define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
-  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags name;			\
-  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags NOT_##name
+  static KRATOS_API(application) const Kratos::Flags name;			\
+  static KRATOS_API(application) const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
@@ -562,36 +562,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<ConstitutiveLaw >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-#ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-#undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
-	scope().attr(#variable) = std::ref(variable);
-
-#ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-#undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(name) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_X) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
-
-#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
-    scope().attr(#flag) = std::ref(flag)      \
- 
-#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
-#undef KRATOS_REGISTER_IN_PYTHON_FLAG
-#endif
-#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
-    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
-
-    
-    
 #if __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
@@ -606,21 +576,47 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEPRECATED
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
 #endif
-    
+
+
+// The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+// If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
+// The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
+// NOTE!! this macro is not intented for extensive use, it's just for temporary use in methods exported to Python which
+// are still calling a C++ deprecated function.
+#if defined(__clang__)
+#define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic push) \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic ignored "-Wdeprecated-declarations")
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic push) \
+KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-declarations")
+#elif defined(_MSC_VER)
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
+__pragma(warning(push))\
+__pragma(warning(disable: 4996))
+#endif
+
+// The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
+// ignoring the warnings of type 'deprecated function'.
+#if defined(__clang__)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+_Pragma("clang diagnostic pop")
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+_Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
+__pragma(warning(pop))
+#endif
+
 
 namespace Kratos
 {
-
-
-/**@name Kratos Classes */
-/*@{ */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
+///@name Type Definitions
+///@{
 
 #if defined(_MSC_VER)
 #pragma warning (disable: 4355)

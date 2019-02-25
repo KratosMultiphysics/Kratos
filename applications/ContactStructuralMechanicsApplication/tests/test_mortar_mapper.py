@@ -17,8 +17,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
     def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.model = KratosMultiphysics.Model()
+        self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.StructureModel = {"Structure": self.main_model_part}
@@ -93,9 +93,9 @@ class TestMortarMapping(KratosUnittest.TestCase):
         }
         """)
         if (num_nodes == 3):
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(self.main_model_part, search_parameters)
+            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D3N(self.main_model_part, search_parameters)
         else:
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(self.main_model_part, search_parameters)
+            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D4N(self.main_model_part, search_parameters)
 
         # We initialize the search utility
         contact_search.CreatePointListMortar()

@@ -541,6 +541,28 @@ unsigned int FluidElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
+bool FluidElement::IsSliver()
+{
+  //const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+  //bool is_sliver = true;
+  // for( SizeType i=0; i<number_of_nodes; ++i)
+  // {
+  //   if( this->GetGeometry()[i].IsNot(SELECTED) ){
+  //     is_sliver = false;
+  //     break;
+  //   }
+  // }
+  //return is_sliver;
+  if( this->IsDefined(SELECTED) )
+    return this->Is(SELECTED);
+  else
+    return false;
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void FluidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    VectorType& rRightHandSideVector,
 					    Flags& rCalculationFlags)
@@ -638,17 +660,20 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
+        if( !IsSliver() ){
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+          {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables );
-        }
+          }
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+          {
             //contribution to external forces
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables );
+          }
+
         }
 
 	//for debugging purposes
@@ -1106,14 +1131,6 @@ void FluidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     InitializeExplicitContributions();
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-      mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                         GetGeometry(),
-                                                         row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                         rCurrentProcessInfo );
-    }
-
     this->Set(FluidElement::FINALIZED_STEP,false);
 
     KRATOS_CATCH( "" )
@@ -1167,17 +1184,16 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
 
-        //call the constitutive law to finalize the solution step
-        mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-								   GetGeometry(),
-								   Variables.N,
-								   rCurrentProcessInfo );
-
 	//call the element internal variables update
 	this->FinalizeStepVariables(Variables,PointNumber);
     }
 
     this->Set(FluidElement::FINALIZED_STEP,true);
+
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      KRATOS_WARNING("")<<" Undo SELECTED Element "<<this->Id()<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1199,8 +1215,15 @@ void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    //contributions to stiffness matrix calculated on the reference config
+    // contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += rVariables.IntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+
+    // optimized matrix triple multiplication: (slower)
+    // for(SizeType i=0; i<rVariables.B.size2(); ++i)
+    //   for(SizeType j=0; j<rVariables.B.size1(); ++j)
+    //     for(SizeType k=0; k<rVariables.B.size1(); ++k)
+    //       for(SizeType l=0; l<rVariables.B.size2(); ++l)
+    //         rLeftHandSideMatrix(i,l) += rVariables.IntegrationWeight * rVariables.B(j,i) * rVariables.ConstitutiveMatrix(j,k) * rVariables.B(k,l);
 
     //std::cout << "Kvvm" << rLeftHandSideMatrix << "(" << this->Id() << ")" << std::endl;
 
@@ -1783,6 +1806,15 @@ void FluidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "VELOCITY_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
+
     }
     else{
 
@@ -1852,6 +1884,15 @@ void FluidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
 
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "VELOCITY_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
 
     }
     else{

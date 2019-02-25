@@ -64,9 +64,9 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 pass
 
     def testDirichletNeumann(self):
-
+        current_model = KratosMultiphysics.Model()
         with WorkFolderScope("ThermalCouplingTest"):
-            self.setUpModel()
+            self.setUpModel(current_model)
             self.setUpSolvers()
             self.setUpMapper()
 
@@ -88,10 +88,10 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 self.FinalizeOutput()
 
 
-    def setUpModel(self):
+    def setUpModel(self,current_model):
 
-        self.left_model_part = KratosMultiphysics.ModelPart("LeftSide")
-        self.right_model_part = KratosMultiphysics.ModelPart("RightSide")
+        self.left_model_part = current_model.CreateModelPart("LeftSide")
+        self.right_model_part = current_model.CreateModelPart("RightSide")
 
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)

@@ -39,7 +39,6 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         #material properties
         self.main_model_part = self.model_part.GetRootModelPart()
         self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
-
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
@@ -62,26 +61,52 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 
 
         #read table
-        self.tables  = self.settings["tables"]
+        self.tables = self.settings["tables"]
+        properties_layout = KratosMaterials.PropertiesLayout()
+        number_of_tables = 0
         for key, table in self.tables.items():
+            number_of_tables += 1
             table_name = key
-            input_variable  = self._GetItemFromModule(table["input_variable"].GetString())
-            output_variable = self._GetItemFromModule(table["output_variable"].GetString())
+            print(" table",key)
+            if table.Has("table_file_name"):
+                import os
+                problem_path = os.getcwd()
+                table_path = os.path.join(problem_path, table["table_file_name"].GetString() )
+                import csv
+                with open(table_path, 'r') as table_file:
+                    reader = csv.DictReader(table_file)
+                    new_table = KratosMultiphysics.PiecewiseLinearTable()
+                    input_variable_name  = reader.fieldnames[0]
+                    output_variable_name = reader.fieldnames[1]
+                    input_variable  = self._GetItemFromModule("KratosMultiphysics."+str(input_variable_name))
+                    output_variable = self._GetItemFromModule("KratosMultiphysics."+str(output_variable_name))
+                    for line in reader:
+                        new_table.AddRow(float(line[input_variable_name]), float(line[output_variable_name]))
+                    self.properties.SetTable(input_variable,output_variable,new_table)
+                    properties_layout.RegisterTable(input_variable,output_variable)
+            else:
+                input_variable  = self._GetItemFromModule(table["input_variable"].GetString())
+                output_variable = self._GetItemFromModule(table["output_variable"].GetString())
+                new_table = KratosMultiphysics.PiecewiseLinearTable()
+                for i in range(0, table["data"].size() ):
+                    new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
+                self.properties.SetTable(input_variable,output_variable,new_table)
+                properties_layout.RegisterTable(input_variable,output_variable)
 
-            new_table = KratosMultiphysics.PiecewiseLinearTable()
-            for i in range(0, table["data"].size() ):
-                new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
-
-            self.properties.SetTable(input_variable,output_variable,new_table)
+        #set properties layout and table keys and arguments
+        if number_of_tables > 0:
+            properties_layout.AddToProperties(KratosMaterials.PROPERTIES_LAYOUT, properties_layout, self.properties)
 
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
 
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
-        #pybind11 not working anymore
-        #self.model_part.Properties[self.settings["properties_id"].GetInt())] = self.properties
-        self.model_part.SetProperties(self.main_model_part.GetProperties())
+        #self.model_part.SetProperties(self.main_model_part.GetProperties())
+        self.model_part.AddProperties(self.properties)
+
+        for properties in self.main_model_part.Properties:
+            print(properties)
 
         splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
 
@@ -121,6 +146,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         # Assign properties to the model_part conditions
         for Condition in self.model_part.Conditions:
             Condition.Properties = self.properties
+
 
     def _GetLawFromModule(self,my_string):
         splitted = my_string.split(".")

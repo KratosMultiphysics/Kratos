@@ -78,11 +78,36 @@ public:
     ///@name Operations
     ///@{
 
-    double CalculateValue(ModelPart& rModelPart) override;
+    void CalculateGradient(const Element& rAdjointElement,
+                                   const Matrix& rResidualGradient,
+                                   Vector& rResponseGradient,
+                                   const ProcessInfo& rProcessInfo) override;
 
-    void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
-                                Vector& rResponseGradient,
-                                ProcessInfo& rProcessInfo) override;
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override;
+
+    double CalculateValue(ModelPart& rModelPart) override;
 
     ///@}
     ///@name Access
@@ -118,32 +143,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    void CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<double>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                     const Variable<double>& rVariable,
-                                     const Matrix& rDerivativesMatrix,
-                                     Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-    void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) override;
-
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -169,6 +168,8 @@ private:
     unsigned int mIdOfLocation;
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
+    TracedStressType mTracedStressType;
+
 
     ///@}
     ///@name Private Operators
@@ -184,10 +185,10 @@ private:
 
     double CalculateNodeStress(ModelPart& rModelPart);
 
-    void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
+    void CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
                                       const std::string& rVariableName,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
+                                      const Matrix& rSensitivityMatrix,
+                                      Vector& rSensitivityGradient,
                                       ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);

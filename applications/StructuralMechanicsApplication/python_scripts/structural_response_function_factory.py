@@ -4,26 +4,26 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 import structural_response
 
-def CreateResponseFunction(response_id, response_settings, model_part):
+def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
 
     if response_type == "strain_energy":
-        return structural_response.StrainEnergyResponseFunction(response_id, response_settings, model_part)
+        return structural_response.StrainEnergyResponseFunction(response_id, response_settings, model)
 
     elif response_type == "mass":
-        return structural_response.MassResponseFunction(response_id, response_settings, model_part)
+        return structural_response.MassResponseFunction(response_id, response_settings, model)
 
     elif response_type == "eigenfrequency":
-        return structural_response.EigenFrequencyResponseFunction(response_id, response_settings, model_part)
+        return structural_response.EigenFrequencyResponseFunction(response_id, response_settings, model)
 
     elif response_type == "adjoint_nodal_displacement":
-        return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     elif response_type == "adjoint_linear_strain_energy":
-        return structural_response.AdjointLinearStrainEnergyResponse(response_id, response_settings, model_part)
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     elif response_type == "adjoint_local_stress":
-        return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +

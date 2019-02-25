@@ -40,7 +40,8 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #build model part and element
-        self.model_part = KratosMultiphysics.ModelPart(self.settings["model_part_name"].GetString())
+        self.model = KratosMultiphysics.Model()
+        self.model_part = self.model.CreateModelPart(self.settings["model_part_name"].GetString())
         self.echo_level = self.settings["echo_level"].GetInt()
 
         #read nodes
@@ -204,7 +205,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
                     print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
                 self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-                self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
                 stress = self.parameters.GetStressVector();
 
                 Pressure[t] = -(stress[0] + stress[1] + stress[2])/3.0 #Geotech sign convention
@@ -246,5 +246,3 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
 
             module = importlib.import_module(module_name)
             return getattr(module,splitted[-1])
-
-

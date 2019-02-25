@@ -35,7 +35,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 ///@name Kratos Globals
 ///@{
 
@@ -215,6 +215,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLE_INDEXING_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_VARIABLE_INDEXING_PYTHON_H_INCLUDED  defined
 
 

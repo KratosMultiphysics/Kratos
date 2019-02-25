@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -131,20 +131,13 @@ struct damped_jacobi {
     {
         backend::vmul(math::identity<scalar_type>(), *dia, rhs, math::zero<scalar_type>(), x);
     }
-};
 
-} // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::damped_jacobi<Backend> > {
-    static size_t get(const relaxation::damped_jacobi<Backend> &R) {
-        return backend::bytes(*R.dia);
+    size_t bytes() const {
+        return backend::bytes(*dia);
     }
 };
 
-} // namespace backend
+} // namespace relaxation
 } // namespace amgcl
 
 #endif

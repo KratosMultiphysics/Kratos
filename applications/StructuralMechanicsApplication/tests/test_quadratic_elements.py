@@ -92,7 +92,8 @@ class TestQuadraticElements(KratosUnittest.TestCase):
 
     def test_Quad8(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
 
         #KratosMultiphysics.ModelPartIO("quadratic_test/static_quadratic_quad_test").ReadModelPart(mp)

@@ -34,63 +34,52 @@ namespace Kratos
 namespace Python
 {
 
-void Push_Back_String( std::vector<std::string>& ThisStringVector, std::string ThisString)
-{
-  ThisStringVector.push_back(ThisString);
-}
-
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
-
-  class_< std::vector<std::string> >(m,"StringVector")
-      .def(init<>())
-      .def("PushBack", Push_Back_String)
-      ;
+  namespace py = pybind11;
 
 
   //**********MODEL STRUCTURE*********//
 
-  class_<SettleContactModelStructureProcess, SettleContactModelStructureProcess::Pointer, SettleModelStructureProcess>
+  py::class_<SettleContactModelStructureProcess, SettleContactModelStructureProcess::Pointer, SettleModelStructureProcess>
       (m, "ContactModelStructure")
-      .def(init<ModelPart&, Flags, int>())
+      .def(py::init<ModelPart&, Flags, int>())
       ;
 
-  class_<BuildContactModelPartProcess, BuildContactModelPartProcess::Pointer, Process>
+  py::class_<BuildContactModelPartProcess, BuildContactModelPartProcess::Pointer, Process>
       (m,"BuildContactModelPart")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, std::vector<std::string>&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, std::vector<std::string>&, int>())
       ;
 
   //**********CONTACT WITH PARAMETRIC WALLS*********//
 
-
-  class_<ParametricWallContactSearchProcess, ParametricWallContactSearchProcess::Pointer, Process>
+  py::class_<ParametricWallContactSearchProcess, ParametricWallContactSearchProcess::Pointer, Process>
       (m,"ParametricWallContactSearch")
-      .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+      .def(py::init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
 
-  class_<HMParametricWallContactSearchProcess, HMParametricWallContactSearchProcess::Pointer, Process>
+  py::class_<HMParametricWallContactSearchProcess, HMParametricWallContactSearchProcess::Pointer, Process>
       (m,"HMParametricWallContactSearch")
-      .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+      .def(py::init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
 
-  class_<ClearPointContactConditionsProcess, ClearPointContactConditionsProcess::Pointer, Process>
+  py::class_<ClearPointContactConditionsProcess, ClearPointContactConditionsProcess::Pointer, Process>
       (m,"ClearPointContactConditions")
-      .def(init<ModelPart&, int>())
+      .def(py::init<ModelPart&, int>())
       ;
 
   //**********MESHER PROCESSES*********//
 
-  class_<ClearContactConditionsMesherProcess, ClearContactConditionsMesherProcess::Pointer, MesherProcess>
+  py::class_<ClearContactConditionsMesherProcess, ClearContactConditionsMesherProcess::Pointer, MesherProcess>
       (m,"ClearContactConditions")
-      .def(init<ModelPart&, int>())
+      .def(py::init<ModelPart&, int>())
       ;
 
-  class_<GenerateNewContactConditionsMesherProcess, GenerateNewContactConditionsMesherProcess::Pointer, MesherProcess>
+  py::class_<GenerateNewContactConditionsMesherProcess, GenerateNewContactConditionsMesherProcess::Pointer, MesherProcess>
       (m,"BuildContactConditions")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
 }
@@ -98,4 +87,3 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

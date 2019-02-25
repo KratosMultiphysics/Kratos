@@ -5,9 +5,6 @@ import sys
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -39,7 +36,7 @@ class FluidSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
@@ -71,9 +68,6 @@ class FluidSolver(PythonSolver):
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
@@ -225,11 +219,11 @@ class FluidSolver(PythonSolver):
         return delta_time
 
     def _GetAutomaticTimeSteppingUtility(self):
-        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
+        if (self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.GetComputingModelPart(),
                                                                      self.settings["time_stepping"])
         else:
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.GetComputingModelPart(),
                                                                      self.settings["time_stepping"])
 
         return EstimateDeltaTimeUtility

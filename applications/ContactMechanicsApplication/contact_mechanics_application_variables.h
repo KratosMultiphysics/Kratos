@@ -32,11 +32,22 @@
 // Core applications
 #include "includes/mat_variables.h"
 #include "delaunay_meshing_application_variables.h"
+#include "custom_friction/friction_law.hpp"
 
 namespace Kratos
 {
+   ///@name Type Definitions
+   ///@{
+   typedef FrictionLaw::Pointer  FrictionLawPointerType;
+   ///@}
+
+   ///@name Kratos Globals
+   ///@{
+
+   //Define Variables
 
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, std::string, FRICTION_LAW_NAME )
+   KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, FrictionLawPointerType, FRICTION_LAW )
 
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, bool, FRICTION_ACTIVE )
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, bool, HYDRAULIC )
@@ -61,6 +72,11 @@ namespace Kratos
 
    //thermal properties
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, HEAT_CONDUCTIVITY )
+
+   //solution
+   KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, int, SEGREGATED_STEP )
+   KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, CONTACT_STEP_TIME )
+   ///@}
 }
 
-#endif	/* KRATOS_CONTACT_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
+#endif	// KRATOS_CONTACT_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED

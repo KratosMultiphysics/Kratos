@@ -30,6 +30,9 @@
 			[0.0, 200e9],
 			[200.0, 200e9]
 		    ]
+		},
+		"table2": {
+		    "table_file_name" : "young_modulus[K].csv"
 		}
 	    },
  	    "echo_level" : 0

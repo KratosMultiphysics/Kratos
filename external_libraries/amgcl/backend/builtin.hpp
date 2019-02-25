@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -314,6 +314,15 @@ struct crs {
         return row_iterator(col + p, col + e, val + p);
     }
 
+    size_t bytes() const {
+        if (own_data) {
+            return sizeof(ptr_type) * (nrows + 1)
+                 + sizeof(col_type) * nnz
+                 + sizeof(val_type) * nnz;
+        } else {
+            return 0;
+        }
+    }
 };
 
 /// Sort rows of the matrix column-wise.
@@ -521,6 +530,8 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
 
                     while(beg < end) {
                         ptrdiff_t c = A.col[beg];
+                        S v = math::norm(A.val[beg]);
+                        ++beg;
 
                         if (c >= col_end) {
                             if (done) {
@@ -533,7 +544,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                             break;
                         }
 
-                        S v = math::norm(A.val[beg]);
 
                         if (first) {
                             first = false;
@@ -541,8 +551,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                         } else {
                             cur_val = std::max(cur_val, v);
                         }
-
-                        ++beg;
                     }
 
                     j[k] = beg;
@@ -924,13 +932,6 @@ struct cols_impl< crs<V, C, P> > {
     }
 };
 
-template < typename V, typename C, typename P >
-struct bytes_impl< crs<V, C, P> > {
-    static size_t get(const crs<V, C, P> &A) {
-        return sizeof(P) * (A.nrows + 1) + sizeof(C) * A.nnz + sizeof(V) * A.nnz;
-    }
-};
-
 template < class Vec >
 struct bytes_impl<
     Vec,
@@ -1028,11 +1029,41 @@ struct inner_product_impl<
 
     typedef typename math::inner_product_impl<V>::return_type return_type;
 
-    static return_type get(const Vec1 &x, const Vec2 &y)
+    static return_type get(const Vec1 &x, const Vec2 &y) {
+#ifdef _OPENMP
+        if (omp_get_max_threads() > 1) {
+            return parallel(x, y);
+        } else
+#endif
+        {
+            return serial(x, y);
+        }
+    }
+
+    static return_type serial(const Vec1 &x, const Vec2 &y) {
+        const size_t n = x.size();
+
+        return_type s = math::zero<return_type>();
+        return_type c = math::zero<return_type>();
+
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+            return_type d = math::inner_product(x[i], y[i]) - c;
+            return_type t = s + d;
+            c = (t - s) - d;
+            s = t;
+        }
+
+        return s;
+    }
+
+#ifdef _OPENMP
+#  ifndef AMGCL_MAX_OPENMP_THREADS
+#    define AMGCL_MAX_OPENMP_THREADS 64
+#  endif
+    static return_type parallel(const Vec1 &x, const Vec2 &y)
     {
         const size_t n = x.size();
-#ifdef _OPENMP
-        return_type              _sum_stat[64];
+        return_type              _sum_stat[AMGCL_MAX_OPENMP_THREADS];
         std::vector<return_type> _sum_dyna;
         return_type              *sum;
 
@@ -1044,19 +1075,10 @@ struct inner_product_impl<
             _sum_dyna.resize(nt);
             sum = _sum_dyna.data();
         }
-#else
-        const int nt = 1;
-        return_type sum[1];
-#endif
-
 
 #pragma omp parallel
         {
-#ifdef _OPENMP
             const int tid = omp_get_thread_num();
-#else
-            const int tid = 0;
-#endif
 
             return_type s = math::zero<return_type>();
             return_type c = math::zero<return_type>();
@@ -1074,6 +1096,7 @@ struct inner_product_impl<
 
         return std::accumulate(sum, sum + nt, math::zero<return_type>());
     }
+#endif
 };
 
 template <class A, class Vec1, class B, class Vec2 >

@@ -42,14 +42,13 @@
             "input_filename" : "ManufacturedSolutionTest/"
         },
         "compute_reactions"            : true,
-        "dynamic_tau"                  : 0.001,
         "maximum_iterations"           : 20,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "SuperLUSolver"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Contour"],
@@ -57,9 +56,15 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.01
+        },
+        "formulation": {
+            "element_type": "embedded_navier_stokes",
+            "dynamic_tau": 0.001
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : []
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [],
+        "gravity"                          : []
+    }
 }

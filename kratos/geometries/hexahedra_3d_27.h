@@ -394,25 +394,6 @@ public:
     //     return p_clone;
     // }
 
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 27)
-            rResult.resize( 27, false );
-
-        for ( int i = 0; i < 8; i++ ) rResult[i] = 1.00 / 216.00;
-
-        for ( int i = 8; i < 20; i++ ) rResult[i] = 1.00 / 54.00;
-
-        for ( int i = 20; i < 26; i++ ) rResult[i] = 2.00 / 27.00;
-
-        rResult[26] = 8.00 / 27.00;
-
-        return rResult;
-    }
-
-
     /**
      * Informations
      */
@@ -500,14 +481,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 

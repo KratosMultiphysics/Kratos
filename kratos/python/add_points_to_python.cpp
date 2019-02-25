@@ -64,11 +64,11 @@ double PointGetZ(TPointType& ThisPoint)
 
 void  AddPointsToPython(pybind11::module& m)
 {
-    using namespace pybind11;
-    
-    class_<Point, Point::Pointer, array_1d<double,3> >(m,"Point") //WARNING: this was previously called Point3D
-    .def(init<double, double, double>())
-    .def(init<vector_expression<vector<double> > >())
+    namespace py = pybind11;
+
+    py::class_<Point, Point::Pointer, array_1d<double,3> >(m,"Point") //WARNING: this was previously called Point3D
+    .def(py::init<double, double, double>())
+    .def(py::init<vector_expression<Vector> >())
     .def_property("X", PointGetX<Point >, PointSetX<Point >)
     .def_property("Y", PointGetY<Point >, PointSetY<Point >)
     .def_property("Z", PointGetZ<Point >, PointSetZ<Point >)

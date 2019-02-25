@@ -20,24 +20,31 @@
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
+#include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
+#include "custom_utilities/explicit_integration_utilities.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void AddCustomUtilitiesToPython(pybind11::module &m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<FormfindingIOUtility>(m, "FormfindingIOUtility")
-        .def(init<ModelPart &, const Parameters>())
-        .def("PrintModelPart", &FormfindingIOUtility::PrintModelPart)
-        .def("ReadPrestressData", &FormfindingIOUtility::ReadPrestressData)
-        .def("PrintPrestressData", &FormfindingIOUtility::PrintPrestressData);
+    py::class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
+        .def(py::init<ModelPart&, const Parameters>())
+        .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
+        .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
+        .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
+        ;
+    
+    // RayleighDampingCoefficientsUtilities
+    m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
+  
+    // ExplicitIntegrationUtilities
+    m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
 
-    class_<VolumeCalculationUnderPlaneUtility>(m, "VolumeCalculationUnderPlaneUtility")
-        .def(init<Vector, double, Vector>())
+    py::class_<VolumeCalculationUnderPlaneUtility>(m, "VolumeCalculationUnderPlaneUtility")
+        .def(py::init<Vector, double, Vector>())
         //.def("CalculateVolumeEnclosedByClosedSurface", &VolumeCalcUsingSurfaceUtility::CalculateVolumeEnclosedByClosedSurface)
         .def("CalculateVolume", &VolumeCalculationUnderPlaneUtility::CalculateVolume)
         .def("UpdatePositionOfPlaneBasedOnTargetVolume", &VolumeCalculationUnderPlaneUtility::UpdatePositionOfPlaneBasedOnTargetVolume)
@@ -45,12 +52,11 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea)
         .def("GetCentre", &VolumeCalculationUnderPlaneUtility::GetCentre);
 
-    class_<VtkOutput>(m, "VtkOutput")
-        .def(init<ModelPart &, std::string, Parameters>())
+    /* py::class_<VtkOutput>(m, "VtkOutput")
+        .def(py::init<ModelPart &, std::string, Parameters>())
         .def("PrintOutput", &VtkOutput::PrintOutput)
-        .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart);
+        .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart); */
 }
 
-} // namespace Python.
-
+}  // namespace Python.
 } // Namespace Kratos

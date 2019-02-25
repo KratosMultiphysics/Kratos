@@ -115,10 +115,7 @@ class EigensystemSolver
 
         double start_time = OpenMPUtils::GetCurrentTime();
 
-        if (echo_level > 0) {
-            std::cout << "EigensystemSolver: Start"  << std::endl;
-        }
-
+        KRATOS_INFO_IF("EigensystemSolver:", echo_level > 0) << "Start"  << std::endl;
 
         // --- calculation
 
@@ -189,9 +186,7 @@ class EigensystemSolver
         do {
             iteration++;
 
-            if (echo_level > 1) {
-                std::cout << "EigensystemSolver: Iteration " << iteration <<std::endl;
-            }
+            KRATOS_INFO_IF("EigensystemSolver:", echo_level > 1) << "Iteration " << iteration <<std::endl;
 
             for (int j = 0; j != nc; ++j) {
                 tmp = r.col(j);
@@ -217,7 +212,7 @@ class EigensystemSolver
             eig.compute(ar, br);
 
             if(eig.info() != Eigen::Success) {
-                std::cout << "EigensystemSolver: Eigen solution was not successful!" << std::endl;
+                KRATOS_WARNING("EigensystemSolver:") << "Eigen solution was not successful!" << std::endl;
                 break;
             }
 
@@ -231,21 +226,16 @@ class EigensystemSolver
 
                 if (rtolv > tolerance) {
                     is_converged = false;
-                    if (echo_level > 1)
-                        std::cout << "EigensystemSolver: Convergence not reached for eigenvalue #"<<i+1<<": " << rtolv <<"." << std::endl;
+                    KRATOS_WARNING_IF("EigensystemSolver:", echo_level > 1) << "Convergence not reached for eigenvalue #"<<i+1<<": " << rtolv <<"." << std::endl;
                     break;
                 }
             }
 
             if (is_converged) {
-                if (echo_level > 0) {
-                    std::cout << "EigensystemSolver: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
-                }
+                KRATOS_INFO_IF("EigensystemSolver:", echo_level > 0) << "Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
                 break;
             } else if (iteration >= max_iteration) {
-                if (echo_level > 0) {
-                    std::cout << "EigensystemSolver: Convergence not reached in " << max_iteration << " iterations." << std::endl;
-                }
+                KRATOS_INFO_IF("EigensystemSolver:", echo_level > 0) << "Convergence not reached in " << max_iteration << " iterations." << std::endl;
                 break;
             }
 
@@ -275,13 +265,12 @@ class EigensystemSolver
         // eigenvector is normalized such that eigenvector^T * B * eigenvector = 1
         if(mParam["normalize_eigenvectors"].GetBool())
         {
-            if (echo_level > 0)
-                std::cout << "EigensystemSolver: Eigenvectors are normalized." << std::endl;
             for (int i = 0; i != nroot; ++i)
             {
                 const double tmp = eigvecs.row(i) * b * eigvecs.row(i).transpose();
-                const double factor = std::sqrt(1/tmp);
+                const double factor = 1.0 / std::sqrt(tmp);
                 eigvecs.row(i) *=  factor;
+                KRATOS_INFO_IF("EigensystemSolver:", echo_level > 0) << "Eigenvector " << i+1 << " is normalized - used factor: " << factor << std::endl;
             }
         }
 
@@ -292,7 +281,7 @@ class EigensystemSolver
 
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 
-            std::cout << "EigensystemSolver: Completed in " << duration << " seconds" << std::endl
+            KRATOS_INFO("EigensystemSolver:") << "Completed in " << duration << " seconds" << std::endl
                       << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }

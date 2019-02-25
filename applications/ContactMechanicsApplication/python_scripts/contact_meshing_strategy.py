@@ -5,9 +5,6 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the meshing strategy (the base class for the mesher derivation)
 import meshing_strategy
 
@@ -54,7 +51,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
     def Initialize(self,meshing_parameters,dimension):
 
         #parameters
-        self.echo_level = 1
+        self.echo_level = 0
 
         #meshing parameters
         self.MeshingParameters = meshing_parameters

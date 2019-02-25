@@ -1,7 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MetisApplication import *
 import sys, math
@@ -10,7 +8,8 @@ if mpi.size != 2:
     print("Terminating due to mpi.size != 2")
     sys.exit()
 
-model_part = ModelPart("LocalPart")
+model = Model()
+model_part = model.CreateModelPart("LocalPart",1)
 input_filename = "gather_model_part"
 number_of_partitions = 2
 domain_size = 2
@@ -37,7 +36,7 @@ model_part_io.ReadModelPart(model_part)
 Comm = CreateCommunicator()
 model_part.SetBufferSize(1)
 
-gather_model_part = ModelPart("GatherPart")
+gather_model_part = model.CreateModelPart("GatherPart",1)
 # gather mesh 0 to process 0
 gather_model_part_util = GatherModelPartUtility(0, model_part, 0, gather_model_part)
 

@@ -105,10 +105,17 @@ class SolutionStrategy : public Flags
     KRATOS_TRY
 
     this->InitializeSolutionStep();
-    this->SolveSolutionStep();
-    this->FinalizeSolutionStep();
 
-    return true;
+    bool converged = this->SolveSolutionStep();
+
+    // implementation of the adaptive time reduction
+    if( this->IsNot(LocalFlagType::ADAPTIVE_SOLUTION) )
+      converged = true;
+    
+    if(converged)
+      this->FinalizeSolutionStep();
+
+    return converged;
 
     KRATOS_CATCH("")
   }

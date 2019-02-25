@@ -1,0 +1,141 @@
+GiD Post Results File 1.0
+GaussPoints "lin3_element_gp" ElemType Linear
+Number Of Gauss Points: 3
+  Nodes not included
+Natural Coordinates: Internal
+End GaussPoints
+Result "LOCAL_AXIS_1" "Kratos" 0 Vector OnGaussPoints "lin3_element_gp"
+Values
+1 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 0 0
+ 0 0 0
+ 0 0 0
+5 0 0 0
+ 0 0 0
+ 0 0 0
+6 0 0 0
+ 0 0 0
+ 0 0 0
+7 0 0 0
+ 0 0 0
+ 0 0 0
+8 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_AXIS_2" "Kratos" 0 Vector OnGaussPoints "lin3_element_gp"
+Values
+1 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 0 0
+ 0 0 0
+ 0 0 0
+5 0 0 0
+ 0 0 0
+ 0 0 0
+6 0 0 0
+ 0 0 0
+ 0 0 0
+7 0 0 0
+ 0 0 0
+ 0 0 0
+8 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_AXIS_3" "Kratos" 0 Vector OnGaussPoints "lin3_element_gp"
+Values
+1 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 0 0
+ 0 0 0
+ 0 0 0
+5 0 0 0
+ 0 0 0
+ 0 0 0
+6 0 0 0
+ 0 0 0
+ 0 0 0
+7 0 0 0
+ 0 0 0
+ 0 0 0
+8 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_MATERIAL_AXIS_1" "Kratos" 0 Vector OnGaussPoints "lin3_element_gp"
+Values
+1 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 0 0
+ 0 0 0
+ 0 0 0
+5 0 0 0
+ 0 0 0
+ 0 0 0
+6 0 0 0
+ 0 0 0
+ 0 0 0
+7 0 0 0
+ 0 0 0
+ 0 0 0
+8 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_MATERIAL_AXIS_2" "Kratos" 0 Vector OnGaussPoints "lin3_element_gp"
+Values
+1 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 0 0
+ 0 0 0
+ 0 0 0
+5 0 0 0
+ 0 0 0
+ 0 0 0
+6 0 0 0
+ 0 0 0
+ 0 0 0
+7 0 0 0
+ 0 0 0
+ 0 0 0
+8 0 0 0
+ 0 0 0
+ 0 0 0
+End Values

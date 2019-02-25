@@ -12,9 +12,9 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 #include "utilities/openmp_utils.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 // Solution strategies
 #include "custom_solvers/solution_strategies/newton_raphson_strategy.hpp"
@@ -70,7 +70,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 //base types
 typedef UblasSpace<double, CompressedMatrix, Vector>                                               SparseSpaceType;
@@ -97,18 +97,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef NewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>       NewtonRaphsonStrategyType;
   typedef LineSearchSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>     LineSearchStrategyType;
   typedef ExplicitSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>         ExplicitStrategyType;
-  typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
+  //typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
   typedef EigensolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>           EigensolverStrategyType;
 
   // Solution builder_and_solver types
   typedef ReductionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>               ReductionBuilderAndSolverType;
   typedef BlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                       BlockBuilderAndSolverType;
   typedef ExplicitBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                 ExplicitBuilderAndSolverType;
-  typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
+  //typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
 
   // Solution scheme types
   typedef ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>    ExplicitCentralDifferencesSchemeType;
-  typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
+  //typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
   typedef EigensolverScheme<SparseSpaceType, LocalSpaceType>                                  EigensolverSchemeType;
 
   typedef StaticScheme<SparseSpaceType, LocalSpaceType>                                            StaticSchemeType;
@@ -205,8 +205,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //*********************CONVERGENCE CRITERION FLAGS*********************
 
   // Convergence Criteria Local Flags
-  class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
-      .def(init<>())
+  py::class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
+      .def(py::init<>())
       .def_readonly_static("INITIALIZED", &CriterionLocalFlags::INITIALIZED)
       .def_readonly_static("INCREMENTAL", &CriterionLocalFlags::INCREMENTAL)
       .def_readonly_static("CONVERGED", &CriterionLocalFlags::CONVERGED)
@@ -217,10 +217,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //***************************SOLVER FLAGS******************************
 
   // Solver Local Flags
-  class_<SolverLocalFlags>(m,"SolverLocalFlags")
-      .def(init<>())
+  py::class_<SolverLocalFlags>(m,"SolverLocalFlags")
+      .def(py::init<>())
       .def_readonly_static("INITIALIZED", &SolverLocalFlags::INITIALIZED)
       .def_readonly_static("CONVERGED", &SolverLocalFlags::CONVERGED)
+      .def_readonly_static("ADAPTIVE_SOLUTION", &SolverLocalFlags::ADAPTIVE_SOLUTION)
       .def_readonly_static("MOVE_MESH", &SolverLocalFlags::MOVE_MESH)
       .def_readonly_static("UPDATE_VARIABLES", &SolverLocalFlags::UPDATE_VARIABLES)
       .def_readonly_static("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
@@ -234,17 +235,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //***********************TIME INTEGRATION FLAGS************************
 
   // Convergence Criteria Local Flags
-  class_<TimeIntegrationLocalFlags>(m,"TimeIntegrationLocalFlags")
-      .def(init<>())
+  py::class_<TimeIntegrationLocalFlags>(m,"TimeIntegrationLocalFlags")
+      .def(py::init<>())
       .def_readonly_static("PREDICT_PRIMARY_VARIABLE", &TimeIntegrationLocalFlags::PREDICT_PRIMARY_VARIABLE)
       ;
 
   //*************************STRATEGY CLASSES***************************
 
   // Solid Mechanics Base Solution Strategy
-  class_<SolutionStrategyType, typename SolutionStrategyType::Pointer, Flags>(m,"SolutionStrategy")
-      .def(init<ModelPart&>())
-      .def(init<ModelPart&, Flags&>())
+  py::class_<SolutionStrategyType, typename SolutionStrategyType::Pointer, Flags>(m,"SolutionStrategy")
+      .def(py::init<ModelPart&>())
+      .def(py::init<ModelPart&, Flags&>())
       .def("InitializeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &SolutionStrategyType::FinalizeSolutionStep)
       .def("SolveSolutionStep", &SolutionStrategyType::SolveSolutionStep )
@@ -252,64 +253,66 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("Check", &SolutionStrategyType::Check)
       .def("Clear", &SolutionStrategyType::Clear)
       .def("SetOptions", &SolutionStrategyType::SetOptions)
-      .def("GetOptions", &SolutionStrategyType::GetOptions, return_value_policy::reference_internal)
+      .def("GetOptions", &SolutionStrategyType::GetOptions, py::return_value_policy::reference_internal)
       .def("SetEchoLevel", &SolutionStrategyType::SetEchoLevel)
       .def("GetEchoLevel", &SolutionStrategyType::GetEchoLevel)
       ;
 
   // Solid Mechanics Segregated Strategy
-  class_<SegregatedStrategyType, typename SegregatedStrategyType::Pointer, SolutionStrategyType>(m,"SegregatedStrategy")
-      .def(init<ModelPart&, Flags&>())
-      .def(init<ModelPart&, Flags&,  SolutionStrategiesContainer&>())
+  py::class_<SegregatedStrategyType, typename SegregatedStrategyType::Pointer, SolutionStrategyType>(m,"SegregatedStrategy")
+      .def(py::init<ModelPart&, Flags&>())
+      .def(py::init<ModelPart&, Flags&,  SolutionStrategiesContainer&>())
       .def("AddStrategy", &SegregatedStrategyType::AddStrategy)
       .def("GetStrategy", &SegregatedStrategyType::GetStrategy)
       ;
 
   // Solid Mechanics Linear Strategy
-  class_<LinearStrategyType, typename LinearStrategyType::Pointer, SolutionStrategyType>(m,"LinearStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, Flags&>())
+  py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, SolutionStrategyType>(m,"LinearStrategy")
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, Flags&>())
       ;
 
   // Solid Mechanics Newton Raphson Strategy
-  class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, LinearStrategyType>(m,"NewtonRaphsonStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+  py::class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, LinearStrategyType>(m,"NewtonRaphsonStrategy")
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
       .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)
       ;
 
   // Solid Mechanics Newton Raphson Line Search Strategy
-  class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+  py::class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
-  class_<ExplicitStrategyType, typename ExplicitStrategyType::Pointer, SolutionStrategyType>(m,"ExplicitStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, Flags&>())
+  py::class_<ExplicitStrategyType, typename ExplicitStrategyType::Pointer, SolutionStrategyType>(m,"ExplicitStrategy")
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, Flags&>())
       ;
 
 
   // Eigensolver Strategy
-  class_<EigensolverStrategyType, typename EigensolverStrategyType::Pointer, SolutionStrategyType>(m,"EigensolverStrategy")
-      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&, bool>())
+  py::class_<EigensolverStrategyType, typename EigensolverStrategyType::Pointer, SolutionStrategyType>(m,"EigensolverStrategy")
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&, bool>())
       ;
 
 
   // // Explicit Hamilton Estrategy for Explicit Beam solution
-  // class_<ExplicitHamiltonStrategyType, BaseSolvingStrategyType>(m,"ExplicitHamiltonStrategy")
-  //   .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool>())
+  // py::class_<ExplicitHamiltonStrategyType, BaseSolvingStrategyType>(m,"ExplicitHamiltonStrategy")
+  //   .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool>())
   //   ;
 
 
   //*******************BUILDER AND SOLVER CLASSES***********************
 
   // Solid Mechanics Base Builder and Solver
-  class_<SolutionBuilderAndSolverType, typename SolutionBuilderAndSolverType::Pointer, Flags>
+  py::class_<SolutionBuilderAndSolverType, typename SolutionBuilderAndSolverType::Pointer, Flags>
       (m,"SolutionBuilderAndSolver")
-      .def(init<LinearSolverType::Pointer> ())
-      .def(init<>())
+      .def(py::init<LinearSolverType::Pointer> ())
+      .def(py::init<>())
       .def("BuildLHS", &SolutionBuilderAndSolverType::BuildLHS)
       .def("BuildRHS", &SolutionBuilderAndSolverType::BuildRHS)
       .def("Build", &SolutionBuilderAndSolverType::Build)
@@ -317,7 +320,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("BuildAndSolve", &SolutionBuilderAndSolverType::BuildAndSolve)
       .def("BuildRHSAndSolve", &SolutionBuilderAndSolverType::BuildRHSAndSolve)
       .def("SetUpDofSet", &SolutionBuilderAndSolverType::SetUpDofSet)
-      .def("GetDofSet", &SolutionBuilderAndSolverType::GetDofSet, return_value_policy::reference_internal)
+      .def("GetDofSet", &SolutionBuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
       .def("SetUpSystem", &SolutionBuilderAndSolverType::SetUpSystem)
       .def("SetUpSystemMatrices", &SolutionBuilderAndSolverType::SetUpSystemMatrices)
       .def("InitializeSolutionStep", &SolutionBuilderAndSolverType::InitializeSolutionStep)
@@ -330,36 +333,36 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("GetEchoLevel", &SolutionBuilderAndSolverType::GetEchoLevel)
       ;
 
-  class_<ReductionBuilderAndSolverType, typename ReductionBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ReductionBuilderAndSolver")
-      .def(init<LinearSolverType::Pointer>())
+  py::class_<ReductionBuilderAndSolverType, typename ReductionBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ReductionBuilderAndSolver")
+      .def(py::init<LinearSolverType::Pointer>())
       ;
 
-  class_<BlockBuilderAndSolverType, typename BlockBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"BlockBuilderAndSolver")
-      .def(init<LinearSolverType::Pointer>())
+  py::class_<BlockBuilderAndSolverType, typename BlockBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"BlockBuilderAndSolver")
+      .def(py::init<LinearSolverType::Pointer>())
       ;
 
-  class_<ExplicitBuilderAndSolverType, typename ExplicitBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ExplicitBuilderAndSolver")
-      .def(init<>())
+  py::class_<ExplicitBuilderAndSolverType, typename ExplicitBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ExplicitBuilderAndSolver")
+      .def(py::init<>())
       ;
 
 
-  // class_<ExplicitHamiltonBuilderAndSolverType, typename ExplicitHamiltonBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ExplicitHamiltonBuilderAndSolver")
-  //   .def(init<LinearSolverType::Pointer> ())
+  // py::class_<ExplicitHamiltonBuilderAndSolverType, typename ExplicitHamiltonBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ExplicitHamiltonBuilderAndSolver")
+  //   .def(py::init<LinearSolverType::Pointer> ())
   //;
 
 
   //*************************SHCHEME CLASSES****************************
 
   // Solid Mechanics Base Scheme
-  class_<SolutionSchemeType, typename SolutionSchemeType::Pointer, Flags>(m,"SolutionScheme")
-      .def(init<>())
-      .def(init<Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&>())
-      .def(init<TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeScalarIntegrationMethods&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
+  py::class_<SolutionSchemeType, typename SolutionSchemeType::Pointer, Flags>(m,"SolutionScheme")
+      .def(py::init<>())
+      .def(py::init<Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&>())
+      .def(py::init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeScalarIntegrationMethods&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       .def("Initialize", &SolutionSchemeType::Initialize)
       .def("InitializeSolutionStep", &SolutionSchemeType::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &SolutionSchemeType::FinalizeSolutionStep)
@@ -371,47 +374,47 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   // Static Scheme Type
-  class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
-      .def(init<TimeVectorIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&>())
-      .def(init<TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeScalarIntegrationMethods&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
+  py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
+      .def(py::init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&>())
+      .def(py::init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeScalarIntegrationMethods&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Dynamic Scheme Type
-  class_<DynamicSchemeType, typename DynamicSchemeType::Pointer, SolutionSchemeType>(m,"DynamicScheme")
-      .def(init<TimeVectorIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&>())
-      .def(init<TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeScalarIntegrationMethods&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
+  py::class_<DynamicSchemeType, typename DynamicSchemeType::Pointer, SolutionSchemeType>(m,"DynamicScheme")
+      .def(py::init<TimeVectorIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&>())
+      .def(py::init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeScalarIntegrationMethods&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
+      .def(py::init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Explicit scheme: Central differences
-  class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, SolutionSchemeType>(m,"ExplicitCentralDifferencesScheme")
-      .def(init<Flags& ,const double, const double, const double>())
+  py::class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, SolutionSchemeType>(m,"ExplicitCentralDifferencesScheme")
+      .def(py::init<Flags& ,const double, const double, const double>())
       ;
 
   // Eigensolver Scheme Type
-  class_<EigensolverSchemeType, typename EigensolverSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverScheme")
-      .def(init<>())
-      .def(init<Flags&>())
+  py::class_<EigensolverSchemeType, typename EigensolverSchemeType::Pointer, SolutionSchemeType>(m,"EigensolverScheme")
+      .def(py::init<>())
+      .def(py::init<Flags&>())
       ;
 
 
   // // Explicit Hamilton Scheme Type
-  // class_<ExplicitHamiltonSchemeType, typename ExplicitHamiltonSchemeType::Pointer, SolutionSchemeType> (m,"ExplicitHamiltonScheme")
-  //  .def(init<double, double, double, bool>())
+  // py::class_<ExplicitHamiltonSchemeType, typename ExplicitHamiltonSchemeType::Pointer, SolutionSchemeType> (m,"ExplicitHamiltonScheme")
+  //  .def(py::init<double, double, double, bool>())
   //   ;
 
   //*******************CONVERGENCE CRITERIA CLASSES*********************
 
   // Convergence Criterion base type
-  class_<ConvergenceCriterionType, typename ConvergenceCriterionType::Pointer, Flags>(m,"ConvergenceCriterion")
-      .def(init<>())
+  py::class_<ConvergenceCriterionType, typename ConvergenceCriterionType::Pointer, Flags>(m,"ConvergenceCriterion")
+      .def(py::init<>())
       .def("PreCriteria", &ConvergenceCriterionType::PreCriteria)
       .def("PostCriteria", &ConvergenceCriterionType::PostCriteria)
       .def("InitializeSolutionStep", &ConvergenceCriterionType::InitializeSolutionStep)
@@ -420,30 +423,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetEchoLevel", &ConvergenceCriterionType::SetEchoLevel)
       ;
 
-  class_<ResidualCriterionType, typename ResidualCriterionType::Pointer, ConvergenceCriterionType>(m,"ResidualCriterion")
-      .def(init<double, double>())
-      .def(init<const VariableScalarType&, double, double>())
-      .def(init<const VariableVectorType&, double, double>())
+  py::class_<ResidualCriterionType, typename ResidualCriterionType::Pointer, ConvergenceCriterionType>(m,"ResidualCriterion")
+      .def(py::init<double, double>())
+      .def(py::init<const VariableScalarType&, double, double>())
+      .def(py::init<const VariableVectorType&, double, double>())
       ;
 
-  class_<DofsCriterionType, typename DofsCriterionType::Pointer, ConvergenceCriterionType>(m,"DofsCriterion")
-      .def(init<double, double>())
-      .def(init<const VariableScalarType&, double, double>())
-      .def(init<const VariableVectorType&, double, double>())
+  py::class_<DofsCriterionType, typename DofsCriterionType::Pointer, ConvergenceCriterionType>(m,"DofsCriterion")
+      .def(py::init<double, double>())
+      .def(py::init<const VariableScalarType&, double, double>())
+      .def(py::init<const VariableVectorType&, double, double>())
       ;
 
-  class_<CompositeCriterionType, typename CompositeCriterionType::Pointer, ConvergenceCriterionType >(m,"CompositeCriterion")
-      .def(init<ConvergenceCriterionPointerType, ConvergenceCriterionPointerType>())
-      .def(init<ConvergenceCriteriaContainer&>())
+  py::class_<CompositeCriterionType, typename CompositeCriterionType::Pointer, ConvergenceCriterionType >(m,"CompositeCriterion")
+      .def(py::init<ConvergenceCriterionPointerType, ConvergenceCriterionPointerType>())
+      .def(py::init<ConvergenceCriteriaContainer&>())
       ;
 
   //*******************TIME INTEGRATION METHODS*************************
 
   //Time integraton methods for vector variables
-  class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer, Flags>(m,"VectorTimeIntegration")
-      .def(init<const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+  py::class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer, Flags>(m,"VectorTimeIntegration")
+      .def(py::init<const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       .def("Clone", &TimeIntegrationMethodVectorType::Clone)
       .def("SetInputVariable", &TimeIntegrationMethodVectorType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodVectorType::HasStepVariable)
@@ -459,104 +462,104 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
 
-  class_<StaticMethodVectorType, typename StaticMethodVectorType::Pointer,
+  py::class_<StaticMethodVectorType, typename StaticMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"StaticVectorIntegration")
-      .def(init<const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&>())
       ;
 
-  class_<NewmarkMethodVectorType, typename NewmarkMethodVectorType::Pointer,
+  py::class_<NewmarkMethodVectorType, typename NewmarkMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"NewmarkVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<BossakMethodVectorType, typename BossakMethodVectorType::Pointer,
+  py::class_<BossakMethodVectorType, typename BossakMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"BossakVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<SimoMethodVectorType, typename SimoMethodVectorType::Pointer,
+  py::class_<SimoMethodVectorType, typename SimoMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"SimoVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<BackwardEulerMethodVectorType, typename BackwardEulerMethodVectorType::Pointer,
+  py::class_<BackwardEulerMethodVectorType, typename BackwardEulerMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"BackwardEulerVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<BdfMethodVectorType, typename BdfMethodVectorType::Pointer,
+  py::class_<BdfMethodVectorType, typename BdfMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"BdfVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<StaticStepMethodVectorType, typename StaticStepMethodVectorType::Pointer,
+  py::class_<StaticStepMethodVectorType, typename StaticStepMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"StaticStepVectorIntegration")
-      .def(init<const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&>())
       ;
 
-  class_<NewmarkStepMethodVectorType, typename NewmarkStepMethodVectorType::Pointer,
+  py::class_<NewmarkStepMethodVectorType, typename NewmarkStepMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"NewmarkStepVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<BossakStepMethodVectorType, typename BossakStepMethodVectorType::Pointer,
+  py::class_<BossakStepMethodVectorType, typename BossakStepMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"BossakStepVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<SimoStepMethodVectorType, typename SimoStepMethodVectorType::Pointer,
+  py::class_<SimoStepMethodVectorType, typename SimoStepMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"SimoStepVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<EmcStepMethodVectorType, typename EmcStepMethodVectorType::Pointer,
+  py::class_<EmcStepMethodVectorType, typename EmcStepMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"EmcStepVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<StaticStepRotationMethodVectorType, typename StaticStepRotationMethodVectorType::Pointer,
+  py::class_<StaticStepRotationMethodVectorType, typename StaticStepRotationMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"StaticStepRotationVectorIntegration")
-      .def(init<const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&>())
       ;
 
-  class_<NewmarkStepRotationMethodVectorType, typename NewmarkStepRotationMethodVectorType::Pointer,
+  py::class_<NewmarkStepRotationMethodVectorType, typename NewmarkStepRotationMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"NewmarkStepRotationVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<BossakStepRotationMethodVectorType, typename BossakStepRotationMethodVectorType::Pointer,
+  py::class_<BossakStepRotationMethodVectorType, typename BossakStepRotationMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"BossakStepRotationVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<SimoStepRotationMethodVectorType, typename SimoStepRotationMethodVectorType::Pointer,
+  py::class_<SimoStepRotationMethodVectorType, typename SimoStepRotationMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"SimoStepRotationVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
-  class_<EmcStepRotationMethodVectorType, typename EmcStepRotationMethodVectorType::Pointer,
+  py::class_<EmcStepRotationMethodVectorType, typename EmcStepRotationMethodVectorType::Pointer,
          TimeIntegrationMethodVectorType>(m,"EmcStepRotationVectorIntegration")
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
-      .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
+      .def(py::init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       ;
 
   //Time integration methods for scalar variables
-  class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer, Flags>(m,"ScalarTimeIntegration")
-      .def(init<const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+  py::class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer, Flags>(m,"ScalarTimeIntegration")
+      .def(py::init<const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       .def("Clone", &TimeIntegrationMethodScalarType::Clone)
       .def("SetInputVariable", &TimeIntegrationMethodScalarType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodScalarType::HasStepVariable)
@@ -572,104 +575,104 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
 
-  class_<StaticMethodScalarType, typename StaticMethodScalarType::Pointer,
+  py::class_<StaticMethodScalarType, typename StaticMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticScalarIntegration")
-      .def(init<const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&>())
       ;
 
-  class_<NewmarkMethodScalarType, typename NewmarkMethodScalarType::Pointer,
+  py::class_<NewmarkMethodScalarType, typename NewmarkMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"NewmarkScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<BossakMethodScalarType, typename BossakMethodScalarType::Pointer,
+  py::class_<BossakMethodScalarType, typename BossakMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"BossakScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<SimoMethodScalarType, typename SimoMethodScalarType::Pointer,
+  py::class_<SimoMethodScalarType, typename SimoMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"SimoScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<BackwardEulerMethodScalarType, typename BackwardEulerMethodScalarType::Pointer,
+  py::class_<BackwardEulerMethodScalarType, typename BackwardEulerMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"BackwardEulerScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<BdfMethodScalarType, typename BdfMethodScalarType::Pointer,
+  py::class_<BdfMethodScalarType, typename BdfMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"BdfScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<StaticStepMethodScalarType, typename StaticStepMethodScalarType::Pointer,
+  py::class_<StaticStepMethodScalarType, typename StaticStepMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticStepScalarIntegration")
-      .def(init<const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&>())
       ;
 
-  class_<NewmarkStepMethodScalarType, typename NewmarkStepMethodScalarType::Pointer,
+  py::class_<NewmarkStepMethodScalarType, typename NewmarkStepMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"NewmarkStepScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<BossakStepMethodScalarType, typename BossakStepMethodScalarType::Pointer,
+  py::class_<BossakStepMethodScalarType, typename BossakStepMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"BossakStepScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<SimoStepMethodScalarType, typename SimoStepMethodScalarType::Pointer,
+  py::class_<SimoStepMethodScalarType, typename SimoStepMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"SimoStepScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<EmcStepMethodScalarType, typename EmcStepMethodScalarType::Pointer,
+  py::class_<EmcStepMethodScalarType, typename EmcStepMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"EmcStepScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<StaticStepRotationMethodScalarType, typename StaticStepRotationMethodScalarType::Pointer,
+  py::class_<StaticStepRotationMethodScalarType, typename StaticStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"StaticStepRotationScalarIntegration")
-      .def(init<const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&>())
       ;
 
-  class_<NewmarkStepRotationMethodScalarType, typename NewmarkStepRotationMethodScalarType::Pointer,
+  py::class_<NewmarkStepRotationMethodScalarType, typename NewmarkStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"NewmarkStepRotationScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<BossakStepRotationMethodScalarType, typename BossakStepRotationMethodScalarType::Pointer,
+  py::class_<BossakStepRotationMethodScalarType, typename BossakStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"BossakStepRotationScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<SimoStepRotationMethodScalarType, typename SimoStepRotationMethodScalarType::Pointer,
+  py::class_<SimoStepRotationMethodScalarType, typename SimoStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"SimoStepRotationScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
-  class_<EmcStepRotationMethodScalarType, typename EmcStepRotationMethodScalarType::Pointer,
+  py::class_<EmcStepRotationMethodScalarType, typename EmcStepRotationMethodScalarType::Pointer,
          TimeIntegrationMethodScalarType>(m,"EmcStepRotationScalarIntegration")
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
-      .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
+      .def(py::init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       ;
 
   // Time integration methods for variable components
-  class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer, Flags>(m,"ComponentTimeIntegration")
-      .def(init<const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+  py::class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer, Flags>(m,"ComponentTimeIntegration")
+      .def(py::init<const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       .def("Clone", &TimeIntegrationMethodComponentType::Clone)
       .def("SetInputVariable", &TimeIntegrationMethodComponentType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodComponentType::HasStepVariable)
@@ -684,102 +687,102 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("__repr__", &TimeIntegrationMethodComponentType::Info)
       ;
 
-  class_<StaticMethodComponentType, typename StaticMethodComponentType::Pointer,
+  py::class_<StaticMethodComponentType, typename StaticMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"StaticComponentIntegration")
-      .def(init<const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&>())
       ;
 
-  class_<NewmarkMethodComponentType, typename NewmarkMethodComponentType::Pointer,
+  py::class_<NewmarkMethodComponentType, typename NewmarkMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"NewmarkComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<BossakMethodComponentType, typename BossakMethodComponentType::Pointer,
+  py::class_<BossakMethodComponentType, typename BossakMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"BossakComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<SimoMethodComponentType, typename SimoMethodComponentType::Pointer,
+  py::class_<SimoMethodComponentType, typename SimoMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"SimoComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<BackwardEulerMethodComponentType, typename BackwardEulerMethodComponentType::Pointer,
+  py::class_<BackwardEulerMethodComponentType, typename BackwardEulerMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"BackwardEulerComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<BdfMethodComponentType, typename BdfMethodComponentType::Pointer,
+  py::class_<BdfMethodComponentType, typename BdfMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"BdfComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<StaticStepMethodComponentType, typename StaticStepMethodComponentType::Pointer,
+  py::class_<StaticStepMethodComponentType, typename StaticStepMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"StaticStepComponentIntegration")
-      .def(init<const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&>())
       ;
 
-  class_<NewmarkStepMethodComponentType, typename NewmarkStepMethodComponentType::Pointer,
+  py::class_<NewmarkStepMethodComponentType, typename NewmarkStepMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"NewmarkStepComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<BossakStepMethodComponentType, typename BossakStepMethodComponentType::Pointer,
+  py::class_<BossakStepMethodComponentType, typename BossakStepMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"BossakStepComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<SimoStepMethodComponentType, typename SimoStepMethodComponentType::Pointer,
+  py::class_<SimoStepMethodComponentType, typename SimoStepMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"SimoStepComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<EmcStepMethodComponentType, typename EmcStepMethodComponentType::Pointer,
+  py::class_<EmcStepMethodComponentType, typename EmcStepMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"EmcStepComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<StaticStepRotationMethodComponentType, typename StaticStepRotationMethodComponentType::Pointer,
+  py::class_<StaticStepRotationMethodComponentType, typename StaticStepRotationMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"StaticStepRotationComponentIntegration")
-      .def(init<const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&>())
       ;
 
-  class_<NewmarkStepRotationMethodComponentType, typename NewmarkStepRotationMethodComponentType::Pointer,
+  py::class_<NewmarkStepRotationMethodComponentType, typename NewmarkStepRotationMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"NewmarkStepRotationComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<BossakStepRotationMethodComponentType, typename BossakStepRotationMethodComponentType::Pointer,
+  py::class_<BossakStepRotationMethodComponentType, typename BossakStepRotationMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"BossakStepRotationComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<SimoStepRotationMethodComponentType, typename SimoStepRotationMethodComponentType::Pointer,
+  py::class_<SimoStepRotationMethodComponentType, typename SimoStepRotationMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"SimoStepRotationComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
-  class_<EmcStepRotationMethodComponentType, typename EmcStepRotationMethodComponentType::Pointer,
+  py::class_<EmcStepRotationMethodComponentType, typename EmcStepRotationMethodComponentType::Pointer,
          TimeIntegrationMethodComponentType>(m,"EmcStepRotationComponentIntegration")
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
-      .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
+      .def(py::init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       ;
 
   // Time vector integration methods container type
-  class_<VectorTimeIntegrationContainerType, VectorTimeIntegrationContainerPointerType>(m,"VectorTimeIntegrationMethods")
-      .def(init<>())
+  py::class_<VectorTimeIntegrationContainerType, VectorTimeIntegrationContainerPointerType>(m,"VectorTimeIntegrationMethods")
+      .def(py::init<>())
       .def("Set", &VectorTimeIntegrationContainerType::Set)
       .def("Get", &VectorTimeIntegrationContainerType::Get)
       .def("Has", &VectorTimeIntegrationContainerType::Has)
@@ -791,13 +794,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   //to define it as a variable
-  class_<Variable<VectorTimeIntegrationContainerPointerType>, VariableData>(m,"VectorTimeIntegrationMethodsVariable")
+  py::class_<Variable<VectorTimeIntegrationContainerPointerType>, VariableData>(m,"VectorTimeIntegrationMethodsVariable")
       .def( "__repr__", &Variable<VectorTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
-  class_<ComponentTimeIntegrationContainerType, ComponentTimeIntegrationContainerPointerType>(m,"ComponentTimeIntegrationMethods")
-      .def(init<>())
+  py::class_<ComponentTimeIntegrationContainerType, ComponentTimeIntegrationContainerPointerType>(m,"ComponentTimeIntegrationMethods")
+      .def(py::init<>())
       .def("Set", &ComponentTimeIntegrationContainerType::Set)
       .def("Get", &ComponentTimeIntegrationContainerType::Get)
       .def("Has", &ComponentTimeIntegrationContainerType::Has)
@@ -809,13 +812,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   //to define it as a variable
-  class_<Variable<ComponentTimeIntegrationContainerPointerType>, VariableData>(m,"ComponentTimeIntegrationMethodsVariable")
+  py::class_<Variable<ComponentTimeIntegrationContainerPointerType>, VariableData>(m,"ComponentTimeIntegrationMethodsVariable")
       .def( "__repr__", &Variable<ComponentTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
-  class_<ScalarTimeIntegrationContainerType, ScalarTimeIntegrationContainerPointerType>(m,"ScalarTimeIntegrationMethods")
-      .def(init<>())
+  py::class_<ScalarTimeIntegrationContainerType, ScalarTimeIntegrationContainerPointerType>(m,"ScalarTimeIntegrationMethods")
+      .def(py::init<>())
       .def("Set", &ScalarTimeIntegrationContainerType::Set)
       .def("Get", &ScalarTimeIntegrationContainerType::Get)
       .def("Has", &ScalarTimeIntegrationContainerType::Has)
@@ -827,7 +830,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   //to define it as a variable
-  class_<Variable<ScalarTimeIntegrationContainerPointerType>, VariableData>(m,"ScalarTimeIntegrationMethodsVariable")
+  py::class_<Variable<ScalarTimeIntegrationContainerPointerType>, VariableData>(m,"ScalarTimeIntegrationMethodsVariable")
       .def( "__repr__", &Variable<ScalarTimeIntegrationContainerPointerType>::Info )
       ;
 

@@ -236,7 +236,7 @@ void UpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVaria
     LargeDisplacementUPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //set variables including all integration points values
 
@@ -252,7 +252,7 @@ void UpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVaria
 void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
     noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
@@ -364,7 +364,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
@@ -418,7 +418,7 @@ void UpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataType& rVaria
 
     //Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    noalias(rVariables.F0) = mDeformationGradientF0[rPointNumber];
 }
 
 //************************************CALCULATE VOLUME CHANGE*************************
@@ -455,5 +455,3 @@ void UpdatedLagrangianUPElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

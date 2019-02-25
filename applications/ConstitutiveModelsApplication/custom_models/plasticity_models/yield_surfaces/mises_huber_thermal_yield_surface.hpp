@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MisesHuberThermalYieldSurface : public MisesHuberYieldSurface<THardeningRule>
+  class MisesHuberThermalYieldSurface : public MisesHuberYieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions

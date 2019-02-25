@@ -80,8 +80,6 @@ cmake ..  																		                                 \
 -DMESH_MOVING_APPLICATION=ON 															                             \
 -DDEM_APPLICATION=ON 															                             \
 -DFSI_APPLICATION=ON 															                             \
--DOPENCL_APPLICATION=OFF														                           \
--DOPENCL_INCLUDE_DIRS="/home/odin/libs/AMD-APP-SDK-v2.8-RC-lnx64/include/" 		 \
 -DULF_APPLICATION=ON															                             \
 -DMIXED_ELEMENT_APPLICATION=ON													                       \
 -DTHERMO_MECHANICAL_APPLICATION=ON												                     \

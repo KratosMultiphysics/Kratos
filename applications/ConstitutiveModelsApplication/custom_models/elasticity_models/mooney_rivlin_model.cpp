@@ -71,7 +71,7 @@ namespace Kratos
     MatrixType StressPartMatrix;
     MatrixType StressMatrix;
 
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C)
+    if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C)
 
       StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -87,7 +87,7 @@ namespace Kratos
       rStressMatrix += StressMatrix;
 
     }
-    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
+    else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
 
       StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
       noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -127,10 +127,10 @@ namespace Kratos
 
     const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+    if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
 
       //set working strain measure
-      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
+      rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Right);
 
       //historical strain matrix
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -154,10 +154,10 @@ namespace Kratos
 
 
     }
-    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b=F*FT)
+    else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b=F*FT)
 
       //set working strain measure
-      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+      rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left);
 
       //historical strain matrix
       rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -177,7 +177,7 @@ namespace Kratos
     else{
 
       //set working strain measure
-      rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+      rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
       KRATOS_ERROR << "calling initialize MooneyRivlinModel .. StressMeasure is inconsistent"  << std::endl;
 
     }
@@ -214,7 +214,7 @@ namespace Kratos
     double Cabcd = 0;
     double Dabcd = 0;
 
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = LeftCauchyGreen (C)
+    if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Strain.Matrix = LeftCauchyGreen (C)
 
       //2nd derivatives
       Dabcd = GetI1RightCauchyGreen2ndDerivative(rVariables.Strain,Dabcd,a,b,c,d);
@@ -240,7 +240,7 @@ namespace Kratos
 
 
     }
-    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
+    else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
 
       //2nd derivatives
 
@@ -379,7 +379,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //isochoric volumetric slit
+  //isochoric volumetric split
 
   MooneyRivlinModel::MatrixType& MooneyRivlinModel::GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dC'/dC
   {
@@ -944,7 +944,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int MooneyRivlinModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int MooneyRivlinModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 

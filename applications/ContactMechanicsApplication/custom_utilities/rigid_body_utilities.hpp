@@ -66,7 +66,7 @@ namespace Kratos
    *  Mesh nodes    must have a the nodal variable VOLUME_ACCELERATION in order to compute weight
    */
 
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyUtilities
+  class RigidBodyUtilities
   {
   public:
 

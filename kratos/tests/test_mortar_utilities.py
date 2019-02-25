@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
+
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -12,12 +13,12 @@ class TestMortarUtilities(KratosUnittest.TestCase):
 
     def test_ComputeNodesMeanNormalModelPart(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        model = KratosMultiphysics.Model()
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
-        model.AddModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
@@ -42,12 +43,11 @@ class TestMortarUtilities(KratosUnittest.TestCase):
 
     def test_InvertNormal(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        model = KratosMultiphysics.Model()
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
-        model.AddModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()

@@ -491,14 +491,39 @@ void KratosSolidMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "            ___      _ _    _          " << std::endl;
-    std::cout << "     KRATOS/ __| ___| (_)__| |         " << std::endl;
-    std::cout << "           \\__ \\/ _ \\ | / _` |         " << std::endl;
-    std::cout << "           |___/\\___/_|_\\__,_|MECHANICS" << std::endl;
-    std::cout << "Initializing KratosSolidMechanicsApplication...  "
-              << std::endl;
+    std::stringstream banner;
 
-    //Register Variables (variables created in solid_mechanics_application_variables.cpp)
+    banner << "            ___      _ _    _           \n"
+           << "    KRATOS / __| ___| (_)__| |          \n"
+           << "           \\__ \\/ _ \\ | / _` |          \n"
+           << "           |___/\\___/_|_\\__,_| MECHANICS\n"
+           << "Initialize KratosSolidMechanicsApplication...  " << std::endl;
+
+    // mpi initialization
+    int mpi_is_initialized = 0;
+    int rank = -1;
+
+#ifdef KRATOS_MPI
+
+    MPI_Initialized(&mpi_is_initialized);
+
+    if (mpi_is_initialized)
+    {
+      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    }
+
+#endif
+
+    if (mpi_is_initialized)
+    {
+      if (rank == 0) KRATOS_INFO("") << banner.str();
+    }
+    else
+    {
+      KRATOS_INFO("") << banner.str();
+    }
+
+    // Register Variables (variables created in solid_mechanics_application_variables.cpp)
 
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
@@ -515,15 +540,20 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //variables
-    KRATOS_REGISTER_VARIABLE( PRESSURE_VELOCITY )
-    KRATOS_REGISTER_VARIABLE( PRESSURE_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION)
 
     //solution
+    KRATOS_REGISTER_VARIABLE(DELTA_TIME_CHANGED)
+    KRATOS_REGISTER_VARIABLE(CONVERGENCE_ACHIEVED)
     KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)
     KRATOS_REGISTER_VARIABLE(WRITE_ID)
     KRATOS_REGISTER_VARIABLE(TIME_INTEGRATION_ORDER)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
+    KRATOS_REGISTER_VARIABLE(MESHING_STEP_TIME)
+    KRATOS_REGISTER_VARIABLE(CONTACT_STEP_TIME)
+    KRATOS_REGISTER_VARIABLE(RESTART_STEP_TIME)
 
     //geometrical
     KRATOS_REGISTER_VARIABLE(GEOMETRIC_STIFFNESS)
@@ -623,7 +653,9 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SHEARxPOLAR_INERTIA)
 
     //boundary definition
-    KRATOS_REGISTER_VARIABLE(MASTER_ELEMENTS)
+    KRATOS_REGISTER_VARIABLE(MASTER_ELEMENT)
+    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES)
+    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_ELEMENTS)
 
     //thermal properties
     KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY)

@@ -301,7 +301,7 @@ unsigned int HydrostaticLoadCondition::NumberOfCommonElements(NodeType &rNodeM, 
 void HydrostaticLoadCondition::CalculateAll(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo,
+    const ProcessInfo &rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -439,7 +439,7 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
     const array_1d<double, 3> &rW,
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo,
+    const ProcessInfo &rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {

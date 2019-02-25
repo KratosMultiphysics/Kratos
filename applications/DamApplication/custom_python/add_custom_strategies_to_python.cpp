@@ -1,11 +1,11 @@
-//   
-//   Project Name:        
+//
+//   Project Name:
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: $
 //
 
-// External includes 
+// External includes
 #include "spaces/ublas_space.h"
 
 // Project includes
@@ -34,7 +34,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -43,7 +43,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //custom scheme types
-    typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType; 
+    typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType;
     typedef IncrementalUpdateStaticDampedSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticDampedSmoothingSchemeType;
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     typedef DamUPScheme< SparseSpaceType, LocalSpaceType >  DamUPSchemeType;
@@ -52,25 +52,25 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
-    class_< IncrementalUpdateStaticSmoothingSchemeType, typename IncrementalUpdateStaticSmoothingSchemeType::Pointer, BaseSchemeType >
+    py::class_< IncrementalUpdateStaticSmoothingSchemeType, typename IncrementalUpdateStaticSmoothingSchemeType::Pointer, BaseSchemeType >
     (m, "IncrementalUpdateStaticSmoothingScheme")
-    .def(init< >());
+    .def(py::init< >());
 
-    class_< IncrementalUpdateStaticDampedSmoothingSchemeType, typename IncrementalUpdateStaticDampedSmoothingSchemeType::Pointer, BaseSchemeType >
+    py::class_< IncrementalUpdateStaticDampedSmoothingSchemeType, typename IncrementalUpdateStaticDampedSmoothingSchemeType::Pointer, BaseSchemeType >
     (m, "IncrementalUpdateStaticDampedSmoothingScheme")
-    .def(init< double, double >());
+    .def(py::init< double, double >());
 
-    class_< BossakDisplacementSmoothingSchemeType, typename BossakDisplacementSmoothingSchemeType::Pointer, BaseSchemeType >
+    py::class_< BossakDisplacementSmoothingSchemeType, typename BossakDisplacementSmoothingSchemeType::Pointer, BaseSchemeType >
     (m, "BossakDisplacementSmoothingScheme")
-    .def(init< double, double, double >());
+    .def(py::init< double, double, double >());
 
-	class_< DamUPSchemeType, typename DamUPSchemeType::Pointer, BaseSchemeType >
+	py::class_< DamUPSchemeType, typename DamUPSchemeType::Pointer, BaseSchemeType >
     (m, "DamUPScheme")
-    .def(init< double, double, double, double >());
-    
-    class_< DamPSchemeType, typename DamPSchemeType::Pointer, BaseSchemeType >
+    .def(py::init< double, double, double, double >());
+
+    py::class_< DamPSchemeType, typename DamPSchemeType::Pointer, BaseSchemeType >
     (m, "DamPScheme")
-    .def(init< double, double >());
+    .def(py::init< double, double >());
 }
 
 }  // namespace Python.

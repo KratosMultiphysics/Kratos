@@ -15,7 +15,9 @@
 #define  KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED
 
 // System includes
+
 // External includes
+#include "boost/range/algorithm/max_element.hpp"
 
 // Project includes
 #include "spaces/ublas_space.h"
@@ -184,8 +186,8 @@ public:
         const SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         RandomInitializeUtility<double>::RandomInitialize(K, y);
 
@@ -197,7 +199,7 @@ public:
         // Starting with first step
         double rho = 0.0;
         double old_rho = Eigenvalues[0];
-        VectorType y_old = ZeroVector(size);
+        VectorType y_old = boost::numeric::ublas::zero_vector<double>(size);
 
         for(SizeType i = 0 ; i < max_iteration ; i++) {
             // x = K*y

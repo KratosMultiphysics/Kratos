@@ -122,9 +122,9 @@ class SourceTermTest(UnitTest.TestCase):
         self.testSourceTerm()
 
     def testSourceTerm(self):
-
+        current_model = KratosMultiphysics.Model()
         with WorkFolderScope("SourceTermTest"):
-            self.setUpModel()
+            self.setUpModel(current_model)
             self.setUpSolvers()
             self.setUpProblem()
 
@@ -134,9 +134,9 @@ class SourceTermTest(UnitTest.TestCase):
             if self.print_output:
                 self.printOutput()
 
-    def setUpModel(self):
+    def setUpModel(self, current_model):
 
-        self.model_part = KratosMultiphysics.ModelPart("TestModelPart")
+        self.model_part = current_model.CreateModelPart("TestModelPart")
 
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)

@@ -19,7 +19,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ConservedVarElement"
         self.condition_name = "Condition"
-        self.min_buffer_size = 1
+        self.min_buffer_size = 2
 
         # Pfem2 settings
         self.settings["pfem2_settings"]["convection_vector_variable"].SetString("MOMENTUM")

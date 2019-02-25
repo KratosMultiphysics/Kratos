@@ -22,7 +22,7 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
     Vector<int> ids;
     ids.resize(rContainer.size());
     #pragma omp parallel for
-    for (std::size_t i = 0; i < rContainer.size(); ++i)
+    for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
     {
         const auto it = rContainer.begin() + i;
         ids[i] = it->Id();
@@ -257,7 +257,7 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     mpFile->ReadDataSet(rPath, id_buf, start_index, block_size);
     std::vector<std::size_t> ids(id_buf.size());
 #pragma omp parallel for
-    for (std::size_t i = 0; i < ids.size(); ++i)
+    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
         ids[i] = id_buf[i];
     return ids;
 }

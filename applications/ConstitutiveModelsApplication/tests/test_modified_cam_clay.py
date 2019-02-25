@@ -127,7 +127,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF(self.detF)
         self.material_law.CalculateMaterialResponseKirchhoff(self.parameters)
         self.material_law.FinalizeMaterialResponseKirchhoff(self.parameters)
-        self.material_law.FinalizeSolutionStep(self.properties, self.geometry, self.N, self.model_part.ProcessInfo)
+
         for step in range(0, nIncr):
 
             #Actualize strain
@@ -139,7 +139,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.parameters.SetDeterminantF( self.detF )
             self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
         self.stress = self.parameters.GetStressVector()
 
@@ -205,7 +204,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         }
         """)
-        self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
+        self.model = KratosMultiphysics.Model()
+        self.model_part = self.model.CreateModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
 
         #read nodes

@@ -12,8 +12,7 @@ cmake .. \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
 -DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
--DMESH_MOVING_APPLICATION=ON                                                                            \
--DADJOINT_FLUID_APPLICATION=OFF                                                                 \
+-DMESH_MOVING_APPLICATION=ON                                                                    \
 -DCONVECTION_DIFFUSION_APPLICATION=ON                                                           \
 -DHDF5_APPLICATION=ON                                                                           \
 -DDAM_APPLICATION=ON                                                                            \
@@ -23,7 +22,19 @@ cmake .. \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
+-DINCLUDE_MMG=ON                                                                                \
+-DMMG_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include"                                       \
+-DMMG2D_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmg2d/"                          \
+-DMMG3D_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmg3d/"                          \
+-DMMGS_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmgs/"                            \
+-DMMG_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg.a"                                      \
+-DMMG2D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg2d.a"                                  \
+-DMMG3D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg3d.a"                                  \
+-DMMGS_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmgs.a"                                    \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
+-DEIGEN_SOLVERS_APPLICATION=ON                                                                  \
+-DUSE_EIGEN_MKL=OFF                                                                             \
+-DEIGEN_ROOT="${HOME}/eigen/"                                                                   \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_APPLICATION=OFF                                                                          \
 -DCONTACT_MECHANICS_APPLICATION=OFF                                                             \
@@ -34,6 +45,8 @@ cmake .. \
 -DSOLID_MECHANICS_APPLICATION=ON                                                                \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                            \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
+-DIGA_APPLICATION=ON                                                                            \
+-DANURBS_ROOT="${HOME}/ANurbs"                                                                  \
 -DSWIMMING_DEM_APPLICATION=OFF                                                                  \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \

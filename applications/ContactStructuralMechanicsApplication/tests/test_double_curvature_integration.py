@@ -15,8 +15,8 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
     def __base_test_integration(self, input_filename, num_nodes):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.model = KratosMultiphysics.Model()
+        self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -83,9 +83,9 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         }
         """)
         if (num_nodes == 3):
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(self.main_model_part, search_parameters)
+            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D3N(self.main_model_part, search_parameters)
         else:
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(self.main_model_part, search_parameters)
+            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D4N(self.main_model_part, search_parameters)
 
         # We initialize the search utility
         contact_search.CreatePointListMortar()
@@ -114,7 +114,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
                 to_test = (cond.Id in list_of_border_cond)
                 if (to_test == False):
                     area = self.exact_integration.TestGetExactAreaIntegration(self.main_model_part, cond)
-                    condition_area = cond.GetArea()
+                    condition_area = cond.GetGeometry().Area()
                     check_value = abs((area - condition_area)/condition_area)
                     if (check_value >  tolerance):
                         print(cond.Id,"\t",area,"\t", condition_area,"\t", self.__sci_str(check_value))
@@ -145,7 +145,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
             for cond in self.contact_model_part.Conditions:
                 if cond.Is(KratosMultiphysics.SLAVE):
                     area = self.exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
-                    condition_area = cond.GetArea()
+                    condition_area = cond.GetGeometry().Area()
                     check_value = abs((area - condition_area)/condition_area)
                     if (check_value >  tolerance):
                         print(cond.Id,"\t",area,"\t", condition_area,"\t", self.__sci_str(check_value))

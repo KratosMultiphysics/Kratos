@@ -16,19 +16,10 @@
 #define  KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "custom_processes/morton_partitioning_process.h"
 

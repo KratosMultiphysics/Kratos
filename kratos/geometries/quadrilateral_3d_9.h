@@ -344,24 +344,6 @@ public:
     //     return p_clone;
     // }
 
-
-    /**
-     * lumping factors for the calculation of the lumped mass matrix
-     */
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 9)
-	        rResult.resize( 9, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        rResult[8] = 4.00 / 9.00;
-
-        return rResult;
-    }
-
     /**
      * Informations
      */
@@ -388,40 +370,52 @@ public:
         return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
-    /**
-     * :TODO: the charactereistic sizes have to be reviewed
-     * by the one who is willing to use them!
-     */
-    /**
-     * This method calculates and returns area or surface area of
+    /** This method calculates and returns area or surface area of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
+     *
      * @return double value contains area or surface
-     * area.
+     * area.N
      * @see Length()
      * @see Volume()
      * @see DomainSize()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double Area = 0.0;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            Area += temp[i] * integration_points[i].Weight();
+        }
+
+        return Area;
     }
 
-
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
     double Volume() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return Area();
     }
 
-    /**
-     * :TODO: the charactereistic sizes have to be reviewed
-     * by the one who is willing to use them!
-     */
-    /**
-     * This method calculate and return length, area or volume of
+    /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
@@ -430,21 +424,22 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
     
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -464,15 +459,15 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint 
-        ) override
+        ) const override
     {
         const double tol = 1.0e-8;
         const int maxiter = 1000;
@@ -481,17 +476,17 @@ public:
 
         double dummy = this->GetPoint( 0 ).X();
 
-        if ( fabs( this->GetPoint( 1 ).X() - dummy ) <= tol && fabs( this->GetPoint( 2 ).X() - dummy ) <= tol && fabs( this->GetPoint( 3 ).X() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).X() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).X() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).X() - dummy ) <= tol )
             orientation[0] = 0;
 
         dummy = this->GetPoint( 0 ).Y();
 
-        if ( fabs( this->GetPoint( 1 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Y() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).Y() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).Y() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).Y() - dummy ) <= tol )
             orientation[0] = 1;
 
         dummy = this->GetPoint( 0 ).Z();
 
-        if ( fabs( this->GetPoint( 1 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Z() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).Z() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).Z() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).Z() - dummy ) <= tol )
             orientation[0] = 2;
 
         switch ( orientation[0] )
@@ -582,7 +577,7 @@ public:
 
             if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
             {
-                if ( !( fabs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
+                if ( !( std::abs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
                     rResult( 0 ) = 2.0;
 
                 break;

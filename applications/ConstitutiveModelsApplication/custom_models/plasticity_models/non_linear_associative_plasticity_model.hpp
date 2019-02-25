@@ -171,7 +171,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -260,7 +260,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -390,14 +390,14 @@ namespace Kratos
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
       const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
 
 	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
 	noalias( StressMatrixPart ) = prod( rTotalDeformationMatrix, rStressMatrix );
 	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rTotalDeformationMatrix) );
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
+	if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_None){
 	  double I3 = 0;
 	  ConstitutiveModelUtilities::InvertMatrix3( rModelData.GetStrainMatrix(), rVariables.StrainMatrix, I3 );
 	}
@@ -406,10 +406,10 @@ namespace Kratos
 	}
 
       }
-      else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      else if(  rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
-	  rVariables.StrainMatrix = identity_matrix<double>(3);
+	if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_None){
+	  rVariables.StrainMatrix = IdentityMatrix(3);
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -440,7 +440,7 @@ namespace Kratos
       //working stress is Kirchhoff by default : transform stresses if working stress is PK2
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
 
 	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
@@ -477,7 +477,7 @@ namespace Kratos
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) )
 	{
 	  //3.- Calculate the implex radial return
-	  this->CalculateImplexRadialReturn(rVariables,rStressMatrix);
+	  this->CalculateImplexReturnMapping(rVariables,rStressMatrix);
 	}
       else{
 
@@ -487,16 +487,14 @@ namespace Kratos
 	  }
 	else
 	  {
-
-	    //3.- Calculate the radial return
-	    bool converged = this->CalculateRadialReturn(rVariables,rStressMatrix);
-
-	    if(!converged)
-	      std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
-
+	    //3.- Calculate the return mapping
+	    bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	    //4.- Update back stress, plastic strain and stress
 	    this->UpdateStressConfiguration(rVariables,rStressMatrix);
+
+            if( !converged )
+              KRATOS_WARNING("NON-LINEAR PLASTICITY")<<"Not converged"<<std::endl;
 
 	    //5.- Calculate thermal dissipation and delta thermal dissipation
 	    this->CalculateThermalDissipation(rVariables);
@@ -597,9 +595,9 @@ namespace Kratos
     }
 
 
-    // calculate ratial return
+    // calculate return mapping
 
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -622,7 +620,7 @@ namespace Kratos
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 0;
 
-      while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
+      while(fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
 	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
@@ -641,10 +639,10 @@ namespace Kratos
 	  iter++;
 	}
 
-
-      if(iter>MaxIterations)
-	return false;
-
+      if(iter>MaxIterations){
+        std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rDeltaGamma<<" StateFunction: "<<StateFunction<<" DeltaDeltaGamma: "<<DeltaDeltaGamma<<"]"<<std::endl;
+        return false;
+      }
 
       return true;
 
@@ -652,7 +650,7 @@ namespace Kratos
     }
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -774,7 +772,7 @@ namespace Kratos
       const MatrixType&   rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
 
       //1.-Identity build
-      MatrixType Identity = identity_matrix<double> (3);
+      MatrixType Identity = IdentityMatrix(3);
 
       //2.-Auxiliar matrices
       rFactors.Normal = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );

@@ -1,7 +1,7 @@
 {
     "time_settings" : {
-        "time_step"  : 0.01,
-        "end_time"   : 0.04
+        "time_step"  : 0.005,
+        "end_time"   : 2.0
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -20,7 +20,7 @@
     },
     "problem_data" : {
         "echo_level"      : 0,
-        "threads"         : 2,
+        "threads"         : 4,
         "gravity_vector"  : [0.0,0.0,-9.81]
     },
     "solver_settings" : {
@@ -44,7 +44,7 @@
 			"variable_relative_tolerance" : 1e-5
 		    },
 		    "linear_solver_settings"    : {
-		    "solver_type"         : "BICGSTABSolver",
+			"solver_type"         : "BICGSTABSolver",
 			"max_iteration"       : 5000,
 			"tolerance"           : 1e-5,
 			"preconditioner_type" : "None",
@@ -95,6 +95,7 @@
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
+	    "echo_level"            : 0,
             "model_part_name"       : "main_domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -204,7 +205,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "check_process_list" : [
+    "_check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -230,7 +231,7 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -242,8 +243,8 @@
             "output_control_type" : "step",
             "output_frequency"    : 1,
             "node_output"         : true,
-            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
-	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID"],
+            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL","SHRINK_FACTOR"],
+	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID","SELECTED","NEW_ENTITY","FLUID"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }
     }

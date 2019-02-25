@@ -37,17 +37,11 @@ public:
 
     ~AdjointFiniteDifferenceTrussElementLinear() override;
 
-    void Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 private:
-    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

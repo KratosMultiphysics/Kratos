@@ -379,15 +379,6 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 6)
-            rResult.resize( 6, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
-        return rResult;
-    }
-
     ///@}
     ///@name Information
     ///@{
@@ -464,18 +455,18 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside(
+    bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()

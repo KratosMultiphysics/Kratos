@@ -27,9 +27,14 @@ class SolvingStrategyPython:
         self.pDx = self.space_utils.CreateEmptyVectorPointer()
         self.pb = self.space_utils.CreateEmptyVectorPointer()
 
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
+        #self.A = (self.pA).GetReference()
+        #self.Dx = (self.pDx).GetReference()
+        #self.b = (self.pb).GetReference()
+
+        self.A = (self.pA)
+        self.Dx = (self.pDx)
+        self.b = (self.pb)
+
 
         #initialize flags
         self.SolutionStepIsInitialized = False
@@ -139,9 +144,13 @@ class SolvingStrategyPython:
             self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA,self.pDx,self.pb,self.model_part);
 
             #updating references
-            self.A = (self.pA).GetReference()
-            self.Dx = (self.pDx).GetReference()
-            self.b = (self.pb).GetReference()
+            #self.A = (self.pA).GetReference()
+            #self.Dx = (self.pDx).GetReference()
+            #self.b = (self.pb).GetReference()
+
+            self.A = (self.pA)
+            self.Dx = (self.pDx)
+            self.b = (self.pb)
 
 
             
@@ -223,9 +232,13 @@ class SolvingStrategyPython:
         self.space_utils.ResizeVector(self.b,0)
 
         #updating references
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
+        #self.A = (self.pA).GetReference()
+        #self.Dx = (self.pDx).GetReference()
+        #self.b = (self.pb).GetReference()
+
+        self.A = (self.pA)
+        self.Dx = (self.pDx)
+        self.b = (self.pb)
         
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
         self.builder_and_solver.Clear()

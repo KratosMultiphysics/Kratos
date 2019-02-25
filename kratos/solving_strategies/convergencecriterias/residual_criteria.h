@@ -90,14 +90,37 @@ public:
     ///@{
 
     //* Constructor.
+    explicit ResidualCriteria(Kratos::Parameters Settings)
+        : BaseType(),
+          mInitialResidualIsSet(false)
+    {
+        if (Settings.Has("residual_relative_tolerance")) {
+            mAlwaysConvergedNorm = Settings["residual_relative_tolerance"].GetDouble();
+        } else if (Settings.Has("absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            mAlwaysConvergedNorm = 1.0e-9;
+        }
+        if (Settings.Has("residual_absolute_tolerance")) {
+            mRatioTolerance = Settings["residual_absolute_tolerance"].GetDouble();
+        } else if (Settings.Has("relative_tolerance")) {
+            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_absolute_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            mRatioTolerance = 1.0e-4;
+        }
+    }
+
+    //* Constructor.
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType(),
+          mInitialResidualIsSet(false),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance       = NewRatioTolerance;
-        mAlwaysConvergedNorm  = AlwaysConvergedNorm;
-        mInitialResidualIsSet = false;
     }
 
     //* Copy constructor.
@@ -235,6 +258,27 @@ public:
     ///@name Inquiry
     ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -262,6 +306,44 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method computes the norm of the residual
+     * @details It checks if the dof is fixed
+     * @param rResidualSolutionNorm The norm of the residual
+     * @param rDofNum The number of DoFs
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param b RHS vector (residual + reactions)
+     */
+    virtual void CalculateResidualNorm(
+        TDataType& rResidualSolutionNorm,
+        SizeType& rDofNum,
+        DofsArrayType& rDofSet,
+        const TSystemVectorType& b
+        )
+    {
+        // Initialize
+        TDataType residual_solution_norm = TDataType();
+        SizeType dof_num = 0;
+
+        // Loop over Dofs
+        #pragma omp parallel for reduction(+:residual_solution_norm,dof_num)
+        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+            auto it_dof = rDofSet.begin() + i;
+
+            IndexType dof_id;
+            TDataType residual_dof_value;
+
+            if (it_dof->IsFree()) {
+                dof_id = it_dof->EquationId();
+                residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                residual_solution_norm += std::pow(residual_dof_value, 2);
+                dof_num++;
+            }
+        }
+
+        rDofNum = dof_num;
+        rResidualSolutionNorm = std::sqrt(residual_solution_norm);
+    }
 
     ///@}
     ///@name Protected  Access
@@ -311,45 +393,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method computes the norm of the residual
-     * @details It checks if the dof is fixed
-     * @param rResidualSolutionNorm The norm of the residual
-     * @param rDofNum The number of DoFs
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param b RHS vector (residual + reactions)
-     */
-    void CalculateResidualNorm(
-        TDataType& rResidualSolutionNorm,
-        SizeType& rDofNum,
-        DofsArrayType& rDofSet,
-        const TSystemVectorType& b
-        )
-    {
-        // Initialize
-        TDataType residual_solution_norm = TDataType();
-        SizeType dof_num = 0;
-
-        // Loop over Dofs
-        #pragma omp parallel for reduction(+:residual_solution_norm,dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
-
-            IndexType dof_id;
-            TDataType residual_dof_value;
-
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
-                residual_dof_value = TSparseSpace::GetValue(b,dof_id);
-                residual_solution_norm += residual_dof_value * residual_dof_value;
-                dof_num++;
-            }
-        }
-
-        rDofNum = dof_num;
-        rResidualSolutionNorm = residual_solution_norm;
-    }
 
     ///@}
     ///@name Private  Access

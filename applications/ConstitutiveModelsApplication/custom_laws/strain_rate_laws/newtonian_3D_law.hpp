@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined (KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED)
+#define  KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -21,39 +21,39 @@
 namespace Kratos
 {
   /**
-   * Defines a Newtonian constitutive law
+   * Defines a NewtonianFluid constitutive law
    * This material law is defined by the parameters:
    * 1) DYNAMIC_VISCOSITY
    */
 
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) Newtonian3DLaw : public ConstitutiveLaw
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NewtonianFluid3DLaw : public ConstitutiveLaw
   {
   public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Newtonian3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(Newtonian3DLaw);
+    /// Pointer definition of NewtonianFluid3DLaw
+    KRATOS_CLASS_POINTER_DEFINITION(NewtonianFluid3DLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Newtonian3DLaw();
+    NewtonianFluid3DLaw();
 
     /// Copy constructor.
-    Newtonian3DLaw (const Newtonian3DLaw& rOther);
+    NewtonianFluid3DLaw (const NewtonianFluid3DLaw& rOther);
 
     /// Clone.
     ConstitutiveLaw::Pointer Clone() const override;
 
     /// Assignment operator.
-    Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
+    NewtonianFluid3DLaw& operator=(const NewtonianFluid3DLaw& rOther);
 
     /// Destructor.
-    ~Newtonian3DLaw() override;
+    ~NewtonianFluid3DLaw() override;
 
     ///@}
     ///@name Operators
@@ -67,7 +67,7 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -106,12 +106,12 @@ namespace Kratos
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -129,20 +129,20 @@ namespace Kratos
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Newtonian3DLaw";
+        buffer << "NewtonianFluid3DLaw";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Newtonian3DLaw";
+        rOStream << "NewtonianFluid3DLaw";
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Newtonian3DLaw Data";
+      rOStream << "NewtonianFluid3DLaw Data";
     }
 
 
@@ -177,20 +177,20 @@ namespace Kratos
      * Calculates the stresses for given strain state
      * @param rStressVector the stress vector corresponding to the deformation
      * @param rStrainVector strain rates
-     * @param rMaterialProperties properties of the material
+     * @param rProperties properties of the material
      */
     virtual void CalculateStress(Vector& rStressVector,
                                  const Vector &rStrainVector,
-				 const Properties& rMaterialProperties);
+				 const Properties& rProperties);
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * @param rConstitutiveMatrix constitutive matrix return value
-     * @param rMaterialProperties properties of the material
+     * @param rProperties properties of the material
      */
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					     const Properties& rMaterialProperties);
+					     const Properties& rProperties);
 
 
     ///@}
@@ -241,7 +241,7 @@ namespace Kratos
     ///@{
 
     ///@}
-  }; // Class Newtonian3DLaw
+  }; // Class NewtonianFluid3DLaw
 
   ///@}
 
@@ -258,4 +258,4 @@ namespace Kratos
   ///@} addtogroup block
 
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_NEWTONIAN_FLUID_3D_LAW_H_INCLUDED  defined
