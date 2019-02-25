@@ -508,6 +508,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mrModelPart1;          /// First model part
+    ModelPart& mrModelPart2;          /// Second model part
+    OctreeType mOctree;               /// The octree structucture that performs the search
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -567,10 +571,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    ModelPart& mrModelPart1;          /// First model part
-    ModelPart& mrModelPart2;          /// Second model part
-    OctreeType mOctree;               /// The octree structucture that performs the search
 
     ///@}
     ///@name Private Operations

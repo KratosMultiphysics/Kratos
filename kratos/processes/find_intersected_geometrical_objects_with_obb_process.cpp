@@ -107,7 +107,8 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
         new_offset[i] = offset[i];
     }
 
-    *(this->GetOctreePointer()) = OctreeType(new_scale_factor, new_offset);
+    BaseType::mOctree.SetScaleFactor(new_scale_factor);
+    BaseType::mOctree.SetOffset(new_offset);
 
     // Setting the bounding box factor
     mBoundingBoxFactor = ThisParameters["bounding_box_factor"].GetDouble();
