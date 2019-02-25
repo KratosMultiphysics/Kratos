@@ -14,10 +14,18 @@ if sys.platform.startswith('linux'):
     sys.setdlopenflags(dll_load_flags)
 
 from KratosMPI import *
-from .. import legacy_mpi_python_interface
 
 if sys.platform.startswith('linux'):
     # restore default system flags
     sys.setdlopenflags(flags)
 
+def __PathInitDetail():
+    from KratosMultiphysics import KratosPaths
+    import os
+
+    kratos_mpi_python_path = os.path.join(KratosPaths.kratos_install_path, "kratos", "mpi", "python_scripts")
+    __path__.append(kratos_mpi_python_path)
+
+__PathInitDetail()
+from . import legacy_mpi_python_interface
 mpi = legacy_mpi_python_interface.LegacyMPIPythonInterface()
