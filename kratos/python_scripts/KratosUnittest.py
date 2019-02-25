@@ -24,7 +24,7 @@ class TestLoader(TestLoader):
 class TestCase(TestCase):
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(self):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
