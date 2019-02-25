@@ -93,36 +93,36 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart);
+    void CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart) const;
 
-    void ResetModelPart(ModelPart &rDestinationModelPart);
+    void ResetModelPart(ModelPart &rDestinationModelPart) const;
 
     void CopyCommonData(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart
-    );
+    ) const;
 
     void DuplicateElements(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
         Element const &rReferenceElement
-    );
+    ) const;
 
     void DuplicateConditions(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
         Condition const &rReferenceBoundaryCondition
-    );
+    ) const;
 
     void DuplicateCommunicatorData(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart
-    );
+    ) const;
 
     void DuplicateSubModelParts(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart
-    );
+    ) const;
 
     ///@}
 };

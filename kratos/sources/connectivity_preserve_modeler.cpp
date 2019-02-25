@@ -44,7 +44,7 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 }
 
 // Private methods /////////////////////////////////////////////////////////////
-void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart)
+void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart) const
 {
     //check that the variable lists are matching
     auto& rdestination_variable_list = rDestinationModelPart.GetNodalSolutionStepVariablesList();
@@ -60,7 +60,7 @@ void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart
 
 }
 
-void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPart)
+void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPart) const
 {
 
     for(auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); it++)
@@ -79,7 +79,7 @@ void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPar
 
 void ConnectivityPreserveModeler::CopyCommonData(
     ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart)
+    ModelPart &rDestinationModelPart) const
 {
     // Do not try to change some of the things we need to change if the destination is a SubModelPart
     if( rDestinationModelPart.IsSubModelPart() )
@@ -115,7 +115,7 @@ void ConnectivityPreserveModeler::CopyCommonData(
 void ConnectivityPreserveModeler::DuplicateElements(
     ModelPart &rOriginModelPart,
     ModelPart &rDestinationModelPart,
-    Element const &rReferenceElement)
+    Element const &rReferenceElement) const
 {
     // Generate the elements
     ModelPart::ElementsContainerType temp_elements;
@@ -137,7 +137,7 @@ void ConnectivityPreserveModeler::DuplicateElements(
 void ConnectivityPreserveModeler::DuplicateConditions(
         ModelPart &rOriginModelPart,
         ModelPart &rDestinationModelPart,
-        Condition const &rReferenceBoundaryCondition)
+        Condition const &rReferenceBoundaryCondition) const
 {
     // Generate the conditions
     ModelPart::ConditionsContainerType temp_conditions;
@@ -157,7 +157,7 @@ void ConnectivityPreserveModeler::DuplicateConditions(
 
 void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart)
+    ModelPart &rDestinationModelPart) const
 {
     /* Create a new communicator for rDestinationModelPart and fill it with the information of the original one
      * Only "general" information and node lists are copied, element and condition lists will be created later
@@ -212,7 +212,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
 
 void ConnectivityPreserveModeler::DuplicateSubModelParts(
     ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart)
+    ModelPart &rDestinationModelPart) const
 {
     for(auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part)
     {
