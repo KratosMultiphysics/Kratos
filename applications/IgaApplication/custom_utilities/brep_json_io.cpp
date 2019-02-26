@@ -568,7 +568,7 @@ namespace Kratos
 
             std::vector<BrepEdge::EdgeTopology> brep_edge_topology_vector;
             int edge_id = edge_dict["brep_id"].GetInt();
-            KRATOS_WATCH(edge_id)
+            // KRATOS_WATCH(edge_id)
             ModelPart& sub_model_part_edge = rModelPart.CreateSubModelPart("EDGE_" + std::to_string(edge_id));
 
             KRATOS_INFO_IF("IGA", mEchoLevel >= 2) << "Reading edge " << edge_id << "..." << std::endl;

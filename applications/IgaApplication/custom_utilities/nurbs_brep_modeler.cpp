@@ -345,32 +345,6 @@ namespace Kratos
         a.ExportNurbsGeometry(m_brep_model_vector);         
     }
 
-
-    // void NurbsBrepModeler::PrintBrepNodes()
-    // {   
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].GetModelNodes();
-    //     }
-    // }
-
-    // void NurbsBrepModeler::PrintEdgePolygon()
-    // {   
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].PrintEdgeNodes();
-    //     }
-    // }
-
-    // void NurbsBrepModeler::PrintTrimmingPolygon()
-    // {
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].PrintTrimmingNodes();
-    //     }
-    // }
-
-
     void NurbsBrepModeler::getTolerance()
     {
         for (int i = 0; i < m_brep_model_vector.size(); ++i)

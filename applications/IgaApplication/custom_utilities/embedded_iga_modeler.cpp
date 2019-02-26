@@ -22,6 +22,7 @@ namespace Kratos
 {
 void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
 {
+    unsigned int node_id = 0;
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
@@ -40,7 +41,6 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
 
 
-            unsigned int node_id = 0;
             for (unsigned int tri_i = 0; tri_i < triangulation_xyz.size(); ++tri_i)
             {
                 for (unsigned int point_i = 0; point_i < 3; ++point_i)
@@ -73,6 +73,43 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Helper Functions
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
+{
+    unsigned int point_index = 0;
+    std::vector<std::vector<double>> coords; 
+    for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
+    {
+        for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
+        {
+            const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
+
+            std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
+            std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
+            EmbeddedIgaTessellation::CreateTessellation(
+                face, outer_polygon_uv, inner_polygon_uv); 
+
+            EmbeddedIgaTriangulation embedded_triangulation; 
+
+            std::vector<Matrix> triangulation_xyz;
+            embedded_triangulation.CreateTriangulation(
+                face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
+
+            coords.resize(coords.size() + (triangulation_xyz.size() * 3), std::vector<double>(3,0)); 
+             
+            for (unsigned int tri_i = 0; tri_i < triangulation_xyz.size(); ++tri_i)
+            {
+                for (unsigned int j = 0; j < 3; ++j)    
+                {
+                    for (unsigned int k = 0; k < 3; ++k)    coords[point_index][k] = triangulation_xyz[tri_i](j,k); 
+                    point_index += 1; 
+                }
+            }
+        }
+    }
+    return coords; 
+}
+
+
 std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation()
 {
     const auto face = m_brep_model_vector[0].GetFaceVector()[0];

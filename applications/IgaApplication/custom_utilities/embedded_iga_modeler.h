@@ -39,6 +39,7 @@ namespace Kratos
         std::vector<std::vector<double>> PrintMappedPoints();
         std::vector<std::vector<double>> PrintParametricTessellation(); 
         std::vector<std::vector<double>> PrintParametricTriangulation();
+        std::vector<std::vector<double>> TestCreateElements3D();
 
 
 

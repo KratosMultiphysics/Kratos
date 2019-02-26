@@ -153,7 +153,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     float max_area;
     const auto ele_tolerance = 0.1; 
     std::vector<Matrix> triangulation_uv; 
-    for (int it = 1; it < 20; it++)
+    for (int it = 1; it < 50; it++)
     {
         std::cout << "Iteration " << it << std::endl; 
         InitTriangulationDataStructure(out_data); 
@@ -191,8 +191,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         Vector error; 
         EmbeddedIgaErrorEstimation::GetError(
             gauss_points_exact_xyz, gauss_points_approx_xyz, error);
-        
-        KRATOS_WATCH(error)
         
         auto tolerance = false; 
         for (unsigned int i = 0; i < error.size(); ++i)
