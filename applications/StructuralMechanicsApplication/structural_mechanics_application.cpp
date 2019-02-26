@@ -392,7 +392,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(UNIAXIAL_STRESS_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_COMPRESSION)
 
-    // D+D- Damage Constitutive laws variables, additional Masonry 2D
+    // D+D- Damage Constitutive laws variables, additional Masonry 2D-3D
     KRATOS_REGISTER_VARIABLE(DAMAGE_ONSET_STRESS_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(BIAXIAL_COMPRESSION_MULTIPLIER)
     KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_TENSION)
@@ -402,6 +402,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BEZIER_CONTROLLER_C3)
     KRATOS_REGISTER_VARIABLE(YIELD_STRAIN_COMPRESSION)
     KRATOS_REGISTER_VARIABLE(SHEAR_COMPRESSION_REDUCTOR)
+    KRATOS_REGISTER_VARIABLE(TRIAXIAL_COMPRESSION_COEFFICIENT)
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
@@ -875,5 +876,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageTrescaMohrCoulomb2D", mSmallStrainDplusDminusDamageTrescaMohrCoulomb2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D", mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("DamageDPlusDMinusPlaneStressMasonry2DLaw", mDamageDPlusDMinusPlaneStressMasonry2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("DamageDPlusDMinusMasonry3DLaw", mDamageDPlusDMinusMasonry3DLaw);
 }
 }  // namespace Kratos.
