@@ -34,7 +34,7 @@ double CalculateDeltaTime(
     {
         "time_step_prediction_level" : 2.0,
         "max_delta_time"             : 1.0e-3,
-        "safety_factor"              : 0.60,
+        "safety_factor"              : 0.80,
         "mass_factor"                : 1.0,
         "desired_delta_time"         : -1.0,
         "max_number_of_iterations"   : 10
@@ -164,15 +164,26 @@ double InnerCalculateDeltaTime(
         if (check_has_all_variables) {
             // Computing length as the smallest side of the geometry
 //             const double length = it_elem->GetGeometry().Length();
-            double length = std::numeric_limits<double>::max();
+            double min_length = std::numeric_limits<double>::max();
             for (IndexType i_edge = 0; i_edge < r_geometry.EdgesNumber(); ++i_edge) {
-                length = std::min(r_geometry.Edges()[i_edge].Length(), length);
+                min_length = std::min(r_geometry.Edges()[i_edge].Length(), min_length);
+            }
+
+            // We compute the minimum height of the face too
+            for (IndexType i_face = 0; i_face < r_geometry.FacesNumber(); ++i_face) {
+                double max_length = 0.0;
+
+                for (IndexType i_edge = 0; i_edge < r_geometry.Faces()[i_face].EdgesNumber(); ++i_edge) {
+                    max_length = std::max(r_geometry.Faces()[i_face].Edges()[i_edge].Length(), max_length);
+                }
+
+                min_length = std::min(r_geometry.Faces()[i_face].Area()/max_length, min_length);
             }
 
             // Compute courant criterion
             const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
             const double wavespeed = std::sqrt(bulk_modulus / rho);
-            const double w = 2.0 * wavespeed / length; // Frequency
+            const double w = 2.0 * wavespeed / min_length; // Frequency
 
             const double psi = 0.5 * (alpha / w + beta * w); // Critical ratio;
             stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
