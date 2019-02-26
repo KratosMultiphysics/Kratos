@@ -48,7 +48,7 @@ namespace Kratos {
         first_half_lenghts[0] = std::sqrt(2.0)/2.0;
         first_half_lenghts[1] = 0.1;
 
-        OBB<2> first_obb(first_center, first_directions, first_half_lenghts);
+        OrientedBoundingBox<2> first_obb(first_center, first_directions, first_half_lenghts);
 
         array_1d<double, 3> second_center;
         second_center[0] = 0.0;
@@ -67,7 +67,7 @@ namespace Kratos {
         second_half_lenghts[0] = 0.5;
         second_half_lenghts[1] = 0.1;
 
-        OBB<2> second_obb(second_center, second_directions, second_half_lenghts);
+        OrientedBoundingBox<2> second_obb(second_center, second_directions, second_half_lenghts);
 
         auto first_quad = first_obb.GetEquivalentGeometry();
         auto second_quad = second_obb.GetEquivalentGeometry();
@@ -194,7 +194,7 @@ namespace Kratos {
         first_half_lenghts[0] = 0.5;
         first_half_lenghts[1] = 0.1;
 
-        OBB<2> first_obb(first_center, first_directions, first_half_lenghts);
+        OrientedBoundingBox<2> first_obb(first_center, first_directions, first_half_lenghts);
 
         array_1d<double, 3> second_center;
         second_center[0] = 0.0;
@@ -213,7 +213,7 @@ namespace Kratos {
         second_half_lenghts[0] = 0.5;
         second_half_lenghts[1] = 0.1;
 
-        OBB<2> second_obb(second_center, second_directions, second_half_lenghts);
+        OrientedBoundingBox<2> second_obb(second_center, second_directions, second_half_lenghts);
 
         auto first_quad = first_obb.GetEquivalentGeometry();
         auto second_quad = second_obb.GetEquivalentGeometry();
@@ -311,7 +311,7 @@ namespace Kratos {
         first_half_lenghts[1] = 0.1;
         first_half_lenghts[2] = 0.1;
 
-        OBB<3> first_obb(first_center, first_directions, first_half_lenghts);
+        OrientedBoundingBox<3> first_obb(first_center, first_directions, first_half_lenghts);
 
         array_1d<double, 3> second_center;
         second_center[0] = 0.0;
@@ -334,7 +334,7 @@ namespace Kratos {
         second_half_lenghts[1] = 0.1;
         second_half_lenghts[2] = 0.1;
 
-        OBB<3> second_obb(second_center, second_directions, second_half_lenghts);
+        OrientedBoundingBox<3> second_obb(second_center, second_directions, second_half_lenghts);
 
         auto first_hexa = first_obb.GetEquivalentGeometry();
         auto second_hexa = second_obb.GetEquivalentGeometry();
@@ -459,7 +459,7 @@ namespace Kratos {
         first_half_lenghts[1] = 0.1;
         first_half_lenghts[2] = 0.1;
 
-        OBB<3> first_obb(first_center, first_directions, first_half_lenghts);
+        OrientedBoundingBox<3> first_obb(first_center, first_directions, first_half_lenghts);
 
         array_1d<double, 3> second_center;
         second_center[0] = 0.0;
@@ -482,7 +482,7 @@ namespace Kratos {
         second_half_lenghts[1] = 0.1;
         second_half_lenghts[2] = 0.1;
 
-        OBB<3> second_obb(second_center, second_directions, second_half_lenghts);
+        OrientedBoundingBox<3> second_obb(second_center, second_directions, second_half_lenghts);
 
         auto first_hexa = first_obb.GetEquivalentGeometry();
         auto second_hexa = second_obb.GetEquivalentGeometry();
