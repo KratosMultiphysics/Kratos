@@ -113,9 +113,8 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
     def _SynchronizeInputData(self, solver, solver_name):
         if self.coupling_started:
             input_data_list = self.cosim_solver_details[solver_name]["input_data_list"]
-            start_data_sync = self.cosim_solver_details[solver_name]["coupling_start"]
 
-            if self.time >= start_data_sync:
+            if self.time >= self.cosim_solver_details[solver_name]["input_coupling_start_time"]:
                 for input_data in input_data_list:
                     from_solver = self.solvers[input_data["from_solver"]]
                     data_name = input_data["data_name"]
@@ -128,9 +127,8 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
     def _SynchronizeOutputData(self, solver, solver_name):
         if self.coupling_started:
             output_data_list = self.cosim_solver_details[solver_name]["output_data_list"]
-            start_data_sync = self.cosim_solver_details[solver_name]["coupling_start"]
 
-            if self.time >= start_data_sync:
+            if self.time >= self.cosim_solver_details[solver_name]["output_coupling_start_time"]:
                 for output_data in output_data_list:
                     to_solver = self.solvers[output_data["to_solver"]]
                     data_name = output_data["data_name"]
