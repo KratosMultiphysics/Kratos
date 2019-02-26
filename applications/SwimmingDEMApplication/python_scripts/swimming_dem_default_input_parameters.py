@@ -5,6 +5,22 @@ def GetDefaultInputParameters():
 
     default_settings = KratosMultiphysics.Parameters(
         """{
+            "Dimension"                        : 3,
+            "GravityX"                         : 0.0,
+            "GravityY"                         : 0.0,
+            "GravityZ"                         : -9.81,
+
+            "OutputFileType"                   : "Binary",
+            "Multifile"                        : "multiple_files",
+
+            "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
+            "MaxTimeStep"                      : 0.005,
+            "FinalTime"                        : 1.0,
+            "ControlTime"                      : 4.0,
+            "NeighbourSearchFrequency"         : 1,
+            "TestType" : "None",
+
+            "ElementType"                      : "SwimmingDEMElement",
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -103,6 +119,8 @@ def GetDefaultInputParameters():
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
             "basset_force_type"                      : 0,
+            "time_window"                            : 0.04,
+            "number_of_exponentials"                 : 2,
             "frame_of_reference_type"                : 0,
             "angular_velocity_of_frame_Z"            : 0.0,
 
@@ -136,8 +154,10 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
+            "problem_name" : "",
             "PredefinedSkinOption"             : false,
             "MeanRadius"                       : 0.0001,
+            "properties": [{}],
             "fluid_parameters" : {},
             "dem_parameters" : {}
             }""")

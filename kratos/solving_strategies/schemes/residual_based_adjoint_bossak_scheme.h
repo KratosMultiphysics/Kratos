@@ -69,11 +69,14 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointBossakScheme(Parameters Settings, AdjointResponseFunction::Pointer pResponseFunction)
-        : mpResponseFunction(pResponseFunction)
+    ResidualBasedAdjointBossakScheme(
+        Parameters Settings,
+        AdjointResponseFunction::Pointer pResponseFunction
+        ) : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "name"         : "ResidualBasedAdjointBossakScheme",
+            "name"         : "adjoint_bossak",
+            "scheme_type"  : "bossak",
             "alpha_bossak" : -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
