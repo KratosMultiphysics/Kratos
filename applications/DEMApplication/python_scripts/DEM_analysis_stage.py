@@ -233,7 +233,6 @@ class DEMAnalysisStage(AnalysisStage):
         return self._CreateSolver()
 
     def _CreateSolver(self):
-        # TODO. maybe SetSolverStrategy should be moved here and change json writing strategy instead of elementType(get rid of awful IF-tree)
         def SetSolverStrategy():
             strategy = self.DEM_parameters["strategy_parameters"]["strategy"].GetString()
             filename = __import__(strategy)
