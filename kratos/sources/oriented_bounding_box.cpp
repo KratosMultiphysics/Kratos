@@ -22,7 +22,7 @@
 namespace Kratos
 {
 template<std::size_t TDim>
-OBB<TDim>::OBB(
+OrientedBoundingBox<TDim>::OrientedBoundingBox(
     const array_1d<double, 3>& rCenterCoords,
     const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors,
     const array_1d<double, TDim>& rHalfLength
@@ -35,7 +35,7 @@ OBB<TDim>::OBB(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-const array_1d<double, 3>& OBB<TDim>::GetCenter() const
+const array_1d<double, 3>& OrientedBoundingBox<TDim>::GetCenter() const
 {
     return mPointCenter;
 }
@@ -44,7 +44,7 @@ const array_1d<double, 3>& OBB<TDim>::GetCenter() const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::SetCenter(const array_1d<double, 3>& rCenterCoords)
+void OrientedBoundingBox<TDim>::SetCenter(const array_1d<double, 3>& rCenterCoords)
 {
     noalias(mPointCenter) = rCenterCoords;
 }
@@ -53,7 +53,7 @@ void OBB<TDim>::SetCenter(const array_1d<double, 3>& rCenterCoords)
 /***********************************************************************************/
 
 template<std::size_t TDim>
-const array_1d<array_1d<double, 3>, TDim>& OBB<TDim>::GetOrientationVectors() const
+const array_1d<array_1d<double, 3>, TDim>& OrientedBoundingBox<TDim>::GetOrientationVectors() const
 {
     return mOrientationVectors;
 }
@@ -62,7 +62,7 @@ const array_1d<array_1d<double, 3>, TDim>& OBB<TDim>::GetOrientationVectors() co
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::SetOrientationVectors(const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors)
+void OrientedBoundingBox<TDim>::SetOrientationVectors(const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors)
 {
     for (std::size_t i_dim = 0; i_dim < TDim; ++i_dim) {
         noalias(mOrientationVectors[i_dim]) = rOrientationVectors[i_dim];
@@ -73,7 +73,7 @@ void OBB<TDim>::SetOrientationVectors(const array_1d<array_1d<double, 3>, TDim>&
 /***********************************************************************************/
 
 template<std::size_t TDim>
-const array_1d<double, TDim>& OBB<TDim>::GetHalfLength() const
+const array_1d<double, TDim>& OrientedBoundingBox<TDim>::GetHalfLength() const
 {
     return mHalfLength;
 }
@@ -82,7 +82,7 @@ const array_1d<double, TDim>& OBB<TDim>::GetHalfLength() const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::SetHalfLength(const array_1d<double, TDim>& rHalfLength)
+void OrientedBoundingBox<TDim>::SetHalfLength(const array_1d<double, TDim>& rHalfLength)
 {
     mHalfLength = rHalfLength;
 }
@@ -91,16 +91,16 @@ void OBB<TDim>::SetHalfLength(const array_1d<double, TDim>& rHalfLength)
 /***********************************************************************************/
 
 template<>
-bool OBB<2>::IsInside(const OBB<2>& rOtherOBB)  const
+bool OrientedBoundingBox<2>::IsInside(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox)  const
 {
     // Signs
     constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
     constexpr static std::array<double, 4> sign_components_Y2D = {-1.0, -1.0, 1.0, 1.0};
 
     // Getting nodes from second
-    const auto& r_second_obb_center = rOtherOBB.GetCenter();
-    const auto& r_second_obb_half_length = rOtherOBB.GetHalfLength();
-    const auto& r_second_obb_orientation_vectors = rOtherOBB.GetOrientationVectors();
+    const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
+    const auto& r_second_obb_half_length = rOtherOrientedBoundingBox.GetHalfLength();
+    const auto& r_second_obb_orientation_vectors = rOtherOrientedBoundingBox.GetOrientationVectors();
 
     // Checking each point
     for (std::size_t i_point = 0; i_point < 4; ++i_point) {
@@ -119,7 +119,7 @@ bool OBB<2>::IsInside(const OBB<2>& rOtherOBB)  const
 /***********************************************************************************/
 
 template<>
-bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
+bool OrientedBoundingBox<3>::IsInside(const OrientedBoundingBox<3>& rOtherOrientedBoundingBox) const
 {
     // Getting inverted rotation matrix
     BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
@@ -141,9 +141,9 @@ bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
     constexpr static std::array<double, 8> sign_components_Z3D = {-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0};
 
     // Getting nodes from second
-    const auto& r_second_obb_center = rOtherOBB.GetCenter();
-    const auto& r_second_obb_half_length = rOtherOBB.GetHalfLength();
-    const auto& r_second_obb_orientation_vectors = rOtherOBB.GetOrientationVectors();
+    const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
+    const auto& r_second_obb_half_length = rOtherOrientedBoundingBox.GetHalfLength();
+    const auto& r_second_obb_orientation_vectors = rOtherOrientedBoundingBox.GetOrientationVectors();
 
     // Checking each point
     for (std::size_t i_point = 0; i_point < 8; ++i_point) {
@@ -162,20 +162,20 @@ bool OBB<3>::IsInside(const OBB<3>& rOtherOBB) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
+bool OrientedBoundingBox<TDim>::HasIntersection(const OrientedBoundingBox<TDim>& rOtherOrientedBoundingBox) const
 {
     /* We check if points are inside */
     // Checking one combination
-    if (this->IsInside(rOtherOBB))
+    if (this->IsInside(rOtherOrientedBoundingBox))
         return true;
 
     // Checking the other
-    if (rOtherOBB.IsInside(*this))
+    if (rOtherOrientedBoundingBox.IsInside(*this))
         return true;
 
     /* We check for intersection of edges/faces */
     auto geom1 = this->GetEquivalentGeometry();
-    auto geom2 = rOtherOBB.GetEquivalentGeometry();
+    auto geom2 = rOtherOrientedBoundingBox.GetEquivalentGeometry();
 
     // Id 2D we check edges
     if (TDim == 2) {
@@ -214,7 +214,7 @@ bool OBB<TDim>::HasIntersection(const OBB<TDim>& rOtherOBB) const
 /***********************************************************************************/
 
 template<>
-Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry() const
+Quadrilateral2D4<Point> OrientedBoundingBox<2>::GetEquivalentGeometry() const
 {
     // Signs
     constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
@@ -237,7 +237,7 @@ Quadrilateral2D4<Point> OBB<2>::GetEquivalentGeometry() const
 /***********************************************************************************/
 
 template<>
-Hexahedra3D8<Point> OBB<3>::GetEquivalentGeometry() const
+Hexahedra3D8<Point> OrientedBoundingBox<3>::GetEquivalentGeometry() const
 {
     // Signs
     constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
@@ -261,7 +261,7 @@ Hexahedra3D8<Point> OBB<3>::GetEquivalentGeometry() const
 /***********************************************************************************/
 
 template<>
-void OBB<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+void OrientedBoundingBox<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 {
     for (std::size_t i_point = 0; i_point < 4; ++i_point) {
         array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();
@@ -273,7 +273,7 @@ void OBB<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 /***********************************************************************************/
 
 template<>
-void OBB<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+void OrientedBoundingBox<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 {
     // Getting inverted rotation matrix
     BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
@@ -299,7 +299,7 @@ void OBB<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
+void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 {
     // Compute angle
     const double angle = - std::atan2(mOrientationVectors[0][1], mOrientationVectors[0][0]);
@@ -324,7 +324,7 @@ void OBB<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-void OBB<TDim>::RotateNode3D(
+void OrientedBoundingBox<TDim>::RotateNode3D(
     array_1d<double, 3>& rCoords,
     BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
     ) const
@@ -349,7 +349,7 @@ void OBB<TDim>::RotateNode3D(
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
+bool OrientedBoundingBox<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
 {
     // We move to X-Y alignment
     RotateNode2D(rCoords);
@@ -361,7 +361,7 @@ bool OBB<TDim>::CheckIsInside2D(array_1d<double, 3>& rCoords) const
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool OBB<TDim>::CheckIsInside3D(
+bool OrientedBoundingBox<TDim>::CheckIsInside3D(
     array_1d<double, 3>& rCoords,
     BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
     ) const
@@ -375,7 +375,7 @@ bool OBB<TDim>::CheckIsInside3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class OBB<2>;
-template class OBB<3>;
+template class OrientedBoundingBox<2>;
+template class OrientedBoundingBox<3>;
 
 }  // namespace Kratos.

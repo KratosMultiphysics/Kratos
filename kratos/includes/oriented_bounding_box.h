@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(OBB_CLASS_H_DEFINED )
-#define  OBB_CLASS_H_DEFINED
+#if !defined(OrientedBoundingBox_CLASS_H_DEFINED )
+#define  OrientedBoundingBox_CLASS_H_DEFINED
 
 // System includes
 
@@ -45,10 +45,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class OBB
+ * @class OrientedBoundingBox
  * @ingroup KratosCore
  * @brief This class defines the Oriented bounding box class
- * @details The geometrical definition of the OBB can be done as the
+ * @details The geometrical definition of the OrientedBoundingBox can be done as the
  *                      ` *
  *            directions / `
  *                  * \ / half diagonals
@@ -61,7 +61,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TDim>
-class OBB
+class OrientedBoundingBox
 {
 public:
 
@@ -74,8 +74,8 @@ public:
     /// Definition of the output type
     typedef typename std::conditional<TDim == 2, Quadrilateral2D4<Point>, Hexahedra3D8<Point> >::type  OutpuType;
 
-    /// Counted pointer of OBB
-    KRATOS_CLASS_POINTER_DEFINITION( OBB );
+    /// Counted pointer of OrientedBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION( OrientedBoundingBox );
 
     ///@}
     ///@name Life Cycle
@@ -83,18 +83,18 @@ public:
 
     /**
      * @brief Default constructors
-     * @param rCenterPoint The center of the OBB
+     * @param rCenterPoint The center of the OrientedBoundingBox
      * @param rOrientationVectors The orientation vector of the diagonal
      * @param rHalfLength The half sides
      */
-    OBB(
+    OrientedBoundingBox(
         const array_1d<double, 3>& rCenterCoords,
         const array_1d<array_1d<double, 3>, TDim>& rOrientationVectors,
         const array_1d<double, TDim>& rHalfLength
         );
 
     ///Copy constructor  (not really required)
-    OBB(const OBB& rhs):
+    OrientedBoundingBox(const OrientedBoundingBox& rhs):
         mPointCenter(rhs.mPointCenter),
         mOrientationVectors(rhs.mOrientationVectors),
         mHalfLength(rhs.mHalfLength)
@@ -102,7 +102,7 @@ public:
     }
 
     /// Destructor.
-    ~OBB()
+    ~OrientedBoundingBox()
     {
     }
 
@@ -115,14 +115,14 @@ public:
     ///@{
 
     /**
-     * @brief Returns the point that defines the center of the OBB
-     * @return The center point of the OBB
+     * @brief Returns the point that defines the center of the OrientedBoundingBox
+     * @return The center point of the OrientedBoundingBox
      */
     const array_1d<double, 3>& GetCenter() const;
 
     /**
-     * @brief Set the point that defines the center of the OBB
-     * @param rCenterCoords The coordinates that defines the center of the OBB
+     * @brief Set the point that defines the center of the OrientedBoundingBox
+     * @param rCenterCoords The coordinates that defines the center of the OrientedBoundingBox
      */
     void SetCenter(const array_1d<double, 3>& rCenterCoords);
 
@@ -151,18 +151,18 @@ public:
     void SetHalfLength(const array_1d<double, TDim>& rHalfLength);
 
     /**
-     * @brief Computes the intersection between two OBB (current and new)
+     * @brief Computes the intersection between two OrientedBoundingBox (current and new)
      */
-    bool IsInside(const OBB& rOtherOBB) const;
+    bool IsInside(const OrientedBoundingBox& rOtherOrientedBoundingBox) const;
 
     /**
-     * @brief Computes the intersection between two OBB (current and new)
+     * @brief Computes the intersection between two OrientedBoundingBox (current and new)
      */
-    bool HasIntersection(const OBB& rOtherOBB) const;
+    bool HasIntersection(const OrientedBoundingBox& rOtherOrientedBoundingBox) const;
 
     /**
      * @brief This method egnerates an equiavelent geometry (debugging)
-     * @return Getting the OBB geometry
+     * @return Getting the OrientedBoundingBox geometry
      */
     OutpuType GetEquivalentGeometry() const;
 
@@ -210,8 +210,8 @@ private:
     ///@{
 
     array_1d<double, 3> mPointCenter;                        /// This defines the center point of the box
-    array_1d<array_1d<double, 3>, TDim> mOrientationVectors; /// This defines the orientation vectors of the OBB
-    array_1d<double, TDim> mHalfLength;                      /// This defines the half of the distance which defines the walls of the box of the OBB
+    array_1d<array_1d<double, 3>, TDim> mOrientationVectors; /// This defines the orientation vectors of the OrientedBoundingBox
+    array_1d<double, TDim> mHalfLength;                      /// This defines the half of the distance which defines the walls of the box of the OrientedBoundingBox
 
     ///@}
     ///@name Private Operators
@@ -238,14 +238,14 @@ private:
         ) const;
 
     /**
-     * @brief This method does a check in 2D if the point is inside the OBB
+     * @brief This method does a check in 2D if the point is inside the OrientedBoundingBox
      * @param rCoords The coordinates of the point of interest
      * @return True is is inside, false otherwise
      */
     bool CheckIsInside2D(array_1d<double, 3>& rCoords) const;
 
     /**
-     * @brief This method does a check in 3D if the point is inside the OBB
+     * @brief This method does a check in 3D if the point is inside the OrientedBoundingBox
      * @param rCoords The coordinates of the point of interest
      * @param rInvertedRotationMatrix The inverted matrix of rotation
      * @return True is is inside, false otherwise
@@ -271,7 +271,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-}; // Class OBB
+}; // Class OrientedBoundingBox
 
 ///@}
 
@@ -287,4 +287,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // OBB_CLASS_H_DEFINED  defined
+#endif // OrientedBoundingBox_CLASS_H_DEFINED  defined
