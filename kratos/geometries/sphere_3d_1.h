@@ -158,13 +158,13 @@ public:
 //     }
 
     Sphere3D1( typename PointType::Pointer pFirstPoint )
-        : BaseType( PointsArrayType(), &msGeometryData )
+        : BaseType( PointsArrayType(), &msGeometryData ), mRadius(0.0)
     {
         BaseType::Points().push_back( pFirstPoint );
     }
 
     Sphere3D1( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData )
+        : BaseType( ThisPoints, &msGeometryData ) , mRadius(0.0)
     {
         if ( BaseType::PointsNumber() != 1 )
             KRATOS_ERROR << "Invalid points number. Expected 1, given " << BaseType::PointsNumber() << std::endl;
@@ -181,6 +181,7 @@ public:
     Sphere3D1( Sphere3D1 const& rOther )
         : BaseType( rOther )
     {
+        mRadius = rOther.GetRadius();
     }
 
 
@@ -198,6 +199,7 @@ public:
     template<class TOtherPointType> Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
+        mRadius = rOther.GetRadius();
     }
 
     /// Destructor. Do nothing!!!
@@ -260,7 +262,7 @@ public:
     {
         return typename BaseType::Pointer( new Sphere3D1( ThisPoints ) );
     }
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -292,7 +294,7 @@ public:
     {
 	if(rResult.size() != 1)
            rResult.resize( 1, false );
-        rResult[0] = 1.0;        
+        rResult[0] = 1.0;
         return rResult;
     }
 
@@ -315,7 +317,7 @@ public:
     double Length() const override
     {
         std::cout<<"This method (Length) has no meaning for this type of geometry (Sphere)."<<std::endl;
-                
+
         return 0.0;
     }
 
@@ -332,10 +334,13 @@ public:
     */
     double Area() const override
     {
-        std::cout<<"This method (Area) has no meaning for this type of geometry (Sphere)."<<std::endl;
-        return 0.00;
+        return 4 * Globals::Pi * std::pow(GetRadius(), 2);
     }
 
+    double Volume() const override
+    {
+        return 4/3 * Globals::Pi * std::pow(GetRadius(), 3);
+    }
 
     /** This method calculate and return length, area or volume of
     this geometry depending to it's dimension. For one dimensional
@@ -379,7 +384,7 @@ public:
     @see InverseOfJacobian
     */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
-    {        
+    {
         std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
@@ -394,9 +399,9 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -602,6 +607,18 @@ public:
         return( rResult );
     }
 
+    double GetRadius() const override{
+        return mRadius;
+    }
+
+    /** Counterpart of GetRadius(). It provides an interface
+     * to set the radius when it cannot be inferred from other
+     * information in the object (e.g., in a sphere)
+     */
+
+    void SetRadius(const double Radius=0.0) override {
+        mRadius = Radius;
+    }
 
     /** Turn back information as a string.
 
@@ -635,7 +652,7 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
-        
+
     }
 
     ///@}
@@ -691,7 +708,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    double mRadius;
     ///@}
     ///@name Serialization
     ///@{
@@ -727,7 +744,7 @@ private:
         const int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 1 );
 
-        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;        
+        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;
 
         return N;
     }
@@ -807,7 +824,7 @@ private:
 
     ///@}
 
-}; // Class Geometry
+}; // Class Sphere3D1
 
 ///@}
 
@@ -850,5 +867,5 @@ const GeometryData Sphere3D1<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SPHERE_3D_1_H_INCLUDED  defined 
+#endif // KRATOS_SPHERE_3D_1_H_INCLUDED  defined
 

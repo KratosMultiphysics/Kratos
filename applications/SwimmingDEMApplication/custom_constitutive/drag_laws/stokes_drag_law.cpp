@@ -26,7 +26,7 @@ namespace Kratos {
                                      array_1d<double, 3>& drag_force,
                                      const ProcessInfo& r_current_process_info)
     {
-        double drag_coeff = 6.0 * Globals::Pi * fluid_kinematic_viscosity * fluid_density * particle_radius;
+        double drag_coeff = 6.0 * Globals::Pi * fluid_kinematic_viscosity * fluid_density * r_geometry.GetRadius();
         noalias(drag_force) = drag_coeff * slip_velocity;
     }
 } // namespace Kratos

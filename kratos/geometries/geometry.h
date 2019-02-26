@@ -2241,6 +2241,27 @@ public:
         return rResult;
     }
 
+    /// Generic geometric methods
+
+    /** It returns the radius of the geometry.
+     * For any geometry G the radius can be defined as
+     * 1/2 de diameter, where
+     * diameter = sup { d(x, y) | x, y ∈ G }
+     * This notion trivially generalizes the usual sphere or circle radii.
+     */
+    virtual double GetRadius() const {
+      KRATOS_ERROR << "Calling base class 'GetRadius' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Counterpart of GetRadius(). It provides an interface
+     * to set the radius when it cannot be inferred from other
+     * information in the object (e.g., in a sphere)
+     */
+    virtual void SetRadius(const double Radius=0.0) {
+      KRATOS_ERROR << "Calling base class 'SetRadius' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -2540,7 +2561,7 @@ protected:
 
     /** Calculates the min dihedral angle quality metric.
      * Calculates the min dihedral angle quality metric.
-     * The min dihedral angle is min angle between two faces of the element 
+     * The min dihedral angle is min angle between two faces of the element
      * In radians
      * @return [description]
      */
