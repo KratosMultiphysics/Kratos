@@ -44,14 +44,14 @@ public:
         //std::cout << std::setw(6);
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
-            std::cout << "    ";
+            std::cout << "       ";
             for(IndexType j = 0; j < output_vector[0].size(); ++j)
             {
                 std::cout << "    |";
                 for(IndexType dir_it = 0; dir_it < 3; ++dir_it)
                 {
                     if(dir_it == 2)
-                        std::cout << std::setw(8) << output_vector[i][j][dir_it] << "|      ";
+                        std::cout << std::setw(8) << output_vector[i][j][dir_it] << "|    ";
                     else
                         std::cout << std::setw(8) << output_vector[i][j][dir_it] << "  :  ";
                 }             
@@ -66,7 +66,7 @@ public:
         std::cout << output_name << ":  " << std::endl;
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
-            std::cout << "    |";
+            std::cout << "           |";
             for(IndexType dir_it = 0; dir_it < 3; ++dir_it)
             {
                 if(dir_it == 2)
@@ -81,7 +81,7 @@ public:
 
     static void OutputOnTerminal(const std::string output_name, const Vector& output_vector)
     {
-        std::cout << output_name << ":   |";
+        std::cout << std::setw(18) << output_name << ":   |";
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
             if (i == output_vector.size()-1)
