@@ -156,7 +156,7 @@ namespace Kratos {
          * @brief This method gets the scale factors of the BB
          * @return The scalar factors of the octree
          */
-        double* GetScaleFactor()
+        double* GetScaleFactor() const
         {
             double* scale_factor = new double[DIMENSION];
 
@@ -171,7 +171,7 @@ namespace Kratos {
          * @brief This method gets the offsets of the BB
          * @return The offsets of the octree
          */
-        double* GetOffset()
+        double* GetOffset() const
         {
             double* offset = new double[DIMENSION];
 
