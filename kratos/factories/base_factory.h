@@ -246,6 +246,7 @@ typedef BaseFactory<BuilderAndSolverType, LinearSolverType> BuilderAndSolverFact
 typedef BaseFactory<SchemeType> SchemeFactoryType;
 typedef BaseFactory<ConvergenceCriteriaType> ConvergenceCriteriaFactoryType;
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<StrategyFactoryType>;
 
 #ifdef KRATOS_REGISTER_STRATEGY
 #undef KRATOS_REGISTER_STRATEGY
@@ -253,17 +254,23 @@ typedef BaseFactory<ConvergenceCriteriaType> ConvergenceCriteriaFactoryType;
 #define KRATOS_REGISTER_STRATEGY(name, reference) \
     KratosComponents<StrategyFactoryType>::Add(name, reference);
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<BuilderAndSolverFactoryType>;
+
 #ifdef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #undef KRATOS_REGISTER_BUILDER_AND_SOLVER
 #endif
 #define KRATOS_REGISTER_BUILDER_AND_SOLVER(name, reference) \
     KratosComponents<BuilderAndSolverFactoryType>::Add(name, reference);
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SchemeFactoryType>;
+
 #ifdef KRATOS_REGISTER_SCHEME
 #undef KRATOS_REGISTER_SCHEME
 #endif
 #define KRATOS_REGISTER_SCHEME(name, reference) \
     KratosComponents<SchemeFactoryType>::Add(name, reference);
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConvergenceCriteriaFactoryType>;
 
 #ifdef KRATOS_REGISTER_CONVERGENCE_CRITERIA
 #undef KRATOS_REGISTER_CONVERGENCE_CRITERIA
