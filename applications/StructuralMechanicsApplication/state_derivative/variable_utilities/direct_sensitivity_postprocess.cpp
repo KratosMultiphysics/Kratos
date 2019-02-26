@@ -117,6 +117,8 @@ namespace Kratos
             KratosComponents<Variable<array_1d<double,3>>>::Get(response_output_variable_name);
 
             if (rResponseFunction.GetEvaluationFlag() == "on_node")
+                // ToDo: Find out why using VariableUtils() leads to error message 
+                //VariableUtils().SetToZero_VectorVar( r_output_variable, mrModelPart.Nodes() );       
                 for (int i = 0; i < static_cast<int> (mrModelPart.NumberOfNodes()); ++i )
                 {  
                    auto it = mrModelPart.NodesBegin() + i;
@@ -214,7 +216,7 @@ namespace Kratos
             // Calculate derivative of the response function wrt. the displacements             
             rResponseFunction.CalculateGradient(elem_i, rResponseVariable, response_displacement_gradient[k], r_process_info);
 
-            //OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
+            OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
 
             // Calculate derivative of the response function wrt. the design variable
             rResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, rResponseVariable,
@@ -228,7 +230,7 @@ namespace Kratos
             // Get the displacement vector derived wrt. the design parameter
             elem_i.GetValuesVector(displacement_gradient[k]);
                         
-            //OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
+            OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
                         
             if( (response_displacement_gradient[k].size() > 0) && (displacement_gradient[k].size() > 0) )
             {
@@ -238,7 +240,7 @@ namespace Kratos
                  
                 VectorMath::ScalarProduct(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
 
-                //OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
+                OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
 
                 VectorMath::SetToZero(sensitivity_vector[k]);
 
@@ -249,7 +251,7 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT( response_sensitivity_gradient[k].size() == sensitivity_vector[k].size() ) << 
                     "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
                 
-                //OutputUtility::OutputOnTerminal("dg/ds", response_sensitivity_gradient[k]);
+                OutputUtility::OutputOnTerminal("dg/ds", response_sensitivity_gradient[k]);
                 
                 VectorMath::MultiplyByFactor(response_sensitivity_gradient[k], -1);
 
@@ -313,13 +315,13 @@ namespace Kratos
             {
                 const Variable<array_1d<double,3>>& r_response_variable =
                     KratosComponents<Variable<array_1d<double,3>>>::Get(adjoint_response_variable_name);
-                displacement_gradient[k] = node_i.FastGetSolutionStepValue(r_response_variable);                
+                displacement_gradient[k] = node_i.FastGetSolutionStepValue(r_response_variable);                               
             }
             else
                 KRATOS_ERROR << "There exist no related adjoint variable for " << response_variable_name << "." << std::endl;
             
 
-            //OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
+            OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
                         
             if( (response_displacement_gradient[k].size() > 0) && (displacement_gradient[k].size() > 0) )
             {
@@ -329,7 +331,7 @@ namespace Kratos
                  
                 VectorMath::Product(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
 
-                //OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
+                OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
 
                 VectorMath::SetToZero(sensitivity_vector[k]);
 
