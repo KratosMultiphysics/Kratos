@@ -13,7 +13,7 @@ def _CreateControllerWithFileIO(settings, model):
     default_setter.AddString('process_step', 'initialize')
     default_setter.Add('controller_settings')
     default_setter.Add('io_settings')
-    default_setter.AddArray('list_of_operations')
+    default_setter.AddArray('list_of_operations', [])
     if settings['list_of_operations'].size() == 0:
         settings['list_of_operations'].Append(
             KratosMultiphysics.Parameters())

@@ -6,7 +6,7 @@ import KratosMultiphysics.HDF5Application.single_mesh_primal_output_process as s
 import KratosMultiphysics.HDF5Application.initialization_from_hdf5_process as initialization_from_hdf5_process
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as single_mesh_temporal_input_process
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 class TestHDF5Processes(KratosUnittest.TestCase):

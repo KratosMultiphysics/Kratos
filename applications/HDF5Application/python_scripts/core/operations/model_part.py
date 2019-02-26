@@ -64,7 +64,7 @@ class VariableIO(object):
     def __init__(self, settings):
         default_setter = _utils.DefaultSetter(settings)
         default_setter.AddString('prefix', '/ResultsData')
-        default_setter.AddArray('list_of_variables')
+        default_setter.AddArray('list_of_variables', [])
         self.prefix = settings['prefix'].GetString()
         if '<time>' in self.prefix:
             default_setter.AddString('time_format', '0.4f')

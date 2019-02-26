@@ -1,7 +1,7 @@
 '''Write a model part once and its data at the end of each solution step.
 
 ACCELERATION is written in the Bossak weighted form. For all other variables
-the behavior is the same as single_mesh_temporal_output_process. 
+the behavior is the same as single_mesh_temporal_output_process.
 
 This process provides the front end to the HDF5Application.core.
 

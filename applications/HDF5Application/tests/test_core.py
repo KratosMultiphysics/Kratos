@@ -576,7 +576,7 @@ class TestControllers(KratosUnittest.TestCase):
             model_part, io, controller_settings)
         controller.Add(operation)
         with patch('core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
-            for i in range(10):
+            for _ in range(10):
                 controller()
             self.assertEqual(operation.call_count, 10)
 
@@ -642,7 +642,7 @@ class TestFactory(KratosUnittest.TestCase):
             'core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
         patcher2 = patch(
             'core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True)
-        MockHDF5FileSerial = patcher1.start()
+        patcher1.start()
         MockHDF5ModelPartIO = patcher2.start()
         process.ExecuteInitialize()
         model_part_io = MockHDF5ModelPartIO.return_value

@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     warn_msg = "h5py module was not found!"
     KratosMultiphysics.Logger.PrintWarning(__name__, warn_msg)
     class NonExistingModule(object):
-        
+
         def __init__(self, module_name):
             self.module_name = module_name
 

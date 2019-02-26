@@ -45,7 +45,7 @@ class DefaultSetter(object):
                 self.settings.AddValue(key, value)
         return self
 
-    def AddArray(self, key, values=[]):
+    def AddArray(self, key, values):
         if not self.settings.Has(key):
             self.settings.AddEmptyArray(key)
             array = self.settings[key]

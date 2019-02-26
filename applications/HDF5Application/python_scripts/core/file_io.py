@@ -35,13 +35,17 @@ class _HDF5ParallelFileIO(_FileIO):
 
 class _HDF5MockFileIO(_FileIO):
 
+    class MockFile(object):
+
+        def __init__(self, file_name):
+            self.file_name = file_name
+
+        def GetFileName(self): return self.file_name
+
     def Get(self, identifier=None):
         settings = self._FileSettings(identifier)
         file_name = settings['file_name'].GetString()
-
-        class MockFile(object):
-            def GetFileName(self): return file_name
-        return MockFile()
+        return self.MockFile(file_name)
 
 
 def _SetDefaults(settings):
@@ -105,7 +109,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
         self._InitializeDirectory(file_name)
         return file_name
 
-    def _InitializeDirectory(self, file_name):
+    @staticmethod
+    def _InitializeDirectory(file_name):
         dirname = os.path.dirname(file_name)
         if dirname != '' and not os.path.exists(dirname):
             if KratosMultiphysics.DataCommunicator.GetDefault().Rank() == 0:
@@ -115,7 +120,7 @@ class _FilenameGetterWithDirectoryInitialization(object):
 
 def Create(settings):
     '''Return the IO object specified by the setting 'io_type'.
-    
+
     Empty settings will contain default values after returning from the
     function call.
     '''
