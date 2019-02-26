@@ -212,18 +212,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         return nneg==1
 
     def FindTrailingEdgeElementId(self):
-        # This function computes the maximum x coordinate within
-        # all the trailing edge elements' centers
-        maximum_x_coordinate = -1e30
+        # This function finds the trailing edge element that is cut by the wake
 
         # Loop over the elements touching the trailing edge
         for elem in self.trailing_edge_model_part.Elements:
-            # Find the element touching the trailing edge with maximum x coordinate
+            # Find the element touching the trailing edge that is cut by the wake
             if (elem.GetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE)):
                 if(self.CheckIfElemIsCutByWake(elem)):
-                    elem_id=elem.Id              
+                    te_elem_id=elem.Id
 
-        return elem_id
+        return te_elem_id
 
     def MarkWakeTEElement(self):
         # This function finds the trailing edge element that is further downstream
