@@ -220,24 +220,24 @@ protected:
      * @brief This creates auxiliar elements with the provided OBB (2D)
      * @param rModelPart The model part where to add the elements
      * @param pProperties Pointer to the considered properties
-     * @param rOBB The bounding box to be postprocessed
+     * @param rOrientedBoundingBox The bounding box to be postprocessed
      */
     void CreateDebugOBB2D(
         ModelPart& rModelPart,
         Properties::Pointer pProperties,
-        OBB<2>& rOBB
+        OrientedBoundingBox<2>& rOrientedBoundingBox
         );
 
     /**
      * @brief This creates auxiliar elements with the provided OBB (3D)
      * @param rModelPart The model part where to add the elements
      * @param pProperties Pointer to the considered properties
-     * @param rOBB The bounding box to be postprocessed
+     * @param rOrientedBoundingBox The bounding box to be postprocessed
      */
     void CreateDebugOBB3D(
         ModelPart& rModelPart,
         Properties::Pointer pProperties,
-        OBB<3>& rOBB
+        OrientedBoundingBox<3>& rOrientedBoundingBox
         );
 
     ///@}

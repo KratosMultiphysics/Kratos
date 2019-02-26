@@ -196,7 +196,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
         array_1d<double, 2> first_half_distances;
         first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
         first_half_distances[1] = mBoundingBoxFactor;
-        OBB<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
+        OrientedBoundingBox<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
         // We create new elements for debugging
         if (mDebugOBB) {
@@ -224,7 +224,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
             array_1d<double, 2> second_half_distances;
             second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
             second_half_distances[1] = mBoundingBoxFactor;
-            OBB<2> second_obb(second_center_point, second_direction_vector, second_half_distances);
+            OrientedBoundingBox<2> second_obb(second_center_point, second_direction_vector, second_half_distances);
 
             // We create new elements for debugging
             if (mDebugOBB) {
@@ -290,7 +290,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         first_half_distances[0] = distance_0 + mBoundingBoxFactor;
         first_half_distances[1] = distance_1 + mBoundingBoxFactor;
         first_half_distances[2] = distance_2 + mBoundingBoxFactor;
-        OBB<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
+        OrientedBoundingBox<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
 
         // We create new elements for debugging
         if (mDebugOBB) {
@@ -326,7 +326,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
             second_half_distances[0] = distance_0 + mBoundingBoxFactor;
             second_half_distances[1] = distance_1 + mBoundingBoxFactor;
             second_half_distances[2] = distance_2 + mBoundingBoxFactor;
-            OBB<3> second_obb(second_center_point, second_direction_vector, second_half_distances);
+            OrientedBoundingBox<3> second_obb(second_center_point, second_direction_vector, second_half_distances);
 
             // We create new elements for debugging
             if (mDebugOBB) {
@@ -351,13 +351,13 @@ template<class TEntity>
 void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB2D(
     ModelPart& rModelPart,
     Properties::Pointer pProperties,
-    OBB<2>& rOBB
+    OrientedBoundingBox<2>& rOrientedBoundingBox
     )
 {
     ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
 
     const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
-    auto quad = rOBB.GetEquivalentGeometry();
+    auto quad = rOrientedBoundingBox.GetEquivalentGeometry();
     std::vector<NodeType::Pointer> element_nodes (4);
     for (int i = 0; i < 4; ++i) {
         element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, quad[i].X(), quad[i].Y(), quad[i].Z());
@@ -374,13 +374,13 @@ template<class TEntity>
 void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB3D(
     ModelPart& rModelPart,
     Properties::Pointer pProperties,
-    OBB<3>& rOBB
+    OrientedBoundingBox<3>& rOrientedBoundingBox
     )
 {
     ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
 
     const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
-    auto hexa = rOBB.GetEquivalentGeometry();
+    auto hexa = rOrientedBoundingBox.GetEquivalentGeometry();
     std::vector<NodeType::Pointer> element_nodes (8);
     for (int i = 0; i < 8; ++i) {
         element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, hexa[i].X(), hexa[i].Y(), hexa[i].Z());
