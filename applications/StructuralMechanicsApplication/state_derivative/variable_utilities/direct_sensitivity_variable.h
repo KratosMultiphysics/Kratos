@@ -97,11 +97,7 @@ public:
     virtual void CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rRHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
 
     virtual void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
-
-    virtual void PerturbDesignVariable(Element& rDirectElement);
-    
-    virtual void UnperturbDesignVariable(Element& rDirectElement);        
-       
+      
     virtual std::string GetDesignVariableName();
 
     virtual std::string GetDesignVariableType();
@@ -150,9 +146,7 @@ private:
     ///@}
     ///@name private Operations
     ///@{
-    virtual Variable<double> ReadScalarDesignVariables(std::string const& rVariableName);
-
-    virtual Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName);    
+        
     ///@} 
         
 };

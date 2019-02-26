@@ -59,11 +59,7 @@ public:
     void CalculatePseudoLoadVector(Element& rDirectElem, const Matrix& rRHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;
 
     void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;    
-
-    void PerturbDesignVariable(Element& rElement) override;
-    
-    void UnperturbDesignVariable(Element& rElement) override;
-      
+         
     unsigned int GetTracedElementId() override;
 
     ///@}
@@ -114,10 +110,7 @@ private:
     ///@}
     ///@name private Operations
     ///@{
-        Variable<double> ReadScalarDesignVariables(std::string const& rVariableName) override;
-
-        Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName) override;        
-        
+                    
     ///@}
 
 }; // Class DirectSensitivityElementDataVariable

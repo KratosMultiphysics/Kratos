@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 #include "direct_sensitivity_variable.h"
 
 namespace Kratos
@@ -36,6 +37,10 @@ namespace Kratos
         // Get the type of the design variable
         mVariableType = VariableSettings["variable_type"].GetString();
 
+        // Set the perturbation size on all elements and conditions
+        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Elements());
+        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Conditions());
+        
         KRATOS_CATCH("");
     }
 
@@ -63,31 +68,6 @@ namespace Kratos
     {
         KRATOS_ERROR << "CalculatePseudoLoadVector should be implemented in the derived class." << std::endl;
     }  
-
-
-    void DirectSensitivityVariable::PerturbDesignVariable(Element& rDirectElement)
-    {
-        KRATOS_ERROR << "PerturbDesignVariable should be implemented in the derived class." << std::endl;
-    }
-   
-    
-    void DirectSensitivityVariable::UnperturbDesignVariable(Element& rDirectElement)
-    {
-        KRATOS_ERROR << "UnperturbDesignVariable should be implemented in the derived class." << std::endl;
-    }  
-   
-
-    Variable<double> DirectSensitivityVariable::ReadScalarDesignVariables(std::string const& rVariableName)
-    {
-        KRATOS_ERROR << "ReadScalarDesignVariables should be implemented in the derived class." << std::endl;
-    }
-
-
-    Variable<array_1d<double,3>> DirectSensitivityVariable::ReadVectorDesignVariables(std::string const& rVariableName)
-    {
-        KRATOS_ERROR << "ReadVectorDesignVariables should be implemented in the derived class." << std::endl;
-    }
-
 
     std::string DirectSensitivityVariable::GetDesignVariableName() 
     {              
