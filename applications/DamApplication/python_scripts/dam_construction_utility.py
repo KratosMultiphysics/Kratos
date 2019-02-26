@@ -16,6 +16,13 @@ class DamConstructionUtility:
         ambient_input_file_name = parameters["ambient_input_file_name"].GetString()
         self.construction_input_file_name = parameters["construction_input_file_name"].GetString()
 
+        self.check_temperature_parameters = Parameters("{}")
+        self.activate_check_temperature = parameters["activate_check_temperature"].GetBool()
+        if (self.activate_check_temperature):
+            self.check_temperature_parameters.AddValue("maximum_temperature_increment",parameters["maximum_temperature_increment"])
+            self.check_temperature_parameters.AddValue("maximum_temperature",parameters["maximum_temperature"])
+            self.check_temperature_parameters.AddValue("minimum_temperature",parameters["minimum_temperature"])
+
         self.heat_source_parameters = Parameters("{}")
         if (parameters["source_type"].GetString() == "Adiabatic"):
             self.heat_source_type = "Noorzai"
@@ -65,12 +72,27 @@ class DamConstructionUtility:
         # The function recieves the mame of submodel Part, the number of phase and the activation time
         print("Assigning time activation for each node")
         with open(self.construction_input_file_name,'r') as file_name2:
-            #for line in reversed(list((file_name2))):
             for j, line in enumerate(file_name2):
                 file_2 = line.split(" ")
                 if (len(file_2)) > 1:
                     self.name_sub_thermal_part = "sub_Thermal_" + file_2[1]
                     self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]), float(file_2[3]))
+
+    def BeforeSolutionLoop(self):
+
+        time = self.mechanical_model_part.ProcessInfo[TIME]
+        tol = self.mechanical_model_part.ProcessInfo[DELTA_TIME]*1e-10
+        time_unit_converter = self.mechanical_model_part.ProcessInfo[TIME_UNIT_CONVERTER]
+
+        # Activation according the input file
+        with open(self.construction_input_file_name,'r') as file_name3:
+            for j, line in enumerate(file_name3):
+                file_3 = line.split(" ")
+                if ((len(file_3)) > 1 and (time >=(float(file_3[0])*time_unit_converter-tol))):
+                    print("New phase has been activated...")
+                    self.name_sub_thermal_part = "sub_Thermal_" + file_3[1]
+                    self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
+                    self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
 
     def InitializeSolutionStep(self):
 
@@ -88,11 +110,16 @@ class DamConstructionUtility:
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
                     self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
 
+        # Check if the temperature of every nodes is in the range (it must be done each step)
+        if (self.activate_check_temperature):
+            print("Checking temperatures...")
+            self.Construction.CheckTemperature(self.check_temperature_parameters)
+
         # Detection of fluxes (it must be done each step)
         print("Searching free surfaces...")
         self.Construction.SearchingFluxes()
 
-        # Contribution of heat source
+        # Contribution of heat source (it must be done each step)
         print("Assigning heat source...")
         if (self.heat_source_type == 'Noorzai'):
             self.Construction.ActiveHeatFluxNoorzai(self.heat_source_parameters)
@@ -103,3 +130,6 @@ class DamConstructionUtility:
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
+
+    def ExecuteFinalize(self):
+        pass

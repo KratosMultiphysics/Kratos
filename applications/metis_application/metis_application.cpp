@@ -9,36 +9,43 @@
 // System includes
 
 // External includes
+#include "mpi.h"
 
 // Project includes
-#include "includes/define.h"
-
 #include "metis_application.h"
-#include "includes/variables.h"
-//#include "geometries/triangle_2d.h"
 
 namespace Kratos {
-
-/*	KRATOS_CREATE_VARIABLE(double, NODAL_AREA)
-	KRATOS_CREATE_VARIABLE(double, NODAL_H)
-	KRATOS_CREATE_VARIABLE(double, IS_STRUCTURE)
-	KRATOS_CREATE_VARIABLE(double, IS_FLUID)
-	KRATOS_CREATE_VARIABLE(double, IS_BOUNDARY)
-	KRATOS_CREATE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_CREATE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
-*/
-//	KRATOS_CREATE_VARIABLE(double, PRESSURE_OLD_IT)
-//	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosMetisApplication::KratosMetisApplication()
     : KratosApplication("MetisApplication") {}
 
-void KratosMetisApplication::Register() {
+void KratosMetisApplication::Register()
+{
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing Kratos MetisApplication... " << std::endl;
+
+    std::stringstream banner; // TODO: use Logger once mpi-logger is implemented
+    banner << "    KRATOS  __  __      _   _\n"
+           << "           |  \\/  | ___| |_(_)___\n"
+           << "           | |\\/| |/ _ \\ __| / __|\n"
+           << "           | |  | |  __/ |_| \\__ \\\n"
+           << "           |_|  |_|\\___|\\__|_|___/\n"
+           << "Initializing KratosMetisApplication..." << std::endl;
+
+    int mpi_is_initialized = 0;
+    int rank = -1;
+    MPI_Initialized(&mpi_is_initialized);
+
+    if (mpi_is_initialized){
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    }
+
+    if (mpi_is_initialized) {
+        if (rank == 0) KRATOS_INFO("") << banner.str();
+    }
+    else {
+        KRATOS_INFO("") << banner.str();
+    }
 }
 
 }  // namespace Kratos.

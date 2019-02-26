@@ -20,7 +20,6 @@
 //Trilinos includes
 
 // Project includes
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 
 namespace Kratos
@@ -30,22 +29,22 @@ namespace Kratos
 ///@{
 
 ///@name Kratos Globals
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name Type Definitions
-///@{ 
+///@{
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 
-///@} 
+///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -67,25 +66,25 @@ public:
 
     typedef typename TrilinosSparseSpaceType::MatrixType TrilinosMatrixType;
     typedef typename TrilinosSparseSpaceType::MatrixPointerType TrilinosMatrixPointerType;
-  
+
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
-      
+    ///@name Life Cycle
+    ///@{
+
     /// Default constructor.
     AuxiliaryMatrixWrapper(TrilinosMatrixPointerType p) : mp(p){};
 
     /// Destructor.
     virtual ~AuxiliaryMatrixWrapper(){}
-      
+
     ///@}
-    ///@name Operators 
+    ///@name Operators
     ///@{
-        
+
     ///@}
     ///@name Operations
     ///@{
-     
+
     /**
      * Get the matrix pointer
      * @return the member pointer to the matrix
@@ -100,13 +99,13 @@ public:
 
     ///@}
     ///@name Access
-    ///@{   
-      
+    ///@{
+
     ///@}
     ///@name Inquiry
-    ///@{  
-      
-    ///@}      
+    ///@{
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -116,52 +115,52 @@ public:
         buffer << "AuxiliaryMatrixWrapper" ;
         return buffer.str();
     }
-      
+
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "AuxiliaryMatrixWrapper";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
-      
+
 private:
-    ///@}      
+    ///@}
     ///@name Friends
     ///@{
-       
+
     ///@}
-    ///@name Static Member Variables 
-    ///@{ 
-          
-    ///@} 
-    ///@name Member Variables 
-    ///@{ 
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     TrilinosMatrixPointerType mp;
-        
-    ///@} 
+
+    ///@}
     ///@name Private Operators
-    ///@{ 
-            
-    ///@} 
+    ///@{
+
+    ///@}
     ///@name Private Operations
-    ///@{ 
-            
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
-            
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{     
-        
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     AuxiliaryMatrixWrapper& operator=(const AuxiliaryMatrixWrapper &rOther) = delete;
 
-    ///@}        
+    ///@}
 }; // Class AuxiliaryMatrixWrapper
 
 /// Auxiliarty Trilinos vector pointer wrapper class
@@ -181,25 +180,25 @@ public:
 
     typedef typename TrilinosSparseSpaceType::VectorType TrilinosVectorType;
     typedef typename TrilinosSparseSpaceType::VectorPointerType TrilinosVectorPointerType;
-      
+
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
-      
+    ///@name Life Cycle
+    ///@{
+
     /// Default constructor.
     AuxiliaryVectorWrapper(TrilinosVectorPointerType p) : mp(p){};
 
     /// Destructor.
     virtual ~AuxiliaryVectorWrapper(){}
-      
+
     ///@}
-    ///@name Operators 
+    ///@name Operators
     ///@{
-        
+
     ///@}
     ///@name Operations
     ///@{
-     
+
     /**
      * Get the matrix pointer
      * @return the member pointer to the matrix
@@ -214,13 +213,13 @@ public:
 
     ///@}
     ///@name Access
-    ///@{   
-      
+    ///@{
+
     ///@}
     ///@name Inquiry
-    ///@{  
-      
-    ///@}      
+    ///@{
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -230,52 +229,52 @@ public:
         buffer << "AuxiliaryVectorWrapper" ;
         return buffer.str();
     }
-      
+
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "AuxiliaryVectorWrapper";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
-      
+
 private:
-    ///@}      
+    ///@}
     ///@name Friends
     ///@{
-       
+
     ///@}
-    ///@name Static Member Variables 
-    ///@{ 
-          
-    ///@} 
-    ///@name Member Variables 
-    ///@{ 
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     TrilinosVectorPointerType mp;
-        
-    ///@} 
+
+    ///@}
     ///@name Private Operators
-    ///@{ 
-            
-    ///@} 
+    ///@{
+
+    ///@}
     ///@name Private Operations
-    ///@{ 
-            
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
-            
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{     
-        
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
-      
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
     /// Assignment operator.
     AuxiliaryVectorWrapper& operator=(AuxiliaryVectorWrapper const& rOther) = delete;
 
-    ///@}        
+    ///@}
 }; // Class AuxiliaryVectorWrapper
 
 } // namespace Kratos.

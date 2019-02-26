@@ -92,7 +92,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AmesosSolver",
+                        "solver_type" : "amesos",
                         "amesos_solver_type" : "Amesos_Superludist"
                     }
                 ]
@@ -107,7 +107,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AmesosSolver",
+                        "solver_type" : "amesos",
                         "amesos_solver_type" : "Amesos_Mumps"
                     }
                 ]
@@ -123,8 +123,51 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type" : "AmesosSolver",
+                        "solver_type" : "amesos",
                         "amesos_solver_type" : "Amesos_Klu"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos_superludist_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
+            self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "super_lu_dist"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos_mumps_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
+            self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "mumps"
+                    }
+                ]
+            }
+            """)
+
+
+    def test_amesos_klu_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
+            self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "klu"
                     }
                 ]
             }
@@ -135,7 +178,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "CGSolver",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -146,7 +189,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "CGSolver",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -157,7 +200,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "CGSolver",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -176,7 +219,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "GMRESSolver",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILU0",
@@ -187,7 +230,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "GMRESSolver",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILUT",
@@ -198,7 +241,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "GMRESSolver",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILUT",
@@ -217,7 +260,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "MultiLevelSolver",
+                    "solver_type": "multi_level",
                     "tolerance" : 1.0e-6,
                     "max_iteration" : 200,
                     "max_levels" : 3,
@@ -237,7 +280,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "MultiLevelSolver",
+                    "solver_type": "multi_level",
                     "tolerance" : 1.0e-6,
                     "max_iteration" : 200,
                     "max_levels" : 3,
@@ -257,7 +300,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "MultiLevelSolver",
+                    "solver_type": "multi_level",
                     "tolerance" : 1.0e-6,
                     "max_iteration" : 200,
                     "max_levels" : 3,
@@ -277,7 +320,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "MultiLevelSolver",
+                    "solver_type": "multi_level",
                     "tolerance" : 1.0e-6,
                     "max_iteration" : 200,
                     "max_levels" : 3,
@@ -297,7 +340,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"cg",
@@ -312,7 +355,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "amgcl",
                     "scaling":false,
                     "tolerance":1.0e-9,
                     "krylov_type":"bicgstab",
@@ -327,7 +370,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"bicgstabl",
@@ -342,7 +385,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"gmres",

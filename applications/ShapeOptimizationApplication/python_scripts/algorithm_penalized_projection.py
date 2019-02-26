@@ -58,6 +58,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
 
+        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
@@ -75,8 +76,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.model_part_controller.ImportOptimizationModelPart()
-        self.model_part_controller.InitializeMeshController()
+        self.model_part_controller.Initialize()
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
@@ -169,7 +169,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
         else:
             self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate()
+        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
         self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
@@ -186,8 +186,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
-        additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-        additional_values_to_log["correction_scaling"] = self.algorithm_settings["correction_scaling"].GetDouble()
+        additional_values_to_log["correction_scaling"] = self.optimization_utilities.GetCorrectionScaling()
+        additional_values_to_log["step_size"] = self.step_size
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

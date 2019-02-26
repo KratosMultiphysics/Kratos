@@ -372,7 +372,7 @@ def CreateSolver(model_part, config):
                          undefined."""
                 raise Exception(msg)
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

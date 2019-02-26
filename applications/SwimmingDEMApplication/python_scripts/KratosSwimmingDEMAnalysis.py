@@ -17,6 +17,8 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 
 class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):
     def __init__(self, model, algorithm = None, parameters=Parameters("{}")):
+            with open('ProjectParameters.json','r') as parameter_file:
+                parameters = Parameters(parameter_file.read())
         super(SwimmingDEMAnalysisWithFlush, self).__init__(model, parameters)
 
     def __enter__ (self):

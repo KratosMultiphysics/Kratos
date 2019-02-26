@@ -3,7 +3,7 @@
         "problem_name"    : "nonlinear_3D2NTruss_snapthrough_plasticity_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 46,
+        "end_time"        : 44,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-14,
         "max_iteration"                      : 400,
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
+        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
         "rotation_dofs"                      : false
     },
     "processes" : {

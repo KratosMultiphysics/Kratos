@@ -189,7 +189,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KM.Logger.PrintInfo("AdaptativeRemeshingContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KM.Logger.PrintWarning("AdaptativeRemeshingContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:

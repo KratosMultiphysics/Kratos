@@ -13,29 +13,16 @@
 #if !defined(KRATOS_TRILINOS_SPACE_H_INCLUDED )
 #define  KRATOS_TRILINOS_SPACE_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <cstddef>
-#include <sstream>
 
 // External includes
 
-
-//Trilinos includes
-#include "mpi.h"
+// Trilinos includes
 #include "Epetra_Import.h"
-
-//#include "epetra_test_err.h"
 #include "Epetra_MpiComm.h"
-// #include "Epetra_Comm.h"
 #include "Epetra_Map.h"
 #include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"

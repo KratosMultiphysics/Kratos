@@ -51,43 +51,35 @@ class ModelPartController:
         self.model = model
 
         model_part_name = self.model_settings["model_part_name"].GetString()
-
         self.optimization_model_part = model.CreateModelPart(model_part_name)
-
         self.optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.model_settings["domain_size"].GetInt())
 
-        mesh_motion_settings = self.model_settings["mesh_motion"]
-
-        if mesh_motion_settings["apply_mesh_solver"].GetBool():
+        if self.model_settings["mesh_motion"]["apply_mesh_solver"].GetBool():
             from mesh_controller_with_solver import MeshControllerWithSolver
-            self.mesh_controller = MeshControllerWithSolver(mesh_motion_settings, model)
+            self.mesh_controller = MeshControllerWithSolver(self.model_settings["mesh_motion"], self.model)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
 
-        self._design_surface = None
-        self._damping_utility = None
+        self.design_surface = None
+        self.damping_regions = {}
+        self.damping_utility = None
 
     # --------------------------------------------------------------------------
-    def ImportOptimizationModelPart(self):
-        input_type = self.model_settings["model_import_settings"]["input_type"].GetString()
-        if input_type != "mdpa":
-            raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
-        input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
+    def Initialize(self):
+        self.__ImportOptimizationModelPart()
+        self.__IdentifyDesignSurface()
 
-        model_part_io = ModelPartIO(input_filename)
-        model_part_io.ReadModelPart(self.optimization_model_part)
+        self.mesh_controller.Initialize()
 
-        self.SetMinimalBufferSize(1)
+        if self.model_settings["damping"]["apply_damping"].GetBool():
+            self.__IdentifyDampingRegions()
+            self.damping_utility = DampingUtilities(self.design_surface, self.damping_regions, self.model_settings["damping"])
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
         if self.optimization_model_part.GetBufferSize() < buffer_size:
             self.optimization_model_part.SetBufferSize(buffer_size)
-
-    # --------------------------------------------------------------------------
-    def InitializeMeshController(self):
-        self.mesh_controller.Initialize()
 
     # --------------------------------------------------------------------------
     def UpdateTimeStep(self, step):
@@ -120,14 +112,12 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def GetDesignSurface(self):
-        if self._design_surface is None:
-            self.__IdentifyDesignSurface()
-        return self._design_surface
+        return self.design_surface
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
         if self.model_settings["damping"]["apply_damping"].GetBool():
-            self.__GetDampingUtility().DampNodalVariable(variable)
+            self.damping_utility.DampNodalVariable(variable)
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):
@@ -138,36 +128,40 @@ class ModelPartController:
         GeometryUtilities(self.GetDesignSurface()).ProjectNodalVariableOnUnitSurfaceNormals(variable)
 
     # --------------------------------------------------------------------------
+    def __ImportOptimizationModelPart(self):
+        input_type = self.model_settings["model_import_settings"]["input_type"].GetString()
+        if input_type != "mdpa":
+            raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
+        input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
+
+        model_part_io = ModelPartIO(input_filename)
+        model_part_io.ReadModelPart(self.optimization_model_part)
+
+        self.SetMinimalBufferSize(1)
+
+    # --------------------------------------------------------------------------
     def __IdentifyDesignSurface(self):
         nameOfDesignSurface = self.model_settings["design_surface_sub_model_part_name"].GetString()
         if self.optimization_model_part.HasSubModelPart(nameOfDesignSurface):
-            self._design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
-            print("> The following design surface was defined:\n\n",self._design_surface)
+            self.design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
+            print("\n> The following design surface was defined:\n\n",self.design_surface)
         else:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
 
     # --------------------------------------------------------------------------
-    def __GetDampingUtility(self):
-        if self._damping_utility == None:
-            self._damping_utility = DampingUtilities(self.GetDesignSurface(), self.__IdentifyDampingRegions(), self.model_settings["damping"])
-        return self._damping_utility
-
-    # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
-        print("> The following damping regions are defined: \n")
-        damping_regions = {}
+        print("\n> The following damping regions are defined: \n")
         if self.model_settings["damping"]["apply_damping"].GetBool():
             if self.model_settings["damping"].Has("damping_regions"):
                 for regionNumber in range(self.model_settings["damping"]["damping_regions"].size()):
                     regionName = self.model_settings["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
                     if self.optimization_model_part.HasSubModelPart(regionName):
                         print(regionName)
-                        damping_regions[regionName] = self.optimization_model_part.GetSubModelPart(regionName)
+                        self.damping_regions[regionName] = self.optimization_model_part.GetSubModelPart(regionName)
                     else:
                         raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)
             else:
                 raise ValueError("Definition of damping regions required but not availabe!")
         print("")
-        return damping_regions
 
 # ==============================================================================

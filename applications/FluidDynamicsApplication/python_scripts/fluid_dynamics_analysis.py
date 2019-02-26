@@ -23,12 +23,12 @@ class FluidDynamicsAnalysis(AnalysisStage):
             Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", warn_msg)
 
         if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
-            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
-            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
@@ -55,7 +55,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -71,7 +71,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

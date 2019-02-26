@@ -2,32 +2,20 @@
 #define KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_PERIODIC_H
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "processes/process.h"
 
 // Application includes
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
-//#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 
 // FluidDynamicsApplication dependences
 #include "../FluidDynamicsApplication/custom_utilities/solver_settings.h"
-#include "trilinos_application.h"
 
 namespace Kratos
 {

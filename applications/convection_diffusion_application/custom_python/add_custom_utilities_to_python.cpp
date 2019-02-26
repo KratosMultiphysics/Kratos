@@ -42,11 +42,11 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
 {
     if(domain_size == 2)
     {
-        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiff2D"),KratosComponents<Condition>::Get("ThermalFace2D")	);
+        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiff2D"),KratosComponents<Condition>::Get("ThermalFace2D2N")	);
     }
     else if(domain_size == 3)
     {
-        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D")	);
+        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D3N")	);
     }
 }
 

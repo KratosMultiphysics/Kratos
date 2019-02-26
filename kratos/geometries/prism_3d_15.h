@@ -361,17 +361,6 @@ public:
     //     return p_clone;
     // }
 
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 15)
-           rResult.resize( 15, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 15.00 );
-        return rResult;
-    }
-
-
     /**
      * Informations
      */
@@ -452,7 +441,7 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
 
 

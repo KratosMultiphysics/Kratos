@@ -241,6 +241,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
         KRATOS_CHECK_VARIABLE_KEY(DENSITY)
         KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY)
         KRATOS_CHECK_VARIABLE_KEY(EXTERNAL_PRESSURE)
+        KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH)
 
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -331,9 +332,9 @@ const ConditionDataStruct& data)
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
     if (this->Is(SLIP)){
 
-        Matrix lhs_gauss_behr = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
-        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss_behr, data );
-        lhs_gauss += lhs_gauss_behr;
+        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss, data );
+
+        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
     }
 }
 
@@ -360,9 +361,9 @@ const ConditionDataStruct& data)
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
     if (this->Is(SLIP)){
 
-        Vector rhs_gauss_behr = ZeroVector(TNumNodes*LocalSize);
-        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss_behr, data );
-        rhs_gauss += rhs_gauss_behr;
+        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss, data );
+
+        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
     }
 }
 
@@ -470,12 +471,12 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
                                                                                            const ConditionDataStruct& rDataStruct )
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
 
     // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
     std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
@@ -524,7 +525,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSCont
             }
         }
     }
-    rLeftHandSideMatrix = prod( ProjectionLHSMatrix, BaseLHSMatrix );
+    rLeftHandSideMatrix += prod( ProjectionLHSMatrix, BaseLHSMatrix );
 
     KRATOS_CATCH("");
 }
@@ -533,13 +534,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSCont
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSContribution(   VectorType& rRightHandSideVector,
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSContribution(   array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                                                             const ConditionDataStruct& rDataStruct )
 {
     KRATOS_TRY
     const unsigned int voigtSize = 3 * (TDim-1);
 
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
 
     // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
     std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
@@ -626,12 +627,108 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
 
     for (unsigned int node = 0; node < TNumNodes; node++){
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( node*(TNumNodes+1) + entry ) = NodalEntriesRHS[node][entry];
+            rRightHandSideVector( node*(TNumNodes+1) + entry ) += NodalEntriesRHS[node][entry];
         }
     }
 
     KRATOS_CATCH("")
 }
+
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSContribution( array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
+                                                                                            const ConditionDataStruct& rDataStruct )
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = this->GetGeometry();
+
+    for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
+
+        // finding the nodal projection matrix nodal_projection_matrix = ( [I] - (na)(na) )
+        BoundedMatrix<double, TNumNodes, TNumNodes> nodal_projection_matrix;
+        array_1d<double,3> nodal_normal = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
+        double sum_of_squares = 0.0;
+        for (unsigned int j = 0; j < 3; j++){
+            sum_of_squares += nodal_normal[j] * nodal_normal[j];
+        }
+        nodal_normal /= sqrt(sum_of_squares);
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
+
+        // finding the coefficent to relate velocity to drag
+        const double viscosity = rGeom[nnode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
+        const double navier_slip_length = rGeom[nnode].GetValue(SLIP_LENGTH);
+        KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
+        const double nodal_beta = viscosity / navier_slip_length;
+
+        const array_1d<double, TNumNodes> N = rDataStruct.N;
+        const double wGauss = rDataStruct.wGauss;
+        Vector interpolated_velocity = ZeroVector(TNumNodes);
+        for( unsigned int comp = 0; comp < TNumNodes; comp++){
+            for (unsigned int i = 0; i < TNumNodes; i++){
+                // necessary because VELOCITY with 3 entries even in 2D case
+                interpolated_velocity[i] -= N[comp] * rGeom[comp].FastGetSolutionStepValue(VELOCITY)[i];
+            }
+        }
+        // application of the nodal projection matrix
+        const array_1d<double,TNumNodes> nodal_entry_rhs = prod( nodal_projection_matrix, (wGauss * N[nnode] * nodal_beta * interpolated_velocity) );
+        for (unsigned int entry = 0; entry < TNumNodes; entry++){
+            rRightHandSideVector( nnode*(TNumNodes+1) + entry ) += nodal_entry_rhs[entry];
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSContribution( BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+                                                                                            const ConditionDataStruct& rDataStruct )
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = this->GetGeometry();
+
+    array_1d<double, TNumNodes> N = rDataStruct.N;
+    const double wGauss = rDataStruct.wGauss;
+
+    for(unsigned int inode = 0; inode < TNumNodes; inode++){
+
+        // finding the nodal projection matrix nodal_projection_matrix = ( [I] - (na)(na) )
+        BoundedMatrix<double, TNumNodes, TNumNodes> nodal_projection_matrix;
+        array_1d<double,3> nodal_normal = rGeom[inode].FastGetSolutionStepValue(NORMAL);
+        double sum_of_squares = 0.0;
+        for (unsigned int j = 0; j < 3; j++){
+            sum_of_squares += nodal_normal[j] * nodal_normal[j];
+        }
+        nodal_normal /= sqrt(sum_of_squares);
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
+
+        // finding the coefficent to relate velocity to drag
+        const double viscosity = rGeom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
+        const double navier_slip_length = rGeom[inode].GetValue(SLIP_LENGTH);
+        KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
+        const double nodal_beta = viscosity / navier_slip_length;
+
+        for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
+
+            const BoundedMatrix<double, TNumNodes, TNumNodes> nodal_lhs_contribution = wGauss * nodal_beta * N[inode] * N[jnode] * nodal_projection_matrix;
+
+            for( unsigned int i = 0; i < TNumNodes; i++){
+                for( unsigned int j = 0; j < TNumNodes; j++){
+
+                    const unsigned int istart = inode * (TNumNodes+1);
+                    const unsigned int jstart = jnode * (TNumNodes+1);
+                    rLeftHandSideMatrix(istart + i, jstart + j) += nodal_lhs_contribution(i,j);
+                }
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;

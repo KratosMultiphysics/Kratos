@@ -13,39 +13,21 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_schemes_to_python.h"
 
-//Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
+// Trilinos includes
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
-// Strategies
-// #include "solving_strategies/strategies/solving_strategy.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
 // Schemes
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
@@ -70,8 +52,8 @@
 // Response function
 #include "response_functions/adjoint_response_function.h"
 
-//teuchos parameter list
-#include "Teuchos_ParameterList.hpp"
+// //teuchos parameter list
+// #include "Teuchos_ParameterList.hpp"
 
 namespace Kratos
 {

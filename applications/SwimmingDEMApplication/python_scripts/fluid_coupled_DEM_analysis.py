@@ -2,45 +2,30 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import main_script
+import DEM_analysis_stage
 
-BaseAnalysis = main_script.Solution
+BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
-class Solution(BaseAnalysis):
+class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
-    def __init__(self, model, pp):
-        self.pp = pp
-        super(Solution, self).__init__(model)
-
-    def LoadParametersFile(self):
-        self.DEM_parameters = self.pp.CFD_DEM
-
-    def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
-        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
-
-        import swimming_dem_default_input_parameters
-        only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
-
-        for key in only_swimming_defaults.keys():
-            dem_defaults.AddValue(key, only_swimming_defaults[key])
-
-        return dem_defaults
+    def __init__(self, model, project_parameters):
+        self.sdem_parameters = project_parameters
+        super(FluidCoupledDEMAnalysisStage, self).__init__(model, project_parameters['dem_parameters'])
 
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
 
-    def SetSolver(self):
+    def _CreateSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
-                                                     self.pp.CFD_DEM,
+                                                     self.sdem_parameters,
                                                      self.procedures)
 
     def SelectTranslationalScheme(self):
         translational_scheme = BaseAnalysis.SelectTranslationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
+        translational_scheme_name = self.project_parameters["TranslationalIntegrationScheme"].GetString()
 
         if translational_scheme is None:
             if translational_scheme_name == 'Hybrid_Bashforth':
@@ -54,8 +39,8 @@ class Solution(BaseAnalysis):
 
     def SelectRotationalScheme(self):
         rotational_scheme = BaseAnalysis.SelectRotationalScheme(self)
-        translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-        rotational_scheme_name = self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString()
+        translational_scheme_name = self.project_parameters["TranslationalIntegrationScheme"].GetString()
+        rotational_scheme_name = self.project_parameters["RotationalIntegrationScheme"].GetString()
 
         if rotational_scheme is None:
             if rotational_scheme_name == 'Direct_Integration':
@@ -73,18 +58,21 @@ class Solution(BaseAnalysis):
             return rotational_scheme
 
     def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        super(Solution, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+        super(FluidCoupledDEMAnalysisStage, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         self.coupling_analysis.ReadDispersePhaseModelParts()
 
     def GetParticleHistoryWatcher(self):
-        watcher_type = self.pp.CFD_DEM["full_particle_history_watcher"].GetString()
+        watcher_type = self.sdem_parameters["full_particle_history_watcher"].GetString()
 
         if watcher_type == 'Empty':
             return None
         elif watcher_type == 'ParticlesHistoryWatcher':
             return ParticlesHistoryWatcher()
+
+    def IsTimeToPrintPostProcess(self):
+        return self.analytic_data_counter.Tick()
 
     def SetGraphicalOutput(self):
         pass

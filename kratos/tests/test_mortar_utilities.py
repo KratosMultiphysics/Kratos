@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
+
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
