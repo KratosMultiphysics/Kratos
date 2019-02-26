@@ -219,6 +219,9 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         self.InitializeMonolithicSolution()
 
         while(time <= end_time):
+            time = self.solver.AdvanceInTime(time)
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
             print ("TIME: ", str(time))
             print ("STEP: ", str(step))
 
@@ -244,9 +247,6 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
                 if self.vtk_output.IsOutputStep():
                     self.vtk_output.PrintOutput()
             
-            time = self.solver.AdvanceInTime(time)
-            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
@@ -280,6 +280,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         vtk_output = VtkOutputProcess( self.model,
                                 self.ProjectParameters["output_processes"]["vtk_output"]["Parameters"])
         return vtk_output
+
 
 if __name__ == '__main__':
     # TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
