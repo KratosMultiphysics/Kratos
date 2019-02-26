@@ -8,7 +8,6 @@
 "Multifile"                        : "multiple_files",
 
 "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-"AutomaticTimestep"                : false,
 "MaxTimeStep"                      : 0.005,
 "FinalTime"                        : 1.0,
 "ControlTime"                      : 4.0,
@@ -34,16 +33,13 @@
 "drag_force_type_comment"                : " null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4), Newtonian Regime (5)",
 "virtual_mass_force_type"                : 10,
 "virtual_mass_force_type_comment"        : "null virtual mass force (0)",
-"lift_force_type"                        : 0,
+"lift_force_type"                        : 1,
 "lift_force_type_comment"                : "# null lift force (0), Saffman (1)",
 "magnus_force_type"                      : 0,
 "magnus_force_type_comment"              : " null magnus force (0), Rubinow and Keller (1), Oesterle and Bui Dihn (2)",
 "hydro_torque_type"                      : 0,
 "hydro_torque_type_comment"              : "null hydrodynamic torque (0), Dennis (1)",
-"drag_modifier_type"                     : 0,
 "viscosity_modification_type"            : 0,
-
-
 "coupling_weighing_type"                 : 2,
 "coupling_weighing_type_comment"         : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
 "fluid_model_type"                       : 1,
@@ -76,8 +72,9 @@
 "debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
 "similarity_transformation_type"         : 0,
 "similarity_transformation_type_comment" : " no transformation (0), Tsuji (1)",
-"dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
+"dem_inlet_element_type"                 : "SphericParticle3D",
 "dem_inlet_element_type_comment"         : " SphericParticle3D, SphericSwimmingParticle3D",
+"drag_modifier_type"                     : 2,
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 "drag_porosity_correction_type"          : 0,
 "drag_porosity_correction_type_comment"  : " No correction (0), Richardson and Zaki (1)",
@@ -95,8 +92,7 @@
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
 "basset_force_type"                      : 0,
-"frame_of_reference_type"                : 1,
-"angular_velocity_of_frame_Z"            : 0.5,
+
 "OutputTimeStep"                   : 0.5,
 "PostPressure"                     : false,
 "PostFluidPressure"                          : false,
@@ -128,6 +124,26 @@
 "print_VELOCITY_LAPLACIAN_option"            : false,
 "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
 
+"properties": [{
+    "model_part_name": "settling_particles",
+    "properties_id": 1,
+    "hydrodynamic_law_parameters": {
+        "name": "HydrodynamicInteractionLaw",
+        "buoyancy_parameters": {
+            "name":"ArchimedesBuoyancyLaw"
+        },
+        "inviscid_force_parameters": {
+            "name":"AutonHuntPrudhommeInviscidForceLaw",
+            "do_apply_faxen_corrections": false
+        },
+        "drag_parameters": {
+            "name":"StokesDragLaw"
+        },
+        "vorticity_induced_lift_parameters": {
+            "name":"SaffmanLiftLaw"
+        }
+    }
+}],
 
 "problem_name" : "Candelier",
 
@@ -138,7 +154,7 @@
         "process_name"    : "FromJsonCheckResultProcess",
         "Parameters"      : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "candelier_tests/candelier_errors_no_history_non_inertial.json",
+            "input_file_name"      : "candelier_tests/candelier_errors_no_history_with_lift.json",
             "model_part_name"      : "SpheresPart",
             "time_frequency"       : 0.5
         }
@@ -152,7 +168,7 @@
         "process_name"  : "JsonOutputProcess",
         "Parameters"    : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "candelier_tests/candelier_errors_no_history_non_inertial.json",
+            "output_file_name"     : "candelier_tests/candelier_errors_no_history_with_lift.json",
             "model_part_name"      : "SpheresPart",
             "time_frequency"       : 0.5
         }
@@ -175,8 +191,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "candelier_tests/CandelierFluid"
         },
-        "stabilization": {
-            "formulation": "vms"
+        "formulation": {
+            "element_type": "vms"
         },
         "echo_level"                  : 1,
         "compute_reactions"           : false,
@@ -186,7 +202,7 @@
         "relative_pressure_tolerance" : 0.001,
         "absolute_pressure_tolerance" : 1e-5,
         "linear_solver_settings"      : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-7,
             "provide_coordinates" : false,
@@ -295,7 +311,6 @@
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
-        "AutomaticTimestep"                : false,
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 0.005,
         "FinalTime"                        : 1.0,
@@ -326,10 +341,7 @@
         "PostAngularVelocity"              : false,
         "PostParticleMoment"               : false,
         "PostEulerAngles"                  : false,
-        "PostBoundingBox"                  : false,
-        "PostPressure"                     : false,
-        "PredefinedSkinOption"             : false,
-        "MeanRadius"                       : 0.0001
+        "PostBoundingBox"                  : false
     }
 
 }
