@@ -71,8 +71,8 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         self.element_sensitivity_variables = self.__GenerateVariableListFromInput(parameter["element_sensitivity_variables"])
 
 
-    def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+    def Check(self):
+        """ This method is executed at the begining to verify that the input is correct.
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -80,6 +80,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         for sub_mp_i in self.sensitivity_sub_model_parts:
             if len(sub_mp_i.Elements) < 1:
                 raise Exception("sensitivity sub model part has no elements!")
+        return 0
 
 
     def ExecuteFinalizeSolutionStep(self):
