@@ -102,7 +102,7 @@ public:
 
     virtual std::string GetDesignVariableType();
 
-    virtual unsigned int GetTracedElementId();
+    virtual std::vector<unsigned int> GetTracedElementId();
 
     virtual double GetPerturbationSize();
 

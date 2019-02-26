@@ -60,7 +60,7 @@ public:
 
     void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;    
          
-    unsigned int GetTracedElementId() override;
+    std::vector<unsigned int> GetTracedElementId() override;
 
     ///@}
     ///@name Access
@@ -97,7 +97,7 @@ protected:
 private:
     ///@name private member Variables
     ///@{
-        unsigned int mIdTracedElement;
+        std::vector<unsigned int> mIdTracedElement;
         Element mTracedElement;   
         Element::Pointer mpTracedElement;        
         ProcessInfo mProcessInfo;

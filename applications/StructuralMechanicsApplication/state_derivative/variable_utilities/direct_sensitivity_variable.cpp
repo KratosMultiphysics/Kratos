@@ -80,10 +80,10 @@ namespace Kratos
         return mVariableType;
     }
 
-    unsigned int DirectSensitivityVariable::GetTracedElementId() 
+    std::vector<unsigned int> DirectSensitivityVariable::GetTracedElementId() 
     {              
         KRATOS_ERROR << "GetTracedElementId() should be implemented in the derived class." << std::endl;
-        return 0;
+        
     }
 
     double DirectSensitivityVariable::GetPerturbationSize()

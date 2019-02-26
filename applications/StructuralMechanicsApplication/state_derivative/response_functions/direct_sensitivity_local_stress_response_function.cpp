@@ -143,7 +143,8 @@ namespace Kratos
         rOutput.resize(0);        
 
         // Compute Partial Sensitivity
-        if( rDirectElement.Id() == rDesignVariable.GetTracedElementId() )
+        std::vector<unsigned int> traced_elem_ids  = rDesignVariable.GetTracedElementId();
+        if (std::find(traced_elem_ids.begin(), traced_elem_ids.end(),rDirectElement.Id() ) != traced_elem_ids.end())
         {            
             CalculateElementContributionToPartialSensitivity(rDirectElement, rDesignVariable, rStressVariable, 
                                             sensitivity_gradient, rProcessInfo); 
