@@ -78,7 +78,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         """
         # Check integration domains
         for sub_mp_i in self.sensitivity_sub_model_parts:
-            if len(sub_mp_i.Elements) < 1:
+            if sub_mp_i.NumberOfElements() < 1:
                 raise Exception("sensitivity sub model part has no elements!")
         return 0
 
