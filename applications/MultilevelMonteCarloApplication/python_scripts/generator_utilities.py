@@ -1,8 +1,9 @@
 import numpy as np
 
+# TODO: move in an external file and create a generator class, e.g. MonteCarlo.generator.Generate()
+
 '''
 function generatng the random variable
-TODO: move in an external file and create a generator class, e.g. MonteCarlo.generator.Generate()
 '''
 def GenerateSample():
     alpha = 2.0

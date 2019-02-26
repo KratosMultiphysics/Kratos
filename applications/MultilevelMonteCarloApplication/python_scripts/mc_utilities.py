@@ -48,7 +48,7 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 auxiliary function of AddResults of the MonteCarlo class
 input:  simulation_results: an instance of the monte carlo result class
         level:              working level
-output: QoI_value: new qoi value
+output: QoI_value: qoi value to be added
 """
 @ExaquteTask(returns=1)
 def AddResultsAux_Task(simulation_results,level):
@@ -141,18 +141,18 @@ class MonteCarlo(object):
     def __init__(self,custom_settings,project_parameters_path,custom_analysis):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
-        self:                    an instance of a class
+        self:                    an instance of the class
         custom_settings:         settings of the Monte Carlo simulation
         project_parameters_path: path of the project parameters file
         custom_analysis:         analysis stage of the problem
         """
 
-        # analysis : analysis stage of the current problem
+        # analysis: analysis stage of the current problem
         if (custom_analysis is not None):
             self.SetAnalysis(custom_analysis)
         else:
             raise Exception ("Please provide a Kratos specific application analysis stage for the current problem")
-        # project_parameters_path : path to the project parameters json file
+        # project_parameters_path: path to the project parameters json file
         if(project_parameters_path is not None):
             self.project_parameters_path = project_parameters_path
         else:
@@ -173,28 +173,28 @@ class MonteCarlo(object):
         self.settings = custom_settings
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
-        # convergence : boolean variable defining if MC algorithm has converged
+        # convergence: boolean variable defining if MC algorithm has converged
         self.convergence = False
-        # current_number_levels : number of levels of MC by default = 0 (we only have level 0)
+        # current_number_levels: number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
-        # current_level : current level of work, current_level = 0 for MC
+        # current_level: current level of work, current_level = 0 for MC
         self.current_level = 0
-        # theta_i : splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error
+        # theta_i: splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error
         self.theta_i = None
         # TErr: total error of MC algorithm, the sum of bias and statistical error is an overestmation of the real total error
         #       TErr := \abs(E^MC[QoI] - E[QoI])"""
         self.TErr = None
-        # QoI : Quantity of Interest of the considered problem
+        # QoI: Quantity of Interest of the considered problem
         self.QoI = StatisticalVariable(self.current_number_levels)
         # initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0
         self.QoI.InitializeLists(self.current_number_levels+1)
-        # number_samples : total number of samples of current iteration
+        # number_samples: total number of samples of current iteration
         self.number_samples = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
-        # difference_number_samples : difference between number of samples of current and previous iterations
+        # difference_number_samples: difference between number of samples of current and previous iterations
         self.difference_number_samples = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
-        # previous_number_samples : total number of samples of previous iteration
+        # previous_number_samples: total number of samples of previous iteration
         self.previous_number_samples = [0 for _ in range (self.current_number_levels+1)]
-        # batch_size : number of iterations of each epoch
+        # batch_size: number of iterations of each epoch
         # TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours
         self.batch_size = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
         # iteration counter
@@ -202,9 +202,9 @@ class MonteCarlo(object):
         # set convergence criteria
         self.SetConvergenceCriteria()
 
-        # pickled_model : serialization of model Kratos object of the problem
+        # pickled_model: serialization of model Kratos object of the problem
         self.pickled_model = None
-        # pickled_project_parameters : serialization of project parameters Kratos object of the problem
+        # pickled_project_parameters: serialization of project parameters Kratos object of the problem
         self.pickled_project_parameters = None
         # construct the pickled model and pickled project parameters of the problem
         self.is_project_parameters_pickled = False
@@ -437,7 +437,7 @@ class MonteCarloResults(object):
     def __init__(self,number_levels):
         """constructor of the MonteCarloResults-Object
         Keyword arguments:
-        self : an instance of a class
+        self: an instance of the class
         """
         # Quantity of Interest
         self.QoI = [[] for _ in range (number_levels+1)]

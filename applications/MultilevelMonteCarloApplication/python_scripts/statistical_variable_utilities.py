@@ -199,7 +199,7 @@ class StatisticalVariable(object):
         self.sample_variance = []
         # moments of the variable per each level M_p  = n * mu_p
         #                                        mu_p = p-th central moment
-        #                                        n    = number of values"""
+        #                                        n    = number of values
         self.moment_2 = []
         self.moment_3 = []
         self.moment_4 = []
