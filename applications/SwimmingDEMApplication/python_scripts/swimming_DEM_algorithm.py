@@ -19,7 +19,7 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 
@@ -401,7 +401,7 @@ class Algorithm(object):
                 self.pp.coupling_fluid_vars,
                 self.pp.time_filtered_vars,
                 flow_field=self.GetFieldUtility(),
-                dimension=self.domain_size
+                domain_size=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)

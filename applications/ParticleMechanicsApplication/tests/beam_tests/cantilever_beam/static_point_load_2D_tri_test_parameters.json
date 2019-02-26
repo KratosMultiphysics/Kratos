@@ -42,7 +42,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Background_Grid.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -54,7 +54,7 @@
             "kratos_module" : "KratosMultiphysics",
             "check"         : "DirectorVectorNonZero direction",
             "Parameters"    : {
-                "model_part_name" : "PointLoad2D_Load_on_points_Auto1",
+                "model_part_name" : "Background_Grid.PointLoad2D_Load_on_points_Auto1",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 800.0,
                 "direction"       : [0.0,-1.0,0.0],
@@ -69,7 +69,7 @@
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT"],
                 "input_file_name"  : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_results.json",
-                "model_part_name"  : "PointLoad2D_Load_on_points_Auto1",
+                "model_part_name"  : "Background_Grid.PointLoad2D_Load_on_points_Auto1",
                 "time_frequency"   : 1.0
             }
         }]
@@ -82,7 +82,7 @@
         "Parameters"            : {
             "output_variables"  : ["DISPLACEMENT"],
             "output_file_name"  : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_results.json",
-            "model_part_name"   : "PointLoad2D_Load_on_points_Auto1",
+            "model_part_name"   : "Background_Grid.PointLoad2D_Load_on_points_Auto1",
             "time_frequency"    : 1.0
         }
     }]

@@ -2,17 +2,15 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 import os
 from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEMApp
+import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
 import DEM_procedures
 import shutil
 import os
 import weakref
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
@@ -32,11 +30,11 @@ def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, clust
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
     max_fluid_id = FindMaxNodeId(fluid_model_part)
-    must_renumber = True in (node.Id < max_fluid_id for node in dem_model_part.Nodes + rigid_faces_model_part.Nodes)
+    must_renumber = True in (node.Id < max_fluid_id for node in list(dem_model_part.Nodes) + list(rigid_faces_model_part.Nodes))
 
     if must_renumber:
 
-        Logger.PrintWarning("DEM-FLUID","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
+        Logger.PrintWarning("SwimmingDEM","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
             node.Id += max_fluid_id
@@ -44,8 +42,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
         for node in rigid_faces_model_part.Nodes:
             node.Id += max_fluid_id
 
-        Logger.PrintWarning("DEM-FLUID","The DEM model part and the fem-DEM model parts Ids have been renumbered")
-
+        Logger.PrintWarning("SwimmingDEM","The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
 def RenumberModelPartNodesFromGivenId(model_part, id):
 
@@ -70,7 +67,7 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
-    checker = VariableChecker()
+    checker = SDEMApp.VariableChecker()
 
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
@@ -103,9 +100,6 @@ def Norm(my_list):
 
 def NormOfDifference(v1, v2):
     return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
-
-def Norm(v):
-    return math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
 
 def FindClosestNode(model_part, coors):
      relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
@@ -153,9 +147,9 @@ class FluidFractionFieldUtility:
 
     def AddFluidFractionField(self):
 
-        Logger.PrintInfo("DEM-FLUID",'******************************************************************')
+        Logger.PrintInfo("SwimmingDEM",'******************************************************************')
         Logger.PrintInfo()
-        Logger.PrintInfo("DEM-FLUID",'Adding Imposed Fluid Fraction Fields...')
+        Logger.PrintInfo("SwimmingDEM",'Adding Imposed Fluid Fraction Fields...')
         Logger.PrintInfo()
         Logger.Flush()
 
@@ -164,12 +158,12 @@ class FluidFractionFieldUtility:
         for field in self.field_list:
             count += 1
 
-            Logger.PrintInfo("DEM-FLUID",'field number', count, ':')
+            Logger.PrintInfo("SwimmingDEM",'field number', count, ':')
             Logger.PrintInfo()
-            Logger.PrintInfo("DEM-FLUID",vars(field))
+            Logger.PrintInfo("SwimmingDEM",vars(field))
             Logger.PrintInfo()
 
-        Logger.PrintInfo("DEM-FLUID",'******************************************************************')
+        Logger.PrintInfo("SwimmingDEM",'******************************************************************')
         Logger.Flush()
 
         for field in self.field_list:
@@ -195,10 +189,10 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
     elif transformation_type == 1:
 
-        Logger.PrintWarning("DEM-FLUID",'***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
-        Logger.PrintWarning("DEM-FLUID",'The particles diameters quotient is\n')
-        Logger.PrintWarning("DEM-FLUID",'D_model / D_real =', mod_over_real)
-        Logger.PrintWarning("DEM-FLUID",)
+        Logger.PrintWarning("SwimmingDEM",'***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
+        Logger.PrintWarning("SwimmingDEM",'The particles diameters quotient is\n')
+        Logger.PrintWarning("SwimmingDEM",'D_model / D_real =', mod_over_real)
+        Logger.PrintWarning("SwimmingDEM",)
 
         if transformation_type == 1:  # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
 
@@ -210,7 +204,7 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
             MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
     else:
 
-        Logger.PrintWarning("DEM-FLUID",('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
+        Logger.PrintWarning("SwimmingDEM",('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
 
 
 def FindMaxNodeId(fluid_model_part):
@@ -221,10 +215,10 @@ def FindMaxElementId(fluid_model_part):
 
 def FunctionsCalculator(domain_size=3):
     if domain_size == 2:
-        custom_functions_tool = CustomFunctionsCalculator2D()
+        custom_functions_tool = SDEMApp.CustomFunctionsCalculator2D()
 
     elif domain_size == 3:
-        custom_functions_tool = CustomFunctionsCalculator3D()
+        custom_functions_tool = SDEMApp.CustomFunctionsCalculator3D()
 
     return custom_functions_tool
 
@@ -308,25 +302,25 @@ class ProjectionDebugUtils:
         # printing
 
         tot_len = 38 # total length of each line, including spaces
-        Logger.PrintInfo("DEM-FLUID",)
-        Logger.PrintInfo("DEM-FLUID","Projection-related measurements")
-        Logger.PrintInfo("DEM-FLUID",tot_len * "**")
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("number_of_balls", tot_len)                      + '=', self.number_of_balls)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("domain_volume", tot_len)                        + '=', self.domain_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("fluid_volume", tot_len)                         + '=', self.fluid_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("solid_volume", tot_len)                         + '=', self.solid_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("discr_domain_volume", tot_len)                  + '=', self.discr_domain_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("discr_fluid_volume", tot_len)                   + '=', self.discr_fluid_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_fluid_volume", tot_len)                    + '=', self.proj_fluid_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_solid_volume", tot_len)                    + '=', self.proj_solid_volume)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("global_fluid_fraction", tot_len)                + '=', self.global_fluid_fraction)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("global_solid_fraction", tot_len)                + '=', self.global_solid_fraction)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("balls_per_area", tot_len)                       + '=', self.balls_per_area)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("fluid_on_balls_total_force", tot_len)           + '=', self.fluid_on_balls_total_force)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len)      + '=', self.proj_balls_on_fluid_total_force)
-        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
-        Logger.PrintInfo("DEM-FLUID",tot_len * "**")
-        Logger.PrintInfo("DEM-FLUID",)
+        Logger.PrintInfo("SwimmingDEM",)
+        Logger.PrintInfo("SwimmingDEM","Projection-related measurements")
+        Logger.PrintInfo("SwimmingDEM",tot_len * "**")
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("number_of_balls", tot_len)                      + '=', self.number_of_balls)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("domain_volume", tot_len)                        + '=', self.domain_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("fluid_volume", tot_len)                         + '=', self.fluid_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("solid_volume", tot_len)                         + '=', self.solid_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("discr_domain_volume", tot_len)                  + '=', self.discr_domain_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("discr_fluid_volume", tot_len)                   + '=', self.discr_fluid_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("proj_fluid_volume", tot_len)                    + '=', self.proj_fluid_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("proj_solid_volume", tot_len)                    + '=', self.proj_solid_volume)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("global_fluid_fraction", tot_len)                + '=', self.global_fluid_fraction)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("global_solid_fraction", tot_len)                + '=', self.global_solid_fraction)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("balls_per_area", tot_len)                       + '=', self.balls_per_area)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("fluid_on_balls_total_force", tot_len)           + '=', self.fluid_on_balls_total_force)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len)      + '=', self.proj_balls_on_fluid_total_force)
+        Logger.PrintInfo("SwimmingDEM",GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
+        Logger.PrintInfo("SwimmingDEM",tot_len * "**")
+        Logger.PrintInfo("SwimmingDEM",)
         Logger.Flush()
 
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
@@ -405,9 +399,6 @@ class Counter:
     def Kill(self):
         self.is_dead = True
 
-
-
-
 class Averager:
     def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True):
         self.counter = Counter(steps_in_cycle, beginning_step, is_active)
@@ -459,16 +450,14 @@ class PostUtils:
         self.rigid_faces_model_part = rigid_faces_model_part
         self.mixed_model_part       = mixed_model_part
         self.pp                     = project_parameters
-        self.post_utilities         = PostUtilities()
+        self.post_utilities         = DEMApp.PostUtilities()
 
     def Writeresults(self, time):
 
-        Logger.PrintInfo("DEM-FLUID","")
-        Logger.PrintInfo("DEM-FLUID","*******************  PRINTING RESULTS FOR GID  ***************************")
+        Logger.PrintInfo("SwimmingDEM","*******************  PRINTING RESULTS FOR GID  ***************************")
         Logger.Flush()
-
         if self.pp.GiDMultiFileFlag == "Multiples":
-            renumbering_utility = RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
+            renumbering_utility = SDEMApp.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
             renumbering_utility.Renumber()
 
             self.mixed_model_part.Elements.clear()
@@ -659,11 +648,8 @@ class StationarityAssessmentTool:
         stationarity = self.tool.AssessStationarity(model_part, self.tol)
 
         if stationarity:
-            Logger.PrintInfo("DEM-FLUID","**************************************************************************************************")
-            Logger.PrintInfo()
-            Logger.PrintInfo("DEM-FLUID","The model has reached a stationary state. The fluid calculation is suspended.")
-            Logger.PrintInfo()
-            Logger.PrintInfo("DEM-FLUID","**************************************************************************************************")
+            Logger.PrintInfo("SwimmingDEM","\nThe fluid has reached a stationary state.")
+            Logger.PrintInfo("Its calculation will be omitted from here on.\n")
             Logger.Flush()
 
         return stationarity

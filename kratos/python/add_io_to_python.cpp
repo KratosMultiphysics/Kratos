@@ -26,7 +26,10 @@
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
+
+// Outputs
 #include "input_output/vtk_output.h"
+#include "input_output/unv_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -144,6 +147,8 @@ void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& r
 	= &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
         = &GidIO<>::WriteNodalResultsNonHistorical;
+void (GidIO<>::*pointer_to_int_write_nodal_results_NH)( Variable<int> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
+        = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_vector_write_nodal_results_NH)(Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag)
         = &GidIO<>::WriteNodalResultsNonHistorical;
@@ -252,6 +257,7 @@ void  AddIOToPython(pybind11::module& m)
     .def("WriteNodalFlags",pointer_to_flags_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_double_write_nodal_results_NH)
+    .def("WriteNodalResultsNonHistorical",pointer_to_int_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_array1d_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_vector_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_matrix_write_nodal_results_NH)
@@ -305,6 +311,16 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
         .def(py::init< ModelPart&, Parameters >())
         .def("PrintOutput", &VtkOutput::PrintOutput)
+        ;
+
+    py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
+        .def(py::init<ModelPart&, const std::string &>())
+        .def("InitializeMesh", &UnvOutput::InitializeOutputFile)
+        .def("WriteMesh", &UnvOutput::WriteMesh)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
         ;
 }
 }  // namespace Python.

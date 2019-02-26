@@ -358,6 +358,9 @@ void Parameters::AddValue(
 {
     if(mpValue->find(rEntry) == mpValue->end()) {
         (*mpValue)[rEntry] = *(rOtherValue.mpValue);
+    } else {
+        KRATOS_WARNING("Parameters") << "WARNING:: Entry " << rEntry << " already defined. Overwriting it" << std::endl;
+        SetValue(rEntry, rOtherValue);
     }
 }
 

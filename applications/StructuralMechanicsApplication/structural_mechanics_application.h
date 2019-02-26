@@ -42,6 +42,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 
 /* Adding shells and membranes elements */
@@ -96,8 +97,8 @@
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
-#include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
-#include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2d.h"
 
@@ -163,6 +164,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+extern template class AdjointSolidElement<TotalLagrangian>;
 
 /**
  * @class KratosStructuralMechanicsApplication
@@ -406,6 +409,7 @@ private:
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
     const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
     const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
     const AdjointFiniteDifferenceSmallDisplacementElement mAdjointFiniteDifferenceSmallDisplacementElement;
 
     /* CONDITIONS*/
@@ -455,8 +459,8 @@ private:
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
     const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
-    const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
-    const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
+    const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
+    const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
     const LinearIsotropicDamagePlaneStrain2D mLinearIsotropicDamagePlaneStrain2D;
 

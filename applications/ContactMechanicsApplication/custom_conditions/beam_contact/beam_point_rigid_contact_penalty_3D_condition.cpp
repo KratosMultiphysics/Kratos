@@ -188,7 +188,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
+    NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
@@ -196,17 +196,17 @@ namespace Kratos
     double distance = 0;
     double counter = 0;
 
-    for(unsigned int i = 0; i < rN.size(); i++)
-      {
-	if(rN[i].Is(BOUNDARY)){
+    for(auto& i_nnode : nNodes)
+    {
+      if(i_nnode.Is(BOUNDARY)){
 
-	  Neighb_Point = rN[i].Coordinates();
+        Neighb_Point = i_nnode.Coordinates();
 
-	  distance += norm_2(Contact_Point-Neighb_Point);
+        distance += norm_2(Contact_Point-Neighb_Point);
 
-	  counter ++;
-	}
+        counter ++;
       }
+    }
 
     if( counter != 0 )
       distance /= counter;
@@ -495,15 +495,15 @@ namespace Kratos
        // if( Regularization == true ){
 
        // 	 //regularization taking the contigous boundary segments
-       // 	 NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
+       // 	 NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
        // 	 array_1d<double, 3 > NeighbDeltaDisplacement;
 
        // 	 double counter = 0;
 
-       // 	 for(unsigned int i = 0; i < rN.size(); i++)
+       // 	 for(auto& i_nnode : nNodes)
        // 	   {
-       // 	     if(rN[i]->Is(BOUNDARY)){
+       // 	     if(i_nnode.Is(BOUNDARY)){
 
        // 	       const array_1d<double, 3> & NeighbCurrentDisplacement  =  GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
        // 	       const array_1d<double, 3> & NeighbPreviousDisplacement =  GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);

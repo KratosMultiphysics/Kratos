@@ -36,8 +36,7 @@ namespace Kratos
 typedef ModelPart::NodesContainerType                      NodesContainerType;
 typedef ModelPart::ElementsContainerType                ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
-typedef std::vector<Node<3>*>                            NodePointerVectorType;
-
+typedef WeakPointerVector<Node<3> >                     NodeWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's
@@ -216,7 +215,7 @@ class AdaptiveTimeIntervalProcess
       ModelPart::NodeIterator NodeBegin;
       ModelPart::NodeIterator NodeEnd;
       OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
-      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+      for(ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
       {
         if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
           const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -226,10 +225,10 @@ class AdaptiveTimeIntervalProcess
           }
           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
           double unsafetyFactor=0;
-          NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
-          for (NodePointerVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
+          NodeWeakPtrVectorType& nNodes = itNode->GetValue(NEIGHBOUR_NODES);
+          for(auto i_nnode : nNodes)
           {
-            array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
+            array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-i_nnode.Coordinates();
             double squaredDistance=0;
             for (unsigned int d = 0; d < 3; ++d){
               squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];

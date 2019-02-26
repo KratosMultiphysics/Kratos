@@ -16,6 +16,7 @@ def GetDefaultInputParameters():
             "do_print_results_option"                : true,
             "processes" : {},
             "json_output_process"  : [],
+            "sdem_output_processes" : {},
             "coupling_level_type"                    : 1,
             "time_averaging_type"                    : 0,
             "interaction_start_time"                 : 0.0,

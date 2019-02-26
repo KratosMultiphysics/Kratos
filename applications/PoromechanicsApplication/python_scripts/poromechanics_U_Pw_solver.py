@@ -269,12 +269,12 @@ class UPwSolver(PythonSolver):
             "characteristic_length": 0.05,
             "search_neighbours_step": false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "ilu0",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -349,7 +349,7 @@ class UPwSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _ConstructLinearSolver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 

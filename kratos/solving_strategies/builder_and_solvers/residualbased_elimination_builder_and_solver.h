@@ -118,6 +118,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedEliminationBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -909,9 +910,7 @@ public:
     void Clear() override
     {
         this->mDofSet = DofsArrayType();
-
-        if (this->mpReactionsVector != NULL)
-            TSparseSpace::Clear((this->mpReactionsVector));
+        this->mpReactionsVector.reset();
 //             this->mReactionsVector = TSystemVectorType();
 
         this->mpLinearSystemSolver->Clear();

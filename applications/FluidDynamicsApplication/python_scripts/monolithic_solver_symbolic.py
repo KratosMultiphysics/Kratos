@@ -172,7 +172,7 @@ def CreateSolver(model_part, config, periodic=False):
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)
