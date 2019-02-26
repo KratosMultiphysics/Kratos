@@ -149,6 +149,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferenceCrBeamElement(),
       mAdjointFiniteDifferenceTrussElement(),
       mAdjointFiniteDifferenceTrussLinearElement(),
+      mTotalLagrangianAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -296,6 +297,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MIDDLE_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MIDDLE_ANGULAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_INERTIA)
+    KRATOS_REGISTER_VARIABLE(NODAL_DISPLACEMENT_DAMPING)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATION_DAMPING)
 
     // CONDITIONS
     /* Moment condition */
@@ -377,6 +380,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COMPRESSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_TENSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_COMPRESSION_STRESS_VECTOR)
+    KRATOS_REGISTER_VARIABLE(EXPONENTIAL_SATURATION_YIELD_STRESS)
+    KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -526,6 +531,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement", mAdjointFiniteDifferenceTrussElement)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement", mAdjointFiniteDifferenceTrussLinearElement)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D3N", mTotalLagrangianAdjoint2D3N)
 
     // Register the conditions
     // Point loads
@@ -573,8 +579,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2PlasticityPlaneStrain2DLaw", mLinearJ2PlasticityPlaneStrain2D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2PlasticityPlaneStrain2DLaw", mSmallStrainJ2PlasticityPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2Plasticity3DLaw", mSmallStrainJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3D);
 

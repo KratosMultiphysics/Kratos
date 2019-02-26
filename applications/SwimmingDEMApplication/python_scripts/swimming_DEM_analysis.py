@@ -147,21 +147,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
     def ReadDispersePhaseAndCouplingParameters(self):
-
-        # with open(self.dem_json_path, 'r') as parameters_file:
-        #     self.pp.CFD_DEM = Parameters(parameters_file.read())
-        self.pp.CFD_DEM = self.project_parameters
-
-        import dem_default_input_parameters
-        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
+        self.pp.CFD_DEM = self.project_parameters # TO-DO: remove this
 
         import swimming_dem_default_input_parameters
         only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
 
-        for key in only_swimming_defaults.keys():
-            dem_defaults.AddValue(key, only_swimming_defaults[key])
-
-        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)
+        self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults)
 
     def SetCouplingParameters(self, parameters):
 
@@ -218,8 +209,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         DEM_dt = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         Add("delta_time_quadrature").SetDouble(time_steps_per_quadrature_step * DEM_dt)
         Add("quadrature_order").SetInt(2)
-        Add("time_window").SetDouble(0.8)
-        Add("number_of_exponentials").SetInt(2)
         time_window = self.pp.CFD_DEM["time_window"].GetDouble()
         quadrature_dt = self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()
         Add("number_of_quadrature_steps_in_window").SetInt(int(time_window / quadrature_dt))
@@ -447,7 +436,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         #first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 
-        if self.pp.CFD_DEM["ModelDataInfo"].GetBool():
+        if self.pp.CFD_DEM['dem_parameters']["ModelDataInfo"].GetBool():
             os.chdir(data_and_results)
             if self.pp.CFD_DEM.ContactMeshOption == "ON":
                 coordination_number = self.procedures.ModelData(
@@ -504,7 +493,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(self.report.BeginReport(self.timer))
 
         # creating a Post Utils object that executes several post-related tasks
-        self.post_utils_DEM = DEM_procedures.PostUtils(self.pp.CFD_DEM, self.spheres_model_part)
+        self.post_utils_DEM = DEM_procedures.PostUtils(self.project_parameters['dem_parameters'], self.spheres_model_part)
 
         SDP.InitializeVariablesWithNonZeroValues(
             self.fluid_model_part,
