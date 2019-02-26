@@ -34,12 +34,8 @@ namespace Kratos
         ///@name functions
         ///@{
 
-        void Test();
-        static void MapCartesianSpace(
-            const BrepFace& rFaceGeometry,
-            const std::vector<Matrix>& rTriangulation_uv,
-            std::vector<Matrix>& rTriangulation_xyz);
-        
+        void CreateElements3D(ModelPart& rSkinModelPart);
+
         std::vector<std::vector<double>> PrintMappedPoints();
         std::vector<std::vector<double>> PrintParametricTessellation(); 
         std::vector<std::vector<double>> PrintParametricTriangulation();

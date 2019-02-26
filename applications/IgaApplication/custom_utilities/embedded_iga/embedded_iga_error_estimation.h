@@ -8,6 +8,7 @@
 // Project includes
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "iga_application_variables.h"
+#include "custom_utilities/embedded_iga/embedded_iga_mapper.h"
 
 
 namespace Kratos
@@ -26,11 +27,13 @@ public:
     ///@name functions
     ///@{
     static void InsertGaussPointsExactSurface(
+        const BrepFace& rFaceGeometry,
         const std::vector<Matrix>& rTriangulation_uv,
-        std::vector<Matrix>& rGaussPoints_uv);
+        std::vector<Matrix>& rGaussPoints_xyz);
     
     static void InsertGaussPointsApproxSurface(
-        const std::vector<Matrix>& rTriangulation_xyz,
+        const BrepFace& rFaceGeometry,
+        const std::vector<Matrix>& rTriangulation_uv,
         std::vector<Matrix>& rGaussPoints_xyz);
     
     static void GetError(

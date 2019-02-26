@@ -29,7 +29,7 @@ public:
     static void MapCartesianSpace(
         const BrepFace& rFaceGeometry,
         const std::vector<Matrix>& rPoints_uv,
-        std::vector<Matrix>& rPoints_xyz) 
+              std::vector<Matrix>& rPoints_xyz) 
     {
         /**
          * This static class maps points from the parametric space into the cartesian space.

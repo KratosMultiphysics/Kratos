@@ -20,77 +20,55 @@
 
 namespace Kratos
 {
-void EmbeddedIgaModeler::Test()
+void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
 {
-    const auto face = m_brep_model_vector[0].GetFaceVector()[0];
-
-    std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
-    std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
-    
-    EmbeddedIgaTessellation::CreateTessellation(
-        face, outer_polygon_uv, inner_polygon_uv); 
-
-    EmbeddedIgaTriangulation embedded_triangulation; 
-
-    std::vector<Matrix> triangulation_uv;
-    embedded_triangulation.CreateTriangulation(
-        face, outer_polygon_uv, inner_polygon_uv, triangulation_uv);
-    
-    std::vector<Matrix> triangulation_xyz; 
-    EmbeddedIgaMapper::MapCartesianSpace(face, triangulation_uv, triangulation_xyz);
-
-    std::vector<Matrix> gauss_points_approx_xyz; 
-    EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
-        triangulation_xyz,gauss_points_approx_xyz); 
-
-    std::vector<Matrix> gauss_points_exact_uv; 
-    EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(
-        triangulation_uv, gauss_points_exact_uv);
-    
-    std::vector<Matrix> gauss_points_exact_xyz; 
-    EmbeddedIgaMapper::MapCartesianSpace(face, gauss_points_exact_uv, gauss_points_exact_xyz); 
-
-    Vector error; 
-    EmbeddedIgaErrorEstimation::GetError(
-        gauss_points_exact_xyz, gauss_points_approx_xyz,error); 
-
-    KRATOS_WATCH(error)
-
-}
-
-
-
-void EmbeddedIgaModeler::MapCartesianSpace(
-    const BrepFace& rFaceGeometry,
-    const std::vector<Matrix>& rPoints_uv,
-    std::vector<Matrix>& rPoints_xyz) 
-{
-    /**
-     * This function maps points from the parametric space into the cartesian space.
-     * The number of points per row (element of the std::vector) is dependent on the
-     * number of input points.
-    */
-    const auto number_triangles = rPoints_uv.size(); 
-    const auto surface_geometry = rFaceGeometry.GetSurface();
-    
-    rPoints_xyz.resize(
-        rPoints_uv.size(), ZeroMatrix(rPoints_uv[0].size1(),3));
-
-
-    for (unsigned int tri_i = 0; tri_i < number_triangles; ++tri_i)
-    {    
-        for (unsigned int point_i = 0; point_i < 3; ++point_i)
+    for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
+    {
+        for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
-            auto point_xyz = surface_geometry->PointAt(
-                    rPoints_uv[tri_i](point_i,0), rPoints_uv[tri_i](point_i,1));
-            
-            for (unsigned int j = 0; j < 3; ++j)    
+            const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
+
+            std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
+            std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
+            EmbeddedIgaTessellation::CreateTessellation(
+                face, outer_polygon_uv, inner_polygon_uv); 
+
+            EmbeddedIgaTriangulation embedded_triangulation; 
+
+            std::vector<Matrix> triangulation_xyz;
+            embedded_triangulation.CreateTriangulation(
+                face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
+
+
+            unsigned int node_id = 0;
+            for (unsigned int tri_i = 0; tri_i < triangulation_xyz.size(); ++tri_i)
             {
-                rPoints_xyz[tri_i](point_i, j) = point_xyz[j]; 
+                for (unsigned int point_i = 0; point_i < 3; ++point_i)
+                {
+                    rSkinModelPart.CreateNewNode(node_id, 
+                        triangulation_xyz[tri_i](point_i,0), 
+                        triangulation_xyz[tri_i](point_i,1), 
+                        triangulation_xyz[tri_i](point_i,2));
+                    node_id += 1; 
+                }
+            }
+
+            Properties::Pointer prop = rSkinModelPart.pGetProperties(0);
+
+            node_id = 0;
+            // create elements in skin_model_part
+            for (unsigned int element_i = 0; element_i < triangulation_xyz.size(); ++element_i)
+            {
+                rSkinModelPart.CreateNewElement("Element3D3N", element_i, {{node_id, node_id + 1, node_id + 2}}, prop);
+                node_id += 3;
             }
         }
-    }      
+    }
 }
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Helper Functions
@@ -172,21 +150,20 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTriangulatio
 std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedPoints()
 {
     const auto face = m_brep_model_vector[0].GetFaceVector()[0];
+
     std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
     std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
     
     EmbeddedIgaTessellation::CreateTessellation(
         face, outer_polygon_uv, inner_polygon_uv); 
 
-    std::vector<Matrix> triangulation_uv;
-
     EmbeddedIgaTriangulation embedded_triangulation; 
+    std::vector<Matrix> triangulation_uv;
     embedded_triangulation.CreateTriangulation(
         face, outer_polygon_uv, inner_polygon_uv, triangulation_uv);
-
-
+        
     std::vector<Matrix> triangulation_xyz;
-    MapCartesianSpace(
+    EmbeddedIgaMapper::MapCartesianSpace(
         face, triangulation_uv, triangulation_xyz);
 
     std::vector<std::vector<double>> coords(triangulation_xyz.size() * 3, std::vector<double>(3,0)); 

@@ -3356,17 +3356,18 @@ struct behavior *b;
         if (argv[i][j] == 'a') {
           b->quality = 1;
           if (((argv[i][j + 1] >= '0') && (argv[i][j + 1] <= '9')) ||
-              (argv[i][j + 1] == ',')) {
+              (argv[i][j + 1] == '.')) {
             b->fixedarea = 1;
             k = 0;
             while (((argv[i][j + 1] >= '0') && (argv[i][j + 1] <= '9')) ||
-                   (argv[i][j + 1] == ',')) {
+                   (argv[i][j + 1] == '.')) {
               j++;
               workstring[k] = argv[i][j];
               k++;
             }
             workstring[k] = '\0';
             b->maxarea = (REAL) strtod(workstring, (char **) NULL);
+            printf("Area = %lf\n", b->maxarea);
             if (b->maxarea <= 0.0) {
               printf("Error:  Maximum area must be greater than zero.\n");
               triexit(1);

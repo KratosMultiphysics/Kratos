@@ -23,7 +23,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     const BrepFace& rFaceGeometry,
     const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
     const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
-    std::vector<Matrix>& rTriangulation_uv)
+    std::vector<Matrix>& rTriangulation_xyz)
 {
     /**
      * This function generates a triangulation of the patch in the parametric space
@@ -35,8 +35,8 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     struct triangulateio vor_out_data;
 
     InitTriangulationDataStructure(in_data); 
-    InitTriangulationDataStructure(out_data); 
-    InitTriangulationDataStructure(vor_out_data); 
+    // InitTriangulationDataStructure(out_data); 
+    // InitTriangulationDataStructure(vor_out_data); 
 
     // Initialize the pointlist (1d list) with the number of points and the coordinates
     // of the points (outer and inner polygons) 
@@ -150,80 +150,70 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     // in_data.holelist[3] = 3; 
     
 
-    float max_area; 
-    char buf[100];
-
- 
-    gcvt(max_area, 6, buf);    
-    char trigenOpts[20] = "Dpza";
-    strcat(trigenOpts, buf); 
-    int i = 1; 
-    
-    // while (i < 10)
-    // {
-    //     max_area = 1/i;
-    //     char buf[100];
-    //     gcvt(max_area, 6, buf);    
-    //     char trigenOpts[20] = "Dpza";
-    //     strcat(trigenOpts, buf); 
-    //     triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
-    //     rTriangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2)); 
-
-    //     unsigned int tri_id = 0; 
-    //     for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
-    //     {
-    //         for (unsigned int j = 0; j < 3; ++j)
-    //         {   
-    //             rTriangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
-    //             rTriangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1]; 
-    //         }
-    //         tri_id += 3;  
-    //     }
-    //     std::vector<Matrix> triangulation_xyz; 
-    //     EmbeddedIgaModeler::MapCartesianSpace(rFaceGeometry, rTriangulation_uv, triangulation_xyz);
-
-    //     std::vector<Matrix> gauss_points_approx_xyz; 
-    //     EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(triangulation_xyz,gauss_points_approx_xyz); 
-         
-    //     std::vector<Matrix> gauss_points_exact_uv; 
-    //     EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(rTriangulation_uv, gauss_points_exact_uv);
-    
-    //     std::vector<Matrix> gauss_points_exact_xyz; 
-    //     EmbeddedIgaMapper::MapCartesianSpace(face, gauss_points_exact_uv, gauss_points_exact_xyz); 
-
-
-
-
-    //     i++; 
-    // }
-
-  
-
-    
-    
-    
-
-    
-    triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
-    
-    rTriangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2)); 
-
-    unsigned int tri_id = 0; 
-    for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
+    float max_area;
+    const auto ele_tolerance = 0.1; 
+    std::vector<Matrix> triangulation_uv; 
+    for (int it = 1; it < 20; it++)
     {
-        for (unsigned int j = 0; j < 3; ++j)
-        {   
-            rTriangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
-            rTriangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1]; 
+        std::cout << "Iteration " << it << std::endl; 
+        InitTriangulationDataStructure(out_data); 
+        InitTriangulationDataStructure(vor_out_data); 
+
+        max_area = 1.0/it;
+        char buf[100];
+        gcvt(max_area, 6, buf);    
+        char trigenOpts[10] = "QDpza";
+        strcat(trigenOpts, buf); 
+        
+        triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
+        
+        triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
+
+        unsigned int tri_id = 0; 
+        for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
+        {
+            for (unsigned int j = 0; j < 3; ++j)
+            {   
+                triangulation_uv[i](j,0) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2];
+                triangulation_uv[i](j,1) = out_data.pointlist[out_data.trianglelist[tri_id + j] * 2 + 1]; 
+            }
+            tri_id += 3;  
         }
-        tri_id += 3;  
+
+        std::vector<Matrix> gauss_points_exact_xyz; 
+        EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(
+            rFaceGeometry, triangulation_uv, gauss_points_exact_xyz);
+    
+        std::vector<Matrix> gauss_points_approx_xyz; 
+        EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
+            rFaceGeometry, triangulation_uv, gauss_points_approx_xyz); 
+            
+        Vector error; 
+        EmbeddedIgaErrorEstimation::GetError(
+            gauss_points_exact_xyz, gauss_points_approx_xyz, error);
+        
+        KRATOS_WATCH(error)
+        
+        auto tolerance = false; 
+        for (unsigned int i = 0; i < error.size(); ++i)
+        {
+            if (error[i] > ele_tolerance)
+            {
+                tolerance = true; 
+                break; 
+            }
+        }
+
+        CleanTriangulationDataStructure(out_data); 
+        CleanTriangulationDataStructure(vor_out_data); 
+        
+        if (tolerance == false )    break; 
+        
     }
 
-
     CleanTriangulationDataStructure(in_data); 
-    CleanTriangulationDataStructure(out_data); 
-    CleanTriangulationDataStructure(vor_out_data); 
-   
+    EmbeddedIgaMapper::MapCartesianSpace(
+        rFaceGeometry, triangulation_uv, rTriangulation_xyz); 
 }
 
 EmbeddedIgaTriangulation::EmbeddedIgaTriangulation()
