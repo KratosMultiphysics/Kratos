@@ -110,8 +110,7 @@ NavierStokesSolverMonolithic: Solver initialization finished.
 TimeAveragingProcess: Initialized.
 VtkOutput: Modelpart "MainModelPart" has both elements and conditions.
 Giving precedence to elements and writing only elements!
-VtkOutput: Modelpart "fluid_computational_model_part" has both elements and conditions.
-Giving precedence to elements and writing only elements!
+TimeAveragingProcess: Nodal Quantities Averaged.
 TimeAveragingProcess: Nodal Quantities Averaged.
 TimeAveragingProcess: Nodal Quantities Averaged.
 TimeAveragingProcess: Nodal Quantities Averaged.
@@ -304,8 +303,6 @@ TimeAveragingProcess: Nodal Quantities Averaged.
 TimeAveragingProcess: Nodal Quantities Averaged.
 /home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/time_average_navier_stokes_reference.py
 Print vtk output process intialized
-TIME:  0.0
-STEP:  0
 TIME:  0.1
 STEP:  1
 TIME:  0.2
@@ -704,3 +701,7 @@ TIME:  19.80000000000001
 STEP:  198
 TIME:  19.900000000000013
 STEP:  199
+TIME:  20.000000000000014
+STEP:  200
+VtkOutput: Modelpart "MainModelPart" has both elements and conditions.
+Giving precedence to elements and writing only elements!

@@ -40,7 +40,7 @@
         "domain_size"                     : 2,
         "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "back_step_flow"
+            "input_filename" : "back_step_flow_medium_mesh"
         },
         "echo_level"                      : 0,
         "compute_reactions"               : false,
@@ -153,8 +153,8 @@
                 "output_precision": 7,
                 "output_control_type": "time",
                 "output_frequency": 100,
-                "output_sub_model_parts": true,
-                "folder_name": "VTK_Results",
+                "output_sub_model_parts": false,
+                "folder_name": "vtk_results_1.05",
                 "save_output_files_in_folder": true,
                 "nodal_solution_step_data_variables": ["TIME_AVERAGED_VELOCITY","TIME_AVERAGED_PRESSURE"],
                 "nodal_data_value_variables": [],
