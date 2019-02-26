@@ -208,6 +208,9 @@ class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/linear_3D2NBeamCr_test"
 
+class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
+    file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"
+
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
 
@@ -274,8 +277,17 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMe
 class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
     file_name = "rigid_test/rigid_test"
 
+class RigidBlockTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_block_mpc"
+
+class RigidEliminationTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_elimination_mpc"
+
 class RigidSphereFailing(StructuralMechanicsTestFactory):
     file_name = "rigid_test/sphere_failing"
+
+class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing_explicit"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):

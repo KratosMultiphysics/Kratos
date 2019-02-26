@@ -261,7 +261,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
     unsigned int mat_size = number_of_nodes * 3;
 
     if (rMassMatrix.size1() != mat_size) {
-        rMassMatrix.resize(mat_size, mat_size);
+        rMassMatrix.resize(mat_size, mat_size, false);
     }
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
@@ -316,7 +316,7 @@ void PrestressMembraneElement::GetValuesVector(
     const unsigned int mat_size = number_of_nodes * 3;
 
     if (rValues.size() != mat_size)
-        rValues.resize(mat_size);
+        rValues.resize(mat_size, false);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -340,7 +340,7 @@ void PrestressMembraneElement::GetFirstDerivativesVector(
     const unsigned int mat_size = number_of_nodes * 3;
 
     if (rValues.size() != mat_size)
-        rValues.resize(mat_size);
+        rValues.resize(mat_size, false);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -365,7 +365,7 @@ void PrestressMembraneElement::GetSecondDerivativesVector(
     const unsigned int mat_size = number_of_nodes * 3;
 
     if (rValues.size() != mat_size)
-        rValues.resize(mat_size);
+        rValues.resize(mat_size, false);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -631,7 +631,7 @@ void PrestressMembraneElement::CalculateAll(
     {
         if (rLeftHandSideMatrix.size1() != mat_size)
         {
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         }
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
@@ -642,7 +642,7 @@ void PrestressMembraneElement::CalculateAll(
     {
         if (rRightHandSideVector.size() != mat_size)
         {
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         }
 
         rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
@@ -1361,8 +1361,8 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 
     Matrix& base_1 = GetValue(BASE_REF_1);
     Matrix& base_2 = GetValue(BASE_REF_2);
-    base_1.resize(3,rIntegrationPoints.size());
-    base_2.resize(3,rIntegrationPoints.size());
+    base_1.resize(3, rIntegrationPoints.size(), false);
+    base_2.resize(3, rIntegrationPoints.size(), false);
 
     // Calculating geometry tensors in reference configuration on Integration points
     for (unsigned int point_number = 0; point_number < rIntegrationPoints.size(); point_number++)

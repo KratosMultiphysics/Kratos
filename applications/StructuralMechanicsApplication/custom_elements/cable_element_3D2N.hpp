@@ -76,11 +76,6 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override;
 
-        void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
-
         BoundedMatrix<double,msLocalSize,msLocalSize>
          CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
