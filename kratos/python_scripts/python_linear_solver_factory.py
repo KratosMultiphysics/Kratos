@@ -41,7 +41,7 @@ def __DeprecatedApplicationImport(solver_type):
             KM.Logger.PrintWarning('Linear-Solver-Factory', depr_msg)
 
             from KratosMultiphysics import kratos_utilities as kratos_utils
-            if not kratos_utils.IsApplicationAvailable(app_name):
+            if not kratos_utils.CheckIfApplicationsAvailable(app_name):
                 err_msg  = 'Trying to use the linear-solver "' + solver_type
                 err_msg += '"\nThis solver is defined in the "' + app_name
                 err_msg += '" which is not compiled'
