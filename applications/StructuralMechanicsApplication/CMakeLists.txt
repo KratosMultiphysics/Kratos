@@ -66,13 +66,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ## Derivative Builder
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/derivative_builder.cpp
 
-  ## Math FUNCTIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/math_functions/vector_math.cpp
-
-  ## Output Utility
-  ##${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/output_utilities/output_utility.cpp
-
-
+  
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_plasticity_constitutive_law.cpp
