@@ -120,6 +120,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             self.gid_output.ExecuteBeforeSolutionLoop()
 
 
+
     def runTest(self):
 
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
@@ -131,6 +132,9 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             process.ExecuteBeforeSolutionLoop()
 
         while(time <= end_time):
+            time = self.solver.AdvanceInTime(time)
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
             print ("TIME: ", str(time))
             print ("STEP: ", str(step))
 
@@ -163,9 +167,6 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
                 if self.vtk_output.IsOutputStep():
                     self.vtk_output.PrintOutput()
             
-            time = self.solver.AdvanceInTime(time)
-            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
@@ -174,6 +175,10 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         
         if (self.print_vtk_output):
             self.vtk_output.ExecuteFinalize()
+
+        print("Solver takes in total: " + str(step) + " steps with " + \
+            self.ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString())
+    
         #self.solver.ExportModelPart()
 
 
