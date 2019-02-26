@@ -207,9 +207,5 @@ class TestAnalytics(KratosUnittest.TestCase):
 
 
 if __name__ == "__main__":
-    # path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
-    # parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-    # model = Kratos.Model()
-    # CreateAndRunStageInOneOpenMPThread(AnalyticsTestSolution, model, parameters_file_name)
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     KratosUnittest.main()

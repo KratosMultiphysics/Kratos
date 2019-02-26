@@ -69,33 +69,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
-    # def SetSolverStrategy(self):
-    #     # Strategy object
-    #     element_type = self.DEM_parameters["ElementType"].GetString()
-    #     if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
-    #         import sphere_strategy as SolverStrategy
-    #     elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
-    #         import continuum_sphere_strategy as SolverStrategy
-    #     elif (element_type == "ThermalSphericContPartDEMElement3D"):
-    #         import thermal_continuum_sphere_strategy as SolverStrategy
-    #     elif (element_type == "ThermalSphericPartDEMElement3D"):
-    #         import thermal_sphere_strategy as SolverStrategy
-    #     elif (element_type == "SinteringSphericConPartDEMElement3D"):
-    #         import thermal_continuum_sphere_strategy as SolverStrategy
-    #     elif (element_type == "IceContPartDEMElement3D"):
-    #         import ice_continuum_sphere_strategy as SolverStrategy
-    #     else:
-    #         self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
-
-    #     return SolverStrategy
-
-    # def SetSolver(self):
-    #     return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
-    #                                                  self.creator_destructor,
-    #                                                  self.dem_fem_search,
-    #                                                  self.DEM_parameters,
-    #                                                  self.procedures)
-
     def SetDt(self):
         self._solver.dt = dt
 

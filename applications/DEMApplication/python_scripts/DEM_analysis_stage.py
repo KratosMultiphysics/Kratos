@@ -76,7 +76,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.FixParametersInconsistencies()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
-        # self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
@@ -268,8 +267,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.time = 0.0
         self.time_old_print = 0.0
 
-        # self.AddVariables()
-
         self.ReadModelParts()
 
         self.SetAnalyticFaceWatcher()
@@ -282,8 +279,6 @@ class DEMAnalysisStage(AnalysisStage):
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
-        # Adding dofs
-        # self.AddAllDofs()
 
         self.KRATOSprint("Initializing Problem...")
 
@@ -640,10 +635,6 @@ class DEMAnalysisStage(AnalysisStage):
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)
 
-    # def _GetSolver(self):    # TODO (why not) use parent GetSolver method instead.
-    #     if not hasattr(self, 'solver'):
-    #         self.solver = self._CreateSolver()
-    #     return self.solver
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
