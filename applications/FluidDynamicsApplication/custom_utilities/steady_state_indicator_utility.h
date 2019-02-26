@@ -37,10 +37,13 @@ public:
 
     /// Calculating change of solution values in time over the domain
     void EstimateQuantityChangesInTime();
+    void EstimateTimeAveragedQuantityChangesInTime();
 
     /// Return memember variables
     double GetVelocityChange(){return mChangeInVelocity;}
     double GetPressureChange(){return mChangeInPressure;}
+    double GetTimeAveragedVelocityChange(){return mChangeInTimeAveragedVelocity;}
+    double GetTimeAveragedPressureChange(){return mChangeInTimeAveragedPressure;}
 
 private:
 
@@ -48,11 +51,15 @@ private:
     ModelPart&                               mrModelPart;
     double                                   mChangeInVelocity;
     double                                   mChangeInPressure;
+    double                                   mChangeInTimeAveragedVelocity;
+    double                                   mChangeInTimeAveragedPressure;
     bool                                     mIsSteady;
 
     double NodalVelocityChange(ModelPart::NodeType& inode);
     double NodalPressureChange(ModelPart::NodeType& inode);
-
+    double NodalTimeAveragedVelocityChange(ModelPart::NodeType& inode);
+    double NodalTimeAveragedPressureChange(ModelPart::NodeType& inode);
+    
 };  // Class SteadyStateIndicatorUtility
 
 }  // namespace Kratos.

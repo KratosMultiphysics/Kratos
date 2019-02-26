@@ -245,9 +245,10 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        
-        self._compute_averaging_time_length(new_time, dt)
-        self._set_averaging_time_length(self.averaging_time_length)
+
+        if (self.restart == True):
+            self._compute_averaging_time_length(new_time, dt)
+            self._set_averaging_time_length(self.averaging_time_length)
         return new_time
 
 
@@ -310,22 +311,18 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def _compute_increased_delta_time_with_CFL(self, current_time):
-        dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
-        dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
-        CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
-        CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
 
         if ( current_time > self.start_acceleration_time): 
             if (current_time <= self.end_acceleration_time):
-                CFL = CFL_min + current_time / self.end_acceleration_time * (CFL_max - CFL_min)
+                CFL = self.CFL_min + current_time / self.end_acceleration_time * (self.CFL_max - self.CFL_min)
             else:
-                CFL = CFL_max
-        else: CFL = CFL_min
+                CFL = self.CFL_max
+        else: CFL = self.CFL_min
         
         if(self.domain_size == 3):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, CFL, dt_min, dt_max, True)
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, CFL, self.min_dt, self.max_dt, True)
         elif(self.domain_size == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, CFL, dt_min, dt_max, True)
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, CFL, self.min_dt, self.max_dt, True)
         
         new_dt = EstimateDeltaTimeUtility.EstimateDt()
 
@@ -416,9 +413,9 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
     def _check_steady_state(self):
         SteadyStateIndicatorUtility = KratosCFD.SteadyStateIndicatorUtility(self.main_model_part)
-        SteadyStateIndicatorUtility.EstimateQuantityChangesInTime()
-        change_in_velocity = SteadyStateIndicatorUtility.GetVelocityChange()
-        change_in_pressure = SteadyStateIndicatorUtility.GetPressureChange()
+        SteadyStateIndicatorUtility.EstimateTimeAveragedQuantityChangesInTime()
+        change_in_velocity = SteadyStateIndicatorUtility.GetTimeAveragedVelocityChange()
+        change_in_pressure = SteadyStateIndicatorUtility.GetTimeAveragedPressureChange()
         print("Change in velocity in percentage: " + str(change_in_velocity))
         print("Change in pressure in percentage: " + str(change_in_pressure))
 

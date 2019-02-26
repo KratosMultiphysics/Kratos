@@ -187,8 +187,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         (m,"SteadyStateIndicatorUtility")
         .def(py::init < ModelPart& >())
         .def("EstimateQuantityChangesInTime", &SteadyStateIndicatorUtility::EstimateQuantityChangesInTime)
+        .def("EstimateTimeAveragedQuantityChangesInTime", &SteadyStateIndicatorUtility::EstimateTimeAveragedQuantityChangesInTime)
         .def("GetVelocityChange", &SteadyStateIndicatorUtility::GetVelocityChange)
         .def("GetPressureChange", &SteadyStateIndicatorUtility::GetPressureChange)
+        .def("GetTimeAveragedVelocityChange", &SteadyStateIndicatorUtility::GetTimeAveragedVelocityChange)
+        .def("GetTimeAveragedPressureChange", &SteadyStateIndicatorUtility::GetTimeAveragedPressureChange)
         ;
 }
 
