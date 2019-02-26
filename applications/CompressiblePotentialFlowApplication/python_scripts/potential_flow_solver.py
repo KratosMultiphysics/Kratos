@@ -67,8 +67,10 @@ class LaplacianSolver(PythonSolver):
 
         # This will be changed once the Model is fully supported!
         if self.model.HasModelPart(model_part_name):
+            self.is_model_part_needed = False
             self.main_model_part = self.model[model_part_name]
         else:
+            self.is_model_part_needed = True
             self.main_model_part = self.model.CreateModelPart(model_part_name)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
@@ -114,30 +116,30 @@ class LaplacianSolver(PythonSolver):
         self.incompressible_solution_stratety.Check()
 
     def ImportModelPart(self):
+        if self.is_model_part_needed:
+            if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+                #here it would be the place to import restart data if required
+                print(self.settings["model_import_settings"]["input_filename"].GetString())
+                KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
 
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
-            print(self.settings["model_import_settings"]["input_filename"].GetString())
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+                throw_errors = False
+                KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
+                #here we replace the dummy elements we read with proper elements
+                self.settings.AddEmptyValue("element_replace_settings")
+                if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"CompressiblePotentialFlowElement3D4N",
+                        "condition_name": "PotentialWallCondition3D3N"
+                        }
+                        """)
+                elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 2):
+                    raise Exception("Domain size is not 2 or 3!!")
 
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
-            #here we replace the dummy elements we read with proper elements
-            self.settings.AddEmptyValue("element_replace_settings")
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement3D4N",
-                    "condition_name": "PotentialWallCondition3D3N"
-                    }
-                    """)
-            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 2):
-                raise Exception("Domain size is not 2 or 3!!")
+                KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-
-        else:
-            raise Exception("other input options are not yet implemented")
+            else:
+                raise Exception("other input options are not yet implemented")
 
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
