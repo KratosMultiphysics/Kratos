@@ -452,20 +452,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
-# Configure and install KratosPaths.py, containing routes to installed kratos modules.
-set(KratosMultiphysics_KRATOS_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
-if (${INSTALL_PYTHON_FILES} MATCHES ON)
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_INSTALL_PREFIX})
-else ()
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_SOURCE_DIR})
-endif (${INSTALL_PYTHON_FILES} MATCHES ON)
-
-configure_file(
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
-  "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
-)
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
-
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
