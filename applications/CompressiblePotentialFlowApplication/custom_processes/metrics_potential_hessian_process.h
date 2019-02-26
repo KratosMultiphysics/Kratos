@@ -18,6 +18,8 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "../../MeshingApplication/meshing_application.h"
+#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
 {
@@ -99,19 +101,6 @@ public:
      */
     ComputePotentialHessianSolMetricProcess(
         ModelPart& rThisModelPart,
-        Variable<double>& rVariable,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
-
-    /**
-     * @brief This is the default constructor (component)
-     * @param rThisModelPart The model part to be computed
-     * @param rVariable The variable to compute
-     * @param ThisParameters The input parameters
-     */
-    ComputePotentialHessianSolMetricProcess(
-        ModelPart& rThisModelPart,
-        ComponentType& rVariable,
         Parameters ThisParameters = Parameters(R"({})")
         );
 

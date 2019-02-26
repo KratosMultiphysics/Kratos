@@ -21,30 +21,9 @@ namespace Kratos
 {
 ComputePotentialHessianSolMetricProcess::ComputePotentialHessianSolMetricProcess(
     ModelPart& rThisModelPart,
-    Variable<double>& rVariable,
     Parameters ThisParameters
     ):mThisModelPart(rThisModelPart)
 {
-    // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rVariable);
-
-    // We check the parameters
-    Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    InitializeVariables(ThisParameters);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ComputePotentialHessianSolMetricProcess::ComputePotentialHessianSolMetricProcess(
-    ModelPart& rThisModelPart,
-    ComponentType& rVariable,
-    Parameters ThisParameters
-    ):mThisModelPart(rThisModelPart)
-{
-    // We push the components list
-    mrOriginVariableComponentsList.push_back(&rVariable);
 
     // We check the parameters
     Parameters default_parameters = GetDefaultParameters();
@@ -62,11 +41,6 @@ void ComputePotentialHessianSolMetricProcess::Execute()
 
     // Some checks
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    if (mrOriginVariableDoubleList.size() > 0) {
-        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], nodes_array);
-    } else {
-        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], nodes_array);
-    }
 
     // Checking NODAL_H
     for (const auto& i_node : nodes_array)
@@ -195,18 +169,7 @@ void ComputePotentialHessianSolMetricProcess::CalculateAuxiliarHessian()
         auto it_node = it_nodes_begin + i_node;
         it_node->SetValue(NODAL_AREA, 0.0);
         it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
-        it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
     }
-
-    // Compute auxiliar gradient
-    if (mrOriginVariableDoubleList.size() > 0) {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, *mrOriginVariableDoubleList[0], AUXILIAR_GRADIENT, NODAL_AREA);
-        gradient_process.Execute();
-    } else {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, *mrOriginVariableComponentsList[0], AUXILIAR_GRADIENT, NODAL_AREA);
-        gradient_process.Execute();
-    }
-
     // Auxiliar containers
     Matrix DN_DX, J0;
     Vector N;
@@ -255,9 +218,14 @@ void ComputePotentialHessianSolMetricProcess::CalculateAuxiliarHessian()
 
                 Matrix values(number_of_nodes, 2);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    const array_1d<double, 3>& aux_grad = r_geometry[i_node].GetValue(AUXILIAR_GRADIENT);
-                    for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
-                        values(i_node, i_dim) = aux_grad[i_dim];
+                    const array_1d<double, 3>& gradient = r_geometry[i_node].GetValue(VELOCITY_LOWER);
+                    if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                        for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
+                            values(i_node, i_dim) = gradient[i_dim];
+                    }else{
+                        for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
+                            values(i_node, i_dim) = gradient[i_dim];
+                    }
                 }
 
                 const BoundedMatrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
