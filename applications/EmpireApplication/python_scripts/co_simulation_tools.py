@@ -108,7 +108,8 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
             "name" : "UNSPECIFIED",
             "input_data_list"  : [],
             "output_data_list" : [],
-            "coupling_start" : 0.0
+            "input_coupling_start_time" : 0.0,
+            "output_coupling_start_time" : 0.0
         }
         for solver_i, solver in enumerate(coupling_loop):
             ValidateAndAssignDefaults(solver_default, solver)
