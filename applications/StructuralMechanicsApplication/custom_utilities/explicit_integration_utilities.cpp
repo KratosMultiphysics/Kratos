@@ -33,7 +33,7 @@ double CalculateDeltaTime(
     Parameters default_parameters = Parameters(R"(
     {
         "time_step_prediction_level" : 2.0,
-        "max_delta_time"             : 1.0e-1,
+        "max_delta_time"             : 1.0e0,
         "safety_factor"              : 0.80,
         "mass_factor"                : 1.0,
         "desired_delta_time"         : -1.0,
