@@ -233,7 +233,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
-                if(elem.Id==TrailingEdgeElementID): #TE Element
+                if(self.CheckIfElemIsCutByWake(elem)): #TE Element
                     elem.Set(KratosMultiphysics.STRUCTURE)
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
