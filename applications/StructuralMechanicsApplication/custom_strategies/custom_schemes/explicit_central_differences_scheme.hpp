@@ -128,7 +128,7 @@ public:
         {
             "time_step_prediction_level" : 0.0,
             "fraction_delta_time"        : 0.9,
-            "max_delta_time"             : 1.0e-5
+            "max_delta_time"             : 1.0e0
         })" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
