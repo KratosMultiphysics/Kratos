@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -242,6 +243,12 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            Matrix tmp;
+            ApplyNeumannCondition(tmp,rRightHandSideVector);
+        }
     }
 
 
