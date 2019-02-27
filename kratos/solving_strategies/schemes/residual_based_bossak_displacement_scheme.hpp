@@ -97,6 +97,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"          : "ResidualBasedBossakDisplacementScheme",
             "damp_factor_m" : -0.3
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

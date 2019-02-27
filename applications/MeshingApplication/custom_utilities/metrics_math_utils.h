@@ -88,7 +88,8 @@ public:
         MatrixType auxmat, emat;
 
         double auxdet;
-        const MatrixType& inv_metric1_matrix = MathUtils<double>::InvertMatrix<TDim>(metric1_matrix, auxdet);
+        MatrixType inv_metric1_matrix;
+        MathUtils<double>::InvertMatrix(metric1_matrix, inv_metric1_matrix, auxdet);
         const MatrixType n_matrix = prod(inv_metric1_matrix, metric2_matrix);
 
         MathUtils<double>::EigenSystem<TDim>(n_matrix, emat, auxmat, 1e-18, 20);
@@ -100,7 +101,8 @@ public:
         for (std::size_t i = 0; i < TDim; ++i)
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
 
-        const MatrixType& invemat = MathUtils<double>::InvertMatrix<TDim>(emat, auxdet);
+        MatrixType invemat;
+        MathUtils<double>::InvertMatrix(emat, invemat, auxdet);
 
         MatrixType IntersectionMatrix =  prod(trans(invemat), prod<temp_type>(auxmat, invemat));
 

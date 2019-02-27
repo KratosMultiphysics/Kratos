@@ -371,7 +371,7 @@ public:
 	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
 	    CurrentPressureAcceleration = (CurrentPressureVelocity-PreviousPressureVelocity)/timeInterval;
 	  }
-	  
+
         }
     }
 
@@ -424,11 +424,11 @@ public:
 	    double  & PreviousPressure     = (i)->FastGetSolutionStepValue(PRESSURE, 1);
 	    double  & CurrentPressureVelocity  = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
 	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
-	    
+
 	    CurrentPressureAcceleration = CurrentPressureVelocity/timeInterval;
-	    
+
 	    CurrentPressureVelocity = (CurrentPressure-PreviousPressure)/timeInterval;
-	    
+
 	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
 
 	    double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
@@ -585,7 +585,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TwoStepVPStrategy" ;
@@ -593,10 +593,16 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "TwoStepVPStrategy";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "TwoStepVPStrategy";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override
+    {
+
+    }
 
 
     ///@}
