@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -662,18 +663,7 @@ public:
      */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
-    }
-
-    /**
-     * @brief Returns all faces of the current geometry
-     * @see EdgesNumber
-     * @see Edges
-     * @see FacesNumber
-     */
-    GeometriesArrayType Faces( void ) override
-    {
-        return Edges();
+        return 0;
     }
 
     ///@}
