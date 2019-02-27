@@ -210,7 +210,8 @@ namespace Kratos
             mat11(0,0) = 0.896308;
 
             double det;
-            const BoundedMatrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
+            BoundedMatrix<double, 1, 1> inv11;
+            MathUtils<double>::InvertMatrix(mat11, inv11, det);
             const BoundedMatrix<double, 1, 1> I11 = prod(inv11, mat11);
 
             KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
@@ -221,19 +222,15 @@ namespace Kratos
             mat22(1,0) = 1.47006;
             mat22(1,1) = 1.00029;
 
-            const BoundedMatrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
+            BoundedMatrix<double, 2, 2> inv22;
+            MathUtils<double>::InvertMatrix(mat22, inv22, det);
             const BoundedMatrix<double, 2, 2> I22 = prod(inv22, mat22);
 
-            for (unsigned int i = 0; i < 2; i++)
-            {
-                for (unsigned int j = 0; j < 2; j++)
-                {
-                    if (i == j)
-                    {
+            for (unsigned int i = 0; i < 2; i++) {
+                for (unsigned int j = 0; j < 2; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I22(i,j), 1.0, tolerance);
-                    }
-                    else
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I22(i,j), 0.0, tolerance);
                     }
                 }
@@ -250,19 +247,15 @@ namespace Kratos
             mat33(2,1) = 1.08225;
             mat33(2,2) = 0.972831;
 
-            const BoundedMatrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
+            BoundedMatrix<double, 3, 3> inv33;
+            MathUtils<double>::InvertMatrix(mat33, inv33, det);
             const BoundedMatrix<double, 3, 3> I33 = prod(inv33, mat33);
 
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                for (unsigned int j = 0; j < 3; j++)
-                {
-                    if (i == j)
-                    {
+            for (unsigned int i = 0; i < 3; i++) {
+                for (unsigned int j = 0; j < 3; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I33(i,j), 1.0, tolerance);
-                    }
-                    else
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I33(i,j), 0.0, tolerance);
                     }
                 }
@@ -286,19 +279,15 @@ namespace Kratos
             mat44(3,2) = 2.58081;
             mat44(3,3) = 3.3083;
 
-            const BoundedMatrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
+            BoundedMatrix<double, 4, 4> inv44;
+            MathUtils<double>::InvertMatrix(mat44, inv44, det);
             const BoundedMatrix<double, 4, 4> I44 = prod(inv44, mat44);
 
-            for (unsigned int i = 0; i < 4; i++)
-            {
-                for (unsigned int j = 0; j < 4; j++)
-                {
-                    if (i == j)
-                    {
+            for (unsigned int i = 0; i < 4; i++) {
+                for (unsigned int j = 0; j < 4; j++) {
+                    if (i == j) {
                         KRATOS_CHECK_NEAR(I44(i,j), 1.0, tolerance);
-                    }
-                    else
-                    {
+                    } else {
                         KRATOS_CHECK_NEAR(I44(i,j), 0.0, tolerance);
                     }
                 }
