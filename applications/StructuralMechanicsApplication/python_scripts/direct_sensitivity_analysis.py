@@ -60,7 +60,7 @@ class DirectSensitivityAnalysis(object):
 
         # Create the direct sensitivity solver
         direct_sensitivity_parameters = self._GetDirectSensitivityParameters() 
-        print(str(direct_sensitivity_parameters))              
+                     
         direct_sensitivity_model = KratosMultiphysics.Model()
         self.direct_sensitivity_model_part = _GetModelPart(direct_sensitivity_model, direct_sensitivity_parameters["solver_settings"])
 
@@ -167,15 +167,27 @@ class DirectSensitivityAnalysis(object):
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
                 process = direct_sensitivity_parameters["processes"]["constraints_process_list"][i]
                 variable_name = process["Parameters"]["variable_name"].GetString()
-            process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
+                process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
 
             # Neumann conditions - do not modify to read the same load values as in primal:
 
             # Output process:
             # TODO how to add the output process? How find out about the variables?
+            #if direct_sensitivity_parameters.Has("output_configuration"):
+             #   Logger.PrintInfo("> Output process is removed for direct sensitivity analysis. To enable it define direct sensitivity parameters yourself.")
+              #  direct_sensitivity_parameters.RemoveValue("output_configuration")
             if direct_sensitivity_parameters.Has("output_configuration"):
-                Logger.PrintInfo("> Output process is removed for direct sensitivity analysis. To enable it define direct sensitivity parameters yourself.")
-                direct_sensitivity_parameters.RemoveValue("output_configuration")
+                
+                if self.direct_settings["response_function_settings"]["response_functions"]["local_stress"].size() > 0:
+                    for i in range(0,self.direct_settings["response_function_settings"]["response_functions"]["local_stress"].size()):
+                        response_var = self.direct_settings["response_function_settings"]["response_functions"]["local_stress"][i].GetString()
+                        direct_sensitivity_parameters["output_configuration"]["result_file_configuration"]["gauss_point_results"][i].SetString(response_var + "_SENSITIVITY")
+                
+                if self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"].size() > 0:
+                    for i in range(0,self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"].size()):
+                        response_var = self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"][i].GetString()
+                        direct_sensitivity_parameters["output_configuration"]["result_file_configuration"]["nodal_nonhistorical_results"][i].SetString(response_var + "_SENSITIVITY")
+                        
 
             # variable settings
             direct_sensitivity_parameters["solver_settings"].AddValue("variable_settings", self.direct_settings["variable_settings"])            
