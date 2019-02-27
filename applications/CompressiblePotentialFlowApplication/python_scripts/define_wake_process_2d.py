@@ -198,38 +198,21 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             # Marking the elements under the trailing edge as kutta
             if(distance_to_wake < 0.0):
                 elem.SetValue(CPFApp.KUTTA, True)
+
     @staticmethod
     def CheckIfElemIsCutByWake(elem):
-        npos=0
         nneg=0
         distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
         for nodal_distance in distances:
-            if nodal_distance>0:
-                npos += 1
-            else:
+            if nodal_distance<0:
                 nneg += 1
 
         return nneg==1
-
-    def FindTrailingEdgeElementId(self):
-        # This function finds the trailing edge element that is cut by the wake
-
-        # Loop over the elements touching the trailing edge
-        for elem in self.trailing_edge_model_part.Elements:
-            # Find the element touching the trailing edge that is cut by the wake
-            if (elem.GetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE)):
-                if(self.CheckIfElemIsCutByWake(elem)):
-                    te_elem_id=elem.Id
-
-        return te_elem_id
 
     def MarkWakeTEElement(self):
         # This function finds the trailing edge element that is further downstream
         # and marks it as wake trailing edge element. The rest of trailing edge elements are
         # unassigned from the wake.
-
-        # Find element in the trailing edge that is completely cut by the wake
-        TrailingEdgeElementID = self.FindTrailingEdgeElementId()
 
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
