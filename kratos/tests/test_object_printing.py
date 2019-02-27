@@ -3,6 +3,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
+import sys
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -80,6 +81,7 @@ class TestObjectPrinting(KratosUnittest.TestCase):
 
         self.assertMultiLineEqual(str(prop), prop_str)
 
+    @KratosUnittest.skipIf(sys.platform.startswith("win"), "Test is not correct due to different hash orders in windows")
     def test_ModelPart_str(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
