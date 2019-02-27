@@ -120,6 +120,7 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         array_1d<double,3> rPointLocal = ZeroVector(3);
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
+        auto& rGeom = this->GetGeometry();
 
         if (dimension == 2)
         {
@@ -169,10 +170,23 @@ namespace Kratos
             }
         }
 
+        double denominator = 1.0;
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= 0){
+                denominator -= rResult[i];
+                rResult[i] = 0;
+            }
+        }
+
+        rResult = rResult/denominator;
+
+
         return rResult;
 
         KRATOS_CATCH( "" )
     }
+
 
 
 } // Namespace Kratos
