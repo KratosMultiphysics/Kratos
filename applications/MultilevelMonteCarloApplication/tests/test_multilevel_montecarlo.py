@@ -47,10 +47,9 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
             mc_manager = mc_utilities.MonteCarlo(settings_MC_simulation,project_parameters_path,SimulationScenario)
             # execute algorithm
             mc_manager.Run()
-            '''delete .time, .bin files'''
-            kratos_utilities.DeleteFileIfExisting("PoissonSquareTest/square_coarse_2d.time")
-            kratos_utilities.DeleteFileIfExisting("tests.post.lst")
-            kratos_utilities.DeleteFileIfExisting("MLMCLaplacian.post.bin")
+            """delete files"""
+            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.bin"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.lst"))
 
     def MultilevelMonteCarloTest(self):
         with KratosUnittest.WorkFolderScope(os.path.join("..","test_examples", self.folder_name),__file__):
@@ -99,10 +98,10 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
             # contruct MultilevelMonteCarlo class
             mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(settings_MLMC_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
             mlmc_manager.Run()
-            '''delete .time, .bin files'''
-            kratos_utilities.DeleteFileIfExisting("PoissonSquareTest/square_coarse_2d.time")
-            kratos_utilities.DeleteFileIfExisting("tests.post.lst")
-            kratos_utilities.DeleteFileIfExisting("MLMCLaplacian.post.bin")
+            """delete files"""
+            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.bin"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.lst"))
+
 
     def _runTest(self):
         # Code here that runs the test.
