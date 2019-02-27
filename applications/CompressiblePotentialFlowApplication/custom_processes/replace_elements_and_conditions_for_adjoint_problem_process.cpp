@@ -38,8 +38,6 @@ namespace Kratos
     void ReplaceElementsAndConditionsAdjointProcess::ReplaceToAdjoint()
     {
 
-        const Condition& rReferenceCondition = IncompressibleAdjointPotentialWallCondition<2,2>();
-
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
@@ -74,7 +72,6 @@ namespace Kratos
                 if (condition_name == "IncompressibleAdjointPotentialWallCondition2D2N")
                 {
                     Condition::Pointer p_condition= Kratos::make_shared<IncompressibleAdjointPotentialWallCondition<2,2>>(*it.base());
-                    // auto p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
                     p_condition->Data() = it->Data();
                     p_condition->Set(Flags(*it));
                     (*it.base()) = p_condition;

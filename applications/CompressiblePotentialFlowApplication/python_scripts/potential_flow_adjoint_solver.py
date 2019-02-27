@@ -1,9 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
 from potential_flow_solver import LaplacianSolver
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
     return PotentialAdjointSolver(model, custom_settings)
@@ -59,16 +58,16 @@ class PotentialAdjointSolver(LaplacianSolver):
 
         scheme = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialStaticScheme(self.scheme_settings, self.response_function)
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-    
+
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part, 
-            scheme, 
+            self.main_model_part,
+            scheme,
             self.linear_solver,
             builder_and_solver,
-            self.settings["compute_reactions"].GetBool(), 
-            self.settings["reform_dofs_at_each_step"].GetBool(), 
-            self.settings["calculate_solution_norm"].GetBool(), 
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["calculate_solution_norm"].GetBool(),
             move_mesh_flag)
 
         (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -91,6 +90,6 @@ class PotentialAdjointSolver(LaplacianSolver):
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()
-        '''after adjoint solution,adjoint_postprocess calculate sensitivities'''
+        #after adjoint solution, adjoint_postprocess calculates sensitivities
         self.adjoint_postprocess.UpdateSensitivities() # TODO call postprocess here or in FinalizeSolutionStep ?
 
