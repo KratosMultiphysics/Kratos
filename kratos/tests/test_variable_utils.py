@@ -155,7 +155,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##set the variable values
