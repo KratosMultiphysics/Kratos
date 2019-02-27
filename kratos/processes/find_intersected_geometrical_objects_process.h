@@ -478,6 +478,16 @@ public:
      */
     void ExecuteInitialize() override;
 
+    /**
+     * @brief This method indetifies near entities and marks if intersected
+     * @param pEntity The pointer to the entity of interest
+     * @param rLeaves The Octree cells vectors
+     */
+    virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
+        typename TEntity::Pointer pEntity,
+        OtreeCellVectorType& rLeaves
+        );
+
     ///@}
     ///@name Input and output
     ///@{
@@ -518,16 +528,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method indetifies near entities and marks if intersected
-     * @param pEntity The pointer to the entity of interest
-     * @param rLeaves The Octree cells vectors
-     */
-    virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
-        typename TEntity::Pointer pEntity,
-        OtreeCellVectorType& rLeaves
-        );
 
     /**
      * @brief This method marks if intersected
