@@ -160,10 +160,13 @@ class WorkFolderScope:
     def __init__(self, rel_path_work_folder, file_path):
         """file_path is the __file__ argument"""
         self.currentPath = os.getcwd()
+        self.currentPythonpath = sys.path
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
 
     def __enter__(self):
         os.chdir(self.scope)
+        sys.path.append(self.scope)
 
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
+        sys.path = self.currentPythonpath
