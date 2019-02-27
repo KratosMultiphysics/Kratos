@@ -151,7 +151,7 @@ double InnerCalculateDeltaTime(
         if (r_properties.Has(POISSON_RATIO)) {
             nu = r_properties[POISSON_RATIO];
         } else {
-            nu = 0.0;
+            nu = -1.0;
         }
 
         // Getting density
@@ -181,7 +181,7 @@ double InnerCalculateDeltaTime(
             }
 
             // Compute courant criterion
-            const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
+            const double bulk_modulus = (nu < 0.0) ? E : E / (3.0 * (1.0 - 2.0 * nu));
             const double wavespeed = std::sqrt(bulk_modulus / rho);
             const double w = 2.0 * wavespeed / min_length; // Frequency
 
