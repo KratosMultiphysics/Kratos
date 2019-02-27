@@ -95,7 +95,7 @@ public:
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
 
     /** This type used for representing an integration point in
     geometry. This integration point is a point with an
@@ -354,8 +354,7 @@ public:
     */
     double DomainSize() const override
     {
-        std::cout<<"This method (DomainSize) has no meaning for this type of geometry (Sphere)."<<std::endl;
-        return 0.0;
+        return Volume();
     }
 
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
