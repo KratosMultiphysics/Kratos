@@ -61,7 +61,6 @@ class Algorithm(object):
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
         self.dem_solution.solver.Initialize()
-        #self.dem_solution.solver.AttachSpheresToStickyWalls() # This is already called in dem_solution.Initialize(), but does nothing because the conditions are unknown to DEM there (not possible to send them before!!)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -142,7 +141,7 @@ class Algorithm(object):
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
-            #self.structural_solution._GetSolver().SolveSolutionStep()
+            self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
             self.structural_solution.OutputSolutionStep()
             time_final_DEM_substepping = self.structural_solution.time
