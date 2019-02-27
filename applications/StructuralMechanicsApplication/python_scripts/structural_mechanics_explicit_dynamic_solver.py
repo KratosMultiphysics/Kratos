@@ -30,7 +30,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "scheme_type"                : "central_differences",
             "time_step_prediction_level" : 0,
             "delta_time_refresh"         : 1000,
-            "max_delta_time"             : 1.0e-5,
+            "max_delta_time"             : 1.0e0,
             "fraction_delta_time"        : 0.9,
             "rayleigh_alpha"             : 0.0,
             "rayleigh_beta"              : 0.0
