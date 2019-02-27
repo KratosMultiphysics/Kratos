@@ -211,6 +211,11 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
