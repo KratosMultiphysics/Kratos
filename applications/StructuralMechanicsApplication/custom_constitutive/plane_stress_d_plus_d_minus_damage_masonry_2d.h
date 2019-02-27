@@ -464,7 +464,6 @@ private:
 
     double mCompressionDamage = 0.0;
     double mCompressionThreshold = 0.0;
-    // double mUniaxialStress = 0.0;
 
     // Non Converged values
     double mNonConvCompressionDamage = 0.0;
@@ -608,7 +607,48 @@ private:
     ConstitutiveLaw::Parameters& rValues,
     const double CharacteristicLength);
 	
-	/**
+	
+    /**
+     *  BRIEF DOCUMENTATION OF THE USED UNIAXIAL SOFTENING BEHAVIOR IN COMPRESSION 
+     *  Entire documentation can be found in the the Phd Thesis of Massimo Petracca
+     *  << Computational Multiscale Analysis of Masonry Structures>>
+     *
+     *  UNIAXIAL BEZIER COMPRESSION DAMAGE
+     *  {I}   Linear Elastic 
+     *  {II}  Hardening Quadratic Bezier Curve 
+     *          Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
+     *  {III} Softening Quadratic Bezier Curve 
+     *          Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
+     *  {IV}  Softening Quadratic Bezier Curve 
+     *          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
+     *  {V}   Residual Strength
+     *
+     *   STRESS                 
+     *      ^
+     *     /|\
+     *      |                     (P)
+     * s_p = |------------(I)+----#####--+(J) 
+     * s_i = |               ' ###  ' ####
+     * s_j   |              ###     '    ####
+     *       |            ###'      '    ' ###
+     * s_k   |-----------##--+------+----+--## (K)
+     * s_0   |---------##(0) '      '    '   ### 
+     *       |        ## '   '      '    '    '##
+     *       |       ##  '   '      '    '    '   ####
+     *       |      ##   '   '      '    '    '      #####
+     *       |     ##    '   '      '    '    '          #####
+     *       |    ##     '   '      '    '    '    (R)       ######## (U)
+     * s_r = |---##------+---+------'----+----+-----+-----------------######################
+     * s_u   |  ##       '   '      '    '    '     '                 '                                    
+     *       |_##________+___+______+____+____+_____+_________________+______________________________\
+     *                  e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
+     *        '          '          '         '                       '
+     *        '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
+     *        '          '          '         '                       '
+     *
+     */
+
+    /**
 	 * @brief This method computes the Damage Variable in Compression by considering three Bezier curves (hardening + softening + softening + residual)
 	 * @param rValues The constitutive law parameters and flags
 	 *        UniaxialStress The equivalent uniaxial stress in Compression
@@ -616,40 +656,7 @@ private:
 	 *		  rThreshold The Damage Threshold in Compression
 	 *        CharacteristicLength The finite element charecteristic length
 	 */
-     /***********************************************************************************/
-    /*  UNIAXIAL BEZIER COMPRESSION DAMAGE
-        {I}   Linear Elastic 
-        {II}  Hardening Quadratic Bezier Curve 
-                Control nodes:  0=(e_0,s_0); I=(e_i,s_p); P=(e_p,s_p) 
-        {III} Softening Quadratic Bezier Curve 
-                Control nodes:  P=(e_p,s_p); J=(e_j,s_j); K=(e_k,s_k)
-        {IV}  Softening Quadratic Bezier Curve 
-                Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
-        {V}   Residual Strength
 
-        STRESS                 
-        ^
-        /|\
-        |                     (P)
-    s_p = |------------(I)+----#####--+(J) 
-    s_i = |               ' ###  ' ####
-    s_j   |              ###     '    ####
-        |            ###'      '    ' ###
-    s_k   |-----------##--+------+----+--## (K)
-    s_0   |---------##(0) '      '    '   ### 
-        |        ## '   '      '    '    '##
-        |       ##  '   '      '    '    '   ####
-        |      ##   '   '      '    '    '      #####
-        |     ##    '   '      '    '    '          #####
-        |    ##     '   '      '    '    '    (R)       ######## (U)
-    s_r = |---##------+---+------'----+----+-----+-----------------######################
-    s_u   |  ##       '   '      '    '    '     '                 '                                    
-        |_##________+___+______+____+____+_____+_________________+______________________________\
-                    e_0 e_i    e_p  e_j  e_k   e_r               e_u                             / STRAIN
-            '          '          '         '                       '
-            '   {I}    '   {II}   '  {III}  '        {IV}           '          {V}         
-            '          '          '         '                       '
-    /***********************************************************************************/
 	void CalculateBezier3DamageCompression(
 	const double UniaxialStress,
 	double& rDamage,

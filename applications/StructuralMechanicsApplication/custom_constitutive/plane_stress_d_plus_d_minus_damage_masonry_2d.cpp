@@ -489,7 +489,6 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(
 	array_1d<double, 2> rPrincipalStressVector;
 	ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(rPrincipalStressVector, rPredictiveStressVector);
 	const double principal_stress_1 = rPrincipalStressVector[0];
-	const double principal_stress_2 = rPrincipalStressVector[1];
 	
 	if (principal_stress_1 > 0.0){
 		rEquivalentStress = alpha_factor * (alpha*I1 + std::sqrt(3.0 * J2) + beta * principal_stress_1) * (yield_tension / yield_compression);
@@ -621,14 +620,13 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateBezier3DamageCompression(
 	const double fracture_energy_compression = r_material_properties[FRACTURE_ENERGY_COMPRESSION];
 	
 	// Calculate missing Bezier Determinators
-    // Entire definition of the factors can be find in the the Phd Thesis of Massimo Petracca
-    // Computational Multiscale Analysis of Masonry Structures
 	const double bezier_control_alpha = 2.0 * (yield_strain_compression - (yield_stress_compression / young_modulus));
 	const double strain_damage_onset = stress_damage_onset / young_modulus;
 	const double bezier_control_strain_i = yield_stress_compression / young_modulus;
 	const double bezier_control_stress_k = residual_stress_compression + 
                  (yield_stress_compression - residual_stress_compression) * bezier_controller_c1;
 	double bezier_control_strain_j = yield_strain_compression + bezier_control_alpha * bezier_controller_c2;
+	
 	double bezier_control_strain_k = 3.0 * yield_strain_compression - 2.0 * yield_stress_compression / young_modulus;
 	double bezier_control_strain_r = ( (bezier_control_strain_k - bezier_control_strain_j) * 
            (yield_stress_compression - residual_stress_compression)/(yield_stress_compression - bezier_control_stress_k) ) 
@@ -646,6 +644,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateBezier3DamageCompression(
 	// Compute rDamage
 	const double strain_like_counterpart = UniaxialStress / young_modulus;
 	double damage_variable_bezier = UniaxialStress;
+	
 	if (strain_like_counterpart <= yield_strain_compression) {
 		damage_variable_bezier = this->EvaluateBezierCurve(
             strain_like_counterpart, 
@@ -691,11 +690,6 @@ void DamageDPlusDMinusMasonry2DLaw::RegulateBezierDeterminators(
 	ek += bezier_stretcher * (ek - ep);
 	er += bezier_stretcher * (er - ep);
 	eu += bezier_stretcher * (eu - ep);
-
-	double check_bezier_energy_2, check_bezier_energy_3;
-    this-> ComputeBezierEnergy(check_bezier_energy_2, ep, ej, ek, sp, sp, sk);
-    this->ComputeBezierEnergy(check_bezier_energy_3, ek, er, eu, sk, sr, sr);
-    double CheckBezierEnergy = check_bezier_energy_2 + check_bezier_energy_3 + bezier_energy_1;
 }
 /***********************************************************************************/
 /***********************************************************************************/
