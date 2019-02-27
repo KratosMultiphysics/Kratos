@@ -11,6 +11,9 @@ class PotentialAdjointSolver(LaplacianSolver):
     def __init__(self, model, custom_settings):
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
+            "scheme_settings" : {
+                "scheme_type": "adjoint_potential"
+            },
             "element_replace_settings" : {
                 "element_name":"IncompressibleAdjointPotentialFlowElement",
                 "condition_name": "IncompressibleAdjointPotentialWallCondition"
@@ -19,6 +22,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         """)
 
         self.validate_and_transfer_matching_settings(custom_settings, adjoint_settings)
+        self.scheme_settings = adjoint_settings["scheme_settings"]
         self.element_replace_settings=adjoint_settings["element_replace_settings"]
 
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
@@ -52,7 +56,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         self.adjoint_postprocess=KratosMultiphysics.StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
         self.adjoint_postprocess.Initialize()
 
-        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)        
+        scheme = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialStaticScheme(self.scheme_settings, self.response_function)
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
@@ -68,8 +72,6 @@ class PotentialAdjointSolver(LaplacianSolver):
 
         (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.incompressible_solution_stratety.Check()
-
-        self.response_function.Initialize()
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Finished initialization.")
     def PrepareModelPart(self):
