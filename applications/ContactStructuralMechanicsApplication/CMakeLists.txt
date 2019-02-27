@@ -38,6 +38,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.cpp
 
   ## EXTERNAL LIBRARIES
 

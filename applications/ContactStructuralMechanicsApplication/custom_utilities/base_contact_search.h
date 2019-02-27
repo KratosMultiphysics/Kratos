@@ -108,7 +108,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
+    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, OtreeWithOBB = 2, Kdop = 3};
 
     enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
 
@@ -507,22 +507,22 @@ private:
 ///@name Input and output
 ///@{
 
-// /****************************** INPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-// 
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   BaseContactSearch& rThis);
-// 
-// /***************************** OUTPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-// 
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const BaseContactSearch& rThis)
-// {
-//     return rOStream;
-// }
+/****************************** INPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>& rThis);
+
+/***************************** OUTPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>& rThis)
+{
+    return rOStream;
+}
 
 ///@}
 
