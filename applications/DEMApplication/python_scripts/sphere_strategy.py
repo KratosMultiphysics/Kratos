@@ -324,11 +324,10 @@ class ExplicitStrategy(object):
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
-    def AdvanceInTime(self, step, time, is_time_to_print = False):
-        step += 1
+    def AdvanceInTime(self, time):
         time += self.dt
-        self._UpdateTimeInModelParts(time, step, is_time_to_print)
-        return step, time
+        self._UpdateTimeInModelParts(time)
+        return time
 
     def _MoveAllMeshes(self, time, dt):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
@@ -341,21 +340,21 @@ class ExplicitStrategy(object):
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
-    def _UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
+    def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
         DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self._UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
-        self._UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
-        self._UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
-        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(spheres_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(cluster_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(DEM_inlet_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
 
-    def _UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
+    def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = self.dt
-        model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[TIME_STEPS] += 1
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):

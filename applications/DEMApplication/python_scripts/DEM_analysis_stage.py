@@ -405,15 +405,6 @@ class DEMAnalysisStage(AnalysisStage):
     def RunMainTemporalLoop(self):   # DEPRECATED
         self.RunSolutionLoop()
 
-    def RunSolutionLoop(self):      # TODO,  parent RunSolutionLoop() must be improved to include custom stop criteria
-        while self.TheSimulationMustGoOn():
-            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
             self.MakeAnalyticsMeasurements()
@@ -431,14 +422,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-
-    # TODO: deprecated
-    def UpdateTimeInModelParts(self):
-        self._solver._UpdateTimeInModelParts(self.time, self._solver.dt, self.step, self.IsTimeToPrintPostProcess())
-
-    # TODO: deprecated
-    def UpdateTimeInOneModelPart(self):
-        pass
 
     def SolverSolve(self):
         self._solver.SolveSolutionStep()
@@ -602,12 +585,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
-
-    # TODO: deprecated
-    def UpdateTimeParameters(self):
-        self.InitializeSolutionStep()
-        self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self._solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
         ##### adding DEM elements by the inlet ######

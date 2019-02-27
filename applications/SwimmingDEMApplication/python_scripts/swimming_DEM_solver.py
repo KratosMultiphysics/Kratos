@@ -106,14 +106,14 @@ class SwimmingDEMSolver(PythonSolver):
             1,
             self.pp.CFD_DEM["basset_force_type"].GetInt())
 
-    def AdvanceInTime(self, step, time):
-        self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
+    def AdvanceInTime(self, time):
+        self.time = self.dem_solver.AdvanceInTime(time)
         self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid)
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1
 
-        return self.step, self.time
+        return self.time
 
     def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
         if self.project_parameters["ALE_option"].GetBool():
