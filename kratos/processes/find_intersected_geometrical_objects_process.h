@@ -520,6 +520,16 @@ protected:
     ///@{
 
     /**
+     * @brief This method marks if intersected
+     * @param rEntity1 The entity of interest
+     * @param rLeaves The Octree cells vectors
+     */
+    virtual void MarkIfIntersected(
+        TEntity& rEntity1,
+        OtreeCellVectorType& rLeaves
+        );
+
+    /**
      * @brief This method check if there is an intersection between two geometries
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
@@ -600,16 +610,6 @@ private:
      * @brief This method sets the Octree bounding box
      */
     void SetOctreeBoundingBox();
-
-    /**
-     * @brief This method marks if intersected
-     * @param rEntity1 The entity of interest
-     * @param rLeaves The Octree cells vectors
-     */
-    void MarkIfIntersected(
-        TEntity& rEntity1,
-        OtreeCellVectorType& rLeaves
-        );
 
     /**
      * @brief This method finds intected skin objects
