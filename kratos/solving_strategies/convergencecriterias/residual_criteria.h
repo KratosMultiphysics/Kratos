@@ -91,8 +91,7 @@ public:
 
     //* Constructor.
     explicit ResidualCriteria(Kratos::Parameters Settings)
-        : BaseType(),
-          mInitialResidualIsSet(false)
+        : BaseType()
     {
         if (Settings.Has("residual_absolute_tolerance")) {
             mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
@@ -117,7 +116,6 @@ public:
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
         : BaseType(),
-          mInitialResidualIsSet(false),
           mRatioTolerance(NewRatioTolerance),
           mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
@@ -126,7 +124,6 @@ public:
     //* Copy constructor.
     explicit ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther)
-      ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mInitialResidualNorm(rOther.mInitialResidualNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
@@ -164,14 +161,9 @@ public:
         if (size_b != 0) { //if we are solving for something
 
             SizeType size_residual;
-            if (mInitialResidualIsSet == false) {
-                CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
-                mInitialResidualIsSet = true;
-            }
-
-            TDataType ratio = 0.0;
             CalculateResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
 
+            TDataType ratio = 0.0;
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
             } else {
@@ -210,19 +202,23 @@ public:
      * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        mInitialResidualIsSet = false;
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+        SizeType size_residual;
+        CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, rb);
+
+        KRATOS_WATCH(mInitialResidualNorm)
     }
 
     /**
@@ -371,9 +367,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-
-    bool mInitialResidualIsSet;     /// This "flag" is set in order to set that the initial residual is already computed
 
     TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
 
