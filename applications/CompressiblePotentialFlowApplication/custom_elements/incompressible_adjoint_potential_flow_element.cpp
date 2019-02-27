@@ -102,8 +102,9 @@ namespace Kratos
     void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) 
     {
-        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
-                                               rCurrentProcessInfo);
+        MatrixType tmp;
+        mpPrimalElement->CalculateLeftHandSide(tmp, rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(tmp);                                    
     }
 
     template <int Dim, int NumNodes>
