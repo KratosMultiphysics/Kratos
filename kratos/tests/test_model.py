@@ -36,9 +36,6 @@ class TestModel(KratosUnittest.TestCase):
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
 
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
         self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
 
         #check that a meaningful error is thrown
@@ -74,7 +71,7 @@ class TestModel(KratosUnittest.TestCase):
         other = current_model.CreateModelPart("Other")
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
-        
+
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
     def test_model_serialization(self):
@@ -109,7 +106,7 @@ class TestModel(KratosUnittest.TestCase):
         other = current_model.CreateModelPart("Other")
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
-        
+
         serializer = KratosMultiphysics.StreamSerializer()
         serializer.Save("ModelSerialization",current_model)
         del(current_model)

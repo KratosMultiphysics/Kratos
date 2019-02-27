@@ -81,8 +81,10 @@ class Naca0012SmallTest(PotentialFlowTestFactory):
                                 "node_output"         : false,
                                 "skin_output"         : false,
                                 "plane_output"        : [],
-                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE","UPPER_WAKE","LOWER_WAKE","POTENTIAL_JUMP","AIRFOIL","TRAILING_EDGE","KUTTA"],
-                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","TRAILING_EDGE","ELEMENTAL_DISTANCES","KUTTA","DISTANCE"]
+                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
+                                "nodal_nonhistorical_results": ["TRAILING_EDGE"],
+                                "elemental_conditional_flags_results": ["STRUCTURE"],
+                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
                             },
                             "point_data_configuration"  : []
                         }
