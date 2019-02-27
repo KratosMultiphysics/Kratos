@@ -214,8 +214,7 @@ void FindIntersectedGeometricalObjectsProcess<Element>::Execute()
     for (int i = 0; i < number_of_elements; i++) {
         auto it_elem = it_elem_begin + i;
         leaves.clear();
-        mOctree.GetIntersectedLeaves(*(it_elem.base()), leaves);
-        MarkIfIntersected(**(it_elem.base()), leaves);
+        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
     }
 }
 
@@ -237,8 +236,7 @@ void FindIntersectedGeometricalObjectsProcess<Condition>::Execute()
     for (int i = 0; i < number_of_conditions; i++) {
         auto it_cond = it_cond_begin + i;
         leaves.clear();
-        mOctree.GetIntersectedLeaves(*(it_cond.base()), leaves);
-        MarkIfIntersected(**(it_cond.base()), leaves);
+        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
     }
 }
 
@@ -370,6 +368,19 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 #else
     mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void  FindIntersectedGeometricalObjectsProcess<TEntity>::IdentifyNearEntitiesAndCheckEntityForIntersection(
+    typename TEntity::Pointer pEntity,
+    OtreeCellVectorType& rLeaves
+    )
+{
+    mOctree.GetIntersectedLeaves(pEntity, rLeaves);
+    MarkIfIntersected(*pEntity, rLeaves);
 }
 
 /***********************************************************************************/

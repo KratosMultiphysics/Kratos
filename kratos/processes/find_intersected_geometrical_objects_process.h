@@ -520,6 +520,16 @@ protected:
     ///@{
 
     /**
+     * @brief This method indetifies near entities and marks if intersected
+     * @param pEntity The pointer to the entity of interest
+     * @param rLeaves The Octree cells vectors
+     */
+    virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
+        typename TEntity::Pointer pEntity,
+        OtreeCellVectorType& rLeaves
+        );
+
+    /**
      * @brief This method marks if intersected
      * @param rEntity1 The entity of interest
      * @param rLeaves The Octree cells vectors
