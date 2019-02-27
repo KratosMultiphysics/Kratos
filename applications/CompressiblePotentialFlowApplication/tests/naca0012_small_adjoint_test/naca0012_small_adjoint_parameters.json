@@ -15,9 +15,6 @@
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "compute_reactions"			   : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_potential"
-            },
         "response_function_settings" : {
                 "response_type"     : "adjoint_lift_jump_coordinates",
                 "use_kratos"        : true,
