@@ -50,7 +50,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "MainModelPart",
-                "output_name"            : "Poisson_square_2d",
+                "output_name"            : "poisson_square_2d",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
