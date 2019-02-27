@@ -23,6 +23,7 @@
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/base_contact_search.h"
+#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
 
 namespace Kratos
 {
@@ -398,6 +399,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
     // Auxiliar model parts and components
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
 
     // In case of not predefined master/slave we reset the flags
     if (!mPredefinedMasterSlave) {
@@ -427,9 +429,9 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
         KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
 
         // Now we iterate over the conditions
-    //     #pragma omp parallel for firstprivate(tree_points) // FIXME: Make me parallel!!!
+//         #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
 
             if (!mPredefinedMasterSlave || it_cond->Is(SLAVE) == !mInvertedSearch) {
                 // Initialize values
@@ -499,16 +501,62 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
             }
         }
     } else { // Using octree
+        KRATOS_ERROR_IF(mInvertedSearch) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
         KRATOS_ERROR_IF_NOT(mPredefinedMasterSlave) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
 
-        // Getting model parts
+        // Getting model
         ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
         ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
-        ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart"+mThisParameters["id_name"].GetString());
-        ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart"+mThisParameters["id_name"].GetString());
+        const std::string master_model_part_name = "MasterSubModelPart" + mThisParameters["id_name"].GetString();
+        ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart(master_model_part_name);
+        const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
+        ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
 
+        Parameters octree_parameters = mThisParameters["octree_search_parameters"];
+        octree_parameters.AddEmptyValue("first_model_part_name");
+        octree_parameters.AddEmptyValue("second_model_part_name");
+        octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
+        octree_parameters["second_model_part_name"].SetString(master_model_part_name);
+
+        const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
+        const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
+        octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
+
+        // Creating the process
+        FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
+        octree_search_process.ExecuteInitialize();
+
+        // Definition of the leaves of the tree
+        FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
+
+//         #pragma omp parallel for // TODO: Make me parallel!!!
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
+
+            // We perform the search
+            leaves.clear();
+            octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+
+            if (it_cond->Is(SELECTED)) {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+
+                // If not active we check if can be potentially in contact
+                if (mCheckGap == CheckGap::MappingCheck) {
+                    for (auto p_leaf : leaves) {
+                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                            if (p_cond_master->Is(SELECTED)) {
+                                const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
+
+                                if (condition_checked_right == CheckResult::OK)
+                                    p_indexes_pairs->AddId(p_cond_master->Id());
+                            }
+                        }
+                    }
+                } else {
+                    // TODO: Add something equivalent (requires modify the method)
+    //                 AddPotentialPairing(r_sub_computing_contact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                }
+            }
         }
     }
 
@@ -1341,7 +1389,13 @@ Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParame
         "id_name"                              : "",
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
-        "debug_mode"                           : false
+        "debug_mode"                           : false,
+        "octree_search_parameters" : {
+            "scale_factor"           : [1.0, 1.0, 1.0],
+            "offset"                 : [0.0, 0.0, 0.0],
+            "bounding_box_factor"    : 0.1,
+            "debug_obb"              : false
+            }
     })" );
 
     return default_parameters;

@@ -59,11 +59,19 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected
     OtreeCellVectorType& rLeaves
     )
 {
+    // The difference with the normal one is that we assign the flag to all "paired" conditions
     for (auto p_leaf : rLeaves) {
-        for (auto p_entity_2 : *(p_leaf->pGetObjects())) {
-            if (HasIntersection(rCondition1.GetGeometry(),p_entity_2->GetGeometry())) {
+        // We clear previously assign flags
+        rCondition1.Reset(SELECTED);
+        for (auto p_condition_2 : *(p_leaf->pGetObjects())) {
+            p_condition_2->Reset(SELECTED);
+        }
+
+        // We iterate again and check intersection
+        for (auto p_condition_2 : *(p_leaf->pGetObjects())) {
+            if (HasIntersection(rCondition1.GetGeometry(), p_condition_2->GetGeometry())) {
                 rCondition1.Set(SELECTED);
-                return;
+                p_condition_2->Set(SELECTED);
             }
         }
     }
