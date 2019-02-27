@@ -150,7 +150,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
+     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
@@ -177,6 +177,11 @@ protected:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+
+    /**
+     * Calculation of the Nodal Force
+     */
+    Matrix& CalculateNodalForce(Matrix & rNodalForce, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

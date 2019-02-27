@@ -63,6 +63,38 @@ namespace Kratos
     {
     }
 
+    //*************************COMPUTE FORCE AT EACH NODE*******************************
+    //************************************************************************************
+    /*
+    This function distributes the pointload to the nodes
+    */
+    Matrix& MPMParticlePointLoadCondition::CalculateNodalForce(Matrix & rNodalForce, const ProcessInfo& rCurrentProcessInfo)
+    {
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+        // Get imposed displacement and normal vector
+        const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
+        const array_1d<double, 3 > & Point_Load = this->GetValue (POINT_LOAD);
+
+        // Prepare variables
+        GeneralVariables Variables;
+
+        // Calculating shape function
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+
+        // Here MP contribution in terms of force are added
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            for (unsigned int j = 0; j < dimension; j++)
+            {
+                rNodalForce(j,i) = Variables.N[i] * Point_Load[j];
+            }
+        }
+
+        return rNodalForce;
+    }
+
     void MPMParticlePointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -100,26 +132,9 @@ namespace Kratos
             noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
         }
 
-        // Get imposed displacement and normal vector
-        const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-        const array_1d<double, 3 > & Point_Load = this->GetValue (POINT_LOAD);
         Matrix Nodal_Force = ZeroMatrix(3,number_of_nodes);
 
-
-        // Prepare variables
-        GeneralVariables Variables;
-
-        // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
-        // Here MP contribution in terms of force are added
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            for (unsigned int j = 0; j < dimension; j++)
-            {
-                Nodal_Force(j,i) = Variables.N[i] * Point_Load[j];
-            }
-        }
+        Nodal_Force = CalculateNodalForce(Nodal_Force, rCurrentProcessInfo);
 
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
@@ -132,7 +147,6 @@ namespace Kratos
         }
         KRATOS_CATCH( "" )
     }
-
     //************************************************************************************
     //************************************************************************************
 
@@ -143,12 +157,13 @@ namespace Kratos
 
     void MPMParticlePointLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     {
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
         GeneralVariables Variables;
 
         Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         const array_1d<double,3> & xg = this->GetValue(MPC_COORD);
 
@@ -158,7 +173,7 @@ namespace Kratos
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            if (Variables.N[i] > 1e-16)
+            if (Variables.N[i] > 1e-16 )
             {
                 for ( unsigned int j = 0; j < dimension; j++ )
                 {
@@ -170,8 +185,6 @@ namespace Kratos
         // Update the Material Point Condition Position
         const array_1d<double,3>& new_xg = xg + delta_xg ;
         this -> SetValue(MPC_COORD,new_xg);
-
-        //mFinalizedStep = true;
 
     }
 
