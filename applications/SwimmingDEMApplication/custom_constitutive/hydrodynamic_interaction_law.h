@@ -111,6 +111,14 @@ public:
                                             array_1d<double, 3>& rotation_induced_lift,
                                             const ProcessInfo& r_current_process_info);
 
+    virtual void ComputeSteadyViscousTorque(Geometry<Node<3> >& r_geometry,
+                                            double particle_radius,
+                                            double fluid_density,
+                                            double fluid_kinematic_viscosity,
+                                            array_1d<double, 3>& slip_velocity,
+                                            array_1d<double, 3>& steady_viscous_torque,
+                                            const ProcessInfo& r_current_process_info);
+
 protected:
     BuoyancyLaw::Pointer mpBuoyancyLaw;
     DragLaw::Pointer mpDragLaw;
