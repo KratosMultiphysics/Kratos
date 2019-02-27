@@ -11,16 +11,16 @@ from KratosMultiphysics import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from KratosMultiphysics.kratos_utilities import IsApplicationAvailable
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Check if external Apps are available
-if IsApplicationAvailable("EigenSolversApplication"):
+if CheckIfApplicationsAvailable("EigenSolversApplication"):
     is_eigen_app_missing = False
 else:
     print("WARNING: EigenSolversApplication is not available, skipping related tests!")
     is_eigen_app_missing = True
 
-if IsApplicationAvailable("MeshMovingApplication"):
+if CheckIfApplicationsAvailable("MeshMovingApplication"):
     is_mesh_moving_app_missing = False
 else:
     print("WARNING: MeshMovingApplication is not available, skipping related tests!")
