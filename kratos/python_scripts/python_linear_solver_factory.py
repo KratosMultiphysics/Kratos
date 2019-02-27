@@ -155,6 +155,7 @@ def ConstructSolver(configuration):
         # the following is only needed for the check in the ComplexLinearSolverFactory
         # note that the solver-configuration is NOT modified
         solver_type = splitted_name[1]
+        configuration["solver_type"].SetString(solver_type)
         __import__("KratosMultiphysics." + app_name)
     else:
         __DeprecatedApplicationImport(solver_type)
