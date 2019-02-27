@@ -63,7 +63,8 @@ namespace Kratos
 
         // Shallow water variables
         KRATOS_REGISTER_VARIABLE(HEIGHT)                                // Main variable
-        KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Geometric definition of the problem
+        KRATOS_REGISTER_VARIABLE(BATHYMETRY)                            // Topographic definition of the marine domain
+        KRATOS_REGISTER_VARIABLE(TOPOGRAPHY)                            // Topographic definition of the domain
         KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(MANNING)                               // Friction coefficient
