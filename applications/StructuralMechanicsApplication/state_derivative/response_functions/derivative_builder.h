@@ -67,12 +67,18 @@ public:
             std::vector<std::string> forces = { std::string("FX"), std::string("FY"), std::string("FZ") };
             DeriveStressVariable(DerivativeFlag, rDirectElement, forces , rResponseVariable, rOutput, rCurrentProcessInfo);
         }
-        if (rResponseVariable == SHELL_MOMENT)
+        if (rResponseVariable == SHELL_MOMENT_GLOBAL)
         {
             std::vector<std::string> shell_moments = { std::string("MXX"), std::string("MXY"), std::string("MXZ"), std::string("MYX"), 
                                     std::string("MYY"), std::string("MYZ"), std::string("MZX"), std::string("MZY"), std::string("MZZ") };
             DeriveStressVariable(DerivativeFlag, rDirectElement, shell_moments , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }             
+        }  
+        if (rResponseVariable == SHELL_FORCE_GLOBAL)
+        {
+            std::vector<std::string> shell_forces = { std::string("FXX"), std::string("FXY"), std::string("FXZ"), std::string("FYX"), 
+                                    std::string("FYY"), std::string("FYZ"), std::string("FZX"), std::string("FZY"), std::string("FZZ") };
+            DeriveStressVariable(DerivativeFlag, rDirectElement, shell_forces , rResponseVariable, rOutput, rCurrentProcessInfo);
+        }                       
     }
     
     
