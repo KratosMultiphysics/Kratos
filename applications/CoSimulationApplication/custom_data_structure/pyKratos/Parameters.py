@@ -2,7 +2,7 @@ import json
 
 
 ## To pass the parameters to different objects.
-class Parameters(dict):
+class Parameters(object):
     def __init__(self, text_stream):
         if(isinstance(text_stream, str)):
             self.parameters = json.loads(text_stream)
@@ -10,10 +10,13 @@ class Parameters(dict):
             self.parameters = text_stream
         #super(Parameters, self).__init__(self.parameters)
         self.Initialize()
+        self.count = -1
 
     def Initialize(self):
-        if(not isinstance(self.parameters, list)):
-            super(Parameters, self).__init__(self.parameters)
+        pass
+        #
+        # if(not isinstance(self.parameters, list)):
+            #super(Parameters, self).__init__(self.parameters)
 
     def size(self):
         return len(self.parameters)
@@ -56,7 +59,7 @@ class Parameters(dict):
 
     def __getitem__(self, key):
         a = Parameters("{}")
-        if( isinstance(self.parameters[key], list) or isinstance(self.parameters[key], dict) ):
+        if( isinstance(self.parameters[key], dict) or isinstance(self.parameters[key], list)):
             a.parameters = self.parameters[key]
             a.Initialize()
             return a
@@ -66,6 +69,29 @@ class Parameters(dict):
             #return self.parameters[key]
             return a
 
+    def __iter__(self):
+        self.count = -1
+        return self
+
+    def __next__(self):
+        self.count = self.count + 1
+        if(self.count<len(self.parameters)):
+            return Parameters(self.parameters[self.count])
+        else:
+            raise StopIteration
+
+    def __contains__(self, item):
+        return (item in self.parameters)
+
+    def keys(self):
+        if(isinstance(self.parameters, dict)):
+            return self.parameters.keys()
+
+    def items(self):
+        if(isinstance(self.parameters, dict)):
+            #key, value = self.parameters.items()
+            return self.parameters.items()
+            #return (key, Parameters(value))
 
     def GetString(self):
         return str(self.parameters['a_py_kratos'])
