@@ -17,8 +17,8 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
+
         default_processes_settings = KratosMultiphysics.Parameters("""{
-            "non_optional_solver_processes" : [{
                 "python_module" : "calculate_nodal_area_process",
                 "kratos_module" : "KratosMultiphysics",
                 "process_name"  : "CalculateNodalAreaProcess",
@@ -27,11 +27,25 @@ class SwimmingDEMSolver(PythonSolver):
                     "domain_size" : 3,
                     "fixed_mesh": false
                 }
-            }]
-        }
+            }
+
         """)
-        project_parameters["processes"].ValidateAndAssignDefaults(default_processes_settings)
-        nodal_area_process_parameters = project_parameters["processes"]["non_optional_solver_processes"][0]["Parameters"]
+
+        if not project_parameters["processes"].Has('non_optional_solver_processes'):
+            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+
+        else: # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
+            non_optional_processes_list = list(project_parameters["processes"]["non_optional_solver_processes"])
+            project_parameters["processes"].Remove("non_optional_solver_processes")
+            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+
+            for process in enumerate(non_optional_processes_list):
+                if process["python_module"].GetString() != 'calculate_nodal_area_process':
+                   project_parameters["processes"]["non_optional_solver_processes"].Append(process)
+
+        non_optional_solver_processes = project_parameters["processes"]["non_optional_solver_processes"]
+        non_optional_solver_processes.Append(default_processes_settings)
+        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size()-1]["Parameters"]
         nodal_area_process_parameters["domain_size"].SetInt(self.domain_size)
 
         if self.fluid_solver.settings.Has('move_mesh_flag'):

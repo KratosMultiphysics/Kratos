@@ -30,7 +30,9 @@ def GetDefaultInputParameters():
                 "end_time"      : 1
             },
             "do_print_results_option"                : true,
-            "processes" : {},
+            "processes" : {
+                "auxiliar_process_list": [],
+            },
             "json_output_process"  : [],
             "sdem_output_processes" : {},
             "coupling_level_type"                    : 1,
