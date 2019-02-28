@@ -173,21 +173,11 @@ class DirectSensitivityAnalysis(object):
 
             # Output process:
             # TODO how to add the output process? How find out about the variables?
-            #if direct_sensitivity_parameters.Has("output_configuration"):
-             #   Logger.PrintInfo("> Output process is removed for direct sensitivity analysis. To enable it define direct sensitivity parameters yourself.")
-              #  direct_sensitivity_parameters.RemoveValue("output_configuration")
             if direct_sensitivity_parameters.Has("output_configuration"):
-                
-                if self.direct_settings["response_function_settings"]["response_functions"]["local_stress"].size() > 0:
-                    for i in range(0,self.direct_settings["response_function_settings"]["response_functions"]["local_stress"].size()):
-                        response_var = self.direct_settings["response_function_settings"]["response_functions"]["local_stress"][i].GetString()
-                        direct_sensitivity_parameters["output_configuration"]["result_file_configuration"]["gauss_point_results"][i].SetString(response_var + "_SENSITIVITY")
-                
-                if self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"].size() > 0:
-                    for i in range(0,self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"].size()):
-                        response_var = self.direct_settings["response_function_settings"]["response_functions"]["nodal_displacement"][i].GetString()
-                        direct_sensitivity_parameters["output_configuration"]["result_file_configuration"]["nodal_nonhistorical_results"][i].SetString(response_var + "_SENSITIVITY")
-                        
+                Logger.PrintInfo("> Output process is removed for direct sensitivity analysis. To enable it define direct sensitivity parameters yourself.")
+                direct_sensitivity_parameters.RemoveValue("output_configuration")
+            if self.direct_settings.Has("output_configuration"):
+                direct_sensitivity_parameters.AddValue("output_configuration", self.direct_settings["output_configuration"])  
 
             # variable settings
             direct_sensitivity_parameters["solver_settings"].AddValue("variable_settings", self.direct_settings["variable_settings"])            
