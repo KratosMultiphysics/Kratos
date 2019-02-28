@@ -216,9 +216,6 @@ class TestParameters(KratosUnittest.TestCase):
         self.kp = Parameters(json_string)
         self.compact_expected_output = """{"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"}"""
 
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_kratos_parameters(self):
         self.assertEqual(
             self.kp.WriteJsonString(),
@@ -497,7 +494,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-                    
+
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{
@@ -649,14 +646,14 @@ class TestParameters(KratosUnittest.TestCase):
         serializer.Save("ParametersSerialization",tmp)
         del(tmp)
         del(serializer)
-        
+
 
         #unpickle data - note that here i override "serialized_data"
         serializer = FileSerializer(file_name,SerializerTraceType.SERIALIZER_NO_TRACE)
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
+
         self.assertEqual(check, loaded_parameters.WriteJsonString())
         kratos_utils.DeleteFileIfExisting(file_name + ".rest")
 
@@ -678,7 +675,7 @@ class TestParameters(KratosUnittest.TestCase):
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
+
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
 

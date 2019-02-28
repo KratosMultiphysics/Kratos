@@ -86,22 +86,34 @@ public:
     /**
      * Constructor.
      */
-    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using an array of nodes
      */
-    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
+    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using Geometry
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
+    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using Properties
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
+    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Copy Constructor
@@ -132,6 +144,8 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
     }
@@ -139,6 +153,8 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
@@ -146,6 +162,8 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }

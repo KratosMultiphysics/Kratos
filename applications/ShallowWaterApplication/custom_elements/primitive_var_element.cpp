@@ -152,10 +152,17 @@ namespace Kratos
         // Get nodal values for current step and projected variables (this function inlcudes the units conversion)
         this-> GetNodalValues(variables);
 
-        // Get element values (this function inlcudes the units conversion)
+        // Get element values (this function includes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_vel = norm_2(variables.velocity );
-        double height43 = std::pow(variables.height, 1.33333 );
+        const double epsilon = 1e-5;
+        const double abs_vel = norm_2(variables.velocity);
+        const double aux_height = std::abs(variables.height) + epsilon;
+        const double height43 = std::pow(aux_height, 1.3333333333333);
+        int sign;
+        if (variables.height > 0.0)
+            sign = 1;
+        else
+            sign = -1;
 
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -179,7 +186,7 @@ namespace Kratos
         // Build LHS
         // Cross terms
         noalias(rLeftHandSideMatrix)  = variables.height * aux_q_div_u;      // Add <q*h*div(u)> to Mass Eq.
-        noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;    // Add <w*g*grad(h)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += sign * variables.gravity * aux_w_grad_h;    // Add <w*g*grad(h)> to Momentum Eq.
 
         // Inertia terms
         noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;      // Add <N,N> to both Eq's
@@ -193,7 +200,7 @@ namespace Kratos
 
         // Build RHS
         // Source term (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -variables.gravity * prod(aux_w_grad_h, variables.depth);
+        noalias(rRightHandSideVector)  = -sign * variables.gravity * prod(aux_w_grad_h, variables.depth);
         
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);

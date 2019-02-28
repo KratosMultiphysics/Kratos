@@ -121,6 +121,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedBlockBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -1097,7 +1098,7 @@ protected:
 
             TSystemVectorType bmodified(rb.size());
             TSparseSpace::Mult(T_transpose_matrix, rb, bmodified);
-            noalias(rb) = bmodified;
+            TSparseSpace::Copy(bmodified, rb);
             bmodified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
