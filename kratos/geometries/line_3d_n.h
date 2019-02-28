@@ -557,13 +557,11 @@ public:
     */
     SizeType EdgesNumber() const override
     {
-        KRATOS_ERROR << "'EdgesNumber' not available for arbitrarty noded line" << std::endl;
         return 0;
     }
 
     SizeType FacesNumber() const override
     {
-        KRATOS_ERROR << "'EdgesNumber' not available for arbitrarty noded line" << std::endl;
         return 0;
     }
 
