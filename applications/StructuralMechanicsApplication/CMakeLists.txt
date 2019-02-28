@@ -5,8 +5,8 @@ message("**** configuring KratosStructuralMechanicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${KRATOS_SOURCE_DIR}/kratos )
-include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
@@ -82,7 +82,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.cpp
 
   ## ELEMENTS
   #Adding truss element
