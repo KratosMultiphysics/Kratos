@@ -95,10 +95,9 @@ public:
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
 
         //scaling settings
-        if (settings["scaling"].GetBool() == false)
+        if (!settings["scaling"].GetBool()) {
             mScalingType = NoScaling;
-        else
-            mScalingType = LeftScaling;
+        }
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
