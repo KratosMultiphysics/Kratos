@@ -264,20 +264,20 @@ public:
             Ifpack Factory;
 
             std::string PrecType = mIFPreconditionerType;
-            Ifpack_Preconditioner* Prec = Factory.Create(PrecType, &rA, moverlap_level);
-            assert(Prec != 0);
+            Ifpack_Preconditioner* p_preconditioner = Factory.Create(PrecType, &rA, moverlap_level);
+            KRATOS_ERROR(p_preconditioner == 0) << "Preconditioner-initialization went wrong" << std::endl;
 
-            IFPACK_CHK_ERR(Prec->SetParameters(mpreconditioner_parameter_list));
-            IFPACK_CHK_ERR(Prec->Initialize());
-            IFPACK_CHK_ERR(Prec->Compute());
+            IFPACK_CHK_ERR(p_preconditioner->SetParameters(mpreconditioner_parameter_list));
+            IFPACK_CHK_ERR(p_preconditioner->Initialize());
+            IFPACK_CHK_ERR(p_preconditioner->Compute());
 
             // HERE WE SET THE IFPACK PRECONDITIONER
-            aztec_solver.SetPrecOperator(Prec);
+            aztec_solver.SetPrecOperator(p_preconditioner);
 
             //and ... here we solve
             aztec_solver.Iterate(mmax_iter,mtol);
 
-            delete Prec;
+            delete p_preconditioner;
         }
         else
         {
