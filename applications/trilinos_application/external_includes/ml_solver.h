@@ -349,7 +349,6 @@ private:
 
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
-    SparseMatrixPointerType mpA;
     MLPreconditionerPointerType mpMLPrec;
     ScalingType mScalingType;
     bool mMLPrecIsInitialized;
