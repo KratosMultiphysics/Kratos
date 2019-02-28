@@ -223,31 +223,29 @@ public:
         mActiveDofs.resize(rDofSet.size());
 
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i)
+        for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
             mActiveDofs[i] = true;
+        }
 
         #pragma omp parallel for 
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+        for (int i=0; i<static_cast<int>(rDofSet.size()); ++i) {
             auto it_dof = rDofSet.begin() + i;
-            if(it_dof->IsFixed())
+            if (it_dof->IsFixed()) {
                 mActiveDofs[it_dof->EquationId()] = false;
+            }
         }
         
-        for(auto& mpc : rModelPart.MasterSlaveConstraints())
-        {
-            auto& slave_dofs = mpc.GetSlaveDofsVector();
-            auto& master_dofs = mpc.GetMasterDofsVector();
-
-            for(auto& dof : slave_dofs)
-                mActiveDofs[dof->EquationId()] = false;
-            for(auto& dof : master_dofs)
-                mActiveDofs[dof->EquationId()] = false;                
+        for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
+            for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+                mActiveDofs[r_dof->EquationId()] = false;
+            }
+            for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
+                mActiveDofs[r_dof->EquationId()] = false;                
+            }
         }
 
         SizeType size_residual;
         CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, rb);
-
-        KRATOS_WATCH(mInitialResidualNorm)
     }
 
     /**
