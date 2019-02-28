@@ -113,12 +113,12 @@ public:
         const std::string solver_type = settings["solver_type"].GetString();
         if (solver_type == "CGSolver" || solver_type == "cg") {
             mAztecParameterList.set("AZ_solver", "AZ_cg");
-        } else if(solver_type == "BICGSTABSolver" || solver_type == "bicgstab") {
+        } else if (solver_type == "BICGSTABSolver" || solver_type == "bicgstab") {
             mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
-        } else if(solver_type == "GMRESSolver" || solver_type == "gmres") {
+        } else if (solver_type == "GMRESSolver" || solver_type == "gmres") {
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
             mAztecParameterList.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
-        } else if(solver_type == "AztecSolver" || solver_type == "aztec") {
+        } else if (solver_type == "AztecSolver" || solver_type == "aztec") {
             //do nothing here. Leave full control to the user through the "trilinos_aztec_parameter_list"
         }
         else {
@@ -138,22 +138,22 @@ public:
         const std::string preconditioner_type = settings["preconditioner_type"].GetString();
         if (preconditioner_type == "diagonal" || preconditioner_type == "DiagonalPreconditioner") {
             mIFPreconditionerType = "None";
-        } else if(preconditioner_type == "ilu0" || preconditioner_type == "ILU0") {
+        } else if (preconditioner_type == "ilu0" || preconditioner_type == "ILU0") {
             mIFPreconditionerType = "ILU";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 1);
-        } else if(preconditioner_type == "ilut" || preconditioner_type == "ILUT") {
+        } else if (preconditioner_type == "ilut" || preconditioner_type == "ILUT") {
             mIFPreconditionerType = "ILU";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 10);
-        } else if(preconditioner_type == "icc" || preconditioner_type == "ICC") {
+        } else if (preconditioner_type == "icc" || preconditioner_type == "ICC") {
             mIFPreconditionerType = "ICC";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 10);
-        } else if(preconditioner_type == "amesos" || preconditioner_type == "AmesosPreconditioner") {
+        } else if (preconditioner_type == "amesos" || preconditioner_type == "AmesosPreconditioner") {
             mIFPreconditionerType = "Amesos";
             mPreconditionerParameterList.set("amesos: solver type", "Amesos_Klu");
-        } else if(preconditioner_type == "none" || preconditioner_type == "None") {
+        } else if (preconditioner_type == "none" || preconditioner_type == "None") {
             mIFPreconditionerType = "AZ_none";
         } else {
             KRATOS_ERROR << "The \"preconditioner_type\" specified: \"" << preconditioner_type << "\" is not supported\n"
