@@ -108,22 +108,29 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        std::string response_output_variable_name = rResponseFunction.GetResponseVariableName() + std::string("_SENSITIVITY");
-        
+        std::string response_output_variable_name = rResponseFunction.GetResponseVariableName() + std::string("_SENSITIVITY");        
 
         if (KratosComponents<Variable<array_1d<double,3>>>::Has(response_output_variable_name))
         {
             const Variable<array_1d<double,3>>& r_output_variable =
             KratosComponents<Variable<array_1d<double,3>>>::Get(response_output_variable_name);
 
+            if (rResponseFunction.GetEvaluationFlag() == "on_node")                
+                for (auto& node_i : mrModelPart.Nodes())
+                    node_i.SetValue(r_output_variable, r_output_variable.Zero());
+            if (rResponseFunction.GetEvaluationFlag() == "on_gauss_point")
+                for (auto& elem_i : mrModelPart.Elements())
+                    elem_i.SetValue(r_output_variable, r_output_variable.Zero());    
+        }
+
+        if (KratosComponents<Variable<Matrix>>::Has(response_output_variable_name))
+        {
+            const Variable<Matrix>& r_output_variable =
+            KratosComponents<Variable<Matrix>>::Get(response_output_variable_name);
+
             if (rResponseFunction.GetEvaluationFlag() == "on_node")
-                // ToDo: Find out why using VariableUtils() leads to error message 
-                //VariableUtils().SetToZero_VectorVar( r_output_variable, mrModelPart.Nodes() );       
-                for (int i = 0; i < static_cast<int> (mrModelPart.NumberOfNodes()); ++i )
-                {  
-                   auto it = mrModelPart.NodesBegin() + i;
-                   it->SetValue(r_output_variable, r_output_variable.Zero());
-                }
+                for (auto& node_i : mrModelPart.Nodes())
+                    node_i.SetValue(r_output_variable, r_output_variable.Zero());
             if (rResponseFunction.GetEvaluationFlag() == "on_gauss_point")
                 for (auto& elem_i : mrModelPart.Elements())
                     elem_i.SetValue(r_output_variable, r_output_variable.Zero());    
@@ -157,7 +164,8 @@ namespace Kratos
         // Define response output variables ("MOMENT_SENSITIVITY", "DISPLACEMENT_SENSITIVITY" etc.) to save the results 
         std::string response_output_variable_name = response_variable_name + std::string("_SENSITIVITY");
                 
-        //  Update the sensitivies        
+        //  Update the sensitivies
+
         if ( KratosComponents<Variable<array_1d<double,3>>>::Has(response_variable_name) )
         {
             if ( KratosComponents<Variable<array_1d<double,3>>>::Has(response_output_variable_name) )
@@ -175,7 +183,27 @@ namespace Kratos
                 else
                     KRATOS_ERROR << "No matching output variable for " << response_variable_name << " exist." << std::endl;
             } 
-        } 
+        }
+
+        else if ( KratosComponents<Variable<Matrix>>::Has(response_variable_name) )
+        {
+            if ( KratosComponents<Variable<Matrix>>::Has(response_output_variable_name) )
+            {   
+                const Variable<Matrix>& r_variable =
+                        KratosComponents<Variable<Matrix>>::Get(response_variable_name);
+                
+                const Variable<Matrix>& r_output_variable =
+                    KratosComponents<Variable<Matrix>>::Get(response_output_variable_name);
+
+                if (rResponseFunction.GetEvaluationFlag() == "on_gauss_point")
+                    this->UpdateSensitivitiesOnGaussPoints( rResponseFunction, r_variable, r_output_variable );                
+                else if (rResponseFunction.GetEvaluationFlag() == "on_node") 
+                    this->UpdateSensitivitiesOnNodes( rResponseFunction, r_variable, r_output_variable);
+                else
+                    KRATOS_ERROR << "No matching output variable for " << response_variable_name << " exist." << std::endl;
+            } 
+        }  
+        
         else
             KRATOS_ERROR << "Unsupported variable: " <<  response_variable_name << "." << std::endl;
     
@@ -304,31 +332,28 @@ namespace Kratos
                                                 response_sensitivity_gradient[k], r_process_info);            
 
             // Size sensitivity vector            
-            sensitivity_vector[k].resize(0);
-            scalar_product[k].resize(0);
+            VectorMath::SetToZero(sensitivity_vector[k]);
+            VectorMath::SetToZero(scalar_product[k]);
+            VectorMath::SetToZero(displacement_gradient);
                                            
             // Get the displacement vector derived wrt. the design parameter
             std::string response_variable_name = rResponseVariable.Name();
             std::string adjoint_response_variable_name = std::string("ADJOINT_") + response_variable_name; 
             
-            if ( KratosComponents<Variable<array_1d<double,3>>>::Has(adjoint_response_variable_name) )
+            if ( KratosComponents<Variable<TDataType>>::Has(adjoint_response_variable_name) )
             {
-                const Variable<array_1d<double,3>>& r_response_variable =
-                    KratosComponents<Variable<array_1d<double,3>>>::Get(adjoint_response_variable_name);
-                displacement_gradient[k] = node_i.FastGetSolutionStepValue(r_response_variable);                               
-            }
+                const Variable<TDataType>& r_response_variable =
+                    KratosComponents<Variable<TDataType>>::Get(adjoint_response_variable_name);
+                VectorMath::Addition( displacement_gradient[k], node_i.FastGetSolutionStepValue(r_response_variable) );                               
+            }            
             else
                 KRATOS_ERROR << "There exist no related adjoint variable for " << response_variable_name << "." << std::endl;
             
 
             OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
                         
-            if( (response_displacement_gradient[k].size() > 0) && (displacement_gradient[k].size() > 0) )
-            {
-                KRATOS_ERROR_IF_NOT( response_displacement_gradient[k].size() == displacement_gradient[k].size() ) << 
-                    "Sizes of the response vector derived wrt. the displacement" <<
-                    " and of the displacement vector derived wrt. the design parameter do not match!" << std::endl;
-                 
+            if( (response_displacement_gradient[k].size() > 0) || !(EvaluateIfObjectIsOfSizeZero(displacement_gradient[k])) )
+            {                                
                 VectorMath::Product(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
 
                 OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
@@ -338,11 +363,8 @@ namespace Kratos
                 VectorMath::Addition(sensitivity_vector[k], scalar_product[k]);
             }   
             
-            if( response_sensitivity_gradient[k].size() > 0 )
-            {
-                KRATOS_ERROR_IF_NOT( response_sensitivity_gradient[k].size() == sensitivity_vector[k].size() ) << 
-                    "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
-                
+            if( !(EvaluateIfObjectIsOfSizeZero(response_sensitivity_gradient[k])) )
+            {                              
                 //OutputUtility::OutputOnTerminal("dg/ds", response_sensitivity_gradient[k]);
                 
                 VectorMath::MultiplyByFactor(response_sensitivity_gradient[k], -1);
@@ -362,19 +384,19 @@ namespace Kratos
         KRATOS_CATCH("");
     }    
   
-
-    void DirectSensitivityPostprocess::AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rVariable,
-                                              array_1d<double,3> const& rSensitivityVector, Node<3>& rNode)
+    template <typename TDataType>
+    void DirectSensitivityPostprocess::AssembleNodalSensitivityContribution(Variable<TDataType> const& rVariable,
+                                              TDataType const& rSensitivityVector, Node<3>& rNode)
     {        
-        array_1d<double,3>& r_sensitivity = rNode.GetValue(rVariable);
+        TDataType& r_sensitivity = rNode.GetValue(rVariable);
         rNode.SetLock();
-        for (IndexType i = 0; i < 3; ++i)
-            r_sensitivity[i] += rSensitivityVector[i];         
+        VectorMath::Addition(r_sensitivity, rSensitivityVector);         
         rNode.UnSetLock();                     
     }
 
-    void DirectSensitivityPostprocess::AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
-                                                std::vector<array_1d<double,3>>& rSensitivityVector, Element& rElement)
+    template <typename TDataType>
+    void DirectSensitivityPostprocess::AssembleElementSensitivityContribution(Variable<TDataType> const& rVariable,
+                                                std::vector<TDataType>& rSensitivityVector, Element& rElement)
     {
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
@@ -383,6 +405,26 @@ namespace Kratos
         else if (rSensitivityVector.size() > 1)
             rElement.SetValueOnIntegrationPoints(rVariable, rSensitivityVector, r_process_info);          
     }  
+
+    bool DirectSensitivityPostprocess::EvaluateIfObjectIsOfSizeZero(array_1d<double, 3> const& rArray)
+    {
+        bool is_zero_size = false;
+        if (rArray.size() == 0) 
+            is_zero_size = true;
+
+        return is_zero_size;          
+    } 
+
+    bool DirectSensitivityPostprocess::EvaluateIfObjectIsOfSizeZero(Matrix const& rMatrix)
+    {
+        bool is_zero_size = false;
+        if (rMatrix.size1() == 0 || rMatrix.size2() == 0) 
+            is_zero_size = true;
+            
+        return is_zero_size;          
+    } 
+
+                                                
 
 };
 
