@@ -107,6 +107,7 @@ namespace Kratos
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
+        virtual void RemoveSpheresInsideInnerHole();
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
@@ -122,6 +123,7 @@ namespace Kratos
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
+        virtual bool IsBroken() { return (bool)*mBrokenSphere; }
         void MarkNewSkinParticlesDueToBreakage();
 
         /// Turn back information as a string
@@ -147,6 +149,8 @@ namespace Kratos
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        double* mSkinSphere;
+        double* mBrokenSphere;
 
     protected:
 
@@ -165,7 +169,7 @@ namespace Kratos
                                                     const double radius_sum,
                                                     const double contact_area);
 
-        double*                     mSkinSphere;
+        //double*                     mSkinSphere;
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;
 
@@ -191,6 +195,7 @@ namespace Kratos
             rSerializer.load("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);
             mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
             mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+            mBrokenSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(BROKEN_SPHERE));
         }
 
         /* Assignment operator

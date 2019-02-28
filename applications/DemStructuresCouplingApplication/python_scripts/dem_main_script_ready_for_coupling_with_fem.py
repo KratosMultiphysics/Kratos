@@ -38,7 +38,12 @@ class Solution(BaseAlgorithm):
         old_max_elem_Id_spheres = max_elem_Id
         max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
 
-        #removed part reading the Rigid Faces
+        rigidFace_mp_filename = self.GetFemFilename()
+        if os.path.isfile(rigidFace_mp_filename+".mdpa"):
+            model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
+            model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
+        else:
+            self.KRATOSprint('No .mdpa file found for DEM Walls. Continuing.')
 
         clusters_mp_filename = self.GetClusterFilename()
         model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)

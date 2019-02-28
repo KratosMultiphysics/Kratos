@@ -75,12 +75,11 @@ namespace Kratos {
             const double min_stress = *std::min_element(principal_stresses.begin(), principal_stresses.end());
             const double function_value = (max_stress - min_stress) + (max_stress + min_stress) * sinphi - 2.0 * mohr_coulomb_c * cosphi;
 
-            if(function_value > 0) {
+            if (function_value > 0) {
                 failure_type = 4;
-            }
-
+                *element1->mBrokenSphere = *element2->mBrokenSphere = 1.0;
+        	}
         }
-
     }
 
     bool DEM_KDEM_Mohr_Coulomb::CheckRequirementsOfStressTensor() {

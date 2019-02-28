@@ -54,9 +54,14 @@ class Algorithm(object):
         self.RunSolutionLoop()
         self.Finalize()
 
+    def PreliminaryComputations(self):
+        pass
+
     def Initialize(self):
         self.structural_solution.Initialize() # Reading mdpa
         self.dem_solution.Initialize() # Adding DEM variables and reading
+
+        self.PreliminaryComputations()
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
@@ -78,7 +83,7 @@ class Algorithm(object):
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","POSITIVE_FACE_PRESSURE"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = ["DEM_NODAL_AREA"]
@@ -115,18 +120,22 @@ class Algorithm(object):
     def _TransferStructuresSkinToDem(self):
         self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
         self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
-        dem_walls_mp = self.dem_solution.rigid_face_model_part
-        props = Kratos.Properties(0)
-        props[Dem.FRICTION] = 0.5773502691896257
+        self.dem_walls_mp = self.dem_solution.rigid_face_model_part
+
+        props = Kratos.Properties(10)
+        props[Dem.FRICTION] = -0.5773502691896257
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001
         props[Dem.IMPACT_WEAR_SEVERITY] = 0.001
         props[Dem.BRINELL_HARDNESS] = 200.0
-        props[Kratos.YOUNG_MODULUS] = 1e20
-        props[Kratos.POISSON_RATIO] = 0.25
-        dem_walls_mp.AddProperties(props)
-        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, dem_walls_mp, props)
+        props[Kratos.YOUNG_MODULUS] = 7e9
+        props[Kratos.POISSON_RATIO] = 0.16
+        self.dem_walls_mp.AddProperties(props)
+        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, self.dem_walls_mp, props)
+
+    def PreviousCalculations(self):
+        pass
 
     def RunSolutionLoop(self):
 
@@ -139,6 +148,9 @@ class Algorithm(object):
         while self.structural_solution.time < self.structural_solution.end_time:
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
+
+            self.PreviousCalculations()
+
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()

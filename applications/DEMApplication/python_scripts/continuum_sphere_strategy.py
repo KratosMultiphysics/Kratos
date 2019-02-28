@@ -104,6 +104,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
         spheres_model_part.AddNodalSolutionStepVariable(DEM_PRECONSOLIDATION_PRESSURE)
         spheres_model_part.AddNodalSolutionStepVariable(DEM_M_CAMCLAY_SLOPE)
+        spheres_model_part.AddNodalSolutionStepVariable(BROKEN_SPHERE)
 
     def ModifyProperties(self, properties, param = 0):
         BaseExplicitStrategy.ModifyProperties(self, properties, param)

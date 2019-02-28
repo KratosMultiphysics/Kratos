@@ -152,7 +152,7 @@ namespace Kratos {
         BaseType::InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
         SearchFEMOperations(r_model_part, has_mpi);
-        BaseType::ForceOperations(r_model_part);
+        ForceOperations(r_model_part);
         BaseType::PerformTimeIntegrationOfMotion();
         FinalizeSolutionStep();
 
@@ -161,6 +161,53 @@ namespace Kratos {
         return 0.0;
 
     }//Solve()
+
+    void ContinuumExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+
+        BaseType::ForceOperations(r_model_part);
+
+	bool simulate_dragging_fluid_effect = true;
+
+	if (simulate_dragging_fluid_effect) RemoveBrokenSpheresBySimulatingADraggingFluid();
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::RemoveBrokenSpheresBySimulatingADraggingFluid() {
+
+        KRATOS_TRY
+
+        #pragma omp parallel
+        {
+            const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
+
+            array_1d<double, 3> extra_force;
+
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+
+	        extra_force = ZeroVector(3);
+
+                if (mListOfSphericContinuumParticles[i]->IsBroken()) {
+
+                    double X_coord = mListOfSphericContinuumParticles[i]->GetGeometry()[0].Coordinates()[0];
+                    double Z_coord = mListOfSphericContinuumParticles[i]->GetGeometry()[0].Coordinates()[2];
+                    double coords_module = sqrt(X_coord * X_coord + Z_coord * Z_coord);
+		    double gravitational_force_magnifier = 50.0;
+                    double gravitational_force_module = gravitational_force_magnifier * 9.81 * mListOfSphericContinuumParticles[i]->GetMass();
+
+                    if (coords_module) extra_force[0] = -gravitational_force_module * X_coord / coords_module;
+                    if (coords_module) extra_force[2] = -gravitational_force_module * Z_coord / coords_module;
+
+                    mListOfSphericContinuumParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = extra_force;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -715,6 +762,21 @@ namespace Kratos {
                 for (int i = 0; i < number_of_particles; i++) {
                     mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep3();
                 }
+            }
+        }
+
+		// SAND PRODUCTION SIMULATIONS ONLY!!!!
+
+		const bool sand_prod_simulation = true;
+
+		if (!sand_prod_simulation) return;
+
+        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericContinuumParticles[i]->RemoveSpheresInsideInnerHole();
             }
         }
     }

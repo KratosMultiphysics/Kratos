@@ -564,9 +564,10 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+        if (*mSkinSphere) return;
 
-            if (mNeighbourElements[i] == NULL) {
+        for (unsigned int i = 0; i < (unsigned) mIniNeighbourFailureId.size(); i++) {
+            if (mIniNeighbourFailureId[i] > 0) {
                 *mSkinSphere = 1.0;
                 break;
             }
@@ -710,6 +711,20 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void SphericContinuumParticle::RemoveSpheresInsideInnerHole() {
+
+        const double X_coord = this->GetGeometry()[0].Coordinates()[0];
+        const double Z_coord = this->GetGeometry()[0].Coordinates()[2];
+        double inner_radius = 0.00366; //0.0036847 is the exact value; SMALLER HOLE
+        const bool bigger_hole = false;
+		const bool sand_production_simulation = true;
+		if (!sand_production_simulation) return;
+
+        if (bigger_hole) inner_radius = 0.012;
+
+        if (sqrt(X_coord * X_coord + Z_coord * Z_coord) < inner_radius) this->Set(TO_ERASE, true);
+    }
+
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -811,6 +826,8 @@ namespace Kratos {
 
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
+
+        mBrokenSphere = &(this->GetGeometry()[0].FastGetSolutionStepValue(BROKEN_SPHERE));
     }
 
     double SphericContinuumParticle::GetInitialDelta(int index) {
