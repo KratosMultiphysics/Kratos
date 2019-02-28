@@ -32,9 +32,6 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 
 
-# TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
-
-
 """
 auxiliary function of AddResults of the MonteCarlo class
 input:  simulation_results: an instance of the monte carlo result class

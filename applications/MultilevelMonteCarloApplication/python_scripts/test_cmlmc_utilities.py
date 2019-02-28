@@ -34,10 +34,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
-#TODO: insert distinction between scalar and field Quantity of Interests
-# TODO: check ComputeTolerancei() is correct
-
-
 """
 auxiliary function of AddResults of the MultilevelMonteCarlo class
 """
