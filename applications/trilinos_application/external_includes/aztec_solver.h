@@ -235,7 +235,7 @@ public:
         KRATOS_TRY
         rA.Comm().Barrier();
 
-        Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
+        Epetra_LinearProblem aztec_problem(&rA,&rX,&rB);
 
         //perform GS1 scaling if required
         if (mScalingType == SymmetricScaling)  {
@@ -245,26 +245,25 @@ public:
 
             for (int i=0; i<scaling_vect.MyLength(); ++i) scaling_vect[i] = std::sqrt(scaling_vect[i]);
 
-            AztecProblem.LeftScale(scaling_vect);
-            AztecProblem.RightScale(scaling_vect);
+            aztec_problem.LeftScale(scaling_vect);
+            aztec_problem.RightScale(scaling_vect);
         } else if (mScalingType == LeftScaling) {
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
-            AztecProblem.LeftScale(scaling_vect);
+            aztec_problem.LeftScale(scaling_vect);
         }
 
-        AztecOO aztec_solver(AztecProblem);
+        AztecOO aztec_solver(aztec_problem);
         aztec_solver.SetParameters(maztec_parameter_list);
 
         //here we verify if we want a preconditioner
-        if( mIFPreconditionerType!=std::string("AZ_none") )
-        {
+        if (mIFPreconditionerType != std::string("AZ_none")) {
             //ifpack preconditioner type
-            Ifpack Factory;
+            Ifpack preconditioner_factory;
 
-            std::string PrecType = mIFPreconditionerType;
-            Ifpack_Preconditioner* p_preconditioner = Factory.Create(PrecType, &rA, moverlap_level);
+            std::string preconditioner_type = mIFPreconditionerType;
+            Ifpack_Preconditioner* p_preconditioner = preconditioner_factory.Create(preconditioner_type, &rA, moverlap_level);
             KRATOS_ERROR(p_preconditioner == 0) << "Preconditioner-initialization went wrong" << std::endl;
 
             IFPACK_CHK_ERR(p_preconditioner->SetParameters(mpreconditioner_parameter_list));
@@ -278,9 +277,7 @@ public:
             aztec_solver.Iterate(mmax_iter,mtol);
 
             delete p_preconditioner;
-        }
-        else
-        {
+        } else {
             aztec_solver.Iterate(mmax_iter,mtol);
         }
 
