@@ -590,9 +590,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 )
             self.calculate_distance_process.Execute()
 
-    def TheSimulationMustGoOn(self):
-        return self.time <= self.end_time
-
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 1
         analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))

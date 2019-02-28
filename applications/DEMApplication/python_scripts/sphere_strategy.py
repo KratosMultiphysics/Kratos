@@ -327,10 +327,18 @@ class ExplicitStrategy(object):
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
         """
-        Logger.Print('Warning: Calls to this method (AdvanceInTime) will require to be updated in order to function properly.', label="DEM")
+        self.Procedures.KRATOSprint('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead')
         time += self.dt
         self._UpdateTimeInModelParts(time)
         return time
+
+    # def AdvanceInTime(self, step, time, is_time_to_print = False):
+    #     step += 1
+    #     Logger.Print('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead', label="DEM")
+    #     time += self.dt
+    #     self._UpdateTimeInModelParts(time, step, is_time_to_print)
+    #     return step, time
+
 
     def _MoveAllMeshes(self, time, dt):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
@@ -404,8 +412,7 @@ class ExplicitStrategy(object):
         for model_part in model_part_list:
             for variable in variable_list:
                 VariableUtils().AddDof(variable, model_part)
-
-            Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+            self.Procedures.KRATOSprint("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
