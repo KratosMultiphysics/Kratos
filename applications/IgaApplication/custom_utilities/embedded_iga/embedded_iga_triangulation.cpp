@@ -155,7 +155,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     std::vector<Matrix> triangulation_uv; 
     for (int it = 1; it < 50; it++)
     {
-        std::cout << "Iteration " << it << std::endl; 
         InitTriangulationDataStructure(out_data); 
         InitTriangulationDataStructure(vor_out_data); 
 

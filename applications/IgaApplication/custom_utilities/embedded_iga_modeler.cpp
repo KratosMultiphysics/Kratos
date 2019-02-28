@@ -20,11 +20,43 @@
 
 namespace Kratos
 {
+// void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
+// {
+//     /**
+//      * This function creates 2d line elements for the nodes created in the 
+//      * tessellation of the curve geometry.
+//     */
+
+//     std::vector<array_1d<double,3>> polygon;
+//     EmbeddedIgaTessellation embedded_tessellation(m_brep_model_vector); 
+//     embedded_tessellation.CreateTessellationCurve(polygon);
+
+//     // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
+//     for (unsigned int point_i = 0; point_i < polygon.size(); ++point_i)
+//     {
+//         rSkinModelPart.CreateNewNode(
+//             point_i, polygon[point_i][0], polygon[point_i][1], polygon[point_i][2]);
+//     }
+
+//     // skin_model_part property Container (Container is empty, but for the skin no properties are needed)
+//     Properties::Pointer prop = rSkinModelPart.pGetProperties(0);
+
+//     unsigned int node_id = 0;
+//     // Create Elements in skin_model_part
+//     for (unsigned int element_i = 0; element_i < polygon.size() - 1; ++element_i)
+//     {
+//         rSkinModelPart.CreateNewElement("Element2D2N", element_i, {{node_id, node_id + 1}}, prop);
+//         node_id += 1;
+//     }
+// }
+
 void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
 {
     unsigned int node_id = 0;
+    unsigned int vertex_id = 0;
+    unsigned int element_id = 0;
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
-    {
+    {   
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
@@ -49,25 +81,22 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
                         triangulation_xyz[tri_i](point_i,0), 
                         triangulation_xyz[tri_i](point_i,1), 
                         triangulation_xyz[tri_i](point_i,2));
-                    node_id += 1; 
+                    node_id++; 
                 }
             }
 
             Properties::Pointer prop = rSkinModelPart.pGetProperties(0);
 
-            node_id = 0;
             // create elements in skin_model_part
             for (unsigned int element_i = 0; element_i < triangulation_xyz.size(); ++element_i)
             {
-                rSkinModelPart.CreateNewElement("Element3D3N", element_i, {{node_id, node_id + 1, node_id + 2}}, prop);
-                node_id += 3;
+                rSkinModelPart.CreateNewElement("Element3D3N", element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, prop);
+                vertex_id += 3;
             }
+            KRATOS_WATCH(rSkinModelPart)
         }
     }
 }
-
-
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +141,10 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
 
 std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation()
 {
+    /**
+     * Tessellation of a single patch
+    */
+
     const auto face = m_brep_model_vector[0].GetFaceVector()[0];
     
     std::vector<std::vector<array_1d<double, 2>>> outer_polygon;
@@ -119,7 +152,6 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation
     
     EmbeddedIgaTessellation::CreateTessellation(
         face, outer_polygon, inner_polygon); 
-
 
     unsigned int number_points = 0; 
     for (unsigned int i = 0; i < outer_polygon.size(); ++i)
@@ -150,7 +182,6 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation
             coords[index++][1] = inner_polygon[i][j][1]; // y-coordinate
         }
     }
-
     return coords;     
 }
 
@@ -180,7 +211,6 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTriangulatio
             point_index += 1; 
         }
     }
-
     return coords; 
 }
 
