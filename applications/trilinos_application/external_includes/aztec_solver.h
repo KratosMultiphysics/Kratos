@@ -239,11 +239,11 @@ public:
 
         //perform GS1 scaling if required
         if (mScalingType == SymmetricScaling)  {
-            KRATOS_THROW_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
+            KRATOS_ERROR << "something wrong with the scaling, to be further teststed" << std::endl;
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
-            for( int i=0 ; i<scaling_vect.MyLength() ; ++i ) scaling_vect[i] = std::sqrt(scaling_vect[i]);
+            for (int i=0; i<scaling_vect.MyLength(); ++i) scaling_vect[i] = std::sqrt(scaling_vect[i]);
 
             AztecProblem.LeftScale(scaling_vect);
             AztecProblem.RightScale(scaling_vect);
