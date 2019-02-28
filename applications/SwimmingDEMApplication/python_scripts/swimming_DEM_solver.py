@@ -17,6 +17,21 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
+        default_processes_settings = KratosMultiphysics.Parameters("""{
+            "non_optional_solver_processes" : [{
+                "python_module" : "calculate_nodal_area_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "CalculateNodalAreaProcess",
+                "Parameters"    : {
+                    "model_part_name" : "FluidModelPart.Parts_fluid",
+                    "domain_size" : 3,
+                    "fixed_mesh": false
+                }
+            }]
+        }
+        """)
+        project_parameters["processes"].ValidateAndAssignDefaults(default_processes_settings)
+
         return project_parameters
 
     def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
