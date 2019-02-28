@@ -3,6 +3,7 @@
 #include <utility>
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -227,9 +228,8 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
     rInfo.StartIndex = 0;
     rInfo.TotalSize = rInfo.BlockSize = rData.size();
 
-    if (GetEchoLevel() == 2)
-        std::cout << "Write time \"" << rPath
-                  << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
+        << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -275,9 +275,8 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
     rInfo.StartIndex = 0;
     rInfo.TotalSize = rInfo.BlockSize = rData.size1();
 
-    if (GetEchoLevel() == 2)
-        std::cout << "Write time \"" << rPath
-                  << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
+        << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -356,9 +355,8 @@ void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
 
-    if (GetEchoLevel() == 2)
-        std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds()
-                  << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
+        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -420,9 +418,8 @@ void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
 
-    if (GetEchoLevel() == 2)
-        std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds()
-                  << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
+        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 

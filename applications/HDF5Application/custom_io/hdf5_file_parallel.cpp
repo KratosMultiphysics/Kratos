@@ -2,6 +2,7 @@
 
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -291,9 +292,8 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
     rInfo.BlockSize = local_dims[0];
     rInfo.TotalSize = global_dims[0];
 
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Write time \"" << rPath
-                  << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+        << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -389,9 +389,8 @@ void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
     rInfo.BlockSize = local_dims[0];
     rInfo.TotalSize = global_dims[0];
 
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Write time \"" << rPath
-                  << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+        << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -489,9 +488,8 @@ void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds()
-                  << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -570,9 +568,8 @@ void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-    if (GetEchoLevel() == 2 && GetPID() == 0)
-        std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds()
-                  << std::endl;
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
