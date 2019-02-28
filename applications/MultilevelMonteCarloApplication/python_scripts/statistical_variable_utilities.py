@@ -20,17 +20,18 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
-# TODO: choose a proper name for self.moment_p
-# TODO: organize if possible better initialize function
 # TODO: check moments from scratch are correct after renaming
-# TODO: distinguish between raw and central moments, now central are computed, raw moments are not
+# TODO: distinguish between raw and central moments, now central are computed, raw moments only the mean
 
 
 """
 auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
 input:  sample: new value that will update the statistics
         old_mean:   old mean
+        old_M1:     old first central moment multiplied by number samples, i.e. M_p = number_samples * central_moment
+        compute_M1: boolean setting if computation is needed
         old_M2:     old second central moment multiplied by number samples, i.e. M_p = number_samples * central_moment
+        compute_M2: boolean setting if computation is needed
         old_M3:     old third central moment multiplied by number samples
         compute_M3: boolean setting if computation is needed
         old_M4:     old fourth central moment multiplied by number samples
@@ -38,28 +39,33 @@ input:  sample: new value that will update the statistics
         nsamples:   old number of samples computed, starts from 1
 output: new_mean:            updated mean
         new_sample_variance: updated sample variance
+        new_M1:              updated M1
         new_M2:              updated M2
         new_M3:              updated M3
         new_M4:              updated M4
         nsamples:            updated number of samples
 """
-@ExaquteTask(returns=6)
-def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
+@ExaquteTask(returns=7)
+def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M1,compute_M1,old_M2,compute_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
         new_mean = sample
-        new_M2 = np.zeros(np.size(sample))
-        new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
-        new_sample_variance = np.zeros(np.size(sample))
-        new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
-        new_M3 = np.zeros(np.size(sample))
-        new_M3 = np.asscalar(new_M3) # do so to have a list of scalars, and not a list of arrays of one element
-        new_M4 = np.zeros(np.size(sample))
-        new_M4 = np.asscalar(new_M4) # do so to have a list of scalars, and not a list of arrays of one element
+        new_M1 = 0.0
+        new_M2 = 0.0
+        new_sample_variance = 0.0
+        new_M3 = 0.0
+        new_M4 = 0.0
     else:
         delta = np.subtract(sample,old_mean)
         new_mean = old_mean + np.divide(delta,nsamples)
-        new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
+        if (compute_M1):
+            new_M1 = old_M1 # we are not updating, first central moment = 0.0
+        else:
+            new_M1 = old_M1 # we are not updating, first central moment = 0.0
+        if (compute_M2):
+            new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
+        else:
+            raise Exception ("Not computing StatisticalVariable.moment_2, please set StatisticalVariable.moment_2_to_compute to True")
         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
         if (compute_M3):
             new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
@@ -69,7 +75,7 @@ def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M
             new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
         else:
             new_M4 = old_M4 # we are not updating
-    return new_mean,new_sample_variance,new_M2,new_M3,new_M4,nsamples
+    return new_mean,new_sample_variance,new_M1,new_M2,new_M3,new_M4,nsamples
 
 
 """
@@ -200,10 +206,13 @@ class StatisticalVariable(object):
         # moments of the variable per each level M_p  = n * mu_p
         #                                        mu_p = p-th central moment
         #                                        n    = number of values
+        self.moment_1 = []
         self.moment_2 = []
         self.moment_3 = []
         self.moment_4 = []
-        # set if M3 and M4 will be computed (M2 is mandatory to be computed because it is exploited in the mean evaluation)
+        # set which central moments will be computed (moment_2 is mandatory to be computed because it is exploited in the mean evaluation)
+        self.moment_1_to_compute = False
+        self.moment_2_to_compute = True
         self.moment_3_to_compute = False
         self.moment_4_to_compute = False
         # bias error of the variable
@@ -252,6 +261,7 @@ class StatisticalVariable(object):
     def InitializeLists(self,number_levels):
         self.values = [[] for _ in range (number_levels)]
         self.mean = [[] for _ in range (number_levels)]
+        self.moment_1 = [[] for _ in range (number_levels)]
         self.moment_2 = [[] for _ in range (number_levels)]
         self.moment_3 = [[] for _ in range (number_levels)]
         self.moment_4 = [[] for _ in range (number_levels)]
@@ -282,15 +292,19 @@ class StatisticalVariable(object):
     def UpdateOnePassMomentsVariance(self,level,i_sample):
         sample = self.values[level][i_sample]
         old_mean = self.mean[level]
+        old_M1 = self.moment_1[level]
+        compute_M1 = self.moment_1_to_compute
         old_M2 = self.moment_2[level]
+        compute_M2 = self.moment_2_to_compute
         old_M3 = self.moment_3[level]
         compute_M3 = self.moment_3_to_compute
         old_M4 = self.moment_4[level]
         compute_M4 = self.moment_4_to_compute
         number_samples_level = self.number_samples[level]
-        new_mean,new_sample_variance,new_M2,new_M3,new_M4,number_samples_level = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,number_samples_level)
+        new_mean,new_sample_variance,new_M1,new_M2,new_M3,new_M4,number_samples_level = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M1,compute_M1,old_M2,compute_M2,old_M3,compute_M3,old_M4,compute_M4,number_samples_level)
         self.mean[level] = new_mean
         self.sample_variance[level] = new_sample_variance
+        self.moment_1[level] = new_M1
         self.moment_2[level] = new_M2
         self.moment_3[level] = new_M3
         self.moment_4[level] = new_M4
