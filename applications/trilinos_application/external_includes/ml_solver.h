@@ -92,7 +92,6 @@ public:
         //settings for the MultiLevel solver
         mtol = settings["tolerance"].GetDouble();
         mmax_iter = settings["max_iteration"].GetInt();
-        mMLPrecIsInitialized = false;
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
 
         //scaling settings
@@ -162,7 +161,6 @@ public:
         mmax_iter = nit_max;
         mScalingType = LeftScaling;
 
-        mMLPrecIsInitialized = false;
         mReformPrecAtEachStep = true;
     }
 
@@ -203,11 +201,7 @@ public:
 
     void ResetPreconditioner()
     {
-        if(mMLPrecIsInitialized == true)
-        {
-            mpMLPrec.reset();
-            mMLPrecIsInitialized = false;
-        }
+        mpMLPrec.reset();
     }
 
     void Clear() override
@@ -246,13 +240,10 @@ public:
         // when the preconditioner is freed. the strategy
         // should take care to Clear() the linear solver
         // before the system matrix.
-        if (mReformPrecAtEachStep == true ||
-            mMLPrecIsInitialized == false)
-        {
+        if (mReformPrecAtEachStep == true || !mpMLPrec) {
             this->ResetPreconditioner();
             MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
             mpMLPrec.swap(tmp);
-            mMLPrecIsInitialized = true;
         }
 
         // create an AztecOO solver
@@ -349,9 +340,8 @@ private:
 
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
-    MLPreconditionerPointerType mpMLPrec;
+    MLPreconditionerPointerType mpMLPrec = nullptr;
     ScalingType mScalingType;
-    bool mMLPrecIsInitialized;
     bool mReformPrecAtEachStep;
     double mtol;
     int mmax_iter;
