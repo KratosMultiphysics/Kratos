@@ -229,7 +229,7 @@ public:
 
         #pragma omp parallel for 
         for (int i=0; i<static_cast<int>(rDofSet.size()); ++i) {
-            auto it_dof = rDofSet.begin() + i;
+            const auto it_dof = rDofSet.begin() + i;
             if (it_dof->IsFixed()) {
                 mActiveDofs[it_dof->EquationId()] = false;
             }
@@ -353,7 +353,7 @@ protected:
         for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
             auto it_dof = rDofSet.begin() + i;
 
-            IndexType dof_id = it_dof->EquationId();
+            const IndexType dof_id = it_dof->EquationId();
             TDataType residual_dof_value;
 
             if (mActiveDofs[dof_id]) {
