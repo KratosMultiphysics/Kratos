@@ -80,6 +80,14 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;
+    
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -118,6 +126,8 @@ private:
 
     ///@name Member Variables
     ///@{
+    std::vector<Matrix> mShellForceSensitivity;
+    std::vector<Matrix> mShellMomentSensitivity;
 
     ///@}
 
