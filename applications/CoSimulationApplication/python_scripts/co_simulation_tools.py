@@ -109,11 +109,11 @@ def ApplyUpdateToData(solver, data_name, updated_data):
 #  @param label         The label for the print
 #  @param args          The arguments to be printed
 def PrintInfo(label, *args):
-    cs_data_structure.Logger.PrintInfo(label, " ".join(map(str,args)))
+    print(label, " ".join(map(str,args)))
 
 ## PrintInfo : Printing a warning with a label
 #
 #  @param label         The label for the print
 #  @param args          The arguments to be printed
 def PrintWarning(label, *args):
-    cs_data_structure.Logger.PrintWarning(label, " ".join(map(str,args)))
+    print(label, " ".join(map(str,args)))

@@ -80,4 +80,4 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param self            The object pointer.
     #  @param level           int : echo level
     def SetEchoLevel(self, level):
-        self.echo_level = SetEchoLevel
+        self.echo_level = level

@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division 
 
-import .model_part
+from .ModelPart import ModelPart
 
 class Model(dict):
     def GetModelPart(self, name):

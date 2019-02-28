@@ -86,6 +86,7 @@
             {
                 "solver_type" : "dummy_solver",
                 "settings":{
+                    "echo_level"  : 1,
                     "working_directory" : "CFD",
                     "input_file"  : "dummy_one.json"
                 },
@@ -109,6 +110,7 @@
             {
                 "solver_type" : "dummy_solver",
                 "settings":{
+                    "echo_level"  : 1,
                     "working_directory" : "CSD",
                     "input_file"  : "dummy_two.json"
                 },

@@ -16,7 +16,7 @@ class CoSimulationAnalysis(object):
 
         self.echo_level = 0
         if "echo_level" in self.cosim_settings["problem_data"]:
-            self.echo_level = self.cosim_settings["problem_data"]["echo_level"]
+            self.echo_level = self.cosim_settings["problem_data"]["echo_level"].GetInt()
 
     def Run(self):
         self.Initialize()

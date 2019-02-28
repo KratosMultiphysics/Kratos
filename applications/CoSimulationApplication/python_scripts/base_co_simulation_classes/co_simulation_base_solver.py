@@ -212,8 +212,7 @@ class CoSimulationBaseSolver(object):
     def _GetDataMap(self):
         data_map = collections.OrderedDict()
         num_data = self.cosim_solver_settings["data"].size()
-        for i in range(num_data):
-            data_conf = self.cosim_solver_settings["data"][i]
+        for i,data_conf in enumerate(self.cosim_solver_settings["data"]):
             data_conf = self._MakeDataConfig(data_conf)
             data_map[data_conf["name"].GetString()] = data_conf
 

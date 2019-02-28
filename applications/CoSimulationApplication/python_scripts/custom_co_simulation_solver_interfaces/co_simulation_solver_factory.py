@@ -16,7 +16,6 @@ def CreateSolverInterface(solver_name, settings):
     This function creates and returns the convergence accelerator used for CoSimulation
     New convergence accelerators have to be registered by adding them to "available_convergence_accelerators"
     """
-
     solver_type = settings["solver_type"].GetString()
 
     if solver_type in available_solver_interfaces:

@@ -44,8 +44,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         # Get the participating solvers a map with their names and objects
         self.participating_solvers = self._CreateSolvers(self.full_settings['solvers'])
-
-        self.solver_settings = self._GetSolverCoSimulationDetails(self.full_settings['coupled_solver_settings']["participants"])
+        self.solver_settings = self._GetSolverCoSimulationDetails(self.settings["participants"])
 
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
@@ -159,6 +158,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _SynchronizeInputData(self, solver_name):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
+            print()
+            print(self.solver_settings)
             input_data_list = self.solver_settings[solver_name]["input_data_list"]
             num_input_data = input_data_list.size()
             for i in range(num_input_data):
@@ -202,7 +203,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         import KratosMultiphysics.CoSimulationApplication.custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
 
         for solver_name, settings in SolversDataMap.items():
-            solver = factory.CreateSolverInterface(solver_name,settings)
+            solver = factory.CreateSolverInterface(solver_name,cs_data_structure.Parameters(settings))
             solvers_map[solver_name] = solver
 
         return solvers_map
@@ -211,11 +212,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                                  name as key
     #
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
+        print("########################### ")
+        print("")
+        print(co_simulation_solver_settings)
         num_solvers = co_simulation_solver_settings.size()
         solver_cosim_details = {}
 
-        for i in range(num_solvers):
-            solver_settings = co_simulation_solver_settings[i]
+        for i, solver_settings in enumerate(co_simulation_solver_settings):
             solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
         # TODO check if the data is consistently defined! => maybe do at another place though...

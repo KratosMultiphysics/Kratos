@@ -4,7 +4,6 @@ from ... import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 import random
 
-raise ModuleNotFoundError("eerererte")
 def Create(name, cosim_solver_settings):
     return DummyCoSimulationSolver(name, cosim_solver_settings)
 
