@@ -78,33 +78,37 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
-
+    /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    // The size_t types
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
+    /// Definition of the classes from the base class
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    typedef Node<3> NodeType;
-
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    /// Additional definitions
+    typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
+    typedef Element::EquationIdVectorType EquationIdVectorType;
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+
+    /// DoF types definition
+    typedef Node<3> NodeType;
+    typedef typename NodeType::DofType DofType;
+    typedef typename DofType::Pointer DofPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -512,12 +516,10 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
 
         //Gets the array of elements from the modeler
-        ElementsArrayType& pElements = rModelPart.Elements();
-        const int nelements = static_cast<int>(pElements.size());
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
+        const int number_of_elements = static_cast<int>(r_elements_array.size());
 
-        Element::DofsVectorType ElementalDofList;
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
@@ -525,41 +527,60 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
-        set_type dof_global_set;
-        dof_global_set.reserve(nelements*20);
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
-        #pragma omp parallel firstprivate(nelements, ElementalDofList)
+        /**
+         * Here we declare three sets.
+         * - The global set: Contains all the DoF of the system
+         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
+         */
+        set_type dof_global_set;
+        dof_global_set.reserve(number_of_elements*20);
+
+        #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set;
             dofs_tmp_set.reserve(20000);
 
+            // Gets the array of elements from the modeler
             #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i < nelements; i++)
-            {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
+            for (int i = 0; i < number_of_elements; ++i) {
+                auto it_elem = r_elements_array.begin() + i;
 
-                // gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-
-                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
+                // Gets list of Dof involved on every element
+                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
+            // Gets the array of conditions from the modeler
+            ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+            const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_conditions; ++i) {
+                auto it_cond = r_conditions_array.begin() + i;
 
-            ConditionsArrayType& pConditions = rModelPart.Conditions();
-            const int nconditions = static_cast<int>(pConditions.size());
-            #pragma omp for  schedule(guided, 512)
-            for (int i = 0; i < nconditions; i++)
-            {
-                typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-
-                // gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
+                // Gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
+            // Gets the array of constraints from the modeler
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_constraints; ++i) {
+                auto it_const = r_constraints_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+            }
+
+            // We merge all the sets in one thread
             #pragma omp critical
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
@@ -920,10 +941,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    TSystemMatrixType mT;
-    TSystemVectorType mConstantVector;
-    std::vector<int> mSlaveIds;
-    std::vector<int> mMasterIds;
+
+    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
+    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds; /// The equation ids of the master
 
    ///@}
     ///@name Protected Operators
@@ -932,37 +954,45 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
     void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
+            // Vector containing the localization in the system of the different terms
+            DofsVectorType slave_dof_list, master_dof_list;
+
             // Constraint initial iterator
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
-            std::vector<std::unordered_set<int>> indices(BaseType::mDofSet.size());
+            std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
             std::vector<LockObject> lock_array(indices.size());
 
-            #pragma omp parallel
+            #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
             {
                 Element::EquationIdVectorType slave_ids(3);
                 Element::EquationIdVectorType master_ids(3);
-                std::unordered_map<int, std::unordered_set<int>> temp_indices;
+                std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
 
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                     auto it_const = const_begin + i_const;
                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+
                     // Slave DoFs
-                    for (auto &id_i : slave_ids)
-                    {
-                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    for (auto &id_i : slave_ids) {
+                        for (auto& master_dof : master_dof_list) {
+                            if (master_dof->IsFixed() || BaseType::mDofSet.find(*master_dof) != BaseType::mDofSet.end()) {
+                                temp_indices[id_i].insert(master_dof->EquationId());
+                            }
+                        }
                     }
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i)
-                {
+                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
                     lock_array[i].SetLock();
                     indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
                     lock_array[i].UnSetLock();
@@ -971,13 +1001,12 @@ protected:
 
             mSlaveIds.clear();
             mMasterIds.clear();
-            for (int i = 0; i < static_cast<int>(indices.size()); ++i)
-            {
-                if (indices[i].size() == 0) //master dof!
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
+                if (indices[i].size() == 0) // Master dof!
                     mMasterIds.push_back(i);
-                else //slave dof
+                else // Slave dof
                     mSlaveIds.push_back(i);
-                indices[i].insert(i); //ensure that the diagonal is there in T
+                indices[i].insert(i); // Ensure that the diagonal is there in T
             }
 
             // Count the row sizes
@@ -1002,8 +1031,7 @@ protected:
                 const IndexType row_begin = Trow_indices[i];
                 const IndexType row_end = Trow_indices[i + 1];
                 IndexType k = row_begin;
-                for (auto it = indices[i].begin(); it != indices[i].end(); ++it)
-                {
+                for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
                     Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
                     k++;
@@ -1030,6 +1058,9 @@ protected:
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
+        // Vector containing the localization in the system of the different terms
+        DofsVectorType slave_dof_list, master_dof_list;
+
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
         Vector constant_vector = LocalSystemVectorType(0);
@@ -1054,14 +1085,26 @@ protected:
                 if (constraint_is_active) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+
+                    // Set to zero the non fixed and solvable dofs
+                    IndexType column = 0;
+                    for (auto& master_dof : master_dof_list) {
+                        if (!(master_dof->IsFixed() || BaseType::mDofSet.find(*master_dof) != BaseType::mDofSet.end())) {
+                            for (IndexType i_zero = 0; i_zero < transformation_matrix.size1(); ++i_zero) {
+                                transformation_matrix(i_zero, column) = 0.0;
+                            }
+                        }
+                        ++column;
+                    }
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
 
-                        //assemble matrix row
+                        // Assemble matrix row
                         AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
 
-                        //assemble constant vector
+                        // Assemble constant vector
                         const double constant_value = constant_vector[i];
                         double &r_value = mConstantVector[i_global];
                         #pragma omp atomic
@@ -1123,40 +1166,6 @@ protected:
 
         KRATOS_CATCH("")
     }
-
-//     void ApplyMasterSlaveRelation(
-//         ModelPart &rModelPart) override
-//     {
-//         if (rModelPart.MasterSlaveConstraints().size() > 0)
-//         {
-//             BuildMasterSlaveConstraints(rModelPart);
-
-//             //get master values
-//             TSystemVectorType x(mConstantVector.size());
-//             TSystemVectorType xmodified(mConstantVector.size());
-//             TSparseSpace::SetToZero(x);
-
-//             for (auto &dof : BaseType::mDofSet)
-//             {
-//                 const auto eq_id = dof.EquationId();
-//                 x[eq_id] = dof.GetSolutionStepValue();
-//             }
-
-//             //xmodified = T*x + ConstantVector
-//             TSparseSpace::Mult(mT, x, xmodified);
-
-// #pragma omp parallel for
-//             for (int i = 0; i < static_cast<int>(xmodified.size()); ++i)
-//                 xmodified[i] += mConstantVector[i];
-
-//             //update database
-//             for (auto &dof : BaseType::mDofSet)
-//             {
-//                 const auto eq_id = dof.EquationId();
-//                 dof.GetSolutionStepValue() = xmodified[eq_id];
-//             }
-//         }
-//     }
 
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
@@ -1221,7 +1230,7 @@ protected:
             nnz += indices[i].size();
         }
 
-        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        A = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();
