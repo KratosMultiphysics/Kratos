@@ -31,7 +31,7 @@ def GetDefaultInputParameters():
             },
             "do_print_results_option"                : true,
             "processes" : {
-                "auxiliar_process_list": [],
+                "auxiliar_process_list": []
             },
             "json_output_process"  : [],
             "sdem_output_processes" : {},
