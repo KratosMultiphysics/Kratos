@@ -97,10 +97,9 @@ public:
         moverlap_level = settings["overlap_level"].GetInt();
 
         //scaling settings
-        if (settings["scaling"].GetBool() == false)
-            mscaling_type = NoScaling;
-        else
-            mscaling_type = LeftScaling;
+        if (!settings["scaling"].GetBool()) {
+            mScalingType = NoScaling;
+        }
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         maztec_parameter_list = Teuchos::ParameterList();
@@ -198,8 +197,6 @@ public:
         mIFPreconditionerType = IFPreconditionerType;
         mpreconditioner_parameter_list = preconditioner_parameter_list;
         moverlap_level = overlap_level;
-
-        mscaling_type = LeftScaling;
     }
 
     /// Copy constructor.
@@ -222,7 +219,7 @@ public:
     //function to set the scaling typedef
     void SetScalingType(AztecScalingType scaling_type)
     {
-        mscaling_type = scaling_type;
+        mScalingType = scaling_type;
     }
 
     /**
@@ -241,8 +238,7 @@ public:
         Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 
         //perform GS1 scaling if required
-        if(mscaling_type == SymmetricScaling)
-        {
+        if (mScalingType == SymmetricScaling)  {
             KRATOS_THROW_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
@@ -252,9 +248,7 @@ public:
 
             AztecProblem.LeftScale(scaling_vect);
             AztecProblem.RightScale(scaling_vect);
-        }
-        else if (mscaling_type == LeftScaling)
-        {
+        } else if (mScalingType == LeftScaling) {
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
@@ -324,7 +318,7 @@ private:
     Teuchos::ParameterList maztec_parameter_list;
     double mtol;
     int mmax_iter;
-    AztecScalingType mscaling_type;
+    AztecScalingType mScalingType = LeftScaling;
 
     std::string mIFPreconditionerType;
 
