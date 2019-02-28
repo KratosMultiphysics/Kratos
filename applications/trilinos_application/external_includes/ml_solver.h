@@ -159,9 +159,6 @@ public:
         mMLParameterList = ml_parameter_list;
         mtol = tol;
         mmax_iter = nit_max;
-        mScalingType = LeftScaling;
-
-        mReformPrecAtEachStep = true;
     }
 
     /// Copy constructor.
@@ -341,8 +338,8 @@ private:
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
     MLPreconditionerPointerType mpMLPrec = nullptr;
-    ScalingType mScalingType;
-    bool mReformPrecAtEachStep;
+    ScalingType mScalingType = LeftScaling;
+    bool mReformPrecAtEachStep = true;
     double mtol;
     int mmax_iter;
     int mndof  = 1;
