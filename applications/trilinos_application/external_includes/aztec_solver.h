@@ -243,8 +243,7 @@ public:
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
-            int MyLength = scaling_vect.MyLength();
-            for( int i=0 ; i<MyLength ; ++i ) scaling_vect[i] = sqrt(scaling_vect[i]);
+            for( int i=0 ; i<scaling_vect.MyLength() ; ++i ) scaling_vect[i] = std::sqrt(scaling_vect[i]);
 
             AztecProblem.LeftScale(scaling_vect);
             AztecProblem.RightScale(scaling_vect);
