@@ -62,7 +62,6 @@ namespace Python
         .def("CheckDryConservedVariables", &ShallowWaterVariablesUtility::CheckDryConservedVariables)
         .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
         .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
-        .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
         .def("DefineDryProperties", &ShallowWaterVariablesUtility::DefineDryProperties)
         .def("AssignDryWetProperties", &ShallowWaterVariablesUtility::AssignDryWetProperties)
         .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
