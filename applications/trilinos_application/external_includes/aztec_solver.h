@@ -104,10 +104,11 @@ public:
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
 
-        if(settings["verbosity"].GetInt() == 0)
+        if (settings["verbosity"].GetInt() == 0) {
             mAztecParameterList.set("AZ_output", "AZ_none");
-        else
+        } else {
             mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
+        }
 
         //choose the solver type
         const std::string solver_type = settings["solver_type"].GetString();
