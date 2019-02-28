@@ -44,7 +44,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 
 # TODO: insert distinction between scalar and field Quantity of Interests
-# TODO: check ComputeTolerancei() is correct
 # TODO: create function updating lists
 # TODO: run cmlmc without refinement
 
@@ -811,17 +810,10 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeTolerancei(self):
-        tolF = self.settings["tolF"].GetDouble()
-        r2 = self.settings["r2"].GetDouble()
+        tol0 = self.settings["tol0"].GetDouble()
         r1 = self.settings["r1"].GetDouble()
-        iE = self.number_iterations_iE
-        iter_def = self.current_iteration
-        if iter_def < iE:
-            tol = (r1**(iE-iter_def) * r2**(-1))*tolF
-        elif iter_def > iE:
-            tol = (r2**(iE-iter_def) * r2**(-1))*tolF
-        else:
-            tol = tolF
+        current_iter = self.current_iteration
+        tol = tol0 / (r1**(current_iter))
         self.tolerance_i = tol
 
     """
