@@ -57,8 +57,10 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
     unsigned int element_id = 0;
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {   
+        KRATOS_WATCH(brep_i)
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
+            KRATOS_WATCH(face_i)
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
 
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
@@ -106,19 +108,27 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
 {
     unsigned int point_index = 0;
     std::vector<std::vector<double>> coords; 
+    
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
+        KRATOS_WATCH(brep_i)
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
+            KRATOS_WATCH(face_i)
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
 
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
             std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
+            
+            std::cout << "EmbeddedIgaTessellation::CreateTessellation" << std::endl; 
             EmbeddedIgaTessellation::CreateTessellation(
                 face, outer_polygon_uv, inner_polygon_uv); 
+            
+            KRATOS_WATCH(outer_polygon_uv[0].size())
 
             EmbeddedIgaTriangulation embedded_triangulation; 
 
+            std::cout << "embedded_triangulation.CreateTriangulation(" << std::endl; 
             std::vector<Matrix> triangulation_xyz;
             embedded_triangulation.CreateTriangulation(
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
