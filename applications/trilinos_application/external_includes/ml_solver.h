@@ -239,7 +239,7 @@ public:
         // before the system matrix.
         if (mReformPrecAtEachStep == true || !mpMLPrec) {
             this->ResetPreconditioner();
-            MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
+            MLPreconditionerPointerType tmp(Kratos::make_shared<ML_Epetra::MultiLevelPreconditioner>(rA, mMLParameterList, true));
             mpMLPrec.swap(tmp);
         }
 
