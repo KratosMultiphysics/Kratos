@@ -224,7 +224,8 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
                 alone_edge_local_id = i;
             }
         }
-        KRATOS_ERROR_IF(alone_edge_local_id == 10) << "Unexpected error in extrapolating the pressure load..." << std::endl;
+        //KRATOS_ERROR_IF(alone_edge_local_id == 10) << "Unexpected error in extrapolating the pressure load..." << std::endl;
+		KRATOS_WARNING_IF("Unexpected error in extrapolating the pressure load...", alone_edge_local_id == 10);
         const IndexType id_1 = alone_edge_local_id == 0 ? 0 : alone_edge_local_id == 1 ? 1 : 2;
         const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
         const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
@@ -237,7 +238,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
                                         rMaximumConditionId,
                                         condition_nodes_id,
                                         p_properties, 0);
-        // adding the conditions to the computing model part
+        // Adding the conditions to the computing model part
         mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
 
         condition_nodes_id[0] = r_geom[id_1].Id();

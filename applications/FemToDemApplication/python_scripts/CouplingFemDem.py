@@ -72,6 +72,11 @@ class FEMDEM_Solution:
             self.pressure_load = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+        
+        # for node in self.FEM_Solution.main_model_part.Nodes:
+        #     if node.GetValue(KratosFemDem.PRESSURE_ID) > 0:
+        #         print(node.Id)
+        # Wait()
 
         # for the dem contact forces coupling
         self.InitializeDummyNodalForces()
@@ -118,8 +123,7 @@ class FEMDEM_Solution:
             is_remeshing = self.CheckIfHasRemeshed()
 
             if is_remeshing:
-                # Extrapolate the VonMises normalized stress to nodes (remeshing)
-                # KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+                # Extrapolate the free energy as a remeshing criterion
                 KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
                 # we eliminate the nodal DEM forces
@@ -150,11 +154,51 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
+
+
+
+        # if self.FEM_Solution.step == 1:
+        #     self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 60")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 1:
+        #     self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 174")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 2:
+        #     self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 174")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 3:
+        #     self.FEM_Solution.main_model_part.GetElement(211).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 211")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 3:
+        #     self.FEM_Solution.main_model_part.GetElement(180).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 180")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 4:
+        #     self.FEM_Solution.main_model_part.GetElement(177).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 177")
+        #     Wait()
+
+        # if self.FEM_Solution.step == 5:
+        #     self.FEM_Solution.main_model_part.GetElement(197).Set(KratosMultiphysics.ACTIVE, False)
+        #     self.FEM_Solution.main_model_part.GetElement(277).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 277 y 197")
+        #     Wait()
+
         if self.pressure_load:
             # we reconstruct the pressure load
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
             while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
                 KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+
 
         # we create the new DEM of this time step
         self.GenerateDEM()
