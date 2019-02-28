@@ -110,31 +110,22 @@ public:
             mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
 
         //choose the solver type
-        if(settings["solver_type"].GetString() == "CGSolver" || settings["solver_type"].GetString() == "cg")
-        {
+        if (settings["solver_type"].GetString() == "CGSolver" || settings["solver_type"].GetString() == "cg") {
             mAztecParameterList.set("AZ_solver", "AZ_cg");
-        }
-        else if(settings["solver_type"].GetString() == "BICGSTABSolver" || settings["solver_type"].GetString() == "bicgstab")
-        {
+        } else if(settings["solver_type"].GetString() == "BICGSTABSolver" || settings["solver_type"].GetString() == "bicgstab") {
             mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
-        }
-        else if(settings["solver_type"].GetString() == "GMRESSolver" || settings["solver_type"].GetString() == "gmres")
-        {
+        } else if(settings["solver_type"].GetString() == "GMRESSolver" || settings["solver_type"].GetString() == "gmres") {
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
             mAztecParameterList.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
-        }
-        else if(settings["solver_type"].GetString() == "AztecSolver" || settings["solver_type"].GetString() == "aztec")
-        {
+        } else if(settings["solver_type"].GetString() == "AztecSolver" || settings["solver_type"].GetString() == "aztec") {
             //do nothing here. Leave full control to the user through the "trilinos_aztec_parameter_list"
         }
-        else
-        {
+        else {
             KRATOS_ERROR << " the solver type specified : " << settings["solver_type"].GetString()  << " is not supported";
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
-        {
+        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++) {
             if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
@@ -142,43 +133,31 @@ public:
         }
 
         mPreconditionerParameterList = Teuchos::ParameterList();
-        if(settings["preconditioner_type"].GetString() == "DiagonalPreconditioner")
-        {
+        if (settings["preconditioner_type"].GetString() == "DiagonalPreconditioner") {
             mIFPreconditionerType = "None";
-        }
-        else if(settings["preconditioner_type"].GetString() == "ILU0")
-        {
+        } else if(settings["preconditioner_type"].GetString() == "ILU0") {
             mIFPreconditionerType = "ILU";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 1);
-        }
-        else if(settings["preconditioner_type"].GetString() == "ILUT")
-        {
+        } else if(settings["preconditioner_type"].GetString() == "ILUT") {
             mIFPreconditionerType = "ILU";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 10);
-        }
-        else if(settings["preconditioner_type"].GetString() == "ICC")
-        {
+        } else if(settings["preconditioner_type"].GetString() == "ICC") {
             mIFPreconditionerType = "ICC";
             mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
             mPreconditionerParameterList.set("fact: level-of-fill", 10);
-        }
-        else if(settings["preconditioner_type"].GetString() == "AmesosPreconditioner")
-        {
+        } else if(settings["preconditioner_type"].GetString() == "AmesosPreconditioner") {
             mIFPreconditionerType = "Amesos";
             mPreconditionerParameterList.set("amesos: solver type", "Amesos_Klu");
-        }
-        else if(settings["preconditioner_type"].GetString() == "None")
-        {
+        } else if(settings["preconditioner_type"].GetString() == "None") {
             mIFPreconditionerType = "AZ_none";
-        }
-        else
+        } else {
             KRATOS_ERROR << "wrong choice for preconditioner_type. Selction was :" << settings["preconditioner_type"].GetString() << " Available choices are: None,ILU0,ILUT,ICC,AmesosPreconditioner";
+        }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++)
-        {
+        for (auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++) {
             if(it->IsString()) mPreconditionerParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mPreconditionerParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mPreconditionerParameterList.set(it.name(), it->GetBool());
