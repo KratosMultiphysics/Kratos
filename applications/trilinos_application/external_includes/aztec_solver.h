@@ -74,19 +74,18 @@ public:
     /// Constructor with Parameters.
     AztecSolver(Parameters settings)
     {
-        Parameters default_settings( R"(
-        {
-        "solver_type": "aztec",
-        "tolerance" : 1.0e-6,
-        "max_iteration" : 200,
-        "preconditioner_type" : "None",
-        "overlap_level":1,
-        "gmres_krylov_space_dimension" : 100,
-        "scaling":false,
-        "verbosity":0,
-        "trilinos_aztec_parameter_list": {},
-        "trilinos_preconditioner_parameter_list": {}
-        }  )" );
+        Parameters default_settings( R"( {
+            "solver_type"                            : "aztec",
+            "tolerance"                              : 1.0e-6,
+            "max_iteration"                          : 200,
+            "preconditioner_type"                    : "None",
+            "overlap_level"                          : 1,
+            "gmres_krylov_space_dimension"           : 100,
+            "scaling"                                : false,
+            "verbosity"                              : 0,
+            "trilinos_aztec_parameter_list"          : {},
+            "trilinos_preconditioner_parameter_list" : {}
+        } )" );
 
         settings.ValidateAndAssignDefaults(default_settings);
 
