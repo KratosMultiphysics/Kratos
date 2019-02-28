@@ -16,8 +16,12 @@ def Flush(a):
     a.flush()
 
 
-def KratosPrint(*args):
-    Logger.Print(*args, label="DEM")
+def KratosPrintInfo(*args):
+    Logger.PrintInfo(*args, label="DEM")
+    Logger.Flush()
+
+def KratosPrintWarning(*args):
+    Logger.PrintWarning(*args, label="DEM")
     Logger.Flush()
 
 
@@ -366,7 +370,7 @@ class Procedures(object):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -385,7 +389,7 @@ class Procedures(object):
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -673,7 +677,7 @@ class Procedures(object):
             Model_Data.write("Bonded Coordination Number NC: " + str(Coordination_Number) + '\n')
             Model_Data.write('\n')
             #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
-            self.KRATOSprint("Coordination Number: " + str(Coordination_Number) + "\n")
+            self.KratosPrintInfo("Coordination Number: " + str(Coordination_Number) + "\n")
 
         Model_Data.close()
 
@@ -834,15 +838,15 @@ class Procedures(object):
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KRATOSprint(
+            self.KratosPrintInfo(
                 "**************************************************************************")
-            self.KRATOSprint(
+            self.KratosPrintInfo(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KRATOSprint("The type expected was " +
+            self.KratosPrintInfo("The type expected was " +
                              a + " but " + b + " was read.")
-            self.KRATOSprint(
+            self.KratosPrintInfo(
                 "**************************************************************************")
             sys.exit()
 
@@ -850,7 +854,7 @@ class Procedures(object):
     def Flush(self, a):
         a.flush()
 
-    def KRATOSprint(self, message):
+    def KratosPrintInfo(self, message):
         Logger.Print(message, label="DEM")
         Logger.Flush()
 
@@ -1455,7 +1459,7 @@ class DEMIo(object):
         self.SetMultifileLists(self.multifiles)
 
 
-    def KRATOSprint(self, message):
+    def KratosPrintInfo(self, message):
         Logger.Print(message,label="DEM")
         Logger.Flush()
 
@@ -1464,10 +1468,10 @@ class DEMIo(object):
         a.flush()
 
     def ShowPrintingResultsOnScreen(self, all_model_parts):
-        self.KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        self.KRATOSprint("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
-        self.KRATOSprint("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
-        self.KRATOSprint("")
+        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR GID  ***************************")
+        self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
+        self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
+        self.KratosPrintInfo("")
 
     def Initialize(self, DEM_parameters):
         self.AddGlobalVariables()

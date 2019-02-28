@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from DEM_procedures import KratosPrint as Say
+from DEM_procedures import KratosPrintInfo as Say
 import pre_calculated_fluid_algorithm
 BaseAlgorithm = pre_calculated_fluid_algorithm.Algorithm
 import numpy as np

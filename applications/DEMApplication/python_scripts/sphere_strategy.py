@@ -270,7 +270,7 @@ class ExplicitStrategy(object):
         for properties in self.spheres_model_part.Properties:
             current_discontinuum_constitutive_law_string = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
             if ((counter > 0) and (previous_discontinuum_constitutive_law_string != current_discontinuum_constitutive_law_string)):
-                self.Procedures.KRATOSprint(output_message)
+                self.Procedures.KratosPrintInfo(output_message)
                 time.sleep(delay) # Inserting a delay so the user has ample time to read the message
                 break
             previous_discontinuum_constitutive_law_string = current_discontinuum_constitutive_law_string
@@ -327,7 +327,7 @@ class ExplicitStrategy(object):
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
         """
-        self.Procedures.KRATOSprint('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead')
+        self.Procedures.KratosPrintInfo('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead')
         time += self.dt
         self._UpdateTimeInModelParts(time)
         return time
@@ -412,7 +412,7 @@ class ExplicitStrategy(object):
         for model_part in model_part_list:
             for variable in variable_list:
                 VariableUtils().AddDof(variable, model_part)
-            self.Procedures.KRATOSprint("DOFs for the DEM solution added correctly")
+            self.Procedures.KratosPrintInfo("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
@@ -592,7 +592,7 @@ class ExplicitStrategy(object):
                 [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
                 pre_utils = PreUtilities(self.spheres_model_part)
                 pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-                self.Procedures.KRATOSprint(properties)
+                self.Procedures.KratosPrintInfo(properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
 
@@ -604,18 +604,18 @@ class ExplicitStrategy(object):
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
         if properties.Has(PARTICLE_FRICTION):
-            self.Procedures.KRATOSprint("---------------------------------------------------")
-            self.Procedures.KRATOSprint("  WARNING: Property PARTICLE_FRICTION is deprecated ")
-            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
-            self.Procedures.KRATOSprint("---------------------------------------------------")
+            self.Procedures.KratosPrintInfo("---------------------------------------------------")
+            self.Procedures.KratosPrintInfo("  WARNING: Property PARTICLE_FRICTION is deprecated ")
+            self.Procedures.KratosPrintInfo("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KratosPrintInfo("  Automatic replacement is done now.")
+            self.Procedures.KratosPrintInfo("---------------------------------------------------")
             properties[FRICTION] = properties[PARTICLE_FRICTION]
         if properties.Has(WALL_FRICTION):
-            self.Procedures.KRATOSprint("-------------------------------------------------")
-            self.Procedures.KRATOSprint("  WARNING: Property WALL_FRICTION is deprecated")
-            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
-            self.Procedures.KRATOSprint("-------------------------------------------------")
+            self.Procedures.KratosPrintInfo("-------------------------------------------------")
+            self.Procedures.KratosPrintInfo("  WARNING: Property WALL_FRICTION is deprecated")
+            self.Procedures.KratosPrintInfo("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KratosPrintInfo("  Automatic replacement is done now.")
+            self.Procedures.KratosPrintInfo("-------------------------------------------------")
             properties[FRICTION] = properties[WALL_FRICTION]
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)

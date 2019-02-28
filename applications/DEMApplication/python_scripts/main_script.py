@@ -200,7 +200,7 @@ class Solution(object):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -208,7 +208,7 @@ class Solution(object):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -229,7 +229,7 @@ class Solution(object):
         elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
-            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
+            self.KratosPrintInfo('Error: Strategy unavailable. Select a different scheme-element')
 
         return SolverStrategy
 
@@ -287,7 +287,7 @@ class Solution(object):
         self.AddAllDofs()
 
         #-----------os.chdir(self.main_path)
-        self.KRATOSprint("Initializing Problem...")
+        self.KratosPrintInfo("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
 
@@ -324,7 +324,7 @@ class Solution(object):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.KRATOSprint("Initialization Complete")
+        self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 
@@ -335,7 +335,7 @@ class Solution(object):
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
-        self.KRATOSprint(self.report.BeginReport(timer))
+        self.KratosPrintInfo(self.report.BeginReport(timer))
         #-----os.chdir(self.main_path)
 
     def AddAllDofs(self):
@@ -391,7 +391,7 @@ class Solution(object):
             model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Walls. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Walls. Continuing.')
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
         max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
@@ -401,7 +401,7 @@ class Solution(object):
             model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Clusters. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Clusters. Continuing.')
 
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         if max_elem_Id != old_max_elem_Id_spheres:
@@ -415,7 +415,7 @@ class Solution(object):
             model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Inlets. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Inlets. Continuing.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
@@ -448,7 +448,7 @@ class Solution(object):
 
             stepinfo = self.report.StepiReport(timer, self.time, self.step)
             if stepinfo:
-                self.KRATOSprint(stepinfo)
+                self.KratosPrintInfo(stepinfo)
 
             #### PRINTING GRAPHS ####
             #-------os.chdir(self.graphs_path)
@@ -539,7 +539,7 @@ class Solution(object):
 
     def Finalize(self):
 
-        self.KRATOSprint("Finalizing execution...")
+        self.KratosPrintInfo("Finalizing execution...")
         self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
@@ -559,7 +559,7 @@ class Solution(object):
 
         self.procedures.DeleteFiles()
 
-        self.KRATOSprint(self.report.FinalReport(timer))
+        self.KratosPrintInfo(self.report.FinalReport(timer))
 
         if self.post_normal_impact_velocity_option:
             del self.analytic_model_part
@@ -654,7 +654,7 @@ class Solution(object):
         print(self.time,self.step)
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
-            self.KRATOSprint(stepinfo)
+            self.KratosPrintInfo(stepinfo)
 
     def OutputSingleTimeLoop(self):
         #### PRINTING GRAPHS ####

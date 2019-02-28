@@ -32,13 +32,13 @@ class DEMAnalysisStage(AnalysisStage):
         return "ProjectParametersDEM.json"
 
     def GetInputParameters(self):
-        self.KRATOSprint('Warning: Calls to this method (GetInputParameters) will become deprecated in the near future.')
+        self.KratosPrintInfo('Warning: Calls to this method (GetInputParameters) will become deprecated in the near future.')
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
     def LoadParametersFile(self):
-        self.KRATOSprint('Warning: Calls to this method (LoadParametersFile) will become deprecated in the near future.')
+        self.KratosPrintInfo('Warning: Calls to this method (LoadParametersFile) will become deprecated in the near future.')
         self.DEM_parameters = self.GetInputParameters()
         self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
@@ -84,7 +84,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.aux = AuxiliaryUtilities()
 
         # Set the print function TO_DO: do this better...
-        self.KRATOSprint = self.procedures.KRATOSprint
+        self.KratosPrintInfo = self.procedures.KratosPrintInfo
 
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFilename()
@@ -216,7 +216,7 @@ class DEMAnalysisStage(AnalysisStage):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -224,7 +224,7 @@ class DEMAnalysisStage(AnalysisStage):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -280,7 +280,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
 
-        self.KRATOSprint("Initializing Problem...")
+        self.KratosPrintInfo("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
 
@@ -305,7 +305,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self._solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.KRATOSprint("Initialization Complete")
+        self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 
@@ -323,7 +323,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.SetInitialNodalValues()
 
-        self.KRATOSprint(self.report.BeginReport(timer))
+        self.KratosPrintInfo(self.report.BeginReport(timer))
 
     def SetSearchStrategy(self):
         self._solver.search_strategy = self.parallelutils.GetSearchStrategy(self._solver, self.spheres_model_part)
@@ -373,7 +373,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
         else:
-            self.KRATOSprint('No mdpa file found for DEM walls. Continuing.')
+            self.KratosPrintInfo('No mdpa file found for DEM walls. Continuing.')
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
         max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
@@ -383,7 +383,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         else:
-            self.KRATOSprint('No mdpa file found for DEM clusters. Continuing.')
+            self.KratosPrintInfo('No mdpa file found for DEM clusters. Continuing.')
 
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         if max_elem_Id != old_max_elem_Id_spheres:
@@ -397,7 +397,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
         else:
-            self.KRATOSprint('No mdpa file found for DEM inlets. Continuing.')
+            self.KratosPrintInfo('No mdpa file found for DEM inlets. Continuing.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
@@ -459,7 +459,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
-            self.KRATOSprint(stepinfo)
+            self.KratosPrintInfo(stepinfo)
 
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
@@ -503,7 +503,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def Finalize(self):
 
-        self.KRATOSprint("Finalizing execution...")
+        self.KratosPrintInfo("Finalizing execution...")
         self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
@@ -522,12 +522,12 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.procedures.DeleteFiles()
 
-        self.KRATOSprint(self.report.FinalReport(timer))
+        self.KratosPrintInfo(self.report.FinalReport(timer))
 
         if self.post_normal_impact_velocity_option:
             del self.analytic_model_part
 
-        del self.KRATOSprint
+        del self.KratosPrintInfo
         del self.all_model_parts
         del self.demio
         del self.procedures
@@ -593,7 +593,7 @@ class DEMAnalysisStage(AnalysisStage):
         print(self.time,self.step)
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
-            self.KRATOSprint(stepinfo)
+            self.KratosPrintInfo(stepinfo)
 
     def OutputSingleTimeLoop(self):
         #### PRINTING GRAPHS ####

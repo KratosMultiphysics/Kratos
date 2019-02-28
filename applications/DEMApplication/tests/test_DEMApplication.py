@@ -29,8 +29,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle2"))
     smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallTriangle"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
-    smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
-    smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_3"))
+    #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
+    #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_3"))
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
 
     # Create a test suit with the selected tests plus all small tests

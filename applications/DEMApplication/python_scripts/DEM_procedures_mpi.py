@@ -81,7 +81,7 @@ class Procedures(DEM_procedures.Procedures):
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
 
-    def KRATOSprint(self, message):
+    def KratosPrintInfo(self, message):
         if (mpi.rank == 0):
             Logger.Print(*args, label="DEM")
             Logger.Flush()
