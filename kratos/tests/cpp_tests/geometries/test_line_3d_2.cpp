@@ -72,12 +72,28 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(p_geom->EdgesNumber(), 2);
     }
 
+    /** Checks if the edges are correct.
+    * Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsUnitXDirectionLine3D2();
+
+        KRATOS_CHECK_NEAR((p_geom->Edges()[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[1])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[1])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[1])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((p_geom->Edges()[1])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+    }
+
     /** Checks if the number of faces is correct.
     * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2FacesNumber, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsUnitXDirectionLine3D2();
-        KRATOS_CHECK_EQUAL(p_geom->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geom->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
