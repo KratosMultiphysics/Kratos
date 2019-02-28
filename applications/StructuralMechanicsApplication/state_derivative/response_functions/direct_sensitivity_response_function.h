@@ -95,23 +95,44 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable,
                             std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                             const ProcessInfo& rProcessInfo);
+
+    virtual void CalculateGradient(Element& rDirectElement,                            
+                            Variable<Matrix> const& rStressVariable,
+                            std::vector<std::vector<Matrix>>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
     
     virtual void CalculateGradient(Node<3>& rNode,                            
                             Variable<array_1d<double, 3>> const& rStressVariable,
                             std::vector<array_1d<double, 3>>& rOutput, 
-                            const ProcessInfo& rProcessInfo);
-    
+                            const ProcessInfo& rProcessInfo); 
+
+    virtual void CalculateGradient(Node<3>& rNode,                            
+                            Variable<Matrix> const& rStressVariable,
+                            std::vector<Matrix>& rOutput, 
+                            const ProcessInfo& rProcessInfo);   
 
     virtual void CalculatePartialSensitivity(Element& rDirectElement, 
                             DirectSensitivityVariable& rDesignVariable,
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             std::vector<array_1d<double, 3>>& rOutput, 
                             const ProcessInfo& rProcessInfo);
+    
+    virtual void CalculatePartialSensitivity(Element& rDirectElement, 
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<Matrix> const& rStressVariable, 
+                            std::vector<Matrix>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
 
     virtual void CalculatePartialSensitivity(Node<3>& rNode, 
                             DirectSensitivityVariable& rDesignVariable,
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             array_1d<double, 3>& rOutput, 
+                            const ProcessInfo& rProcessInfo);
+    
+    virtual void CalculatePartialSensitivity(Node<3>& rNode, 
+                            DirectSensitivityVariable& rDesignVariable,
+                            Variable<Matrix> const& rStressVariable, 
+                            Matrix& rOutput, 
                             const ProcessInfo& rProcessInfo);
     
     virtual std::string GetResponseVariableName();
