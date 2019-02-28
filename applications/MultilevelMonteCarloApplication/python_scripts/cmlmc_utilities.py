@@ -46,6 +46,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 # TODO: insert distinction between scalar and field Quantity of Interests
 # TODO: check ComputeTolerancei() is correct
 # TODO: create function updating lists
+# TODO: run cmlmc without refinement
 
 
 """
@@ -501,16 +502,16 @@ class MultilevelMonteCarlo(object):
         # prepare lists
         self.difference_QoI.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.difference_QoI.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.central_moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.central_moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.central_moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.central_moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.time_ML.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.time_ML.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.central_moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.central_moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.central_moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.central_moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         # compute mean, sample variance and second moment for difference QoI and time ML
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.number_samples[level]):
@@ -579,17 +580,17 @@ class MultilevelMonteCarlo(object):
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
             self.difference_QoI.mean.append([])
             self.difference_QoI.sample_variance.append([])
-            self.difference_QoI.moment_1.append([])
-            self.difference_QoI.moment_2.append([])
-            self.difference_QoI.moment_3.append([])
-            self.difference_QoI.moment_4.append([])
+            self.difference_QoI.central_moment_1.append([])
+            self.difference_QoI.central_moment_2.append([])
+            self.difference_QoI.central_moment_3.append([])
+            self.difference_QoI.central_moment_4.append([])
             self.difference_QoI.number_samples.append(0)
             self.time_ML.mean.append([])
             self.time_ML.sample_variance.append([])
-            self.time_ML.moment_1.append([])
-            self.time_ML.moment_2.append([])
-            self.time_ML.moment_3.append([])
-            self.time_ML.moment_4.append([])
+            self.time_ML.central_moment_1.append([])
+            self.time_ML.central_moment_2.append([])
+            self.time_ML.central_moment_3.append([])
+            self.time_ML.central_moment_4.append([])
             self.time_ML.number_samples.append(0)
         # compute mean, sample variance and second moment for difference QoI and time ML
         for level in range (self.current_number_levels+1):
