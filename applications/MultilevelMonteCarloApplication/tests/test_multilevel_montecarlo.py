@@ -17,16 +17,6 @@ def GetFilePath(fileName):
 @KratosUnittest.skipUnless(have_convection_diffusion_application,"Missing required application: ConvectionDiffusionApplication")
 class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
-    def testSmallExample(self):
-        pass
-
-    def testNightlyExample(self):
-        pass
-
     def MonteCarloTest(self):
         with KratosUnittest.WorkFolderScope(os.path.join("..","test_examples", self.folder_name),__file__):
             import test_mc_utilities as mc_utilities
@@ -121,6 +111,12 @@ class KratosMultilevelMonteCarloGeneralTests(KratosMultilevelMonteCarloGeneralTe
     def testMultilevelMonteCarlo(self):
         self.folder_name = self.folder_name_case_MLMC
         self.MultilevelMonteCarloTest()
+
+    def tearDown(self):
+        # Code here will be placed AFTER every test in this TestCase.
+        kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.bin"))
+        kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.lst"))
+        pass
 
 if __name__ == '__main__':
     KratosUnittest.main()
