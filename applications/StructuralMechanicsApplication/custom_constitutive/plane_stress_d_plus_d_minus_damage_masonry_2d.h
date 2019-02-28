@@ -692,7 +692,7 @@ private:
      *        x1, x2, x3 Necesarry Stress values to define the uniaxial compression damage bezier curve
      *        y1, y2, y3 Necesarry Strain vlaues to define the uniaxial compression damage bezier curve
      */
-    double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
+    double EvaluateBezierCurve(
     const double Xi, 
     const double x1, double x2, const double x3, 
     const double y1, const double y2, const double y3);
