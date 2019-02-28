@@ -169,6 +169,11 @@ void ShallowElement::CalculateLocalSystem(
     array_1d<double,2> vel;
     double height;
     ComputeElementValues(data, vel, height);
+    int sign;
+    if (height > 0.0)
+        sign = 1;
+    else
+        sign = -1;
 
     // Auxiliary values to compute friction and stabilization terms
     const double epsilon = 0.005;
@@ -180,7 +185,7 @@ void ShallowElement::CalculateLocalSystem(
     // Build LHS
     // Wave equation terms
     BoundedMatrix<double,msElemSize,msElemSize> vel_wave = prod(trans(N_vel),DN_DX_height);
-    noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;                  // Add <w*g*grad(h)> to Momentum Eq
+    noalias(rLeftHandSideMatrix)  = data.gravity * sign * vel_wave;           // Add <w*g*grad(h)> to Momentum Eq
     noalias(rLeftHandSideMatrix) += height * outer_prod(N_height, DN_DX_vel); // Add <q*h*div(u)> to Mass Eq
 
     // Inertia terms
@@ -192,7 +197,7 @@ void ShallowElement::CalculateLocalSystem(
 
     // Build RHS
     // Source terms (bathymetry contribution)
-    noalias(rRightHandSideVector)  = -data.gravity * prod(vel_wave, data.depth);
+    noalias(rRightHandSideVector)  = -data.gravity * sign * prod(vel_wave, data.depth);
 
     // Inertia terms
     noalias(rRightHandSideVector) += data.dt_inv * prod(vel_mass_matrix, data.proj_unk);

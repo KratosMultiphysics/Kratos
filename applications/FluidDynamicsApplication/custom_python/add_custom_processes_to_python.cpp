@@ -87,6 +87,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"DistanceModificationProcess")
     .def(py::init < ModelPart&, const double, const double, const bool, const bool, const bool >())
     .def(py::init< ModelPart&, Parameters& >())
+    .def(py::init< Model&, Parameters& >())
     ;
 
     py::class_<EmbeddedNodesInitializationProcess, EmbeddedNodesInitializationProcess::Pointer, Process>
