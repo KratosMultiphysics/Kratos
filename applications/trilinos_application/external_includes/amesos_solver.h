@@ -8,10 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaboratos:    Philipp Bucher
 //
 
-#if !defined(KRATOS_AMESOS_SOLVER_H_INCLUDED )
-#define  KRATOS_AMESOS_SOLVER_H_INCLUDED
+#if !defined (KRATOS_AMESOS_SOLVER_H_INCLUDED)
+#define KRATOS_AMESOS_SOLVER_H_INCLUDED
 
 // External includes
 
@@ -19,25 +20,33 @@
 #include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 
-//aztec solver includes
+// Amesos solver includes
 #include "Amesos.h"
 #include "Epetra_LinearProblem.h"
 
-
 namespace Kratos
 {
+///@name Kratos Classes
+///@{
+
+/// Wrapper for Trilinos-Amesos Direct Solvers.
+/** Amesos is the Direct Sparse Solver Package in Trilinos.
+ * The goal of Amesos is to make AX=B as easy as it sounds, at least for direct methods.
+ * Amesos provides clean and consistent interfaces to several third party libraries.
+ * https://trilinos.org/packages/amesos/
+*/
+
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class AmesosSolver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:
-    /**
-     * Counted pointer of AmesosSolver
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(AmesosSolver);
+    ///@name Type Definitions
+    ///@{
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    /// Pointer definition of AmesosSolver
+    KRATOS_CLASS_POINTER_DEFINITION(AmesosSolver);
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
@@ -45,6 +54,11 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor with Parameters.
     AmesosSolver(Parameters settings)
     {
         Parameters default_settings( R"({
@@ -106,9 +120,7 @@ public:
             << "\" unfortunately the current compilation of Trilinos does not include it" << std::endl;
     }
 
-    /**
-     * Default constructor
-     */
+    /// Constructor with solver-name and Teuchos::ParameterList.
     AmesosSolver(const std::string& SolverName, Teuchos::ParameterList& rParameterList)
     {
         mParameterList = rParameterList;
@@ -118,16 +130,22 @@ public:
             << "\" unfortunately the current compilation of Trilinos does not include it" << std::endl;
     }
 
-    /**
-     * Destructor
-     */
-    virtual ~AmesosSolver() {}
+    /// Copy constructor.
+    AmesosSolver(const AmesosSolver& Other) = delete;
 
-    static bool HasSolver(const std::string& AmesosSolverName)
-    {
-        Amesos amesos_factory;
-        return amesos_factory.Query(AmesosSolverName);
-    }
+    /// Destructor.
+    ~AmesosSolver() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    AmesosSolver& operator=(const AmesosSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * Normal solve method.
@@ -173,52 +191,45 @@ public:
         return false;
     }
 
+    ///@}
+    ///@name Inquiry
+    ///@{
+
     /**
-     * Print information about this object.
+     * Check if a specific solver is available
+     * @param rAmesosSolverName. Name of the solver
+     * @return Whether the specified solver is available
      */
+    static bool HasSolver(const std::string& rAmesosSolverName)
+    {
+        Amesos amesos_factory;
+        return amesos_factory.Query(rAmesosSolverName);
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Amesos solver finished.";
+        rOStream << "Trilinos Amesos-Solver";
     }
 
-    /**
-     * Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
 
     Teuchos::ParameterList mParameterList;
     std::string mSolverName;
 
-    /**
-     * Assignment operator.
-     */
-    AmesosSolver& operator=(const AmesosSolver& Other);
+    ///@}
 
-    /**
-     * Copy constructor.
-     */
-    AmesosSolver(const AmesosSolver& Other);
+}; // Class AmesosSolver
 
-}; // Class SkylineLUFactorizationSolver
-
-
-/**
- * input stream function
- */
-template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, AmesosSolver< TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
-{
-    return rIStream;
-}
-
-/**
- * output stream function
- */
+/// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const AmesosSolver<TSparseSpaceType,
@@ -231,9 +242,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED  defined
-
-
+#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED defined
