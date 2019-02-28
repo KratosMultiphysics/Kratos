@@ -92,6 +92,36 @@ public:
         std::cout << std::endl;
         std::cout << std::endl;
     }
+
+
+    static void OutputOnTerminal(const std::string output_name, const std::vector<std::vector<Matrix>>& output_vector)
+    {
+        std::cout << output_name << std::endl; 
+        for (IndexType g = 0; g < output_vector.size(); ++g)
+        {
+            std::cout << "       ";
+            for(IndexType k = 0; k < output_vector[g].size(); ++k)
+            {  
+                for(IndexType i = 0; i < output_vector[g][k].size2(); ++i)
+                {   
+                    std::cout << "    |";                 
+                    for(IndexType j = 0; j < output_vector[g][k].size1(); ++j)
+                    {   
+                        if (j == output_vector[g][k].size1()-1)
+                            std::cout << std::setw(8) << output_vector[g][k](j, i) << "|";
+                        else
+                            std::cout << std::setw(8) << output_vector[g][k](j, i) << " : ";
+                    }
+                    if ( k < ( output_vector[g].size() -1 ) )
+                        i = i - 1;
+                    else
+                        std::cout << std::endl; 
+                }   
+            }        
+        std::cout << std::endl;
+        
+        }
+    } 
     
 
     static void OutputOnTerminal(const std::string output_name, const std::vector<Matrix>& output_vector)
@@ -111,8 +141,7 @@ public:
                 }
                 std::cout << std::endl; 
             }                
-            std::cout << "    |                                  |" << std::endl;
-            std::cout << "    |                                  |" <<std::endl;
+            std::cout << "    |                                  |" << std::endl;            
         }
     } 
     

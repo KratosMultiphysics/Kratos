@@ -177,12 +177,6 @@ static void MultiplyFactorsForScalarProduct( array_1d<double, 3>& rScalarProduct
         rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2; 
 }
 
-static void MultiplyFactorsForProduct( array_1d<double, 3>& rScalarProduct ,const array_1d<double, 3>& rFactor1 , const array_1d<double, 3>& rFactor2)
-{    
-   for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
-        rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2[dir_it]; 
-}
-
 static void MultiplyFactorsForScalarProduct( Matrix& rScalarProduct ,const Matrix& rFactor1 , const double& rFactor2)
 {    
    for( IndexType i = 0; i < rFactor1.size1(); ++i )
@@ -190,6 +184,16 @@ static void MultiplyFactorsForScalarProduct( Matrix& rScalarProduct ,const Matri
             rScalarProduct(i,j) += rFactor1(i,j) * rFactor2; 
 }
 
+static void MultiplyFactorsForProduct( array_1d<double, 3>& rScalarProduct ,const array_1d<double, 3>& rFactor1 , const array_1d<double, 3>& rFactor2)
+{    
+   for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
+        rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2[dir_it]; 
+}
+
+static void MultiplyFactorsForProduct( Matrix& rScalarProduct , const Matrix& rFactor1 , const Matrix& rFactor2)
+{    
+   KRATOS_ERROR << "MultiplyFactorsForProduct not yet implemented for matrix type." << std::endl;
+}
     
 }; // class DerivativeBuilder
 
