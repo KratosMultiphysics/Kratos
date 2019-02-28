@@ -25,18 +25,19 @@ class SwimmingDEMSolver(PythonSolver):
                 "Parameters"    : {
                     "model_part_name" : "FluidModelPart.Parts_fluid",
                     "domain_size" : 3,
-                    "fixed_mesh": false
+                    "fixed_mesh": true
                 }
             }]
         }
         """)
         project_parameters["processes"].ValidateAndAssignDefaults(default_processes_settings)
-
+        project_parameters["processes"]["non_optional_solver_processes"][0]["Parameters"]["domain_size"].SetInt(self.domain_size)
         return project_parameters
 
     def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
         # Validate settings
         self.pp = pp
+        self.domain_size = pp.domain_size
         self.project_parameters = self._ValidateSettings(project_parameters)
         self.fluid_solver = fluid_solver
         self.dem_solver = dem_solver
