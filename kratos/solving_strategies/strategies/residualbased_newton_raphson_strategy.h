@@ -605,8 +605,11 @@ class ResidualBasedNewtonRaphsonStrategy
             p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
             // Initialisation of the convergence criteria
-            TSparseSpace::SetToZero(rb);
-            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            {
+                TSparseSpace::SetToZero(rb);
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+            }
 
             mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
