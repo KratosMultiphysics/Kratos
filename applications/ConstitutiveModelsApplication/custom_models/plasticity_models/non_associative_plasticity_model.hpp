@@ -1025,9 +1025,6 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               // evaluate constitutive matrix and plastic flow
-               double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
-               double & rPlasticDevDef = rVariables.Internal.Variables[2];
 
                const double & rPlasticMultiplierOld = mPreviousInternal.Variables[0];
                double & rPlasticMultiplier    = rVariables.Internal.Variables[0];
@@ -1054,16 +1051,6 @@ namespace Kratos
 
                this->mElasticityModel.CalculateStressTensor( rValues, rStressMatrix);
 
-               rPlasticMultiplier += DeltaPlasticMultiplier;
-               for (unsigned int i = 0; i < 3; i++)
-                  rPlasticVolDef += DeltaPlasticMultiplier * DeltaStressYieldCondition(i);
-
-               double update = 0.0;
-               for (unsigned int i = 0; i < 3; i++)
-                  update += pow( DeltaPlasticMultiplier * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
-               for (unsigned int i = 3; i < 6; i++)
-                  update += 2.0 * pow( DeltaPlasticMultiplier *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-               rPlasticDevDef += sqrt(update);
 
                KRATOS_CATCH("")
             }

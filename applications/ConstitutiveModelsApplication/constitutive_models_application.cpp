@@ -148,6 +148,8 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
   Serializer::Register( "MohrCoulombV1Model", mMohrCoulombV1Model );
   Serializer::Register( "TrescaModel", mTrescaModel );
+  Serializer::Register( "CasmAssociatedSoilModel", mCasmAssociatedSoilModel );
+  Serializer::Register( "CasmMCCSoilModel", mCasmMCCSoilModel );
 
   //yield criteria
   Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );

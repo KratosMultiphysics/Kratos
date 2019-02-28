@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CASM_SOIL_MODEL_H_INCLUDED )
-#define      KRATOS_CASM_SOIL_MODEL_H_INCLUDED
+#if !defined(KRATOS_CASM_BASE_SOIL_MODEL_H_INCLUDED )
+#define      KRATOS_CASM_BASE_SOIL_MODEL_H_INCLUDED
 
 
 // Clay And Sand Model (CASM)
@@ -64,7 +64,7 @@ namespace Kratos
    /** Detail class definition.
     */
    template<class TElasticityModel, class TYieldSurface>
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmSoilModel : public NonAssociativePlasticityModel<TElasticityModel, TYieldSurface >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmBaseSoilModel : public NonAssociativePlasticityModel<TElasticityModel, TYieldSurface >
    {
       public:
 
@@ -96,21 +96,21 @@ namespace Kratos
          typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
          
-         /// Pointer definition of CasmSoilModel
-         KRATOS_CLASS_POINTER_DEFINITION( CasmSoilModel );
+         /// Pointer definition of CasmBaseSoilModel
+         KRATOS_CLASS_POINTER_DEFINITION( CasmBaseSoilModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         CasmSoilModel() : DerivedType() { mInitialized = false; }
+         CasmBaseSoilModel() : DerivedType() { mInitialized = false; }
 
          /// Copy constructor.
-         CasmSoilModel(CasmSoilModel const& rOther) : DerivedType(rOther), mInitialized(rOther.mInitialized) {}
+         CasmBaseSoilModel(CasmBaseSoilModel const& rOther) : DerivedType(rOther), mInitialized(rOther.mInitialized) {}
 
          /// Assignment operator.
-         CasmSoilModel& operator=(CasmSoilModel const& rOther)
+         CasmBaseSoilModel& operator=(CasmBaseSoilModel const& rOther)
          {
             DerivedType::operator=(rOther);
             return *this;
@@ -119,11 +119,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return ( CasmSoilModel::Pointer(new CasmSoilModel(*this)) );
+            return ( CasmBaseSoilModel::Pointer(new CasmBaseSoilModel(*this)) );
          }
 
          /// Destructor.
-         virtual ~CasmSoilModel() {}
+         virtual ~CasmBaseSoilModel() {}
 
 
          ///@}
@@ -209,20 +209,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "CasmSoilModel" ;
+            buffer << "CasmBaseSoilModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "CasmSoilModel";
+            rOStream << "CasmBaseSoilModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "CasmSoilModel Data";
+            rOStream << "CasmBaseSoilModel Data";
          }
 
 
@@ -373,6 +373,40 @@ namespace Kratos
 
                KRATOS_CATCH("")
             }
+            // ****************************************************************************
+            //  compute the stress state by using implex
+            void  CalculateImplexPlasticStep(ModelDataType& rValues, PlasticDataType&  rVariables, MatrixType&  rStressMatrix, const MatrixType & rDeltaDeformationMatrix)
+            {
+               KRATOS_TRY
+
+
+               const double & rPlasticMultiplierOld = this->mPreviousInternal.Variables[0];
+               double & rPlasticMultiplier    = rVariables.Internal.Variables[0];
+               double  DeltaPlasticMultiplier = (rPlasticMultiplier - rPlasticMultiplierOld);
+
+               if ( DeltaPlasticMultiplier < 0)
+                  DeltaPlasticMultiplier = 0;
+
+               
+               this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
+
+               VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
+               VectorType PlasticPotentialDerivative = this->mYieldSurface.CalculateDeltaPlasticPotential( rVariables, PlasticPotentialDerivative);
+
+
+               MatrixType UpdateMatrix;
+               ConvertHenckyVectorToCauchyGreenTensor( -DeltaPlasticMultiplier * PlasticPotentialDerivative / 2.0, UpdateMatrix);
+               UpdateMatrix = prod( rDeltaDeformationMatrix, UpdateMatrix);
+
+
+               rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
+               rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
+
+               this->mElasticityModel.CalculateStressTensor( rValues, rStressMatrix);
+
+
+               KRATOS_CATCH("")
+            }
 
             //********************************************************************
             //********************************************************************
@@ -396,6 +430,7 @@ namespace Kratos
 
                KRATOS_CATCH("")
             }
+
 
             //***************************************************************************************
             //***************************************************************************************
@@ -544,7 +579,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class CasmSoilModel
+   }; // Class CasmBaseSoilModel
 
    ///@}
 
@@ -569,6 +604,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CASM_SOIL_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_CASM_BASE_SOIL_MODEL_H_INCLUDED  defined 
 
 

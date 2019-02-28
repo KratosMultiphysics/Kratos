@@ -96,7 +96,8 @@
 #include "custom_models/plasticity_models/tresca_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 //#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
-#include "custom_models/plasticity_models/real_casm_soil_model.hpp"
+#include "custom_models/plasticity_models/casm_associated_soil_model.hpp"
+#include "custom_models/plasticity_models/casm_mcc_soil_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
@@ -328,7 +329,8 @@ namespace Kratos {
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
     const MohrCoulombV1Model                       mMohrCoulombV1Model;
     const TrescaModel                              mTrescaModel;
-    const RealCasmModel                            mRealCasmModel;
+    const CasmAssociatedSoilModel                  mCasmAssociatedSoilModel;
+    const CasmMCCSoilModel                         mCasmMCCSoilModel;
 
     //yield criteria
     const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;

@@ -1,26 +1,24 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
+//   Last modified by:    $Co-Author:                 LHauser $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_REAL_CASM_MODEL_H_INCLUDED )
-#define      KRATOS_REAL_CASM_MODEL_H_INCLUDED
+#if !defined(KRATOS_CASM_ASSOCIATED_SOIL_MODEL_H_INCLUDED )
+#define      KRATOS_CASM_ASSOCIATED_SOIL_MODEL_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/plasticity_models/casm_soil_model.hpp"
+#include "custom_models/plasticity_models/casm_base_soil_model.hpp"
 #include "custom_models/plasticity_models/hardening_rules/casm_hardening_rule.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/casm_yield_surface.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
-
-#include "custom_models/plasticity_models/yield_surfaces/plastic_potential/modified_cam_clay_yield_surface.hpp"
 
 namespace Kratos
 {
@@ -49,7 +47,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) RealCasmModel : public CasmSoilModel<BorjaModel, CasmYieldSurface<CasmHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmAssociatedSoilModel : public CasmBaseSoilModel<BorjaModel, CasmYieldSurface<CasmHardeningRule> >
    {
       public:
 
@@ -66,7 +64,7 @@ namespace Kratos
          typedef YieldSurfaceType::Pointer                     YieldSurfacePointer;
 
          //base type
-         typedef CasmSoilModel<ElasticityModelType,YieldSurfaceType>  BaseType;
+         typedef CasmBaseSoilModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
          //common types
          typedef BaseType::Pointer                         BaseTypePointer;
@@ -79,27 +77,21 @@ namespace Kratos
          typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
-         /// Pointer definition of RealCasmModel
-         KRATOS_CLASS_POINTER_DEFINITION( RealCasmModel );
+         /// Pointer definition of CasmAssociatedSoilModel
+         KRATOS_CLASS_POINTER_DEFINITION( CasmAssociatedSoilModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         RealCasmModel() : BaseType() {
-            ModifiedCamClayPlasticPotential<CasmHardeningRule> AuxiliarObject;
-            YieldSurface<CasmHardeningRule>::Pointer pPlasticPotential = AuxiliarObject.Clone();
-            std::cout << " thisPointer " << pPlasticPotential << std::endl;
-            mYieldSurface = CasmYieldSurface<CasmHardeningRule>( pPlasticPotential);
-            //mYieldSurface = CasmYieldSurface<CasmHardeningRule>( );
-         }
+         CasmAssociatedSoilModel() : BaseType() {}
 
          /// Copy constructor.
-         RealCasmModel(RealCasmModel const& rOther) : BaseType(rOther) {}
+         CasmAssociatedSoilModel(CasmAssociatedSoilModel const& rOther) : BaseType(rOther) {}
 
          /// Assignment operator.
-         RealCasmModel& operator=(RealCasmModel const& rOther)
+         CasmAssociatedSoilModel& operator=(CasmAssociatedSoilModel const& rOther)
          {
             BaseType::operator=(rOther);
             return *this;
@@ -108,11 +100,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return Kratos::make_shared<RealCasmModel>(*this);
+            return Kratos::make_shared<CasmAssociatedSoilModel>(*this);
          }
 
          /// Destructor.
-         ~RealCasmModel() override {}
+         ~CasmAssociatedSoilModel() override {}
 
 
          ///@}
@@ -208,20 +200,20 @@ namespace Kratos
          std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "RealCasmModel" ;
+            buffer << "CasmAssociatedSoilModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "RealCasmModel";
+            rOStream << "CasmAssociatedSoilModel";
          }
 
          /// Print object's data.
          void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "RealCasmModel Data";
+            rOStream << "CasmAssociatedSoilModel Data";
          }
 
 
@@ -321,7 +313,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class RealCasmModel
+   }; // Class CasmAssociatedSoilModel
 
    ///@}
 
@@ -346,4 +338,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REAL_CASM_MODEL_H_INCLUDED  defined
+#endif // KRATOS_CASM_ASSOCIATED_SOIL_MODEL_H_INCLUDED  defined

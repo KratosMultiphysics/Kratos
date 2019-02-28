@@ -80,11 +80,15 @@ namespace Kratos
     NonAssociativeYieldSurface( BaseTypePointer const & rpPlasticPotential)
        : BaseType() {
           this->mpPlasticPotential = rpPlasticPotential;
+          std::cout << " thisPointerHERE " << rpPlasticPotential << std::endl;;
+          std::cout << " --------------- " << rpPlasticPotential << std::endl;;
        }
 
     /// Copy constructor.
     NonAssociativeYieldSurface(NonAssociativeYieldSurface const& rOther) : BaseType(rOther) {
       this->mpPlasticPotential = rOther.mpPlasticPotential;
+      std::cout << " thisPointerHERE1 " << mpPlasticPotential << std::endl;;
+      std::cout << " --------------- " << rOther.mpPlasticPotential << std::endl;;
     }
 
     /// Assignment operator.
@@ -92,6 +96,9 @@ namespace Kratos
     {
        BaseType::operator=(rOther);
        mpPlasticPotential = rOther.mpPlasticPotential;
+       std::cout << " thisPointerHERE3 " << mpPlasticPotential << std::endl;;
+       std::cout << " --------------- " << rOther.mpPlasticPotential << std::endl;;
+
 
       return *this;
     }
