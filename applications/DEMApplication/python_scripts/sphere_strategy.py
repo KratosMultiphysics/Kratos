@@ -325,6 +325,9 @@ class ExplicitStrategy(object):
         (self.cplusplus_strategy).Solve()
 
     def AdvanceInTime(self, time):
+        """This function updates and return the current simulation time
+        """
+        Logger.Print('Warning: Calls to this method (AdvanceInTime) will require to be updated in order to function properly.', label="DEM")
         time += self.dt
         self._UpdateTimeInModelParts(time)
         return time
