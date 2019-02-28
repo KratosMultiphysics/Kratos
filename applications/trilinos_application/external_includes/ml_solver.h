@@ -64,7 +64,7 @@ public:
 
     typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
 
-    typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
+    typedef typename Kratos::unique_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -239,7 +239,7 @@ public:
         // before the system matrix.
         if (mReformPrecAtEachStep == true || !mpMLPrec) {
             this->ResetPreconditioner();
-            MLPreconditionerPointerType tmp(Kratos::make_shared<ML_Epetra::MultiLevelPreconditioner>(rA, mMLParameterList, true));
+            MLPreconditionerPointerType tmp(Kratos::make_unique<ML_Epetra::MultiLevelPreconditioner>(rA, mMLParameterList, true));
             mpMLPrec.swap(tmp);
         }
 
