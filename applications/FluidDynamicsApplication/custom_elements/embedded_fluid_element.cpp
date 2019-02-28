@@ -221,43 +221,6 @@ void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
     }
 }
 
-template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
-    const Variable<double> &rVariable,
-    std::vector<double> &rValues,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 6>> &rVariable,
-    std::vector<array_1d<double, 6>> &rValues,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
-    const Variable<Vector> &rVariable,
-    std::vector<Vector> &rValues,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-template <class TBaseElement>
-void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
-    const Variable<Matrix> &rVariable,
-    std::vector<Matrix> &rValues,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
 template <class TBaseElement>

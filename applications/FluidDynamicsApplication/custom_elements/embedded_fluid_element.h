@@ -240,6 +240,12 @@ public:
     ///@{
 
     /**
+     * @brief Base element GetValueOnIntegrationPoints
+     * Called to avoid reimplementing the variable types specializations not required
+     */
+    using TBaseElement::GetValueOnIntegrationPoints;
+
+    /**
      * @brief Get the Value On Integration Points object
      * Computes the value in the Gauss pts. for a three component array variable
      * @param rVariable Array variable to be computed
@@ -249,54 +255,6 @@ public:
     void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3>> &rVariable,
         std::vector<array_1d<double, 3>> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    /**
-     * @brief Get the Value On Integration Points object
-     * Computes the value in the Gauss pts. for a double variable
-     * @param rVariable Double variable to be computed
-     * @param rValues Computed gauss point values
-     * @param rCurrentProcessInfo Current process info
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double> &rVariable,
-        std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    /**
-     * @brief Get the Value On Integration Points object
-     * Computes the value in the Gauss pts. for a six component array variable
-     * @param rVariable Array variable to be computed
-     * @param rValues Computed gauss point values
-     * @param rCurrentProcessInfo Current process info
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 6>> &rVariable,
-        std::vector<array_1d<double, 6>> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    /**
-     * @brief Get the Value On Integration Points object
-     * Computes the value in the Gauss pts. for a vector variable
-     * @param rVariable Vector variable to be computed
-     * @param rValues Computed gauss point values
-     * @param rCurrentProcessInfo Current process info
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector> &rVariable,
-        std::vector<Vector> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    /**
-     * @brief Get the Value On Integration Points object
-     * Computes the value in the Gauss pts. for a matrix variable
-     * @param rVariable Matrix variable to be computed
-     * @param rValues Computed gauss point values
-     * @param rCurrentProcessInfo Current process info
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix> &rVariable,
-        std::vector<Matrix> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
