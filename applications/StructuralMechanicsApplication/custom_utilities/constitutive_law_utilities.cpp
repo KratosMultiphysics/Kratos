@@ -133,13 +133,13 @@ void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
     )
 {
     rDeviator = rStressVector;
-    const double p_mean = I1 / static_cast<double>(Dimension);
+    const double p_mean = I1 / 3.0;
 
     for (IndexType i = 0; i < Dimension; ++i)
         rDeviator[i] -= p_mean;
 
-    rJ2 = 0.5 * (std::pow(rDeviator[0], 2) + std::pow(rDeviator[1], 2)) +
-          std::pow(rDeviator[2], 2);
+    rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) +
+          std::pow(rDeviator[2], 2.0);
 }
 
 /***********************************************************************************/
