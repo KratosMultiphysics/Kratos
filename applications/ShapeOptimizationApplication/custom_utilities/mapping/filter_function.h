@@ -80,23 +80,18 @@ class FilterFunction
     FilterFunction(std::string filter_function_type, double filter_size)
         : m_filter_size(filter_size)
     {
-        // Create strings to compare to
-        std::string gaussian("gaussian");
-        std::string linear("linear");
-        std::string constant("constant");
-
         // Set type of weighting function
 
         // Type 1: Gaussian function
-        if (filter_function_type.compare(gaussian) == 0)
+        if (filter_function_type == "gaussian")
             m_filter_function_type = 1;
 
         // Type 2: Linear function
-        else if (filter_function_type.compare(linear) == 0)
+        else if (filter_function_type == "linear")
             m_filter_function_type = 2;
 
         // Type 3: Constant function
-        else if (filter_function_type.compare(constant) == 0)
+        else if (filter_function_type == "constant")
             m_filter_function_type = 3;
 
         // Throw error message in case of wrong specification

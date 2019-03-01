@@ -51,11 +51,11 @@ namespace Kratos
   /// Utility to initialize the historical data in moving boundary problems
   /** This utility is based on the Fixed Mesh - Arbitrary Lagrangian Eulerian
    * (FM-ALE) method but solving the mesh problem in an explicit manner. Thus,
-   * a virtual mesh is set. This virtual mesh is moved according to the embedded 
-   * object movement. The virtual mesh movement, is computed in an explicit 
-   * manner as a weighted average. Such weights are computed by means of a 
+   * a virtual mesh is set. This virtual mesh is moved according to the embedded
+   * object movement. The virtual mesh movement, is computed in an explicit
+   * manner as a weighted average. Such weights are computed by means of a
    * kernel function. Once the mesh movement (and velocity) have been computed,
-   * the origin mesh historical values (velocity and pressure) are computed as 
+   * the origin mesh historical values (velocity and pressure) are computed as
    * an interpolation in the virtualmodel part.
    */
   class ExplicitMeshMovingUtilities
@@ -81,7 +81,7 @@ namespace Kratos
 
     /// Constructor
     ExplicitMeshMovingUtilities(
-        ModelPart &rModelPart,
+        ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius);
 
@@ -106,13 +106,13 @@ namespace Kratos
 
     /**
     * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
-    * It is supposed to be performed once. 
+    * It is supposed to be performed once.
     * @param rOriginModelPart model part from where the nodes and elements are copied
     */
     void FillVirtualModelPart(ModelPart& rOriginModelPart);
 
     /**
-    * This method undoes the performed mesh movement to recover the original mesh in 
+    * This method undoes the performed mesh movement to recover the original mesh in
     */
     void UndoMeshMovement();
 
@@ -166,6 +166,7 @@ private:
 
     ModelPart &mrVirtualModelPart;
     ModelPart &mrStructureModelPart;
+    ModelPart *mpOriginModelPart = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -178,8 +179,8 @@ private:
 
     /**
     * According to mSearchRadius, performs the bins search of the close structure nodes for each fluid node
-    * @return rSearchResults vector containing the the rStructureModelPart nodes inside 
-    * @return rSearchDistanceResults vector containing the the rStructureModelPart nodes 
+    * @return rSearchResults vector containing the the rStructureModelPart nodes inside
+    * @return rSearchDistanceResults vector containing the the rStructureModelPart nodes
     * inside SearchRadius distance values for each rModelPart nodes
     */
     void SearchStructureNodes(
@@ -187,11 +188,11 @@ private:
         DistanceVectorContainerType &rSearchDistanceResults);
 
     /**
-    * Computes the MESH_DISPLACEMENT value for each fluid node. This operation is explicitly computed 
-    * as a weighted average of the structure nodes DISPLACEMENT values within the mSearchRadius. The 
+    * Computes the MESH_DISPLACEMENT value for each fluid node. This operation is explicitly computed
+    * as a weighted average of the structure nodes DISPLACEMENT values within the mSearchRadius. The
     * weights are computed using a kernel function.
-    * @param rSearchResults vector containing the the rStructureModelPart nodes inside 
-    * @param rSearchDistanceResults vector containing the the rStructureModelPart nodes 
+    * @param rSearchResults vector containing the the rStructureModelPart nodes inside
+    * @param rSearchDistanceResults vector containing the the rStructureModelPart nodes
     * inside SearchRadius distance values for each rModelPart nodes
     */
     void ComputeMeshDisplacement(

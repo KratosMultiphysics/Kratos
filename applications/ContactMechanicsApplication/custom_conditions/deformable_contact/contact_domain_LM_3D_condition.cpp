@@ -117,7 +117,7 @@ namespace Kratos
     // unsigned int node_a = 0, node_b = 0;
     // unsigned int slave_a = 0, slave_b = 0;
     // if( this->Is(SELECTED) ){
-    // 	unsigned int slave_a = GetValue(MASTER_NODES).front().Id(), slave_b = GetValue(MASTER_NODES).back().Id();
+    // 	unsigned int slave_a = GetValue(MASTER_NODES).front()->Id(), slave_b = GetValue(MASTER_NODES).back()->Id();
     // 	for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
     // 	{
 
@@ -482,7 +482,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -670,7 +670,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -853,7 +853,7 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.front();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front().GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){
@@ -938,7 +938,7 @@ namespace Kratos
     // std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
     //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
-    // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
+    // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front()->Id()<<" "<<GetValue(MASTER_NODES).back()->Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
 
 
     if( this->Is(SELECTED) )
@@ -1321,7 +1321,7 @@ namespace Kratos
     unsigned int slave1=mContactVariables.slaves[0];
     unsigned int slave2=mContactVariables.slaves[1];
 
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    //Condition* MasterCondition = GetValue(MASTER_CONDITION);
 
     //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix(3,3);
@@ -2518,76 +2518,72 @@ namespace Kratos
     //Check slave node inside the contacting domain:
 
     //node1:
-    WeakPointerVector<Element >& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+    ElementWeakPtrVectorType& nElements1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
     //node2:
-    WeakPointerVector<Element >& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
-
-    unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
-    unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
+    ElementWeakPtrVectorType& nElements2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
 
     bool is_inside_a = false;
     //following slave normal projection of the slave Sx1 and Sy1
-    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-      {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+    for(auto& i_nelem : nElements1)
+    {
+      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							   vertices[1].X(), vertices[1].Y(),
-							   vertices[2].X(), vertices[2].Y(),
-							   Sx1, Sy1);
-
-	if(is_inside_a)
-	  break;
-      }
+      is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                         vertices[1].X(), vertices[1].Y(),
+                                                         vertices[2].X(), vertices[2].Y(),
+                                                         Sx1, Sy1);
+      if(is_inside_a)
+        break;
+    }
 
     if(!is_inside_a){
 
-      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
-	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+      for(auto i_nelem : nElements2)
+      {
+        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	  is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							     vertices[1].X(), vertices[1].Y(),
-							     vertices[2].X(), vertices[2].Y(),
-							     Sx1, Sy1);
+        is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                           vertices[1].X(), vertices[1].Y(),
+                                                           vertices[2].X(), vertices[2].Y(),
+                                                           Sx1, Sy1);
 
-	  if(is_inside_a)
-	    break;
-	}
+        if(is_inside_a)
+          break;
+      }
 
     }
 
     bool is_inside_b = false;
     //Check projection of the slave node inside the contacting domain:
     //following master normal projection of the slave Mx1 and My1
-    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-      {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+    for(auto& i_nelem : nElements1)
+    {
+      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							   vertices[1].X(), vertices[1].Y(),
-							   vertices[2].X(), vertices[2].Y(),
-							   Mx1, My1);
+      is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                         vertices[1].X(), vertices[1].Y(),
+                                                         vertices[2].X(), vertices[2].Y(),
+                                                         Mx1, My1);
 
-	if(is_inside_b)
-	  break;
-      }
+      if(is_inside_b)
+        break;
+    }
 
     if(!is_inside_b){
 
 
-      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
-	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+      for(auto i_nelem : nElements2)
+      {
+        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	  is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							     vertices[1].X(), vertices[1].Y(),
-							     vertices[2].X(), vertices[2].Y(),
-							     Mx1, My1);
+        is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                           vertices[1].X(), vertices[1].Y(),
+                                                           vertices[2].X(), vertices[2].Y(),
+                                                           Mx1, My1);
 
-	  if(is_inside_b)
-	    break;
-	}
+        if(is_inside_b)
+          break;
+      }
 
     }
 

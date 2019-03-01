@@ -219,16 +219,16 @@ class MPIDataCommunicator: public DataCommunicator
         const int RecvSource) const override;
 
     void SendRecv(
-        const std::vector<int>& rSendValues, const int SendDestination,
-        std::vector<int>& rRecvValues, const int RecvSource) const override;
+        const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
+        std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const override;
 
     void SendRecv(
-        const std::vector<double>& rSendValues, const int SendDestination,
-        std::vector<double>& rRecvValues, const int RecvSource) const override;
+        const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
+        std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const override;
 
     void SendRecv(
-        const std::string& rSendValues, const int SendDestination,
-        std::string& rRecvValues, const int RecvSource) const override;
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const override;
 
     // Broadcast
 
@@ -428,8 +428,8 @@ class MPIDataCommunicator: public DataCommunicator
         MPI_Op Operation) const;
 
     template<class TDataType> void SendRecvDetail(
-        const TDataType& rSendMessage, const int SendDestination,
-        TDataType& rRecvMessage, const int RecvSource) const;
+        const TDataType& rSendMessage, const int SendDestination, const int SendTag,
+        TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const;
 
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
@@ -456,10 +456,6 @@ class MPIDataCommunicator: public DataCommunicator
     bool IsEqualOnAllRanks(const int LocalValue) const;
 
     bool IsValidRank(const int Rank) const;
-
-    template<class TDataType> void ValidateSendRecvInput(
-        const TDataType& rSendMessage, const int SendDestination,
-        TDataType& rRecvMessage, const int RecvSource) const;
 
     template<class TDataType> void ValidateScattervInput(
         const TDataType& rSendValues,

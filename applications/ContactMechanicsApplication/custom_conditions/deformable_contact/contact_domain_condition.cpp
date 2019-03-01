@@ -433,8 +433,8 @@ namespace Kratos
     TransferVariables.SetVariable(DEFORMATION_GRADIENT);
 
     MeshDataTransferUtilities DataTransfer;
-    Element::Pointer   MasterElement   = GetValue(MASTER_ELEMENTS)(0).lock();
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    Element*   MasterElement   = &GetValue(MASTER_ELEMENTS).front();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
     DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -1113,16 +1113,35 @@ namespace Kratos
 
     rDeltaPosition = ZeroMatrix(number_of_nodes, dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
+    if( MasterGeometry[0].SolutionStepsDataHas(STEP_DISPLACEMENT) )
+    {
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentStepDisplacement = MasterGeometry[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentStepDisplacement[j];
+        }
+
       }
+    }
+    else{
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentDisplacement  = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+      }
+
+    }
+
 
     return rDeltaPosition;
 

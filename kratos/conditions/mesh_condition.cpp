@@ -28,7 +28,7 @@ MeshCondition::MeshCondition(IndexType NewId)
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
+    IndexType NewId,
     const NodesArrayType& rThisNodes
     ) : BaseType(NewId, rThisNodes)
 {
@@ -38,7 +38,7 @@ MeshCondition::MeshCondition(
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
+    IndexType NewId,
     GeometryType::Pointer pGeometry
     ) : BaseType(NewId, pGeometry)
 {
@@ -48,8 +48,8 @@ MeshCondition::MeshCondition(
 /***********************************************************************************/
 
 MeshCondition::MeshCondition(
-    IndexType NewId, 
-    GeometryType::Pointer pGeometry, 
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) : BaseType(NewId,pGeometry, pProperties)
 {
@@ -86,7 +86,7 @@ MeshCondition& MeshCondition::operator=(MeshCondition const& rOther)
 /***********************************************************************************/
 
 Condition::Pointer MeshCondition::Create(
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
@@ -114,7 +114,7 @@ Condition::Pointer MeshCondition::Create(
 /***********************************************************************************/
 
 Condition::Pointer MeshCondition::Clone (
-    IndexType NewId, 
+    IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
@@ -126,6 +126,42 @@ Condition::Pointer MeshCondition::Clone (
     return p_new_cond;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const VectorType& rRHS,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double,3> >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MeshCondition::AddExplicitContribution(
+    const MatrixType& rLHSMatrix,
+    const Variable<MatrixType>& rLHSVariable,
+    Variable<Matrix>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
 }
 
 /***********************************************************************************/

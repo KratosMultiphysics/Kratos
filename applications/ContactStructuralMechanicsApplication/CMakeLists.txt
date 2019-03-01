@@ -16,8 +16,11 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application_variables.cpp
 
   ## UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mortar_explicit_contribution_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/base_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simple_contact_search.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
 
   ## CUSTOM PYTHON
@@ -40,12 +43,14 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## CONDITIONS
   # Mortar condition
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/paired_condition.cpp # Mesh tying
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/paired_condition.cpp # Paired condition
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp # Mesh tying
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_mortar_contact_condition.cpp # Base class
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_condition.cpp # Base class
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp # Frictionless
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_components_mortar_contact_condition.cpp # Frictionless
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_components_mortar_contact_condition.cpp # Frictionless (components)
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.cpp # Frictionless axisym
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_frictionless_mortar_contact_condition.cpp # Frictionless (penalty)
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_frictionless_mortar_contact_axisym_condition.cpp # Frictionless (penalty) axisym
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_condition.cpp # Frictional
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_axisym_condition.cpp # Frictional axisym
 )

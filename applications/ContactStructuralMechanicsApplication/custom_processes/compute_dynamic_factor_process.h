@@ -55,10 +55,16 @@ public:
     /// Pointer definition of ComputeDynamicFactorProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeDynamicFactorProcess);
 
-    // General type definitions
+    /// Node type
     typedef Node<3>                                          NodeType;
+
+    /// Geometry type
     typedef Geometry<NodeType>                           GeometryType;
+
+    /// Nodes array type
     typedef ModelPart::NodesContainerType              NodesArrayType;
+
+    /// Conditions array type
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
 
     ///@}
@@ -66,7 +72,8 @@ public:
     ///@{
 
     /// Default constructor.
-    ComputeDynamicFactorProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
+    ComputeDynamicFactorProcess( ModelPart& rThisModelPart)
+        :mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
 
@@ -106,6 +113,9 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override;
 
     ///@}
@@ -192,7 +202,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;
+    ModelPart& mrThisModelPart;  /// The main model part of the process to evaluate
 
     ///@}
     ///@name Private Operators
@@ -202,6 +212,16 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the factor to consider the dynamic factor considing a logictic curve
+     * @details Look in https://en.wikipedia.org/wiki/Logistic_function
+     * @param MaxGapThreshold The maximum gap considered for the interpolation
+     * @param CurrentGap The current gap
+     */
+    double ComputeLogisticFactor(
+        const double MaxGapThreshold,
+        const double CurrentGap
+        );
 
     ///@}
     ///@name Private  Access
@@ -239,19 +259,19 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeDynamicFactorProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeDynamicFactorProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ComputeDynamicFactorProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ComputeDynamicFactorProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
 #endif /* KRATOS_COMPUTE_DYNAMIC_FACTOR_PROCESS defined */

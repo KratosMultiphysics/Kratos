@@ -54,17 +54,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A four node 3D quadrilateral geometry with bi-linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
+ * The node ordering corresponds with:
  *            v
  *            ^
  *            |
- *      3-----------2 
- *      |     |     |         
- *      |     |     |          
- *      |     +---- | --> u    
- *      |           |          
- *      |           |          
- *      0-----------1      
+ *      3-----------2
+ *      |     |     |
+ *      |     |     |
+ *      |     +---- | --> u
+ *      |           |
+ *      |           |
+ *      0-----------1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -81,6 +81,8 @@ public:
      * Geometry as base class.
      */
     typedef Geometry<TPointType> BaseType;
+
+    typedef Geometry<TPointType> GeometryType;
 
     /**
      * Type of edge geometry
@@ -232,7 +234,7 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    Quadrilateral3D4( const PointsArrayType& ThisPoints )
+    explicit Quadrilateral3D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
@@ -265,7 +267,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Quadrilateral3D4( Quadrilateral3D4<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -367,14 +369,6 @@ public:
         rResult( 2, 1 ) =  1.0;
         rResult( 3, 0 ) = -1.0;
         rResult( 3, 1 ) =  1.0;
-        return rResult;
-    }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4) rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
         return rResult;
     }
 
@@ -1066,6 +1060,38 @@ public:
         NodesInFaces(0,3)=3;//contrary node to the face
         NodesInFaces(1,3)=1;
         NodesInFaces(2,3)=2;
+    }
+
+    /**
+     * @brief Test the intersection with another geometry
+     * @details decomposes in smaller triangles
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const GeometryType& ThisGeometry) override
+    {
+        Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
+                                           this->pGetPoint( 1 ),
+                                           this->pGetPoint( 2 )
+        );
+        Triangle3D3<PointType> triangle_1 (this->pGetPoint( 2 ),
+                                           this->pGetPoint( 3 ),
+                                           this->pGetPoint( 0 )
+        );
+        Triangle3D3<PointType> triangle_2 (ThisGeometry.pGetPoint( 0 ),
+                                           ThisGeometry.pGetPoint( 1 ),
+                                           ThisGeometry.pGetPoint( 2 )
+        );
+        Triangle3D3<PointType> triangle_3 (ThisGeometry.pGetPoint( 2 ),
+                                           ThisGeometry.pGetPoint( 3 ),
+                                           ThisGeometry.pGetPoint( 0 )
+        );
+
+        if      ( triangle_0.HasIntersection(triangle_2) ) return true;
+        else if ( triangle_1.HasIntersection(triangle_2) ) return true;
+        else if ( triangle_0.HasIntersection(triangle_3) ) return true;
+        else if ( triangle_1.HasIntersection(triangle_3) ) return true;
+        else return false;
     }
 
     /** This method checks if an axis-aliged bounding box (AABB)

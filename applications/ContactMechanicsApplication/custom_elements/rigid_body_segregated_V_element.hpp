@@ -2,7 +2,7 @@
 //   Project Name:        KratosContactMechanicsApplication $
 //   Created by:          $Author:              JMCarbonell $
 //   Last modified by:    $Co-Author:                       $
-//   Date:                $Date:             September 2018 $
+//   Date:                $Date:               October 2018 $
 //   Revision:            $Revision:                    0.0 $
 //
 //
@@ -37,12 +37,12 @@ namespace Kratos
 /// Rigid Body Segregated V Element for 3D space dimension
 
 /**
- * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, DELTA_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
+ * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
 class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodySegregatedVElement
-    :public RigidBodyElement
+    : public RigidBodyElement
 {
 public:
 
@@ -63,7 +63,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodySegregatedVElement );
 
     enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -166,7 +166,7 @@ public:
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************* COMPUTING  METHODS
 
     /**
@@ -228,8 +228,15 @@ public:
 				       ProcessInfo& rCurrentProcessInfo) override;
 
 
-    //************************************************************************************
-    //************************************************************************************
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix: the elemental mass matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -283,7 +290,7 @@ protected:
     ///@{
 
     StepType mStepVariable;
-        
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -296,7 +303,7 @@ protected:
      */
     virtual void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo);
 
-    
+
     /**
      * Calculation of the time integration parameters
      */
@@ -307,6 +314,13 @@ protected:
      * Get element size from the dofs
      */
     SizeType GetDofsSize() override;
+
+
+    /**
+      * Update rigid body nodes and positions
+      */
+    void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
+
 
     ///@}
     ///@name Protected  Access

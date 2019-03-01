@@ -23,6 +23,18 @@ namespace Kratos {
     void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM::Check(Properties::Pointer pProp) const {
+        DEMContinuumConstitutiveLaw::Check(pProp);
+
+        if(!pProp->Has(ROTATIONAL_MOMENT_COEFFICIENT)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable ROTATIONAL_MOMENT_COEFFICIENT should be present in the properties when using DEM_KDEM. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(ROTATIONAL_MOMENT_COEFFICIENT) = 0.0;
+        }
     }
 
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
@@ -39,8 +51,12 @@ namespace Kratos {
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         unsigned int old_size = v.size();
-        v.resize(old_size + 1);
+        Vector backup = v;
+        v.resize(old_size + 1, false);
         v[old_size] = a;
+        for (unsigned int i=0; i<old_size; i++) {
+            v[i] = backup[i];
+        }
         return a;
     }
 
@@ -49,14 +65,14 @@ namespace Kratos {
         else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
-    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double current_distance, double equiv_young,
+    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         KRATOS_TRY
 
         const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
-        kn_el = equiv_young * calculation_area / current_distance;
-        kt_el = equiv_shear * calculation_area / current_distance;
+        kn_el = equiv_young * calculation_area / initial_dist;
+        kt_el = equiv_shear * calculation_area / initial_dist;
 
         KRATOS_CATCH("")
     }
@@ -104,7 +120,7 @@ namespace Kratos {
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
-        
+
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
         double initial_dist = radius_sum - initial_delta;
@@ -340,6 +356,7 @@ namespace Kratos {
                                                     double indentation) {
 
         KRATOS_TRY
+        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -391,6 +408,9 @@ namespace Kratos {
         ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
 
+        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
+        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
+
         // TODO: Judge if the rotation spring is broken or not
         /*
         double ForceN  = LocalElasticContactForce[2];
@@ -412,14 +432,14 @@ namespace Kratos {
     }//ComputeParticleRotationalMoments
 
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
-                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                          double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
 
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
         if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
 
         double force[3];
-        Matrix average_stress_tensor = ZeroMatrix(3,3);
+        BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {

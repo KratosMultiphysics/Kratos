@@ -113,18 +113,15 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 const unsigned int number_of_gauss_points = gauss_weights.size();
                 array_1d<double, NumNodes> Ncenter;
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    Ncenter[i] = 0.25;
+                    Ncenter[i] = 1.0/NumNodes;
                 }
-                const double d_gauss = inner_prod(data.Distance, Ncenter);
                 for (unsigned int g = 0; g < number_of_gauss_points; g++){
-                    data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-                    data.CalculateDensityAtGaussPoint();
-                    if (d_gauss > 0.0){
-                        data.CalculateAirMaterialResponse();
-                    } else {
-                        this->CalculateMaterialResponse(data);
-                    }
-
+                    UpdateIntegrationPointData(
+                        data,
+                        g,
+                        gauss_weights[g],
+                        row(shape_functions, g),
+                        shape_derivatives[g]);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             } else {
@@ -134,7 +131,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 VectorType rhs_ee_tot = ZeroVector(NumNodes);
 
                 for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); g_pos++){
-                    data.UpdateGeometryValues(
+                    UpdateIntegrationPointData(
+                        data,
                         g_pos,
                         data.w_gauss_pos_side[g_pos],
                         row(shape_functions_pos, g_pos),
@@ -142,23 +140,19 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         row(shape_functions_enr_pos, g_pos),
                         shape_derivatives_enr_pos[g_pos]);
 
-                    data.CalculateDensityAtGaussPoint();
-                    data.CalculateAirMaterialResponse();
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
                 for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); g_neg++){
-                    data.UpdateGeometryValues(
+                    UpdateIntegrationPointData(
+                        data,
                         g_neg,
                         data.w_gauss_neg_side[g_neg],
                         row(shape_functions_neg, g_neg),
                         shape_derivatives_neg[g_neg],
                         row(shape_functions_enr_neg, g_neg),
                         shape_derivatives_enr_neg[g_neg]);
-
-                    data.CalculateDensityAtGaussPoint();
-                    this->CalculateMaterialResponse(data);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
@@ -174,9 +168,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             const unsigned int number_of_gauss_points = gauss_weights.size();
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++){
-                data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-                data.CalculateDensityAtGaussPoint();
-                this->CalculateMaterialResponse(data);
+                UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
                 this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
             }
         }
@@ -233,6 +225,53 @@ void TwoFluidNavierStokes<TElementData>::PrintInfo(
     }
 }
 
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::Calculate(
+    const Variable<Vector >& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo )
+{
+    noalias( rOutput ) = ZeroVector( StrainSize );
+    
+    if (rVariable == FLUID_STRESS) {
+
+        // creating a new data container that goes out of scope after the function is left
+        TElementData dataLocal;
+        
+        // transferring the velocity (among other variables)
+        dataLocal.Initialize(*this, rCurrentProcessInfo);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+
+        // computing DN_DX values for the strain rate         
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        double sumOfGaussWeights = 0.0;
+
+        for (unsigned int g = 0; g < number_of_gauss_points; g++){
+
+            UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+
+            const Vector gauss_point_contribution = dataLocal.ShearStress;
+
+            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
+            sumOfGaussWeights += gauss_weights[g];
+        }
+
+        for (unsigned int i = 0; i < StrainSize; i++){
+            rOutput[i] = ( 1.0 / sumOfGaussWeights ) * rOutput[i];
+        }
+
+    } else {
+
+        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
 
@@ -263,13 +302,39 @@ void TwoFluidNavierStokes<TElementData>::AddTimeIntegratedRHS(
 }
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::CalculateMaterialResponse(TElementData &rData) const
+void TwoFluidNavierStokes<TElementData>::UpdateIntegrationPointData(
+    TElementData& rData,
+    unsigned int IntegrationPointIndex,
+    double Weight,
+    const typename TElementData::MatrixRowType& rN,
+    const typename TElementData::ShapeDerivativesType& rDN_DX) const
 {
-    if (rData.IsAir()){
+    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+    const double d_gauss = inner_prod(rData.Distance, rN);
+    if (d_gauss > 0.0)
         rData.CalculateAirMaterialResponse();
-    } else {
-        FluidElement<TElementData>::CalculateMaterialResponse(rData);
-    }
+    else
+        this->CalculateMaterialResponse(rData);
+    rData.ComputeDarcyTerm();
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::UpdateIntegrationPointData(
+    TElementData& rData,
+    unsigned int IntegrationPointIndex,
+    double Weight,
+    const typename TElementData::MatrixRowType& rN,
+    const typename TElementData::ShapeDerivativesType& rDN_DX,
+    const typename TElementData::MatrixRowType& rNenr,
+    const typename TElementData::ShapeDerivativesType& rDN_DXenr) const
+{
+    rData.UpdateGeometryValues(IntegrationPointIndex,Weight,rN,rDN_DX,rNenr,rDN_DXenr);
+    const double d_gauss = inner_prod(rData.Distance, rN);
+    if (d_gauss > 0.0)
+        rData.CalculateAirMaterialResponse();
+    else
+        this->CalculateMaterialResponse(rData);
+    rData.ComputeDarcyTerm();
 }
 
 template <>
@@ -286,6 +351,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
+    const double K_darcy = rData.DarcyTerm;
 
     const auto vconv = rData.Velocity - rData.MeshVelocity;
 
@@ -316,6 +382,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
+    const double K_darcy = rData.DarcyTerm;
 
     const double h = rData.ElementSize;
 
@@ -362,6 +429,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
+    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
@@ -404,6 +472,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
+    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
@@ -449,6 +518,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
+    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
@@ -509,6 +579,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
+    const double K_darcy = rData.DarcyTerm;
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;

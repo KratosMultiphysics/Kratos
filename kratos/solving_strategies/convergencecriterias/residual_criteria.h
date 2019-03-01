@@ -90,14 +90,37 @@ public:
     ///@{
 
     //* Constructor.
+    explicit ResidualCriteria(Kratos::Parameters Settings)
+        : BaseType(),
+          mInitialResidualIsSet(false)
+    {
+        if (Settings.Has("residual_absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
+        } else if (Settings.Has("absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            mAlwaysConvergedNorm = 1.0e-9;
+        }
+        if (Settings.Has("residual_relative_tolerance")) {
+            mRatioTolerance = Settings["residual_relative_tolerance"].GetDouble();
+        } else if (Settings.Has("relative_tolerance")) {
+            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            mRatioTolerance = 1.0e-4;
+        }
+    }
+
+    //* Constructor.
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType(),
+          mInitialResidualIsSet(false),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance       = NewRatioTolerance;
-        mAlwaysConvergedNorm  = AlwaysConvergedNorm;
-        mInitialResidualIsSet = false;
     }
 
     //* Copy constructor.
@@ -313,7 +336,7 @@ protected:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 residual_dof_value = TSparseSpace::GetValue(b,dof_id);
-                residual_solution_norm += residual_dof_value * residual_dof_value;
+                residual_solution_norm += std::pow(residual_dof_value, 2);
                 dof_num++;
             }
         }
@@ -401,4 +424,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined
-

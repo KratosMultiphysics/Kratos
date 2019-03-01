@@ -36,7 +36,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings" : {
-        "solver_type" : "mesh_solver_structural_similarity",
+        "solver_type" : "structural_similarity",
         "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "test_mdpa_files/rectangle_3D4N_test"

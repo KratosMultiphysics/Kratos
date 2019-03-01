@@ -377,7 +377,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
 void AdvancedNMPointsMapper::ComputeConditionNormal(const Condition::Pointer Cond,
                                                     array_1d<double,3> & Normal)
 {
-    const unsigned int dimension = Cond->WorkingSpaceDimension();
+    const unsigned int dimension = Cond->GetGeometry().WorkingSpaceDimension();
 
     array_1d<double,3> v1,v2;
 
@@ -1607,7 +1607,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
                 IV_iter++;
             }
-            
+
             // Solve
             array_1d<double,3> dVal = ZeroVector(3);
             double dValNorm      = 0.0;

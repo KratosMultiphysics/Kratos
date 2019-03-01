@@ -140,8 +140,8 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-  
-     
+
+
       void BuildNodally(
 			typename TSchemeType::Pointer pScheme,
 			ModelPart& rModelPart,
@@ -153,7 +153,7 @@ namespace Kratos
 	  KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
 	/* std::cout<<"Building LHS and RHS of Momentum Equation Nodally"<<std::endl; */
-     
+
         //contributions to the system
 	LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 	LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -173,7 +173,7 @@ namespace Kratos
 	double meanMeshSize=0;
 	double characteristicLength=0;
 	double density=0;
-	double nodalVelocity=0;		 
+	double nodalVelocity=0;
 	double tauStab=0;
 	double dNdXi=0;
 	double dNdYi=0;
@@ -184,7 +184,7 @@ namespace Kratos
 	bool stabilizationNeeded=false;
 	unsigned int firstRow=0;
 	unsigned int firstCol=0;
-	
+
 	/* #pragma omp parallel */
 	{
 	  ModelPart::NodeIterator NodesBegin;
@@ -194,21 +194,21 @@ namespace Kratos
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
 
-	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      const unsigned int neighSize = neighb_nodes.size() +1 ;
 
 	      if(neighSize>1){
-		
+
 		const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
 		LHS_Contribution= ZeroMatrix(neighSize,neighSize);
 		RHS_Contribution= ZeroVector(neighSize);
-		
+
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
 
 		if(itNode->Is(SOLID)){
-		
+
 		  deviatoricCoeff = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
 		}
@@ -240,15 +240,15 @@ namespace Kratos
 
 		}
 		if(stabilizationNeeded==true){
-		  
+
 		  firstRow=0;
 		  firstCol=0;
 		  meanMeshSize=itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
 		  characteristicLength=2.0*meanMeshSize;
 		  density=itNode->FastGetSolutionStepValue(DENSITY);
-		
+
 		  /* double tauStab=1.0/(8.0*deviatoricCoeff/(meanMeshSize*meanMeshSize)+2.0*density/timeInterval); */
-		  
+
 		  if(dimension==2){
 		    nodalVelocity= sqrt(itNode->FastGetSolutionStepValue(VELOCITY_X)*itNode->FastGetSolutionStepValue(VELOCITY_X) +
 					itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y));
@@ -257,18 +257,18 @@ namespace Kratos
 				       itNode->FastGetSolutionStepValue(VELOCITY_Y)*itNode->FastGetSolutionStepValue(VELOCITY_Y) +
 				       itNode->FastGetSolutionStepValue(VELOCITY_Z)*itNode->FastGetSolutionStepValue(VELOCITY_Z));
 		  }
-		  
+
 		  tauStab= 1.0 * (characteristicLength * characteristicLength * timeInterval) / ( density * nodalVelocity * timeInterval * characteristicLength + density * characteristicLength * characteristicLength +  8.0 * deviatoricCoeff * timeInterval );
 
-		  
+
 		  /* std::cout<<"tauStab= "<<tauStab<<std::endl; */
-		  
+
 		  LHS_Contribution(0,0)+= +nodalVolume*tauStab*density/(volumetricCoeff*timeInterval);
 		  RHS_Contribution[0]  += -nodalVolume*tauStab*density/(volumetricCoeff*timeInterval)*(deltaPressure-itNode->FastGetSolutionStepValue(PRESSURE_VELOCITY,0)*timeInterval);
-		  
-		  
+
+
 		  if(itNode->Is(FREE_SURFACE)){
-		    
+
 		    /* LHS_Contribution(0,0) += + 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize; */
 		    /* RHS_Contribution[0]   += - 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize * itNode->FastGetSolutionStepValue(PRESSURE,0); */
 
@@ -296,13 +296,13 @@ namespace Kratos
 		    }else if(dimension==3){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + Normal[2]*SpatialDefRate[2]*Normal[2] +
 		  	2*Normal[0]*SpatialDefRate[3]*Normal[1] + 2*Normal[0]*SpatialDefRate[4]*Normal[2] + 2*Normal[1]*SpatialDefRate[5]*Normal[2];
-		      
+
 		      /* nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y) + Normal[2]*itNode->FastGetSolutionStepValue(ACCELERATION_Z); */
 		      /* nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1] + Normal[2]*nodalAcceleration[2]; */
 		    }
 		    /* RHS_Contribution[0]  += tauStab * (density*nodalNormalAcceleration - 4.0*deviatoricCoeff*nodalNormalProjDefRate/meanMeshSize) * nodalFreesurfaceArea; */
 		    double accelerationContribution=2.0*density*nodalNormalAcceleration/meanMeshSize;
-		    
+
 		    double deviatoricContribution=8.0*deviatoricCoeff*nodalNormalProjDefRate/(meanMeshSize*meanMeshSize);
 
 		    /* accelerationContribution=0; */
@@ -314,16 +314,16 @@ namespace Kratos
 		    }
 		  }
 
-		   
+
 		  array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
 
 		  for (unsigned int i = 0; i< neighSize; i++)
 		    {
-		
+
 		      dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 		      dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
-		      
+
 		      if(dimension==2){
 		      	RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0] + dNdYi* VolumeAcceleration[1]) * nodalVolume;
 		      }
@@ -331,7 +331,7 @@ namespace Kratos
 		      	dNdZi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+2];
 		      	RHS_Contribution[i]  += - tauStab * density * (dNdXi* VolumeAcceleration[0] + dNdYi* VolumeAcceleration[1] + dNdZi* VolumeAcceleration[2]) * nodalVolume;
 		      }
-		      			
+
 		      if(i<neighb_nodes.size()){
 		  	// i==0 of EquationIs has been already filled with the master node (that is not included in neighb_nodes)
 		      	EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
@@ -339,7 +339,7 @@ namespace Kratos
 		      	density= neighb_nodes[i].FastGetSolutionStepValue(DENSITY);
 		      	VolumeAcceleration = neighb_nodes[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 		      }
-		      		      
+
 		      firstRow=0;
 
 		      for (unsigned int j = 0; j< neighSize; j++)
@@ -366,12 +366,12 @@ namespace Kratos
 		      	  }
 		      	  firstRow+=dimension;
 		      	}
-		      
+
 		      firstCol+=dimension;
 
 		    }
 
-	
+
 		}
 
 #ifdef _OPENMP
@@ -380,7 +380,7 @@ namespace Kratos
 		Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
 
-	      }	      
+	      }
 
 	    }
 
@@ -391,7 +391,7 @@ namespace Kratos
 
 	  }
 
- 
+
       /**
        * @brief This is a call to the linear system solver
        * @param A The LHS matrix
@@ -777,7 +777,7 @@ namespace Kratos
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
 	/* std::cout << "CONTINUITY EQ: contruct_matrix : " << c_contruct_matrix.elapsed() << std::endl; */
-	
+
         KRATOS_CATCH("")
 
 	  }
@@ -953,7 +953,7 @@ namespace Kratos
 
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
-	    WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    const unsigned int neighSize =itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size();
 	    if (EquationId.size() != neighSize)
 	      EquationId.resize(neighSize, false);
@@ -963,8 +963,8 @@ namespace Kratos
 	    EquationId[0]=itNode->GetDof(PRESSURE,xpos).EquationId();
 
 	    /* Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID); */
-	  
-	    
+
+
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
 		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
@@ -972,10 +972,10 @@ namespace Kratos
 		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
 		/* rNodeOrderedNeighboursPressureId[i]=EquationId[i]; */
 	      }
-	    
 
 
-	    
+
+
 	    for (std::size_t i = 0; i < EquationId.size(); i++)
 	      {
 		if (EquationId[i] < BaseType::mEquationSystemSize)
@@ -994,7 +994,7 @@ namespace Kratos
 #endif
 		  }
 	      }
-	
+
 
 	  }
 

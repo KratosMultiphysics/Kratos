@@ -931,64 +931,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-  Matrix& BoundaryCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //*************************COMPUTE TOTAL DELTA POSITION*******************************
-  //************************************************************************************
-
-
-  Matrix& BoundaryCondition::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes , dimension, false);
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-	  }
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
 
   //************************************************************************************
   //************************************************************************************
