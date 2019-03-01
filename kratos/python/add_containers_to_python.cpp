@@ -695,8 +695,7 @@ void  AddContainersToPython(pybind11::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TAIT_PARAMETERS_MOLTEN_STATE)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TAIT_PARAMETERS_SOLID_STATE)
+
 
     py::class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(py::init<	>() )
