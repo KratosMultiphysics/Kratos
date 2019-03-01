@@ -8,6 +8,7 @@
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborators:   Vicente Mataix
 //
 //
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
@@ -16,15 +17,8 @@
 
 /* System includes */
 #include <unordered_set>
-// #include <iostream>
-// #include <fstream>
 
 /* External includes */
-// #define USE_GOOGLE_HASH
-#ifdef USE_GOOGLE_HASH
-    #include "sparsehash/dense_hash_set" //included in external libraries
-#endif
-// #define USE_LOCKS_IN_ASSEMBLY
 
 /* Project includes */
 #include "includes/define.h"
@@ -34,6 +28,9 @@
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
+#include "includes/lock_object.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
+
 
 namespace Kratos
 {
@@ -124,6 +121,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedBlockBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -210,19 +208,14 @@ public:
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-    #ifdef USE_LOCKS_IN_ASSEMBLY
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-    #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-    #endif
+
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
                 }
 
             }
 
-
-            //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
             #pragma omp for  schedule(guided, 512)
             for (int k = 0; k < nconditions; k++)
             {
@@ -240,11 +233,7 @@ public:
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-    #ifdef USE_LOCKS_IN_ASSEMBLY
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-    #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-    #endif
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
@@ -255,8 +244,6 @@ public:
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
-        //for (int i = 0; i < A_size; i++)
-        //    omp_destroy_lock(&lock_array[i]);
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
@@ -277,11 +264,10 @@ public:
     {
         KRATOS_TRY
 
-            TSystemVectorType tmp(A.size1(), 0.0);
+        TSystemVectorType tmp(A.size1(), 0.0);
         this->Build(pScheme, rModelPart, A, tmp);
 
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -304,7 +290,6 @@ public:
         this->Build(pScheme, rModelPart, A, tmp);
 
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -320,7 +305,6 @@ public:
     ) override
     {
         KRATOS_TRY
-
         double norm_b;
         if (TSparseSpace::Size(b) != 0)
             norm_b = TSparseSpace::TwoNorm(b);
@@ -335,11 +319,37 @@ public:
         else
             TSparseSpace::SetToZero(Dx);
 
+        if(mT.size1() != 0) //if there are master-slave constraints
+        {
+            //recover solution of the original problem
+            TSystemVectorType Dxmodified = Dx;
+
+            TSparseSpace::Mult(mT, Dxmodified, Dx);
+        }
+
         //prints informations about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
+    }
 
+    void SystemSolveWithPhysics(
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b,
+        ModelPart& rModelPart
+    )
+    {
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            TSystemVectorType Dxmodified(b.size());
+
+            InternalSystemSolveWithPhysics(A, Dxmodified, b, rModelPart);
+
+            //recover solution of the original problem
+            TSparseSpace::Mult(mT, Dxmodified, Dx);
+        } else {
+            InternalSystemSolveWithPhysics(A, Dx, b, rModelPart);
+        }
     }
 
     /**
@@ -349,7 +359,7 @@ public:
      * @param b The RHS vector
      * @param rModelPart The model part of the problem to solve
      */
-    void SystemSolveWithPhysics(
+    void InternalSystemSolveWithPhysics(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
@@ -380,7 +390,6 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -407,6 +416,12 @@ public:
         Build(pScheme, rModelPart, A, b);
 
         Timer::Stop("Build");
+
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyConstraints");
+            ApplyConstraints(pScheme,A,Dx,b,rModelPart);
+            Timer::Stop("ApplyConstraints");
+        }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
@@ -474,11 +489,10 @@ public:
             const std::size_t i = dof_iterator->EquationId();
 
             if (dof_iterator->IsFixed())
-                b[i] = 0.0f;
+                b[i] = 0.0;
         }
 
         KRATOS_CATCH("")
-
     }
 
     /**
@@ -508,49 +522,29 @@ public:
 
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
-//        typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
-//         typedef std::unordered_set < NodeType::DofType::Pointer,
-//             DofPointerHasher,
-//             DofPointerComparor,
-//             allocator_type     >  set_type;
-
-#ifdef USE_GOOGLE_HASH
-        typedef google::dense_hash_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#else
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#endif
-//
-
-
-        std::vector<set_type> dofs_aux_list(nthreads);
-//         std::vector<allocator_type> allocators(nthreads);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
-        for (int i = 0; i < static_cast<int>(nthreads); i++)
-        {
-#ifdef USE_GOOGLE_HASH
-            dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
-#else
-//             dofs_aux_list[i] = set_type( allocators[i]);
-            dofs_aux_list[i].reserve(nelements);
-#endif
-        }
+        set_type dof_global_set;
+        dof_global_set.reserve(nelements*20);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         #pragma omp parallel firstprivate(nelements, ElementalDofList)
         {
+            set_type dofs_tmp_set;
+            dofs_tmp_set.reserve(20000);
+
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < nelements; i++)
             {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
 
-                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
             }
 
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
@@ -561,49 +555,16 @@ public:
             for (int i = 0; i < nconditions; i++)
             {
                 typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-
+                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
             }
-        }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
-
-        // Here we do a reduction in a tree so to have everything on thread 0
-        unsigned int old_max = nthreads;
-        unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max>=1 && new_max != old_max)
-        {
-            if( this->GetEchoLevel() > 2)
+            #pragma omp critical
             {
-                //just for debugging
-                std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-                for (int i = 0; i < static_cast<int>(new_max); i++)
-                {
-                    if (i + new_max < old_max)
-                    {
-                        std::cout << i << " - " << i+new_max << std::endl;
-                    }
-                }
-                std::cout << "********************" << std::endl;
+                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
             }
-
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); i++)
-            {
-                if (i + new_max < old_max)
-                {
-                    dofs_aux_list[i].insert(dofs_aux_list[i+new_max].begin(), dofs_aux_list[i+new_max].end());
-                    dofs_aux_list[i+new_max].clear();
-                }
-            }
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-
         }
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
@@ -611,8 +572,8 @@ public:
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
 
-        Doftemp.reserve(dofs_aux_list[0].size());
-        for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
+        Doftemp.reserve(dof_global_set.size());
+        for (auto it= dof_global_set.begin(); it!= dof_global_set.end(); it++)
         {
             Doftemp.push_back( it->get() );
         }
@@ -629,42 +590,20 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
-
-#ifdef _OPENMP
-        if (mlock_array.size() != 0)
-        {
-            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-            {
-                omp_destroy_lock(&mlock_array[i]);
-            }
-        }
-        mlock_array.resize(BaseType::mDofSet.size());
-
-        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-        {
-            omp_init_lock(&mlock_array[i]);
-        }
-#endif
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
 
-    // If reactions are to be calculated, we check if all the dofs have reactions defined
-    // This is tobe done only in debug mode
 
-    #ifdef KRATOS_DEBUG
-
-    if(BaseType::GetCalculateReactionsFlag())
-    {
-        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        {
-                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
-                    << "Node : "<<dof_iterator->Id()<< std::endl
-                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+#ifdef KRATOS_DEBUG
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        // This is tobe done only in debug mode
+        if (BaseType::GetCalculateReactionsFlag()) {
+            for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
+                    KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                        << "Node : "<<dof_iterator->Id()<< std::endl
+                        << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+            }
         }
-    }
-    #endif
-
+#endif
 
         KRATOS_CATCH("");
     }
@@ -677,24 +616,16 @@ public:
         ModelPart& rModelPart
     ) override
     {
-
         //int free_id = 0;
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
         int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         #pragma omp parallel for firstprivate(ndofs)
-        for (int i = 0; i < static_cast<int>(ndofs); i++)
-        {
+        for (int i = 0; i < static_cast<int>(ndofs); i++) {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
             dof_iterator->SetEquationId(i);
 
         }
-
-        //for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        //    dof_iterator->SetEquationId(free_id++);
-
-
-
     }
 
     //**************************************************************************
@@ -739,7 +670,6 @@ public:
         {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -750,6 +680,8 @@ public:
         if (b.size() != BaseType::mEquationSystemSize)
             b.resize(BaseType::mEquationSystemSize, false);
 
+        ConstructMasterSlaveConstraintsStructure(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -758,11 +690,26 @@ public:
 
     void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
+
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Getting process info
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        // Computing constraints
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        for (int k = 0; k < n_constraints; ++k) {
+            auto it = constraints_begin + k;
+            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
+        }
+
         KRATOS_CATCH("")
     }
 
@@ -771,12 +718,24 @@ public:
 
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
-    }
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
+        // Getting process info
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        // Computing constraints
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        for (int k = 0; k < n_constraints; ++k) {
+            auto it = constraints_begin + k;
+            it->FinalizeSolutionStep(r_process_info);
+        }
+    }
 
     //**************************************************************************
     //**************************************************************************
@@ -797,15 +756,12 @@ public:
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++)
-        {
+        for (int k = 0; k<ndofs; k++) {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
             const int i = (dof_iterator)->EquationId();
             (dof_iterator)->GetSolutionStepReactionValue() = -b[i];
         }
-
-        //KRATOS_WATCH(__LINE__)
     }
 
     /**
@@ -827,19 +783,18 @@ public:
         TSystemVectorType& b) override
     {
         std::size_t system_size = A.size1();
-        std::vector<double> scaling_factors (system_size, 0.0f);
+        std::vector<double> scaling_factors (system_size, 0.0);
 
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for firstprivate(ndofs)
-        for(int k = 0; k<ndofs; k++)
-        {
+        for (int k = 0; k<ndofs; k++) {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
             if(dof_iterator->IsFixed())
-                scaling_factors[k] = 0.0f;
+                scaling_factors[k] = 0.0;
             else
-                scaling_factors[k] = 1.0f;
+                scaling_factors[k] = 1.0;
 
         }
 
@@ -849,8 +804,7 @@ public:
 
         //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel for firstprivate(system_size)
-        for(int k = 0; k < static_cast<int>(system_size); ++k)
-        {
+        for (int k = 0; k < static_cast<int>(system_size); ++k){
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             bool empty = true;
@@ -896,19 +850,17 @@ public:
         }
     }
 
-
-
     /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
      */
     void Clear() override
     {
-#ifdef _OPENMP
-        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-            omp_destroy_lock(&mlock_array[i]);
-        mlock_array.resize(0);
-#endif
-        BaseType::Clear();
+       BaseType::Clear();
+
+        mSlaveIds.clear();
+        mMasterIds.clear();
+        mT.resize(0,0,false);
+        mConstantVector.resize(0,false);
     }
 
     /**
@@ -969,16 +921,243 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-#ifdef _OPENMP
-    std::vector< omp_lock_t > mlock_array;
-#endif
-    ///@}
+    TSystemMatrixType mT;
+    TSystemVectorType mConstantVector;
+    std::vector<int> mSlaveIds;
+    std::vector<int> mMasterIds;
+
+   ///@}
     ///@name Protected Operators
     ///@{
 
     ///@}
     ///@name Protected Operations
     ///@{
+    void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart)
+    {
+        if (rModelPart.MasterSlaveConstraints().size() > 0) {
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // Constraint initial iterator
+            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+            std::vector<std::unordered_set<int>> indices(BaseType::mDofSet.size());
+
+            std::vector<LockObject> lock_array(indices.size());
+
+            #pragma omp parallel
+            {
+                Element::EquationIdVectorType slave_ids(3);
+                Element::EquationIdVectorType master_ids(3);
+                std::unordered_map<int, std::unordered_set<int>> temp_indices;
+
+                #pragma omp for schedule(guided, 512) nowait
+                for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
+                    auto it_const = const_begin + i_const;
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids)
+                    {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
+                    }
+                }
+
+                // Merging all the temporal indexes
+                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i)
+                {
+                    lock_array[i].SetLock();
+                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
+                    lock_array[i].UnSetLock();
+                }
+            }
+
+            mSlaveIds.clear();
+            mMasterIds.clear();
+            for (int i = 0; i < static_cast<int>(indices.size()); ++i)
+            {
+                if (indices[i].size() == 0) //master dof!
+                    mMasterIds.push_back(i);
+                else //slave dof
+                    mSlaveIds.push_back(i);
+                indices[i].insert(i); //ensure that the diagonal is there in T
+            }
+
+            // Count the row sizes
+            std::size_t nnz = 0;
+            for (IndexType i = 0; i < indices.size(); ++i)
+                nnz += indices[i].size();
+
+            mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
+            mConstantVector.resize(indices.size(), false);
+
+            double *Tvalues = mT.value_data().begin();
+            IndexType *Trow_indices = mT.index1_data().begin();
+            IndexType *Tcol_indices = mT.index2_data().begin();
+
+            // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+            Trow_indices[0] = 0;
+            for (int i = 0; i < static_cast<int>(mT.size1()); i++)
+                Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mT.size1()); ++i) {
+                const IndexType row_begin = Trow_indices[i];
+                const IndexType row_end = Trow_indices[i + 1];
+                IndexType k = row_begin;
+                for (auto it = indices[i].begin(); it != indices[i].end(); ++it)
+                {
+                    Tcol_indices[k] = *it;
+                    Tvalues[k] = 0.0;
+                    k++;
+                }
+
+                indices[i].clear(); //deallocating the memory
+
+                std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
+            }
+
+            mT.set_filled(indices.size() + 1, nnz);
+
+            Timer::Stop("ConstraintsRelationMatrixStructure");
+        }
+    }
+
+    void BuildMasterSlaveConstraints(ModelPart &rModelPart)
+    {
+        KRATOS_TRY
+
+        TSparseSpace::SetToZero(mT);
+        TSparseSpace::SetToZero(mConstantVector);
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Contributions to the system
+        Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+        Vector constant_vector = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
+
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+        {
+        #pragma omp for schedule(guided, 512)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+
+                    for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
+                        const IndexType i_global = slave_equation_ids[i];
+
+                        //assemble matrix row
+                        AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
+
+                        //assemble constant vector
+                        const double constant_value = constant_vector[i];
+                        double &r_value = mConstantVector[i_global];
+                        #pragma omp atomic
+                        r_value += constant_value;
+                    }
+                }
+            }
+        }
+
+        for (auto eq_id : mMasterIds) {
+            mConstantVector[eq_id] = 0.0;
+            mT(eq_id, eq_id) = 1.0;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ApplyConstraints(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rDx,
+        TSystemVectorType &rb,
+        ModelPart &rModelPart)
+    {
+        KRATOS_TRY
+
+        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+            BuildMasterSlaveConstraints(rModelPart);
+
+            // We compute the transposed matrix of the global relation matrix
+            TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
+
+            TSystemVectorType bmodified(rb.size());
+            TSparseSpace::Mult(T_transpose_matrix, rb, bmodified);
+            TSparseSpace::Copy(bmodified, rb);
+            bmodified.resize(0, false); //free memory
+
+            TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+            T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+            auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+
+            double max_diag = 0.0;
+            for(unsigned int i=0; i<rA.size1(); ++i) {
+                max_diag = std::max(std::abs(rA(i,i)), max_diag);
+            }
+
+            //apply diagonal values on slaves
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
+                const int eq_id = mSlaveIds[i];
+                rA(eq_id, eq_id) = max_diag;
+                rb[eq_id] = 0.0;
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+//     void ApplyMasterSlaveRelation(
+//         ModelPart &rModelPart) override
+//     {
+//         if (rModelPart.MasterSlaveConstraints().size() > 0)
+//         {
+//             BuildMasterSlaveConstraints(rModelPart);
+
+//             //get master values
+//             TSystemVectorType x(mConstantVector.size());
+//             TSystemVectorType xmodified(mConstantVector.size());
+//             TSparseSpace::SetToZero(x);
+
+//             for (auto &dof : BaseType::mDofSet)
+//             {
+//                 const auto eq_id = dof.EquationId();
+//                 x[eq_id] = dof.GetSolutionStepValue();
+//             }
+
+//             //xmodified = T*x + ConstantVector
+//             TSparseSpace::Mult(mT, x, xmodified);
+
+// #pragma omp parallel for
+//             for (int i = 0; i < static_cast<int>(xmodified.size()); ++i)
+//                 xmodified[i] += mConstantVector[i];
+
+//             //update database
+//             for (auto &dof : BaseType::mDofSet)
+//             {
+//                 const auto eq_id = dof.EquationId();
+//                 dof.GetSolutionStepValue() = xmodified[eq_id];
+//             }
+//         }
+//     }
 
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
@@ -998,70 +1177,50 @@ protected:
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
-
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
-#ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
-        const std::size_t empty_key = 2*equation_size + 10;
-#else
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-#endif
+        std::vector< LockObject > lock_array(equation_size);
 
+        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
         #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
-        {
-#ifdef USE_GOOGLE_HASH
-        indices[iii].set_empty_key(empty_key);
-#else
-        indices[iii].reserve(40);
-#endif
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
+            indices[iii].reserve(40);
         }
 
         Element::EquationIdVectorType ids(3, 0);
 
         #pragma omp parallel for firstprivate(nelements, ids)
-        for(int iii=0; iii<nelements; iii++)
-        {
+        for (int iii=0; iii<nelements; iii++) {
             typename ElementsContainerType::iterator i_element = el_begin + iii;
             pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
-            for (std::size_t i = 0; i < ids.size(); i++)
-            {
-#ifdef _OPENMP
-                omp_set_lock(&mlock_array[ids[i]]);
-#endif
+            for (std::size_t i = 0; i < ids.size(); i++) {
+                lock_array[ids[i]].SetLock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-
-#ifdef _OPENMP
-                omp_unset_lock(&mlock_array[ids[i]]);
-#endif
+                lock_array[ids[i]].UnSetLock();
             }
-
         }
 
         #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int iii = 0; iii<nconditions; iii++)
-        {
+        for (int iii = 0; iii<nconditions; iii++) {
             typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
             pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
-            for (std::size_t i = 0; i < ids.size(); i++)
-            {
-#ifdef _OPENMP
-                omp_set_lock(&mlock_array[ids[i]]);
-#endif
+            for (std::size_t i = 0; i < ids.size(); i++) {
+                lock_array[ids[i]].SetLock();
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-#ifdef _OPENMP
-                omp_unset_lock(&mlock_array[ids[i]]);
-#endif
+                lock_array[ids[i]].UnSetLock();
             }
         }
 
+        //destroy locks
+        lock_array = std::vector< LockObject >();
+
         //count the row sizes
         unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++)
+        for (unsigned int i = 0; i < indices.size(); i++) {
             nnz += indices[i].size();
+        }
 
         A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
 
@@ -1071,19 +1230,16 @@ protected:
 
         //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        for (int i = 0; i < static_cast<int>(A.size1()); i++) {
             Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
-
-
+        }
 
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(A.size1()); i++)
-        {
+        for (int i = 0; i < static_cast<int>(A.size1()); i++) {
             const unsigned int row_begin = Arow_indices[i];
             const unsigned int row_end = Arow_indices[i+1];
             unsigned int k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
-            {
+            for (auto it = indices[i].begin(); it != indices[i].end(); it++) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
@@ -1100,66 +1256,25 @@ protected:
         Timer::Stop("MatrixStructure");
     }
 
-    //**************************************************************************
-
-    void AssembleLHS(
-        TSystemMatrixType& A,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId
-    )
-    {
-        unsigned int local_size = LHS_Contribution.size1();
-
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-
-            for (unsigned int j_local = 0; j_local < local_size; j_local++)
-            {
-                unsigned int j_global = EquationId[j_local];
-
-                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-            }
-        }
-
-    }
-
-
     void Assemble(
         TSystemMatrixType& A,
         TSystemVectorType& b,
         const LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId
-#ifdef USE_LOCKS_IN_ASSEMBLY
-        ,std::vector< omp_lock_t >& lock_array
-#endif
     )
     {
         unsigned int local_size = LHS_Contribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
+        for (unsigned int i_local = 0; i_local < local_size; i_local++) {
             unsigned int i_global = EquationId[i_local];
 
-#ifdef USE_LOCKS_IN_ASSEMBLY
-            omp_set_lock(&lock_array[i_global]);
-            b[i_global] += RHS_Contribution(i_local);
-#else
             double& r_a = b[i_global];
             const double& v_a = RHS_Contribution(i_local);
             #pragma omp atomic
             r_a += v_a;
-#endif
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
-
-#ifdef USE_LOCKS_IN_ASSEMBLY
-            omp_unset_lock(&lock_array[i_global]);
-#endif
-
-
-            //note that computation of reactions is not performed here!
         }
     }
 
@@ -1174,9 +1289,7 @@ protected:
     {
         unsigned int local_size = RHS_Contribution.size();
 
-
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
+        for (unsigned int i_local = 0; i_local < local_size; i_local++) {
             unsigned int i_global = EquationId[i_local];
 
             // ASSEMBLING THE SYSTEM VECTOR
@@ -1185,11 +1298,7 @@ protected:
 
             #pragma omp atomic
             b_value += rhs_value;
-
-
         }
-
-
     }
 
     ///@}
@@ -1226,12 +1335,10 @@ private:
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
-        while (i != endit && (*i) != candidate)
-        {
+        while (i != endit && (*i) != candidate) {
             i++;
         }
-        if (i == endit)
-        {
+        if (i == endit) {
             v.push_back(candidate);
         }
 
@@ -1267,17 +1374,16 @@ private:
         #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
             #pragma omp for schedule(guided, 512) nowait
-            for(int i=0; i<nelements; i++)
-            {
+            for (int i=0; i<nelements; i++) {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
                 //detect if the element is active or not. If the user did not make any choice the element
                 //is active by default
                 bool element_is_active = true;
-                if( (it)->IsDefined(ACTIVE) )
+                if( (it)->IsDefined(ACTIVE) ) {
                     element_is_active = (it)->Is(ACTIVE);
+                }
 
-                if(element_is_active)
-                {
+                if(element_is_active) {
                     //calculate elemental Right Hand Side Contribution
                     pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1290,22 +1396,18 @@ private:
             RHS_Contribution.resize(0, false);
 
             // assemble all conditions
-            //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
             const int nconditions = static_cast<int>(ConditionsArray.size());
-            //#pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId) schedule(dynamic, 1024)
             #pragma omp for schedule(guided, 512)
-            for (int i = 0; i<nconditions; i++)
-            {
+            for (int i = 0; i<nconditions; i++) {
                 auto it = ConditionsArray.begin() + i;
                 //detect if the element is active or not. If the user did not make any choice the element
                 //is active by default
                 bool condition_is_active = true;
-                if( (it)->IsDefined(ACTIVE) )
+                if( (it)->IsDefined(ACTIVE) ) {
                     condition_is_active = (it)->Is(ACTIVE);
+                }
 
-                if(condition_is_active)
-                {
-
+                if(condition_is_active) {
                     //calculate elemental contribution
                     pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1328,8 +1430,9 @@ private:
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;
-        for (unsigned int i = 1; i < number_of_threads; i++)
+        for (unsigned int i = 1; i < number_of_threads; i++) {
             partitions[i] = partitions[i - 1] + partition_size;
+        }
     }
 
     inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
@@ -1345,44 +1448,32 @@ private:
         size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
         size_t last_found = EquationId[0];
 
-#ifndef USE_LOCKS_IN_ASSEMBLY
         double& r_a = values_vector[last_pos];
         const double& v_a = Alocal(i_local,0);
         #pragma omp atomic
         r_a +=  v_a;
-#else
-        values_vector[last_pos] += Alocal(i_local,0);
-#endif
-
 
         //now find all of the other entries
         size_t pos = 0;
-        for(unsigned int j=1; j<EquationId.size(); j++)
-        {
+        for (unsigned int j=1; j<EquationId.size(); j++) {
             unsigned int id_to_find = EquationId[j];
-            if(id_to_find > last_found)
+            if(id_to_find > last_found) {
                 pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            else if(id_to_find < last_found)
+            } else if(id_to_find < last_found) {
                 pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-            else
+            } else {
                 pos = last_pos;
+            }
 
-#ifndef USE_LOCKS_IN_ASSEMBLY
-                        double& r = values_vector[pos];
-                        const double& v = Alocal(i_local,j);
-                        #pragma omp atomic
-                        r +=  v;
-#else
-                        values_vector[pos] += Alocal(i_local,j);
-#endif
+            double& r = values_vector[pos];
+            const double& v = Alocal(i_local,j);
+            #pragma omp atomic
+            r +=  v;
 
             last_found = id_to_find;
             last_pos = pos;
         }
     }
-
-
-
 
     inline unsigned int ForwardFind(const unsigned int id_to_find,
                                     const unsigned int start,

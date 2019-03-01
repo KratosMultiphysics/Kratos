@@ -415,9 +415,9 @@ class MechanicalSolver(PythonSolver):
         else:
             # using a default linear solver (selecting the fastest one available)
             import KratosMultiphysics.kratos_utilities as kratos_utils
-            if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
                 from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
                 from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
@@ -441,10 +441,7 @@ class MechanicalSolver(PythonSolver):
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
-            if self.settings["multi_point_constraints_used"].GetBool():
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
