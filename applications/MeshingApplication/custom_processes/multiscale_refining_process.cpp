@@ -259,7 +259,7 @@ void MultiscaleRefiningProcess::UpdateVisualizationAfterRefinement()
         else
             coarse_node->Set(INSIDE, false);
     }
-    mrVisualizationModelPart.RemoveNodesFromAllLevels(INSIDE);
+    // mrVisualizationModelPart.RemoveNodesFromAllLevels(INSIDE); // TODO: for some reason it is modifying the refined model part...
 
     // Add the new entities which are refined
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrRefinedModelPart,
@@ -457,27 +457,28 @@ void MultiscaleRefiningProcess::IdentifyElementsToErase()
     for (int i = 0; i < nelems_coarse; i++)
     {
         auto coarse_elem = coarse_elem_begin + i;
-        bool to_coarse = false;
+        if (coarse_elem->Is(MeshingFlags::REFINED))
+        {
+            bool to_coarsen = false;
         for (IndexType inode = 0; inode < element_nodes; inode++)
         {
             if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
-                to_coarse = true;
+                    to_coarsen = true;
         }
-        if (to_coarse)
-        {
-            coarse_elem->Set(MeshingFlags::TO_COARSEN, true);
+            coarse_elem->Set(MeshingFlags::TO_COARSEN, to_coarsen);
+            if (to_coarsen)
             coarse_elem->Set(MeshingFlags::REFINED, false);
         }
     }
 
     // Identify the refined elements to remove
     const int nelems_ref = static_cast<int>(mrRefinedModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator ref_elem_begin = mrRefinedModelPart.ElementsBegin();
+    ModelPart::ElementsContainerType::iterator refined_elem_begin = mrRefinedModelPart.ElementsBegin();
 
     #pragma omp parallel for
     for (int i = 0; i < nelems_ref; i++)
     {
-        auto refined_elem = ref_elem_begin + i;
+        auto refined_elem = refined_elem_begin + i;
         if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(MeshingFlags::TO_COARSEN))
             refined_elem->Set(TO_ERASE, true);
     }
@@ -497,27 +498,28 @@ void MultiscaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_coarse; i++)
     {
         auto coarse_cond = coarse_cond_begin + i;
-        bool to_coarse = false;
+        if (coarse_cond->Is(MeshingFlags::TO_COARSEN))
+        {
+            bool to_coarsen = false;
         for (IndexType inode = 0; inode < condition_nodes; inode++)
         {
             if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
-                to_coarse = true;
+                    to_coarsen = true;
         }
-        if (to_coarse)
-        {
-            coarse_cond->Set(MeshingFlags::TO_COARSEN, true);
+            coarse_cond->Set(MeshingFlags::TO_COARSEN, to_coarsen);
+            if (to_coarsen)
             coarse_cond->Set(MeshingFlags::REFINED, false);
         }
     }
 
     // Identify the refined conditions to remove
     const int nconds_ref = static_cast<int>(mrRefinedModelPart.Conditions().size());
-    ModelPart::ConditionsContainerType::iterator ref_cond_begin = mrRefinedModelPart.ConditionsBegin();
+    ModelPart::ConditionsContainerType::iterator refined_cond_begin = mrRefinedModelPart.ConditionsBegin();
 
     #pragma omp parallel for
     for (int i = 0; i < nconds_ref; i++)
     {
-        auto refined_cond = ref_cond_begin + i;
+        auto refined_cond = refined_cond_begin + i;
         if ((refined_cond->GetValue(FATHER_CONDITION))->Is(MeshingFlags::TO_COARSEN))
             refined_cond->Set(TO_ERASE, true);
     }
