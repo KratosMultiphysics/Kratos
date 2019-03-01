@@ -64,22 +64,6 @@
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": false
             }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Body2D_UpperSurface"
-            }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Body2D_LowerSurface"
-            }
         }],
         "list_other_processes" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
