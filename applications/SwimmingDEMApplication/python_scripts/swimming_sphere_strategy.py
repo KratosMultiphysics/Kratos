@@ -78,14 +78,14 @@ class SwimmingStrategy(BaseStrategy):
     @staticmethod
     def CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters):
 
-        hydrodynamic_law_name = hydrodynamic_law_parameters['name'].GetString()
-        HydrodynamicInteractionLaw = globals().get(hydrodynamic_law_name)(properties, hydrodynamic_law_parameters)
+        hydrodynamic_name = hydrodynamic_law_parameters['name'].GetString()
+        HydrodynamicInteractionLaw = globals().get(hydrodynamic_name)(properties, hydrodynamic_law_parameters)
 
         if hydrodynamic_law_parameters.Has('buoyancy_parameters'):
             buoyancy_parameters = hydrodynamic_law_parameters['buoyancy_parameters']
-            buoyancy_law_name = buoyancy_parameters['name'].GetString()
-            if not buoyancy_law_name == 'default':
-                buoyancy_law = globals().get(buoyancy_law_name)(buoyancy_parameters)
+            buoyancy_name = buoyancy_parameters['name'].GetString()
+            if not buoyancy_name == 'default':
+                buoyancy_law = globals().get(buoyancy_name)(buoyancy_parameters)
                 HydrodynamicInteractionLaw.SetBuoyancyLaw(buoyancy_law)
 
         if hydrodynamic_law_parameters.Has('inviscid_force_parameters'):
@@ -97,16 +97,16 @@ class SwimmingStrategy(BaseStrategy):
 
         if hydrodynamic_law_parameters.Has('drag_parameters'):
             drag_parameters = hydrodynamic_law_parameters['drag_parameters']
-            drag_law_name = drag_parameters['name'].GetString()
-            if not drag_law_name == 'default':
-                drag_law = globals().get(drag_law_name)(drag_parameters)
+            drag_name = drag_parameters['name'].GetString()
+            if not drag_name == 'default':
+                drag_law = globals().get(drag_name)(drag_parameters)
                 HydrodynamicInteractionLaw.SetDragLaw(drag_law)
 
         if hydrodynamic_law_parameters.Has('history_force_parameters'):
             history_force_parameters = hydrodynamic_law_parameters['history_force_parameters']
-            history_force_law_name = history_force_parameters['name'].GetString()
-            if not history_force_law_name == 'default':
-                history_force_law = globals().get(history_force_law_name)(history_force_parameters)
+            history_force_name = history_force_parameters['name'].GetString()
+            if not history_force_name == 'default':
+                history_force_law = globals().get(history_force_name)(history_force_parameters)
                 HydrodynamicInteractionLaw.SetHistoryForceLaw(history_force_law)
 
         if hydrodynamic_law_parameters.Has('vorticity_induced_lift_parameters'):
