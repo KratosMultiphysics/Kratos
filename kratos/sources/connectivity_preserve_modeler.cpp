@@ -163,7 +163,9 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
     }
 
-    if (DataCommunicator::GetDefault().IsDistributed()) {
+    // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
+    const bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
+    if (is_mpi) {
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
