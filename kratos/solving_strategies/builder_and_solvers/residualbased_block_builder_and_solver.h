@@ -121,6 +121,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedBlockBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

@@ -23,7 +23,7 @@ def __PathInitDetail():
     from KratosMultiphysics import KratosPaths
     import os
 
-    kratos_mpi_python_path = os.path.abspath(os.path.join(KratosPaths.kratos_python_source_path, "kratos", "mpi", "python_scripts"))
+    kratos_mpi_python_path = os.path.join(KratosPaths.kratos_install_path, "kratos", "mpi", "python_scripts")
     __path__.append(kratos_mpi_python_path)
 
 __PathInitDetail()
