@@ -30,15 +30,12 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     {
         "minimal_size"                         : 0.1,
         "maximal_size"                         : 1.0,
-<<<<<<< HEAD
-=======
         "sizing_parameters":
         {
             "reference_variable_name"          : "DISTANCE",
             "boundary_layer_max_distance"      : 1.0,
             "interpolation"                    : "constant"
         },
->>>>>>> origin/MLMC/new-analysis-stage
         "enforce_current"                      : true,
         "anisotropy_remeshing"                 : true,
         "anisotropy_parameters":
@@ -53,12 +50,9 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
-<<<<<<< HEAD
-=======
     mSizeReferenceVariable = ThisParameters["sizing_parameters"]["reference_variable_name"].GetString();
     mSizeBoundLayer = ThisParameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
     mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
->>>>>>> origin/MLMC/new-analysis-stage
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
 
     // In case we have isotropic remeshing (default values)
@@ -128,19 +122,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         // MinSize by default
         double element_size = mMinSize;
         const double nodal_h = it_node->GetValue(NODAL_H);
-<<<<<<< HEAD
-        const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
-        if (it_node->SolutionStepsDataHas(reference_var)) {
-            // const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
-            element_size = CalculateElementSize(ratio_reference, nodal_h);
-            ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
-            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
-=======
         if (it_node->SolutionStepsDataHas(size_reference_var)) {
             const double size_reference = it_node->FastGetSolutionStepValue(size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
             if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(size_reference) > mSizeBoundLayer))
->>>>>>> origin/MLMC/new-analysis-stage
                 element_size = nodal_h;
         } else {
             if (((element_size > nodal_h) && (mEnforceCurrent)))
@@ -262,15 +247,6 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
     )
 {
     double size = NodalH;
-<<<<<<< HEAD
-    if (std::abs(Distance) <= mBoundLayer) {
-        if (mInterpolation == Interpolation::CONSTANT)
-            size = mMinSize;
-        else if (mInterpolation == Interpolation::LINEAR)
-            size = mMinSize + (std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize);
-        else if (mInterpolation == Interpolation::EXPONENTIAL) {
-            size = - std::log(1-std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
-=======
     if (std::abs(Distance) <= mSizeBoundLayer) {
         if (mSizeInterpolation == Interpolation::CONSTANT)
             size = mMinSize;
@@ -278,7 +254,6 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
             size = mMinSize + (std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize);
         else if (mSizeInterpolation == Interpolation::EXPONENTIAL) {
             size = - std::log(1-std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
->>>>>>> origin/MLMC/new-analysis-stage
             if (size > mMaxSize) size = mMaxSize;
         }
     }

@@ -182,17 +182,17 @@ public:
      */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
     {
-        if(this->IsNot(MARKER)) //normal element
+        if(!(this->GetValue(WAKE))) //normal element
         {
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
-            if(this->IsNot(STRUCTURE)){
+            if(!(this->GetValue(KUTTA))){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                    if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                         rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
                     else
                         rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
@@ -238,18 +238,18 @@ public:
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
-        if(this->IsNot(MARKER)) //normal element
+        if(!(this->GetValue(WAKE))) //normal element
         {
             if (rElementalDofList.size() != NumNodes)
                 rElementalDofList.resize(NumNodes);
 
-            if(this->IsNot(STRUCTURE)){
+            if(!(this->GetValue(KUTTA))){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
             }
             else{
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                    if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                         rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
                     else
                         rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
@@ -321,14 +321,12 @@ public:
         Vector DNV = ZeroVector(NumNodes);
 
         //gather nodal data
-        bool kutta_element = false;
-        if (this->IsNot(STRUCTURE)){
+        if (!(this->GetValue(KUTTA))){
             for(unsigned int i=0; i<NumNodes; i++)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }else{
-            kutta_element = true;
             for(unsigned int i=0; i<NumNodes; i++){
-                if (GetGeometry()[i].IsNot(STRUCTURE))
+                if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 else
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
@@ -336,7 +334,7 @@ public:
 
         }    
 
-        if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
+        if(!(this->GetValue(WAKE)))//normal element (non-wake) - eventually an embedded
         {
             if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
                 rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -434,7 +432,7 @@ public:
                 }
             }
         
-            if(kutta_element)
+            if(this->Is(STRUCTURE))
             {
 
                 for(unsigned int i=0; i<NumNodes; ++i)
@@ -605,13 +603,21 @@ public:
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
 
+
+    void Initialize() override
+    {
+        this->SetValue(WAKE,0);
+        this->SetValue(KUTTA,0);
+        this->SetValue(TRAILING_EDGE,false);
+    }
+
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
         bool active = true;
         if ((this)->IsDefined(ACTIVE))
             active = (this)->Is(ACTIVE);
 
-        if (this->Is(MARKER) && active == true)
+        if (this->GetValue(WAKE) && active == true)
             CheckWakeCondition();
     }
 
@@ -655,6 +661,8 @@ public:
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {
+        const int wake = this->GetValue(WAKE);
+
         if(rValues.size() != 1) rValues.resize(1);
 
         if (rVariable == PRESSURE)//actually it computes pressure coefficient cp
@@ -665,7 +673,7 @@ public:
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
 
-            if(active && !this->Is(MARKER))//normal element
+            if(active && wake == 0)//normal element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 const double gamma = rCurrentProcessInfo[LAMBDA];
@@ -700,7 +708,7 @@ public:
                 // std::cout << "Mach =" << vinfinity_norm2/(a*a) << std::endl;
                 // std::cout << "cp1 =" << cp1 << std::endl;
             }
-            else if(this->Is(MARKER) && active==true)//wake element
+            else if(wake == 1 && active==true)//wake element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 const double gamma = rCurrentProcessInfo[LAMBDA];
@@ -737,8 +745,7 @@ public:
             bool active = true;
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
-
-            if(active && !this->Is(MARKER))//normal element
+            if(active && wake == 0)//normal element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 //const double densityinfinity = rCurrentProcessInfo[DENSITY];
@@ -754,12 +761,12 @@ public:
                 GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
                 
                 //gather nodal data
-                if (this->IsNot(STRUCTURE)){
+                if (!(this->GetValue(KUTTA))){
                     for(unsigned int i=0; i<NumNodes; i++)
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 }else{
                     for(unsigned int i=0; i<NumNodes; i++){
-                        if (GetGeometry()[i].IsNot(STRUCTURE))
+                        if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                         else
                             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
@@ -775,7 +782,7 @@ public:
 
                 density = densityinfinity*pow(base,exponent); 
             }
-            else if(this->Is(MARKER) && active==true)//wake element
+            else if(wake == 1 && active==true)//wake element
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 //const double densityinfinity = rCurrentProcessInfo[DENSITY];
@@ -826,12 +833,22 @@ public:
         
     }
 
+    void GetValueOnIntegrationPoints(const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (rValues.size() != 1)
+            rValues.resize(1);
+        else if (rVariable == KUTTA)
+            rValues[0] = this->GetValue(KUTTA);
+        else if (rVariable == WAKE)
+            rValues[0] = this->GetValue(WAKE);
+    }
+
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
             std::vector< array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override
     {
         if(rValues.size() != 1) rValues.resize(1);
-
+        const int wake = this->GetValue(WAKE);
         if (rVariable == VELOCITY)
         {
             bool active = true;
@@ -839,7 +856,7 @@ public:
                 active = (this)->Is(ACTIVE);
 
             array_1d<double,3> v(3,0.0);
-            if(this->IsNot(MARKER) && active==true)
+            if(wake == 0 && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
 
@@ -847,12 +864,12 @@ public:
                 GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
                 //gather nodal data
-                if (this->IsNot(STRUCTURE)){
+                if (!(this->GetValue(KUTTA))){
                     for(unsigned int i=0; i<NumNodes; i++)
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 }else{
                     for(unsigned int i=0; i<NumNodes; i++){
-                        if (GetGeometry()[i].IsNot(STRUCTURE))
+                        if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                         else
                             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
@@ -864,7 +881,7 @@ public:
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
-            else if(this->Is(MARKER) && active==true)
+            else if(wake == 1 && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
                 
@@ -921,7 +938,7 @@ public:
                 active = (this)->Is(ACTIVE);
 
             array_1d<double,3> v = ZeroVector();
-            if(this->Is(MARKER) && active==true)
+            if(wake == 1 && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
                 
@@ -1134,12 +1151,12 @@ protected:
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
         
         //gather nodal data
-        if (this->IsNot(STRUCTURE)){
+        if (!(this->GetValue(KUTTA))){
             for(unsigned int i=0; i<NumNodes; i++)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }else{
             for(unsigned int i=0; i<NumNodes; i++){
-                if (GetGeometry()[i].IsNot(STRUCTURE))
+                if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 else
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
@@ -1184,21 +1201,21 @@ protected:
         if ((this)->IsDefined(ACTIVE))
             active = (this)->Is(ACTIVE);
 
-        if (this->IsNot(MARKER) && active == true)
+        if (!(this->GetValue(WAKE)) && active == true)
             ComputeVelocityNormalElement(velocity);
-        else if (active == true && this->Is(MARKER))
+        else if (active == true && this->GetValue(WAKE))
             ComputeVelocityUpperWakeElement(velocity);
     }
 
     void ComputeVelocityNormalElement(array_1d<double,Dim>& velocity)
     {
         ElementalData<NumNodes, Dim> data;
-        if (this->IsNot(STRUCTURE)){
+        if (!(this->GetValue(KUTTA))){
             for(unsigned int i=0; i<NumNodes; i++)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }else{
             for(unsigned int i=0; i<NumNodes; i++){
-                if (GetGeometry()[i].IsNot(STRUCTURE))
+                if (!(this->GetGeometry()[i].GetValue(TRAILING_EDGE)))
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 else
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
@@ -1273,9 +1290,9 @@ protected:
         if ((this)->IsDefined(ACTIVE))
             active = (this)->Is(ACTIVE);
 
-        if (active && !this->Is(MARKER))
+        if (active && !this->GetValue(WAKE))
             pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-        else if (active == true && this->Is(MARKER))
+        else if (active == true && this->GetValue(WAKE))
             pressure = ComputePressureWakeElement(rCurrentProcessInfo);
 
         return pressure;

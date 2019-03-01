@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 
 
@@ -22,6 +22,7 @@
 #include "includes/deprecated_variables.h"
 
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
@@ -68,7 +69,7 @@ public:
     /// Pointer definition of CompressiblePotentialWallCondition
     KRATOS_CLASS_POINTER_DEFINITION(CompressiblePotentialWallCondition);
 
-    typedef Node<3> NodeType;
+    typedef Node < 3 > NodeType;
 
     typedef Properties PropertiesType;
 
@@ -86,12 +87,12 @@ public:
 
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     typedef Element::WeakPointer ElementWeakPointerType;
-
+    
     typedef Element::Pointer ElementPointerType;
 
     ///@}
@@ -137,8 +138,8 @@ public:
      */
     CompressiblePotentialWallCondition(IndexType NewId,
                            GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
+                           PropertiesType::Pointer pProperties):
+        Condition(NewId,pGeometry,pProperties)
     {
     }
 
@@ -151,10 +152,6 @@ public:
     /// Destructor.
     ~CompressiblePotentialWallCondition() override {}
 
-    /// Destructor.
-    ~PotentialWallCondition() override
-    {
-    }
 
     ///@}
     ///@name Operators
@@ -211,12 +208,12 @@ public:
     {
         KRATOS_TRY;
      
-        // const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
+        const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
 
-        // KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-        //     << "Error on condition -> " << this->Id() << "\n"
-        //     << "NORMAL must be calculated before using this condition." << std::endl;
-       
+        KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
+            << "Error on condition -> " << this->Id() << "\n"
+            << "NORMAL must be calculated before using this condition." << std::endl;
+
         if (mInitializeWasPerformed)
             return;
 
@@ -341,42 +338,41 @@ public:
             for (unsigned int i = 0; i < TNumNodes; i++)
                 ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+        }
 
-    Condition::Pointer Create(IndexType NewId,
-                              Condition::GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override;
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+        {
+            std::vector<double> rValues;
+            ElementPointerType pElem = pGetElement();
+            pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
+            this->SetValue(PRESSURE,rValues[0]);
+        }
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
-    // Find the condition's parent element.
-    void Initialize() override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
+        ///@}
+        ///@name Access
+        ///@{
 
-    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+        ///@}
+        ///@name Inquiry
+        ///@{
 
-    ///@}
-    ///@name Access
-    ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+        ///@}
+        ///@name Input and output
+        ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+        /// Turn back information as a string.
+        std::string Info() const override
+        {
+            std::stringstream buffer;
+            this->PrintInfo(buffer);
+            return buffer.str();
+        }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
@@ -384,20 +380,19 @@ public:
             rOStream << "CompressiblePotentialWallCondition" << TDim << "D #" << this->Id();
         }
 
-    /// Turn back information as a string.
-    std::string Info() const override;
+        /// Print object's data.
+        void PrintData(std::ostream& rOStream) const override
+        {
+            this->pGetGeometry()->PrintData(rOStream);
+        }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+        ///@}
+        ///@name Friends
+        ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
+        ///@}
 
 protected:
         ///@name Protected static Member Variables
@@ -466,89 +461,118 @@ protected:
             }
         }
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+        ///@}
+        ///@name Protected  Access
+        ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
-    ///@}
+        ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
+        ///@name Static Member Variables
+        ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
 
-    bool mInitializeWasPerformed = false;
-    ElementWeakPointerType mpElement;
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-    void CalculateNormal2D(array_1d<double, 3>& An) const;
+        bool mInitializeWasPerformed = false;
+        double mMinEdgeLength;
+        ElementWeakPointerType mpElement;
 
-    void CalculateNormal3D(array_1d<double, 3>& An) const;
+        void CalculateNormal2D(array_1d<double, 3> &An)
+        {
+            Geometry<Node<3>> &pGeometry = this->GetGeometry();
 
-    ///@}
-    ///@name Serialization
-    ///@{
+            An[0] = pGeometry[1].Y() - pGeometry[0].Y();
+            An[1] = -(pGeometry[1].X() - pGeometry[0].X());
+            An[2] = 0.00;
+        }
 
-    friend class Serializer;
+        void CalculateNormal3D(array_1d<double, 3> &An)
+        {
+            Geometry<Node<3>> &pGeometry = this->GetGeometry();
 
-    void save(Serializer& rSerializer) const override;
+            array_1d<double, 3> v1, v2;
+            v1[0] = pGeometry[1].X() - pGeometry[0].X();
+            v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+            v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
 
-    void load(Serializer& rSerializer) override;
+            v2[0] = pGeometry[2].X() - pGeometry[0].X();
+            v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+            v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+            MathUtils<double>::CrossProduct(An, v1, v2);
+            An *= 0.5;
+        }
 
-    inline ElementPointerType pGetElement() const;
+        ///@}
+        ///@name Serialization
+        ///@{
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
-                              const GeometryType& rGeom) const;
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const override
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        }
+
+        void load(Serializer& rSerializer) override
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        }
+
+        ///@}
+        ///@name Private Operators
+        ///@{
+
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Un accessible methods
+        ///@{
+
+
+        ///@}
 
     }; // Class CompressiblePotentialWallCondition
 
-    void FindParentElement(std::vector<IndexType>& NodeIds,
-                           std::vector<IndexType>& ElementNodeIds,
-                           WeakPointerVector<Element> ElementCandidates);
 
     ///@}
-    ///@name Private Operations
+
+    ///@name Type Definitions
     ///@{
 
-    ///@}
-    ///@name Private  Access
-    ///@{
 
     ///@}
-    ///@name Private Inquiry
+    ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
     /// input stream function
     template< unsigned int TDim, unsigned int TNumNodes >
@@ -567,37 +591,14 @@ private:
         rOStream << std::endl;
         rThis.PrintData(rOStream);
 
-///@name Type Definitions
-///@{
+        return rOStream;
+    }
 
-///@}
-///@name Input and output
-///@{
+    ///@}
 
-/// input stream function
-template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                PotentialWallCondition<TDim, TNumNodes>& rThis)
-{
-    return rIStream;
-}
+    ///@} addtogroup block
 
-/// output stream function
-template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const PotentialWallCondition<TDim, TNumNodes>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
 
-    return rOStream;
-}
-
-///@}
-
-///@} addtogroup block
-
-} // namespace Kratos.
+}  // namespace Kratos.
 
 #endif // KRATOS_POTENTIAL_WALL_CONDITION_H

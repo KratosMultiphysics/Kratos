@@ -24,7 +24,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        self.problem_name=settings["problem_name"].GetString()
         self.upper_surface_model_part =Model.GetModelPart(settings["upper_surface_model_part_name"].GetString())
         self.lower_surface_model_part =Model.GetModelPart(settings["lower_surface_model_part_name"].GetString())
         for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):

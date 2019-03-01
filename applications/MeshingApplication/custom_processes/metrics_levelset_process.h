@@ -266,11 +266,6 @@ private:
         const double NodalH
         );
 
-    double CalculateElementSize(
-        const double Distance,
-        const double NodalH
-        );
-
     ///@}
     ///@name Private  Access
     ///@{

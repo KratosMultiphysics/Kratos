@@ -24,6 +24,8 @@
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
+#include "custom_conditions/compressible_potential_wall_condition.h"
+
 
 namespace Kratos {
 
@@ -103,6 +105,8 @@ private:
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
+    const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
+
 
     ///@}
     ///@name Un accessible methods

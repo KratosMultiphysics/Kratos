@@ -70,7 +70,6 @@ class LaplacianSolver(PythonSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
-        super(PotentialSolver,self).__init__(model, self.settings)
 
         if model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
@@ -102,6 +101,7 @@ class LaplacianSolver(PythonSolver):
 
         # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
     def AddDofs(self):
@@ -113,7 +113,7 @@ class LaplacianSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
 
-        if self.settings["problem_type"].GetString() == "compressible" or self.settings["problem_type"].GetString() == "compressible_full":
+        if self.settings["element_replace_settings"]["element_name"].GetString() == "CompressiblePotentialFlowElement2D3N":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
@@ -127,7 +127,7 @@ class LaplacianSolver(PythonSolver):
                 max_iterations,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                move_mesh_flag)
+                self.move_mesh_flag)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
@@ -138,10 +138,11 @@ class LaplacianSolver(PythonSolver):
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
-                move_mesh_flag)
+                self.move_mesh_flag)
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
+        self.solver.Initialize()
     def PrepareModelPart(self):
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
@@ -168,7 +169,6 @@ class LaplacianSolver(PythonSolver):
 
         # else:
         # raise Exception("other input options are not yet implemented")
-        print("Solving",self.settings["problem_type"].GetString() ,"case")
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
@@ -182,22 +182,22 @@ class LaplacianSolver(PythonSolver):
         return self.main_model_part
 
     def InitializeSolutionStep(self):
-        self.incompressible_solution_stratety.InitializeSolutionStep()
+        self.solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.incompressible_solution_stratety.Predict()
+        self.solver.Predict()
 
     def SolveSolutionStep(self):
-        self.incompressible_solution_stratety.SolveSolutionStep()
+        self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.incompressible_solution_stratety.FinalizeSolutionStep()
+        self.solver.FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
-        self.incompressible_solution_stratety.SetEchoLevel(level)
+        self.solver.SetEchoLevel(level)
 
     def Clear(self):
-        self.incompressible_solution_stratety.Clear()
+        self.solver.Clear()
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")

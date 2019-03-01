@@ -77,7 +77,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Find neighbours
         nodal_neighbour_search.Execute()
 
-    def ExecuteInitialize(self):
+    def ExecuteInitializeSolutionStep(self):
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
