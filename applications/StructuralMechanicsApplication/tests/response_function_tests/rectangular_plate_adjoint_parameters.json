@@ -18,6 +18,13 @@
         "scheme_settings" : {
             "scheme_type"              : "adjoint_structural"
         },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "build_mode": "static"
+        },
         "echo_level"                         : 0,
         "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,

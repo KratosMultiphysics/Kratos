@@ -1,0 +1,77 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "TwoFluidStaticPoolTest2D",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 0.1
+    },
+    "solver_settings"             		: {
+        "model_part_name" 	: "FluidModelPart",
+        "domain_size"     	: 2,
+        "solver_type"   	: "TwoFluids",
+        "model_import_settings"       	: {
+            "input_type"     : "mdpa",
+            "input_filename" : "TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2D"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "dynamic_tau"                 : 1.0,
+        "maximum_iterations"          : 10,
+        "relative_velocity_tolerance" : 1e-5,
+        "absolute_velocity_tolerance" : 1e-7,
+        "relative_pressure_tolerance" : 1e-5,
+        "absolute_pressure_tolerance" : 1e-7,
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : [],
+        "no_skin_parts"               : [],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        },
+        "linear_solver_settings" : {
+            "solver_type" : "SuperLUSolver",
+            "smoother_type" :"damped_jacobi",
+            "krylov_type" : "lgmres",
+            "coarsening_type" : "aggregation",
+            "max_iteration" : 500,
+            "provide_coordinates" : false,
+            "gmres_krylov_space_dimension" : 500,
+            "verbosity" : 0,
+            "tolerance" : 1e-8,
+            "scaling" : false,
+            "block_size" : 1,
+            "use_block_matrices_if_possible" : true,
+            "coarse_enough" : 500
+        }
+    },
+	"processes"	:	{
+    	"initial_conditions_process_list"  : [],
+    	"boundary_conditions_process_list" : [],
+    	"gravity"                          : [{
+        	"python_module" : "assign_vector_by_direction_process",
+        	"kratos_module" : "KratosMultiphysics",
+        	"process_name"  : "AssignVectorByDirectionProcess",
+        	"Parameters"    : {
+            	"model_part_name" : "Parts_Fluid",
+            	"variable_name"   : "BODY_FORCE",
+            	"modulus"         : 9.81,
+            	"constrained"     : false,
+            	"direction"       : [0.0,-1.0,0.0]
+        	}
+    	}],
+    	"auxiliar_process_list"            : [{
+        	"python_module" : "apply_distance_modification_process",
+        	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        	"process_name"  : "ApplyDistanceModificationProcess",
+        	"Parameters"    : {
+            	"model_part_name"                        : "Parts_Fluid",
+            	"distance_threshold"                     : 0.001,
+            	"check_at_each_time_step"                : false,
+            	"avoid_almost_empty_elements"            : true,
+            	"deactivate_full_negative_elements"      : false,
+            	"recover_original_distance_at_each_step" : false
+        	}
+    	}]
+	}
+}

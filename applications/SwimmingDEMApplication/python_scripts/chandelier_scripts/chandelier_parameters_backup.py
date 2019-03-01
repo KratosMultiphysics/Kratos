@@ -20,5 +20,5 @@ u0 = 0.
 v0 = 0.0
 
 # Simulation
-final_time = 5.0
+end_time = 5.0
 n_t_steps = 1000

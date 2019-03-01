@@ -864,9 +864,9 @@ public:
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
-            if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
-                BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
+            const std::size_t reactions_vector_size = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
+            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
+                BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
 
         KRATOS_CATCH("")
@@ -886,18 +886,15 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, b);
 
-        int i;
-        int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
-
-        typename DofsArrayType::ptr_iterator it2;
-
-        //updating variables
-        TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-        for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
-        {
+        // Updating variables
+        std::size_t i;
+        TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+        for (auto it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2) {
             i = (*it2)->EquationId();
-            i -= systemsize;
-            (*it2)->GetSolutionStepReactionValue() = -ReactionsVector[i];
+            if (i >= BaseType::mEquationSystemSize) {
+                i -= BaseType::mEquationSystemSize;
+                (*it2)->GetSolutionStepReactionValue() = -r_reactions_vector[i];
+            }
 
         }
     }

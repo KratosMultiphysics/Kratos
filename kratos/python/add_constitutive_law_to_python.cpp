@@ -44,6 +44,19 @@ template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLa
     TDataType tmp = rThisConstitutiveLaw.GetValue(rThisVariable, value);
     return tmp;
 }
+
+// Function to export CalculateValue(...).
+// Returns a copy instead of a reference, as GetValue does.
+template<class TDataType> const TDataType ConstitutiveLawCalculateValue(
+        ConstitutiveLaw& rThisConstitutiveLaw,
+        ConstitutiveLaw::Parameters& rValues,
+        const Variable<TDataType >& rThisVariable,
+        TDataType& value)
+{
+    TDataType tmp = rThisConstitutiveLaw.CalculateValue(rValues, rThisVariable, value);
+    return tmp;
+}
+
 template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType>& rThisVariable, TDataType& value, const ProcessInfo& rCurrentProcessInfo)
 { rThisConstitutiveLaw.SetValue(rThisVariable, value, rCurrentProcessInfo); }
 
@@ -155,11 +168,13 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("IsIncremental",&ConstitutiveLaw::IsIncremental)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
+    .def("Has", &ConstitutiveLawHas< Variable<bool> >)
     .def("Has", &ConstitutiveLawHas< Variable<int> >)
     .def("Has", &ConstitutiveLawHas< Variable<double> >)
     .def("Has", &ConstitutiveLawHas< Variable<array_1d<double,3> > >)
     .def("Has", &ConstitutiveLawHas< Variable<Vector> >)
     .def("Has", &ConstitutiveLawHas< Variable<Matrix> >)
+    .def("GetValue", &ConstitutiveLawGetValue<bool> )
     .def("GetValue", &ConstitutiveLawGetValue<int> )
     .def("GetValue", &ConstitutiveLawGetValue<double> )
     .def("GetValue", &ConstitutiveLawGetValue<array_1d<double,3>  >)
@@ -170,6 +185,12 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("SetValue", &ConstitutiveLawSetValue<array_1d<double,3>  >)
     .def("SetValue", &ConstitutiveLawSetValue<Vector >)
     .def("SetValue", &ConstitutiveLawSetValue<Matrix >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<bool> )
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<int> )
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<double> )
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<array_1d<double,3>  >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<Vector >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<Matrix >)
     .def("CalculateMaterialResponse",&NewInterfaceCalculateMaterialResponse)
     .def("CalculateMaterialResponsePK1",&ConstitutiveLaw::CalculateMaterialResponsePK1)
     .def("CalculateMaterialResponsePK2",&ConstitutiveLaw::CalculateMaterialResponsePK2)

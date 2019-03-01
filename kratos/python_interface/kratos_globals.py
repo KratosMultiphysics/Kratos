@@ -30,12 +30,7 @@ class KratosGlobals:
         self -- It signifies an instance of a class.
         FlagName -- The name of the flag to return
         """
-        kernel = self.Kernel
-
-        if kernel.HasFlag(FlagName):
-            return kernel.GetFlag(FlagName)
-        else:
-            raise ValueError("\nKernel.GetFlag() ERROR: Flag {0} is unknown. Check that is properly spelled\n".format(FlagName))
+        return self.Kernel.GetFlag(FlagName)
 
     def GetVariable(self, VarName):
         """ This method returns the variable with the given name
@@ -139,9 +134,6 @@ class KratosGlobals:
 
     def GetConstitutiveLaw(self, ConstitutiveLawName):
         """ This method returns the constitutive law with the given name
-        It throws an error if the ConstitutiveLawName does not exist/is not
-        registered in KratosComponenets. In this case it prints the names
-        of the registeres constitutive laws
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -156,9 +148,6 @@ class KratosGlobals:
         self -- It signifies an instance of a class.
         ConstitutiveLawName -- The name of the constitutive law to check
         """
-        if self.Kernel.HasConstitutiveLaw(ConstitutiveLawName):
-            return True
-        else:
-            return False
+        return self.Kernel.HasConstitutiveLaw(ConstitutiveLawName)
 
 

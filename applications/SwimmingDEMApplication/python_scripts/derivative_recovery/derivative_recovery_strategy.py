@@ -12,6 +12,8 @@ from . import zhang_guo_recoverer
 from . import L2_projection_recoverer
 from . import pouliot_2012_recoverer
 from . import pouliot_2012_edge_recoverer
+from . import lagrangian_recoverer
+
 import weakref
 
 class DerivativeRecoveryStrategy:
@@ -70,6 +72,8 @@ class DerivativeRecoveryStrategy:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part)
             else:
                 raise Exception('The value of material_acceleration_calculation_type is ' + str(self.mat_deriv_type) + ' , which is only compatible with store_full_gradient = 1. Instead it is store_full_gradient = ' + str(self.store_full_gradient) + '.')
+        elif self.mat_deriv_type == 8:
+            return lagrangian_recoverer.LagrangianMaterialAccelerationRecoverer(self.pp, self.fluid_model_part)
         else:
             raise Exception('The value of material_acceleration_calculation_type is ' + str(self.mat_deriv_type) + ' , which does not correspond to any valid option.')
 

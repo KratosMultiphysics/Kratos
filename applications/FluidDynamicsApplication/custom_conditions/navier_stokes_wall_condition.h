@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -76,11 +77,12 @@ public:
 
     struct ConditionDataStruct
     {
-        double wGauss;                  // Gauss point weight
-        double charVel;                 // Problem characteristic velocity (used in the outlet inflow prevention)
-        double delta;                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
-        array_1d<double, 3> Normal;     // Condition normal
-        array_1d<double, TNumNodes> N;  // Gauss point shape functions values
+        double wGauss;                                  // Gauss point weight
+        double charVel;                                 // Problem characteristic velocity (used in the outlet inflow prevention)
+        double delta;                                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+        array_1d<double, 3> Normal;                     // Condition normal
+        array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
+        Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
     };
 
     typedef Node < 3 > NodeType;
@@ -209,6 +211,7 @@ public:
         return pNewCondition;
     }
 
+
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
@@ -218,63 +221,8 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
-
-        if (rLeftHandSideMatrix.size1() != MatrixSize)
-            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
-
-        if (rRightHandSideVector.size() != MatrixSize)
-            rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
-
-        // Struct to pass around the data
-        ConditionDataStruct data;
-
-        // Allocate memory needed
-        array_1d<double,MatrixSize> rhs_gauss;
-        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_gauss;
-
-        // LHS and RHS contributions initialization
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-
-        // Compute condition unit normal vector
-        this->CalculateNormal(data.Normal); //this already contains the area
-        const double A = norm_2(data.Normal);
-        data.Normal /= A;
-
-        // Store the outlet inflow prevention constants in the data structure
-        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-
-        // Gauss point information
-        GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        // Loop on gauss points
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
-
-            ComputeGaussPointRHSContribution(rhs_gauss, data);
-            ComputeGaussPointLHSContribution(lhs_gauss, data);
-
-            noalias(rLeftHandSideMatrix) += lhs_gauss;
-            noalias(rRightHandSideVector) += rhs_gauss;
-        }
-
-        KRATOS_CATCH("")
-    }
 
     /// Calculates the RHS condition contributions
     /**
@@ -283,20 +231,8 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
-
-        if (rLeftHandSideMatrix.size1() != MatrixSize)
-            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
-
-        // LHS contributions initialization
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-
-        KRATOS_CATCH("")
-    }
 
     /// Calculates the RHS condition contributions
     /**
@@ -305,116 +241,16 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
-
-        if (rRightHandSideVector.size() != MatrixSize)
-            rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
-
-        // Struct to pass around the data
-        ConditionDataStruct data;
-
-        // Allocate memory needed
-        array_1d<double,MatrixSize> rhs_gauss;
-
-        // Loop on gauss points
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-
-        // Compute condition normal
-        this->CalculateNormal(data.Normal); //this already contains the area
-        const double A = norm_2(data.Normal);
-        data.Normal /= A;
-
-        // Store the outlet inflow prevention constants in the data structure
-        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-
-        // Gauss point information
-        GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
-
-            ComputeGaussPointRHSContribution(rhs_gauss, data);
-
-            noalias(rRightHandSideVector) += rhs_gauss;
-        }
-
-        KRATOS_CATCH("")
-    }
 
 
     /// Condition check
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-        int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
-
-        if (Check != 0)
-        {
-            return Check;
-        }
-        else
-        {
-            // Check that all required variables have been registered
-            if(VELOCITY.Key() == 0)
-                KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(MESH_VELOCITY.Key() == 0)
-                KRATOS_ERROR << "MESH_VELOCITY Key is 0. Check if the application was correctly registered.";
-            if(ACCELERATION.Key() == 0)
-                KRATOS_ERROR << "ACCELERATION Key is 0. Check if the application was correctly registered.";
-            if(PRESSURE.Key() == 0)
-                KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(DENSITY.Key() == 0)
-                KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
-            if(DYNAMIC_VISCOSITY.Key() == 0)
-                KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
-            if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
-
-            // Checks on nodes
-            // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-            for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-            {
-                if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                    KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                    KRATOS_ERROR << "missing PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                    KRATOS_ERROR << "missing MESH_VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                    KRATOS_ERROR << "missing ACCELERATION variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                    KRATOS_ERROR << "missing EXTERNAL_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-                   this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-                   this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                    KRATOS_ERROR << "missing VELOCITY component degree of freedom on node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                    KRATOS_ERROR << "missing PRESSURE component degree of freedom on node " << this->GetGeometry()[i].Id();
-            }
-
-            return Check;
-        }
-
-        KRATOS_CATCH("");
-    }
 
     /// Provides the global indices for each one of this element's local rows.
     /** This determines the elemental equation ID vector for all elemental DOFs
@@ -491,9 +327,11 @@ protected:
     void CalculateNormal(array_1d<double,3>& An);
 
     void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
+
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     ///@}
@@ -548,6 +386,30 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
+     * This specific implementation of the slip condition avoids spurious velocities
+     * at points were the normal directions of the adjacent boundary geometries do not
+     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
+                                                    const ConditionDataStruct& rDataStruct );
+
+
+    /**
+     * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
+     * This specific implementation of the slip condition avoids spurious velocities
+     * at points were the normal directions of the adjacent boundary geometries do not
+     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rRightHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
+                                                    const ConditionDataStruct& rDataStruct );
 
     ///@}
     ///@name Private  Access

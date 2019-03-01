@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		     BSD License
-//					         Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
+//  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
@@ -20,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "geometries/plane_3d.h"
 #include "includes/checks.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"

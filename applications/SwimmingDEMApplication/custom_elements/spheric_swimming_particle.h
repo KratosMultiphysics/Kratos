@@ -14,8 +14,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "../../applications/DEM_application/custom_elements/spheric_particle.h"
-#include "../../applications/DEM_application/custom_elements/nanoparticle.h"
+#include "../../applications/DEMApplication/custom_elements/spheric_particle.h"
+#include "../../applications/DEMApplication/custom_elements/nanoparticle.h"
 
 namespace Kratos
 {

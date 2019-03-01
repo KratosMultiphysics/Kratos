@@ -93,7 +93,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix(3);
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
@@ -169,9 +169,6 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
         //Kirchhoff Stress:
         StressVector = SplitStressVector.Isochoric + SplitStressVector.Volumetric;
 
-        //std::cout<<" StressVector.Isochoric "<<SplitStressVector.Isochoric<<std::endl;
-        //std::cout<<" StressVector.Volumetric "<<SplitStressVector.Volumetric<<std::endl;
-
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
         {
             StressVector = SplitStressVector.Isochoric;
@@ -194,11 +191,11 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
-	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
+	    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
 
         this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
 
-	this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
+	    this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
 
@@ -211,13 +208,6 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
             ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
         }
     }
-
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
-
-    //-----------------------------//
-
-
 }
 
 
@@ -254,7 +244,7 @@ Vector&  HyperElasticUP3DLaw::CalculateVolumetricPressureFactors (const Material
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
 
-    if(rFactors.size()!=3) rFactors.resize(3);
+    if(rFactors.size()!=3) rFactors.resize(3,false);
 
     rFactors[0] =  1.0;
     rFactors[1] =  2.0;

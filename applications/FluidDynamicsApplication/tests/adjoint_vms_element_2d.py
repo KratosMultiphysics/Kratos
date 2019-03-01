@@ -1,25 +1,16 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
-missing_applications_message = ["Missing required application(s):",]
-have_required_applications = True
-
-try:
-    from KratosMultiphysics.AdjointFluidApplication import *
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("AdjointFluidApplication")
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 
-@KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
 class AdjointVMSElement2D(KratosUnittest.TestCase):
 
     def setUp(self):
         self.delta_time = 1.0
         # create test model part
-        self.model_part = ModelPart("test")
+        self.model = Model()
+        self.model_part = self.model.CreateModelPart("test")
         self.model_part.AddNodalSolutionStepVariable(VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
         self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -95,7 +86,7 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         mass2_trans = Matrix(9,9)
         self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
-        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans))
+        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans)*(-1.0))
 
     def testCalculateFirstDerivativesLHS1(self):
         # test for steady state.

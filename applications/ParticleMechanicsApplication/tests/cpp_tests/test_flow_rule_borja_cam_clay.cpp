@@ -107,9 +107,9 @@ namespace Testing
         bcc_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain);
 
         Vector stress_analytic = ZeroVector(3);
-        stress_analytic[0] = -3.112606631973e+04;
-        stress_analytic[1] = -7.351529252708e+04;
-        stress_analytic[2] = -2.442042601574e+04;
+        stress_analytic[0] = -3.112443504093e+04;
+        stress_analytic[1] = -7.351387390960e+04;
+        stress_analytic[2] = -2.441876109561e+04;
         const double yield_analytic = 3.919787896261e+12;
 
         KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1.0);

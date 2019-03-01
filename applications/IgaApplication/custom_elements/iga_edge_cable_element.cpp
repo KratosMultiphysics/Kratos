@@ -11,30 +11,28 @@
 */
 
 // System includes
-#include "includes/define.h"
-#include "includes/variables.h"
+//#include "includes/define.h"
+//#include "includes/variables.h"
 
 // External includes
 
 // Project includes
 #include "iga_edge_cable_element.h"
-#include "iga_application_variables.h"
 
-namespace Kratos {              // Geometrie von Menmbrane einarbeiten 
+namespace Kratos {              
 
 Element::Pointer IgaEdgeCableElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const      //kann ich hier bei Properties feslegen zu welchem Element die Punkte gehören? bzw. neue Eigenschaft hinzufüen?
+    PropertiesType::Pointer pProperties) const     
 {
     auto geometry = GetGeometry().Create(ThisNodes);
 
     return Kratos::make_shared<IgaEdgeCableElement>(NewId, geometry,
         pProperties);
-}
-//Hier sollen nachher zwei Geometrie Blöcke stehen mit Konten mit einem Index für Cable und Knoten mit zwei Indizes für Membrane 
+} 
 
-void IgaEdgeCableElement::GetDofList(       // DOFs nur für CPs Cable oder werden auch die von der Membrane benötigt?
+void IgaEdgeCableElement::GetDofList(     
     DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -73,41 +71,44 @@ void IgaEdgeCableElement::Initialize()
     mReferenceBaseVector = GetActualBaseVector();
 }
 
- //Neue Definition von Base Vector g1
+//Definition von Base Vector 
 
 IgaEdgeCableElement::Vector3 IgaEdgeCableElement::GetActualBaseVector() const
 {
+  // void CalculateTangent(
+  //      const Matrix& rDN_De,
+  //      const array_1d<double, 2>& Tangents);{
+    
+  //  return Tangents()
+  //  }
     const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    const Vector& t = GetValue(TANGENTS);
+    //const Vector& t = Tangent1;
 
-    // Base Vector Teile (2) und (4) (aufsummiert über CPs Cable)
- 
-    Vector3 actual_base_vector = ZeroVector(3);
+    //const double t_u = t[0];
+    //const double t_v = t[1];
+    
+    array_1d<double, 3> actual_base_vector = ZeroVector(3);
 
-    for (std::size_t k = 0; k < NumberOfNodes(); k++) // k = Number of Nodes Cable
-    {
-        actual_base_vector[0] += DN_De(k, 0) * GetGeometry()[k].X();        //entspricht (2)
-        actual_base_vector[1] += DN_De(k, 0) * GetGeometry()[k].Y();        //entspricht (4)
-        actual_base_vector[2] += DN_De(k, 0) * GetGeometry()[k].Z();
-    }
+    IgaCurveOnSurfaceUtilities::CalculateTangent(
+        GetGeometry(),
+        DN_De,
+        t,
+        actual_base_vector
+    );
+
+KRATOS_WATCH(actual_base_vector)
+
+    //for (std::size_t k = 0; k < NumberOfNodes(); k++) // k = Number of Nodes Cable
+    //{
+    //    actual_base_vector[0] += ( DN_De(k, 0) * t[0] + DN_De(k,1) * t[1] ) * GetGeometry()[k].X();        
+    //    actual_base_vector[1] += ( DN_De(k, 0) * t[0] + DN_De(k,1) * t[1] ) * GetGeometry()[k].Y();        
+    //    actual_base_vector[2] += ( DN_De(k, 0) * t[0] + DN_De(k,1) * t[1] ) * GetGeometry()[k].Z();
+    //}
 
     return actual_base_vector;
-
-    // Gesamter Base Vector MEMBRANE
-
-    //ShapeFunction + Derivatives Membrane importieren
-    const Vector& ShapeFunctionNsrf = GetValue(SHAPE_FUNCTUIN_VALUES_MEMBRANE);        
-    const Matrix& DNsrf_Du = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_U);
-    const Matrix& DNsrf_Dv = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_V);
-
-    for (std::size_t i=0; i < NumberOfNodes(); i++)
-    {
-        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].X();
-        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].Y();
-        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].Z();
-    }
-
-        return final_actual_base_vector;
 }
+
 
 void IgaEdgeCableElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
@@ -118,11 +119,11 @@ void IgaEdgeCableElement::CalculateAll(
 {
     KRATOS_TRY;
 
-    // get integration data
-    
+// get integration data
+
     const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
-    Matrix& shape_derivatives_u = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_U);
-    Matrix& shape_derivatives_v = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_V);
+    Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    const Vector& t = GetValue(TANGENTS);
 
     // get properties
 
@@ -132,68 +133,90 @@ void IgaEdgeCableElement::CalculateAll(
     const double A = properties[CROSS_AREA];
     const double prestress = properties[PRESTRESS_CAUCHY];
 
+//KRATOS_WATCH(E)
+//KRATOS_WATCH(A)
+//KRATOS_WATCH(prestress)
+
     // compute base vectors
 
     const Vector3 actual_base_vector = GetActualBaseVector();
 
     const double reference_a = norm_2(mReferenceBaseVector);
-    const double actual_a = actual_base_vector;
-    const double final_actual_a = norm_2(final_actual_base_vector);
+    const double actual_a = norm_2(actual_base_vector);
 
-    const double final_actual_aa = actual_a * actual_a;
+    const double actual_aa = actual_a * actual_a;
     const double reference_aa = reference_a * reference_a;
 
     // green-lagrange strain
 
-    const double e11_membrane = 0.5 * (final_actual_aa - reference_aa);
+    const double e11_membrane = 0.0;//0.5 * (actual_aa - reference_aa);
 
     // normal force
 
-    const double s11_membrane = prestress * A + e11_membrane * A * E /
-        reference_aa;
+    const double s11_membrane = prestress * A;//+ e11_membrane * A * E / reference_aa;
 
+//KRATOS_WATCH(s11_membrane)
 
+    //for (std::size_t k = 0; k < NumberOfDofs(); k++){
+    //    const double dof_type_m[NumberOfDofs()];
+    //    const std::size_t dof_type_m[ ] = { GetDofTypeIndex(k) };
+    
     for (std::size_t r = 0; r < NumberOfDofs(); r++) {
+        //const std::size_t dof_type_g[r] = {GetDofTypeIndex(r)};
+        //const std::size_t dof_type_r = dof_type_m[r];
         const std::size_t dof_type_r = GetDofTypeIndex(r);
         const std::size_t shape_index_r = GetShapeIndex(r);
-
-        const double epsilon_var_r = final_actual_a[dof_type_r] *
-            (shape_derivatives_u(shape_index_r, 0) * acutal_a[0] + shape_derivatives_v(shape_index_r, 0) * acutal_a[1]) / reference_aa;
-
+        //const double t_u = t[0];
+        //const double t_v = t[1];
+ 
+        const double epsilon_var_r = actual_base_vector[dof_type_r] *
+            (shape_derivatives(shape_index_r, 0) * t[0] 
+            + shape_derivatives(shape_index_r, 1) * t[1]) / reference_aa;
+ 
        if (ComputeLeftHandSide) {
             for (std::size_t s = 0; s < NumberOfDofs(); s++) {
                 const std::size_t dof_type_s = GetDofTypeIndex(s);
                 const std::size_t shape_index_s = GetShapeIndex(s);
-
+                const Vector& t = GetValue(TANGENTS);
+                //const double t_u = t[0];
+                //const double t_v = t[1];
+ 
                 const double epsilon_var_s =
-                    final_actual_a[dof_type_s] *
-                    (shape_derivatives_u(shape_index_r, 0) * acutal_a[0] + shape_derivatives_v(shape_index_r, 0) * acutal_a[1]) / reference_aa;
-
+                    actual_base_vector[dof_type_s] *
+                    (shape_derivatives(shape_index_s, 0) * t[0]
+                    + shape_derivatives(shape_index_s, 1) * t[1])
+                    / reference_aa;
+ 
                 rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
                     epsilon_var_s;
-//
-//                if (dof_type_r == dof_type_s) {
-//                    const double epsilon_var_rs =
-//                        shape_derivatives(shape_index_r, 0) *
-//                        shape_derivatives(shape_index_s, 0) / reference_aa;
-//
-//                    rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
-//                }
+ 
+                if (dof_type_r == dof_type_s) {
+                    const double epsilon_var_rs =
+                        (shape_derivatives(shape_index_r, 0) * t[0] + shape_derivatives(shape_index_r, 1) * t[1]) *
+                        (shape_derivatives(shape_index_s, 0) * t[0] + shape_derivatives(shape_index_s, 1) * t[1]) / reference_aa;
+ 
+                    rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
+                }
             }
         }
-
         if (ComputeRightHandSide) {
             rRightHandSideVector[r] = -s11_membrane * epsilon_var_r;
         }
     }
+    //}
+
+//KRATOS_WATCH(reference_a)
 
     if (ComputeLeftHandSide) {
         rLeftHandSideMatrix *= reference_a * integration_weight;
-   }
+    }
 
     if (ComputeRightHandSide) {
         rRightHandSideVector *= reference_a * integration_weight;
     }
+
+//KRATOS_WATCH(rLeftHandSideMatrix)
+//KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH("")
 }

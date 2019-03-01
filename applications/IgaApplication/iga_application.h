@@ -20,12 +20,20 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/iga_edge_cable_element.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
+
+#include "custom_conditions/coupling_penalty_discrete_condition.h"
+#include "custom_conditions/support_penalty_curve_discrete_condition.h"
+#include "custom_conditions/support_penalty_point_discrete_condition.h"
+
+#include "custom_conditions/load_point_discrete_condition.h"
+#include "custom_conditions/load_surface_discrete_condition.h"
+
+#include "custom_conditions/load_curve_discrete_condition.h"
 
 namespace Kratos {
 
@@ -78,7 +86,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
     ///@}
     ///@name Access
@@ -93,18 +101,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {
+    std::string Info() const override
+    {
         return "KratosIgaApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override
+    {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
@@ -166,6 +177,15 @@ private:
     const IgaEdgeCableElement mIgaEdgeCableElement;
     const IgaMembraneElement mIgaMembraneElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
+
+    const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;
+
+    const SupportPenaltyCurveDiscreteCondition mSupportPenaltyCurveDiscreteCondition;
+    const SupportPenaltyPointDiscreteCondition mSupportPenaltyPointDiscreteCondition;
+
+    const LoadSurfaceDiscreteCondition mLoadSurfaceDiscreteCondition;
+    const LoadCurveDiscreteCondition mLoadCurveDiscreteCondition;
+
 
     ///@}
     ///@name Private Operators

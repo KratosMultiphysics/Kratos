@@ -106,7 +106,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     KRATOS_DEPRECATED_MESSAGE("Please, use AssignUniqueModelPartCollectionTagUtility") SubModelPartsListUtility(ModelPart& rModelPart);
 
     /// Destructor.
-    ~SubModelPartsListUtility();
+    virtual ~SubModelPartsListUtility();
 
 
     ///@}

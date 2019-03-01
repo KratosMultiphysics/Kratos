@@ -135,8 +135,8 @@ public:
 
         double I1, J2;
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        array_1d<double, VoigtSize> Deviator(VoigtSize, 0.0);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, Deviator, J2);
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
         if (I1 == 0.0) {
             rEquivalentStress = 0.0;

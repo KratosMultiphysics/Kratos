@@ -164,8 +164,8 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
-            if self.slip_flag and self.solver.settings.Has("is_slip"):
-                self.solver.settings["is_slip"].SetBool(True)
+            if self.slip_flag:
+                self.solver.settings["formulation"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 

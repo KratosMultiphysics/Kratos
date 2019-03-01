@@ -25,6 +25,8 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
+from test_ale_fluid_solver import ALEFluidSolverTest
+
 import run_cpp_unit_tests
 
 def AssembleTestSuites():
@@ -94,6 +96,7 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidSolverTest]))
 
 
     # For very long tests that should not be in nighly and you can use to validate
@@ -109,6 +112,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")

@@ -515,7 +515,7 @@ public:
     ~MortarKinematicVariablesWithDerivatives() override= default;
 
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeMaster = ScalarMatrix(TNumNodesMaster, TDim - 1, 0.0);
     Matrix DNDeSlave = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
 
     /*

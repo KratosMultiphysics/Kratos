@@ -11,7 +11,6 @@
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_KRATOS_COMPONENTS_H_INCLUDED )
 #define  KRATOS_KRATOS_COMPONENTS_H_INCLUDED
 
@@ -21,7 +20,6 @@
 #include <map>
 
 // External includes
-#include <boost/ref.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -34,8 +32,12 @@ namespace Kratos
 {
 
 /// KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
-/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way. Prototypes must be added to this table by unique names to be accessible by IO. These names can be created automatically using C++ RTTI or given manually for each component.
- * In this design the manual approach is chosen, so shorter and more clear names can be given to each component and also there is a flexibility to give different names to different states of an object and create them via different prototypes.
+/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
+ * Prototypes must be added to this table by unique names to be accessible by IO.
+ * These names can be created automatically using C++ RTTI or given manually for each component.
+ * In this design the manual approach is chosen, so shorter and more clear names can be given
+ * to each component and also there is a flexibility to give different names to different
+ * states of an object and create them via different prototypes.
  * For example having TriangularThermal and  both
 */
 
@@ -62,11 +64,6 @@ public:
 
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
 
     virtual ~KratosComponents() {}
@@ -76,31 +73,29 @@ public:
     ///@{
 
 
-
     ///@}
     ///@name Operations
     ///@{
 
-
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
-        msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
+        msComponents.insert(ValueType(Name , &ThisComponent));
     }
-
-
-//     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//     }
-
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-        if(i == msComponents.end())
-          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
-        return *(i->second);
+        auto it_comp =  msComponents.find(Name);
+        if (it_comp != msComponents.end()) {
+            return *(it_comp->second);
+        }
+
+        std::stringstream err_msg;
+        err_msg << "The component \"" << Name << "\" is not registered!\n"
+                << "Maybe you need to import the application where it is defined?\n"
+                << "The following components of this type are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(err_msg);
+        KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
     static ComponentsContainerType & GetComponents()
@@ -151,8 +146,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << i->first << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
     }
 
     ///@}
@@ -268,11 +264,6 @@ public:
     /// Default constructor.
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
     virtual ~KratosComponents() {}
 
@@ -287,19 +278,13 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
+        msComponents.insert(ValueType(Name ,&ThisComponent));
     }
 
     static std::size_t Size()
     {
         return msComponents.size();
     }
-
-//     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
-//     }
 
     static VariableData & Get(std::string const& Name)
     {
@@ -359,8 +344,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << *(i->second) << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.second << std::endl;
+        }
     }
 
     ///@}
@@ -481,13 +467,6 @@ typename KratosComponents<TComponentType>::ComponentsContainerType KratosCompone
 
 ///@name Input and output
 ///@{
-
-/// input stream function
-//   template<class TComponentType>
-//   inline std::istream& operator >> (std::istream& rIStream,
-// 				    KratosComponents<TComponentType>& rThis);
-
-
 
 /// output stream function
 template<class TComponentType>

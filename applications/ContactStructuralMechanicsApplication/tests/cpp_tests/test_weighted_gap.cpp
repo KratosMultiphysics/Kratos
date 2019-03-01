@@ -254,11 +254,13 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap1, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
             r_model_part.CreateSubModelPart("ComputingContact");
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             auto& process_info = r_model_part.GetProcessInfo();
@@ -305,12 +307,13 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap2, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
             r_model_part.CreateSubModelPart("ComputingContact");
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             auto& process_info = r_model_part.GetProcessInfo();
@@ -360,12 +363,13 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap3, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
             r_model_part.CreateSubModelPart("ComputingContact");
             
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
             r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
             
             auto& process_info = r_model_part.GetProcessInfo();

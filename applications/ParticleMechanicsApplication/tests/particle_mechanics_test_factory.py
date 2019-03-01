@@ -62,6 +62,10 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
+### Axis-Symmetric Tests
+class AxisSymmetricCircularPlate2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "axisym_tests/circular_plate_axisym_test"
+
 ### Beam Tests
 class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_point_load_2D_tri_test"

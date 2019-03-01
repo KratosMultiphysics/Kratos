@@ -38,7 +38,7 @@ public:
     using Element::Element;
 
     /** Gets the number of dofs per node.
-     * 
+     *
      * @return Number of dofs per node.
      */
     static constexpr inline std::size_t DofsPerNode()
@@ -47,7 +47,7 @@ public:
     }
 
     /** Gets the number of nodes.
-     * 
+     *
      * @return Number of nodes.
      */
     std::size_t inline NumberOfNodes() const
@@ -56,7 +56,7 @@ public:
     }
 
     /** Gets the number of degrees of freedom.
-     * 
+     *
      * @return Number of degrees of freedom.
      */
     std::size_t inline NumberOfDofs() const
@@ -65,11 +65,11 @@ public:
     }
 
     /** Calculates the elemental left- and right-hand-side
-     * 
+     *
      * @param rLeftHandSideMatrix Elemental left-hand-side matrix
      * @param rRightHandSideVector Elemental right-hand-side
      * @param rCurrentProcessInfo Current process info
-     * 
+     *
      * @note Child-classes should implement CalculateAll.
      */
     void CalculateLocalSystem(
@@ -83,20 +83,22 @@ public:
             || rLeftHandSideMatrix.size2() != number_of_dofs) {
             rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
         }
+        rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
 
         if (rRightHandSideVector.size() != number_of_dofs) {
             rRightHandSideVector.resize(number_of_dofs);
         }
+        rRightHandSideVector = ZeroVector(number_of_dofs);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
     }
 
     /** Calculates the elemental left-hand-side
-     * 
+     *
      * @param rLeftHandSideMatrix Elemental left-hand-side matrix
      * @param rCurrentProcessInfo Current process info
-     * 
+     *
      * @note Child-classes should implement CalculateAll.
      */
     void CalculateLeftHandSide(
@@ -109,6 +111,7 @@ public:
             || rLeftHandSideMatrix.size2() != number_of_dofs) {
             rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
         }
+        rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
 
         VectorType right_hand_side_vector = Vector(0);
 
@@ -117,10 +120,10 @@ public:
     }
 
     /** Calculates the elemental right-hand-side
-     * 
+     *
      * @param rRightHandSideVector Elemental right-hand-side vector
      * @param rCurrentProcessInfo Current process info
-     * 
+     *
      * @note Child-classes should implement CalculateAll.
      */
     void CalculateRightHandSide(
@@ -134,16 +137,16 @@ public:
         if (rRightHandSideVector.size() != number_of_dofs) {
             rRightHandSideVector.resize(number_of_dofs);
         }
-
+        rRightHandSideVector = ZeroVector(number_of_dofs);
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
     }
 
     /** Calculates the elemental left- and right-hand-side
-     * 
+     *
      * @note This function should be implemented by the child-classes to
      *       calculate left- and right-hand-side
-     * 
+     *
      * @param rLeftHandSideMatrix Elemental left-hand-side matrix.
      * @param rRightHandSideVector Elemental right-hand-side vector.
      * @param rCurrentProcessInfo Current process info.
@@ -160,7 +163,7 @@ public:
         const bool ComputeRightHandSide) = 0;
 
     /** Get the geometry information as a string.
-     * 
+     *
      * @return The geometry information as a string.
      */
     std::string Info() const override
@@ -171,19 +174,28 @@ public:
     }
 
     /** Write the geometry info to a stream.
-     * 
+     *
      * @param rOStream Output stream.
      */
     void PrintData(
-        std::ostream& rOStream) const
+        std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
+    }
+
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        return 0;
+
+        KRATOS_CATCH("");
     }
 
 protected:
 
     /** Helper method for setting-up the elemental list of degrees of freedom.
-     * 
+     *
      * @param rElementalDofList Elemental list of degrees of freedom.
      * @param NodeIndex Index of the node.
      * @param DofTypeIndex Index of the degree of freedom type.
@@ -203,7 +215,7 @@ protected:
     }
 
     /** Helper method for setting-up the elemental list of equation ids.
-     * 
+     *
      * @param rResult Elemental list of equation ids.
      * @param NodeIndex Index of the node.
      * @param DofTypeIndex Index of the degree of freedom type.
@@ -223,9 +235,9 @@ protected:
     }
 
     /** Helper method for getting the index of the degree of freedom type.
-     * 
+     *
      * @param DofIndex Index of the degree of freedom.
-     * 
+     *
      * @return The index of the degree of freedom type.
      */
     static inline std::size_t GetDofTypeIndex(
@@ -235,9 +247,9 @@ protected:
     }
 
     /** Helper method for getting the index of the shape function.
-     * 
+     *
      * @param DofIndex Index of the degree of freedom.
-     * 
+     *
      * @return The index of the shape function.
      */
     static inline std::size_t GetShapeIndex(

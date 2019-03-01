@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cylinder_2d",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -20,11 +18,10 @@
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
         },
+        "domain_size"                 : 2,
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 200,
-        "dynamic_tau"                 : 0.0,
-        "oss_switch"                  : 0,
         "relative_velocity_tolerance" : 0.001,
         "absolute_velocity_tolerance" : 1e-5,
         "relative_pressure_tolerance" : 0.001,
@@ -39,6 +36,7 @@
             "coarsening_type"     : "aggregation",
             "scaling"             : false
         },
+        "model_part_name"             : "MainModelPart",
         "volume_model_part_name"      : "Parts_fluid",
         "skin_parts"                  : ["NoSlip2D_cylinder"],
         "no_skin_parts"               : ["VelocityConstraints2D_inlet","VelocityConstraints2D_walls"],
@@ -48,7 +46,12 @@
         },
         "time_scheme"                 : "steady",
         "velocity_relaxation"         : 0.9,
-        "pressure_relaxation"         : 0.9
+        "pressure_relaxation"         : 0.9,
+        "stabilization" : {
+            "formulation" : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 0.0
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

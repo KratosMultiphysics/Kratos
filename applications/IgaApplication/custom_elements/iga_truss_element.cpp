@@ -11,7 +11,6 @@
 */
 
 // System includes
-#include "includes/define.h"
 #include "includes/variables.h"
 
 // External includes
@@ -98,7 +97,7 @@ void IgaTrussElement::CalculateAll(
     KRATOS_TRY;
 
     // get integration data
-    
+
     const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
     Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 

@@ -671,7 +671,9 @@ private:
                 Matrix residual_matrix(TNumNodes, size_to_compute);
                 ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, rThisMortarOperators);
 
-                MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                if (!TImplicit) {
+                    MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                }
 
                 // We check if DOperator is diagonal
                 if (mEchoLevel > 1) {
@@ -694,7 +696,9 @@ private:
                         AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                            slave_geometry[i_node].GetValue(NODAL_AREA) += rThisMortarOperators.DOperator(i_node, i_node);
+                            double& r_nodal_area = slave_geometry[i_node].GetValue(NODAL_AREA);
+                            #pragma omp atomic
+                            r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
                         }
                     }
                 } else if (TImplicit) {

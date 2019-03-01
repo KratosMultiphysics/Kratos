@@ -75,6 +75,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    virtual ~LinearSolverFactory(){}
+
     ///@}
     ///@name Operators
     ///@{

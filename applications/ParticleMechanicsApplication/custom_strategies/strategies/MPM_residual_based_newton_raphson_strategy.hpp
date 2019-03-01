@@ -65,8 +65,8 @@ namespace Kratos
 
  */
 template<class TSparseSpace,
-         class TDenseSpace, 
-         class TLinearSolver 
+         class TDenseSpace,
+         class TLinearSolver
          >
 class MPMResidualBasedNewtonRaphsonStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -387,26 +387,24 @@ public:
             KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
             KRATOS_ERROR_IF(mInitializeWasPerformed == true) << "Initialization was already performed " << mInitializeWasPerformed << std::endl;
 
-            // Pointers needed in the solution
-            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing scheme" << std::endl;
-            
             // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing scheme" << std::endl;
             if (pScheme->SchemeIsInitialized() == false)
                 pScheme->Initialize(BaseType::GetModelPart());
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing elements" << std::endl;
-            
+
             // Initialize The Elements - OPERATIONS TO BE DONE ONCE
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing elements" << std::endl;
             if (pScheme->ElementsAreInitialized() == false)
                 pScheme->InitializeElements(BaseType::GetModelPart());
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing conditions" << std::endl;
-            
+
             // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing conditions" << std::endl;
             if (pScheme->ConditionsAreInitialized() == false)
                 pScheme->InitializeConditions(BaseType::GetModelPart());
-            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing convergence criteria"<<std::endl;
-            
+
             // Initialisation of the convergence criteria
+            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing convergence criteria"<<std::endl;
             if (mpConvergenceCriteria->IsInitialized() == false)
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
@@ -447,28 +445,28 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
-        
+
         // Initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
-        
+
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "PreCriteria:" 
-        << "\tIs_converged: " << is_converged  << "\tmRebuildLevel: " << BaseType::mRebuildLevel 
+
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "PreCriteria:"
+        << "\tIs_converged: " << is_converged  << "\tmRebuildLevel: " << BaseType::mRebuildLevel
         << "\tmStiffnessMatrixIsBuilt: " << BaseType::mStiffnessMatrixIsBuilt << std::endl;
 
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
             KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "SetToZero the matrix and vectors of the system"<<std::endl;
-            
+
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-                        
+
             KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
 
             pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
@@ -527,7 +525,7 @@ public:
         }
 
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Starting Nonlinear iteration"<<std::endl;
-            
+
         // Iteration Loop
         while (is_converged == false &&
                 iteration_number++<mMaxIterationNumber)
@@ -640,7 +638,7 @@ public:
         {
             // Setting up the list of the DOFs to be solved
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            
+
             // Shaping correctly the system
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
         }
@@ -667,20 +665,20 @@ public:
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
-        
+
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
         KRATOS_INFO("MPM_Strategy") << "PreCriteria" <<std::endl;
-        
+
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
             KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "SetToZero the matrix and vectors of the system"<<std::endl;
-            
+
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-                        
+
             KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Build and Solve"<<std::endl;
 
             pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
@@ -701,7 +699,7 @@ public:
             KRATOS_INFO("MPM_Strategy") << "solution obtained = " << mDx << std::endl;
             KRATOS_INFO("MPM_Strategy") << "RHS  = " << mb << std::endl;
         }
-        
+
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
@@ -759,7 +757,7 @@ public:
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
                 {
                     KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number <<std::endl;
-                    
+
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
                         TSparseSpace::SetToZero(mA);
@@ -836,7 +834,7 @@ public:
         /*Finalization of the solution step,
         operations to be done after achieving convergence, for example the
         Final Residual Vector (mb) has to be saved in there
-        to avoid error accumulation*/    
+        to avoid error accumulation*/
         if( mFinalizeSolutionStep )
         {
             KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "Calling FinalizeSolutionStep" <<std::endl;
@@ -917,7 +915,7 @@ public:
     void Clear() override
     {
         KRATOS_TRY
-           
+
         SparseSpaceType::Clear(mpA);
         TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
@@ -1099,10 +1097,10 @@ protected:
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
             TSystemVectorType& mb = *mpb;
-            
+
             // Initial operations ... things that are constant over the Solution Step
             pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-            
+
             // Initial operations ... things that are constant over the Solution Step
             pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 

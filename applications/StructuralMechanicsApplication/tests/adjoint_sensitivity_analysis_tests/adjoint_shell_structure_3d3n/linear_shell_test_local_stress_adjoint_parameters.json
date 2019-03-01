@@ -23,15 +23,18 @@
             "response_type"     : "adjoint_local_stress",
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
-            "sensitivity_model_part_name" :"Parts_AREAS",
-            "nodal_sensitivity_variables"  : ["SHAPE"],
-            "element_sensitivity_variables"  : ["THICKNESS"],
-            "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1.0e-6,
             "traced_element_id"    : 2,
             "stress_type"       : "MXX",
             "stress_treatment"  : "mean",
             "stress_location"   : 1
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : ["THICKNESS"],
+            "condition_sensitivity_variables"  : ["POINT_LOAD"],
+            "build_mode": "static"
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],

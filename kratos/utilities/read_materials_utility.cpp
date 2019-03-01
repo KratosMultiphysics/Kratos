@@ -21,6 +21,13 @@
 namespace Kratos
 {
 
+ReadMaterialsUtility::ReadMaterialsUtility(Model& rModel) : mrModel(rModel)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters Params,
     Model& rModel
@@ -59,6 +66,21 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters materials(rParametersName);
 
     GetPropertyBlock(materials);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ReadMaterialsUtility::~ReadMaterialsUtility()
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::ReadMaterials(Parameters MaterialData)
+{
+    GetPropertyBlock(MaterialData);
 }
 
 /***********************************************************************************/

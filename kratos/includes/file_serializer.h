@@ -29,7 +29,7 @@ namespace Kratos
 {
     //This class provides a simpler interface for serialization to a file
     // Note that you may not override any load or save method of the Serializer. They are not virtual
-    class KRATOS_API(KRATOS_CORE) FileSerializer : public Serializer 
+    class FileSerializer : public Serializer 
     {
         public:
             KRATOS_CLASS_POINTER_DEFINITION(FileSerializer); 

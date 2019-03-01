@@ -192,7 +192,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         (self.solver).Initialize()
-        (self.solver).Check()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED

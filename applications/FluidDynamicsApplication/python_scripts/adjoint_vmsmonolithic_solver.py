@@ -2,11 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication")
-
 # Import applications
-import KratosMultiphysics.AdjointFluidApplication as KratosAdjoint
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
 from adjoint_fluid_solver import AdjointFluidSolver
@@ -29,6 +26,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
@@ -74,10 +72,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_2)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_3)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AUX_ADJOINT_FLUID_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_SCALAR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
@@ -98,18 +97,20 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = KratosAdjoint.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             elif (domain_size == 3):
-                self.response_function = KratosAdjoint.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
+        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = KratosAdjoint.AdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = KratosAdjoint.AdjointSteadyVelocityPressureScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
@@ -126,13 +127,13 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        (self.solver).Initialize()
-
-        (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        (self.solver).Initialize()
+        (self.response_function).Initialize()
+        (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def _set_physical_properties(self):

@@ -19,7 +19,9 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 #include "anurbs.h"
+#include "iga_application_variables.h"
 
 namespace Kratos {
 
@@ -71,7 +73,7 @@ public:
      * 
      * @return Kratos node at the given index.
      */
-    NodePointer Node(
+    NodePointer GetNode(
         const int IndexU,
         const int IndexV) const
     {
@@ -112,7 +114,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const NodeType& node = *Node(IndexU, IndexV);
+        const NodeType& node = *GetNode(IndexU, IndexV);
 
         VectorType pole;
         for (std::size_t i = 0; i < 3; i++) {
@@ -133,9 +135,8 @@ public:
         const int IndexV,
         const VectorType& Value) override
     {
-        NodeType& node = *Node(IndexU, IndexV);
+        NodeType& node = *GetNode(IndexU, IndexV);
 
-        VectorType pole;
         for (std::size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
         }
@@ -161,7 +162,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const NodeType& node = *Node(IndexU, IndexV);
+        const NodeType& node = *GetNode(IndexU, IndexV);
 
         if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
             return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
@@ -181,7 +182,7 @@ public:
         const int IndexV,
         const ScalarType Value) override
     {
-        NodeType& node = *Node(IndexU, IndexV);
+        NodeType& node = *GetNode(IndexU, IndexV);
 
         node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
@@ -201,7 +202,7 @@ public:
         const double V) const
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
-            return Node(i, j)->GetValue(Variable);
+            return GetNode(i, j)->GetValue(Variable);
         }, U, V);
     }
 
@@ -224,10 +225,12 @@ public:
         const int Order) const
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
-            return Node(i, j)->GetValue(Variable);
+            return GetNode(i, j)->GetValue(Variable);
         }, U, V, Order);
     }
 };
+
+using NodeSurface3D = ANurbs::Surface<NodeSurfaceGeometry3D>;
 
 }
 

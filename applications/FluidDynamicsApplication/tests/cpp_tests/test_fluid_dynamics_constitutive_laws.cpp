@@ -34,8 +34,8 @@
 namespace Kratos {
 	namespace Testing {
 
-        /** 
-	     * Auxiliar function to generate a triangular element within 
+        /**
+	     * Auxiliar function to generate a triangular element within
          * a given model part using the constitutive law to be tested.
 	     */
         void GenerateTriangle(
@@ -58,8 +58,8 @@ namespace Kratos {
             rModelPart.CreateNewElement("Element2D3N", 1, elem_nodes, p_elem_prop);
         }
 
-        /** 
-	     * Auxiliar function to generate a tetrahedral element within 
+        /**
+	     * Auxiliar function to generate a tetrahedral element within
          * a given model part using the constitutive law to be tested.
 	     */
         void GenerateTetrahedron(
@@ -83,7 +83,7 @@ namespace Kratos {
             rModelPart.CreateNewElement("Element3D4N", 1, elem_nodes, p_elem_prop);
         }
 
-	    /** 
+	    /**
 	     * Checks the Newtonian fluid 2D constitutive law.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(Newtonian2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -103,8 +103,8 @@ namespace Kratos {
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
-                p_element->GetGeometry(), 
-                p_element->GetProperties(), 
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:
@@ -140,7 +140,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(stress_vector(2), 0.3, tolerance);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the Newtonian fluid 3D constitutive law.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(Newtonian3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -160,8 +160,8 @@ namespace Kratos {
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
-                p_element->GetGeometry(), 
-                p_element->GetProperties(), 
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:
@@ -206,7 +206,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(stress_vector(5),  1.2, tolerance);
 	    }
 
-        /** 
+        /**
 	     * Checks the Newtonian Two Fluid 3D constitutive law.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(NewtonianTwoFluid3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -234,7 +234,7 @@ namespace Kratos {
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set Nodal Values
-            const array_1d<double,3> velocity (3, 0.2);  
+            const array_1d<double,3> velocity (3, 0.2);
             Geometry<Node<3>>& geom = p_element->GetGeometry();
             geom[0].GetSolutionStepValue(DISTANCE) = -1.0;
             geom[1].GetSolutionStepValue(DISTANCE) = -1.0;
@@ -258,8 +258,8 @@ namespace Kratos {
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
-                p_element->GetGeometry(), 
-                p_element->GetProperties(), 
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:
@@ -279,7 +279,7 @@ namespace Kratos {
             cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
 
             // Set Shape Functions Values
-            array_1d<double, nnodes> N;            
+            array_1d<double, nnodes> N;
             BoundedMatrix<double,nnodes, dim> DN_DX;
             double volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
@@ -293,28 +293,28 @@ namespace Kratos {
             // Check computed values
             const double tolerance = 1e-7;
 
-            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.4100, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.4100, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.4100, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(3,3),  0.3075, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(4,4),  0.3075, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(5,5),  0.3075, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,0), 0.675, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1), 0.675, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2), 0.675, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(3,3), 0.50625, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(4,4), 0.50625, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(5,5), 0.50625, tolerance);
 
-            KRATOS_CHECK_NEAR(stress_vector(0), -0.2050, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(1),  1.6400, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(2), -1.4350, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(3),  0.6150, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(4),  0.9225, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(5),  1.2300, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(0), -0.3375, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1), 2.7, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), -2.3625, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(3), 1.0125, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(4), 1.51875, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(5), 2.025, tolerance);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the Euler fluid 2D constitutive law.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(Euler2DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -334,8 +334,8 @@ namespace Kratos {
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
-                p_element->GetGeometry(), 
-                p_element->GetProperties(), 
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:
@@ -367,7 +367,7 @@ namespace Kratos {
             }
 	    }
 
-	    /** 
+	    /**
 	     * Checks the Euler fluid 3D constitutive law.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(Euler3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
@@ -387,8 +387,8 @@ namespace Kratos {
 
             // Set the constitutive law values
             ConstitutiveLaw::Parameters cons_law_values(
-                p_element->GetGeometry(), 
-                p_element->GetProperties(), 
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
                 model_part.GetProcessInfo());
 
             // Set constitutive law flags:

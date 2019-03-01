@@ -47,7 +47,7 @@ void AddResponseFunctionsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<AdjointResponseFunction, PyAdjointResponseFunction> adjoint_response_function(
+    py::class_<AdjointResponseFunction, PyAdjointResponseFunction, AdjointResponseFunction::Pointer> adjoint_response_function(
         m, "AdjointResponseFunction");
     adjoint_response_function
         .def(py::init<>())

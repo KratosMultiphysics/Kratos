@@ -43,7 +43,6 @@
             "input_filename" : "test_wall_condition"
         },
         "compute_reactions"            : true,
-        "dynamic_tau"                  : 0.01,
         "relative_velocity_tolerance"  : 1e-3,
         "absolute_velocity_tolerance"  : 1e-5,
         "relative_pressure_tolerance"  : 1e-3,
@@ -57,6 +56,10 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 1.0
+        },
+        "formulation": {
+            "element_type": "embedded_navier_stokes",
+            "dynamic_tau": 1.0
         }
     },
     "initial_conditions_process_list"  : [],

@@ -13,23 +13,16 @@
 
 
 // System includes
-#include "includes/define.h"
 #include "utilities/math_utils.h"
-#include "geometries/geometry.h"
 
 // External includes
 
 // Project includes
 #include "custom_elements/shell_kl_discrete_element.h"
 
-// Application includes
-#include "iga_application.h"
-#include "iga_application_variables.h"
 
 namespace Kratos
 {
-    //************************************************************************************
-    //************************************************************************************
     void ShellKLDiscreteElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -71,12 +64,13 @@ namespace Kratos
         Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
+
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
         ConstitutiveVariables constitutive_variables_membrane(3);
         ConstitutiveVariables constitutive_variables_curvature(3);
-        CalculateConstitutiveVariables(actual_metric, 
-            constitutive_variables_membrane, constitutive_variables_curvature, 
+        CalculateConstitutiveVariables(actual_metric,
+            constitutive_variables_membrane, constitutive_variables_curvature,
             Values, ConstitutiveLaw::StressMeasure_PK2);
 
         // calculate B MATRICES
@@ -114,41 +108,7 @@ namespace Kratos
                 constitutive_variables_curvature.S,
                 integration_weight);
         }
-        //KRATOS_WATCH(second_variations_strain.B11)
-        //KRATOS_WATCH(second_variations_strain.B22)
-        //KRATOS_WATCH(second_variations_strain.B12)
 
-        //KRATOS_WATCH(second_variations_curvature.B11)
-        //KRATOS_WATCH(second_variations_curvature.B22)
-        //KRATOS_WATCH(second_variations_curvature.B12)
-
-        //KRATOS_WATCH(mInitialMetric.g1)
-        //KRATOS_WATCH(mInitialMetric.g2)
-        //KRATOS_WATCH(mInitialMetric.g3)
-
-        //KRATOS_WATCH(actual_metric.g1)
-        //KRATOS_WATCH(actual_metric.g2)
-        //KRATOS_WATCH(actual_metric.g3)
-
-        //KRATOS_WATCH(mInitialMetric.dA)
-
-        //KRATOS_WATCH(constitutive_variables_membrane.S)
-        //KRATOS_WATCH(constitutive_variables_curvature.S)
-
-        //KRATOS_WATCH(constitutive_variables_membrane.D)
-        //KRATOS_WATCH(constitutive_variables_curvature.D)
-
-        //KRATOS_WATCH(BMembrane)
-        //KRATOS_WATCH(BCurvature)
-        //    KRATOS_WATCH(mInitialMetric.dA)
-        //    KRATOS_WATCH(integration_weight)
-        //    KRATOS_WATCH(actual_metric.H)
-        //KRATOS_WATCH(mInitialMetric.Q)
-
-        //    KRATOS_WATCH(DN_De)
-        //    KRATOS_WATCH(DDN_DDe)
-
-        //KRATOS_WATCH(rLeftHandSideMatrix / this->GetValue(INTEGRATION_WEIGHT))
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -156,6 +116,7 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
+
         KRATOS_CATCH("");
     }
 
@@ -214,7 +175,7 @@ namespace Kratos
         //    // PK2 moment in G1,G2
         //    Vector m_pk2_con = prod(mInitialMetric.T, m_pk2_local_ca);
         //    // Cauchy moment in g1,g2
-        //    array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con; 
+        //    array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con;
 
 
         //    Vector m = ZeroVector(8);
@@ -333,7 +294,7 @@ namespace Kratos
             const int& number_of_nodes = GetGeometry().size();
             Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector external_forces_vector = ZeroVector(3);
-            for (SizeType i = 0; i < number_of_nodes; i++)
+            for (int i = 0; i < number_of_nodes; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const Vector& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
@@ -479,7 +440,7 @@ namespace Kratos
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.D); //this is an ouput parameter
         //rValues.CheckAllParameters();
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-        
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
 
@@ -493,17 +454,15 @@ namespace Kratos
     //************************************************************************************
     int ShellKLDiscreteElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
         if (DISPLACEMENT.Key() == 0)
             KRATOS_ERROR << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
         if (SHAPE_FUNCTION_VALUES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_VALUES has Key zero! check if the application is correctly registered" << std::endl;
         if (SHAPE_FUNCTION_LOCAL_DERIVATIVES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
-        if (DISPLACEMENT.Key() == 0)
+        if (SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
         return 0;
-        KRATOS_CATCH("");
     }
 
 

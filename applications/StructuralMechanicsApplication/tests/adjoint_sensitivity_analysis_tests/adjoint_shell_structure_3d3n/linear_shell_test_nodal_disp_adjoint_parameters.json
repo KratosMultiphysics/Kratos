@@ -23,13 +23,16 @@
             "response_type"     : "adjoint_nodal_displacement",
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
+            "step_size"         : 1.0e-6,
+            "traced_node_id"       : 5,
+            "traced_dof"        : "DISPLACEMENT_Z"
+        },
+        "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
             "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
-            "step_size"         : 1.0e-6,
-            "traced_node_id"       : 5,
-            "traced_dof"        : "DISPLACEMENT_Z"
+            "build_mode": "static"
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],

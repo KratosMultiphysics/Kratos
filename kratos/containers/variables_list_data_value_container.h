@@ -998,7 +998,7 @@ private:
         if(mpVariablesList->DataSize() != 0 )
             rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
         else
-            rSerializer.save("QueueIndex", 0);
+            rSerializer.save("QueueIndex", SizeType(0));
 
 
         if(mpData == 0)

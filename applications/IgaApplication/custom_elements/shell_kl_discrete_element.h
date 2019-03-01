@@ -3,14 +3,14 @@
 
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
 // Project includes
 #include "custom_elements/surface_base_discrete_element.h"
+
+// Application includes
+#include "iga_application_variables.h"
 
 namespace Kratos
 {
@@ -115,6 +115,10 @@ public:
     {
         std::stringstream buffer;
         buffer << "KLElement #" << Id();
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_VALUES));
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES));
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES));
+        KRATOS_WATCH(GetValue(INTEGRATION_WEIGHT));
         return buffer.str();
     }
 
@@ -123,6 +127,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "KLElement #" << Id();
+
     }
 
     ///@}

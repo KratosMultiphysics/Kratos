@@ -63,9 +63,7 @@ Flags FlagsOr(const Flags& Left, const Flags& Right )
 
 Flags FlagsAnd(const Flags& Left, const Flags& Right )
 {
-    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
-                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
-    return (Left|Right);
+    return (Left&Right);
 }
 
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
@@ -538,11 +536,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MESH_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_MESH_VAR )
 
-    //for AdjointFluidApplication
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_VELOCITY )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ACCELERATION )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_ADJOINT_ACCELERATION )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_PRESSURE )
+    //for Adjoint
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_SENSITIVITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_SENSITIVITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_NEIGHBOUR_ELEMENTS )

@@ -14,14 +14,17 @@
 #define KRATOS_IGA_EDGE_CABLE_ELEMENT_H_INCLUDED
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
+//#include "includes/define.h"
+//#include "includes/element.h"
 
 // External includes
 
 // Project includes
+#include "iga_application_variables.h"
+
 #include "iga_base_element.h"
 
+#include "custom_utilities/geometry_utilities/iga_curve_on_surface_utilities.h"
 
 namespace Kratos
 {
