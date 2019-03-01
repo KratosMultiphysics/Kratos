@@ -1417,7 +1417,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Element " << element_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the element name and see if the application which containing it, is registered corectly.";
+            buffer << " Please check the spelling of the element name and see if the application which containing it, is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
             return;
@@ -1478,7 +1478,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Element " << element_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the element name and see if the application which containing it, is registered corectly.";
+            buffer << " Please check the spelling of the element name and see if the application which containing it, is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
             return;
@@ -1543,7 +1543,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Condition " << condition_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the condition name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
             return;
@@ -2274,7 +2274,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Element " << element_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the element name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the element name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;
             return number_of_connectivities;
@@ -2336,7 +2336,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Condition " << condition_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the condition name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;
             return number_of_connectivities;
@@ -2400,7 +2400,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Element " << element_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the element name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the element name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;
         }
@@ -2467,7 +2467,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Condition " << condition_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the condition name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
         }
@@ -3358,7 +3358,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Element " << element_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the element name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the element name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
             return;
@@ -3436,7 +3436,7 @@ namespace Kratos
         {
             std::stringstream buffer;
             buffer << "Condition " << condition_name << " is not registered in Kratos.";
-            buffer << " Please check the spelling of the condition name and see if the application containing it is registered corectly.";
+            buffer << " Please check the spelling of the condition name and see if the application containing it is registered correctly.";
             buffer << " [Line " << mNumberOfLines << " ]";
             KRATOS_ERROR << buffer.str() << std::endl;;
             return;

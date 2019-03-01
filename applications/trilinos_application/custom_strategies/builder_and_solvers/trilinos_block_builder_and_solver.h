@@ -312,7 +312,7 @@ public:
     //**************************************************************************
     /** Solve the linear problem.
      */
-    virtual void SystemSolve(
+    void SystemSolveWithPhysics(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
@@ -404,7 +404,7 @@ public:
 
         boost::timer solve_time;
 
-        SystemSolve(A,Dx,b,r_model_part);
+        SystemSolveWithPhysics(A,Dx,b,r_model_part);
 
         if(BaseType::GetEchoLevel()>0)
         {
@@ -436,7 +436,7 @@ public:
         KRATOS_TRY
 
         BuildRHS(pScheme,r_model_part,b);
-        SystemSolve(A,Dx,b,r_model_part);
+        SystemSolveWithPhysics(A,Dx,b,r_model_part);
 
         KRATOS_CATCH("")
     }
@@ -829,6 +829,11 @@ public:
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
             delete [] temp;
+        }
+        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag)
+        {
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(pDx->Map()) );
+            BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
         else
         {

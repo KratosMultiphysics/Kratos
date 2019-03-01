@@ -55,6 +55,7 @@ class ExplicitStrategy(object):
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
         self.search_increment = 0.0
+        self.search_increment_for_walls = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
         self.search_control = 1
@@ -80,6 +81,10 @@ class ExplicitStrategy(object):
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
+
+
+        self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
+
 
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -209,7 +214,6 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
@@ -323,11 +327,10 @@ class ExplicitStrategy(object):
     def AdvanceInTime(self, step, time, is_time_to_print = False):
         step += 1
         time += self.dt
-        self.UpdateTimeInModelParts(time, step, is_time_to_print)
+        self._UpdateTimeInModelParts(time, step, is_time_to_print)
         return step, time
 
-    def MoveAllMeshes(self, time, dt):
-
+    def _MoveAllMeshes(self, time, dt):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
@@ -338,25 +341,26 @@ class ExplicitStrategy(object):
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
-    def UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
+    def _UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
         DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self.UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
-        self.UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
-        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
-        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
 
-    def UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
+    def _UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = self.dt
         model_part.ProcessInfo[TIME_STEPS] = step
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
-        pass
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self._MoveAllMeshes(time, self.dt)
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
@@ -371,7 +375,7 @@ class ExplicitStrategy(object):
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
 
-    def FixDOFsManually(self,time):
+    def FixDOFsManually(self, time):
     #if time>1.0:
         #for node in self.spheres_model_part.Nodes:
             #node.Fix(VELOCITY_X)
@@ -407,6 +411,9 @@ class ExplicitStrategy(object):
 
     def PrepareContactElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+
+    def AttachSpheresToStickyWalls(self):
+        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
@@ -550,9 +557,7 @@ class ExplicitStrategy(object):
     def ModifyProperties(self, properties, param = 0):
 
         if not param:
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+            DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
 
             coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
@@ -582,6 +587,8 @@ class ExplicitStrategy(object):
                 self.Procedures.KRATOSprint(properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
+
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]

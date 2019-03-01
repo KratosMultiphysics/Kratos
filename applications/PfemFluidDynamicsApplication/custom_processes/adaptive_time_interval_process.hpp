@@ -235,10 +235,10 @@ namespace Kratos
 		  }
 		  double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
 		  double unsafetyFactor=0;
-		  NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
-		  for (NodePointerVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+		  NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+		  for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
 		    {
-		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(*nn)->Coordinates();
+		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(nn)->Coordinates();
 		      double squaredDistance=0;
 		      for (unsigned int d = 0; d < 3; ++d){
 			squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];
@@ -297,7 +297,7 @@ namespace Kratos
 		  }
 
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
@@ -332,7 +332,7 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 
 		  }
@@ -364,7 +364,7 @@ namespace Kratos
 		    solidElement=true;
 		  }
 		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
+		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
 		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		}
 
@@ -399,7 +399,7 @@ namespace Kratos
 		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
 		  {
 		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
+		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
 		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
 		  }
 

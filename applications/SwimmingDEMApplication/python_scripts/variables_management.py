@@ -187,7 +187,7 @@ def ConstructListsOfVariables(pp):
     pp.clusters_vars = []
 
     # rigid faces variables
-    pp.rigid_faces_vars = [VELOCITY, ANGULAR_VELOCITY, DISPLACEMENT, DELTA_DISPLACEMENT, DELTA_ROTATION, CONTACT_FORCES, DEM_PRESSURE, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]
+    pp.rigid_faces_vars = [VELOCITY, ANGULAR_VELOCITY, DISPLACEMENT, DELTA_DISPLACEMENT, DELTA_ROTATION, CONTACT_FORCES, DEM_PRESSURE, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA, VELOCITY_OLD]
 
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_vars += [FORCE]
@@ -207,19 +207,19 @@ def ConstructListsOfResultsToPrint(pp):
     if pp.CFD_DEM["print_SLIP_VELOCITY_option"].GetBool():
         pp.dem_nodal_results += ["SLIP_VELOCITY"]
 
-    if pp.CFD_DEM["PostRadius"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostRadius"].GetBool():
         pp.dem_nodal_results += ["RADIUS"]
 
-    if pp.CFD_DEM["PostAngularVelocity"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostAngularVelocity"].GetBool():
         pp.dem_nodal_results += ["ANGULAR_VELOCITY"]
 
-    if pp.CFD_DEM["PostElasticForces"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostElasticForces"].GetBool():
         pp.dem_nodal_results += ["ELASTIC_FORCES"]
 
-    if pp.CFD_DEM["PostContactForces"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostContactForces"].GetBool():
         pp.dem_nodal_results += ["CONTACT_FORCES"]
 
-    if pp.CFD_DEM["PostTotalForces"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostTotalForces"].GetBool():
         pp.dem_nodal_results += ["TOTAL_FORCES"]
 
     if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
@@ -289,7 +289,7 @@ def ConstructListsOfResultsToPrint(pp):
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
 
-    if pp.CFD_DEM["PostNonDimensionalVolumeWear"].GetBool():
+    if pp.CFD_DEM['dem_parameters']["PostNonDimensionalVolumeWear"].GetBool():
         pp.rigid_faces_nodal_results += ["IMPACT_WEAR"]
         pp.rigid_faces_nodal_results += ["NON_DIMENSIONAL_VOLUME_WEAR"]
 
@@ -505,7 +505,7 @@ def ChangeInputDataForConsistency(pp):
         pp.CFD_DEM["project_at_every_substep_option"].SetBool(False)
         pp.CFD_DEM.project_at_every_substep_option = False #TODO: what should we do in these cases?? Discuss
 
-    if pp.CFD_DEM["VelocityTrapOption"]:
+    if pp.CFD_DEM['dem_parameters']["VelocityTrapOption"]:
         pp.velocity_trap_option = 1
     else:
         pp.velocity_trap_option = 0

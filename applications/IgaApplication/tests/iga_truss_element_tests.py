@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-import new_linear_solver_factory
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -54,9 +54,9 @@ class IgaTrussElementTests(KratosUnittest.TestCase):
             for i in range(shapes.NumberOfNonzeroPoles):
                 n_0[i] = shapes(0, i)
 
-            n_1 = Matrix(shapes.NumberOfNonzeroPoles, 1)
+            n_1 = Matrix(1, shapes.NumberOfNonzeroPoles)
             for i in range(shapes.NumberOfNonzeroPoles):
-                n_1[i, 0] = shapes(1, i)
+                n_1[0, i] = shapes(1, i)
 
             element.SetValue(INTEGRATION_WEIGHT, weight)
             element.SetValue(SHAPE_FUNCTION_VALUES, n_0)
@@ -92,8 +92,8 @@ class IgaTrussElementTests(KratosUnittest.TestCase):
 
         time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
-        linear_solver = new_linear_solver_factory.ConstructSolver(Parameters(
-            r'{"solver_type": "SkylineLUFactorizationSolver"}'))
+        linear_solver = linear_solver_factory.ConstructSolver(Parameters(
+            r'{"solver_type": "skyline_lu_factorization"}'))
 
         relative_tolerance = 1e-7
         absolute_tolerance = 1e-7

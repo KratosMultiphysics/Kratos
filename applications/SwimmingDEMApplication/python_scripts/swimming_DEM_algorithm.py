@@ -19,7 +19,7 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 
@@ -325,8 +325,6 @@ class Algorithm(object):
 
         self.SetAllModelParts()
 
-        self.SetCutsOutput()
-
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
             self.pp.CFD_DEM["problem_name"].GetString(),
@@ -403,7 +401,7 @@ class Algorithm(object):
                 self.pp.coupling_fluid_vars,
                 self.pp.time_filtered_vars,
                 flow_field=self.GetFieldUtility(),
-                dimension=self.domain_size
+                domain_size=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)
@@ -1008,11 +1006,6 @@ class Algorithm(object):
     def FinalizeDragOutput(self):
         for i in self.drag_file_output_list:
             i.close()
-
-    def SetCutsOutput(self):
-        if not self.pp.VolumeOutput:
-            cut_list = define_output.DefineCutPlanes()
-            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
 
     def SetDragOutput(self):
         # define the drag computation list

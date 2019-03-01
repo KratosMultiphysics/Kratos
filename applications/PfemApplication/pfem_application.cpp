@@ -39,11 +39,38 @@ namespace Kratos
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "            ___  __                            " << std::endl;
-    std::cout << "     KRATOS| _ \\/ _|___ _ __                   " << std::endl;
-    std::cout << "           |  _/  _/ -_) '  \\                  " << std::endl;
-    std::cout << "           |_| |_| \\___|_|_|_|APPLICATION      " << std::endl;
-    std::cout << "Initializing KratosPfemApplication    ...      " << std::endl;
+    std::stringstream banner;
+
+    banner << "            ___  __                       \n"
+           << "    KRATOS | _ \\/ _|___ _ __              \n"
+           << "           |  _/  _/ -_) '  \\             \n"
+           << "           |_| |_| \\___|_|_|_| APPLICATION\n"
+           << "Initialize KratosPfemApplication...       " << std::endl;
+
+    // mpi initialization
+    int mpi_is_initialized = 0;
+    int rank = -1;
+
+#ifdef KRATOS_MPI
+
+    MPI_Initialized(&mpi_is_initialized);
+
+    if (mpi_is_initialized)
+    {
+      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    }
+
+#endif
+
+    if (mpi_is_initialized)
+    {
+      if (rank == 0) KRATOS_INFO("") << banner.str();
+    }
+    else
+    {
+      KRATOS_INFO("") << banner.str();
+    }
+
 
     //Register Variables (variables created in pfem_application_variables.cpp)
     KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE )

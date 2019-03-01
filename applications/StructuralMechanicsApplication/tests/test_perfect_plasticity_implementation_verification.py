@@ -4,7 +4,11 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import os
 import math
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
     def setUp(self):
@@ -77,8 +81,8 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
 
-    def test_PerfectPlasticityLinearJ2Plasticity3DLaw(self):
-        self._base_test("LinearJ2Plasticity3DLaw")
+    def test_PerfectPlasticitySmallStrainJ2Plasticity3DLaw(self):
+        self._base_test("SmallStrainJ2Plasticity3DLaw")
 
     def test_PerfectPlasticityPlasticityIsotropicKinematicJ2Law(self):
         self._base_test("PlasticityIsotropicKinematicJ2Law")
@@ -128,16 +132,15 @@ def _apply_fix(mp):
     for node in mp.Nodes:
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
-def _apply_material_properties(mp, constitutive_law_type = "LinearJ2Plasticity3DLaw"):
+def _apply_material_properties(mp, constitutive_law_type = "SmallStrainJ2Plasticity3DLaw"):
     # Define properties
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 2.0e11)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 9.0)
 
-    if constitutive_law_type == "LinearJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
+    if constitutive_law_type == "SmallStrainJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
         mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.0)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.EXPONENTIAL_SATURATION_YIELD_STRESS, 9.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
     else:
         mp.GetProperties()[1].SetValue(KratosMultiphysics.FRACTURE_ENERGY, 1.0e16) # Perfect plasticity
@@ -213,7 +216,7 @@ def _create_check_outputs(current_model):
     }
     """)
 
-    check_parameters["input_file_name"].SetString("cl_test/test_perfect_plasticity_implementation_verification_reference.json")
+    check_parameters["input_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
     check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
     check.ExecuteInitialize()
@@ -235,7 +238,7 @@ def _create_reference_solution(current_model):
     }
     """)
 
-    out_parameters["output_file_name"].SetString("cl_test/test_perfect_plasticity_implementation_verification_reference.json")
+    out_parameters["output_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
     out = json_output_process.JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()

@@ -95,6 +95,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void DruckerPragerCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void SimoJuCriterion(double& rThreshold, double &rDamage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void RankineFragileLaw(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void ElasticLaw(double& rThreshold,double &rDamage, const Vector &rStressVector, const int Edge, const double Length, bool& rIsDamaging);
 
 	void CalculateExponentialDamage(
 		double& rDamage,
@@ -168,6 +169,16 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const Vector& rStrainVectorGP,
 		const Vector& rStressVectorGP,
 		const Matrix& rElasticMatrix);
+	void CalculateSecondOrderTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
+	void CalculateSecondOrderCentralDifferencesTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
 	void CalculatePerturbation(
 		const Vector& rStrainVectorGP,
 		double& rPerturbation,
@@ -184,6 +195,20 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void AssignComponentsToTangentTensor(
 		Matrix& rTangentTensor,
 		const Vector& rDeltaStress,
+		const double Perturbation,
+		const int Component);
+	void AssignComponentsToSecondOrderTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rGaussPointStress,
+		const Vector& rPerturbedStress,
+		const Vector& rTwicePerturbedStress,
+		const double Perturbation,
+		const int Component);
+	void AssignComponentsToSecondOrderCentralDifferencesTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rGaussPointStress,
+		const Vector& rPerturbedStress,
+		const Vector& rTwicePerturbedStress,
 		const double Perturbation,
 		const int Component);
 

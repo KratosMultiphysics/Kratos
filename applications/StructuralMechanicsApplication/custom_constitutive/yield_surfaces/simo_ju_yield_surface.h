@@ -139,7 +139,7 @@ class SimoJuYieldSurface
         ere1 = SumC / SumA;
 
         double auxf = 0.0;
-        for (std::size_t cont = 0; cont < 6; ++cont) {
+        for (std::size_t cont = 0; cont < VoigtSize; ++cont) {
             auxf += rStrainVector[cont] * rPredictiveStressVector[cont]; // E:S
         }
         rEquivalentStress = std::sqrt(auxf);

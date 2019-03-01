@@ -161,19 +161,19 @@ void ShellThickElement3D4N::EASOperatorStorage::Initialize(const GeometryType& g
     }
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::InitializeSolutionStep()
 {
     displ = displ_converged;
     alpha = alpha_converged;
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::FinalizeSolutionStep()
 {
     displ_converged = displ;
     alpha_converged = alpha;
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
 {
     Vector incrementalDispl(24);
     noalias(incrementalDispl) = displacementVector - displ;
@@ -415,21 +415,21 @@ void ShellThickElement3D4N::Initialize()
 
 void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     ShellQ4_LocalCoordinateSystem LCS( mpCoordinateTransformation->CreateLocalCoordinateSystem() );
     Vector globalDisplacementVector(24);
     GetValuesVector(globalDisplacementVector);
     Vector localDisplacementVector( mpCoordinateTransformation->CalculateLocalDisplacements( LCS, globalDisplacementVector ) );
 
-    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, rCurrentProcessInfo);
+    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -438,18 +438,18 @@ void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessI
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep();
 
-    mEASStorage.InitializeSolutionStep(rCurrentProcessInfo);
+    mEASStorage.InitializeSolutionStep();
 }
 
 void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep();
 
-    mEASStorage.FinalizeSolutionStep(rCurrentProcessInfo);
+    mEASStorage.FinalizeSolutionStep();
 }
 
 void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -1374,7 +1374,7 @@ void ShellThickElement3D4N::CalculateBMatrix(double xi, double eta,
 
 void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -1892,7 +1892,7 @@ bool ShellThickElement3D4N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOr
     return true;
 }
 
-ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
 }
@@ -1906,15 +1906,24 @@ ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior
 
 void ShellThickElement3D4N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
-    rSerializer.save("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
+    bool is_corotational = (nullptr != dynamic_cast<ShellQ4_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
+    rSerializer.save("is_corotational", is_corotational);
+    rSerializer.save("CTr", *mpCoordinateTransformation);
     rSerializer.save("EAS", mEASStorage);
 }
 
 void ShellThickElement3D4N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
-    rSerializer.load("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
+    bool is_corotational;
+    rSerializer.load("is_corotational", is_corotational);
+    if (is_corotational) {
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CorotationalCoordinateTransformation>(pGetGeometry());
+    } else {
+        mpCoordinateTransformation = Kratos::make_shared<ShellQ4_CoordinateTransformation>(pGetGeometry());
+    }
+    rSerializer.load("CTr", *mpCoordinateTransformation);
     rSerializer.load("EAS", mEASStorage);
 }
 

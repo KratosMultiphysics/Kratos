@@ -58,7 +58,8 @@ public:
     typedef ElementType::GeometryType         GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
-    typedef std::vector<Element*> ElementPointerVectorType;
+
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -90,7 +91,6 @@ public:
 
       Parameters DefaultParameters( R"(
             {
-                "model_part_name": "RigidBodyDomain",
                 "element_type": "TranslatoryRigidElement3D1N",
                 "constrained": true,
                 "compute_parameters": false,
@@ -203,10 +203,6 @@ public:
       rModelPart.AddElement(pRigidBodyElement);
       rModelPart.AddNode(NodeCenterOfGravity);
 
-      if(BodyIsFixed){
-        pRigidBodyElement->Set(RIGID,true);
-        //pRigidBodyElement->Set(ACTIVE,false);
-      }
 
       //add rigid body element node to boundary model part where there is an imposition:
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
@@ -248,8 +244,13 @@ public:
         }
       }
 
-      ElementPointerVectorType MasterElements;
-      MasterElements.push_back(pRigidBodyElement.get());
+      if(BodyIsFixed){
+        pRigidBodyElement->Set(RIGID,true);
+        //pRigidBodyElement->Set(ACTIVE,false); //if parametric body in dynamics -> check element build matrices
+      }
+
+      ElementWeakPtrVectorType MasterElements;
+      MasterElements.push_back(pRigidBodyElement);
 
       for(ModelPart::NodesContainerType::iterator j_node = rModelPart.NodesBegin(); j_node != rModelPart.NodesEnd(); ++j_node)
       {

@@ -40,7 +40,7 @@ namespace Kratos
  *  variable defined as SurfaceSourceVariable by the
  *  CONVECTION_DIFFUSION_SETTINGS variable in the given ProcessInfo.
  */
-class ThermalFace: public Condition
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ThermalFace: public Condition
 {
 public:
     ///@name Type Definitions

@@ -1,17 +1,16 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import json
-from json_utilities import *
+from KratosMultiphysics.json_utilities import read_external_json
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
-def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+def Factory(settings, model):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return FromJsonCheckResultProcess(Model, settings["Parameters"])
+    return FromJsonCheckResultProcess(model, settings["Parameters"])
 
 class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     """This class is used in order to check results using a json file
@@ -20,23 +19,22 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model_part -- the model part used to construct the process.
+    model -- the model contaning the model_parts
     settings -- Kratos parameters containing solver settings.
     """
 
-    def __init__(self, model_part, params):
+    def __init__(self, model, params):
         """ The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model_part -- the model part used to construct the process.
+        model -- the model contaning the model_parts
         settings -- Kratos parameters containing solver settings.
         """
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
-        default_parameters = KratosMultiphysics.Parameters("""
-        {
+        default_parameters = KratosMultiphysics.Parameters("""{
             "help"                 : "This process checks the solution obtained from a given json file. It can be used for generating tests for a problem",
             "check_variables"      : [],
             "gauss_points_check_variables" : [],
@@ -48,19 +46,12 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "tolerance"            : 1e-3,
             "relative_tolerance"   : 1e-6,
             "time_frequency"       : 1.00
-        }
-        """)
+        }""")
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
         self.params = params
-
-        self.model_part = model_part
-
-        self.check_variables = []
-        self.frequency    = 0.0
-        self.time_counter = 0.0
-        self.data = {}
+        self.model  = model
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -68,14 +59,13 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
         # We get the submodelpart
         model_part_name = self.params["model_part_name"].GetString()
         sub_model_part_name = self.params["sub_model_part_name"].GetString()
         if (sub_model_part_name != ""):
-            self.sub_model_part = self.model_part[model_part_name].GetSubModelPart(sub_model_part_name)
+            self.model_part = self.model[model_part_name].GetSubModelPart(sub_model_part_name)
         else:
-            self.sub_model_part = self.model_part[model_part_name]
+            self.model_part = self.model[model_part_name]
 
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()
@@ -84,35 +74,15 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         else:
             self.flag = None
 
-        input_file_name = self.params["input_file_name"].GetString()
         self.check_variables = self.__generate_variable_list_from_input(self.params["check_variables"])
         self.gauss_points_check_variables = self.__generate_variable_list_from_input(self.params["gauss_points_check_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
-        self.data =  read_external_json(input_file_name)
+        self.data = read_external_json(self.params["input_file_name"].GetString())
 
         # Initialize counter
         self.step_counter = 0
-
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed before starting the time loop
-
-        This step generates the structure of the dictionary
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
+        self.time_counter = 0.0
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -122,19 +92,18 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
         tol = self.params["tolerance"].GetDouble()
         reltol = self.params["relative_tolerance"].GetDouble()
-        time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
+        time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
+        dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
         self.time_counter += dt
         if self.time_counter > self.frequency:
             self.time_counter = 0.0
             input_time_list = self.data["TIME"]
 
             # Nodal values
-            for node in self.sub_model_part.Nodes:
+            for node in self.model_part.Nodes:
                 compute = self.__check_flag(node)
 
                 if compute is True:
@@ -188,7 +157,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 isclosethis = t_isclose(value[index], value_json, rel_tol=reltol, abs_tol=tol)
                                 self.assertTrue(isclosethis, msg=(str(value[index]) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking node " + str(node.Id) + " " + variable_name + " results."))
             # Nodal values
-            for elem in self.sub_model_part.Elements:
+            for elem in self.model_part.Elements:
                 compute = self.__check_flag(elem)
 
                 if compute is True:
@@ -198,7 +167,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                        value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
+                        value = elem.CalculateOnIntegrationPoints(variable, self.model_part.ProcessInfo)
 
                         gauss_point_number = len(value)
 
@@ -247,33 +216,6 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         # TODO: Add pending classes
 
             self.step_counter += 1
-
-    def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        """ This method is executed right after the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteFinalize(self):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
 
     def __linear_interpolation(self, x, x_list, y_list):
         """ This method is defined to interpolate values of a

@@ -71,7 +71,7 @@ namespace Kratos {
 
 	  if(nodalSFDneighboursSize>1){
 	    double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-	    ElementPointerVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOR_ELEMENTS);
+	    ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
 	    double numberOfNeighElems=double(neighb_elems.size());
 	    meshSize+=this->ElementSize()/numberOfNeighElems;
 
@@ -142,9 +142,9 @@ namespace Kratos {
       }
     }
     // if(countFreeSurface==NumNodes){
-    //   ElementPointerVectorType& neighb_elemsA = rGeom[0].GetValue(NEIGHBOR_ELEMENTS);
-    //   ElementPointerVectorType& neighb_elemsB = rGeom[1].GetValue(NEIGHBOR_ELEMENTS);
-    //   ElementPointerVectorType& neighb_elemsC = rGeom[2].GetValue(NEIGHBOR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsA = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsB = rGeom[1].GetValue(NEIGHBOUR_ELEMENTS);
+    //   ElementWeakPtrVectorType& neighb_elemsC = rGeom[2].GetValue(NEIGHBOUR_ELEMENTS);
     //   if(neighb_elemsA.size()==1 && neighb_elemsB.size()==1 && neighb_elemsC.size()==1){
     // 	rGeom[nodeIndex].Set(ISOLATED);
     //   }

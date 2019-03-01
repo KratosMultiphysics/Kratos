@@ -19,7 +19,6 @@
 /* Variables */
 #include "contact_structural_mechanics_application.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/variables.h"
 
 /* Geometries */
 #include "geometries/triangle_3d_3.h"
@@ -137,6 +136,9 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
+
+    /* For mesh tying mortar condition */
+    KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
 
     // CONDITIONS
     // Mesh tying mortar condition

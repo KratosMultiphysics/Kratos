@@ -1,8 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics FemDem Application
 //
-//   Project Name:
-//   Last modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Alejandro Cornejo Velazquez
+//
 
 // External includes
 
@@ -12,6 +18,7 @@
 #include "fem_to_dem_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/stress_to_nodes_process.hpp"
+#include "custom_processes/compute_normalized_free_energy_on_nodes_process.hpp"
 #include "custom_processes/damage_to_nodes_process.hpp"
 #include "custom_processes/dem_after_remesh_identificator_process.hpp"
 #include "custom_processes/initial_dem_skin_process.hpp"
@@ -57,6 +64,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<AssignPressureIdProcess, AssignPressureIdProcess::Pointer, Process>(m, "AssignPressureIdProcess")
 		.def(init<ModelPart &>())
 		.def("Execute", &AssignPressureIdProcess::Execute);
+
+	// Normalized Free Energy extrapolation to Nodes
+	class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")
+		.def(init<ModelPart &, unsigned int>())
+		.def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
 
 }
 } // namespace Python.

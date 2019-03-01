@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include <fstream>
 
 #include <amgcl/util.hpp>
+#include <amgcl/detail/sort_row.hpp>
 
 namespace amgcl {
 namespace io {
@@ -111,6 +112,13 @@ void read_crs(
 
     f.seekg(col_beg + nnz * sizeof(Col) + nnz_beg * sizeof(Val));
     precondition(read(f, val), "File I/O error");
+
+#pragma omp parallel for
+    for(ptrdiff_t i = 0; i < chunk; ++i) {
+        Ptr beg = ptr[i];
+        Ptr end = ptr[i + 1];
+        amgcl::detail::sort_row(&col[beg], &val[beg], end - beg);
+    }
 }
 
 template <typename SizeT, typename Val>

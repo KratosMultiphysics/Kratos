@@ -84,6 +84,8 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
 	void SimoJuCriterion(double& rThreshold, double &Damage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+	void ElasticLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+
 
 	// Stress Invariants in 3D
 	double CalculateI1Invariant(const Vector& rStressVector);

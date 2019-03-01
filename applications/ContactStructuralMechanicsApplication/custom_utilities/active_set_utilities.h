@@ -168,7 +168,7 @@ public:
             NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
-            #pragma omp parallel for reduction(+:is_converged_0, is_converged_1)
+            #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(SLAVE)) {
@@ -195,6 +195,7 @@ public:
                         // We activate the deactivated nodes and add the contribution
                         if (it_node->IsNot(ACTIVE)) {
                             it_node->Set(ACTIVE, true);
+                            #pragma omp atomic
                             is_converged_0 += 1;
                         }
 
@@ -204,11 +205,13 @@ public:
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                             if (it_node->Is(SLIP)) {
                                 it_node->Set(SLIP, false);
+                                #pragma omp atomic
                                 is_converged_1 += 1;
                             }
                         } else { // SLIP CASE
                             if (it_node->IsNot(SLIP)) {
                                 it_node->Set(SLIP, true);
+                                #pragma omp atomic
                                 is_converged_1 += 1;
                             }
                         }
@@ -357,7 +360,7 @@ public:
             NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
-            #pragma omp parallel for reduction(+:is_converged_0, is_converged_1)
+            #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(SLAVE)) {
@@ -390,6 +393,7 @@ public:
                         if (it_node->IsNot(ACTIVE)) {
                             noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + augmented_tangent_pressure_components/scale_factor;
                             it_node->Set(ACTIVE, true);
+                            #pragma omp atomic
                             is_converged_0 += 1;
                         }
 
@@ -399,11 +403,13 @@ public:
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                             if (it_node->Is(SLIP)) {
                                 it_node->Set(SLIP, false);
+                                #pragma omp atomic
                                 is_converged_1 += 1;
                             }
                         } else { // SLIP CASE
                             if (it_node->IsNot(SLIP)) {
                                 it_node->Set(SLIP, true);
+                                #pragma omp atomic
                                 is_converged_1 += 1;
                             }
                         }
@@ -412,6 +418,7 @@ public:
                         if (it_node->Is(ACTIVE)) {
                             it_node->Set(ACTIVE, false);
                             it_node->Set(SLIP, false);
+                            #pragma omp atomic
                             is_converged_0 += 1;
                         }
                     }

@@ -23,8 +23,7 @@
                 "response_type"          : "strain_energy",
                 "primal_settings"        : "analysis_parameters.json",
                 "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-7,
-                "consider_discretization": false
+                "step_size"              : 1e-7
             },
             "project_gradient_on_surface_normals" : false
         }],
@@ -54,9 +53,6 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "design_history_filename" : "design_history",
-            "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "DF1DX",

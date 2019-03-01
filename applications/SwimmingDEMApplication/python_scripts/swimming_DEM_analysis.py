@@ -21,14 +21,8 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
-
-
-try:
-    import define_output  # MA: some GUI write this file, some others not!
-except ImportError:
-    pass
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
 # For other implementations of MPI it will not work.
@@ -51,16 +45,19 @@ else:
 sys.path.insert(0,'')
 
 class SDEMLogger(object):
-    def __init__(self):
+    def __init__(self, do_print_file=False):
         self.terminal = sys.stdout
         self.console_output_file_name = 'console_output.txt'
         self.path_to_console_out_file = os.getcwd()
         self.path_to_console_out_file += '/' + self.console_output_file_name
-        self.log = open(self.path_to_console_out_file, "a")
+        self.do_print_file = do_print_file
+        if self.do_print_file:
+            self.log = open(self.path_to_console_out_file, "a")
 
     def write(self, message):
         self.terminal.write(message)
-        self.log.write(message)
+        if self.do_print_file:
+            self.log.write(message)
 
     def flush(self):
         #this flush method is needed for python 3 compatibility.
@@ -88,14 +85,27 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.StartTimer()
         self.model = model
         self.main_path = os.getcwd()
-        self.ReadFluidParameters()
-        self.SetFluidAlgorithm()
-        self.fluid_solution.coupling_analysis = weakref.proxy(self)
+        self.dem_json_path = os.getcwd() + '/ProjectParametersDEM.json'
+        self.fluid_json_path = os.getcwd() + '/ProjectParameters.json'
+        self.project_parameters = parameters
+
+        if parameters.Has('dem_json_path'):
+            self.dem_json_path = parameters['dem_json_path'].GetString()
+        if parameters.Has('fluid_json_path'):
+            self.fluid_json_path = parameters['fluid_json_path'].GetString()
 
         self.SetCouplingParameters(parameters)
 
+        self.SetFluidParameters()
+
+        self.ModifyInputParametersForCoherence()
+
         self.SetDispersePhaseAlgorithm()
+
         self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
+
+        self.SetFluidAlgorithm()
+        self.fluid_solution.coupling_analysis = weakref.proxy(self)
 
         self.procedures = weakref.proxy(self.disperse_phase_solution.procedures)
         self.report = DEM_procedures.Report()
@@ -113,13 +123,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
         vars_man.ConstructListsOfVariables(self.pp)
         super(SwimmingDEMAnalysis, self).__init__(model, self.pp.CFD_DEM) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
-    def ReadFluidParameters(self):
-        with open("ProjectParameters.json", 'r') as parameter_file:
-            self.pp.fluid_parameters = Parameters(parameter_file.read())
-            gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+    def SetFluidParameters(self):
+        self.pp.fluid_parameters = self.project_parameters['fluid_parameters']
+
+        self.pp.nodal_results, self.pp.gauss_points_results = [], []
+        if self.pp.fluid_parameters.Has('sdem_output_processes'):
+            gid_output_options = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
             gauss_point_results = result_file_configuration["gauss_point_results"]
-            nodal_variables = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            nodal_variables = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
             self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
@@ -130,26 +142,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetDispersePhaseAlgorithm(self):
         import fluid_coupled_DEM_analysis as DEM_analysis
-        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.pp)
+        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
     def ReadDispersePhaseAndCouplingParameters(self):
-
-        with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
-            self.pp.CFD_DEM = Parameters(parameters_file.read())
-
-        with open("ProjectParameters.json",'r') as fluid_parameter_file:
-            self.fpp = fluid_parameter_file
-
-        import dem_default_input_parameters
-        dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
+        self.pp.CFD_DEM = self.project_parameters # TO-DO: remove this
 
         import swimming_dem_default_input_parameters
         only_swimming_defaults = swimming_dem_default_input_parameters.GetDefaultInputParameters()
 
-        for key in only_swimming_defaults.keys():
-            dem_defaults.AddValue(key, only_swimming_defaults[key])
-
-        self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)
+        self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults)
 
     def SetCouplingParameters(self, parameters):
 
@@ -161,14 +162,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Third, set the parameters fed to the particular case that you are running
         self.SetCustomBetaParameters(parameters)
-
-        # Finally adjust some of the parameters for consistency
-        #   This function should be reduced to a minimum since,
-        #   in principle, there should be no need to change the parameters
-        self.SetDerivedParameters()
-
-    def SetDerivedParameters(self):
-        self.SetDoSolveDEMVariable()
 
     def SetAllModelParts(self):
         self.all_model_parts = weakref.proxy(self.disperse_phase_solution.all_model_parts)
@@ -185,10 +178,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.timer = timer
         self.simulation_start_time = timer.time()
 
+    # Set input parameters that have not yet been transferred to the interface
+    # import the configuration data as read from the GiD
     def SetBetaParameters(self):
-        # These are input parameters that have not yet been transferred to the interface
-        # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
+        Add("dem_json_path").SetString(self.main_path + '/ProjectParametersDEM.json')
+        Add("fluid_json_path").SetString(self.main_path + '/ProjectParameters.json')
         Add("fluid_already_calculated").SetBool(False)
         Add("do_solve_dem").SetBool(True)
         Add("recovery_echo_level").SetInt(1)
@@ -204,7 +199,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Add("vorticity_calculation_type").SetInt(5)
         Add("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)
         Add("print_MATERIAL_FLUID_ACCEL_PROJECTED_option").SetBool(True)
-        Add("basset_force_type").SetInt(0)
         Add("print_BASSET_FORCE_option").SetBool(True)
         Add("basset_force_integration_type").SetInt(2)
         Add("n_init_basset_steps").SetInt(0)
@@ -213,8 +207,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         DEM_dt = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         Add("delta_time_quadrature").SetDouble(time_steps_per_quadrature_step * DEM_dt)
         Add("quadrature_order").SetInt(2)
-        Add("time_window").SetDouble(0.8)
-        Add("number_of_exponentials").SetInt(2)
         time_window = self.pp.CFD_DEM["time_window"].GetDouble()
         quadrature_dt = self.pp.CFD_DEM["delta_time_quadrature"].GetDouble()
         Add("number_of_quadrature_steps_in_window").SetInt(int(time_window / quadrature_dt))
@@ -258,11 +250,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Making all time steps be an exact multiple of the smallest time step
         self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
-        self.Dt = self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
-        self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
-        self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.Dt)
-        self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
-        self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
 
         # vestigial variables
         Add("print_steps_per_plot_step").SetInt(1)
@@ -290,6 +277,18 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Setting body_force_per_unit_mass_variable_name
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
+    # This step is added to allow modifications to the possibly incompatibilities
+    # between the individual parameters coming from each sub-application
+    # (i.e., fluid and dem apps)
+    def ModifyInputParametersForCoherence(self):
+        self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
+        self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
+        self.pp.CFD_DEM["OutputTimeStep"].SetDouble(self.output_time)
+        self.Dt = self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
+        self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.Dt)
+        self.SetDoSolveDEMVariable()
 
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
@@ -330,12 +329,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Moving to the recently created folder
         os.chdir(self.main_path)
-        [self.post_path, data_and_results, self.graphs_path, MPI_results] = \
-        self.procedures.CreateDirectories(str(self.main_path),
-                                          str(self.pp.CFD_DEM["problem_name"].GetString()),
-                                          self.run_code)
-        SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
-        self.MPI_results = MPI_results
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            [self.post_path, data_and_results, self.graphs_path, MPI_results] = \
+            self.procedures.CreateDirectories(str(self.main_path),
+                                            str(self.pp.CFD_DEM["problem_name"].GetString()),
+                                            self.run_code)
+            SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
+            self.MPI_results = MPI_results
         #self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
         self.TransferBodyForceFromDisperseToFluid()
@@ -345,38 +345,37 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.SetAllModelParts()
 
-        self.SetCutsOutput()
-        gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
-        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-        write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
-        deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
-        old_gid_output_post_options_dict = {'GiD_PostAscii':'Ascii','GiD_PostBinary':'Binary','GiD_PostAsciiZipped':'AsciiZipped'}
-        old_gid_output_multiple_file_option_dict = {'SingleFile':'Single','MultipleFiles':'Multiples'}
-        post_mode_key = result_file_configuration["gidpost_flags"]["GiDPostMode"].GetString()
-        multiple_files_option_key = result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString()
-        self.pp.GiDMultiFileFlag = old_gid_output_multiple_file_option_dict[multiple_files_option_key]
-        self.swimming_DEM_gid_io = \
-        swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-            file_name = self.pp.CFD_DEM["problem_name"].GetString(),
-            vol_output = result_file_configuration["body_output"].GetBool(),
-            post_mode = old_gid_output_post_options_dict[post_mode_key],
-            multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
-            deformed_mesh = deformed_mesh_option,
-            write_conditions = write_conditions_option
-            )
+        if self.project_parameters.Has('sdem_output_processes') and self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+            write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
+            deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
+            old_gid_output_post_options_dict = {'GiD_PostAscii':'Ascii','GiD_PostBinary':'Binary','GiD_PostAsciiZipped':'AsciiZipped'}
+            old_gid_output_multiple_file_option_dict = {'SingleFile':'Single','MultipleFiles':'Multiples'}
+            post_mode_key = result_file_configuration["gidpost_flags"]["GiDPostMode"].GetString()
+            multiple_files_option_key = result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString()
+            self.pp.GiDMultiFileFlag = old_gid_output_multiple_file_option_dict[multiple_files_option_key]
 
-        self.swimming_DEM_gid_io.initialize_swimming_DEM_results(
-            self.spheres_model_part,
-            self.cluster_model_part,
-            self.rigid_face_model_part,
-            self.mixed_model_part
-            )
+            self.swimming_DEM_gid_io = \
+            swimming_DEM_gid_output.SwimmingDEMGiDOutput(
+                file_name = self.pp.CFD_DEM["problem_name"].GetString(),
+                vol_output = result_file_configuration["body_output"].GetBool(),
+                post_mode = old_gid_output_post_options_dict[post_mode_key],
+                multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
+                deformed_mesh = deformed_mesh_option,
+                write_conditions = write_conditions_option
+                )
 
-        self.SetDragOutput()
-
+            self.swimming_DEM_gid_io.initialize_swimming_DEM_results(
+                self.spheres_model_part,
+                self.cluster_model_part,
+                self.rigid_face_model_part,
+                self.mixed_model_part
+                )
         self.SetPointGraphPrinter()
 
         self.AssignKinematicViscosityFromDynamicViscosity()
+
         super(SwimmingDEMAnalysis, self).Initialize()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
@@ -387,7 +386,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.pp.CFD_DEM["model_over_real_diameter_factor"].GetDouble()
             )
 
-        self.SetPostUtils()
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            self.SetPostUtils()
 
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.pp)
@@ -434,7 +434,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         #first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 
-        if self.pp.CFD_DEM["ModelDataInfo"].GetBool():
+        if self.pp.CFD_DEM['dem_parameters']["ModelDataInfo"].GetBool():
             os.chdir(data_and_results)
             if self.pp.CFD_DEM.ContactMeshOption == "ON":
                 coordination_number = self.procedures.ModelData(
@@ -456,10 +456,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool():
             SDP.FixModelPart(self.spheres_model_part)
-
-        # choosing the directory in which we want to work (print to)
-
-        os.chdir(self.post_path)
 
         ##################################################
 
@@ -495,7 +491,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(self.report.BeginReport(self.timer))
 
         # creating a Post Utils object that executes several post-related tasks
-        self.post_utils_DEM = DEM_procedures.PostUtils(self.pp.CFD_DEM, self.spheres_model_part)
+        self.post_utils_DEM = DEM_procedures.PostUtils(self.project_parameters['dem_parameters'], self.spheres_model_part)
 
         SDP.InitializeVariablesWithNonZeroValues(
             self.fluid_model_part,
@@ -503,7 +499,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.pp
             ) # otherwise variables are set to 0 by default
 
-        self.SetUpResultsDatabase()
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            self.SetUpResultsDatabase()
 
         # ANALYTICS BEGIN
         self.pp.CFD_DEM.AddEmptyValue("perform_analytics_option").SetBool(False)
@@ -541,8 +538,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.FillHistoryForcePrecalculatedVectors()
 
         self.PerformZeroStepInitializations()
-
-        self.post_utils.Writeresults(self.time)
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            self._Print()
 
     def AddExtraProcessInfoVariablesToFluid(self):
         vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)
@@ -652,6 +649,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
     def _Print(self):
+        os.chdir(self.post_path)
+
         if self.particles_results_counter.Tick():
             self.io_tools.PrintParticlesResults(
                 self.pp.variables_to_print_in_file,
@@ -665,6 +664,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.time)
 
         self.post_utils.Writeresults(self.time)
+        os.chdir(self.main_path)
 
     def ComputePostProcessResults(self):
         if self.pp.CFD_DEM["coupling_level_type"].GetInt():
@@ -724,7 +724,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
             elif self.pp.type_of_inlet == 'ForceImposed':
                 self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
 
-            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
+            self.disperse_phase_solution.DEM_inlet = self.DEM_inlet
+            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.disperse_phase_solution.creator_destructor)
 
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
@@ -794,7 +795,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def GetPrintCounterUpdatedFluid(self):
         counter = SDP.Counter(
             steps_in_cycle=int(self.output_time / self.Dt_DEM + 0.5),
-            beginning_step=int(self.Dt / self.Dt_DEM))
+            beginning_step=int(self.output_time / self.Dt_DEM),
+            is_dead = not self.pp.CFD_DEM["do_print_results_option"].GetBool())
 
         if 'UpdatedFluid' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():
             counter.Kill()
@@ -841,6 +843,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # A more robust implementation is needed!
         N_steps = int(self.end_time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
         not_neglecting_history_force = self.pp.CFD_DEM["basset_force_type"].GetInt() > 0
+
         using_hinsberg_method = (
             self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or
             self.pp.CFD_DEM["basset_force_type"].GetInt() == 1)
@@ -873,63 +876,27 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def PerformFinalOperations(self, time=None):
         os.chdir(self.main_path)
-        del self.post_utils
-        self.ModifyResultsFolderName(time)
+
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            del self.post_utils
+            self.ModifyResultsFolderName(time)
 
     def ModifyResultsFolderName(self, time):
         pass
 
     def Finalize(self):
 
-        self.swimming_DEM_gid_io.finalize_results()
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            self.swimming_DEM_gid_io.finalize_results()
 
         self.PerformFinalOperations(self.time)
-
-        self.FinalizeDragOutput()
 
         self.fluid_solution.Finalize()
 
         self.TellFinalSummary(self.step, self.time, self._GetSolver().fluid_step)
 
-    def FinalizeDragOutput(self):
-        for i in self.drag_file_output_list:
-            i.close()
-
-    def SetCutsOutput(self):
-        gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
-        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-
-        if not result_file_configuration["body_output"].GetBool():
-            cut_list = define_output.DefineCutPlanes()
-            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
-
-    def SetDragOutput(self):
-        # define the drag computation list
-        self.drag_list = define_output.DefineDragList()
-        self.drag_file_output_list = []
-        for it in self.drag_list:
-            f = open(it[1], 'w')
-            self.drag_file_output_list.append(f)
-            tmp = "#Drag for group " + it[1] + "\n"
-            f.write(tmp)
-            tmp = "time RX RY RZ"
-            f.write(tmp)
-            f.flush()
-
-        if self.drag_file_output_list:
-            Say('Drag output list:', self.drag_file_output_list)
-
     def SetPointGraphPrinter(self):
         pass
-         # preparing output of point graphs
-        #import point_graph_printer
-
-        #output_nodes_list = define_output.DefineOutputPoints()
-        #self.graph_printer = point_graph_printer.PrintGraphPrinter(
-            #output_nodes_list,
-            #fluid_model_part,
-            #variables_dictionary,
-            #domain_size)
 
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's

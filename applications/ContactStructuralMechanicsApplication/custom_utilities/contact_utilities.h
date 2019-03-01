@@ -280,9 +280,13 @@ public:
 
     /**
      * @brief It checks the activity of the current contact simulation
-     * @param rModelPart The modelpart to update
+     * @param rModelPart The modelpart to check the activity
+     * @param ThrowError If an error is thrown
      */
-    static inline void CheckActivity(ModelPart& rModelPart)
+    static inline bool CheckActivity(
+        ModelPart& rModelPart,
+        const bool ThrowError = true
+        )
     {
         // Iterate over the nodes
         NodesArrayType& r_nodes_array = rModelPart.Nodes();
@@ -302,7 +306,11 @@ public:
             }
         }
 
-        KRATOS_ERROR_IF(aux_check == 0) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+        const bool is_active = aux_check == 0 ?  false : true;
+
+        KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+
+        return is_active;
     }
 
     /**
@@ -332,20 +340,19 @@ public:
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
         const auto it_cond_begin = r_conditions_array.begin();
 
-        #pragma omp parallel for
+        bool is_active = false;
+        #pragma omp parallel for firstprivate(is_active)
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
-            if (it_cond->Is(SLAVE)) {
-                GeometryType& r_geometry = it_cond->GetGeometry();
-                bool is_active = false;
-                for ( IndexType i_node = 0; i_node < r_geometry.size(); ++i_node ) {
-                    if (r_geometry[i_node].Is(ACTIVE)) {
-                        is_active = true;
-                        break;
-                    }
+            GeometryType& r_geometry = it_cond->GetGeometry();
+            is_active = false;
+            for ( IndexType i_node = 0; i_node < r_geometry.size(); ++i_node ) {
+                if (r_geometry[i_node].Is(ACTIVE)) {
+                    is_active = true;
+                    break;
                 }
-                it_cond->Set(ACTIVE, is_active);
             }
+            it_cond->Set(ACTIVE, is_active);
         }
     }
 

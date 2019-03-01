@@ -108,8 +108,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
-      typedef  std::vector<Node<3>*>             NodePointerVectorType;
-
+      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{

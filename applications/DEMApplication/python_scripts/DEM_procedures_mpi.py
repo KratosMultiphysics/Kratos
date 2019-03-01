@@ -44,7 +44,7 @@ class Procedures(DEM_procedures.Procedures):
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
 
-    def CreateDirectories(self, main_path, problem_name):
+    def CreateDirectories(self, main_path, problem_name, do_print_results=True):
 
         root             = main_path + '/' + problem_name
         post_path        = root + '_Post_Files'
@@ -52,7 +52,7 @@ class Procedures(DEM_procedures.Procedures):
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
-        if mpi.rank == 0:
+        if mpi.rank == 0 and do_print_results:
             for directory in [post_path, data_and_results, graphs_path, MPI_results]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))

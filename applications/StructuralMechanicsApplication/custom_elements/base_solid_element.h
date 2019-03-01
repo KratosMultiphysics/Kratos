@@ -34,6 +34,12 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,13 +71,13 @@ protected:
     {
         Vector  N;
         Matrix  B;
-        Vector Bh;
         double  detF;
         Matrix  F;
         double  detJ0;
         Matrix  J0;
         Matrix  InvJ0;
         Matrix  DN_DX;
+        Vector Displacements;
 
         /**
          * The default constructor
@@ -80,20 +86,20 @@ protected:
          * @param NumberOfNodes The number of nodes in the element
          */
         KinematicVariables(
-            const unsigned int& StrainSize,
-            const unsigned int& Dimension,
-            const unsigned int& NumberOfNodes
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
             )
         {
             detF = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            Bh = ZeroVector(Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
         }
     };
 
@@ -110,7 +116,7 @@ protected:
          * The default constructor
          * @param StrainSize The size of the strain vector in Voigt notation
          */
-        ConstitutiveVariables(const unsigned int& StrainSize)
+        ConstitutiveVariables(const SizeType StrainSize)
         {
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
@@ -139,12 +145,6 @@ public:
 
     /// The base element type
     typedef Element BaseType;
-
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
@@ -217,6 +217,18 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -666,6 +678,26 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -692,6 +724,24 @@ protected:
     ///@{
 
     /**
+     * @brief Sets the used integration method
+     * @param ThisIntegrationMethod Integration method used
+     */
+    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
+    {
+         mThisIntegrationMethod = ThisIntegrationMethod;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& ThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = ThisConstitutiveLawVector;
+    }
+
+    /**
      * @brief It initializes the material
      */
     virtual void InitializeMaterial();
@@ -704,7 +754,7 @@ protected:
     /**
      * @brief This method returns if the element provides the strain
      */
-    virtual bool UseElementProvidedStrain();
+    virtual bool UseElementProvidedStrain() const;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -773,7 +823,7 @@ protected:
      * @param DeltaDisplacement The matrix containing the increment of displacements
      * @return DeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
+    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -790,7 +840,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame
@@ -807,7 +857,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This function computes the body force
@@ -815,7 +865,7 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @return The vector of body forces
      */
-    Vector GetBodyForce(
+    array_1d<double, 3> GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
         ) const;
@@ -832,7 +882,7 @@ protected:
         const Matrix& B,
         const Matrix& D,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
@@ -846,7 +896,7 @@ protected:
         const Matrix& DN_DX,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the RHS
@@ -861,10 +911,10 @@ protected:
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
+        const array_1d<double, 3>& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This function add the external force contribution
@@ -877,10 +927,10 @@ protected:
     void CalculateAndAddExtForceContribution(
         const Vector& rN,
         const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
+        const array_1d<double, 3>& rBodyForce,
         VectorType& rRightHandSideVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This functions computes the integration weight to consider
@@ -892,14 +942,14 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        );
+        ) const;
 
     /**
     * @brief This function computes the shape gradient of mass matrix
     * @param rMassMatrix The mass matrix
     * @param Deriv The shape parameter
     */
-    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
     ///@}
     ///@name Protected  Access
@@ -933,7 +983,7 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassMatrix The lumped mass vector
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateLumpedMassVector(VectorType& rMassVector) const;
 
     /**
      * @brief This method computes directly the lumped mass matrix

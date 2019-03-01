@@ -892,9 +892,9 @@ namespace Kratos {
     //   }
 
     // if(this->Is(TO_ERASE)){
-    //   NodePointerVectorType& rN0 = rGeom[0].GetValue(NEIGHBOR_NODES);
-    //   NodePointerVectorType& rN1 = rGeom[1].GetValue(NEIGHBOR_NODES);
-    //   NodePointerVectorType& rN2 = rGeom[2].GetValue(NEIGHBOR_NODES);
+    //   NodeWeakPtrVectorType& rN0 = rGeom[0].GetValue(NEIGHBOUR_NODES);
+    //   NodeWeakPtrVectorType& rN1 = rGeom[1].GetValue(NEIGHBOUR_NODES);
+    //   NodeWeakPtrVectorType& rN2 = rGeom[2].GetValue(NEIGHBOUR_NODES);
     //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) &&
     // 	 (rN0.size()<NumNodes || rN1.size()<NumNodes)){
     // 	if(rGeom[0].IsNot(INLET))
