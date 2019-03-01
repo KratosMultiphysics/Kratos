@@ -108,6 +108,13 @@ class Parameters(object):
     def Has(self, param):
         return (param in self.parameters)
 
+    def AddValue(self, key, value):
+        if(isinstance(self.parameters, dict)):
+            if(key not in self.parameters):
+                self.parameters[key] = value
+            else:
+                RuntimeError("Key already exists")
+
     def Type(self):
         if( isinstance(self.parameters, list) ):
             return type(self.parameters)
