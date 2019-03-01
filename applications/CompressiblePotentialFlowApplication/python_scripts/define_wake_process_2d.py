@@ -53,8 +53,18 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         )]
 
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
-            "trailing_edge_model_part")
+
+        for element in self.fluid_model_part.Elements:
+            if element.Is(KratosMultiphysics.STRUCTURE):
+                element.Set(KratosMultiphysics.STRUCTURE,False)
+
+        if self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
+            self.fluid_model_part.RemoveSubModelPart("trailing_edge_model_part")
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
+                "trailing_edge_model_part")
+        else:
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
+                "trailing_edge_model_part")
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -110,6 +120,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    counter=0
+                    for node in elem.GetNodes():
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        counter += 1
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 

@@ -7,11 +7,14 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 # generate variables with the sources
 set( KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
+  	${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/compressible_potential_flow_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_potential_hessian_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_custom_nodal_gradient_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/meshing_application.cpp
 )
 
 ## define compressible potential application test sources

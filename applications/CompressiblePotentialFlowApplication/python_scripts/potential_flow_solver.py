@@ -163,44 +163,6 @@ class LaplacianSolver(PythonSolver):
                 throw_errors = False
                 KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
                 #here we replace the dummy elements we read with proper elements
-                element_replace_settings=KratosMultiphysics.Parameters()
-                element_replace_settings.AddEmptyValue("element_replace_settings")
-                if (self.settings["problem_type"].GetString() == "incompressible"):
-                    if(self.domain_size == 3):
-                        element_replace_settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                            {
-                            "element_name":"IncompressiblePotentialFlowElement3D4N",
-                            "condition_name": "IncompressiblePotentialWallCondition3D3N"
-                            }
-                            """)
-                    elif(self.domain_size == 2):
-                        element_replace_settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                            {
-                            "element_name":"IncompressiblePotentialFlowElement2D3N",
-                            "condition_name": "IncompressiblePotentialWallCondition2D2N"
-                            }
-                            """)
-                    else:
-                        raise Exception("Domain size is not 2 or 3!!")
-                elif (self.settings["problem_type"].GetString() == "compressible"):
-                    if(self.domain_size == 3):
-                        element_replace_settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                            {
-                            "element_name":"CompressiblePotentialFlowElement3D4N",
-                            "condition_name": "CompressiblePotentialWallCondition3D3N"
-                            }
-                            """)
-                    elif(self.domain_size == 2):
-                        element_replace_settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                            {
-                            "element_name":"CompressiblePotentialFlowElement2D3N",
-                            "condition_name": "CompressiblePotentialWallCondition2D2N"
-                            }
-                            """)
-                    else:
-                        raise Exception("Domain size is not 2 or 3!!")
-                else:
-                    raise Exception("Problem type not defined!!")
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
