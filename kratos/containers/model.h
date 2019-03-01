@@ -264,7 +264,7 @@ private:
      * @param rModelPartNames The names of the ModelParts
      * @TODO remove this function when the flat-map is removed
      */
-    void RecursiveGetFullName(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const;
+    void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const;
 
     ///@}
     ///@name Private  Access

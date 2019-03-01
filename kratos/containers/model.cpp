@@ -105,7 +105,7 @@ namespace Kratos
                     if (pmodel_part != nullptr) { //give back the first one that was found
                         // Get the names of the parent-modelparts to print them in the warning
                         std::vector<std::string> model_part_names;
-                        RecursiveGetFullName(*pmodel_part, model_part_names);
+                        GetNameWithAscendants(*pmodel_part, model_part_names);
 
                         std::stringstream msg;
                         msg << model_part_names[0];
@@ -319,11 +319,11 @@ namespace Kratos
         }
     }
 
-    void Model::RecursiveGetFullName(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const
+    void Model::GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>& rModelPartNames) const
     {
         rModelPartNames.insert(rModelPartNames.begin(), rModelPart.Name()); // "push_front"
         if (rModelPart.IsSubModelPart()) {
-            RecursiveGetFullName(*rModelPart.GetParentModelPart(), rModelPartNames);
+            GetNameWithAscendants(*rModelPart.GetParentModelPart(), rModelPartNames);
         }
     }
 
