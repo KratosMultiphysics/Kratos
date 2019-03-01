@@ -29,12 +29,11 @@ typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > Compon
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
-	using namespace pybind11;
+	namespace py = pybind11;
 
-        class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
+        py::class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
         (m, "KuttaConditionProcess")
-        .def(init<ModelPart&>())
-        .def("Execute",&KuttaConditionProcess::Execute)
+        .def(py::init<ModelPart&>())
         ;
 
         // HESSIAN PROCESS
