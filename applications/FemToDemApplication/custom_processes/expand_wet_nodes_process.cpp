@@ -27,10 +27,15 @@ ExpandWetNodesProcess::ExpandWetNodesProcess(
 void ExpandWetNodesProcess::Execute() 
 {
     int extrapolated_elements = 1;
+    int pressure_id;
     while (extrapolated_elements > 0) {
+        extrapolated_elements = 0;
         for (auto it_elem = mrModelPart.Elements().ptr_begin();  
           it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-            
+            if (this->ElementHasWetNodes(it_elem, pressure_id)) {
+                this->ExpandWetNodes(it_elem, pressure_id);
+                extrapolated_elements++;
+            }
         }
     }
 }
