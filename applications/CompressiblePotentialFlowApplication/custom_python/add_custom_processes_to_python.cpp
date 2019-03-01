@@ -37,30 +37,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def("Execute",&KuttaConditionProcess::Execute);
 
-        class_<ComputeLiftLevelSetProcess, ComputeLiftLevelSetProcess::Pointer, Process >
-        (m, "ComputeLiftLevelSetProcess")
-        .def(init<ModelPart&,Vector&>())
-        .def("Execute",&ComputeLiftLevelSetProcess::Execute);
-
-        class_<ComputeLiftProcess, ComputeLiftProcess::Pointer, Process >
-        (m, "ComputeLiftProcess")
-        .def(init<ModelPart&,Vector&>())
-        .def("Execute",&ComputeLiftProcess::Execute);
-
-        class_<ComputeGradientAdjointProcess, ComputeGradientAdjointProcess::Pointer, Process >
-        (m, "ComputeGradientAdjointProcess")
-        .def(init<ModelPart&,Matrix&,Matrix&,Vector&>())
-        .def("Execute",&ComputeGradientAdjointProcess::Execute);
-
-        class_<GetEquationId, GetEquationId::Pointer, Process >
-        (m, "GetEquationId")
-        .def(init<ModelPart&,Vector&,int>())
-        .def("Execute",&GetEquationId::Execute);
-
-        class_<ReplaceElementsAndConditionsAdjointProcess, ReplaceElementsAndConditionsAdjointProcess::Pointer, Process >
-        (m, "ReplaceElementsAndConditionsAdjointProcess")
-        .def(init<ModelPart&>())
-        .def("Execute",&ReplaceElementsAndConditionsAdjointProcess::Execute);
   }
 
 }  // namespace Python.
