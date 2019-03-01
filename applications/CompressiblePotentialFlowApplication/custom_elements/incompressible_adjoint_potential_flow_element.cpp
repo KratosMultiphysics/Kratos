@@ -51,35 +51,11 @@ namespace Kratos
     }
 
     template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::ResetConstitutiveLaw() 
-    {
-        mpPrimalElement->ResetConstitutiveLaw();
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CleanMemory() 
-    {
-        mpPrimalElement->CleanMemory();
-    }
-
-    template <int Dim, int NumNodes>
     void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
     {
         mpPrimalElement->Data() = this->Data();
         mpPrimalElement->Set(Flags(*this));
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->InitializeNonLinearIteration(rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
     template <int Dim, int NumNodes>
@@ -113,112 +89,6 @@ namespace Kratos
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
-							rRightHandSideVector,
-							rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					        ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateFirstDerivativesRHS(rRightHandSideVector,
-					        rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
-							    rRightHandSideVector,
-							    rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateSecondDerivativesRHS(rRightHandSideVector,
-					        rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<double >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->AddExplicitContribution(rRHSVector,
-                                    rRHSVariable,
-                                    rDestinationVariable,
-                                    rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<array_1d<double,3> >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->AddExplicitContribution(rRHSVector,
-                                rRHSVariable,
-                                rDestinationVariable,
-                                rCurrentProcessInfo);
-    }
-
-    template <int Dim, int NumNodes>
-    void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::AddExplicitContribution(const MatrixType& rLHSMatrix,
-                                const Variable<MatrixType>& rLHSVariable,
-                                Variable<Matrix>& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) 
-    {
-        mpPrimalElement->AddExplicitContribution(rLHSMatrix,
-                                rLHSVariable,
-                                rDestinationVariable,
-                                rCurrentProcessInfo);
     }
 
     template <int Dim, int NumNodes>
@@ -468,21 +338,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     template <int Dim, int NumNodes>

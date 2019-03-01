@@ -25,24 +25,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 
 template< int Dim, int NumNodes >
 class IncompressibleAdjointPotentialFlowElement : public Element
@@ -125,15 +107,7 @@ public:
 
     void Initialize() override;
 
-    void ResetConstitutiveLaw() override;
-
-    void CleanMemory() override;
-
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -146,47 +120,6 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					        ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<double >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                const Variable<VectorType>& rRHSVariable,
-                                Variable<array_1d<double,3> >& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(const MatrixType& rLHSMatrix,
-                                const Variable<MatrixType>& rLHSVariable,
-                                Variable<Matrix>& rDestinationVariable,
-                                const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
@@ -216,70 +149,18 @@ public:
 
    Element::Pointer pGetPrimalElement();
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
 
-    ///@name Protected static Member Variables
-    ///@{
 
     Element::Pointer mpPrimalElement;
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances);
 
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances);
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
 
     double GetPerturbationSize();
 
@@ -289,33 +170,9 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class IncompressibleAdjointPotentialFlowElement
 
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
 
 } // namespace Kratos.
 
-#endif // KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED  defined
+#endif 
