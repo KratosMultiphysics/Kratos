@@ -12,15 +12,16 @@ class Node:
         self.X0 = coordinates[0]
         self.Y0 = coordinates[1]
         self.Z0 = coordinates[2]
+        self.var_is_fixed = {}
 
     def SetBufferSize(self, buffer_size):
         for i in range(0, buffer_size):
             self.variables.append(dict())
 
-    def AddVariable(self, variable_name):
+    def AddVariable(self, variable):
         for i in range(0, len(self.variables)):
-            self.variables[i][variable_name] = 0
-        self.var_is_fixed[variable_name] = False
+            self.variables[i][variable] = 0
+        self.var_is_fixed[variable] = False
 
     def AdvanceInTime(self):
         for i in range(len(self.variables)-1,0,-1):
@@ -39,18 +40,23 @@ class Node:
     def HasSolutionStepValue(self):
         pass
 
-    def GetSolutionStepValue(self, variable_name, step):
-        return self.variables[step][variable_name]
-
-    def SetSolutionStepValue(self, variable_name, step, value):
-        if variable_name in list(self.variables[step].keys()):
-            self.variables[step][variable_name] = value
+    def GetSolutionStepValue(self, variable, step):
+        if(isinstance(variable, list)):
+            return [self.variables[step][variable[1]],  self.variables[step][variable[2]], self.variables[step][variable[3]]]
         else:
-            raise Exception(
-                "trying to set an non-existing variable with name ",
-                variable_name,
-                " on node ",
-                self.Id)
+            return self.variables[step][variable]
+
+    def SetSolutionStepValue(self, variable, step, value):
+        if(isinstance(variable, list)):
+            for i in range(1, len(variable)):
+                if variable[i] in list(self.variables[step].keys()):
+                        self.variables[step][variable[i]] = value[i-1]
+                else:
+                    raise Exception(
+                        "trying to set an non-existing variable with name ",
+                        variable,
+                        " on node ",
+                        self.Id)
 
     def __str__(self):
         return  "Node #{0} with {1}".format(self.Id, self.variables)
