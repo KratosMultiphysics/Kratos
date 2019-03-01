@@ -7,5 +7,5 @@ def Initialize(str_type):
     else:
         if(str_type == 'kratos'):
             __DATA_STRUCTURE__ = __import__('KratosMultiphysics')
-        else:
-            __DATA_STRUCTURE__ = __import__('base_co_simulation_class.co_simulation_native_data_structure')
+        elif(str_type == 'pyKratos'):
+            __DATA_STRUCTURE__ = __import__('pyKratos')
