@@ -7,12 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-
-#ifndef KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
-#define KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
+#ifndef KRATOS_POTENTIAL_WALL_CONDITION_H
+#define KRATOS_POTENTIAL_WALL_CONDITION_H
 
 // System includes
 #include <string>
@@ -23,44 +22,21 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
 #include "includes/cfd_variables.h"
-#include "utilities/geometry_utilities.h"
 
 // Application includes
 #include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
-///@{
 
-///@name Kratos Globals
-///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Implements a wall condition for the potential flow formulation
-template< unsigned int TDim, unsigned int TNumNodes = TDim >
+template <unsigned int TDim, unsigned int TNumNodes = TDim>
 class IncompressibleAdjointPotentialWallCondition : public Condition
 {
 public:
@@ -172,409 +148,137 @@ public:
         return *this;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
 
-    /// Create a new IncompressibleAdjointPotentialWallCondition object.
-    /**
-      @param NewId Index of the new condition
-      @param ThisNodes An array containing the nodes of the new condition
-      @param pProperties Pointer to the element's properties
-      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
-    {
-        return Condition::Pointer(new IncompressibleAdjointPotentialWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
-    }
+    Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(IndexType NewId,
+                              Condition::GeometryType::Pointer pGeom,
+                              PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
+
+    // Find the condition's parent element.
+    void Initialize() override;
+
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
-    Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
-    {
-        return Condition::Pointer(new IncompressibleAdjointPotentialWallCondition(NewId, pGeom, pProperties));
-    }
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
-    {
-        Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          ProcessInfo& rCurrentProcessInfo) override;
 
-        pNewCondition->SetData(this->GetData());
-        pNewCondition->SetFlags(this->GetFlags());
+    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
-        return pNewCondition;
-    }
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize() override
-    {   
-        mpPrimalCondition->Initialize();
-    }
-
-    void ResetConstitutiveLaw() override
-    {
-        mpPrimalCondition->ResetConstitutiveLaw();
-    }
-
-    void CleanMemory() override
-    {
-        mpPrimalCondition->CleanMemory();
-    }
-
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->Data() = this->Data();
-        mpPrimalCondition->Set(Flags(*this));
-        mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
-    }
-    //Find the condition's parent element.
-    void GetValuesVector(Vector& rValues, int Step=0) override
-    {
-    
-        KRATOS_TRY
-  
-        if(rValues.size() != TNumNodes)
-            rValues.resize(TNumNodes, false);
-
-        bool is_kutta=false;
-        for(unsigned int i=0; i<TNumNodes; i++){
-            if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
-                is_kutta=true;
-                break;
-            }
-        }
-        for(unsigned int i=0; i<TNumNodes; i++){
-            if(is_kutta){
-                if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
-                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
-                else
-                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-            }
-            else
-                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
-        }
-
-        KRATOS_CATCH("");
-   
-    }
-
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               ProcessInfo &rCurrentProcessInfo) override
-    {
-        VectorType RHS;
-        this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
-        rLeftHandSideMatrix.clear();
-    }
+    void GetValuesVector(Vector& rValues, int Step=0)  override;
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
-                                            Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rOutput.size1() != TNumNodes)
-            rOutput.resize(TDim*TNumNodes, TNumNodes, false);
-        rOutput.clear();
-    }
-    /**
-      @param rDampingMatrix Left-hand side matrix
-      @param rRightHandSideVector Right-hand side vector
-      @param rCurrentProcessInfo ProcessInfo instance (unused)
-      */
-    void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                              VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override
-    {               
-        if (rLeftHandSideMatrix.size1() != TNumNodes)
-            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-        if (rRightHandSideVector.size() != TNumNodes)
-            rRightHandSideVector.resize(TNumNodes, false);
-        rLeftHandSideMatrix.clear();
-    }
+                                        Matrix& rOutput,
+                                        const ProcessInfo& rCurrentProcessInfo)  override;
 
-    /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY;
-
-        int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
-
-        if (Check != 0)
-        {
-            return Check;
-        }
-        else
-        {
-            // Check that all required variables have been registered
-            if(ADJOINT_VELOCITY_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "ADJOINT_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
-            if(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "ADJOINT_AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
-
-            // Checks on nodes
-
-            // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-            for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-            {
-
-                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing ADJOINT_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing ADJOINT_AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-
-
-                return Check;
-            }
-        }
-        return 0;
-
-            KRATOS_CATCH("");
-        }
-
-        /// Provides the global indices for each one of this element's local rows.
-        /** This determines the elemental equation ID vector for all elemental DOFs
-         * @param rResult A vector containing the global Id of each row
-         * @param rCurrentProcessInfo the current process info object (unused)
-         */
-        void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override
-        {   
-            if (rResult.size() != TNumNodes)
-                rResult.resize(TNumNodes, false);
-
-            bool is_kutta=false;
-            for(unsigned int i=0; i<TNumNodes; i++){
-                if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
-                    is_kutta=true;
-                    break;
-                }
-            }
-            for(unsigned int i=0; i<TNumNodes; i++){
-                if(is_kutta){
-                    if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
-                    else
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-                }
-                else
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
-            }
-        }
-
-
-        /// Returns a list of the element's Dofs
-        /**
-         * @param ElementalDofList the list of DOFs
-         * @param rCurrentProcessInfo the current process info instance
-         */
-        void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo) override
-        {
-            if (ConditionDofList.size() != TNumNodes)
-            ConditionDofList.resize(TNumNodes);
-
-            bool is_kutta=false;
-            for(unsigned int i=0; i<TNumNodes; i++){
-                if (GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0){
-                    is_kutta=true;
-                    break;
-                }
-            }
-            for(unsigned int i=0; i<TNumNodes; i++){
-                if(is_kutta){
-                    if(GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
-                    else
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-                }
-                else
-                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
-            }
-        }
-
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
-        {
-            mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
-        }
-
-        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-        {
-            mpPrimalCondition ->GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        }
-        ///@}
-        ///@name Access
-        ///@{
-
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        /// Turn back information as a string.
-        std::string Info() const override
-        {
-            std::stringstream buffer;
-            this->PrintInfo(buffer);
-            return buffer.str();
-        }
-
-        /// Print information about this object.
-        void PrintInfo(std::ostream& rOStream) const override
-        {
-            rOStream << "IncompressibleAdjointPotentialWallCondition" << TDim << "D #" << this->Id();
-        }
-
-        /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override
-        {
-            this->pGetGeometry()->PrintData(rOStream);
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-
-        ///@}
-
-protected:
-        ///@name Protected static Member Variables
-        ///@{
-        Condition::Pointer mpPrimalCondition;
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
-private:
-        ///@name Static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-        ///@}
-        ///@name Serialization
-        ///@{
-
-        friend class Serializer;
-
-        void save(Serializer& rSerializer) const override
-        {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
-        }
-
-        void load(Serializer& rSerializer) override
-        {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
-        }
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-
-        ///@}
-
-    }; // Class IncompressibleAdjointPotentialWallCondition
-
-
-    ///@}
-
-    ///@name Type Definitions
-    ///@{
-
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override;
 
-    /// input stream function
-    template< unsigned int TDim, unsigned int TNumNodes >
-    inline std::istream& operator >> (std::istream& rIStream,
-                                      IncompressibleAdjointPotentialWallCondition<TDim,TNumNodes>& rThis)
-    {
-        return rIStream;
-    }
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    /// output stream function
-    template< unsigned int TDim, unsigned int TNumNodes >
-    inline std::ostream& operator << (std::ostream& rOStream,
-                                      const IncompressibleAdjointPotentialWallCondition<TDim,TNumNodes>& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override;
 
-        return rOStream;
-    }
+    ///@}
+    ///@name Friends
+    ///@{
 
     ///@}
 
-    ///@} addtogroup block
+protected:
+
+    Condition::Pointer mpPrimalCondition;
 
 
-}  // namespace Kratos.
+private:
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    bool mInitializeWasPerformed = false;
+    ElementWeakPointerType mpElement;
+
+    void CalculateNormal2D(array_1d<double, 3>& An) const;
+
+    void CalculateNormal3D(array_1d<double, 3>& An) const;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    inline ElementPointerType pGetElement() const;
+
+    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
+                              const GeometryType& rGeom) const;
+
+    void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
+
+    void FindParentElement(std::vector<IndexType>& NodeIds,
+                           std::vector<IndexType>& ElementNodeIds,
+                           WeakPointerVector<Element> ElementCandidates);
+
+
+}; // Class IncompressibleAdjointPotentialWallCondition
+
+///@}
+
+/// input stream function
+template <unsigned int TDim, unsigned int TNumNodes>
+inline std::istream& operator>>(std::istream& rIStream,
+                                IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template <unsigned int TDim, unsigned int TNumNodes>
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+///@}
+
+///@} addtogroup block
+
+} // namespace Kratos.
 
 #endif // KRATOS_POTENTIAL_WALL_CONDITION_H
