@@ -1182,7 +1182,8 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const GeometryMatrixSlaveType inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        GeometryMatrixSlaveType inv_D_operator;
+        MathUtils<double>::InvertMatrix(DOperator, inv_D_operator, auxdet);
 
         // We calculate the P operator
         const GeometryMatrixMasterType POperator = prod(inv_D_operator, MOperator);
@@ -1618,10 +1619,11 @@ public:
             const GeometryMatrixType normalized_Me = Me/norm_me;
 
             // We compute the normalized inverse
-            double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-            if (std::abs(aux_det) >= tolerance) {
-                const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
-
+            double aux_det;
+            GeometryMatrixType normalized_inv_Me;
+            MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+            const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+            if (good_condition_number) {
                 noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
                 return true;
             }
@@ -1871,7 +1873,6 @@ public:
      */
     bool CalculateDeltaAe(DerivativeDataType& rDerivativeData)
     {
-        double aux_det;
         const double tolerance = std::numeric_limits<double>::epsilon();
 
         // We compute the norm
@@ -1881,10 +1882,13 @@ public:
         const GeometryMatrixType normalized_Me = BaseClassType::Me/norm_Me;
 
         // We compute the normalized inverse
-        aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-        if (std::abs(aux_det) < tolerance) return false;
-
-        const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+        double aux_det;
+        GeometryMatrixType normalized_inv_Me;
+        MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+        const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+        if (!good_condition_number) {
+            return false;
+        }
 
         // Now we compute the inverse
         const GeometryMatrixType inv_Me = normalized_inv_Me/norm_Me;

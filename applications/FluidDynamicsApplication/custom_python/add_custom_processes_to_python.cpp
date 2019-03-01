@@ -21,10 +21,10 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
@@ -35,13 +35,15 @@
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
-#include "custom_processes/move_rotor_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
+#include "custom_processes/move_rotor_process.h"
+#include "custom_processes/two_fluids_inlet_process.h"
 #include "spaces/ublas_space.h"
 
+#include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "linear_solvers/linear_solver.h"
+
 
 namespace Kratos
 {
@@ -131,6 +133,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    ;
+
+    py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
+    (m,"TwoFluidsInletProcess")
+    .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
+    .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
     ;
 }
 

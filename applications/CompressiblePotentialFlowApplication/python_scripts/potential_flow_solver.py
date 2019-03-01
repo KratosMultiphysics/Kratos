@@ -1,14 +1,24 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+
+# Importing the Kratos Library
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-def CreateSolver(model, custom_settings):
-    return PotentialSolver(model, custom_settings["solver_settings"])
+import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 
-class PotentialSolver(PythonSolver):
+# Importing the base class
+from KratosMultiphysics.python_solver import PythonSolver
+
+
+def CreateSolver(model, custom_settings):
+    return LaplacianSolver(model, custom_settings)
+
+
+class LaplacianSolver(PythonSolver):
     def __init__(self, model, custom_settings):
-        self.MoveMeshFlag = False
+        super(LaplacianSolver, self).__init__(model, custom_settings)
+        self.move_mesh_flag = False
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -16,7 +26,8 @@ class PotentialSolver(PythonSolver):
             "model_part_name"        : "model",
             "domain_size"            : 2,
             "solver_type": "potential_flow_solver",
-            "problem_type"	         : "incompressible",
+            "domain_size"     : 2,
+            "model_part_name" : "MainModelPart",
             "echo_level": 1,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
@@ -34,6 +45,10 @@ class PotentialSolver(PythonSolver):
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
+            "element_replace_settings": {
+                    "element_name":"IncompressiblePotentialFlowElement2D3N",
+                    "condition_name": "PotentialWallCondition2D2N"
+            },
             "linear_solver_settings": {
                     "solver_type": "amgcl",
                     "max_iteration": 400,
@@ -50,10 +65,7 @@ class PotentialSolver(PythonSolver):
 
         }""")
 
-            # "linear_solver_settings"       : {
-            #      "solver_type"     : "SkylineLUFactorizationSolver"
-            #   }
-
+        # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
@@ -73,9 +85,6 @@ class PotentialSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,self.settings["penalty"].GetDouble())# alpha penalty
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
@@ -87,29 +96,21 @@ class PotentialSolver(PythonSolver):
         self.perturbate_model_part=False
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_GRADIENT)
+        # Degrees of freedom
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+
+        # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LEVEL_SET_DISTANCE)
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
 
         if self.settings["problem_type"].GetString() == "compressible" or self.settings["problem_type"].GetString() == "compressible_full":
@@ -198,138 +199,44 @@ class PotentialSolver(PythonSolver):
                             """)
                     else:
                         raise Exception("Domain size is not 2 or 3!!")
-                elif (self.settings["problem_type"].GetString() == "incompressible_stresses"):
-                    if(self.domain_size == 2):
-                        element_replace_settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                            {
-                            "element_name":"IncompressibleStressesPotentialFlowElement2D3N",
-                            "condition_name": "IncompressiblePotentialWallCondition2D2N"
-                            }
-                            """)
-                    else:
-                        raise Exception("Domain size is not 2!!")
                 else:
-                    raise Exception("Domain size is not 2 or 3!!")
-            elif (self.settings["problem_type"].GetString() == "compressible_full"):
-                if(self.domain_size == 2):
-                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                        {
-                        "element_name":"CompressibleFullPotentialFlowElement2D3N",
-                        "condition_name": "CompressiblePotentialWallCondition2D2N"
-                        }
-                        """)
-                else:
-                    raise Exception("Domain size is not 2!!")
-            elif (self.settings["problem_type"].GetString() == "incompressible_stresses"):
-                if(self.domain_size == 2):
-                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                        {
-                        "element_name":"IncompressibleStressesPotentialFlowElement2D3N",
-                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
-                        }
-                        """)
-                else:
-                    raise Exception("Domain size is not 2!!")
-            elif (self.settings["problem_type"].GetString() == "incompressible_alpha"):
-                if(self.domain_size == 2):
-                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                        {
-                        "element_name":"IncompressibleAlphaPotentialFlowElement2D3N",
-                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
-                        }
-                        """)
-                else:
-                    raise Exception("Domain size is not 2!!")
-            elif (self.settings["problem_type"].GetString() == "incompressible_alpha_full"):
-                if(self.domain_size == 2):
-                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                        {
-                        "element_name":"IncompressibleAlphaFullPotentialFlowElement2D3N",
-                        "condition_name": "IncompressiblePotentialWallCondition2D2N"
-                        }
-                        """)
-                else:
-                    raise Exception("Domain size is not 2!!")
-            elif (self.settings["problem_type"].GetString() == "incompressible_stresses_mix"):
-                if(self.domain_size == 2):
-                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                        {
-                        "element_name":"IncompressibleStressesMixPotentialFlowElement2D3N",
-                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
-                        }
-                        """)
-                else:
-                    raise Exception("Domain size is not 2!!")
-            else:
-                raise Exception("Problem type not defined!!")
+                    raise Exception("Problem type not defined!!")
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
         # else:
-            # raise Exception("other input options are not yet implemented")
-        self.PerturbateModelPart()
+        # raise Exception("other input options are not yet implemented")
         print("Solving",self.settings["problem_type"].GetString() ,"case")
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
 
         print ("model reading finished")
-    def PerturbateModelPart(self):
-        if self.perturbate_model_part:
-            epsilon=self.settings["epsilon"].GetDouble()
-            node_id=self.settings["node_id"].GetInt()
-            idim=self.settings["dimension"].GetInt()
-            if idim==0:
-                self.main_model_part.GetNode(node_id,0).X += epsilon
-            elif idim==1:
-                self.main_model_part.GetNode(node_id,0).Y += epsilon
-            else :
-                raise("dimension error")
-
-
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 1
 
     def GetComputingModelPart(self):
         return self.main_model_part
 
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        pass
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def AdvanceInTime(self, current_time):
-        dt = 1 #self._ComputeDeltaTime()
-        new_time = current_time + dt
-
-        # self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-
-        return new_time
-
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
-
-
-    def SolveSolutionStep(self):
-        (self.solver).Solve()
-
-    def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
+        self.incompressible_solution_stratety.InitializeSolutionStep()
 
     def Predict(self):
-        self.solver.Predict()
+        self.incompressible_solution_stratety.Predict()
 
-    #
+    def SolveSolutionStep(self):
+        self.incompressible_solution_stratety.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.incompressible_solution_stratety.FinalizeSolutionStep()
+
     def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
+        self.incompressible_solution_stratety.SetEchoLevel(level)
 
-    #
     def Clear(self):
-        (self.solver).Clear()
+        self.incompressible_solution_stratety.Clear()
+
+    def AdvanceInTime(self, current_time):
+        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
 

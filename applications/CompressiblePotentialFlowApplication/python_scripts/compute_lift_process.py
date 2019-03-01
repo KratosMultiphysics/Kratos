@@ -20,7 +20,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
                 "reference_area": 1,
-                "problem_name": "please specify problem name"
+                "create_output_file": false
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -35,24 +35,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
-<<<<<<< HEAD
-
-=======
-        self.result_force=KratosMultiphysics.Vector(3)  
->>>>>>> CompressiblePotentialFlow/feature-embedded-mesh-implementation
-        NormalUpper=KratosMultiphysics.NormalCalculationUtils()
-        NormalUpper.CalculateOnSimplex(self.upper_surface_model_part,2)
-        NormalLower=KratosMultiphysics.NormalCalculationUtils()
-        NormalLower.CalculateOnSimplex(self.lower_surface_model_part,2)
-        # self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftProcess(self.fluid_model_part,self.result_force)
-
+        self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-<<<<<<< HEAD
-=======
         print('COMPUTE LIFT')
         # self.process.Execute()
->>>>>>> CompressiblePotentialFlow/feature-embedded-mesh-implementation
         rx = 0.0
         ry = 0.0
         rz = 0.0
@@ -70,38 +57,13 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         Cl = RY
         Cd = RX
-        x_upper=[]
-        cp_upper=[]
-        x_lower=[]
-        cp_lower=[]
-        for cond in self.upper_surface_model_part.Conditions:
-            x_average=0
-            cp = cond.GetValue(PRESSURE)
-            for node in cond.GetNodes():
-                x_average += 0.5*node.X
-            x_upper.append(x_average)
-            cp_upper.append(cp)
-        for cond in self.lower_surface_model_part.Conditions:
-            x_average=0
-            cp = cond.GetValue(PRESSURE)
-            for node in cond.GetNodes():
-                x_average += 0.5*node.X
-            x_lower.append(x_average)
-            cp_lower.append(cp)
-        max_x=max(max(x_upper),max(x_lower))
-        min_x=min(min(x_upper),min(x_lower))
-        for i in range(0,len(x_upper)):
-            x_upper[i]=(x_upper[i]-min_x)/abs(max_x-min_x)
-        for i in range(0,len(x_lower)):
-            x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x)
-
-        # print('Cl = ', Cl)
-        # print('Cd = ', Cd)
 
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
-        # plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
-        # title="Cl: %.5f, Cd: %.5f, Error: %.5f" % (Cl,Cd,error)
-        # plt.title(title)
-        # plt.gca().invert_yaxis()
-        # plt.savefig(self.problem_name+'.png', bbox_inches='tight')
-        # plt.close('all')
+        print('Cl = ', Cl)
+        print('Cd = ', Cd)
+        print('RZ = ', RZ)
+        print('Mach = ', self.velocity_infinity[0]/340)
+
+        if self.create_output_file:
+            with open("cl.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(Cl))

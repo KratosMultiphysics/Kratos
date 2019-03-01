@@ -54,7 +54,6 @@ class Solution(main_script.Solution):
             Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
 
-
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
 
@@ -167,7 +166,6 @@ class Solution(main_script.Solution):
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        #DBC.delete_archives() #.......Removing some unuseful files
         super(Solution, self).CleanUpOperations()
 
 
@@ -186,4 +184,8 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
-#DBC.delete_archives() #.......Removing some unuseful files
+#DBC.delete_archives() #.......Removing some unuseful files when running single benchmarks
+
+
+
+

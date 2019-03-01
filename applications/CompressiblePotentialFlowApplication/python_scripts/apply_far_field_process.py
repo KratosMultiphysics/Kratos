@@ -38,22 +38,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.domain_model_part.Conditions)
         for cond in self.domain_model_part.Conditions:
             cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
-            cond.Set(KratosMultiphysics.BOUNDARY)
             npos=0
             nneg=0
-            for node in cond.GetNodes():
-                distance=node.GetSolutionStepValue(CompressiblePotentialFlowApplication.WAKE_DISTANCE)
-                if distance>0:
-                    npos += 1
-                elif distance<0:
-                    nneg += 1
-            if (npos>0 and nneg>0):
-                cond.Set(KratosMultiphysics.STRUCTURE,True)
-            else:
-                cond.Set(KratosMultiphysics.STRUCTURE,False)
 
         for cond in self.domain_model_part.Conditions:
             normal=cond.GetValue(KratosMultiphysics.NORMAL)
@@ -66,20 +54,12 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                     inlet_phi=node.X*self.velocity_infinity[0] + node.Y*self.velocity_infinity[1] + node.Z*self.velocity_infinity[2]
                     node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
                     node.Set(KratosMultiphysics.INLET)
-                    # node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,inlet_phi)
-                    if (self.is_adjoint):
-                        node.Fix(CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
-                        node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL,0.0)
+                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,inlet_phi)
 
         for node in self.main_model_part.Nodes:
             initial_phi=node.X*self.velocity_infinity[0] + node.Y*self.velocity_infinity[1] + node.Z*self.velocity_infinity[2]
             node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,initial_phi)
             node.SetSolutionStepValue(CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL,0,initial_phi)
-          
-        for cond in self.main_model_part.Conditions:
-            if (cond.IsNot(KratosMultiphysics.BOUNDARY)):
-                for node in cond.GetNodes():
-                    node.Set(KratosMultiphysics.SOLID)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

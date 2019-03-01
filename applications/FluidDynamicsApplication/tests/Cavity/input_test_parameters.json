@@ -49,33 +49,35 @@
         "time_scheme":"bossak",
         "alpha":-0.3
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : [],
-    "auxiliar_process_list" :[{
-        "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_temporal_input_process",
-        "help"          : "",
-        "process_name"  : "",
-        "Parameters" : {
-	        "model_part_name" : "MainModelPart",
-            "file_settings" : {
-                "file_access_mode" : "read_only"
-            },
-            "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [],
+        "gravity"                          : [],
+        "auxiliar_process_list" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_input_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                }
             }
-        }
-    },{
-        "python_module" : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "FromJsonCheckResultProcess",
-        "Parameters" : {
-            "check_variables"     : ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "input_file_name"     : "reference_results.json",
-            "model_part_name"     : "MainModelPart",
-            "sub_model_part_name" : "",
-            "time_frequency"      : 0.0
-        }
-    }]
+        },{
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters" : {
+                "check_variables"     : ["VELOCITY", "ACCELERATION", "PRESSURE"],
+                "input_file_name"     : "reference_results.json",
+                "model_part_name"     : "MainModelPart",
+                "sub_model_part_name" : "",
+                "time_frequency"      : 0.0
+            }
+        }]
+    }
 }
