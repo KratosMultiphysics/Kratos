@@ -72,7 +72,6 @@ void KratosCompressiblePotentialFlowApplication::Register()
     //Register conditions
     KRATOS_REGISTER_CONDITION("PotentialWallCondition2D2N", mPotentialWallCondition2D2N);
     KRATOS_REGISTER_CONDITION("PotentialWallCondition3D3N", mPotentialWallCondition3D3N);
->>>>>>> origin/MLMC/new-analysis-stage
 }
 
 }  // namespace Kratos.

@@ -52,14 +52,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             if value<0:
                 for node in cond.GetNodes():
                     inlet_phi=node.X*self.velocity_infinity[0] + node.Y*self.velocity_infinity[1] + node.Z*self.velocity_infinity[2]
-                    node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
+                    node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
                     node.Set(KratosMultiphysics.INLET)
-                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,inlet_phi)
+                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,inlet_phi)
 
         for node in self.main_model_part.Nodes:
             initial_phi=node.X*self.velocity_infinity[0] + node.Y*self.velocity_infinity[1] + node.Z*self.velocity_infinity[2]
-            node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,initial_phi)
-            node.SetSolutionStepValue(CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL,0,initial_phi)
+            node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,initial_phi)
+            node.SetSolutionStepValue(CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL,0,initial_phi)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

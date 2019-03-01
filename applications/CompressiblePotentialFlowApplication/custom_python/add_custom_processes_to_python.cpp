@@ -19,11 +19,6 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
-#include "custom_processes/compute_lift_level_set_process.h"
-#include "custom_processes/compute_lift_process.h"
-#include "custom_processes/compute_gradient_adjoint_process.h"
-#include "custom_processes/get_equation_id.h"
-#include "custom_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp"
 
 namespace Kratos {
 namespace Python {
