@@ -498,7 +498,7 @@ void MultiscaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_coarse; i++)
     {
         auto coarse_cond = coarse_cond_begin + i;
-        if (coarse_cond->Is(MeshingFlags::TO_COARSEN))
+        if (coarse_cond->Is(MeshingFlags::REFINED))
         {
             bool to_coarsen = false;
             for (IndexType inode = 0; inode < condition_nodes; inode++)
