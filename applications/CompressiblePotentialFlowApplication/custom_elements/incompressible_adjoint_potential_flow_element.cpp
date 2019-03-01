@@ -241,8 +241,11 @@ namespace Kratos
     void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::GetValuesVector(Vector& rValues, int Step) 
     {
         KRATOS_TRY
+        const IncompressibleAdjointPotentialFlowElement& r_this = *this;
+        const int wake = r_this.GetValue(WAKE);
+        const int kutta = r_this.GetValue(KUTTA);
 
-        if (this->GetValue(WAKE)) // wake element
+        if (wake == 1) // wake element
         {
             if(rValues.size() != 2*NumNodes)
                 rValues.resize(2*NumNodes, false);
@@ -255,7 +258,7 @@ namespace Kratos
             if(rValues.size() != NumNodes)
                 rValues.resize(NumNodes, false);
 
-            if(!(this->GetValue(KUTTA))){
+            if(kutta == 0){
                 for(unsigned int i=0; i<NumNodes; i++)
                     rValues[i] =GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
             }else{
@@ -332,12 +335,16 @@ namespace Kratos
     template <int Dim, int NumNodes>
     void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) 
     {
-        if(!(this->GetValue(WAKE)))//normal element
+        const IncompressibleAdjointPotentialFlowElement& r_this = *this;
+        const int wake = r_this.GetValue(WAKE);
+        const int kutta = r_this.GetValue(KUTTA);
+
+        if(wake == 0)//normal element
         {
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
 
-            if(!(this->GetValue(KUTTA))){
+            if(kutta == 0){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rResult[i] = GetGeometry()[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
             }
@@ -383,12 +390,16 @@ namespace Kratos
     template <int Dim, int NumNodes>
     void IncompressibleAdjointPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) 
     {
-        if(!(this->GetValue(WAKE))) //normal element
+        const IncompressibleAdjointPotentialFlowElement& r_this = *this;
+        const int wake = r_this.GetValue(WAKE);
+        const int kutta = r_this.GetValue(KUTTA);
+
+        if(wake == 0) //normal element
         {
             if (rElementalDofList.size() != NumNodes)
                 rElementalDofList.resize(NumNodes);
 
-            if(!(this->GetValue(KUTTA))){
+            if(kutta == 0){
                 for (unsigned int i = 0; i < NumNodes; i++)
                     rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
             }
