@@ -352,9 +352,11 @@ protected:
             {
                 h_inv += DN_DX(i,k)*DN_DX(i,k);
             }
-            h += 1.0/h_inv;
+            //h += 1.0/h_inv;
+			h = std::max(h, 1.0 / h_inv);
         }
-        h = sqrt(h)/static_cast<double>(TNumNodes);
+        //h = sqrt(h)/static_cast<double>(TNumNodes);
+		h=sqrt(h);
         return h;
     }
 
