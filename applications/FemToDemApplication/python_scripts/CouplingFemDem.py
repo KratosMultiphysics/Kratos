@@ -164,6 +164,10 @@ class FEMDEM_Solution:
                                                                             self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
 
+        extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
+        print("antes de process")
+        extend_wet_nodes_process.Execute()
+
 
 
         if self.FEM_Solution.step == 1:
