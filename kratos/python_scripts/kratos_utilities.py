@@ -7,7 +7,7 @@ def IssueDeprecationWarning(label, *message):
 def import_solver(SolverSettings):
     """this function imports a solver named "solver_type" from SolverSettings
     solver_type is expected to be the FILENAME of the solver to be imported"""
-    IssueDeprecationWarning('kratos_utilites', '"import_solver" is outdated and will be removed, please update your code')
+    IssueDeprecationWarning('kratos_utilities', '"import_solver" is outdated and will be removed, please update your code')
     obj = __import__(SolverSettings.solver_type)
     return obj
 
@@ -63,7 +63,7 @@ def IsApplicationAvailable(application_name):
     """
     from KratosMultiphysics import Logger
     warn_msg  = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilites', warn_msg)
+    IssueDeprecationWarning('kratos_utilities', warn_msg)
     return CheckIfApplicationsAvailable(application_name)
 
 def AreApplicationsAvailable(list_application_names):
@@ -71,7 +71,7 @@ def AreApplicationsAvailable(list_application_names):
     """
     from KratosMultiphysics import Logger
     warn_msg  = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilites', warn_msg)
+    IssueDeprecationWarning('kratos_utilities', warn_msg)
     return CheckIfApplicationsAvailable(*list_application_names)
 
 def CheckIfApplicationsAvailable(*application_names):
