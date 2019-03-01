@@ -333,7 +333,7 @@ namespace Kratos
 			                                                   const Vector& globalDisplacements,
 															   size_t nodeid) override
 		{
-			if(nodeid>3) return IdentityMatrix(3,3);
+			if(nodeid>3) return IdentityMatrix(3);
 
 			QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -558,7 +558,7 @@ namespace Kratos
 
 		void load(Serializer& rSerializer) override
 		{
-			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
+			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
 			rSerializer.load("init", mInitialized);
 			rSerializer.load("Q0", mQ0);
 			rSerializer.load("C0", mC0);

@@ -248,7 +248,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
                 double detJ0;
                 Matrix InvJ0;
-                MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
@@ -281,7 +281,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
                 double detJ0;
                 Matrix InvJ0;
-                MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+                MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 

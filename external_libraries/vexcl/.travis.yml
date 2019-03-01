@@ -1,0 +1,73 @@
+language: cpp
+dist: xenial
+
+env:
+  global:
+    - OMP_NUM_THREADS=4
+    - BOOST_BASENAME=boost_1_67_0
+    - AMDAPPSDKROOT=/opt/intel/opencl/
+
+matrix:
+  include:
+  - compiler: gcc
+    env: VEXCL_BACKEND=OpenCL
+    before_install: &opencl_install
+    - source .travis/opencl_install.sh
+    - source .travis/install_boost.sh
+  - compiler: gcc
+    env: VEXCL_BACKEND=Compute
+    before_install: *opencl_install
+  - compiler: gcc
+    env: VEXCL_BACKEND=JIT
+    before_install: *opencl_install
+  - compiler: clang
+    env: VEXCL_BACKEND=OpenCL
+    before_install: *opencl_install
+  - compiler: clang
+    env: VEXCL_BACKEND=Compute
+    before_install: *opencl_install
+  - compiler: clang
+    env:
+    - VEXCL_BACKEND=JIT
+    - VEXCL_JIT_COMPILER_FLAGS=-stdlib=libc++
+    before_install: *opencl_install
+  - os: osx
+    env: VEXCL_BACKEND=OpenCL
+  - os: osx
+    env: VEXCL_BACKEND=Compute
+  - os: osx
+    env: VEXCL_BACKEND=JIT
+
+addons:
+  apt:
+    packages:
+    - opencl-headers
+    - lcov
+    - clinfo
+  homebrew:
+    packages:
+    - boost
+    - libomp
+    - cmake
+    - lcov
+    - clinfo
+
+cache:
+  directories:
+    - ${HOME}/${BOOST_BASENAME}/
+
+script:
+    - cmake --version
+    - clinfo
+    - mkdir -p build && cd build
+    - cmake -DVEXCL_TEST_COVERAGE=ON -DVEXCL_BUILD_TESTS=ON -DVEXCL_BUILD_EXAMPLES=ON -DVEXCL_BACKEND=${VEXCL_BACKEND} -DVEXCL_JIT_COMPILER_FLAGS=${VEXCL_JIT_COMPILER_FLAGS} ..
+    - make -j2
+    - export CPATH=${CPATH}:${BOOST_ROOT}
+    - if [ "$VEXCL_BACKEND" = "JIT" ] && [ "$CC" = "clang" ] ; then export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(dirname $(which clang++))/../lib ; fi
+    - ./examples/devlist
+    - ctest --output-on-failure
+
+after_success:
+    - lcov --directory tests --base-directory ../vexcl --capture --output-file coverage.info
+    - lcov --remove coverage.info '/usr*' '*/cl.hpp' -o coverage.info
+    - bash <(curl -s https://codecov.io/bash)

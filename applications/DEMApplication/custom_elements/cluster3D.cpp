@@ -340,7 +340,7 @@ namespace Kratos {
             SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
 
             if (mListOfSphericParticles.size() <= 1) break;
-            array_1d<double, 3> zero_vector(3, 0.0);
+            array_1d<double, 3> zero_vector = ZeroVector(3);
 
             for (unsigned int j = i + 1; j < mListOfSphericParticles.size(); j++) {
                 SphericContinuumParticle* p_continuum_particle_j = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[j]);

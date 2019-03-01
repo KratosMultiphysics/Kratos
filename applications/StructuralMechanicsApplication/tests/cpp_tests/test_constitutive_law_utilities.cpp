@@ -16,6 +16,9 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/math_utils.h"
+#include "includes/node.h"
+#include "containers/model.h"
+#include "geometries/triangle_2d_3.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
@@ -25,6 +28,9 @@ namespace Testing
 
     // Tolerance
     static constexpr double tolerance = 1.0e-6;
+
+    // NodeType
+    typedef Node<3> NodeType;
 
 /**
 * Check the correct calculation of the CL utilities principal stress
@@ -110,6 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.097729 - strain_vector[3])/strain_vector[3], tolerance);
 }
+
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
@@ -148,6 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.0458716 - strain_vector[3])/strain_vector[3], tolerance);
 }
+
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
@@ -172,11 +180,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
 //     KRATOS_WATCH(R)
 //     KRATOS_WATCH(U)
 //     KRATOS_WATCH(prod(R, U))
-    
+
     // Reference solutions
     Matrix R_ref = ZeroMatrix(3, 3);
     Matrix U_ref = ZeroMatrix(3, 3);
-    
+
     R_ref(0, 0) = 0.850651;
     R_ref(0, 1) = 0.525731;
     R_ref(1, 0) = -0.525731;
@@ -187,9 +195,44 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
     U_ref(1, 0) = 0.493239;
     U_ref(1, 1) = 0.798078;
     U_ref(2, 2) = 1.0;
-    
+
     KRATOS_CHECK_LESS_EQUAL(norm_frobenius(R-R_ref), tolerance);
     KRATOS_CHECK_LESS_EQUAL(norm_frobenius(U-U_ref), tolerance);
+}
+/**
+* Check the correct calculation of the CL utilities Hencky and Biot strains
+*/
+KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechanicsFastSuite)
+{
+    // Model part
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+
+    // First we create the nodes
+    NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+
+    // Now we create the "conditions"
+    std::vector<NodeType::Pointer> element_nodes (3);
+    element_nodes[0] = p_node_1;
+    element_nodes[1] = p_node_2;
+    element_nodes[2] = p_node_3;
+    Triangle2D3 <NodeType> triangle( PointerVector<NodeType>{element_nodes} );
+
+    array_1d<double, 3> delta_disp = ZeroVector(3);
+    delta_disp[0] = 1.0e-2;
+    p_node_1->Coordinates() += delta_disp;
+
+    // Compute CalculateCharacteristicLength
+    const double length = ConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
+
+    KRATOS_CHECK_NEAR(length,  0.743871, tolerance);
+
+    // Compute CalculateCharacteristicLengthOnReferenceConfiguration
+    const double length_origin = ConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
+
+    KRATOS_CHECK_NEAR(length_origin,  0.745356, tolerance);
 }
 } // namespace Testing
 } // namespace Kratos

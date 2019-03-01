@@ -9,7 +9,7 @@ from KratosMultiphysics.DEMApplication import *
 
 from DEM_analysis_stage import DEMAnalysisStage
 import plot_variables                # Related to benchmarks in Chung, Ooi
-import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
+import DEM_benchmarks_class as DBC
 
 sys.path.insert(0,'')
 start = timer.time()
@@ -22,6 +22,7 @@ listDEMFEM    = list(range(13,18))
 listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
+listGeneric   = [40]
 
 def GetInputParameters():
     file_name = None
@@ -35,13 +36,12 @@ def GetInputParameters():
         file_name = "ProjectParametersDEMCONT.json"
     elif benchmark_number == 27:
         file_name = "ProjectParametersUCS.json"
-    #elif benchmark_number == 28:
-    #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
-    #    parameters_file = open("ProjectParametersDEM.json",'r')
     elif benchmark_number in listDISclZHAO:
         file_name = "ProjectParametersDISclZHAO.json"
     elif benchmark_number in listDISclRK:
         file_name = "ProjectParametersDISclRK.json"
+    elif benchmark_number in listGeneric:
+            file_name = "ProjectParametersDEMGeneric.json"
     else:
         Logger.PrintInfo("DEM",'Benchmark number does not exist')
         sys.exit()
@@ -53,41 +53,18 @@ def GetInputParameters():
 
 class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
-    def GetInputParameters(self):
-        file_name = None
-        if benchmark_number in listDISCONT:
-            self.nodeplotter = True
-            file_name = "ProjectParametersDISCONT.json"
-        elif benchmark_number in listROLLFR:
-            file_name = "ProjectParametersROLLFR.json"
-        elif benchmark_number in listDEMFEM:
-            file_name = "ProjectParametersDEMFEM.json"
-        elif benchmark_number in listCONT:
-            file_name = "ProjectParametersDEMCONT.json"
-        elif benchmark_number == 27:
-            file_name = "ProjectParametersUCS.json"
-        #elif benchmark_number == 28:
-        #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
-        #    parameters_file = open("ProjectParametersDEM.json",'r')
-        elif benchmark_number in listDISclZHAO:
-            file_name = "ProjectParametersDISclZHAO.json"
-        elif benchmark_number in listDISclRK:
-            file_name = "ProjectParametersDISclRK.json"
-        else:
-            Logger.PrintInfo("DEM",'Benchmark number does not exist')
-            sys.exit()
-
-        with open(file_name, 'r') as parameters_file:
-            parameters = Parameters(parameters_file.read())
-
-        return parameters
-
-
-    def __init__(self, model, parameters):
-        self.LoadParametersFile()
-        super(DEMBenchamarksAnalysisStage, self).__init__(model, parameters)
+    def __init__(self, model, DEM_parameters):
+        self.DEM_parameters = DEM_parameters
+        self.project_parameters = DEM_parameters
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
         self.main_path = os.getcwd()
         self.nodeplotter = False
+        if benchmark_number in listDISCONT:
+            self.nodeplotter = True
+
+        super(DEMBenchamarksAnalysisStage, self).__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
@@ -144,8 +121,10 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         return 'benchmark' + str(benchmark_number) + "DEM"
 
     def GetInletFilename(self):
-        return 'benchmarkDEM_Inlet'
-        #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        if benchmark_number == 40:
+            return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        else:
+            return 'benchmarkDEM_Inlet'
 
     def GetFemFilename(self):
         return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"
@@ -184,7 +163,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        #DBC.delete_archives() #.......Removing some unuseful files
         super(DEMBenchamarksAnalysisStage, self).CleanUpOperations()
 
 
@@ -196,7 +174,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt = DEMBenchamarksAnalysisStage(model, parameters)
         slt.iteration = iteration
         slt.dt = dt
-
         slt.graph_print_interval = graph_print_interval
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution

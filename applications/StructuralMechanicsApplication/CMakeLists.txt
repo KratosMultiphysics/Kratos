@@ -21,6 +21,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/formfinding_io_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rayleigh_damping_coefficients_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_integration_utilities.cpp
 
   ## RESPONSE UTILITIES
@@ -65,8 +66,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_j2_plasticity_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
@@ -81,6 +82,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.cpp
 
   ## ELEMENTS
   #Adding truss element
@@ -109,6 +111,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_solid_element.cpp
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
@@ -145,7 +148,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
 ## generate variables with the testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-  file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  file(GLOB_RECURSE
+    KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/bits/*.cpp
+  )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## generate variables with the sources
@@ -182,15 +189,22 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
-
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN "*.csv")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
