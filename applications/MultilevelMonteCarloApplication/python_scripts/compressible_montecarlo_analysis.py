@@ -157,7 +157,7 @@ def SerializeModelParameters_Task(parameter_file_name):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/CompressiblePotentialFlowTest/parameters_potential_naca_mesh0.json"
+    parameter_file_name = "../test_examples/compressible_potential_flow/problem_settings/parameters_potential_naca_mesh0.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''

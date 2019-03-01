@@ -8,7 +8,7 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as KratosCompress
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
-KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
+# KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 
 # Importing the base class
 # from analysis_stage import AnalysisStage
@@ -286,7 +286,7 @@ def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, m
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/CompressiblePotentialFlowTest/parameters_potential_naca_mesh0.json"
+    parameter_file_name = "../test_examples/compressible_potential_flow/problem_settings/parameters_potential_naca_mesh0.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
@@ -295,7 +295,7 @@ if __name__ == '__main__':
         "tol0"                            : 0.25,
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
-        "number_samples_screening"        : 2,
+        "number_samples_screening"        : 25,
         "Lscreening"                      : 2,
         "Lmax"                            : 4,
         "initial_mesh_size"               : 0.05
@@ -338,20 +338,22 @@ if __name__ == '__main__':
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
     '''start MLMC phase'''
-    while mlmc_class.convergence is not True:
-        '''initialize MLMC phase'''
-        mlmc_class.InitializeMLMCPhase()
-        mlmc_class.ScreeningInfoInitializeMLMCPhase()
-        '''MLMC execution phase'''
-        for lev in range (mlmc_class.current_number_levels+1):
-            for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
-        '''finalize MLMC phase'''
-        mlmc_class.FinalizeMLMCPhase()
-        mlmc_class.ScreeningInfoFinalizeMLMCPhase()
+    # while mlmc_class.convergence is not True:
+    #     '''initialize MLMC phase'''
+    #     mlmc_class.InitializeMLMCPhase()
+    #     mlmc_class.ScreeningInfoInitializeMLMCPhase()
+    #     '''MLMC execution phase'''
+    #     for lev in range (mlmc_class.current_number_levels+1):
+    #         for instance in range (mlmc_class.difference_number_samples[lev]):
+    #             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+    #     '''finalize MLMC phase'''
+    #     mlmc_class.FinalizeMLMCPhase()
+    #     mlmc_class.ScreeningInfoFinalizeMLMCPhase()
 
-    print("\niterations = ",mlmc_class.current_iteration,\
-    "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
+    # print("\niterations = ",mlmc_class.current_iteration,\
+    # "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
+
+    mlmc_class.InitializeMLMCPhase()
 
     '''### OBSERVATIONS ###
 
