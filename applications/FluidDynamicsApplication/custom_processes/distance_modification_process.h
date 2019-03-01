@@ -69,16 +69,21 @@ public:
 
     /// Constructor.
     DistanceModificationProcess(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         const double FactorCoeff, //TODO: Remove it (here for legacy reasons)
         const double DistanceThreshold,
-        const bool CheckAtEachStep, 
+        const bool CheckAtEachStep,
         const bool NegElemDeactivation,
         const bool RecoverOriginalDistance);
 
     /// Constructor with Kratos parameters.
     DistanceModificationProcess(
         ModelPart& rModelPart,
+        Parameters& rParameters);
+
+    /// Constructor with Kratos model
+    DistanceModificationProcess(
+        Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
@@ -88,13 +93,7 @@ public:
     ///@name Operators
     ///@{
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
+    void Execute() override;
 
     void ExecuteInitialize() override;
 
@@ -103,6 +102,14 @@ public:
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteFinalizeSolutionStep() override;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
 
     ///@}
     ///@name Inquiry
@@ -161,6 +168,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+
     void ModifyDistance();
 
     void ModifyDiscontinuousDistance();
@@ -168,7 +177,7 @@ private:
     void RecoverDeactivationPreviousState();
 
     void RecoverOriginalDistance();
-    
+
     void RecoverOriginalDiscontinuousDistance();
 
     void DeactivateFullNegativeElements();
