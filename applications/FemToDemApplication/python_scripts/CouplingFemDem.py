@@ -156,7 +156,10 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-
+        if self.FEM_Solution.step == 1:
+            self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 60")
+            Wait()
 
         #---------------------------------------------------------------------------------------------
         # Search the skin nodes for the remeshing
@@ -170,10 +173,10 @@ class FEMDEM_Solution:
 
 
 
-        if self.FEM_Solution.step == 1:
-            self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 60")
-            Wait()
+        # if self.FEM_Solution.step == 1:
+        #     self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
+        #     print("eliminado elemento 60")
+        #     Wait()
 
         if self.FEM_Solution.step == 1:
             self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
