@@ -31,7 +31,7 @@ class ExtendPressureConditionProcess : public Process
 {
 
 public:
-    /// Pointer definition of ApplyMultipointConstraintsProcess
+    /// Pointer definition of ExtendPressureConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ExtendPressureConditionProcess);
 
     // Constructor
