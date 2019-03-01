@@ -36,7 +36,6 @@
 "ElementType"                      : "SwimmingDEMElement",
 
 "IntegrationScheme"               : "Symplectic_Euler",
-"AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 5e-5,
 "FinalTime"                        : 0.5,
