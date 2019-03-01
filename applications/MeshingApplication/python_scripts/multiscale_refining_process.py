@@ -21,6 +21,16 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "echo_level"                      : 0,
             "error_variable"                  : "RESIDUAL_NORM",
             "variable_threshold"              : 1e-3,
+            "refining_condition_parameters"   : {
+                "kratos_module"                   : "KratosMultiphysics.ShallowWaterApplication",
+                "python_module"                   : "residual_based_refining_condition_process",
+                "Parameters"                      : {
+                    "model_part_name"                 : "model_part",
+                    "error_variable"                  : "RESIDUAL_NORM",
+                    "variable_threshold"              : 1e-3,
+                    "allow_refining_dry_domain"       : false
+                }   
+            },
             "variables_to_apply_fixity"       : [],
             "variables_to_set_at_interface"   : [],
             "variables_to_update_at_coarse"   : [],
@@ -69,6 +79,13 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         self.variables_to_apply_fixity = self._GenerateVariableListFromInput(self.settings["variables_to_apply_fixity"])
         self.variables_to_set_at_interface = self._GenerateVariableListFromInput(self.settings["variables_to_set_at_interface"])
         self.variables_to_update_at_coarse = self._GenerateVariableListFromInput(self.settings["variables_to_update_at_coarse"])
+
+        kratos_module_name = self.settings["refining_condition_parameters"]["kratos_module"].GetString()
+        python_module_name = self.settings["refining_condition_parameters"]["python_module"].GetString()
+        full_module_name = kratos_module_name + "." + python_module_name
+        python_module = __import__(full_module_name, fromlist=[python_module_name])
+        self.settings["refining_condition_parameters"]["Parameters"]["model_part_name"].SetString(self.coarse_model_part_name)
+        self.refining_condition_process = python_module.Factory(self.settings["refining_condition_parameters"], self.model)
 
     def PrepareModelPart(self):
         # Initialize the corresponding model part
@@ -153,16 +170,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         self.subscales_utility.ExecuteCoarsening()
 
     def _EvaluateCondition(self):
-        variable = getattr(KratosMultiphysics, self.settings["error_variable"].GetString())
-        threshold = self.settings["variable_threshold"].GetDouble()
-        for node in self.coarse_model_part.Nodes:
-            node.Set(KratosMultiphysics.TO_REFINE, False)
-        # Set the nodes or the elements which are to refine
-        for elem in self.coarse_model_part.Elements:
-            residual = elem.GetValue(KratosMultiphysics.RESIDUAL_NORM)
-            if residual > threshold:
-                for node in elem.GetNodes():
-                    node.Set(KratosMultiphysics.TO_REFINE, True)
+        self.refining_condition_process.Execute()
 
     def _ApplyFixityAtInterface(self, state):
         for variable in self.variables_to_apply_fixity:
