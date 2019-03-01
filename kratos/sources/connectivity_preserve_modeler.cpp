@@ -163,6 +163,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
         pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
     }
 
+    // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
     // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
     const bool is_mpi = ( rOriginModelPart.pElements() == rReferenceComm.LocalMesh().pElements() );
     if (is_mpi) {
