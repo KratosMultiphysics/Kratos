@@ -32,13 +32,13 @@ class DEMAnalysisStage(AnalysisStage):
         return "ProjectParametersDEM.json"
 
     def GetInputParameters(self):
-        self.KratosPrintInfo('Warning: Calls to this method (GetInputParameters) will become deprecated in the near future.')
+        self.KratosPrintWarning('Warning: Calls to this method (GetInputParameters) will become deprecated in the near future.')
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
         return Parameters(parameters_file.read())
 
     def LoadParametersFile(self):
-        self.KratosPrintInfo('Warning: Calls to this method (LoadParametersFile) will become deprecated in the near future.')
+        self.KratosPrintWarning('Warning: Calls to this method (LoadParametersFile) will become deprecated in the near future.')
         self.DEM_parameters = self.GetInputParameters()
         self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
@@ -216,7 +216,7 @@ class DEMAnalysisStage(AnalysisStage):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -224,7 +224,7 @@ class DEMAnalysisStage(AnalysisStage):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 

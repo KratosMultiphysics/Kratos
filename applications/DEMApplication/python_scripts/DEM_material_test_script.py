@@ -352,7 +352,7 @@ class MaterialTest(object):
 
     if(math.fabs(self.total_check)!=2):
 
-      self.Procedures.KratosPrintInfo(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+      self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
@@ -758,7 +758,7 @@ class MaterialTest(object):
 
 
   def PoissonMeasure(self):
-      self.Procedures.KratosPrintInfo("Not Working now")
+      self.Procedures.KratosPrintWarning("Not Working now")
 
     #left_nodes = list()
     #right_nodes = list()
