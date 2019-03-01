@@ -255,5 +255,92 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSu
         KRATOS_CHECK_EQUAL(component_name, "Element3D4N");
     }
 }
+
+/**
+* Checks the correct work of the nodal gradient compute
+* Test triangle (onyl elements)
+*/
+KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess3, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+
+    Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
+
+    // First we create the nodes
+    NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+    NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+    // Now we create the "conditions"
+    std::vector<NodeType::Pointer> element_nodes_0 (3);
+    element_nodes_0[0] = p_node_1;
+    element_nodes_0[1] = p_node_2;
+    element_nodes_0[2] = p_node_3;
+    Triangle2D3 <NodeType>::Pointer p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
+
+    std::vector<NodeType::Pointer> element_nodes_1 (3);
+    element_nodes_1[0] = p_node_1;
+    element_nodes_1[1] = p_node_3;
+    element_nodes_1[2] = p_node_4;
+    Triangle2D3 <NodeType>::Pointer p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
+
+    std::vector<NodeType::Pointer> element_nodes_2 (3);
+    element_nodes_2[0] = p_node_2;
+    element_nodes_2[1] = p_node_5;
+    element_nodes_2[2] = p_node_3;
+    Triangle2D3 <NodeType>::Pointer p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
+
+    std::vector<NodeType::Pointer> element_nodes_3 (3);
+    element_nodes_3[0] = p_node_5;
+    element_nodes_3[1] = p_node_6;
+    element_nodes_3[2] = p_node_3;
+    Triangle2D3 <NodeType>::Pointer p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
+
+    Element::Pointer p_elem_0 = Kratos::make_shared<Element>(1, p_triangle_0, p_elem_prop);
+    Element::Pointer p_elem_1 = Kratos::make_shared<Element>(2, p_triangle_1, p_elem_prop);
+    Element::Pointer p_elem_2 = Kratos::make_shared<Element>(3, p_triangle_2, p_elem_prop);
+    Element::Pointer p_elem_3 = Kratos::make_shared<Element>(4, p_triangle_3, p_elem_prop);
+    this_model_part.AddElement(p_elem_0);
+    this_model_part.AddElement(p_elem_1);
+    this_model_part.AddElement(p_elem_2);
+    this_model_part.AddElement(p_elem_3);
+
+    Condition::Pointer p_cond_0 = Kratos::make_shared<Condition>(1, p_triangle_0, p_elem_prop);
+    Condition::Pointer p_cond_1 = Kratos::make_shared<Condition>(2, p_triangle_1, p_elem_prop);
+    Condition::Pointer p_cond_2 = Kratos::make_shared<Condition>(3, p_triangle_2, p_elem_prop);
+    Condition::Pointer p_cond_3 = Kratos::make_shared<Condition>(4, p_triangle_3, p_elem_prop);
+    this_model_part.AddCondition(p_cond_0);
+    this_model_part.AddCondition(p_cond_1);
+    this_model_part.AddCondition(p_cond_2);
+    this_model_part.AddCondition(p_cond_3);
+
+    // Compute process
+    Parameters settings( R"(
+    {
+        "element_name":"Element2D3N",
+        "condition_name": ""
+    }  )" );
+
+    ReplaceElementsAndConditionsProcess process(this_model_part, settings);
+    process.Execute();
+
+    // Same element type, same geometry type
+    std::string component_name;
+    for (auto& r_element : this_model_part.Elements()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
+        KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+    }
+
+    // check that conditions were NOT replaced
+    KRATOS_CHECK_EQUAL(this_model_part.pGetCondition(1), p_cond_0);
+    KRATOS_CHECK_EQUAL(this_model_part.pGetCondition(2), p_cond_1);
+    KRATOS_CHECK_EQUAL(this_model_part.pGetCondition(3), p_cond_2);
+    KRATOS_CHECK_EQUAL(this_model_part.pGetCondition(4), p_cond_3);
+}
+
 } // namespace Testing
 }  // namespace Kratos.
