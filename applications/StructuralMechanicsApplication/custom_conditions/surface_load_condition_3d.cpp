@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
+#include "utilities/beam_math_utilities.hpp"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 
@@ -121,46 +122,25 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
     double coeff = 1.0;
     const std::size_t number_of_nodes = GetGeometry().size();
 
-    MakeCrossMatrix(cross_tangent_xi, rTangentXi);
-    MakeCrossMatrix(cross_tangent_eta, rTangentEta);
+    BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentXi, cross_tangent_xi);
+    BeamMathUtils<double>::VectorToSkewSymmetricTensor(rTangentEta, cross_tangent_eta);
 
     for (std::size_t i = 0; i < number_of_nodes; ++i) {
-        const std::size_t RowIndex = i * 3;
+        const std::size_t row_index = i * 3;
         for (std::size_t j = 0; j < number_of_nodes; ++j) {
             const std::size_t column_index = j * 3;
 
-            coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
-            noalias(Kij) = coeff * cross_tangent_xi;
-
             coeff = Pressure * rN[i] * rDN_De(j, 0) * Weight;
+            noalias(Kij) = coeff * cross_tangent_eta;
 
-            noalias(Kij) -= coeff * cross_tangent_eta;
+            coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
+            noalias(Kij) -= coeff * cross_tangent_xi;
 
-            // NOTE TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, column_index);
+            MathUtils<double>::AddMatrix(rK, Kij, row_index, column_index);
         }
     }
 
     KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SurfaceLoadCondition3D::MakeCrossMatrix(
-    BoundedMatrix<double, 3, 3>& rM,
-    const array_1d<double, 3>& rU
-    ) const
-{
-    rM(0, 0) = 0.0;
-    rM(0, 1) = -rU[2];
-    rM(0, 2) = rU[1];
-    rM(1, 0) = rU[2];
-    rM(1, 1) = 0.0;
-    rM(1, 2) = -rU[0];
-    rM(2, 0) = -rU[1];
-    rM(2, 1) = rU[0];
-    rM(2, 2) = 0.0;
 }
 
 /***********************************************************************************/
@@ -276,6 +256,8 @@ void SurfaceLoadCondition3D::CalculateAll(
         tangent_xi[2]  = J(2, 0);
         tangent_eta[2] = J(2, 1);
 
+        tangent_xi /= norm_2(tangent_xi);
+        tangent_eta /= norm_2(tangent_eta);
         array_1d<double, 3 > normal;
         MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
 

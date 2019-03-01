@@ -446,7 +446,7 @@ public:
         // Clear lumping factors
         if (rResult.size() != number_of_nodes)
             rResult.resize(number_of_nodes, false);
-        rResult = ZeroVector(number_of_nodes);
+        noalias(rResult) = ZeroVector(number_of_nodes);
 
         if (LumpingMethod == LumpingMethods::ROW_SUM) {
             const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
@@ -739,24 +739,26 @@ public:
     //   Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
     // }
 
-    /** Calculates the boundingbox of the geometry.
-     * Calculates the boundingbox of the geometry.
-     *
+    /**
+     * @brief Calculates the boundingbox of the geometry.
+     * @details Corresponds with the highest and lowest point in space
      * @param rLowPoint  Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
      */
-    virtual void BoundingBox( TPointType& rLowPoint, TPointType& rHighPoint ) const
+    virtual void BoundingBox(
+        TPointType& rLowPoint,
+        TPointType& rHighPoint
+        ) const
     {
-        rHighPoint         = this->GetPoint( 0 );
-        rLowPoint          = this->GetPoint( 0 );
+        rHighPoint = this->GetPoint( 0 );
+        rLowPoint  = this->GetPoint( 0 );
         const SizeType dim = WorkingSpaceDimension();
 
-        for ( unsigned int point = 0; point < PointsNumber(); point++ )
-        {
-            for ( unsigned int i = 0; i < dim; i++ )
-            {
-                rHighPoint[i] = ( rHighPoint[i] < this->GetPoint( point )[i] ) ? this->GetPoint( point )[i] : rHighPoint[i];
-                rLowPoint[i]  = ( rLowPoint[i]  > this->GetPoint( point )[i] ) ? this->GetPoint( point )[i] : rLowPoint[i];
+        for ( IndexType point = 1; point < PointsNumber(); ++point ) { //The first node is already assigned, so we can start from 1
+            const auto& r_point = this->GetPoint( point );
+            for ( IndexType i = 0; i < dim; ++i ) {
+                rHighPoint[i] = ( rHighPoint[i] < r_point[i] ) ? r_point[i] : rHighPoint[i];
+                rLowPoint[i]  = ( rLowPoint[i]  > r_point[i] ) ? r_point[i] : rLowPoint[i];
             }
         }
     }

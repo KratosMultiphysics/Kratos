@@ -39,13 +39,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 include(DownloadLib)
 
 # Define custom compiler build types
-set( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
-set( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
-#set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
-#set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-set( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
-set( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
-#set( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
+SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+#SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+#SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
 set( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -324,14 +324,14 @@ endif(${MPI_SEARCH_APPLICATION} MATCHES ON )
 
 # Find MPI
 if(${MPI_NEEDED} MATCHES ON )
-    find_package(MPI REQUIRED)
-    add_definitions( -DKRATOS_USING_MPI )
-    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+  find_package(MPI REQUIRED)
+  add_definitions( -DKRATOS_USING_MPI )
+  set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+  set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+  set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
-    # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
-    include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+  # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
+  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${MPI_NEEDED} MATCHES ON )
 
 # Find ZLIB (for gidpost)
@@ -456,12 +456,7 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
     add_subdirectory(kratos/run_kratos)
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-    add_subdirectory(external_libraries/mpi_python)
-endif(${MPI_NEEDED} MATCHES ON )
-
-# # Set installation directory
+# Set installation directory
 # if(DEFINED KRATOS_INSTALL_PREFIX)
 #   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
 #   message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
@@ -501,20 +496,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed lapack = " ${LAPACK_LIBRARIES})
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-
-# Configure and install KratosPaths.py, containing routes to installed kratos modules.
-set(KratosMultiphysics_KRATOS_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
-if (${INSTALL_PYTHON_FILES} MATCHES ON)
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_INSTALL_PREFIX})
-else ()
-  set(KratosMultiphysics_KRATOS_PYTHON_SOURCE_PATH ${CMAKE_SOURCE_DIR})
-endif (${INSTALL_PYTHON_FILES} MATCHES ON)
-
-configure_file(
-  "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py.in"
-  "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py"
-)
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosPaths.py" DESTINATION "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics")
 
 ################################################################################
 # if(${INSTALL_PYTHON_FILES} MATCHES ON)

@@ -57,14 +57,25 @@ def GetListOfAvailableApplications():
 def IsApplicationAvailable(application_name):
     """Returns whether an application is available
     """
-    return application_name in GetListOfAvailableApplications()
+    from KratosMultiphysics import Logger
+    warn_msg  = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
+    Logger.PrintWarning("DEPRECATION", warn_msg)
+    return CheckIfApplicationsAvailable(application_name)
 
 def AreApplicationsAvailable(list_application_names):
     """Returns whether several applications are available
     """
+    from KratosMultiphysics import Logger
+    warn_msg  = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
+    Logger.PrintWarning("DEPRECATION", warn_msg)
+    return CheckIfApplicationsAvailable(*list_application_names)
+
+def CheckIfApplicationsAvailable(*application_names):
+    """Returns whether the inquired applications are available
+    """
     available_apps = GetListOfAvailableApplications()
 
-    for app_name in list_application_names:
+    for app_name in application_names:
         if app_name not in available_apps:
             return False
 
