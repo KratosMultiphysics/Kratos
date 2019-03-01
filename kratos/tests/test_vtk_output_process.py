@@ -101,9 +101,11 @@ def Check(output_file,reference_file):
 
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
-        "reference_file_name" : \"""" + GetFilePath(reference_file) + """\",
-        "output_file_name"    : \"""" + output_file + """\"
+        "reference_file_name" : "", 
+        "output_file_name"    : ""
     }""")
+    params["reference_file_name"].SetString(GetFilePath(reference_file))
+    params["output_file_name"].SetString(output_file)
 
     cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
 

@@ -8,7 +8,6 @@
 "Multifile"                        : "multiple_files",
 
 "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-"AutomaticTimestep"                : false,
 "MaxTimeStep"                      : 0.005,
 "FinalTime"                        : 1.0,
 "ControlTime"                      : 4.0,
@@ -125,6 +124,33 @@
 "print_VELOCITY_LAPLACIAN_option"            : false,
 "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
 
+"properties": [{
+    "model_part_name": "settling_particles",
+    "properties_id": 1,
+    "hydrodynamic_law_parameters": {
+        "name": "HydrodynamicInteractionLaw",
+        "buoyancy_parameters": {
+            "name":"ArchimedesBuoyancyLaw"
+        },
+        "inviscid_force_parameters": {
+            "name":"AutonHuntPrudhommeInviscidForceLaw",
+            "do_apply_faxen_corrections": false
+        },
+        "drag_parameters": {
+            "name":"StokesDragLaw"
+        },
+        "history_force_parameters": {
+            "name":"default",
+            "quadrature_order": 2,
+            "mae_parameters": {
+                "do_use_mae": false,
+                "m": 10,
+                "window_time_interval": 0.1,
+                "type":4
+            }
+        }
+    }
+}],
 
 "problem_name" : "Candelier",
 
@@ -172,8 +198,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "candelier_tests/CandelierFluid"
         },
-        "stabilization": {
-            "formulation": "vms"
+        "formulation": {
+            "element_type": "vms"
         },
         "echo_level"                  : 1,
         "compute_reactions"           : false,
@@ -183,7 +209,7 @@
         "relative_pressure_tolerance" : 0.001,
         "absolute_pressure_tolerance" : 1e-5,
         "linear_solver_settings"      : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-7,
             "provide_coordinates" : false,
@@ -292,7 +318,6 @@
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
-        "AutomaticTimestep"                : false,
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 0.005,
         "FinalTime"                        : 1.0,
@@ -323,10 +348,6 @@
         "PostAngularVelocity"              : false,
         "PostParticleMoment"               : false,
         "PostEulerAngles"                  : false,
-        "PostBoundingBox"                  : false,
-        "PostPressure"                     : false,
-        "PredefinedSkinOption"             : false,
-        "MeanRadius"                       : 0.0001
+        "PostBoundingBox"                  : false
     }
-
 }
