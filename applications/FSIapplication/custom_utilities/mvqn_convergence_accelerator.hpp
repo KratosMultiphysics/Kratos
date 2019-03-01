@@ -76,7 +76,7 @@ public:
      */
     MVQNFullJacobianConvergenceAccelerator(
         Parameters &rConvAcceleratorParameters)
-    {        
+    {
         Parameters mvqn_default_parameters(R"(
         {
             "solver_type"     : "MVQN",
@@ -142,7 +142,7 @@ public:
 
     /**
      * @brief Performs the solution update
-     * This method computes the solution update using a Jacobian approximation. 
+     * This method computes the solution update using a Jacobian approximation.
      * Such Jacobian approximation is computed with the MVQN (MultiVector Quasi-Newton method) algorithm.
      * @param rResidualVector Residual vector from the residual evaluation
      * @param rIterationGuess Current iteration guess to be corrected. Should be initialized to zero outside the convergence accelerator.
@@ -209,7 +209,7 @@ public:
             MatrixType aux2(data_cols, data_cols);
             noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
 
-            // Perform the observation matrix V Singular Value Decomposition (SVD) such that 
+            // Perform the observation matrix V Singular Value Decomposition (SVD) such that
             // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
             MatrixType u_svd; // Orthogonal matrix (m x m)
             MatrixType w_svd; // Rectangular diagonal matrix (m x n)
@@ -218,7 +218,7 @@ public:
             double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
             SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
 
-            // Get the eigenvalues vector. Remember that eigenvalues 
+            // Get the eigenvalues vector. Remember that eigenvalues
             // of trans(A)*A are equal to the eigenvalues of A^2
             std::vector<double> eig_vector(data_cols);
             for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
@@ -238,8 +238,8 @@ public:
             }
 
             if (min_eig_V < mAbsCutOff * max_eig_V){
-                KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator") 
-                    << "Dropping info for eigenvalue " << min_eig_V << " (tolerance " << mAbsCutOff * max_eig_V << " )" << std::endl;            
+                KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator")
+                    << "Dropping info for eigenvalue " << min_eig_V << " (tolerance " << mAbsCutOff * max_eig_V << " )" << std::endl;
                 // Drop the observation matrices last column
                 this->DropLastDataColumn();
                 // Update the number of columns
@@ -252,15 +252,15 @@ public:
             // Perform the matrix inversion
             double det_aux2;
             MatrixType aux2inv(data_cols, data_cols);
-            MathUtils<double>::InvertMatrix(aux2, aux2inv, det_aux2);
-            KRATOS_WARNING_IF("MVQNFullJacobianConvergenceAccelerator", std::pow(max_eig_V,2) / std::pow(min_eig_V,2) < std::pow(mAbsCutOff,2)) 
+            MathUtils<double>::InvertMatrix(aux2, aux2inv, det_aux2, -1.0e-15);
+            KRATOS_WARNING_IF("MVQNFullJacobianConvergenceAccelerator", std::pow(max_eig_V,2) / std::pow(min_eig_V,2) < std::pow(mAbsCutOff,2))
                 << "Inverted matrix determinant is close to be singular" << std::endl;
 
             // Compute the current inverse Jacobian approximation
             MatrixType aux1(mProblemSize, data_cols);
             MatrixType aux3(mProblemSize, data_cols);
             noalias(aux1) = *mpObsMatrixW - prod(*mpJac_n,*mpObsMatrixV);
-            noalias(aux3) = prod(aux1,aux2inv); 
+            noalias(aux3) = prod(aux1,aux2inv);
 
             MatrixPointerType pJac_k1 = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
             std::swap(mpJac_k1,pJac_k1);
