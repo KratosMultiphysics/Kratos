@@ -8,12 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborator:    Philipp Bucher
 //
 
-#if !defined(KRATOS_MULTILEVEL_SOLVER_H_INCLUDED )
-#define  KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
-
-// #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
+#if !defined (KRATOS_MULTILEVEL_SOLVER_H_INCLUDED)
+#define KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
 
 // External includes
 
@@ -29,18 +28,28 @@
 #include "ml_MultiLevelPreconditioner.h"
 #include "Teuchos_ParameterList.hpp"
 
-
 namespace Kratos
 {
+///@name Kratos Classes
+///@{
+
+/// Wrapper for Trilinos-ML preconditioner using the Aztec-Solver.
+/** ML is Sandia’s main multigrid preconditioning package.
+ * ML is designed to solve large sparse linear systems of equations
+ * arising primarily from elliptic PDE discretizations.
+ * https://trilinos.org/packages/ml/
+*/
+
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class MultiLevelSolver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:
-    /**
-     * Counted pointer of MultiLevelSolver
-     */
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MultiLevelSolver
     KRATOS_CLASS_POINTER_DEFINITION(MultiLevelSolver);
 
     enum ScalingType {NoScaling, LeftScaling};
@@ -55,10 +64,13 @@ public:
 
     typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
 
-    typedef typename BaseType::VectorPointerType VectorPointerType;
-
     typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor with Parameters.
     MultiLevelSolver(Parameters settings)
     {
         Parameters default_settings( R"(
@@ -118,7 +130,6 @@ public:
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
-            //mMLParameterListf.set("coarse: type", "Amesos-Superludist")
         }
         else
         {
@@ -127,7 +138,6 @@ public:
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("increasing or decreasing", "increasing");
             mMLParameterList.set("aggregation: type", "MIS");
-            //mMLParameterList.set("coarse: type", "Amesos-Superludist");
             mMLParameterList.set("smoother: type", "Chebyshev");
             mMLParameterList.set("smoother: sweeps", 3);
             mMLParameterList.set("smoother: pre or post", "both");
@@ -142,8 +152,6 @@ public:
             else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mMLParameterList.set(it.name(), it->GetDouble());
         }
-
-
     }
 
     MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
@@ -158,41 +166,53 @@ public:
         mReformPrecAtEachStep = true;
     }
 
-    /**
-     * Destructor
-     */
-    virtual ~MultiLevelSolver()
+    /// Copy constructor.
+    MultiLevelSolver(const MultiLevelSolver& Other) = delete;
+
+    /// Destructor.
+    ~MultiLevelSolver() override
     {
         Clear();
     }
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    MultiLevelSolver& operator=(const MultiLevelSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     void SetScalingType(ScalingType val)
     {
-      mScalingType = val;
+        mScalingType = val;
     }
 
     ScalingType GetScalingType()
     {
-      return mScalingType;
+        return mScalingType;
     }
 
     void SetReformPrecAtEachStep(bool val)
     {
-      mReformPrecAtEachStep = val;
+        mReformPrecAtEachStep = val;
     }
 
     void ResetPreconditioner()
     {
-      if(mMLPrecIsInitialized == true)
-      {
-          mpMLPrec.reset();
-          mMLPrecIsInitialized = false;
-      }
+        if(mMLPrecIsInitialized == true)
+        {
+            mpMLPrec.reset();
+            mMLPrecIsInitialized = false;
+        }
     }
 
     void Clear() override
     {
-      ResetPreconditioner();
+        ResetPreconditioner();
     }
 
     /**
@@ -210,11 +230,11 @@ public:
 
         if (this->GetScalingType() == LeftScaling)
         {
-          // don't use this with conjugate gradient
-          // it destroys the symmetry
-          Epetra_Vector scaling_vect(rA.RowMap());
-          rA.InvColSums(scaling_vect);
-          AztecProblem.LeftScale(scaling_vect);
+            // don't use this with conjugate gradient
+            // it destroys the symmetry
+            Epetra_Vector scaling_vect(rA.RowMap());
+            rA.InvColSums(scaling_vect);
+            AztecProblem.LeftScale(scaling_vect);
         }
 
         mMLParameterList.set("PDE equations", mndof);
@@ -229,10 +249,10 @@ public:
         if (mReformPrecAtEachStep == true ||
             mMLPrecIsInitialized == false)
         {
-          this->ResetPreconditioner();
-          MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
-          mpMLPrec.swap(tmp);
-          mMLPrecIsInitialized = true;
+            this->ResetPreconditioner();
+            MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
+            mpMLPrec.swap(tmp);
+            mMLPrecIsInitialized = true;
         }
 
         // create an AztecOO solver
@@ -258,11 +278,10 @@ public:
      */
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
-
         return false;
     }
 
-    	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+        /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
      * which require knowledge on the spatial position of the nodes associated to a given dof.
@@ -287,58 +306,47 @@ public:
         ModelPart& r_model_part
     ) override
     {
-      int old_ndof = -1;
-      unsigned int old_node_id = rdof_set.begin()->Id();
-      int ndof=0;
-      for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-      {
-        //			if(it->EquationId() < rdof_set.size() )
-        //			{
-        unsigned int id = it->Id();
-        if(id != old_node_id)
+        int old_ndof = -1;
+        unsigned int old_node_id = rdof_set.begin()->Id();
+        int ndof=0;
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
-          old_node_id = id;
-          if(old_ndof == -1) old_ndof = ndof;
-          else if(old_ndof != ndof) //if it is different than the block size is 1
-          {
-            old_ndof = -1;
-            break;
-          }
-
-          ndof=1;
+            unsigned int id = it->Id();
+            if(id != old_node_id)
+            {
+                old_node_id = id;
+                if(old_ndof == -1) old_ndof = ndof;
+                else if(old_ndof != ndof) //if it is different than the block size is 1
+                {
+                    old_ndof = -1;
+                    break;
+                }
+                ndof=1;
+            }
+            else
+            {
+                ndof++;
+            }
         }
+
+        r_model_part.GetCommunicator().MinAll(old_ndof);
+
+        if(old_ndof == -1)
+            mndof = 1;
         else
-        {
-          ndof++;
-        }
-        //			}
-      }
-
-      r_model_part.GetCommunicator().MinAll(old_ndof);
-
-      if(old_ndof == -1)
-        mndof = 1;
-      else
-        mndof = ndof;
-     //   	KRATOS_WATCH(mndof);
+            mndof = ndof;
     }
 
-    /**
-     * Print information about this object.
-     */
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "trilinos ML solver finished.";
-    }
-
-    /**
-     * Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override
-    {
+        rOStream << "Trilinos MultiLevel-Solver";
     }
 
 private:
+    ///@name Member Variables
+    ///@{
+
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
     SparseMatrixPointerType mpA;
@@ -350,32 +358,11 @@ private:
     int mmax_iter;
     int mndof  = 1;
 
-    /**
-     * Assignment operator.
-     */
-    MultiLevelSolver& operator=(const MultiLevelSolver& Other);
+    ///@}
 
-    /**
-     * Copy constructor.
-     */
-    MultiLevelSolver(const MultiLevelSolver& Other);
+}; // Class MultiLevelSolver
 
-}; // Class SkylineLUFactorizationSolver
-
-
-/**
- * input stream function
- */
-template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, MultiLevelSolver< TSparseSpaceType,
-                                  TDenseSpaceType, TReordererType>& rThis)
-{
-    return rIStream;
-}
-
-/**
- * output stream function
- */
+/// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const MultiLevelSolver<TSparseSpaceType,
@@ -388,7 +375,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED defined
