@@ -33,10 +33,6 @@ void CheckIfOverwrittingValue(const Properties& rProps,
 
 }
 
-ReadMaterialsUtility::ReadMaterialsUtility(Model& rModel) : mrModel(rModel)
-{
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -78,13 +74,6 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters materials(rParametersName);
 
     GetPropertyBlock(materials);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ReadMaterialsUtility::~ReadMaterialsUtility()
-{
 }
 
 /***********************************************************************************/
