@@ -158,8 +158,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
         KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
         // set, but not involved in communication
-        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), world_rank == root);
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), world_rank == root);
         // not set and not involved in communication
         KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
     }
@@ -219,8 +219,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
         KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
         // set, but not involved in communication
-        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), world_rank == root);
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), world_rank == root);
         // not set and not involved in communication
         KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
     }
@@ -281,8 +281,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
         KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
         // set, but not involved in communication
-        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), world_rank == root);
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), world_rank == root);
         // not set and not involved in communication
         KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
     }
@@ -342,8 +342,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICore
         KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
         // set, but not involved in communication
-        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), world_rank == root);
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), world_rank == root);
         // not set and not involved in communication
         KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
     }
