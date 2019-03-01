@@ -85,7 +85,7 @@ class Solution(main_script.Solution):
         elif (element_type == "IceContPartDEMElement3D"):
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
-            self.KratosPrintInfo('Error: Strategy unavailable. Select a different scheme-element')
+            self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
         return SolverStrategy
 

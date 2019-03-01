@@ -200,7 +200,7 @@ class Solution(object):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -208,7 +208,7 @@ class Solution(object):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -229,7 +229,7 @@ class Solution(object):
         elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
-            self.KratosPrintInfo('Error: Strategy unavailable. Select a different scheme-element')
+            self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
         return SolverStrategy
 

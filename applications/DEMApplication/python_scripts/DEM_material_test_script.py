@@ -286,7 +286,7 @@ class MaterialTest(object):
 
         if(len(self.XLAT)==0):
 
-            self.Procedures.KratosPrintInfo("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
+            self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
 
         else:
 

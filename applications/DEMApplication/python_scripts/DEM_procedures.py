@@ -15,6 +15,10 @@ import DEM_material_test_script
 def Flush(a):
     a.flush()
 
+def KratosPrint(*args):
+    Logger.PrintInfo("This method is deprecated since 01/03/2019", label="DEM")
+    Logger.PrintInfo(*args, label="DEM")
+    Logger.Flush()
 
 def KratosPrintInfo(*args):
     Logger.PrintInfo(*args, label="DEM")
@@ -370,7 +374,7 @@ class Procedures(object):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintInfo('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -389,7 +393,7 @@ class Procedures(object):
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintInfo('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -838,15 +842,15 @@ class Procedures(object):
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KratosPrintInfo(
+            self.KratosPrintWarning(
                 "**************************************************************************")
-            self.KratosPrintInfo(
+            self.KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintInfo("The type expected was " +
+            self.KratosPrintWarning("The type expected was " +
                              a + " but " + b + " was read.")
-            self.KratosPrintInfo(
+            self.KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
 
