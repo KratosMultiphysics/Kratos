@@ -221,10 +221,11 @@ Kratos::Flags MPIDataCommunicator::AndReduce(const Kratos::Flags Values, const K
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType active_flags = local_active_flags;
-    MPI_Reduce(&local_active_flags, &active_flags, 1, MPI_INT64_T, MPI_BOR, Root, mComm);
+    ReduceDetail(local_active_flags, active_flags, MPI_BOR, Root);
+
     Flags::BlockType flags = Values.GetFlags();
     Flags::BlockType reduced_flags = flags;
-    MPI_Reduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BAND, Root, mComm);
+    ReduceDetail(flags, reduced_flags, MPI_BAND, Root);
 
     Flags out;
     out.SetDefined(active_flags | Values.GetDefined());
@@ -236,10 +237,11 @@ Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kr
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType active_flags = local_active_flags;
-    MPI_Reduce(&local_active_flags, &active_flags, 1, MPI_INT64_T, MPI_BOR, Root, mComm);
+    ReduceDetail(local_active_flags, active_flags, MPI_BOR, Root);
+
     Flags::BlockType flags = Values.GetFlags();
     Flags::BlockType reduced_flags = flags;
-    MPI_Reduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BOR, Root, mComm);
+    ReduceDetail(flags, reduced_flags, MPI_BOR, Root);
 
     Flags out;
     out.SetDefined(active_flags | Values.GetDefined());
@@ -401,10 +403,11 @@ Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, cons
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType active_flags;
-    MPI_Allreduce(&local_active_flags, &active_flags, 1, MPI_INT64_T, MPI_BOR, mComm);
+    AllReduceDetail(local_active_flags, active_flags, MPI_BOR);
+
     Flags::BlockType flags = Values.GetFlags();
     Flags::BlockType reduced_flags;
-    MPI_Allreduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BAND, mComm);
+    AllReduceDetail(flags, reduced_flags, MPI_BAND);
 
     Flags out;
     out.SetDefined(active_flags | Values.GetDefined());
@@ -416,10 +419,11 @@ Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const
 {
     Flags::BlockType local_active_flags = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType active_flags = local_active_flags;
-    MPI_Allreduce(&local_active_flags, &active_flags, 1, MPI_INT64_T, MPI_BOR, mComm);
+    AllReduceDetail(local_active_flags, active_flags, MPI_BOR);
+
     Flags::BlockType flags = Values.GetFlags();
     Flags::BlockType reduced_flags = flags;
-    MPI_Allreduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BOR, mComm);
+    AllReduceDetail(flags, reduced_flags, MPI_BOR);
 
     Flags out;
     out.SetDefined(active_flags | Values.GetDefined());
@@ -1311,34 +1315,39 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
 
 // MPI_Datatype wrappers
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<int>(const int&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const int&) const
 {
     return MPI_INT;
 }
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<double>>(const std::vector<double>&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<double>&) const
 {
     return MPI_DOUBLE;
 }
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<double>(const double&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const double&) const
 {
     return MPI_DOUBLE;
 }
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<array_1d<double,3>>(const array_1d<double,3>&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const array_1d<double,3>&) const
 {
     return MPI_DOUBLE;
 }
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<int>>(const std::vector<int>&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<int>&) const
 {
     return MPI_INT;
 }
 
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::string>(const std::string&) const
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::string&) const
 {
     return MPI_CHAR;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const Flags::BlockType&) const
+{
+    return MPI_INT64_T;
 }
 
 // Buffer argument deduction
@@ -1415,6 +1424,16 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::string& 
     return rValues.data();
 }
 
+template<> inline void* MPIDataCommunicator::MPIBuffer(Flags::BlockType& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const Flags::BlockType& rValues) const
+{
+    return &rValues;
+}
+
 // MPI message size deduction
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const int& rValues) const
@@ -1445,6 +1464,11 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<doub
 template<> inline int MPIDataCommunicator::MPIMessageSize(const std::string& rValues) const
 {
     return rValues.size();
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType& rValues) const
+{
+    return 1;
 }
 
 }
