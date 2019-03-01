@@ -415,11 +415,10 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 solver_settings.AddEmptyValue("move_mesh_flag")
             solver_settings["move_mesh_flag"].SetBool(False)
 
-            if not solver_settings.Has("scheme_settings"):
-                tmp = solver_settings.AddEmptyValue("scheme_settings")
-                if not tmp.Has("scheme_type"):
-                    tmp.AddEmptyValue("scheme_type")
-            solver_settings["scheme_settings"]["scheme_type"].SetString("adjoint_structural")
+            if solver_settings.Has("scheme_settings"):
+                depr_msg = '\nDEPRECATION-WARNING: "scheme_settings" is deprecated, please remove it from your json parameters.\n'
+                KratosMultiphysics.Logger.PrintWarning(__name__, depr_msg)
+                solver_settings.RemoveValue("scheme_settings")
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
