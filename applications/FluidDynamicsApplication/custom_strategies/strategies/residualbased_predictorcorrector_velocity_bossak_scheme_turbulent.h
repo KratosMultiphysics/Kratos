@@ -33,6 +33,8 @@
 #include "utilities/dof_updater.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
+#include "solving_strategies/schemes/residual_based_bossak_velocity_scheme.h"
+#include "utilities/derivatives_extension.h"
 
 namespace Kratos {
 
@@ -77,14 +79,67 @@ namespace Kratos {
     template<class TSparseSpace,
     class TDenseSpace //= DenseSpace<double>
     >
-    class ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent : public Scheme<TSparseSpace, TDenseSpace> {
+    class ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent : public ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace> {
+        class NodalDerivativesExtension : public DerivativesExtension
+        {
+            Node<3>* mpNode;
+        public:
+            explicit NodalDerivativesExtension(Node<3>* pNode): mpNode(pNode)
+            {}
+
+            void GetZeroDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+                                          std::size_t Step,
+                                          ProcessInfo& rCurrentProcessInfo) override
+            {
+                rVector.resize(3);
+                std::size_t index = 0;
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_X, Step);
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_Y, Step);
+                rVector[index] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_Z, Step);
+            }
+
+            void GetFirstDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+                                           std::size_t Step,
+                                           ProcessInfo& rCurrentProcessInfo) override
+            {
+                rVector.resize(4);
+                std::size_t index = 0;
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_X, Step);
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_Y, Step);
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_Z, Step);
+                rVector[index] = MakeIndirectScalar(*this->mpNode, PRESSURE, Step);
+            }
+
+            void GetSecondDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+                                            std::size_t Step,
+                                            ProcessInfo& rCurrentProcessInfo) override
+            {
+                rVector.resize(3);
+                std::size_t index = 0;
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, ACCELERATION_X, Step);
+                rVector[index++] = MakeIndirectScalar(*this->mpNode, ACCELERATION_Y, Step);
+                rVector[index] = MakeIndirectScalar(*this->mpNode, ACCELERATION_Z, Step);
+            }
+
+            void GetFirstDerivativesDofsVector(std::vector<Dof<double>::Pointer>& rVector,
+                                               ProcessInfo& rCurrentProcessInfo) override
+            {
+                rVector.resize(4);
+                std::size_t index = 0;
+                rVector[index++] = this->mpNode->pGetDof(VELOCITY_X);
+                rVector[index++] = this->mpNode->pGetDof(VELOCITY_Y);
+                rVector[index++] = this->mpNode->pGetDof(VELOCITY_Z);
+                rVector[index++] = this->mpNode->pGetDof(PRESSURE);
+            }
+        };
+
     public:
         /**@name Type Definitions */
         /*@{ */
 
         KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent);
 
-        typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+        typedef ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace> BaseType;
 
         typedef typename BaseType::TDataType TDataType;
 
@@ -115,24 +170,13 @@ namespace Kratos {
             double MoveMeshStrategy,
             unsigned int DomainSize)
         :
-          Scheme<TSparseSpace, TDenseSpace>(),
+          ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(NewAlphaBossak),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
-            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-            mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
-
-
-            //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            mMass.resize(NumThreads);
-            mDamp.resize(NumThreads);
-            mvel.resize(NumThreads);
-            macc.resize(NumThreads);
-            maccold.resize(NumThreads);
         }
 
 
@@ -143,24 +187,13 @@ namespace Kratos {
             unsigned int DomainSize,
             const Variable<int>& rPeriodicIdVar)
         :
-          Scheme<TSparseSpace, TDenseSpace>(),
+          ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(NewAlphaBossak),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(rPeriodicIdVar)
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
-            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-            mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = 0.0;
-
-
-            //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            mMass.resize(NumThreads);
-            mDamp.resize(NumThreads);
-            mvel.resize(NumThreads);
-            macc.resize(NumThreads);
-            maccold.resize(NumThreads);
         }
 
 
@@ -172,24 +205,13 @@ namespace Kratos {
             unsigned int DomainSize,
             Variable<double>& rSlipVar)
         :
-          Scheme<TSparseSpace, TDenseSpace>(),
+          ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(NewAlphaBossak),
           mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
-            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-            mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
-
-
-            //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            mMass.resize(NumThreads);
-            mDamp.resize(NumThreads);
-            mvel.resize(NumThreads);
-            macc.resize(NumThreads);
-            maccold.resize(NumThreads);
         }
 
         /** Constructor with a turbulence model
@@ -200,25 +222,14 @@ namespace Kratos {
             unsigned int DomainSize,
             Process::Pointer pTurbulenceModel)
         :
-          Scheme<TSparseSpace, TDenseSpace>(),
+          ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>(NewAlphaBossak),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject()),
           mpTurbulenceModel(pTurbulenceModel)
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
-            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-            mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
-
-
-            //Allocate auxiliary memory
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            mMass.resize(NumThreads);
-            mDamp.resize(NumThreads);
-            mvel.resize(NumThreads);
-            macc.resize(NumThreads);
-            maccold.resize(NumThreads);
         }
 
         /** Destructor.
@@ -231,6 +242,25 @@ namespace Kratos {
         /**@name Operators
          */
         /*@{ */
+
+        void Initialize(ModelPart& rModelPart) override
+        {
+            KRATOS_TRY;
+
+            BaseType::Initialize(rModelPart);
+
+            const int number_of_nodes = rModelPart.NumberOfNodes();
+
+#pragma omp parallel for
+            for (int i = 0; i < number_of_nodes; i++)
+            {
+                Node<3>& r_current_node = *(rModelPart.NodesBegin() + i);
+                r_current_node.SetValue(DERIVATIVES_EXTENSION,
+                                        Kratos::make_shared<NodalDerivativesExtension>(&r_current_node));
+            }
+
+            KRATOS_CATCH("");
+        }
 
         /**
                 Performing the update of the solution.
@@ -250,6 +280,10 @@ namespace Kratos {
             mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
+
+            BaseType::mUpdateDisplacement = (mMeshVelocity == 2);
+
+            this->UpdateTimeSchemeVariables(r_model_part);
 
             AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
@@ -281,29 +315,18 @@ namespace Kratos {
                 ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k + 1];
 
                 for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
-                    noalias(DeltaVel) = (itNode)->FastGetSolutionStepValue(VELOCITY) - (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
-
-                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
-                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
-
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-
                     if (mMeshVelocity == 2)//Lagrangian
                     {
-                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-                        {
-                            array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                            array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                            array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
-
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-                        }
-                        else
+                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) >= 1e-15)
                         {
                             noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
                             noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
                         }
+                        else
+                        {
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+                        }
+
                     }
                 }
             }
@@ -317,82 +340,48 @@ namespace Kratos {
         //predicts the solution at the current step as
         // v = vold
         void Predict(ModelPart& rModelPart,
-                             DofsArrayType& rDofSet,
-                             TSystemMatrixType& A,
-                             TSystemVectorType& Dv,
-                             TSystemVectorType& b) override
+                     DofsArrayType& rDofSet,
+                     TSystemMatrixType& A,
+                     TSystemVectorType& Dv,
+                     TSystemVectorType& b) override
         {
-            // if (rModelPart.GetCommunicator().MyPID() == 0)
-            //     std::cout << "prediction" << std::endl;
+            BaseType::mUpdateDisplacement = (mMeshVelocity == 2);
+
+            BaseType::Predict(rModelPart, rDofSet, A, Dv, b);
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
-            #pragma omp parallel
+#pragma omp parallel
             {
-                //array_1d<double, 3 > DeltaDisp;
-
                 int k = OpenMPUtils::ThisThread();
 
-                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
-                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k + 1];
+                ModelPart::NodeIterator NodesBegin =
+                    rModelPart.NodesBegin() + NodePartition[k];
+                ModelPart::NodeIterator NodesEnd =
+                    rModelPart.NodesBegin() + NodePartition[k + 1];
 
-                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
-                    array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
-                    double& OldPressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
-
-                    //predicting velocity
-                    //ATTENTION::: the prediction is performed only on free nodes
-                    array_1d<double, 3 > & CurrentVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY);
-                    double& CurrentPressure = (itNode)->FastGetSolutionStepValue(PRESSURE);
-
-                    if ((itNode->pGetDof(VELOCITY_X))->IsFree())
-                        (CurrentVelocity[0]) = OldVelocity[0];
-                    if (itNode->pGetDof(VELOCITY_Y)->IsFree())
-                        (CurrentVelocity[1]) = OldVelocity[1];
-                    if (itNode->HasDofFor(VELOCITY_Z))
-                        if (itNode->pGetDof(VELOCITY_Z)->IsFree())
-                            (CurrentVelocity[2]) = OldVelocity[2];
-
-                    if (itNode->pGetDof(PRESSURE)->IsFree())
-                        CurrentPressure = OldPressure;
-
-                    // updating time derivatives ::: please note that displacements and
-                    // their time derivatives can not be consistently fixed separately
-                    array_1d<double, 3 > DeltaVel;
-                    noalias(DeltaVel) = CurrentVelocity - OldVelocity;
-                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
-                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
-
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-
-                    if (mMeshVelocity == 2) //Lagrangian
+                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++)
+                {
+                    if (mMeshVelocity == 2) // Lagrangian
                     {
-                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-
-                  if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-			{
-			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-			}
-			else
-			{
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
-			}
+                        if ((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
+                        {
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) =
+                                itNode->FastGetSolutionStepValue(VELOCITY);
+                        }
+                        else
+                        {
+                            itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+                            itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+                            itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+                            itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+                        }
                     }
                 }
             }
 
-//              if (rModelPart.GetCommunicator().MyPID() == 0)
-//                  std::cout << "end of prediction" << std::endl;
-
         }
-
 
         //***************************************************************************
 
@@ -414,24 +403,8 @@ namespace Kratos {
                                           ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
-            int k = OpenMPUtils::ThisThread();
 
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            //KRATOS_WATCH(LHS_Contribution);
-            //basic operations for the element considered
-            (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
-            //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
-
-            //adding the dynamic contributions (statics is already included)
-
-            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            BaseType::CalculateSystemContributions(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
             mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -445,22 +418,7 @@ namespace Kratos {
                                         Element::EquationIdVectorType& EquationId,
                                         ProcessInfo& CurrentProcessInfo) override
         {
-            int k = OpenMPUtils::ThisThread();
-
-            //Initializing the non linear iteration for the current element
-            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-
-            //basic operations for the element considered
-            (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-
-            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-
-            (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
-
-            //adding the dynamic contributions (static is already included)
-
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            BaseType::Calculate_RHS_Contribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
             mRotationTool.Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
@@ -477,20 +435,8 @@ namespace Kratos {
                                                             ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
-            int k = OpenMPUtils::ThisThread();
 
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
-
-
-            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            BaseType::Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -506,27 +452,11 @@ namespace Kratos {
         {
             KRATOS_TRY;
 
-            int k = OpenMPUtils::ThisThread();
-
-            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-            //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
-
-            //basic operations for the element considered
-            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->CalculateMassMatrix(mMass[k],rCurrentProcessInfo);
-            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
-
-            //adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
+            BaseType::Condition_Calculate_RHS_Contribution(rCurrentCondition, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
-
-
 
             KRATOS_CATCH("");
         }
@@ -538,23 +468,7 @@ namespace Kratos {
                                             TSystemVectorType& Dx,
                                             TSystemVectorType& b) override
         {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-            Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
-
-            double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-
-            if (DeltaTime == 0)
-                KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
-
-            //initializing constants
-            ma0 = 1.0 / (mGammaNewmark * DeltaTime);
-            ma1 = DeltaTime * mBetaNewmark / mGammaNewmark;
-            ma2 = (-1 + mGammaNewmark) / mGammaNewmark;
-            ma3 = DeltaTime;
-            ma4 = pow(DeltaTime, 2)*(-2.0 * mBetaNewmark + 1.0) / 2.0;
-            ma5 = pow(DeltaTime, 2) * mBetaNewmark;
-            mam = (1.0 - mAlphaBossak) / (mGammaNewmark * DeltaTime);
+            BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
         }
         //*************************************************************************************
         //*************************************************************************************
@@ -564,16 +478,14 @@ namespace Kratos {
                                                TSystemVectorType& Dx,
                                                TSystemVectorType& b) override
         {
-            KRATOS_TRY
 
-            if (mpTurbulenceModel != 0) // If not null
-                mpTurbulenceModel->Execute();
-
-            KRATOS_CATCH("")
         }
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
+
+            KRATOS_TRY
+
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             //if orthogonal subscales are computed
@@ -630,6 +542,12 @@ namespace Kratos {
                     ind->FastGetSolutionStepValue(DIVPROJ) /= Area;
                 }
             }
+
+            if (mpTurbulenceModel != 0) // If not null
+                mpTurbulenceModel->Execute();
+
+            KRATOS_CATCH("")
+
         }
 
         void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
@@ -669,14 +587,14 @@ namespace Kratos {
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
                 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-                (*itElem)->CalculateMassMatrix(mMass[thread_id], CurrentProcessInfo);
-                (*itElem)->CalculateLocalVelocityContribution(mDamp[thread_id], RHS_Contribution, CurrentProcessInfo);
+                (*itElem)->CalculateMassMatrix(this->mMassMatrix[thread_id], CurrentProcessInfo);
+                (*itElem)->CalculateLocalVelocityContribution(this->mDampingMatrix[thread_id], RHS_Contribution, CurrentProcessInfo);
 
                 (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
 
                 //adding the dynamic contributions (statics is already included)
-                AddDynamicsToLHS(LHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
-                AddDynamicsToRHS((*itElem), RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
+                this->AddDynamicsToLHS(LHS_Contribution, this->mDampingMatrix[thread_id], this->mMassMatrix[thread_id], CurrentProcessInfo);
+                this->AddDynamicsToRHS((*itElem), RHS_Contribution, this->mDampingMatrix[thread_id], this->mMassMatrix[thread_id], CurrentProcessInfo);
 
                 GeometryType& rGeom = (*itElem)->GetGeometry();
                 unsigned int NumNodes = rGeom.PointsNumber();
@@ -757,23 +675,8 @@ namespace Kratos {
         /**@name Protected member Variables */
         /*@{ */
         double mAlphaBossak;
-        double mBetaNewmark;
-        double mGammaNewmark;
         double mMeshVelocity;
 
-        double ma0;
-        double ma1;
-        double ma2;
-        double ma3;
-        double ma4;
-        double ma5;
-        double mam;
-
-        std::vector< Matrix > mMass;
-        std::vector< Matrix > mDamp;
-        std::vector< Vector > mvel;
-        std::vector< Vector > macc;
-        std::vector< Vector > maccold;
 
         /*@} */
         /**@name Protected Operators*/
@@ -858,121 +761,6 @@ namespace Kratos {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
                 noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);
                 rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
-            }
-        }
-
-
-        //*********************************************************************************
-        //Updating first time Derivative
-        //*********************************************************************************
-        void UpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
-                                const array_1d<double, 3 > & OldDisplacement,
-                                const array_1d<double, 3 > & OldVelocity,
-                                const array_1d<double, 3 > & OldAcceleration,
-                                const array_1d<double, 3 > & CurrentAcceleration)
-        {
-            noalias(CurrentDisplacement) = OldDisplacement + ma3 * OldVelocity + ma4 * OldAcceleration + ma5*CurrentAcceleration;
-        }
-
-
-
-        //**************************************************************************
-
-        void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
-                                const array_1d<double, 3 > & DeltaVel,
-                                const array_1d<double, 3 > & OldAcceleration)
-        {
-            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
-        }
-
-
-
-
-        //****************************************************************************
-
-        /**
-        Kdyn = am*M + D + a1*K
-         */
-        void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
-                              LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
-        {
-
-            //multipling time scheme factor
-            LHS_Contribution *= ma1;
-
-            // adding mass contribution to the dynamic stiffness
-            if (M.size1() != 0) // if M matrix declared
-            {
-                noalias(LHS_Contribution) += mam*M;
-            }
-
-            //adding  damping contribution
-            if (D.size1() != 0) // if M matrix declared
-            {
-                noalias(LHS_Contribution) += D;
-            }
-        }
-
-
-
-
-
-        //****************************************************************************
-
-        /// Add Bossak contributions from the inertial term to the RHS vector.
-        /** This essentially performs bdyn = b - M*acc for the current element.
-         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element itself.
-         *  @param[in] rCurrentElement The fluid element we are assembling.
-         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
-         *  @param[in] rD The elemental velocity/pressure LHS matrix.
-         *  @param[in] rM The elemental acceleration LHS matrix.
-         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
-         */
-        void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-                              LocalSystemVectorType& rRHS_Contribution,
-                              LocalSystemMatrixType& rD,
-                              LocalSystemMatrixType& rM,
-                              ProcessInfo& rCurrentProcessInfo)
-        {
-            //adding inertia contribution
-            if (rM.size1() != 0) {
-                int k = OpenMPUtils::ThisThread();
-                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
-                (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
-                noalias(macc[k]) += mAlphaBossak * maccold[k];
-                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
-            }
-        }
-
-        /// Add Bossak contributions from the inertial term to the RHS vector.
-        /** This essentially performs bdyn = b - M*acc for the current condition.
-         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element condition.
-         *  @param[in] rCurrentCondition The fluid condition we are assembling.
-         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
-         *  @param[in] rD The elemental velocity/pressure LHS matrix.
-         *  @param[in] rM The elemental acceleration LHS matrix.
-         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
-         */
-        void AddDynamicsToRHS(
-                              Condition::Pointer rCurrentCondition,
-                              LocalSystemVectorType& rRHS_Contribution,
-                              LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& rM,
-                              ProcessInfo& rCurrentProcessInfo)
-        {
-            //adding inertia contribution
-            if (rM.size1() != 0)
-            {
-                int k = OpenMPUtils::ThisThread();
-                rCurrentCondition->GetSecondDerivativesVector(macc[k], 0);
-                (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentCondition->GetSecondDerivativesVector(maccold[k], 1);
-                noalias(macc[k]) += mAlphaBossak * maccold[k];
-
-                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
         }
 
