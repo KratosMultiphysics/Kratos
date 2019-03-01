@@ -134,7 +134,7 @@ void MultiscaleRefiningProcess::ExecuteRefinement()
 
 void MultiscaleRefiningProcess::ExecuteCoarsening()
 {
-    IdentifyParentNodesToErase();
+    IdentifyParentNodesToCoarsen();
     IdentifyElementsToErase();
     IdentifyConditionsToErase();
     IdentifyRefinedNodesToErase();
@@ -418,7 +418,7 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 }
 
 
-void MultiscaleRefiningProcess::IdentifyParentNodesToErase()
+void MultiscaleRefiningProcess::IdentifyParentNodesToCoarsen()
 {
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();

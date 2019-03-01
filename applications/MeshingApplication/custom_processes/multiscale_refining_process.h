@@ -468,14 +468,14 @@ public:
      * model part and remove it from the unordered_maps
      * @see CloneNodesToRefine
      */
-    void IdentifyParentNodesToErase();
+    void IdentifyParentNodesToCoarsen();
 
     /**
      * @brief IdentifyElementsToErase looks for the elements which should
      * be removed from the refined model part
      * @detail Sets TO_ERASE flag in the refined model part when a node in
      * the coarse model part is OLD_ENTITY
-     * @see IdentifyParentNodesToErase
+     * @see IdentifyParentNodesToCoarsen
      */
     void IdentifyElementsToErase();
 
@@ -484,7 +484,7 @@ public:
      * be removed from the refined model part
      * @detail Sets TO_ERASE flag in the refined model part when a node
      * in the coarse model part is OLD_ENTITY
-     * @see IdentifyParentNodesToRefine
+     * @see IdentifyParentNodesToCoarsen
      */
     void IdentifyConditionsToErase();
 
