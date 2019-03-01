@@ -78,6 +78,7 @@ End SubModelPart
 Begin SubModelPart  ROTATION_support // Group DIRICH_BC // Subtree ROTATION
     Begin SubModelPartNodes
          1
+         11
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
