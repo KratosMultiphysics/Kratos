@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:   Jordi Cotela
+//                  Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_VELOCITY_SCHEME_H_INCLUDED)
