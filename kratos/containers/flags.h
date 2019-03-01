@@ -53,7 +53,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-extern class Serializer;
+class Serializer;
 class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
@@ -424,7 +424,7 @@ private:
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
-
+    
     ///@}
     ///@name Private  Access
     ///@{
