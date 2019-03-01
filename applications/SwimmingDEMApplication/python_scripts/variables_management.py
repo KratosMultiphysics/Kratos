@@ -298,7 +298,7 @@ def ConstructListsOfResultsToPrint(pp):
 
     pp.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
 
-    pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+    pp.variables_to_print_in_file = ["DRAG_FORCE", "BUOYANCY", "VELOCITY"]
 
     pp.dem_printing_vars = []
     pp.clusters_printing_vars = []

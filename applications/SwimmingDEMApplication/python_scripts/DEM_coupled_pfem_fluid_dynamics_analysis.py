@@ -12,6 +12,7 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.model = model
         self.pp = pp
         self.parameters = parameters
+        self.dimension = pp.fluid_parameters["problem_data"]["dimension"].GetInt()
         pp.nodal_results, pp.gauss_points_results = [], []
 
         if pp.fluid_parameters.Has('output_configuration'):
@@ -37,6 +38,10 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
+
+    def CalculateNodalArea(self):
+        self.area_calculator = Kratos.CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)
+        self.area_calculator.Execute()
 
 if __name__ == '__main__':
     from sys import argv
