@@ -1,12 +1,14 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:        BSD License
-//	                license: structural_mechanics_application/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Armin Geiser
+//
+//  Main authors:    Marc Nuñez, based on Armin Geiser and Martin Fusseder work
 //
 
 #if !defined(KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED )

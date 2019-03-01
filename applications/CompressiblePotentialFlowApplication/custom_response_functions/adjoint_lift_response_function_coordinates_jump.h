@@ -1,12 +1,14 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
+//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
 //
 
 #ifndef ADJOINT_LIFT_JUMP_COORDINATES_RESPONSE_FUNCTION_H
@@ -48,29 +50,11 @@ namespace Kratos
 * This is a response function which traces a chosen displacement or rotation of a single
 * node as response. It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLiftJumpCoordinatesResponseFunction : public AdjointPotentialResponseFunction
+class AdjointLiftJumpCoordinatesResponseFunction : public AdjointPotentialResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-    typedef ModelPart::ElementType ElementType;
-    typedef ModelPart::ConditionType ConditionType;
-    typedef Node < 3 > NodeType;
-    typedef Properties PropertiesType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef std::vector<std::size_t> EquationIdVectorType;
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef Element::WeakPointer ElementWeakPointerType;    
-    typedef Element::Pointer ElementPointerType;
 
     ///@}
     ///@name Pointer Definitions

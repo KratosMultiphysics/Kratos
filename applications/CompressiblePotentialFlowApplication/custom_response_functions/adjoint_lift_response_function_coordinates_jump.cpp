@@ -1,12 +1,14 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
+//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
 //
 
 // System includes
@@ -15,7 +17,6 @@
 
 // Project includes
 #include "adjoint_lift_response_function_coordinates_jump.h"
-// #include "node.h"
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 
@@ -49,7 +50,7 @@ namespace Kratos
         {
             const array_1d<double, 3> v_inf = rProcessInfo.GetValue(VELOCITY_INFINITY);
             double v_norm = norm_2(v_inf);
-            double derivative= 2.0/v_norm;
+            double derivative = 2.0/v_norm;
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {

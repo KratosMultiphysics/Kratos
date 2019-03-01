@@ -1,27 +1,24 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:        BSD License
-//	                license: structural_mechanics_application/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Armin Geiser
+//
+//  Main authors:    Marc Nuñez, based on Armin Geiser and Martin Fusseder work
 //
 
 // System includes
 
 // External includes
-#include <pybind11/stl.h>
 
 // Project includes
 #include "custom_python/add_custom_response_functions_to_python.h"
 
-#include "boost/numeric/ublas/vector.hpp"
-#include "spaces/ublas_space.h"
-
 // Response Functions
-// #include "custom_response_functions/adjoint_structural_response_function.h"
 #include "custom_response_functions/adjoint_lift_response_function_coordinates_jump.h"
 
 
