@@ -29,7 +29,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     const unsigned int LocalId,
     const int PressureId,
 	int& rMaximumConditionId,
-    std::vector<IndexType>& ToEraseConditionsId
+    std::vector<IndexType>& rToEraseConditionsId
     )
 {
     std::string sub_model_name;
@@ -80,7 +80,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
             const IndexType Id2 = (*it)->GetGeometry()[1].Id();
             if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
                 (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
-                ToEraseConditionsId.push_back((*it)->Id());
+                rToEraseConditionsId.push_back((*it)->Id());
             }
         }
     }
@@ -94,7 +94,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const int PressureId,
 	int& rMaximumConditionId,
-    std::vector<IndexType>& ToEraseConditionsId
+    std::vector<IndexType>& rToEraseConditionsId
     )
 {
     std::string sub_model_name;
@@ -112,7 +112,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 	const int counter_of_affected_nodes = r_process_info[ITER];
-    if (counter_of_affected_nodes != 1) this->CalculateNumberOfElementsOnNodes();
+    // if (counter_of_affected_nodes != 1) this->CalculateNumberOfElementsOnNodes();
     this->CalculateNumberOfElementsOnNodes();
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
@@ -151,10 +151,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
                 // Remove the old conditions
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
                            (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
@@ -185,10 +185,10 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
                         (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
@@ -206,13 +206,13 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
 
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
                            (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 } else if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
                            (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
@@ -263,7 +263,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
                 // Remove the old conditions
                 if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
                     (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
-                    ToEraseConditionsId.push_back((*it)->Id());
+                    rToEraseConditionsId.push_back((*it)->Id());
                 }
             }
         }
@@ -278,7 +278,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions1Node(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const int PressureId,
 	int& rMaximumConditionId,
-    std::vector<IndexType>& ToEraseConditionsId
+    std::vector<IndexType>& rToEraseConditionsId
     )
 {
     std::string sub_model_name;
