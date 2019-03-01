@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosTrilinosApplication import *
 application = KratosTrilinosApplication()
 application_name = "KratosTrilinosApplication"
-application_folder = "trilinos_application"
+application_folder = "TrilinosApplication"
 
 # The following lines are common for all applications
 from .. import application_importer
