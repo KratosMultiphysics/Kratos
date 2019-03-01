@@ -1281,8 +1281,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "DamageDPlusDMinusPlaneStressMasonry2DLaw").def(py::init<>())
     ;
 
-        py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
-    (m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>())    
+		py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
+	(m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>())
+	;
 }
 
 }  // namespace Python.
