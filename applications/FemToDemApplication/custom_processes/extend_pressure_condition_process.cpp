@@ -125,7 +125,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         }
     }
 
-    if (aux_counter == 1) { // common case
+    if (aux_counter == 1 && inactive_nodes_id.size() == 0) { // common case
         const IndexType id_1 = local_id == 0 ? 0 : local_id == 1 ? 1 : 2;
         const IndexType id_2 = local_id == 0 ? 1 : local_id == 1 ? 2 : 0;
         const IndexType id_3 = local_id == 0 ? 2 : local_id == 1 ? 0 : 1;
@@ -160,38 +160,38 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
         }
     // One inactive node
     } else if (inactive_nodes_id.size() == 1) {
-        const IndexType id_1 = inactive_nodes_local_id[0] == 0 ? 0 : inactive_nodes_local_id[0] == 1 ? 1 : 2;
-        const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
-        const IndexType id_3 = inactive_nodes_local_id[0] == 0 ? 2 : inactive_nodes_local_id[0] == 1 ? 0 : 1;
+        // const IndexType id_1 = inactive_nodes_local_id[0] == 0 ? 0 : inactive_nodes_local_id[0] == 1 ? 1 : 2;
+        // const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
+        // const IndexType id_3 = inactive_nodes_local_id[0] == 0 ? 2 : inactive_nodes_local_id[0] == 1 ? 0 : 1;
 
-        condition_nodes_id[0] = r_geom[id_3].Id();
-        condition_nodes_id[1] = r_geom[id_2].Id();
-        rMaximumConditionId++;
-        const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
-                                           "LineLoadCondition2D2N",
-                                           rMaximumConditionId,
-                                           condition_nodes_id,
-                                           p_properties, 0);
+        // condition_nodes_id[0] = r_geom[id_3].Id();
+        // condition_nodes_id[1] = r_geom[id_2].Id();
+        // rMaximumConditionId++;
+        // const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
+        //                                    "LineLoadCondition2D2N",
+        //                                    rMaximumConditionId,
+        //                                    condition_nodes_id,
+        //                                    p_properties, 0);
 
-        // adding the conditions to the computing model part
-        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+        // // adding the conditions to the computing model part
+        // mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
 
-        // We remove the condition regarding the erased edges...
-        for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
-            auto& r_it_geom = (*it)->GetGeometry();
-            if (r_it_geom.size() > 1) {
-                const IndexType Id1 = r_it_geom[0].Id();
-                const IndexType Id2 = r_it_geom[1].Id();
+        // // We remove the condition regarding the erased edges...
+        // for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
+        //     auto& r_it_geom = (*it)->GetGeometry();
+        //     if (r_it_geom.size() > 1) {
+        //         const IndexType Id1 = r_it_geom[0].Id();
+        //         const IndexType Id2 = r_it_geom[1].Id();
 
-                if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
-                    (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
-                    rToEraseConditionsId.push_back((*it)->Id());
-                } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
-                        (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
-                    rToEraseConditionsId.push_back((*it)->Id());
-                }
-            }
-        }
+        //         if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
+        //             (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
+        //             rToEraseConditionsId.push_back((*it)->Id());
+        //         } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
+        //                 (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
+        //             rToEraseConditionsId.push_back((*it)->Id());
+        //         }
+        //     }
+        // }
     } else if (inactive_nodes_id.size() == 3) { // elem and nodes are removed afterwards
         // We remove the condition regarding the erased edges...
         for (auto it = mrModelPart.Conditions().ptr_begin(); it != mrModelPart.Conditions().ptr_end(); ++it) {
@@ -417,6 +417,7 @@ void ExtendPressureConditionProcess<2>::Execute()
                     local_id = i;
                 }
             }
+
             if (counter == 2) {
                 this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, to_erase_conditions_ids);
                 counter_of_affected_nodes++;

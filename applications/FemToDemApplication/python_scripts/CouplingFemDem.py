@@ -73,10 +73,12 @@ class FEMDEM_Solution:
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
         
-        # for node in self.FEM_Solution.main_model_part.Nodes:
-        #     if node.GetValue(KratosFemDem.PRESSURE_ID) > 0:
-        #         print(node.Id)
-        # Wait()
+        self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
+        {
+            "name_auxiliar_model_part" : "SkinDEMModelPart",
+            "name_auxiliar_condition"  : "Condition",
+            "echo_level"               : 0
+        }""")
 
         # for the dem contact forces coupling
         self.InitializeDummyNodalForces()
@@ -156,42 +158,44 @@ class FEMDEM_Solution:
 
 
 
+        #---------------------------------------------------------------------------------------------
+        # Search the skin nodes for the remeshing
+        skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
+                                                                            self.SkinDetectionProcessParameters)
+        skin_detection_process.Execute()
 
-        # if self.FEM_Solution.step == 1:
-        #     self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 60")
-        #     Wait()
 
-        # if self.FEM_Solution.step == 1:
-        #     self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 174")
-        #     Wait()
 
-        # if self.FEM_Solution.step == 2:
-        #     self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 174")
-        #     Wait()
+        if self.FEM_Solution.step == 1:
+            self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 60")
+            Wait()
 
-        # if self.FEM_Solution.step == 3:
-        #     self.FEM_Solution.main_model_part.GetElement(211).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 211")
-        #     Wait()
+        if self.FEM_Solution.step == 1:
+            self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 174")
+            Wait()
 
-        # if self.FEM_Solution.step == 3:
-        #     self.FEM_Solution.main_model_part.GetElement(180).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 180")
-        #     Wait()
+        if self.FEM_Solution.step == 3:
+            self.FEM_Solution.main_model_part.GetElement(211).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 211")
+            Wait()
 
-        # if self.FEM_Solution.step == 4:
-        #     self.FEM_Solution.main_model_part.GetElement(177).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 177")
-        #     Wait()
+        if self.FEM_Solution.step == 3:
+            self.FEM_Solution.main_model_part.GetElement(180).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 180")
+            Wait()
 
-        # if self.FEM_Solution.step == 5:
-        #     self.FEM_Solution.main_model_part.GetElement(197).Set(KratosMultiphysics.ACTIVE, False)
-        #     self.FEM_Solution.main_model_part.GetElement(277).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 277 y 197")
-        #     Wait()
+        if self.FEM_Solution.step == 4:
+            self.FEM_Solution.main_model_part.GetElement(177).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 177")
+            Wait()
+
+        if self.FEM_Solution.step == 5:
+            self.FEM_Solution.main_model_part.GetElement(197).Set(KratosMultiphysics.ACTIVE, False)
+            self.FEM_Solution.main_model_part.GetElement(277).Set(KratosMultiphysics.ACTIVE, False)
+            print("eliminado elemento 277 y 197")
+            Wait()
 
         if self.pressure_load:
             # we reconstruct the pressure load
@@ -199,6 +203,7 @@ class FEMDEM_Solution:
             while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
                 KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
 
+        #---------------------------------------------------------------------------------------------
 
         # we create the new DEM of this time step
         self.GenerateDEM()
@@ -1064,13 +1069,7 @@ class FEMDEM_Solution:
         self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
 
         # Search the skin nodes for the remeshing
-        skin_detection_process_param = KratosMultiphysics.Parameters("""
-        {
-            "name_auxiliar_model_part" : "SkinDEMModelPart",
-            "name_auxiliar_condition"  : "Condition",
-            "echo_level"               : 0
-        }""")
         skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                            skin_detection_process_param)
+                                                                            self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
