@@ -192,16 +192,20 @@ public:
      * @brief Copies all the last nodal step data from the refined
      * model part to the coarse one
      */
-    void TransferLastStepToCoarseModelPart();
-
-    /**
-     * @brief Copies the nodal step data with a linear interpolation
-     * between the last nodal steps of the given variable
-     * @param rSubstepFraction 0 means the previous time step,
-     * 1 means the last time step, an intermediate value means
-     * the interpolation factor
-     */
-    // void TransferSubstepToRefinedInterface(const double& rSubstepFraction);
+    template<class TVarType>
+    void TransferLastStepToCoarseModelPart(const TVarType& rVariable)
+    {
+        ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
+        for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+        {
+            auto refined_node = refined_begin + i;
+            if (refined_node->GetValue(FATHER_NODES).size() == 1)
+            {
+                auto& value = refined_node->GetValue(FATHER_NODES)[0].FastGetSolutionStepValue(rVariable);
+                value = refined_node->FastGetSolutionStepValue(rVariable); // we only copy the current step
+            }
+        }
+    }
 
     /**
      * @brief Copies the nodal step data with a linear interpolation

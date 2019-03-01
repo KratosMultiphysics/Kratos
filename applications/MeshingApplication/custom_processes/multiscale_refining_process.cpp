@@ -460,14 +460,14 @@ void MultiscaleRefiningProcess::IdentifyElementsToErase()
         if (coarse_elem->Is(MeshingFlags::REFINED))
         {
             bool to_coarsen = false;
-        for (IndexType inode = 0; inode < element_nodes; inode++)
-        {
-            if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
+            for (IndexType inode = 0; inode < element_nodes; inode++)
+            {
+                if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
                     to_coarsen = true;
-        }
+            }
             coarse_elem->Set(MeshingFlags::TO_COARSEN, to_coarsen);
             if (to_coarsen)
-            coarse_elem->Set(MeshingFlags::REFINED, false);
+                coarse_elem->Set(MeshingFlags::REFINED, false);
         }
     }
 
@@ -501,14 +501,14 @@ void MultiscaleRefiningProcess::IdentifyConditionsToErase()
         if (coarse_cond->Is(MeshingFlags::TO_COARSEN))
         {
             bool to_coarsen = false;
-        for (IndexType inode = 0; inode < condition_nodes; inode++)
-        {
-            if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
+            for (IndexType inode = 0; inode < condition_nodes; inode++)
+            {
+                if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
                     to_coarsen = true;
-        }
+            }
             coarse_cond->Set(MeshingFlags::TO_COARSEN, to_coarsen);
             if (to_coarsen)
-            coarse_cond->Set(MeshingFlags::REFINED, false);
+                coarse_cond->Set(MeshingFlags::REFINED, false);
         }
     }
 
@@ -782,24 +782,6 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
 
         if (is_refined_interface)
             mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
-    }
-}
-
-
-void MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart()
-{
-    ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
-    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
-    {
-        auto refined_node = refined_begin + i;
-        if (refined_node->GetValue(FATHER_NODES).size() == 1)
-        {
-            double* dest_data = refined_node->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); // Current step only
-            const double* src_data = refined_node->SolutionStepData().Data(0);
-
-            for (IndexType j = 0; j < mStepDataSize; j++)
-                dest_data[j] = src_data[j];
-        }
     }
 }
 

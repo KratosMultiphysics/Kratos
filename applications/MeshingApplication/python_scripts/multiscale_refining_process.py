@@ -122,6 +122,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         if self.current_subscale > 0:
             self._ApplyFixityAtInterface(False)
+            self._UpdateVariablesAtCoarseModelPart()
 
     def Clear(self):
         pass
@@ -171,6 +172,10 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
         for variable in self.variables_to_set_at_interface:
             self.subscales_utility.TransferSubstepToRefinedInterface(variable, substep_fraction)
+
+    def _UpdateVariablesAtCoarseModelPart(self):
+        for variable in self.variables_to_update_at_coarse:
+            self.subscales_utility.TransferLastStepToCoarseModelPart(variable)
 
     def _GenerateVariableListFromInput(self,param):
         '''Parse a list of variables from input.'''
