@@ -67,8 +67,9 @@ class TestFlags(KratosUnittest.TestCase):
         # the AND of two named flags sets both
         node1.Set(TO_SPLIT & TO_ERASE)
 
-        self.assertTrue(node1.Is(TO_SPLIT))
-        self.assertTrue(node1.Is(TO_ERASE))
+        # but they are set to false, because the bit on the other argument is unset (undefined) & true = (undefined)
+        self.assertFalse(node1.Is(TO_SPLIT))
+        self.assertFalse(node1.Is(TO_ERASE))
 
     def testFlagFlip(self):
         node = self.model_part.GetNode(1)
@@ -92,23 +93,30 @@ class TestFlags(KratosUnittest.TestCase):
         flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
 
         flag1 &= flag2
-        self.assertTrue(flag1.Is(ACTIVE)) # true & true = true
-        self.assertFalse(flag1.Is(RIGID))  # false & false = false
-        self.assertFalse(flag1.Is(STRUCTURE)) # true & false = false
-        self.assertTrue(flag1.Is(MPI_BOUNDARY)) # true & (undefined) = true
-        self.assertFalse(flag1.Is(PERIODIC)) # false & (undefined) = false
-        self.assertTrue(flag1.Is(INLET)) # (undefined) & true = true
-        self.assertFalse(flag1.Is(OUTLET)) # (undefined) & false = false
-        self.assertFalse(flag1.Is(ISOLATED)) # (undefined) & (undefined) = (undefined)
-
-        self.assertTrue(flag1.IsDefined(ACTIVE)) # both true
-        self.assertTrue(flag1.IsDefined(RIGID))  # both false
-        self.assertTrue(flag1.IsDefined(STRUCTURE)) # opposite
-        self.assertTrue(flag1.IsDefined(MPI_BOUNDARY)) # first true
-        self.assertTrue(flag1.IsDefined(PERIODIC)) # first false
-        self.assertTrue(flag1.IsDefined(INLET)) # second true
-        self.assertTrue(flag1.IsDefined(OUTLET)) # second false
-        self.assertFalse(flag1.IsDefined(ISOLATED)) # both unset
+        # true (defined) & true (defined) = true (defined)
+        self.assertTrue(flag1.IsDefined(ACTIVE))
+        self.assertTrue(flag1.Is(ACTIVE))
+        # false (defined) & false (defined) = false (defined)
+        self.assertTrue(flag1.IsDefined(RIGID))
+        self.assertFalse(flag1.Is(RIGID))
+        # true (defined) & false (defined) = false (defined)
+        self.assertTrue(flag1.IsDefined(STRUCTURE))
+        self.assertFalse(flag1.Is(STRUCTURE))
+        # true (defined) & (undefined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(MPI_BOUNDARY))
+        self.assertFalse(flag1.Is(MPI_BOUNDARY))
+        # false (defined) & (undefined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(PERIODIC))
+        self.assertFalse(flag1.Is(PERIODIC))
+        # (undefined) & true (defined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(INLET))
+        self.assertFalse(flag1.Is(INLET))
+        # (undefied) & false (defined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(OUTLET))
+        self.assertFalse(flag1.Is(OUTLET))
+        # (undefined) & (undefined) = (undefined)
+        self.assertFalse(flag1.IsDefined(ISOLATED))
+        self.assertFalse(flag1.Is(ISOLATED))
 
     def testFlagOrEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
@@ -116,23 +124,30 @@ class TestFlags(KratosUnittest.TestCase):
         flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
 
         flag1 |= flag2
-        self.assertTrue(flag1.Is(ACTIVE)) # true | true = true
-        self.assertFalse(flag1.Is(RIGID))  # false | false = false
-        self.assertTrue(flag1.Is(STRUCTURE)) # true | false = true
-        self.assertTrue(flag1.Is(MPI_BOUNDARY)) # true | (undefined) = true
-        self.assertFalse(flag1.Is(PERIODIC)) # false | (undefined) = false
-        self.assertTrue(flag1.Is(INLET)) # (undefined) | true = true
-        self.assertFalse(flag1.Is(OUTLET)) # (undefined) | false = false
-        self.assertFalse(flag1.Is(ISOLATED)) # (undefined) | (undefined) = (undefined)
-
-        self.assertTrue(flag1.IsDefined(ACTIVE)) # both true
-        self.assertTrue(flag1.IsDefined(RIGID))  # both false
-        self.assertTrue(flag1.IsDefined(STRUCTURE)) # opposite
-        self.assertTrue(flag1.IsDefined(MPI_BOUNDARY)) # first true
-        self.assertTrue(flag1.IsDefined(PERIODIC)) # first false
-        self.assertTrue(flag1.IsDefined(INLET)) # second true
-        self.assertTrue(flag1.IsDefined(OUTLET)) # second false
-        self.assertFalse(flag1.IsDefined(ISOLATED)) # both unset
+        # true (defined) | true (defined) = true (defined)
+        self.assertTrue(flag1.IsDefined(ACTIVE))
+        self.assertTrue(flag1.Is(ACTIVE))
+        # false (defined) | false (defined) = false (defined)
+        self.assertTrue(flag1.IsDefined(RIGID))
+        self.assertFalse(flag1.Is(RIGID))
+        # true (defined) | false (defined) = true (defined)
+        self.assertTrue(flag1.IsDefined(STRUCTURE))
+        self.assertTrue(flag1.Is(STRUCTURE))
+        # true (defined) | (undefined) = true (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(MPI_BOUNDARY))
+        self.assertTrue(flag1.Is(MPI_BOUNDARY))
+        # false (defined) | (undefined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(PERIODIC))
+        self.assertFalse(flag1.Is(PERIODIC))
+        # (undefined) | true (defined) = true (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(INLET))
+        self.assertTrue(flag1.Is(INLET))
+        # (undefied) | false (defined) = false (defined) (undefined defaults to false)
+        self.assertTrue(flag1.IsDefined(OUTLET))
+        self.assertFalse(flag1.Is(OUTLET))
+        # (undefined) | (undefined) = (undefined)
+        self.assertFalse(flag1.IsDefined(ISOLATED))
+        self.assertFalse(flag1.Is(ISOLATED))
 
 if __name__ == "__main__":
     KratosUnittest.main()
