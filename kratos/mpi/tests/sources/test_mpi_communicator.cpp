@@ -27,38 +27,6 @@ namespace Testing {
 
 namespace Internals {
 
-//void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunicator& rComm)
-//{
-//    rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
-//    Properties::Pointer p_properties = rModelPart.GetProperties(0);
-//
-//    const int rank = rComm.Rank();
-//    const int size = rComm.Size();
-//    constexpr double side_length = 1.0;
-//
-//    /*
-//            1---3---5 ... ( i )---(i+2)
-//            | \ | \ |       |   \   |
-//            0---2---4 ... (i-1)---(i+1)
-//    rank:    <0> <1>  ...      <n>
-//    */
-//    if (rank == 0)
-//    {
-//        rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-//    }
-//
-//    unsigned int index = 2*(rank + 1);
-//    double x_offset = side_length*rank;
-//
-//    rModelPart.CreateNewNode(index  , x_offset              , side_length, 0.0);
-//    rModelPart.CreateNewNode(index+1, x_offset + side_length, 0.0        , 0.0);
-//
-//    if (rank = size -1)
-//    {
-//        rModelPart.CreateNewNode(index+2, x_offset + side_length, side_length, 0.0);
-//    }
-//}
-
 void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunicator& rComm)
 {
     constexpr double pi = 3.141592653589793238462643383279502884197169399375105820974944592308;
