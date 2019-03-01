@@ -154,6 +154,8 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
     def _EvaluateCondition(self):
         variable = getattr(KratosMultiphysics, self.settings["error_variable"].GetString())
         threshold = self.settings["variable_threshold"].GetDouble()
+        for node in self.coarse_model_part.Nodes:
+            node.Set(KratosMultiphysics.TO_REFINE, False)
         # Set the nodes or the elements which are to refine
         for elem in self.coarse_model_part.Elements:
             residual = elem.GetValue(KratosMultiphysics.RESIDUAL_NORM)
