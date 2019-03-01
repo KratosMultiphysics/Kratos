@@ -81,11 +81,13 @@ public:
     ///@name Operations
     ///@{
 
+    using AdjointStructuralResponseFunction::CalculateGradient;
+
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo) override;
-    
+
     void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                            const Matrix& rResidualGradient,
                                            Vector& rResponseGradient,

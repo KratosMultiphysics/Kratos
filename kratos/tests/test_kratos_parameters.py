@@ -1,4 +1,7 @@
 ﻿from __future__ import print_function, absolute_import, division
+
+import sys
+
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
@@ -7,8 +10,23 @@ from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTrace
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import sys
-
+# Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
+# Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
+try:
+    import cickle as pickle
+    have_pickle_module = True
+except ImportError:
+    if sys.version_info > (3, 0):
+        try:
+            import pickle
+            have_pickle_module = True
+        except ImportError:
+            have_pickle_module = False
+            pickle_message = "No pickle module found"
+    else:
+        have_pickle_module = False
+        pickle_message = "No valid pickle module found"
 
 # input string with ugly formatting
 json_string = """
@@ -197,9 +215,6 @@ class TestParameters(KratosUnittest.TestCase):
     def setUp(self):
         self.kp = Parameters(json_string)
         self.compact_expected_output = """{"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"}"""
-
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_kratos_parameters(self):
         self.assertEqual(
@@ -479,7 +494,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-                    
+
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{
@@ -631,17 +646,18 @@ class TestParameters(KratosUnittest.TestCase):
         serializer.Save("ParametersSerialization",tmp)
         del(tmp)
         del(serializer)
-        
+
 
         #unpickle data - note that here i override "serialized_data"
         serializer = FileSerializer(file_name,SerializerTraceType.SERIALIZER_NO_TRACE)
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
+
         self.assertEqual(check, loaded_parameters.WriteJsonString())
         kratos_utils.DeleteFileIfExisting(file_name + ".rest")
 
+    @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)
         check = tmp.WriteJsonString()
@@ -649,15 +665,9 @@ class TestParameters(KratosUnittest.TestCase):
         serializer = StreamSerializer(SerializerTraceType.SERIALIZER_NO_TRACE)
         serializer.Save("ParametersSerialization",tmp)
         del(tmp)
-        
-        # ######## here we pickle the serializer
-        try:
-            import cpickle as pickle  # Use cPickle on Python 2.7
-        except ImportError:
-            import pickle
 
         #pickle dataserialized_data
-        pickled_data = pickle.dumps(serializer, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        pickled_data = pickle.dumps(serializer, protocol=2) # Second argument is the protocol and is NECESSARY (according to pybind11 docs)
         del(serializer)
 
         #unpickle data - note that here i override "serialized_data"
@@ -665,7 +675,7 @@ class TestParameters(KratosUnittest.TestCase):
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
+
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
 

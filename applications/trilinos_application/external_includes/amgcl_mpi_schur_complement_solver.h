@@ -11,9 +11,8 @@
 //                   Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED )
-#define  KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED
+#if !defined (KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED)
+#define KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED
 
 
 #ifndef AMGCL_PARAM_UNKNOWN
@@ -21,7 +20,6 @@
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
     Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
-
 
 // External includes
 
@@ -53,12 +51,8 @@
 #include <amgcl/mpi/subdomain_deflation.hpp>
 #include <amgcl/mpi/direct_solver/runtime.hpp>
 
-
-
 namespace Kratos
 {
-
-
 
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
@@ -296,7 +290,6 @@ public:
      */
     bool Solve ( SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB ) override
     {
-
         return false;
     }
 
@@ -357,19 +350,10 @@ public:
 
     }
 
-    /**
-     * Print information about this object.
-     */
+    /// Print information about this object.
     void  PrintInfo ( std::ostream& rOStream ) const override
     {
-        rOStream << "AMGCL_MPI solver finished.";
-    }
-
-    /**
-     * Print object's data.
-     */
-    void  PrintData ( std::ostream& rOStream ) const override
-    {
+        rOStream << "AMGCL-MPI-Schur-Complement-Solver";
     }
 
 private:
@@ -381,16 +365,9 @@ private:
 
     std::vector< char > mPressureMask; //pressure mask
     boost::property_tree::ptree mprm;
-
-
-
-
 };
 
-
-/**
- * output stream function
- */
+//// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << ( std::ostream& rOStream,
                                    const AmgclMPISchurComplementSolver<TSparseSpaceType,
@@ -403,9 +380,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
     return rOStream;
 }
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED  defined
-
-
+#endif // KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED defined

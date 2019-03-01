@@ -30,7 +30,7 @@
                 "stress_location"   : 1
             },
         "sensitivity_settings" : {
-                "sensitivity_model_part_name" : "Parts_Beam",
+                "sensitivity_model_part_name" : "sensitivity_mp",
                 "nodal_sensitivity_variables"  : ["SHAPE"],
                 "element_sensitivity_variables"  : ["I22"],
                 "condition_sensitivity_variables"  : ["POINT_LOAD"],
@@ -38,7 +38,7 @@
             },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
+        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_support","ROTATION_support","PointLoad3D_load"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
@@ -60,7 +60,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
+            "model_part_name" : "Structure.DISPLACEMENT_support",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -74,7 +74,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_support",
+            "model_part_name" : "Structure.ROTATION_support",
             "variable_name"   : "ADJOINT_ROTATION",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -90,7 +90,7 @@
         "process_name"          : "ApplyConstantVectorValueProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_load",
+            "model_part_name" : "Structure.PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
             "modulus"          :40,
             "direction"       : [0.0,0.0,1.0]
@@ -109,6 +109,18 @@
             "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
+        }
+    },
+    {
+        "python_module"   : "element_sensitivity_domain_integration_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ElementSensitivityDomainIntegrationProcess",
+        "Parameters"            : {
+            "element_sensitivity_variables"    : ["I22_SENSITIVITY"],
+            "model_part_name"                  : "Structure",
+            "sensitivity_model_part_name"      : "sensitivity_mp",
+            "sensitivity_sub_model_part_list"  : ["sensitivity_mp_1"]
         }
     }],
     "json_check_process" : [

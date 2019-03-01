@@ -6,11 +6,6 @@ from KratosMultiphysics import *
 import sys
 
 class TestModelPart(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_model_part_sub_model_parts(self):
         current_model = Model()
 
