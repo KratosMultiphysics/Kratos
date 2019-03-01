@@ -13,12 +13,8 @@
 #ifndef KRATOS_POTENTIAL_WALL_CONDITION_H
 #define KRATOS_POTENTIAL_WALL_CONDITION_H
 
-// System includes
-#include <string>
-#include <iostream>
 
 #include "includes/kratos_flags.h"
-#include "includes/deprecated_variables.h"
 
 // External includes
 
@@ -27,7 +23,6 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
-#include "includes/cfd_variables.h"
 
 // Application includes
 #include "compressible_potential_flow_application_variables.h"
