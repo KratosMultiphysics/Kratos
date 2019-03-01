@@ -113,6 +113,7 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3Nodes(
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 	const int counter_of_affected_nodes = r_process_info[ITER];
     if (counter_of_affected_nodes != 1) this->CalculateNumberOfElementsOnNodes();
+    this->CalculateNumberOfElementsOnNodes();
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         if (r_geom[i].GetValue(NUMBER_OF_ACTIVE_ELEMENTS) == 1) {
@@ -394,7 +395,7 @@ void ExtendPressureConditionProcess<2>::Execute()
     find_neigh.Execute();
 
 	int maximum_condition_id, counter_of_affected_nodes = 0;
-    std::vector<IndexType> ToEraseConditionsId;
+    std::vector<IndexType> to_erase_conditions_ids;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
 
     // Loop over the elements in order to extrapolate the pressure load on its nodes if necessary
@@ -417,17 +418,17 @@ void ExtendPressureConditionProcess<2>::Execute()
                 }
             }
             if (counter == 2) {
-                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, to_erase_conditions_ids);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (counter == 1) {
-                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, to_erase_conditions_ids);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (counter == 3) {
-                this->CreateAndAddPressureConditions3Nodes(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions3Nodes(it_elem, pressure_id, maximum_condition_id, to_erase_conditions_ids);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
                 (*it_elem)->SetValue(SMOOTHING, true);
@@ -443,10 +444,10 @@ void ExtendPressureConditionProcess<2>::Execute()
     // mNodeIdContainer.clear();
     // mNodePressureIdContainer.clear();
 
-    for (IndexType i = 0; i < ToEraseConditionsId.size(); ++i) {
-        mrModelPart.RemoveConditionFromAllLevels(ToEraseConditionsId[i]);
+    for (IndexType i = 0; i < to_erase_conditions_ids.size(); ++i) {
+        mrModelPart.RemoveConditionFromAllLevels(to_erase_conditions_ids[i]);
     }
-    ToEraseConditionsId.clear();
+    to_erase_conditions_ids.clear();
 }
 
 
