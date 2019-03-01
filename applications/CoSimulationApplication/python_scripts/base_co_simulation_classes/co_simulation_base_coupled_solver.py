@@ -158,8 +158,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _SynchronizeInputData(self, solver_name):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
-            print()
-            print(self.solver_settings)
             input_data_list = self.solver_settings[solver_name]["input_data_list"]
             num_input_data = input_data_list.size()
             for i in range(num_input_data):
