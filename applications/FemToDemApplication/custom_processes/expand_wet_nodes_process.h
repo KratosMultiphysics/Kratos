@@ -19,6 +19,7 @@
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include <list>
 
 namespace Kratos {
 
@@ -41,6 +42,13 @@ public:
 
     void Execute() override;
 
+    bool ElementHasWetNodes(
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        int& rPressureId);
+
+    void ExpandWetNodes(
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        const int PressureId);
 
 protected:
     // Member Variables
