@@ -123,8 +123,15 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
     r_center.Set(PERIODIC, rank_is_even);
 
     r_model_part.GetCommunicator().SynchronizeOrNodalFlags( INLET | OUTLET );
-    KRATOS_CHECK_EQUAL(r_center.Is(INLET), true);
-    KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), true);
+    if (size > 1) {
+        KRATOS_CHECK_EQUAL(r_center.Is(INLET), true);
+        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), true);
+    }
+    else {
+        // if there is only one rank, no communication happens
+        KRATOS_CHECK_EQUAL(r_center.Is(INLET), rank_is_even);
+        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), rank_is_even);
+    }
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 
 }
@@ -153,8 +160,15 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
     r_center.Set(PERIODIC, rank_is_even);
 
     r_model_part.GetCommunicator().SynchronizeAndNodalFlags( INLET | OUTLET );
-    KRATOS_CHECK_EQUAL(r_center.Is(INLET), false);
-    KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), false);
+    if (size > 1) {
+        KRATOS_CHECK_EQUAL(r_center.Is(INLET), false);
+        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), false);
+    }
+    else {
+        // if there is only one rank, no communication happens
+        KRATOS_CHECK_EQUAL(r_center.Is(INLET), rank_is_even);
+        KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), rank_is_even);
+    }
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
