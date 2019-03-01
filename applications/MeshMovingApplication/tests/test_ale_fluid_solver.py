@@ -2,7 +2,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-fluid_dynamics_is_available = kratos_utilities.IsApplicationAvailable("FluidDynamicsApplication")
+fluid_dynamics_is_available = kratos_utilities.CheckIfApplicationsAvailable("FluidDynamicsApplication")
 if fluid_dynamics_is_available:
     from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
