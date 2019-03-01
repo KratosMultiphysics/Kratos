@@ -113,6 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     Kratos::Flags flags;
@@ -130,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
 
     Flags output = mpi_world_communicator.AndReduce(flags, ACTIVE | RIGID | STRUCTURE | MPI_BOUNDARY | PERIODIC | INLET | OUTLET | ISOLATED , root);
 
-    if (world_rank == root) {
+    if (world_size > 1 && world_rank == root) {
         // true (defined) & true (defined) = true (defined)
         KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
         KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
@@ -173,6 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     Kratos::Flags flags;
@@ -190,7 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
 
     Flags output = mpi_world_communicator.OrReduce(flags, ACTIVE | RIGID | STRUCTURE | MPI_BOUNDARY | PERIODIC | INLET | OUTLET | ISOLATED , root);
 
-    if (world_rank == root) {
+    if (world_size > 1 && world_rank == root) {
         // true (defined) | true (defined) = true (defined)
         KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
         KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
@@ -234,6 +236,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     Kratos::Flags flags;
@@ -251,36 +254,41 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
 
     Flags output = mpi_world_communicator.AndReduceAll(flags, ACTIVE | RIGID | STRUCTURE | MPI_BOUNDARY | PERIODIC | INLET | OUTLET | ISOLATED);
 
-    // true (defined) & true (defined) = true (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
-    KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
-    // false (defined) & false (defined) = false (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(RIGID), true);
-    KRATOS_CHECK_EQUAL(output.Is(RIGID), false);
-    // true (defined) & false (defined) = false (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(STRUCTURE), true);
-    KRATOS_CHECK_EQUAL(output.Is(STRUCTURE), false);
-    // true (defined) & (undefined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(MPI_BOUNDARY), true);
-    KRATOS_CHECK_EQUAL(output.Is(MPI_BOUNDARY), false);
-    // false (defined) & (undefined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(PERIODIC), true);
-    KRATOS_CHECK_EQUAL(output.Is(PERIODIC), false);
-    // (undefined) & true (defined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(INLET), true);
-    KRATOS_CHECK_EQUAL(output.Is(INLET), false);
-    // (undefied) & false (defined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(OUTLET), true);
-    KRATOS_CHECK_EQUAL(output.Is(OUTLET), false);
-    // (undefined) & (undefined) = (undefined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(ISOLATED), false);
-    KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
+    if (world_size > 1) {
+        // true (defined) & true (defined) = true (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
+        KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
+        // false (defined) & false (defined) = false (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(RIGID), true);
+        KRATOS_CHECK_EQUAL(output.Is(RIGID), false);
+        // true (defined) & false (defined) = false (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(STRUCTURE), true);
+        KRATOS_CHECK_EQUAL(output.Is(STRUCTURE), false);
+        // true (defined) & (undefined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(MPI_BOUNDARY), true);
+        KRATOS_CHECK_EQUAL(output.Is(MPI_BOUNDARY), false);
+        // false (defined) & (undefined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(PERIODIC), true);
+        KRATOS_CHECK_EQUAL(output.Is(PERIODIC), false);
+        // (undefined) & true (defined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(INLET), true);
+        KRATOS_CHECK_EQUAL(output.Is(INLET), false);
+        // (undefied) & false (defined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(OUTLET), true);
+        KRATOS_CHECK_EQUAL(output.Is(OUTLET), false);
+        // (undefined) & (undefined) = (undefined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(ISOLATED), false);
+        KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
-    // set, but not involved in communication
-    KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-    KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
-    // not set and not involved in communication
-    KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
+        // set, but not involved in communication
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        // not set and not involved in communication
+        KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
+    }
+    else {
+        KRATOS_CHECK_EQUAL(output, flags);
+    }
 }
 
 // Flags OrAll ////////////////////////////////////////////////////////////////
@@ -289,6 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICore
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     Kratos::Flags flags;
@@ -306,36 +315,41 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICore
 
     Flags output = mpi_world_communicator.OrReduceAll(flags, ACTIVE | RIGID | STRUCTURE | MPI_BOUNDARY | PERIODIC | INLET | OUTLET | ISOLATED);
 
-    // true (defined) | true (defined) = true (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
-    KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
-    // false (defined) | false (defined) = false (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(RIGID), true);
-    KRATOS_CHECK_EQUAL(output.Is(RIGID), false);
-    // true (defined) | false (defined) = true (defined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(STRUCTURE), true);
-    KRATOS_CHECK_EQUAL(output.Is(STRUCTURE), true);
-    // true (defined) | (undefined) = true (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(MPI_BOUNDARY), true);
-    KRATOS_CHECK_EQUAL(output.Is(MPI_BOUNDARY), true);
-    // false (defined) | (undefined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(PERIODIC), true);
-    KRATOS_CHECK_EQUAL(output.Is(PERIODIC), false);
-    // (undefined) | true (defined) = true (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(INLET), true);
-    KRATOS_CHECK_EQUAL(output.Is(INLET), true);
-    // (undefied) | false (defined) = false (defined) (undefined defaults to false)
-    KRATOS_CHECK_EQUAL(output.IsDefined(OUTLET), true);
-    KRATOS_CHECK_EQUAL(output.Is(OUTLET), false);
-    // (undefined) | (undefined) = (undefined)
-    KRATOS_CHECK_EQUAL(output.IsDefined(ISOLATED), false);
-    KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
+    if (world_size > 1) {
+        // true (defined) | true (defined) = true (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(ACTIVE), true);
+        KRATOS_CHECK_EQUAL(output.Is(ACTIVE), true);
+        // false (defined) | false (defined) = false (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(RIGID), true);
+        KRATOS_CHECK_EQUAL(output.Is(RIGID), false);
+        // true (defined) | false (defined) = true (defined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(STRUCTURE), true);
+        KRATOS_CHECK_EQUAL(output.Is(STRUCTURE), true);
+        // true (defined) | (undefined) = true (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(MPI_BOUNDARY), true);
+        KRATOS_CHECK_EQUAL(output.Is(MPI_BOUNDARY), true);
+        // false (defined) | (undefined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(PERIODIC), true);
+        KRATOS_CHECK_EQUAL(output.Is(PERIODIC), false);
+        // (undefined) | true (defined) = true (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(INLET), true);
+        KRATOS_CHECK_EQUAL(output.Is(INLET), true);
+        // (undefied) | false (defined) = false (defined) (undefined defaults to false)
+        KRATOS_CHECK_EQUAL(output.IsDefined(OUTLET), true);
+        KRATOS_CHECK_EQUAL(output.Is(OUTLET), false);
+        // (undefined) | (undefined) = (undefined)
+        KRATOS_CHECK_EQUAL(output.IsDefined(ISOLATED), false);
+        KRATOS_CHECK_EQUAL(output.Is(ISOLATED), false);
 
-    // set, but not involved in communication
-    KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
-    KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
-    // not set and not involved in communication
-    KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
+        // set, but not involved in communication
+        KRATOS_CHECK_EQUAL(output.IsDefined(CONTACT), (world_rank == root));
+        KRATOS_CHECK_EQUAL(output.Is(CONTACT), (world_rank == root));
+        // not set and not involved in communication
+        KRATOS_CHECK_EQUAL(output.IsDefined(TO_ERASE), false);
+    }
+    else {
+        KRATOS_CHECK_EQUAL(output, flags);
+    }
 }
 
 

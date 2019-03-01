@@ -118,7 +118,9 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
     // Single flag
     r_center.Set(STRUCTURE, (rank == size-1));
     r_model_part.GetCommunicator().SynchronizeAndNodalFlags(STRUCTURE);
-    KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), false);
+    if (size > 1) {
+        KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), false);
+    }
 
     // Multiple flags
     const bool rank_is_even( (rank % 2) == 0 );
