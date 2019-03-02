@@ -44,7 +44,6 @@ void ExpandWetNodesProcess::Execute()
                 this->ExpandWetNodes(it_elem, pressure_id);
                 extrapolated_elements++;
                 (*it_elem)->SetValue(SMOOTHING, true);
-                KRATOS_WATCH((*it_elem)->Id())
             }
         }
     }

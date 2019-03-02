@@ -67,10 +67,10 @@ class FEMDEM_Solution:
             self.RemeshingProcessMMG.ExecuteInitialize()
 
         if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
-            self.pressure_load = False
+            self.PressureLoad = False
         else:
-            self.pressure_load = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
-        if self.pressure_load:
+            self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+        if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
         
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
@@ -156,55 +156,21 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-        if self.FEM_Solution.step == 1:
-            self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 60")
-            Wait()
+
 
         #---------------------------------------------------------------------------------------------
-        # Search the skin nodes for the remeshing
-        skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                            self.SkinDetectionProcessParameters)
-        skin_detection_process.Execute()
+        if self.PressureLoad:
+            # Search the skin nodes for the remeshing
+            # skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
+            #                                                                     self.SkinDetectionProcessParameters)
+            # skin_detection_process.Execute()
 
-        extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
-        print("antes de process")
-        extend_wet_nodes_process.Execute()
+            # This must be calle before Generating DEM
+            extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
+            extend_wet_nodes_process.Execute()
 
 
-
-        # if self.FEM_Solution.step == 1:
-        #     self.FEM_Solution.main_model_part.GetElement(60).Set(KratosMultiphysics.ACTIVE, False)
-        #     print("eliminado elemento 60")
-        #     Wait()
-
-        if self.FEM_Solution.step == 1:
-            self.FEM_Solution.main_model_part.GetElement(174).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 174")
-            Wait()
-
-        if self.FEM_Solution.step == 3:
-            self.FEM_Solution.main_model_part.GetElement(211).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 211")
-            Wait()
-
-        if self.FEM_Solution.step == 3:
-            self.FEM_Solution.main_model_part.GetElement(180).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 180")
-            Wait()
-
-        if self.FEM_Solution.step == 4:
-            self.FEM_Solution.main_model_part.GetElement(177).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 177")
-            Wait()
-
-        if self.FEM_Solution.step == 5:
-            self.FEM_Solution.main_model_part.GetElement(197).Set(KratosMultiphysics.ACTIVE, False)
-            self.FEM_Solution.main_model_part.GetElement(277).Set(KratosMultiphysics.ACTIVE, False)
-            print("eliminado elemento 277 y 197")
-            Wait()
-
-        if self.pressure_load:
+        if self.PressureLoad:
             # we reconstruct the pressure load
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
             while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
@@ -1057,10 +1023,10 @@ class FEMDEM_Solution:
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
 
         if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
-            self.pressure_load = False
+            self.PressureLoad = False
         else:
-            self.pressure_load = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
-        if self.pressure_load:
+            self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+        if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
         # Remove DEMS from previous mesh
