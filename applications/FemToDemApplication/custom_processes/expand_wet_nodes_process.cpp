@@ -80,6 +80,10 @@ void ExpandWetNodesProcess::ExpandWetNodes(
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         r_geometry[i].SetValue(PRESSURE_ID, PressureId);
     }
+
+    // Indicator to recosntructu the Pressure afterwards
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
 }
 
 /***********************************************************************************/
