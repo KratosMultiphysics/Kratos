@@ -61,8 +61,8 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
         if (pressure_id != 0) {
-            return true;
             rPressureId = pressure_id;
+            return true;
         }
     }
 	return false;
