@@ -156,30 +156,26 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-
-
-        #---------------------------------------------------------------------------------------------
         if self.PressureLoad:
-            # Search the skin nodes for the remeshing
-            # skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-            #                                                                     self.SkinDetectionProcessParameters)
-            # skin_detection_process.Execute()
-
-            # This must be calle before Generating DEM
+            # This must be called before Generating DEM
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
             extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
             extend_wet_nodes_process.Execute()
 
-
-        if self.PressureLoad:
-            # we reconstruct the pressure load
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
-            while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
-                KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
-
-        #---------------------------------------------------------------------------------------------
-
         # we create the new DEM of this time step
         self.GenerateDEM()
+
+        if self.PressureLoad:
+            # we reconstruct the pressure load if necessary
+            if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
+                skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
+                                                                                self.SkinDetectionProcessParameters)
+                skin_detection_process.Execute()
+                self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
+                while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
+                    KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+
+
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
 
