@@ -60,24 +60,30 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
 template <>
 void ExtendPressureConditionProcess<2>::CreateNewConditions()
 {
+    int maximum_condition_id;
+    this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
+
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
     for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+
         // We count how many nodes are wet
         auto& r_geometry = (*it_elem)->GetGeometry();
-        int counter = 0, non_wet_local_id_node = 10, pressure_id;
+        int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
+
         for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
             if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
-                counter++;
+                wet_nodes_counter++;
                 pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
             } else {
                 non_wet_local_id_node = local_id;
             }
         }
 
-        if (counter == 2) {
-            this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id);
-        } else if (counter == 3) {
-            // this->GenerateLineLoads3Nodes(pressure_id);
+        if (wet_nodes_counter == 2) {
+            this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
+        } else if (wet_nodes_counter == 3) {
+            // this->GenerateLineLoads3Nodes(pressure_id, maximum_condition_id);
+            // maximum_condition_id++
         }
     }
 }
@@ -86,11 +92,40 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
 /***********************************************************************************/
 template<>
 void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
-    const double NonWetLocalIdNode,
-    const int PressureId
+    const int NonWetLocalIdNode,
+    const int PressureId,
+    int& rMaximumConditionId,
+    ModelPart::ElementsContainerType::ptr_iterator itElem
     )
 {
+    std::string sub_model_name;
+	sub_model_name = "Normal_Load-auto-" + std::to_string(PressureId);
+    auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
+    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    auto& r_geom = (*itElem)->GetGeometry();
+
+    const IndexType id_1 = NonWetLocalIdNode == 0 ? 0 : NonWetLocalIdNode == 1 ? 1 : 2;
+    const IndexType id_2 = NonWetLocalIdNode == 0 ? 1 : NonWetLocalIdNode == 1 ? 2 : 0;
+    const IndexType id_3 = NonWetLocalIdNode == 0 ? 2 : NonWetLocalIdNode == 1 ? 0 : 1;
+
+    std::vector<IndexType> condition_nodes_id(2);
+    condition_nodes_id[0] = r_geom[id_3].Id();
+    condition_nodes_id[1] = r_geom[id_2].Id();
+	rMaximumConditionId++;
+
+    // We create the Line Load Condition
+    const auto& r_line_condition = r_sub_model_part.CreateNewCondition(
+					                    "LineLoadCondition2D2N",
+					                    rMaximumConditionId,
+					                    condition_nodes_id,
+					                    p_properties, 0);
+
+    // Adding the conditions to the computing model part
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_condition);
     
+    // Adding the nodes to the SubModelPart
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
 }
 
 /***********************************************************************************/
