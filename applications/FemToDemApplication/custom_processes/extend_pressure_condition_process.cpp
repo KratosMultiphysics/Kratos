@@ -32,6 +32,8 @@ void ExtendPressureConditionProcess<2>::Execute()
 
     // Remove previous line loads
     this->RemovePreviousLineLoads();
+
+    // Genearte the new ones
     this->CreateNewConditions();
 }
 
@@ -63,29 +65,33 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
     auto& r_process_info = mrModelPart.GetProcessInfo();
     int maximum_condition_id;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
+    r_process_info[ITER] = 0;
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
     for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        if ((*it_elem)->GetValue(SMOOTHING) == false) {
+            // We count how many nodes are wet
+            auto& r_geometry = (*it_elem)->GetGeometry();
+            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
 
-        // We count how many nodes are wet
-        auto& r_geometry = (*it_elem)->GetGeometry();
-        int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
-
-        for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
-            if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
-                wet_nodes_counter++;
-                pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
-            } else {
-                non_wet_local_id_node = local_id;
+            for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
+                if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
+                    wet_nodes_counter++;
+                    pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                } else {
+                    non_wet_local_id_node = local_id;
+                }
             }
-        }
-
-        if (wet_nodes_counter == 2) {
-            this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
-            r_process_info[ITER] = 1;
-        } else if (wet_nodes_counter == 3) {
-            this->GenerateLineLoads3Nodes(pressure_id, maximum_condition_id, it_elem);
-            r_process_info[ITER] = 1;
+            if (wet_nodes_counter == 2) {
+                this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
+                r_process_info[ITER] = 1;
+                (*it_elem)->SetValue(SMOOTHING, true);
+            } else if (wet_nodes_counter == 3) {
+                this->GetPressureId(it_elem, pressure_id);
+                this->GenerateLineLoads3Nodes(pressure_id, maximum_condition_id, it_elem);
+                r_process_info[ITER] = 1;
+                (*it_elem)->SetValue(SMOOTHING, true);
+            }
         }
     }
 }
@@ -115,6 +121,10 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     condition_nodes_id[1] = r_geom[id_2].Id();
 	rMaximumConditionId++;
 
+    // Adding the nodes to the SubModelPart
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+
     // We create the Line Load Condition
     const auto& r_line_condition = r_sub_model_part.CreateNewCondition(
 					                    "LineLoadCondition2D2N",
@@ -124,10 +134,6 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
 
     // Adding the conditions to the computing model part
     mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_condition);
-
-    // Adding the nodes to the SubModelPart
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
 }
 
 /***********************************************************************************/
@@ -164,11 +170,16 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     condition_nodes_id[0] = r_geom[id_2].Id();
     condition_nodes_id[1] = r_geom[id_1].Id();
     rMaximumConditionId++;
+
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_1].Id()));
+
     const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
                                     "LineLoadCondition2D2N",
                                     rMaximumConditionId,
                                     condition_nodes_id,
-                                    p_properties, 0);    
+                                    p_properties, 0);
 
     condition_nodes_id[0] = r_geom[id_1].Id();
     condition_nodes_id[1] = r_geom[id_3].Id();
@@ -182,13 +193,24 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     // Adding the conditions to the computing model part
     mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
     mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
-
-    // Adding the nodes to the SubModelPart
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_1].Id()));
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GetPressureId(
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    int& rPressureId
+    )
+{
+    auto& r_geometry = (*itElem)->GetGeometry();
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+        if (r_geometry[i].GetValue(PRESSURE_ID) != 0) {
+            rPressureId = r_geometry[i].GetValue(PRESSURE_ID);
+            break;
+        }
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
@@ -201,7 +223,7 @@ void ExtendPressureConditionProcess<3>::Execute()
 /***********************************************************************************/
 template <>
 void ExtendPressureConditionProcess<2>::GetMaximumConditionIdOnSubmodelPart(
-      int& rMaximumConditionId
+    int& rMaximumConditionId
 )
 {
     rMaximumConditionId = 0;
