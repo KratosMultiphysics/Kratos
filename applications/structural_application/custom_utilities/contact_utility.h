@@ -1332,7 +1332,11 @@ private:
     template<typename TCoordinatesArrayType>
     TCoordinatesArrayType& GlobalCoordinates(Condition& Surface, TCoordinatesArrayType& rResult, TCoordinatesArrayType const& LocalCoordinates)
     {
+        #ifdef KRATOS_USE_AMATRIX
         rResult.noalias() = ZeroVector(3);
+        #else
+        noalias(rResult) = ZeroVector(3);
+        #endif
 
         for(IndexType i = 0 ; i < Surface.GetGeometry().size() ; i++)
         {

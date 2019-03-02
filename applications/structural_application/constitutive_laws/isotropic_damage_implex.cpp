@@ -329,7 +329,11 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
 
     // Update corrected stresses
     Matrix C_t = (1.0 - mD)*C;
+    #ifdef KRATOS_USE_AMATRIX
     AlgorithmicTangent.noalias() = C_t;
+    #else
+    noalias(AlgorithmicTangent) = C_t;
+    #endif
     mCurrentStress = prod( C_t, StrainVector );
 
     //==========================================================================================
@@ -350,7 +354,11 @@ void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVect
     mC_alg = (1.0 - mDamage_alg)*C;
 
     // Set algorithmic tangent operator
+    #ifdef KRATOS_USE_AMATRIX
     AlgorithmicTangent.noalias() = mC_alg;
+    #else
+    noalias(AlgorithmicTangent) = mC_alg;
+    #endif
 
     // Compute extrapolated stresses
     StressVector = prod( mC_alg, StrainVector );
