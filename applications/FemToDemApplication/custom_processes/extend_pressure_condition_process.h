@@ -46,6 +46,12 @@ public:
 
     void RemovePreviousLineLoads();
 
+    void CreateNewConditions();
+    
+    void GenerateLineLoads2Nodes(
+        const double NonWetLocalIdNode,
+        const int PressureId);
+
     void CreateAndAddPressureConditions2Nodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         const unsigned int LocalId,

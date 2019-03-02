@@ -26,15 +26,13 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 template <>
 void ExtendPressureConditionProcess<2>::Execute()
 {
+    // We search the neighbours for the 3 node generation of line loads
+    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
+    find_neigh.Execute();
+
     // Remove previous line loads
     this->RemovePreviousLineLoads();
-
-
-
-
-
-
-
+    this->CreateNewConditions();
 }
 
 /***********************************************************************************/
@@ -46,7 +44,6 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
     std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     std::vector<std::string> pressure_sub_models;
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
-        const IndexType string_size = submodel_parts_names[i].size();
         if (submodel_parts_names[i].substr(0, 11) == "Normal_Load") {
             // Remove the line loads
             auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
@@ -56,6 +53,44 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
         }
     }
     mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
+void ExtendPressureConditionProcess<2>::CreateNewConditions()
+{
+    // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
+    for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        // We count how many nodes are wet
+        auto& r_geometry = (*it_elem)->GetGeometry();
+        int counter = 0, non_wet_local_id_node = 10, pressure_id;
+        for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
+            if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
+                counter++;
+                pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+            } else {
+                non_wet_local_id_node = local_id;
+            }
+        }
+
+        if (counter == 2) {
+            this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id);
+        } else if (counter == 3) {
+            // this->GenerateLineLoads3Nodes(pressure_id);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<>
+void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
+    const double NonWetLocalIdNode,
+    const int PressureId
+    )
+{
+    
 }
 
 /***********************************************************************************/
