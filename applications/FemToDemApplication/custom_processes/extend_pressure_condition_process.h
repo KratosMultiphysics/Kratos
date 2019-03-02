@@ -59,12 +59,16 @@ public:
         int& rMaximumConditionId,
         ModelPart::ElementsContainerType::ptr_iterator itElem);
 
+    void GetPressureId(
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        int& rPressureId);
+
     void GetMaximumConditionIdOnSubmodelPart(
         int& MaximumConditionId);
 
     void CalculateNumberOfElementsOnNodes();
     bool CheckIfHasConditionId(const IndexType Id);
-    
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
