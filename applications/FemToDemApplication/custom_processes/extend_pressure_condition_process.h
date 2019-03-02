@@ -44,6 +44,8 @@ public:
 
     void Execute() override;
 
+    void RemovePreviousLineLoads();
+
     void CreateAndAddPressureConditions2Nodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         const unsigned int LocalId,

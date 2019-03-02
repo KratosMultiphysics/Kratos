@@ -24,6 +24,63 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 }
 
 template <>
+void ExtendPressureConditionProcess<2>::Execute()
+{
+    // Remove previous line loads
+    this->RemovePreviousLineLoads();
+
+
+
+
+
+
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
+{
+    // We remove only the line loads of all the SubModels
+    std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
+    std::vector<std::string> pressure_sub_models;
+    for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
+        const IndexType string_size = submodel_parts_names[i].size();
+        if (submodel_parts_names[i].substr(0, 11) == "Normal_Load") {
+            // Remove the line loads
+            auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
+            for (auto it_cond = r_sub_model.ConditionsBegin(); it_cond != r_sub_model.ConditionsEnd(); it_cond++) {
+                it_cond->Set(TO_ERASE, true);
+            }
+        }
+    }
+    mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
+void ExtendPressureConditionProcess<3>::Execute()
+{
+    // todo implementation in 3D
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+bool ExtendPressureConditionProcess<TDim>::CheckIfHasConditionId(const IndexType Id)
+{
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
+        if ((*it_cond).Id() == Id) {
+            return true;
+        }
+    }
+    return false;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
 void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions2Nodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
     const unsigned int LocalId,
@@ -384,94 +441,6 @@ void ExtendPressureConditionProcess<TDim>::CalculateNumberOfElementsOnNodes()
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-void ExtendPressureConditionProcess<2>::Execute()
-{
-    // We search the neighbours for some purposes
-    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
-    find_neigh.Execute();
-
-	int maximum_condition_id, counter_of_affected_nodes = 0;
-    std::vector<IndexType> to_erase_conditions_ids;
-    this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
-
-    // Loop over the elements in order to extrapolate the pressure load on its nodes if necessary
-    for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-        bool condition_is_active = true;
-        if ((*it_elem)->IsDefined(ACTIVE)) {
-            condition_is_active = (*it_elem)->Is(ACTIVE);
-        }
-        // it_elem's going to be removed
-        if (condition_is_active == false && (*it_elem)->GetValue(SMOOTHING) == false) {
-            unsigned int local_id, counter = 0, pressure_id;
-            auto& r_geometry = (*it_elem)->GetGeometry();
-            // Loop over nodes in order to check if there's pressure on nodes
-            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-                if (r_geometry.GetPoint(i).GetValue(PRESSURE_ID) != 0) {
-                    pressure_id = r_geometry.GetPoint(i).GetValue(PRESSURE_ID);
-                    counter++;
-                } else {
-                    local_id = i;
-                }
-            }
-
-            if (counter == 2) {
-                this->CreateAndAddPressureConditions2Nodes(it_elem, local_id, pressure_id, maximum_condition_id, to_erase_conditions_ids);
-                counter_of_affected_nodes++;
-                // We use this flag to enter once on each element
-                (*it_elem)->SetValue(SMOOTHING, true);
-            } else if (counter == 1) {
-                this->CreateAndAddPressureConditions1Node(it_elem, pressure_id, maximum_condition_id, to_erase_conditions_ids);
-                counter_of_affected_nodes++;
-                // We use this flag to enter once on each element
-                (*it_elem)->SetValue(SMOOTHING, true);
-            } else if (counter == 3) {
-                this->CreateAndAddPressureConditions3Nodes(it_elem, pressure_id, maximum_condition_id, to_erase_conditions_ids);
-                counter_of_affected_nodes++;
-                // We use this flag to enter once on each element
-                (*it_elem)->SetValue(SMOOTHING, true);
-            }
-        }
-    }
-    auto& r_process_info = mrModelPart.GetProcessInfo();
-    r_process_info[ITER] = counter_of_affected_nodes;
-
-    // for (IndexType i = 0; i < mNodeIdContainer.size(); ++i) {
-    //     mrModelPart.GetNode(mNodeIdContainer[i]).SetValue(PRESSURE_ID, mNodePressureIdContainer[i]);
-    // }
-    // mNodeIdContainer.clear();
-    // mNodePressureIdContainer.clear();
-
-    for (IndexType i = 0; i < to_erase_conditions_ids.size(); ++i) {
-        mrModelPart.RemoveConditionFromAllLevels(to_erase_conditions_ids[i]);
-    }
-    to_erase_conditions_ids.clear();
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<3>::Execute()
-{
-    // todo implementation in 3D
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template <SizeType TDim>
-bool ExtendPressureConditionProcess<TDim>::CheckIfHasConditionId(const IndexType Id)
-{
-    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
-        if ((*it_cond).Id() == Id) {
-            return true;
-        }
-    }
-    return false;
-}
 /***********************************************************************************/
 /***********************************************************************************/
 
