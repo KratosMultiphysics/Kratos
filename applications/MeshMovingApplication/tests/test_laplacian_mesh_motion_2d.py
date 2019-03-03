@@ -9,6 +9,7 @@ class TestCase(MeshMovingTestCase):
         self.number_of_nodes_per_elements = 3
         self.solver_type = "laplacian"
         self.mesh_vel_calc_helper = KM.BDF1()
+        self.print_reference_results = False
 
         # to suppress many prints
         self.print_logger_info = False
@@ -25,6 +26,7 @@ class TestCase(MeshMovingTestCase):
         self.number_of_nodes_per_elements = 4
         self.solver_type = "laplacian"
         self.mesh_vel_calc_helper = KM.BDF2()
+        self.print_reference_results = False
 
         # to suppress many prints
         self.print_logger_info = False
