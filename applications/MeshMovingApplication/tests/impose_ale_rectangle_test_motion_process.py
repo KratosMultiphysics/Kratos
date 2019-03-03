@@ -2,11 +2,11 @@ import KratosMultiphysics as KM
 from math import cos, sin
 
 def Factory(settings, Model):
-    if(not isinstance(settings,KratosMultiphysics.Parameters)):
+    if(not isinstance(settings, KM.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeALERectangleTestMotionProcess(Model, settings["Parameters"])
 
-class ImposeALERectangleTestMotionProcess(Process):
+class ImposeALERectangleTestMotionProcess(KM.Process):
     def __init__(self, Model, settings):
         KM.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
