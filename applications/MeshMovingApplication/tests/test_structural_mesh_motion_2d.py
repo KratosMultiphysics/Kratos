@@ -8,7 +8,7 @@ class TestCase(MeshMovingTestCase):
         self.domain_size = 2
         self.number_of_nodes_per_elements = 3
         self.solver_type = "structural_similarity"
-        self.mesh_vel_calc_helper = KM.BDF4()
+        self.mesh_vel_calc_helper = KM.BDF1()
         self.print_reference_results = False
 
         # to suppress many prints
