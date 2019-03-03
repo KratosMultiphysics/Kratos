@@ -54,6 +54,8 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # To avoid many prints
             if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+            else:
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
             # Creating the test
             model = KratosMultiphysics.Model()
