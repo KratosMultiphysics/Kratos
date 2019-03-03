@@ -1,8 +1,8 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.kratos_utilities import WorkFolderScope
-from KratosMultiphysics.MeshMovingApplication as KMM
+import KratosMultiphysics.MeshMovingApplication as KMM
 from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
+import os
 
 class MeshMovingAnalysisForTesting(MeshMovingAnalysis):
 
@@ -28,7 +28,7 @@ class MeshMovingAnalysisForTesting(MeshMovingAnalysis):
 class MeshMovingTestCase(KratosUnittest.TestCase):
 
     def executeTest(self):
-        with WorkFolderScope(".", __file__):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             with open('generic_rectangle_test_parameters.json', 'r') as parameter_file:
                 self.project_parameters = KM.Parameters(parameter_file.read())
 
@@ -37,15 +37,17 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
             self.__SetPrintOfReferenceResults()
             self.__SetOutputConfiguration()
 
+            self.__SetLoggerSeverity()
+
             model = KM.Model()
-            MeshMovingAnalysisForTesting(model, self.project_parameters).Run()
+            MeshMovingAnalysisForTesting(model, self.project_parameters, self.mesh_vel_calc_helper).Run()
 
     def __SetProblemData(self):
         problem_data = self.project_parameters["problem_data"]
 
         problem_data["problem_name"].SetString(self.__GetProblemName())
 
-        if Kratos.DataCommunicator.GetDefault().IsDistributed() # whether this is an mpi-execution
+        if KM.DataCommunicator.GetDefault().IsDistributed(): # whether this is an mpi-execution
             problem_data["parallel_type"].SetString("MPI")
         else:
             problem_data["parallel_type"].SetString("OpenMP")
@@ -55,16 +57,16 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
 
         solver_settings["domain_size"].SetInt(self.domain_size)
         solver_settings["solver_type"].SetString(self.solver_type)
-        input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test.mdpa".format(self.__GetElementTopology()))
+        input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test".format(self.__GetElementTopology()))
         solver_settings["model_import_settings"]["input_filename"].SetString(input_file_name)
 
     def __SetPrintOfReferenceResults(self):
         processes = self.project_parameters["processes"]
         result_file_name = os.path.join("test_results", self.__GetProblemName()+"_results.json")
         if self.print_reference_results:
-            warn_msg  = 'The test "{}" is configured with writting reference results\n'.format(self.__GetProblemName())
+            warn_msg  = 'The test "{}" is configured for writing reference results\n'.format(self.__GetProblemName())
             warn_msg += 'This is on for setting up the test, the results are NOT checked!'
-            KM.Logger.PrintWarning("MeshMovingTestCase", "The test is configured")
+            KM.Logger.PrintWarning("WARNING MeshMovingTestCase", warn_msg)
             processes.AddValue("json_output", KM.Parameters("""[{
                 "python_module" : "json_output_process",
                 "kratos_module" : "KratosMultiphysics",
@@ -159,5 +161,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         return "mesh_moving_rectangle_" + self.solver_type + "_" + self.__GetElementTopology()
 
     def __SetLoggerSeverity(self):
-        if not self.print_logger_info:
+        if self.print_logger_info:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+        else:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
