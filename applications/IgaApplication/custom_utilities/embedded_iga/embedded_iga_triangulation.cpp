@@ -164,7 +164,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         // char trigenOpts[10] = "QDpza";
         // strcat(trigenOpts, buf); 
 
-        char trigenOpts[10] = "qpza10";
+        char trigenOpts[10] = "qpza0.1";
 
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
         triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));

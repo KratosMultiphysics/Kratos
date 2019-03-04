@@ -56,9 +56,11 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
             // Create Elements in skin_model_part
             for (unsigned int element_i = 0; element_i < polygon.size() - 1; ++element_i)
             {
-                rSkinModelPart.CreateNewElement("Element2D2N", element_id++, {{vertex_id, vertex_id + 1}}, prop);
+                rSkinModelPart.CreateNewElement("Element2D2N", 
+                    element_id++, {{vertex_id, vertex_id + 1}}, prop);
                 vertex_id++; 
             }
+            KRATOS_WATCH(rSkinModelPart)
         }
     }
 }
@@ -102,14 +104,13 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
             // create elements in skin_model_part
             for (unsigned int element_i = 0; element_i < triangulation_xyz.size(); ++element_i)
             {
-                rSkinModelPart.CreateNewElement("Element3D3N", element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, prop);
+                rSkinModelPart.CreateNewElement("Element3D3N", 
+                    element_id++, {{vertex_id, vertex_id + 1, vertex_id + 2}}, prop);
                 vertex_id += 3;
             }
-            KRATOS_WATCH(rSkinModelPart)
         }
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Helper Functions
@@ -151,7 +152,6 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
     }
     return coords; 
 }
-
 
 std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation()
 {
