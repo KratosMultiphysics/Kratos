@@ -64,6 +64,11 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
+    KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_FLAG);            /// If the flag will be assigned (this means removing all entities of the model part)
+    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_BELONGINGS);      /// If removing the belogings of the removed entity
+
     /// Pointer definition of EntitiesEraseProcess
     KRATOS_CLASS_POINTER_DEFINITION(EntitiesEraseProcess);
 
@@ -80,9 +85,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        const bool RemoveFromAllLevels = false,
-        const bool AssignFlag = false,
-        const bool RemoveBelongings = false
+        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ASSIGN_FLAG | NOT_REMOVE_BELONGINGS
         );
 
     /**
@@ -201,9 +204,7 @@ private:
 
     ModelPart& mrModelPart; /// The model part to be computed
 
-    bool mRemoveFromAllLevels = false;  /// If the entities will be removed from all levels
-    bool mAssignFlag = false;           /// If the flag will be assigned (this means removing all entities of the model part)
-    bool mRemoveBelongings = false;     /// If removing the belogings of the removed entity
+    Flags mrOptions;        /// Local flags
 
     ///@}
     ///@name Private Operators

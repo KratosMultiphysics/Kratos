@@ -23,16 +23,28 @@
 namespace Kratos
 {
 template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0));
+template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0, false));
+template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::ASSIGN_FLAG(Kratos::Flags::Create(1));
+template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_ASSIGN_FLAG(Kratos::Flags::Create(1, false));
+template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_BELONGINGS(Kratos::Flags::Create(2));
+template<class TEntity>
+const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_REMOVE_BELONGINGS(Kratos::Flags::Create(2, false));
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
     ModelPart& rModelPart,
-    const bool RemoveFromAllLevels,
-    const bool AssignFlag,
-    const bool RemoveBelongings
+    Flags Options
     )
     : mrModelPart(rModelPart),
-     mRemoveFromAllLevels(RemoveFromAllLevels),
-     mAssignFlag(AssignFlag),
-     mRemoveBelongings(RemoveBelongings)
+     mrOptions(Options)
 {
     KRATOS_TRY
 
@@ -56,9 +68,9 @@ EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Assign parameters
-    mRemoveFromAllLevels = ThisParameters["remove_from_all_levels"].GetBool();
-    mAssignFlag = ThisParameters["assign_flag"].GetBool();
-    mRemoveBelongings = ThisParameters["remove_belongings"].GetBool();
+    mrOptions.Set(REMOVE_FROM_ALL_LEVELS, ThisParameters["remove_from_all_levels"].GetBool());
+    mrOptions.Set(ASSIGN_FLAG, ThisParameters["assign_flag"].GetBool());
+    mrOptions.Set(REMOVE_BELONGINGS, ThisParameters["remove_belongings"].GetBool());
 
     KRATOS_CATCH("")
 }
@@ -72,10 +84,10 @@ void EntitiesEraseProcess<Node<3>>::Execute()
     KRATOS_TRY;
 
     // If we assign flags
-    if (mAssignFlag) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Nodes());
+    if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Nodes());
 
     // Remove nodes
-    if (mRemoveFromAllLevels) {
+    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
         mrModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     } else {
         mrModelPart.RemoveNodes(TO_ERASE);
@@ -93,17 +105,17 @@ void EntitiesEraseProcess<Element>::Execute()
     KRATOS_TRY;
 
     // If we assign flags
-    if (mAssignFlag) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Elements());
+    if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Elements());
 
     // Remove elements
-    if (mRemoveBelongings) {
-        if (mRemoveFromAllLevels) {
+    if (mrOptions.Is(REMOVE_BELONGINGS)) {
+        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
             AuxiliarModelPartUtilities(mrModelPart).RemoveElementsAndBelongings(TO_ERASE);
         } else {
             AuxiliarModelPartUtilities(mrModelPart).RemoveElementsAndBelongingsFromAllLevels(TO_ERASE);
         }
     } else {
-        if (mRemoveFromAllLevels) {
+        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
             mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
         } else {
             mrModelPart.RemoveElements(TO_ERASE);
@@ -122,17 +134,17 @@ void EntitiesEraseProcess<Condition>::Execute()
     KRATOS_TRY;
 
     // If we assign flags
-    if (mAssignFlag) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
+    if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
 
     // Remove conditions
-    if (mRemoveBelongings) {
-        if (mRemoveFromAllLevels) {
+    if (mrOptions.Is(REMOVE_BELONGINGS)) {
+        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
             AuxiliarModelPartUtilities(mrModelPart).RemoveConditionsAndBelongings(TO_ERASE);
         } else {
             AuxiliarModelPartUtilities(mrModelPart).RemoveConditionsAndBelongingsFromAllLevels(TO_ERASE);
         }
     } else {
-        if (mRemoveFromAllLevels) {
+        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
             mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
         } else {
             mrModelPart.RemoveConditions(TO_ERASE);
