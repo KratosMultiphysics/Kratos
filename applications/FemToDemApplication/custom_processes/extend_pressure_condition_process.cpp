@@ -26,12 +26,15 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 template <>
 void ExtendPressureConditionProcess<2>::Execute()
 {
-    // We search the neighbours for the 3 node generation of line loads
+    // We search the neighbours for the generation of line loads
     auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
     find_neigh.Execute();
+    auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    // Remove previous line loads
-    this->RemovePreviousLineLoads();
+    // Remove previous line loads-> Only the 1st iteration
+    if (r_process_info[ITER] == 1) {
+        this->RemovePreviousLineLoads();
+    }
 
     // Genearte the new ones
     this->CreateNewConditions();
@@ -84,12 +87,12 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
             }
             if (wet_nodes_counter == 2) {
                 this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
-                r_process_info[ITER] = 1;
+                r_process_info[ITER] = 10;
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (wet_nodes_counter == 3) {
                 this->GetPressureId(it_elem, pressure_id);
                 this->GenerateLineLoads3Nodes(pressure_id, maximum_condition_id, it_elem);
-                r_process_info[ITER] = 1;
+                r_process_info[ITER] = 10;
                 (*it_elem)->SetValue(SMOOTHING, true);
             }
         }
@@ -112,28 +115,32 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
     auto& r_geom = (*itElem)->GetGeometry();
 
-    const IndexType id_1 = NonWetLocalIdNode == 0 ? 0 : NonWetLocalIdNode == 1 ? 1 : 2;
-    const IndexType id_2 = NonWetLocalIdNode == 0 ? 1 : NonWetLocalIdNode == 1 ? 2 : 0;
-    const IndexType id_3 = NonWetLocalIdNode == 0 ? 2 : NonWetLocalIdNode == 1 ? 0 : 1;
+    // We check some things...
+    WeakPointerVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+        const IndexType id_1 = NonWetLocalIdNode == 0 ? 0 : NonWetLocalIdNode == 1 ? 1 : 2;
+        const IndexType id_2 = NonWetLocalIdNode == 0 ? 1 : NonWetLocalIdNode == 1 ? 2 : 0;
+        const IndexType id_3 = NonWetLocalIdNode == 0 ? 2 : NonWetLocalIdNode == 1 ? 0 : 1;
 
-    std::vector<IndexType> condition_nodes_id(2);
-    condition_nodes_id[0] = r_geom[id_3].Id();
-    condition_nodes_id[1] = r_geom[id_2].Id();
-	rMaximumConditionId++;
+        std::vector<IndexType> condition_nodes_id(2);
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
+        rMaximumConditionId++;
 
-    // Adding the nodes to the SubModelPart
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+        // Adding the nodes to the SubModelPart
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
 
-    // We create the Line Load Condition
-    const auto& r_line_condition = r_sub_model_part.CreateNewCondition(
-					                    "LineLoadCondition2D2N",
-					                    rMaximumConditionId,
-					                    condition_nodes_id,
-					                    p_properties, 0);
+        // We create the Line Load Condition
+        const auto& r_line_condition = r_sub_model_part.CreateNewCondition(
+                                            "LineLoadCondition2D2N",
+                                            rMaximumConditionId,
+                                            condition_nodes_id,
+                                            p_properties, 0);
 
-    // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_condition);
+        // Adding the conditions to the computing model part
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_condition);
+    }
 }
 
 /***********************************************************************************/
@@ -154,45 +161,52 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     WeakPointerVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
 
     IndexType alone_edge_local_id = 10;
+    int number_of_free_edges = 0, non_free_edge;
     for (IndexType i = 0; i < r_elem_neigb.size(); ++i) {
         if ((*itElem)->Id() == r_elem_neigb[i].Id()) {
             alone_edge_local_id = i;
+            number_of_free_edges++;
+        } else {
+            non_free_edge = i;
         }
     }
+
     KRATOS_ERROR_IF(alone_edge_local_id == 10) << "Unexpected error in extrapolating the pressure load..." << std::endl;
-    
-    const IndexType id_1 = alone_edge_local_id == 0 ? 0 : alone_edge_local_id == 1 ? 1 : 2;
-    const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
-    const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
 
-    std::vector<IndexType> condition_nodes_id(2);
-    auto& r_geom = (*itElem)->GetGeometry();
-    condition_nodes_id[0] = r_geom[id_2].Id();
-    condition_nodes_id[1] = r_geom[id_1].Id();
-    rMaximumConditionId++;
+    if (number_of_free_edges == 2) {
+        const IndexType id_1 = non_free_edge == 0 ? 0 : non_free_edge == 1 ? 1 : 2;
+        const IndexType id_2 = non_free_edge == 0 ? 1 : non_free_edge == 1 ? 2 : 0;
+        const IndexType id_3 = non_free_edge == 0 ? 2 : non_free_edge == 1 ? 0 : 1;
 
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_1].Id()));
+        std::vector<IndexType> condition_nodes_id(2);
+        auto& r_geom = (*itElem)->GetGeometry();
+        condition_nodes_id[0] = r_geom[id_2].Id();
+        condition_nodes_id[1] = r_geom[id_1].Id();
+        rMaximumConditionId++;
 
-    const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
-                                    "LineLoadCondition2D2N",
-                                    rMaximumConditionId,
-                                    condition_nodes_id,
-                                    p_properties, 0);
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_1].Id()));
 
-    condition_nodes_id[0] = r_geom[id_1].Id();
-    condition_nodes_id[1] = r_geom[id_3].Id();
-    rMaximumConditionId++;
-    const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
-                                    "LineLoadCondition2D2N",
-                                    rMaximumConditionId,
-                                    condition_nodes_id,
-                                    p_properties, 0);
+        const auto& r_line_cond1 = r_sub_model_part.CreateNewCondition(
+                                        "LineLoadCondition2D2N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
 
-    // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
+        condition_nodes_id[0] = r_geom[id_1].Id();
+        condition_nodes_id[1] = r_geom[id_3].Id();
+        rMaximumConditionId++;
+        const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
+                                        "LineLoadCondition2D2N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
+
+        // Adding the conditions to the computing model part
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
+    }
 }
 
 /***********************************************************************************/
