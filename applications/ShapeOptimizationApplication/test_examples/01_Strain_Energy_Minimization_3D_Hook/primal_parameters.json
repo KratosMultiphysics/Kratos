@@ -1,0 +1,93 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "3D_Hook",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_part_name" : "3D_Hook",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"     : "use_input_model_part"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_3D.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type"         : "amgcl",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 1
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_solid"],
+        "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
+        "rotation_dofs"                      : false
+    },
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Hook.support",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_scalar_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a scalar variable value over a condition",
+            "process_name"  : "AssignScalarVariableToConditionsProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Hook.SurfacePressure3D_load",
+                "variable_name"   : "NEGATIVE_FACE_PRESSURE",
+                "value"           : 1000
+            }
+        }]
+    },
+    "output_processes" : {
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VTKOutputProcess",
+            "Parameters"    : {
+                "model_part_name": "3D_Hook",
+                "file_format": "ascii",
+                "output_precision": 7,
+                "output_control_type": "step",
+                "output_frequency": 1.0,
+                "output_sub_model_parts": true,
+                "folder_name": "Primal_Results",
+                "save_output_files_in_folder": true,
+                "nodal_solution_step_data_variables": [],
+                "nodal_data_value_variables": ["DISPLACEMENT","REACTION"],
+                "element_data_value_variables": ["VON_MISES_STRESS"],
+                "condition_data_value_variables": []
+            }
+        }]
+    }
+}

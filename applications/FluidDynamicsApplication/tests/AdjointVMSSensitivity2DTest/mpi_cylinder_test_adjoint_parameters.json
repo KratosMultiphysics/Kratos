@@ -49,7 +49,7 @@
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
         "linear_solver_settings" : {
-            "solver_type" : "MultiLevelSolver"
+            "solver_type" : "multi_level"
         },
         "model_part_name"        : "MainModelPart",
         "volume_model_part_name" : "Parts_Fluid",

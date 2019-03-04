@@ -55,10 +55,10 @@ class Algorithm(object):
 
     def Initialize(self):
         self.structural_solution.Initialize() # Reading mdpa
-        self.dem_solution.Initialize() # Adding DEM variables and reading
-
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
+
+        self.dem_solution.Initialize() # Adding DEM variables and reading
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
