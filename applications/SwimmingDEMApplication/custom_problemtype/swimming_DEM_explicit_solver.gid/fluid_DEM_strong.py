@@ -433,28 +433,28 @@ if (ProjectParameters.embedded_option):
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
 if (ProjectParameters.inlet_option):
-    DEM_inlet_model_part = ModelPart("DEMInletPart")
+    dem_inlet_model_part = ModelPart("DEMInletPart")
     DEM_Inlet_filename = ProjectParameters.dem.problem_name + "DEM_Inlet"
-    DEMSolverStrategy.AddVariables(DEM_inlet_model_part, ProjectParameters.dem)
-    vars_man.AddNodalVariables(DEM_inlet_model_part, ProjectParameters.inlet_vars)
+    DEMSolverStrategy.AddVariables(dem_inlet_model_part, ProjectParameters.dem)
+    vars_man.AddNodalVariables(dem_inlet_model_part, ProjectParameters.inlet_vars)
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+    model_part_io_demInlet.ReadModelPart(dem_inlet_model_part)
 
     # setting up the buffer size:
-    DEM_inlet_model_part.SetBufferSize(1)
+    dem_inlet_model_part.SetBufferSize(1)
 
     # adding nodal degrees of freedom
-    DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
-    DEM_inlet_parameters = DEM_inlet_model_part.Properties
-    vars_man.AddingDEMProcessInfoVariables(ProjectParameters, DEM_inlet_model_part)
+    DEMSolverStrategy.AddDofs(dem_inlet_model_part)
+    DEM_inlet_parameters = dem_inlet_model_part.Properties
+    vars_man.AddingDEMProcessInfoVariables(ProjectParameters, dem_inlet_model_part)
 
-    for properties in DEM_inlet_model_part.Properties:
+    for properties in dem_inlet_model_part.Properties:
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
     # constructiong the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
-    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
+    DEM_inlet = DEM_Inlet(dem_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type)
 
 # creating problem directories
@@ -636,7 +636,7 @@ while (time <= end_time):
         # adding DEM elements by the inlet
 
         if (ProjectParameters.inlet_option):
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, dem_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.
 
         first_dem_iter = False
 

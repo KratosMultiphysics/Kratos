@@ -103,7 +103,7 @@ class Algorithm(object):
         self.spheres_model_part = self.disperse_phase_solution.spheres_model_part
         self.cluster_model_part = self.disperse_phase_solution.cluster_model_part
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
-        self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
+        self.dem_inlet_model_part = self.disperse_phase_solution.dem_inlet_model_part
 
     def SetFluidAlgorithm(self):
         import eulerian_fluid_ready_for_coupling
@@ -556,7 +556,7 @@ class Algorithm(object):
             self.fluid_model_part,
             self.spheres_model_part,
             self.cluster_model_part,
-            self.DEM_inlet_model_part)
+            self.dem_inlet_model_part)
         self.fluid_solution.SetFluidSolver()
         self.fluid_solution.fluid_solver.Initialize()
         self.fluid_solution.ActivateTurbulenceModel()
@@ -567,7 +567,7 @@ class Algorithm(object):
     def DispersePhaseInitialize(self):
         vars_man.AddNodalVariables(self.spheres_model_part, self.pp.dem_vars)
         vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
-        vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
+        vars_man.AddNodalVariables(self.dem_inlet_model_part, self.pp.inlet_vars)
         vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(
             self.pp,
             self.disperse_phase_solution.spheres_model_part)
@@ -826,9 +826,9 @@ class Algorithm(object):
             # Note that right now only inlets of a single type are possible.
             # This should be generalized.
             if self.pp.type_of_inlet == 'VelocityImposed':
-                self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             elif self.pp.type_of_inlet == 'ForceImposed':
-                self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+                self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
 
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
 

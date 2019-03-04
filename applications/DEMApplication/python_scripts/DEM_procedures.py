@@ -104,7 +104,7 @@ class SetOfModelParts(object):
         self.spheres_model_part = self.Get("SpheresPart")
         self.rigid_face_model_part = self.Get("RigidFacePart")
         self.cluster_model_part = self.Get("ClusterPart")
-        self.DEM_inlet_model_part = self.Get("DEMInletPart")
+        self.dem_inlet_model_part = self.Get("DEMInletPart")
         self.mapping_model_part = self.Get("MappingPart")
         self.contact_model_part = self.Get("ContactPart")
 
@@ -401,7 +401,7 @@ class Procedures(object):
 
         spheres_model_part = all_model_parts.Get('SpheresPart')
         cluster_model_part = all_model_parts.Get('ClusterPart')
-        DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
+        dem_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
 
         self.solver = weakref.proxy(solver)
@@ -414,9 +414,9 @@ class Procedures(object):
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-        self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-        self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
+        self.AddCommonVariables(dem_inlet_model_part, DEM_parameters)
+        self.AddSpheresVariables(dem_inlet_model_part, DEM_parameters)
+        self.solver.AddAdditionalVariables(dem_inlet_model_part, DEM_parameters)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -600,14 +600,14 @@ class Procedures(object):
     def AddMpiVariables(self, model_part):
         pass
 
-    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
+    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, dem_inlet_model_part, rigid_face_model_part):
         pass
 
     @classmethod
-    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
+    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, dem_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
         cluster_model_part.SetBufferSize(clusters_b_size)
-        DEM_inlet_model_part.SetBufferSize(inlet_b_size)
+        dem_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
 
     @classmethod
@@ -811,7 +811,7 @@ class Procedures(object):
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
 
-    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, creator_destructor):
+    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, creator_destructor):
 
         b_box_low = Array3()
         b_box_high = Array3()
@@ -823,7 +823,7 @@ class Procedures(object):
         b_box_high[2] = self.b_box_maxZ
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
+        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
     @classmethod
     def DeleteFiles(self):
@@ -973,13 +973,13 @@ class DEMFEMProcedures(object):
     def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
-        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
 
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
@@ -1023,12 +1023,12 @@ class DEMFEMProcedures(object):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
-        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
 
         self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step, is_time_to_print)
         self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step, is_time_to_print)
-        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(dem_inlet_model_part, time, dt, step, is_time_to_print)
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod

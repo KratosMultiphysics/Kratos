@@ -13,7 +13,7 @@ def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
-def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
+def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, dem_inlet_model_part):
 
     if VELOCITY_LAPLACIAN in project_parameters.fluid_vars:
         for node in fluid_model_part.Nodes:

@@ -331,33 +331,26 @@ class ExplicitStrategy(object):
         self._UpdateTimeInModelParts(time)
         return time
 
-    # def AdvanceInTime(self, step, time, is_time_to_print = False):
-    #     step += 1
-    #     time += self.dt
-    #     self._UpdateTimeInModelParts(time, step, is_time_to_print)
-    #     return step, time
-
-
     def _MoveAllMeshes(self, time, dt):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
 
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
-        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
         self._UpdateTimeInOneModelPart(spheres_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(cluster_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(DEM_inlet_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
         self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
 
     def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
@@ -402,10 +395,10 @@ class ExplicitStrategy(object):
     def AddDofs(self):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
 
-        model_part_list = [spheres_model_part, cluster_model_part, DEM_inlet_model_part]
+        model_part_list = [spheres_model_part, cluster_model_part, dem_inlet_model_part]
         variable_list = [VELOCITY_X, VELOCITY_Y, VELOCITY_Z, ANGULAR_VELOCITY_X, ANGULAR_VELOCITY_Y, ANGULAR_VELOCITY_Z]
         for model_part in model_part_list:
             for variable in variable_list:

@@ -133,7 +133,7 @@ class DEMPFEMAnalysis(BaseAnalysis):
             self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
         if self.pp.type_of_inlet == 'ForceImposed':
-            self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+            self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
 
     def SetPostUtils(self):
         general_model_part = self.fluid_solution.main_model_part

@@ -120,7 +120,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
         self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")
         self.cluster_model_part = self.model.CreateModelPart("ClusterPart")
-        self.DEM_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
+        self.dem_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
         self.mapping_model_part = self.model.CreateModelPart("MappingPart")
         self.contact_model_part = self.model.CreateModelPart("ContactPart")
 
@@ -128,7 +128,7 @@ class DEMAnalysisStage(AnalysisStage):
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
         mp_list.append(self.cluster_model_part)
-        mp_list.append(self.DEM_inlet_model_part)
+        mp_list.append(self.dem_inlet_model_part)
         mp_list.append(self.mapping_model_part)
         mp_list.append(self.contact_model_part)
 
@@ -278,7 +278,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
-        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
+        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
 
         self.KratosPrintInfo("Initializing Problem...")
 
@@ -395,7 +395,7 @@ class DEMAnalysisStage(AnalysisStage):
         DEM_Inlet_filename = self.GetInletFilename()
         if os.path.isfile(DEM_Inlet_filename+".mdpa"):
             model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+            model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
         else:
             self.KratosPrintInfo('No mdpa file found for DEM inlets. Continuing.')
 
@@ -429,11 +429,11 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):
-        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
+        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self): # deprecated
         self.InitializeSolutionStep()
@@ -497,7 +497,7 @@ class DEMAnalysisStage(AnalysisStage):
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
         self.model.DeleteModelPart(self.rigid_face_model_part.Name)
-        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.dem_inlet_model_part.Name)
         self.model.DeleteModelPart(self.mapping_model_part.Name)
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
@@ -514,7 +514,7 @@ class DEMAnalysisStage(AnalysisStage):
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
         self.model.DeleteModelPart(self.rigid_face_model_part.Name)
-        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.dem_inlet_model_part.Name)
         self.model.DeleteModelPart(self.mapping_model_part.Name)
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
@@ -540,7 +540,7 @@ class DEMAnalysisStage(AnalysisStage):
         del self.cluster_model_part
         del self.rigid_face_model_part
         del self.spheres_model_part
-        del self.DEM_inlet_model_part
+        del self.dem_inlet_model_part
         del self.mapping_model_part
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():

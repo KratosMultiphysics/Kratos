@@ -36,7 +36,7 @@ class Algorithm(BaseAlgorithm):
         self.AddExtraProcessInfoVariablesToFluid()
         self.ReadFluidModelParts()
         self.fluid_solution.SetFluidBufferSizeAndAddDofs()
-        SDP.AddExtraDofs(self.pp, self.fluid_model_part, self.disperse_phase_solution.spheres_model_part, self.disperse_phase_solution.cluster_model_part, self.disperse_phase_solution.DEM_inlet_model_part)
+        SDP.AddExtraDofs(self.pp, self.fluid_model_part, self.disperse_phase_solution.spheres_model_part, self.disperse_phase_solution.cluster_model_part, self.disperse_phase_solution.dem_inlet_model_part)
         self.fluid_solution.SetFluidSolver()
         self.fluid_solution.fluid_solver.Initialize()
         self.fluid_solution.ActivateTurbulenceModel()
