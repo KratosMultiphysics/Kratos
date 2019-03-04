@@ -59,10 +59,10 @@ namespace Kratos
 		const Vector& rShapeFunctionsValues)
 	{
 		// 
-		m_elastic_uniaxial_compressive_strength = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
+		m_elastic_uniaxial_compressive_strength = rMaterialProperties[ELASTIC_UNIAXIAL_STRENGTH_COMPRESSION];
 		KRATOS_WATCH(m_elastic_uniaxial_compressive_strength)
-		m_tensile_strength = rMaterialProperties[UNIAXIAL_STRESS_TENSION];
-		m_elastic_biaxial_compressive_strength = rMaterialProperties[BIAXIAL_STRESS_COMPRESSION];
+		m_tensile_strength = rMaterialProperties[ELASTIC_UNIAXIAL_STRENGTH_TENSION];
+		m_elastic_biaxial_compressive_strength = rMaterialProperties[ELASTIC_BIAXIAL_STRENGTH_COMPRESSION];
 		m_E = rMaterialProperties[YOUNG_MODULUS];
 		m_nu = rMaterialProperties[POISSON_RATIO];
 		m_Gf = rMaterialProperties[FRACTURE_ENERGY_TENSION];
