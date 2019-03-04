@@ -46,7 +46,6 @@
             "python_module" : "define_wake_process_2d",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name" : "Wake2D_Wake_Auto1",
                 "fluid_part_name" : "Parts_Parts_Auto1",
                 "upper_surface_model_part_name" : "Body2D_UpperSurface",
                 "lower_surface_model_part_name" : "Body2D_LowerSurface",

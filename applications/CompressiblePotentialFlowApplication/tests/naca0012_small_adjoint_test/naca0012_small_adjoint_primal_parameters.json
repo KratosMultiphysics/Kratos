@@ -46,7 +46,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Wake2D_Wake_Auto1",
                 "upper_surface_model_part_name" : "Body2D_UpperSurface",
                 "lower_surface_model_part_name" : "Body2D_LowerSurface",
                 "wake_direction"       : [1.0,0.0,0.0],
