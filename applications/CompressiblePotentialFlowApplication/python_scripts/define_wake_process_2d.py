@@ -1,8 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
-import itertools
-
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):

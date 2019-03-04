@@ -36,7 +36,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
-        
+
     def AddDofs(self):
         super(PotentialAdjointSolver, self).AddDofs()
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
