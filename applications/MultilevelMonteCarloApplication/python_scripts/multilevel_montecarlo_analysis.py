@@ -1,13 +1,11 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
-import time
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.MultilevelMonteCarloApplication as Poisson
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
@@ -15,32 +13,57 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 # Importing the base class
 from analysis_stage import AnalysisStage
 
-# Import pycompss
-from pycompss.api.task import task
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import *
+# Import packages
+import numpy as np
+import time
 
 # Import Continuation Multilevel Monte Carlo library
-import cmlmc as mlmc
+import cmlmc_utilities as mlmc
+
+# Import refinement library
+import adaptive_refinement_utilities as refinement
+
+# Import cpickle to pickle the serializer
+try:
+    import cpickle as pickle  # Use cPickle on Python 2.7
+except ImportError:
+    import pickle
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
+
+
+'''Adapt the following class depending on the problem, deriving the MultilevelMonteCarloAnalysis class from the problem of interest'''
+
+'''
+This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+-lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
+                    f= -432*(x**2+y**2-x-y)
+where xi is a Beta(2,6) random variable, and computes statistic of the QoI
+Q = int_(0,1)^2 u(x,y)dxdy
+'''
+
 
 class MultilevelMonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
-
-
-    def __init__(self,model,parameters,sample):
+    def __init__(self,input_model,input_parameters,sample):
         self.sample = sample
-        super(MultilevelMonteCarloAnalysis,self).__init__(model,parameters)
+        super(MultilevelMonteCarloAnalysis,self).__init__(input_model,input_parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-            
+
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
-        solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-        self.LaplacianSolver = solver
-        return self.LaplacianSolver
-    
+        return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
+
     def _GetSimulationName(self):
         return "Multilevel Monte Carlo Analysis"
-    
+
     '''Introduce here the stochasticity in the right hand side defining the forcing function and apply the stochastic contribute'''
     def ModifyInitialProperties(self):
         for node in self.model.GetModelPart("MLMCLaplacianModelPart").Nodes:
@@ -50,18 +73,13 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
             forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
-    
-    
-###########################################################
-######## END OF CLASS MULTILEVELMONTECARLOANALYSIS ########
-###########################################################
-
 
 '''
 function generating the random sample
-here the sample has a beta distribution with parameters alpha = 2.0 and beta = 6.0
 '''
-def GenerateBetaSample(alpha,beta):
+def GenerateSample():
+    alpha = 2.0
+    beta = 6.0
     number_samples = 1
     sample = np.random.beta(alpha,beta,number_samples)
     return sample
@@ -72,59 +90,199 @@ function evaluating the QoI of the problem: int_{domain} TEMPERATURE(x,y) dx dy
 right now we are using the midpoint rule to evaluate the integral: improve!
 '''
 def EvaluateQuantityOfInterest(simulation):
+    '''TODO: in future once is ready: declare and initialize NODAL_AREA as non historical variable:
+    this way I only store the values in the current nodes and not also in the buffer'''
+    # KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, simulation._GetSolver().main_model_part.Nodes)
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
         Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        #print("NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
+        # print(node.Id,"NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
     return Q
 
 
 '''
-function executing the problem
+function called in the main returning a future object (the result class) and an integer (the finer level)
 input:
-        model_part_file_name : path of the model part file (still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file)
-        parameter_file_name  : path of the Project Parameters file
-        sample               : stochastic random variable
+        finest_level              : current Multilevel MOnte Carlo level we are solving
+        pickled_coarse_model      : pickled model
+        pickled_coarse_parameters : pickled parameters
+        size_meshes               : mesh sizes for all levels
 output:
-        QoI                  : Quantity of Interest
-still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file
+        MultilevelMonteCarloResults class : class of the simulation results
+        finest_level                      : level of the current MLMC simulation
 '''
-# @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
-@task(parameter_file_name=FILE_IN, returns=1)
-def execution_task(parameter_file_name, sample):
-    with open(parameter_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()
-    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    simulation = MultilevelMonteCarloAnalysis(model,local_parameters,sample)
-    simulation.Run()
-    QoI = EvaluateQuantityOfInterest(simulation)
-    return QoI
-    
+def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement):
+    return ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement),finest_level
+
 
 '''
-function executing the problem for sample = 1.0
+function evaluating the QoI and the cost of simulation, computing the mesh of level finest_level
+refining recursively from the coarsest mesh
 input:
-        model_part_file_name  : path of the model part file
+        finest_level              : current Multilevel MOnte Carlo level we are solving
+        pickled_coarse_model      : pickled model
+        pickled_coarse_parameters : pickled parameters
+        size_meshes               : mesh sizes for all levels
+output:
+        mlmc_results_class : QoI         : list of QoI for all levels computed in the current simulation
+                             finer_level : finest level
+                             time_ML     : list of MLMC time for all levels computed in the current simulation
+'''
+@ExaquteTask(returns=1)
+def ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement):
+    '''unpickle model and build Kratos Model object'''
+    model_serializer = pickle.loads(pickled_coarse_model)
+    current_model = KratosMultiphysics.Model()
+    model_serializer.Load("ModelSerialization",current_model)
+    del(model_serializer)
+    '''unpickle parameters and build Kratos Parameters object'''
+    serialized_parameters = pickle.loads(pickled_coarse_parameters)
+    current_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",current_parameters)
+    del(serialized_parameters)
+    '''unpickle metric and remesh refinement parameters and build Kratos Parameters objects'''
+    settings_metric_refinement_serializer = pickle.loads(pickled_settings_metric_refinement)
+    settings_remesh_refinement_serializer = pickle.loads(pickled_settings_remesh_refinement)
+    current_settings_metric_refinement = KratosMultiphysics.Parameters()
+    current_settings_remesh_refinement = KratosMultiphysics.Parameters()
+    settings_metric_refinement_serializer.Load("MetricRefinementParametersSerialization",current_settings_metric_refinement)
+    settings_remesh_refinement_serializer.Load("RemeshRefinementParametersSerialization",current_settings_remesh_refinement)
+    del(settings_metric_refinement_serializer,settings_remesh_refinement_serializer)
+    '''generate the sample'''
+    sample = GenerateSample()
+    '''initialize the MultilevelMonteCarloResults class and prepare the results'''
+    mlmc_results_class = mlmc.MultilevelMonteCarloResults()
+    QoI = []
+    start_MLMC_time = time.time()
+    end_MLMC_time = []
+    if(finest_level == 0):
+        simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
+        simulation.Run()
+        QoI.append(EvaluateQuantityOfInterest(simulation))
+        del(simulation)
+        end_MLMC_time.append(time.time())
+    else:
+        for lev in range(finest_level+1):
+            simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
+            simulation.Run()
+            QoI.append(EvaluateQuantityOfInterest(simulation))
+            end_MLMC_time.append(time.time())
+            '''refine if level < finest level exploiting the solution just computed'''
+            if (lev < finest_level):
+                '''refine the model Kratos object'''
+                model_refined = refinement.compute_refinement_hessian_metric(simulation,size_meshes[lev+1],size_meshes[lev],current_settings_metric_refinement,current_settings_remesh_refinement)
+                '''initialize the model Kratos object'''
+                simulation = MultilevelMonteCarloAnalysis(model_refined,current_parameters,sample)
+                simulation.Initialize()
+                '''update model Kratos object'''
+                current_model = simulation.model
+            del(simulation)
+    '''prepare results of the simulation in the MultilevelMonteCarloResults class'''
+    mlmc_results_class.finer_level = finest_level
+    for lev in range(finest_level+1):
+        mlmc_results_class.time_ML.append(end_MLMC_time[lev]-start_MLMC_time)
+        mlmc_results_class.QoI.append(QoI[lev])
+    return mlmc_results_class
+
+
+'''
+function serializing and pickling the model and the parameters of the problem
+the idea is the following:
+i)   from Model/Parameters Kratos object to StreamSerializer Kratos object
+ii)  from StreamSerializer Kratos object to pickle string
+iii) from pickle string to StreamSerializer Kratos object
+iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
+input:
         parameter_file_name   : path of the Project Parameters file
 output:
-        ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
+        pickled_model      : model serializaton
+        pickled_parameters : project parameters serialization
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
-def exact_execution_task(model_part_file_name, parameter_file_name):
+@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
+def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()      
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    sample = 1.0
-    simulation = MultilevelMonteCarloAnalysis(model,local_parameters, sample)
-    simulation.Run()
-    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
-    # return simulation,ExactExpectedValueQoI
-    return ExactExpectedValueQoI
+    local_parameters = parameters
+    model = KratosMultiphysics.Model()
+    fake_sample = GenerateSample()
+    '''initialize'''
+    simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
+    simulation.Initialize()
+    '''save model and parameters as StreamSerializer Kratos objects'''
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    serialized_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
+    '''pickle model and parameters'''
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    pickled_parameters = pickle.dumps(serialized_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    print("\n","#"*50," SERIALIZATION MODEL AND PARAMETERS COMPLETED ","#"*50,"\n")
+    return pickled_model,pickled_parameters
+
+'''
+function serializing and pickling the metric and remeshing parameters of the problem
+the idea is the following:
+i)   from Parameters Kratos object to StreamSerializer Kratos object
+ii)  from StreamSerializer Kratos object to pickle string
+iii) from pickle string to StreamSerializer Kratos object
+iv)  from StreamSerializer Kratos object to Parameters Kratos object
+input:
+        metric_refinement_parameters    : Kratos Parameters object
+        remeshing_refinement_parameters : Kratos Parameters object
+output:
+        pickled_metric_refinement_parameters    : project parameters serialization
+        pickled_remeshing_refinement_parameters : project parameters serialization
+'''
+def SerializeRefinementParameters(metric_refinement_parameters,remeshing_refinement_parameters):
+    '''save parameters as StreamSerializer Kratos objects'''
+    serialized_metric_refinement_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_metric_refinement_parameters.Save("MetricRefinementParametersSerialization",metric_refinement_parameters)
+    serialized_remesh_refinement_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_remesh_refinement_parameters.Save("RemeshRefinementParametersSerialization",remeshing_refinement_parameters)
+    '''pickle parameters'''
+    pickled_metric_refinement_parameters = pickle.dumps(serialized_metric_refinement_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    pickled_remesh_refinement_parameters = pickle.dumps(serialized_remesh_refinement_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    print("\n","#"*50," SERIALIZATION REFINEMENT PARAMETERS COMPLETED ","#"*50,"\n")
+    return pickled_metric_refinement_parameters,pickled_remesh_refinement_parameters
+
+'''
+function executing the refinement of the problem
+input:
+        pickled_model_coarse : serialization of the model with coarser model part
+        pickled_parameters   : serialization of the Project Parameters
+        min_size             : minimum size of the refined model part
+        max_size             : maximum size of the refined mesh
+output:
+        QoI                   : Quantity of Interest
+        pickled_model_refined : serialization of the model with refined model part
+'''
+@ExaquteTask(returns=2)
+def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
+    fake_sample = 1.0
+    '''overwrite the old model serializer with the unpickled one'''
+    model_serializer_coarse = pickle.loads(pickled_model_coarse)
+    model_coarse = KratosMultiphysics.Model()
+    model_serializer_coarse.Load("ModelSerialization",model_coarse)
+    del(model_serializer_coarse)
+    '''overwrite the old parameters serializer with the unpickled one'''
+    serialized_parameters = pickle.loads(pickled_parameters)
+    parameters_refinement = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",parameters_refinement)
+    del(serialized_parameters)
+    simulation_coarse = MultilevelMonteCarloAnalysis(model_coarse,parameters_refinement,fake_sample)
+    simulation_coarse.Run()
+    QoI =  EvaluateQuantityOfInterest(simulation_coarse)
+    '''refine'''
+    model_refined = refinement.compute_refinement_hessian_metric(simulation_coarse,min_size,max_size)
+    '''initialize'''
+    simulation = MultilevelMonteCarloAnalysis(model_refined,parameters_refinement,fake_sample)
+    simulation.Initialize()
+    '''serialize model and pickle it'''
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    pickled_model_refined = pickle.dumps(serialized_model, 2)
+    return QoI,pickled_model_refined
 
 
 '''
@@ -135,340 +293,89 @@ input :
 output :
         relative_error        : relative error
 '''
-@task(returns=1)
-def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
+@ExaquteTask(returns=1)
+def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
 
 
 if __name__ == '__main__':
-    # from sys import argv
-    
-    # if len(argv) > 2:
-    #     err_msg = 'Too many input arguments!\n'
-    #     err_msg += 'Use this script in the following way:\n'
-    #     err_msg += '- With default parameter file (assumed to be called "ProjectParameters.json"):\n'
-    #     err_msg += '    "python montecarlo_laplacian_analysis.py"\n'
-    #     err_msg += '- With custom parameter file:\n'
-    #     err_msg += '    "python montecarlo_laplacian_analysis.py <my-parameter-file>.json"\n'
-    #     raise Exception(err_msg)
 
-    # if len(argv) == 2: # ProjectParameters is being passed from outside
-    #     parameter_file_name = argv[1]
-    # else: # using default name
-    #     parameter_file_name = "../tests/Level0/ProjectParameters.json"
+    '''set the ProjectParameters.json path'''
+    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
+    '''create a serialization of the model and of the project parameters'''
+    pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
+    '''customize setting parameters of the ML simulation'''
+    settings_ML_simulation = KratosMultiphysics.Parameters("""
+    {
+        "tol0"                            : 0.25,
+        "tolF"                            : 0.1,
+        "cphi"                            : 1.0,
+        "number_samples_screening"        : 15,
+        "Lscreening"                      : 2,
+        "Lmax"                            : 4,
+        "initial_mesh_size"               : 0.5
+    }
+    """)
+    '''customize setting parameters of the metric of the adaptive refinement utility'''
+    settings_metric_refinement = KratosMultiphysics.Parameters("""
+        {
+            "hessian_strategy_parameters"              :{
+                    "metric_variable"                  : ["TEMPERATURE"],
+                    "estimate_interpolation_error"     : false,
+                    "interpolation_error"              : 0.004
+            },
+            "anisotropy_remeshing"              : true,
+            "anisotropy_parameters":{
+                "reference_variable_name"          : "TEMPERATURE",
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
+                "boundary_layer_max_distance"      : 1.0,
+                "interpolation"                    : "Linear"
+            },
+            "local_gradient_variable"           : "TEMPERATURE"
+        }
+    """)
+    '''customize setting parameters of the remesh of the adaptive refinement utility'''
+    settings_remesh_refinement = KratosMultiphysics.Parameters("""
+        {
+            "echo_level"                       : 0
+        }
+    """)
+    pickled_settings_metric_refinement,pickled_settings_remesh_refinement = SerializeRefinementParameters(settings_metric_refinement,settings_remesh_refinement)
 
-    '''
-    set the ProjectParameters.json path in the parameter_file_name list
-    '''
-    parameter_file_name =[]
-    parameter_file_name.append("../tests/Level0/ProjectParameters.json")
-    with open(parameter_file_name[0],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_0 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level1/ProjectParameters.json")
-    with open(parameter_file_name[1],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_1 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level2/ProjectParameters.json")
-    with open(parameter_file_name[2],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_2 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level3/ProjectParameters.json")
-    with open(parameter_file_name[3],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_3 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level4/ProjectParameters.json")
-    with open(parameter_file_name[4],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_4 = parameters # in case there are more parameters file, we rename them
-    L_max = len(parameter_file_name) - 1
-    print("Maximum number of levels = ",L_max)
+    '''contruct MultilevelMonteCarlo class'''
+    mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
+    ''''start screening phase'''
+    for lev in range(mlmc_class.current_number_levels+1):
+        for instance in range (mlmc_class.number_samples[lev]):
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+    '''finalize screening phase'''
+    mlmc_class.FinalizeScreeningPhase()
+    mlmc_class.ScreeningInfoScreeningPhase()
+    '''start MLMC phase'''
+    while mlmc_class.convergence is not True:
+        '''initialize MLMC phase'''
+        mlmc_class.InitializeMLMCPhase()
+        mlmc_class.ScreeningInfoInitializeMLMCPhase()
+        '''MLMC execution phase'''
+        for lev in range (mlmc_class.current_number_levels+1):
+            for instance in range (mlmc_class.difference_number_samples[lev]):
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+        '''finalize MLMC phase'''
+        mlmc_class.FinalizeMLMCPhase()
+        mlmc_class.ScreeningInfoFinalizeMLMCPhase()
 
-    '''
-    evaluate the exact expected value of Q (sample = 1.0)
-    need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
-    '''
-    ExactExpectedValueQoI = exact_execution_task(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
-    # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    # error = 0.0
-    # L2norm_analyticalsolution = 0.0
-    # for node in simulation._GetSolver().main_model_part.Nodes:
-    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     error = error + local_error
-    #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
-    # error = np.sqrt(error)
-    # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
-    # print("\n L2 relative error = ", error/L2norm_analyticalsolution,"\n")
-    
-    '''define setting parameters of the ML simulation'''
-    settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0, 25, 2]
-    '''
-    k0   = settings_ML_simulation[0] # Certainty Parameter 0 rates
-    k1   = settings_ML_simulation[1] # Certainty Parameter 1 rates
-    r1   = settings_ML_simulation[2] # Cost increase first iterations C-MLMC
-    r2   = settings_ML_simulation[3] # Cost increase final iterations C-MLMC
-    tol0 = settings_ML_simulation[4] # Tolerance iter 0
-    tolF = settings_ML_simulation[5] # Tolerance final
-    cphi = settings_ML_simulation[6] # Confidence on tolerance
-    N0   = settings_ML_simulation[7] # Number of samples for iter 0
-    L0   = settings_ML_simulation[8] # Number of levels for iter 0
-    '''
+    print("\niterations = ",mlmc_class.current_iteration,\
+    "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
 
-    difference_QoI = [] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
-    time_ML = []        # list containing the time to compute the level=l simulations
-    L_screening = settings_ML_simulation[8] # recall the levels start from zero
-    number_samples = []
-    for lev in range(0,L_screening+1):
-        number_samples.append(settings_ML_simulation[7])
+    '''### OBSERVATIONS ###
 
-    if (L_screening+1) > len(difference_QoI):
-        for i in range (0,(L_screening+1)-len(difference_QoI)):
-            difference_QoI.append([]) # append a list in Y_l for every level
-            time_ML.append([])
-    print("\n ######## SCREENING PHASE ######## \n")
-    
-    for level in range (0,(L_screening+1)):
-        for instance in range (0,number_samples[level]):
-            sample = GenerateBetaSample(2.0,6.0) # generate a random variable with beta pdf, alpha = 2.0 and beta = 6.0
-            run_results = []
-            start_time_ML = time.time() # I can insert this operation in "GenerateBetaSample", or better to create a new function?
+    compss: between different tasks you don't need compss_wait_on/get_value_from_remote, it's pycompss who handles everything automatically
+    if the output of a task is given directly to the input of an other, pycompss handles everything
 
-            if level == 0: # evaluating QoI in the coarsest grid
-                run_results.append(execution_task(parameter_file_name[level], sample)) # append to run_results QoI for the coarsest grid
-                time_MLi = time.time() - start_time_ML # create a new function?
-                # difference_QoI[level].append(run_results[-1])
-                difference_QoI[level] = np.append(difference_QoI[level],run_results[-1]) # with list[-1] we read the last element of the list
-                # time_ML[level].append(time_MLi)
-                time_ML[level] = np.append(time_ML[level],time_MLi)
-                
-            else:
-                for cycle_level in range (level-1,level+1):
-                    run_results.append(execution_task(parameter_file_name[cycle_level], sample))
-                  
-                time_MLi = time.time() - start_time_ML
-                # difference_QoI[level].append(run_results[-1] - run_results[-2])
-                difference_QoI[level] = np.append(difference_QoI[level],run_results[-1] - run_results[-2])
-                # time_ML[level].append(time_MLi)
-                time_ML[level] = np.append(time_ML[level],time_MLi)
-       
-    '''compute {E^(MC)[Y_l]} = 1/N * sum_{i=1}^{N} Y_l(sample(i))
-    compute {V^(MC)[Y_l]}'''
-    mean_difference_QoI = []
-    if len(mean_difference_QoI) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(mean_difference_QoI)):
-            mean_difference_QoI.append([]) # append a list in E^(MC)[Y_l] for every level
-    variance_difference_QoI = []
-    if len(variance_difference_QoI) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(variance_difference_QoI)):
-            variance_difference_QoI.append([]) # append a list in Var^(MC)[Y_l] for every level
-    second_moment_difference_QoI = []
-    if len(second_moment_difference_QoI) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(second_moment_difference_QoI)):
-            second_moment_difference_QoI.append([]) # append a list in Var^(MC)[Y_l] for every level
-    
-    for level in range (0,L_screening+1):
-        for i in range(0,number_samples[level]):
-            nsam = i+1
-            mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M_VAR(difference_QoI[level][i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
-    # print("list Y_l",difference_QoI)
-    print("mean Y_l",mean_difference_QoI)
-    print("sample variance Y_l",variance_difference_QoI)
+    compss: set absolute path when launching with compss
 
-    '''compute {E^(MC)[time_ML_l]} = 1/N * sum_{i=1}^{N} time_ML_l(sample(i))
-    compute {V^(MC)[time_ML_l]}'''
-    mean_time_ML = []
-    if len(mean_time_ML) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(mean_time_ML)):
-            mean_time_ML.append([]) # append a list in E^(MC)[Y_l] for every level
-    variance_time_ML = []
-    if len(variance_time_ML) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(variance_time_ML)):
-            variance_time_ML.append([]) # append a list in Var^(MC)[Y_l] for every level
-    second_moment_time_ML = []
-    if len(second_moment_time_ML) < (L_screening +1):
-        for i in range (0,(L_screening+1)-len(second_moment_time_ML)):
-            second_moment_time_ML.append([])
-
-    for level in range (0,L_screening+1):    
-        for i in range(0,number_samples[level]):
-            nsam = i+1
-            mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M_VAR(time_ML[level][i],mean_time_ML[level],second_moment_time_ML[level],nsam)
-    # print("list time ML",time_ML)
-    print("mean time ML",mean_time_ML)
-    print("sample variance time ML",variance_time_ML)
-
-    '''compute mesh parameter for each mesh, calling nDoF with a little abuse of notation'''
-    nDoF = []
-    for level in range (0,L_max + 1):
-        nDoF.append(mlmc.Nf_law(level))
-    
-    '''compute parameters by least square fit to estimate Bayesian VAR'''
-    ratesLS = mlmc.compute_ratesLS(mean_difference_QoI,variance_difference_QoI,mean_time_ML,nDoF[0:L_screening+1])
-    # print("rates LS computed through least square fit = ",ratesLS)
-
-    '''compute Bayesian VAR V^c[Y_l]'''
-    BayesianVariance = mlmc.EstimateBayesianVariance(mean_difference_QoI,variance_difference_QoI,settings_ML_simulation,ratesLS,nDoF,number_samples,L_screening)
-    print("Bayesian Variance estimated = ", BayesianVariance)
-    
-    '''compute i_E, number of iterations'''
-    # iE_cmlmc = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
-    iE_cmlmc = mlmc.compute_iE_cmlmc(settings_ML_simulation)
-    print("\nnumber of iterations we are going to perform for CMLMC = ",iE_cmlmc)
-
-    convergence = False
-    iter_MLMC = 1
-    L_old = L_screening
-
-    while convergence is not True:
-        print("\n ######## CMLMC iter = ",iter_MLMC,"######## \n")
-        '''Compute Tolerance for the iteration i
-        eventually, we may still run the algorithm for a few more iterations wrt iE_cmlmc'''
-        tol_i = mlmc.compute_tolerance_i(settings_ML_simulation,iE_cmlmc,iter_MLMC)
-        
-        '''Compute Optimal Number of Levels L_i'''
-        # print("Bayesian variance before computing optimal number of levels",BayesianVariance)
-        L_opt, BayesianVariance, L_old = mlmc.compute_levels(tol_i,number_samples,ratesLS,nDoF,BayesianVariance,
-                                                        mean_difference_QoI,variance_difference_QoI,settings_ML_simulation,L_max,L_old)
-        print("optimal number of levels for current iteration = ",L_opt,"previous number of levels = ",L_old)
-        print("Bayesian variance after new optimal number of levels = ",BayesianVariance)
-        
-        '''#################################################################
-        # observation: levels start from level 0                           #
-        #              length arrays starts from 1                         #
-        # then we have a difference of 1 between length arrays and levels  #
-        # current_level = len(number_samples) - 1                          #
-        # or                                                               #
-        # current_level = len(difference_value) - 1                        #
-        #################################################################'''
-
-        '''compute new theta splitting,
-        since we updated the number of levels we have a new M_l
-        theta_i is a scalar'''
-        theta_i = mlmc.theta_model(ratesLS,tol_i,nDoF[L_opt])
-        if theta_i < 0.0 or theta_i > 1.0:
-            raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
-        print("splitting parameter theta = ",theta_i)
-
-        '''compute number of samples according to bayesian variance and theta splitting parameters'''
-        number_samples, difference_number_samples, previous_number_samples = mlmc.compute_number_samples(L_opt,BayesianVariance,ratesLS,theta_i,tol_i,nDoF,number_samples,settings_ML_simulation)
-        # difference_number_samples = [2,2,2,2]
-        # number_samples = [4,4,4,2]
-
-        '''run hierarchy using optimal levels and optimal number of samples
-        I use the "old" difference_QoI, and append the new values for the added samples,
-        or append at the end for the new level'''
-        if (L_opt+1) > len(difference_QoI):
-            for i in range (0,(L_opt+1)-len(difference_QoI)):
-                difference_QoI.append([]) # append a list in Y_l for the new level
-        if (L_opt+1) > len(time_ML):
-            for i in range (0,(L_opt+1)-len(time_ML)):
-                time_ML.append([]) # append a list in time_ML for the new level
-        for level in range (0,L_opt+1):
-            for instance in range (0,difference_number_samples[level]):
-                sample = GenerateBetaSample(2.0,6.0)
-                run_results = []
-                start_time_ML = time.time()
-                if level == 0: # evaluating QoI in the coarsest grid
-                    run_results.append(execution_task(parameter_file_name[level], sample)) # append to run_results QoI for the coarsest grid
-                    time_MLi = time.time() - start_time_ML
-                    # difference_QoI[level].append(run_results[-1]) # with list[-1] we read the last element of the list
-                    # time_ML[level].append(time_MLi)
-                    difference_QoI[level] = np.append(difference_QoI[level],run_results[-1])
-                    time_ML[level] = np.append(time_ML[level],time_MLi)
-                else:
-                    for cycle_level in range (level-1,level+1):
-                        run_results.append(execution_task(parameter_file_name[cycle_level], sample))
-                    time_MLi = time.time() - start_time_ML
-                    # difference_QoI[level].append(run_results[-1] - run_results[-2])
-                    # time_ML[level].append(time_MLi)
-                    difference_QoI[level] = np.append(difference_QoI[level],run_results[-1] - run_results[-2])
-                    time_ML[level] = np.append(time_ML[level],time_MLi)
-
-        # print("iteration",iter_MLMC,"Y_l",difference_QoI)
-        # print("iteration",iter_MLMC,"time ML",time_ML)
-    
-        '''compute mean, second moment, sample variance for Y_l'''
-        mean_difference_QoI = mean_difference_QoI[0:L_old+1]
-        variance_difference_QoI = variance_difference_QoI[0:L_old+1]
-        second_moment_difference_QoI = second_moment_difference_QoI[0:L_old+1]
-        if len(mean_difference_QoI) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(mean_difference_QoI)):
-                mean_difference_QoI.append([]) # append a list in E^(MC)[Y_l] for every level
-        if len(variance_difference_QoI) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(variance_difference_QoI)):
-                variance_difference_QoI.append([]) # append a list in Var^(MC)[Y_l] for every level
-        if len(second_moment_difference_QoI) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(second_moment_difference_QoI)):
-                second_moment_difference_QoI.append([])
-
-        for level in range (0,L_opt+1):
-            for i in range(0,difference_number_samples[level]):
-                nsam = previous_number_samples[level] + (i+1)
-                mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M_VAR(
-                    difference_QoI[level][previous_number_samples[level]+i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
-        
-        print("updated mean Y_l",mean_difference_QoI)
-        print("updated sample variance Y_l",variance_difference_QoI)
-
-        '''now compute mean, second moment, sample variance for time ML'''
-        mean_time_ML = mean_time_ML[0:L_old+1]
-        variance_time_ML = variance_time_ML[0:L_old+1]
-        second_moment_time_ML = second_moment_time_ML[0:L_old+1]
-        if len(mean_time_ML) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(mean_time_ML)):
-                mean_time_ML.append([]) # append a list in E^(MC)[time_ML] for every level
-        if len(variance_time_ML) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(variance_time_ML)):
-                variance_time_ML.append([]) # append a list in Var^(MC)[time_ML] for every level
-        if len(second_moment_time_ML) < (L_opt+1):
-            for i in range (0,(L_opt+1)-len(second_moment_time_ML)):
-                second_moment_time_ML.append([])
-
-        for level in range (0,L_opt+1):
-            for i in range(0,difference_number_samples[level]):
-                nsam = previous_number_samples[level] + (i+1)
-                mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M_VAR(
-                    time_ML[level][previous_number_samples[level]+i],mean_time_ML[level],second_moment_time_ML[level],nsam)
-        
-        print("updated mean time ML",mean_time_ML)
-        print("updated sample variance time ML",variance_time_ML)
-
-        '''compute E^MLMC [QoI]'''
-        mean_mlmc_QoI = mlmc.compute_mean_mlmc_QoI(mean_difference_QoI)
-        print("updated mean MLMC QoI = ",mean_mlmc_QoI)
-
-        '''estimation problem parameters for Bayesian updates
-        compute parameters by least square fit to estimate Bayesian VAR'''
-        ratesLS = mlmc.compute_ratesLS(mean_difference_QoI,variance_difference_QoI,mean_time_ML,nDoF[0:L_opt+1])
-
-        '''compute Bayesian VAR V^c[Y_l]
-        I compute from zero, since I have new ratesLS'''
-        BayesianVariance = mlmc.EstimateBayesianVariance(mean_difference_QoI,variance_difference_QoI,settings_ML_simulation,ratesLS,nDoF,number_samples,L_opt)
-        print("updated Bayesian Variance estimated = ", BayesianVariance)
-
-        '''compute total error of the MLMC simulation'''
-        TErr = mlmc.compute_total_error_MLMC(mean_difference_QoI,number_samples,L_opt,BayesianVariance,settings_ML_simulation)
-        print("total error TErr of current iteration",TErr)
-
-        L_old = L_opt
-
-        '''go out of the cycle if: i) iter >= iE_cmlmc
-                                             ii) TErr < tolerance_iter'''
-        if iter_MLMC >= iE_cmlmc and TErr < tol_i:
-            convergence = True
-        else:
-            iter_MLMC = iter_MLMC + 1
-
-    print("rates computed through LS = ",ratesLS)        
-    relative_error = compare_mean(mean_mlmc_QoI,ExactExpectedValueQoI)
-    # mean_mlmc_QoI = compss_wait_on(mean_mlmc_QoI)
-    # ExactExpectedValueQoI = compss_wait_on(ExactExpectedValueQoI)
-    # relative_error = compss_wait_on(relative_error)
-    print("\niterations = ",iter_MLMC,"total error TErr computed = ",TErr,"mean MLMC QoI = ",mean_mlmc_QoI,"exact mean = ",ExactExpectedValueQoI)
-    print("relative error: ",relative_error,"\n")
-
-    '''### OBSERVATION ###
-    between different tasks you don't need compss_wait_on, it's pycompss who handles everything automatically
-    if the output of a task is given directly to the input of an other, pycompss handles everything'''
+    MmgProcess: need to use conditions in the model part to preserve the boundary conditions in the refinement process
+    The submodelpart: Subpart_Boundary contains only nodes and no geometries (conditions/elements).
+    It is not guaranteed that the submodelpart will be preserved.
+    PLEASE: Add some "dummy" conditions to the submodelpart to preserve it'''

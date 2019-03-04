@@ -14,13 +14,9 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define_python.h"
-
-//Trilinos includes
-#include "mpi.h"
 
 // Project includes
 #include "custom_utilities/zoltan_partition_utility.h"

@@ -125,7 +125,6 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;

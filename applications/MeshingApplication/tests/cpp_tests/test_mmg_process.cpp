@@ -143,7 +143,6 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
 

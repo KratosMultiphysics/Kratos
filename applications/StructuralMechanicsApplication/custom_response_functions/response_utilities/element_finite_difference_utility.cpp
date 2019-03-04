@@ -22,6 +22,7 @@
 namespace Kratos
 {
     void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
+                                                const Vector& rRHS,
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
@@ -33,14 +34,10 @@ namespace Kratos
         {
 
             // define working variables
-            Vector RHS_unperturbed;
             Vector RHS_perturbed;
 
-            // Compute RHS before perturbion
-            rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
-
-            if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
-                rOutput.resize(1, RHS_unperturbed.size());
+            if ( (rOutput.size1() != 1) || (rOutput.size2() != rRHS.size() ) )
+                rOutput.resize(1, rRHS.size());
 
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
@@ -58,13 +55,10 @@ namespace Kratos
 
             // Compute derivative of RHS w.r.t. design variable with finite differences
             for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-                rOutput(0, i) = (RHS_perturbed[i] - RHS_unperturbed[i]) / rPertubationSize;
+                rOutput(0, i) = (RHS_perturbed[i] - rRHS[i]) / rPertubationSize;
 
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
-
-            //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
         }
         else
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
@@ -74,6 +68,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
+                                                const Vector& rRHS,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -92,14 +87,10 @@ namespace Kratos
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
-                Vector RHS_unperturbed;
                 Vector RHS_perturbed;
 
-                // compute RHS before perturbion
-                rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
-
-                if ( rOutput.size() != RHS_unperturbed.size() )
-                    rOutput.resize(RHS_unperturbed.size(), false);
+                if ( rOutput.size() != rRHS.size() )
+                    rOutput.resize(rRHS.size(), false);
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -109,14 +100,11 @@ namespace Kratos
                 rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(rOutput) = (RHS_perturbed - RHS_unperturbed) / rPertubationSize;
+                noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
 
                  // unperturb the design variable
                 rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
                 rNode.Coordinates()[coord_dir] -= rPertubationSize;
-
-                //call one last time to make sure everything is as it was before TODO improve this..
-                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
             }
         }
         else
@@ -130,6 +118,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
+                                                const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -140,7 +129,7 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
@@ -148,15 +137,11 @@ namespace Kratos
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
-                Matrix LHS_unperturbed;
                 Matrix LHS_perturbed;
                 Vector dummy;
 
-                // compute LHS before perturbion
-                rElement.CalculateLocalSystem(LHS_unperturbed, dummy, rCurrentProcessInfo);
-
-                if ( (rOutput.size1() != LHS_unperturbed.size1()) || (rOutput.size2() != LHS_unperturbed.size2() ) )
-                    rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
+                if ( (rOutput.size1() != rLHS.size1()) || (rOutput.size2() != rLHS.size2() ) )
+                    rOutput.resize(rLHS.size1(), rLHS.size2());
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -166,14 +151,11 @@ namespace Kratos
                 rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / rPertubationSize;
+                noalias(rOutput) = (LHS_perturbed - rLHS) / rPertubationSize;
 
                  // unperturb the design variable
                 rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
                 rNode.Coordinates()[coord_dir] -= rPertubationSize;
-
-                //call one last time to make sure everything is as it was before TODO improve this..
-                rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
             }
         }
         else
@@ -187,6 +169,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
+                                                const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -197,7 +180,7 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
@@ -205,14 +188,10 @@ namespace Kratos
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
-                Matrix unperturbed_mass_matrix;
                 Matrix perturbed_mass_matrix;
 
-                // compute mass matrix before perturbion
-                rElement.CalculateMassMatrix(unperturbed_mass_matrix, rCurrentProcessInfo);
-
-                if ( (rOutput.size1() != unperturbed_mass_matrix.size1()) || (rOutput.size2() != unperturbed_mass_matrix.size2() ) )
-                    rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
+                if ( (rOutput.size1() != rMassMatrix.size1()) || (rOutput.size2() != rMassMatrix.size2() ) )
+                    rOutput.resize(rMassMatrix.size1(), rMassMatrix.size2());
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -222,14 +201,11 @@ namespace Kratos
                 rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / rPertubationSize;
+                noalias(rOutput) = (perturbed_mass_matrix - rMassMatrix) / rPertubationSize;
 
                  // unperturb the design variable
                 rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
                 rNode.Coordinates()[coord_dir] -= rPertubationSize;
-
-                //call one last time to make sure everything is as it was before TODO improve this..
-                rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
             }
         }
         else

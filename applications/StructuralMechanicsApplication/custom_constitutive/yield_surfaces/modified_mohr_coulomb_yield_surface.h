@@ -150,7 +150,7 @@ class ModifiedMohrCoulombYieldSurface
         const double K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
 
         // Check Modified Mohr-Coulomb criterion
-        if (I1 == 0.0) {
+        if (std::abs(I1) < tolerance) {
             rEquivalentStress = 0.0;
         } else {
             ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, theta);
@@ -291,8 +291,8 @@ class ModifiedMohrCoulombYieldSurface
         else
             c1 = 0.0; // check
 
-        if (checker < 29.0) {
-            c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_phi * (tan_3theta - tan_theta) / Root3);
+        if (std::abs(checker) < 29.0) { // Lode angle not greater than pi/6
+            c2 = cos_theta * CFL * (K1 * (1.0 + tan_theta * tan_3theta) + K2 * sin_phi * (tan_3theta - tan_theta) / Root3);
             c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_phi * cos_theta) / (2.0 * J2 * cos_3theta);
         } else {
             c3 = 0.0;

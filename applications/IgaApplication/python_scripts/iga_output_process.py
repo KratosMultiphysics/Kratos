@@ -119,7 +119,6 @@ class IgaOutputProcess(KratosMultiphysics.Process):
                     self.next_output += self.output_frequency
 
     def IsOutputStep(self):
-
         if self.output_control_is_time:
             time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
             return (time >= GetPrettyTime(self.next_output))

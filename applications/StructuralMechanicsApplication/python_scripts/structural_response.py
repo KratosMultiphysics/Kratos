@@ -2,7 +2,9 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics
+from KratosMultiphysics import Parameters, Logger
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import structural_mechanics_analysis
 
 import time as timer
@@ -15,7 +17,7 @@ def _GetModelPart(model, solver_settings):
         domain_size = solver_settings["domain_size"].GetInt()
         if domain_size < 0:
             raise Exception('Please specify a "domain_size" >= 0!')
-        model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
     else:
         model_part = model.GetModelPart(model_part_name)
 
@@ -83,7 +85,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
-        self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+        self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, response_settings)
 
@@ -128,7 +130,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
     def GetShapeGradient(self):
         gradient = {}
         for node in self.primal_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
 
 # ==============================================================================
@@ -173,7 +175,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
-        self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+        self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
 
@@ -202,7 +204,7 @@ class MassResponseFunction(ResponseFunctionBase):
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
                 raise Exception("MassResponseFunction: Invalid 'domain_size': {}".format(domain_size))
-            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+            self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
@@ -211,18 +213,21 @@ class MassResponseFunction(ResponseFunctionBase):
 
         self.response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility(self.model_part, response_settings)
 
-        self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
     def Initialize(self):
         import read_materials_process
 
         if self.model_part_needs_to_be_imported:
             # import model part
-            model_part_io = ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
+            model_part_io = KratosMultiphysics.ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(self.model_part)
 
         # Add constitutive laws and material properties from json file to model parts.
-        read_materials_process.ReadMaterialsProcess(self.model, self.response_settings["material_import_settings"])
+        material_settings = KratosMultiphysics.Parameters("""{"Parameters": {} }""")
+        materials_file_name = self.response_settings["material_import_settings"]["materials_filename"]
+        material_settings["Parameters"].AddValue("materials_filename", materials_file_name)
+        KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
@@ -246,7 +251,7 @@ class MassResponseFunction(ResponseFunctionBase):
     def GetShapeGradient(self):
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
 
 # ==============================================================================
@@ -278,7 +283,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             ProjectParametersAdjoint = Parameters( parameter_file.read() )
         ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
 
-        adjoint_model = Model()
+        adjoint_model = KratosMultiphysics.Model()
 
         self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
 
@@ -333,7 +338,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def GetShapeGradient(self):
         gradient = {}
         for node in self.adjoint_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
 
 

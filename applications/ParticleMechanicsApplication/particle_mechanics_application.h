@@ -35,11 +35,11 @@
 
 /* CONDITIONS */
 #include "custom_conditions/mpm_base_load_condition.h"
-#include "custom_conditions/mpm_point_load_condition.h"
-#include "custom_conditions/mpm_axisym_point_load_condition.h"
-#include "custom_conditions/mpm_line_load_condition_2d.h"
-#include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
-#include "custom_conditions/mpm_surface_load_condition_3d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
@@ -231,13 +231,13 @@ private:
     const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
-    const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
-    const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
-    const MPMAxisymPointLoadCondition mMPMAxisymPointLoadCondition2D1N;
-    const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
-    const MPMAxisymLineLoadCondition2D mMPMAxisymLineLoadCondition2D2N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
+    const MPMGridPointLoadCondition mMPMGridPointLoadCondition2D1N;
+    const MPMGridPointLoadCondition mMPMGridPointLoadCondition3D1N;
+    const MPMGridAxisymPointLoadCondition mMPMGridAxisymPointLoadCondition2D1N;
+    const MPMGridLineLoadCondition2D mMPMGridLineLoadCondition2D2N;
+    const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
 
     // Constitutive laws
     // CL: Linear Elastic laws

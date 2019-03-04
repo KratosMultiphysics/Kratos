@@ -163,19 +163,13 @@ namespace Kratos {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
                 if (print_debug_files) {
                     std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
-                    outputfile << alpha << "\n";
+                    outputfile <<" "<<cont_ini_neighbours_size<<" "<<external_sphere_area<<" "<<total_equiv_area<<" "<< alpha << "\n";
                     outputfile.close();
                 }
                 for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
                     total_mContIniNeighArea += cont_ini_neigh_area[i];
                 } //for every neighbor
-
-                if (print_debug_files) {
-                    std::ofstream outputfile2("total_mContIniNeighArea-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
-                    outputfile2 << total_mContIniNeighArea << "  " << total_equiv_area << "\n";
-                    outputfile2.close();
-                }
             }
 
             else {//skin sphere
@@ -185,7 +179,7 @@ namespace Kratos {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
                 } //for every neighbor
             }
-        }//if more than 3 neighbors
+        }//if more than 6 neighbors
     }
 
     double SphericContinuumParticle::EffectiveVolumeRadius() {
@@ -313,7 +307,7 @@ namespace Kratos {
             double TotalGlobalElasticContactForce[3] = {0.0};
             double OldLocalElasticContactForce[3] = {0.0};
 
-            FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
+            //FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 

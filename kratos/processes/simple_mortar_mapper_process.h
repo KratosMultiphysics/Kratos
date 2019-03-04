@@ -279,6 +279,20 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
+    SimpleMortarMapperProcess(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        Parameters ThisParameters = Parameters(R"({})" ),
+        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        );
+
+    /**
+     * @brief Default constructor
+     * @param rOriginModelPart The origin model part to compute
+     * @param rDestinationModelPart The destination model part to compute
      * @param rThisVariable The variable to transfer and be transfered
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
@@ -342,6 +356,26 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method is a direct map between the origin and destination modelpart with custom variables
+     * @param rOriginVariable The origin model part
+     * @param rDestinationVariable The destination model part
+     * @param Flag The flags to special settings. Right now does nothing
+     */
+    void Map(
+        TVarType& rOriginVariable,
+        TVarType& rDestinationVariable,
+        const Flags Flag = Flags()
+        )
+    {
+        // Reassign the variables
+        mOriginVariable = rOriginVariable;
+        mDestinationVariable = rDestinationVariable;
+
+        // Execute the process
+        Execute();
+    }
 
     ///@}
     ///@name Access
@@ -420,6 +454,8 @@ private:
     ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
+
+    double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
     bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical

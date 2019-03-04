@@ -39,8 +39,8 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
-        "processes_sub_model_part_list"      : ["Tying_Part",
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_Part_foundation","Parts_Part_punch"],
+        "processes_sub_model_part_list"      : ["Structure","Tying_Part",
                                                 "Parts_Part_foundation_Nodes",
         										"Parts_Part_punch_Nodes",
         										"DISPLACEMENT_BC_fixed_support",
@@ -153,7 +153,7 @@
         }],
         "contact_process_list" :[{
             "python_module"   : "mesh_tying_process",
-            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "MeshTyingProcess",
             "Parameters"            : {
@@ -220,15 +220,5 @@
             "time_frequency"       : 1.0
         }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

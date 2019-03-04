@@ -45,28 +45,30 @@ def DeleteAuxTestFiles(Path, MDPAFileNames):
 
 
 input_file = "test_MappingApplication.py"
+input_file_mpi = "test_MappingApplication_mpi.py"
 kratos_output_file = "output_kratos.txt"
 tests_output_file = "output_tests.txt"
 
 list_processors = []
 
-for i in range(1,31):
+for i in range(2,31):
     list_processors.append(i)
 
 list_processors.extend([40, 50])
 
-os.system("export OMP_NUM_THREADS=1")
-print("OMP thread set to 1")
 
 # serial execution
 WriteInfo(kratos_output_file, tests_output_file, "w", "Serial Execution")
 system_cmd = "python3 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
 os.system(system_cmd)
 
+os.system("export OMP_NUM_THREADS=1")
+print("OMP thread set to 1")
+
 # parallel executions
 for num_processors in list_processors:
     WriteInfo(kratos_output_file, tests_output_file, "a", "Parallel Execution; " + str(num_processors) + " processors")
-    system_cmd = "mpiexec -np " + str(num_processors) + " python3 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
+    system_cmd = "mpiexec -np " + str(num_processors) + " python3 " + input_file_mpi + " >> " + kratos_output_file + " 2>> " + tests_output_file
     os.system(system_cmd)
 
 tests_success = True

@@ -126,11 +126,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {1.07429e+06, 1.07429e+06, 3.80884e+06, 0, 0, 2.89538e-11};
-    VMres = {1.07429e+06, 1.07429e+06, 3.80884e+06, 0, 0, 2.89538e-11};
-    DPres = {758653, 758653, 2.68977e+06, 0, 0, 2.04469e-11};
-    Tres = {1.07429e+06, 1.07429e+06, 3.80884e+06, 0, 0, 2.89538e-11};
-    Rres = {733679, 733679, 2.60123e+06, 0, 0, 1.97738e-11};
+    MCres = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
+    VMres = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
+    DPres = {788415,788415,2.79529e+06,0,0,2.12491e-11};
+    Tres  = {1.10203e+06,1.10203e+06,3.9072e+06,0,0,2.97015e-11};
+    Rres  = {763601,763601,2.70731e+06,0,0,2.05803e-11};
     SJres = {5.40984e+06, 5.40984e+06, 1.91803e+07, 0, 0, 1.45804e-10};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
@@ -155,8 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 3; comp++)
-    {
+    for (int comp = 0; comp < 6; comp++) {
         KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e+06);
         KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e+06);
         KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.001e+06);
@@ -238,12 +237,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     SJ SimoJuCL = SJ();
 
     std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-    MCres = {1.17654e+06, 1.17654e+06, 4.17136e+06, 0, 0, 3.17095e-11};
-    VMres = {1.17654e+06, 1.17654e+06, 4.17136e+06, 0, 0, 3.17095e-11};
-    DPres = {868346, 868346, 3.07868e+06, 0, 0, 2.34033e-11};
-    Tres = {1.17654e+06, 1.17654e+06, 4.17136e+06, 0, 0, 3.17095e-11};
-    Rres = {843961, 843961, 2.99222e+06, 0, 0, 2.27461e-11};
-    SJres = {859503, 859503, 3.04733e+06, 0, 0, 2.3165e-11};
+    MCres = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
+    VMres = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
+    DPres = {868915,868915,3.0807e+06,0,0,2.34186e-11};
+    Tres  = {1.17707e+06,1.17707e+06,4.17324e+06,0,0,3.17239e-11};
+    Rres  = {844533,844533,2.99425e+06,0,0,2.27615e-11};
+    SJres = {870986,870986,3.08804e+06,0,0,2.34744e-11};
 
     Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
     MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
@@ -267,8 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 6; comp++)
-    {
+    for (int comp = 0; comp < 6; comp++) {
         KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.00001e+06);
         KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.00001e+06);
         KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.00001e+06);

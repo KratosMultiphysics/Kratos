@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
@@ -53,13 +52,17 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticle]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleEraseProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
+
+    # TODO: Look further into these three tests as they are still failing for AMatrix
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))     # FIXME:
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))  # FIXME:
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
-    smallSuite.addTest(TSlipBoundaryTest('test_execution'))
+
+    # TODO: Look further into this test as they are still failing for AMatrix
+    smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']

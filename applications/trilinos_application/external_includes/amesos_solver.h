@@ -47,13 +47,46 @@ public:
 
     AmesosSolver(Parameters settings)
     {
-        Parameters default_settings( R"(
-        {
-        "solver_type": "AmesosSolver",
-        "amesos_solver_type" : "Amesos_Klu",
-        "trilinos_amesos_parameter_list": {
-            }
+        Parameters default_settings( R"({
+            "solver_type" : "amesos",
+            "amesos_solver_type" : "Amesos_Klu",
+            "trilinos_amesos_parameter_list" : { }
         }  )" );
+
+        // choose solver-type
+        if (settings["solver_type"].GetString() == "klu") {
+            if (settings.Has("amesos_solver_type")) {
+                KRATOS_INFO("Amesos-Solver") << "Ignoring setting \"amesos_solver_type\"" << std::endl;
+            } else {
+                settings.AddEmptyValue("amesos_solver_type");
+            }
+            settings["amesos_solver_type"].SetString("Amesos_Klu");
+        }
+        else if (settings["solver_type"].GetString() == "super_lu_dist") {
+            if (settings.Has("amesos_solver_type")) {
+                KRATOS_INFO("Amesos-Solver") << "Ignoring setting \"amesos_solver_type\"" << std::endl;
+            }
+            else {
+                settings.AddEmptyValue("amesos_solver_type");
+            }
+            settings["amesos_solver_type"].SetString("Amesos_Superludist");
+        }
+        else if (settings["solver_type"].GetString() == "mumps") {
+            if (settings.Has("amesos_solver_type")) {
+                KRATOS_INFO("Amesos-Solver") << "Ignoring setting \"amesos_solver_type\"" << std::endl;
+            }
+            else {
+                settings.AddEmptyValue("amesos_solver_type");
+            }
+            settings["amesos_solver_type"].SetString("Amesos_Mumps");
+        }
+        else if (settings["solver_type"].GetString() == "amesos") {
+            // do nothing here. Leave full control to the user through the "trilinos_amesos_parameter_list"
+            // and the "amesos_solver_type"
+        }
+        else {
+            KRATOS_ERROR << "The solver type specified: \"" << settings["solver_type"].GetString() << "\" is not supported";
+        }
 
         settings.ValidateAndAssignDefaults(default_settings);
 

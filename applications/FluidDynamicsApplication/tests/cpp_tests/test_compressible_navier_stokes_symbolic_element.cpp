@@ -35,7 +35,7 @@ namespace Kratos {
 		 */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NConstant, FluidDynamicsApplicationFastSuite)
 		{
-            std::cout<<"\n\nSupersonic Test For Constant Variables"<<std::endl;
+            // Supersonic test for constant variables
             Model model;
             ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
@@ -140,7 +140,7 @@ namespace Kratos {
 		 */
         KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		{
-            std::cout<<"\n\nSupersonic Test For Stationary Rigid Movements"<<std::endl;
+            // Supersonic test for stationary rigid movements
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
@@ -313,7 +313,7 @@ namespace Kratos {
 		 */
 		KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySubsonic, FluidDynamicsApplicationFastSuite)
 		{
-            std::cout<<"\n\nSubsonic Test For Stationary Rigid Movements"<<std::endl;
+            // Subsonic test for stationary rigid movements
 			Model model;
 			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
@@ -486,7 +486,7 @@ namespace Kratos {
 		 */
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NConstant, FluidDynamicsApplicationFastSuite)
 		 {
-			 std::cout<<"\n\nSupersonic Test For 3D Constant Variables"<<std::endl;
+			 // Supersonic test for 3D constant variables
 			 Model model;
 			 ModelPart& modelPart = model.CreateModelPart("Main", 3);
  
@@ -592,7 +592,7 @@ namespace Kratos {
 		 */
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		 {
-			 std::cout<<"\n\nSupersonic Test For 3D Stationary Rigid Movements"<<std::endl;
+			 // Supersonic test for 3D stationary rigid movements
 			 Model model;
 			 ModelPart& modelPart = model.CreateModelPart("Main", 3);
  

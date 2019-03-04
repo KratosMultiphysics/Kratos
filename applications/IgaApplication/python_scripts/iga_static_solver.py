@@ -3,21 +3,15 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("IgaApplication")
-
-# Import applications
-import KratosMultiphysics.IgaApplication as IgaApplication
-
 # Import base class file
-import iga_solver
+from KratosMultiphysics.IgaApplication.iga_solver import IgaSolver
 
 
 def CreateSolver(model, custom_settings):
     return StaticIgaSolver(model, custom_settings)
 
 
-class StaticIgaSolver(iga_solver.IgaSolver):
+class StaticIgaSolver(IgaSolver):
     """The iga static solver.
 
     This class creates the iga solvers for static analysis. It currently
@@ -27,6 +21,7 @@ class StaticIgaSolver(iga_solver.IgaSolver):
 
     See iga_solver.py for more information.
     """
+
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.

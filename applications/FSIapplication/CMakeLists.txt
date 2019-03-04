@@ -62,4 +62,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FSIApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FSIApplication.py" DESTINATION "KratosMultiphysics/FSIApplication" RENAME "__init__.py")

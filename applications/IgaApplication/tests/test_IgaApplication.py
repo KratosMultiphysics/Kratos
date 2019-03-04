@@ -43,5 +43,5 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    run_cpp_unit_tests.run()
+    #run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())

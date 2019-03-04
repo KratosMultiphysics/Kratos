@@ -1167,8 +1167,6 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
                     }
                 }
             }
-
-            current_model.DeleteModelPart("exact_mortar_aux_model_part");
         }
 
         auto pgidio = Kratos::make_shared<GidIO<>>("ExactMortarIntegrationUtilityDEBUG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
@@ -1176,6 +1174,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
         pgidio->WriteMesh(aux_model_part.GetMesh());
         pgidio->FinalizeMesh();
         pgidio->CloseResultFile();
+
+        current_model.DeleteModelPart("exact_mortar_aux_model_part");
     }
 }
 

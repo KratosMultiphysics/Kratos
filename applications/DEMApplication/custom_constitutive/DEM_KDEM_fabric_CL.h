@@ -10,39 +10,28 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEMFabric : public DEM_KDEM {
-    
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEMFabric);
 
         DEM_KDEMFabric() {}
-        
+
         ~DEM_KDEMFabric() {}
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                              SphericContinuumParticle* neighbor,
-                                              double equiv_young,
-                                              double distance,
-                                              double calculation_area,
-                                              double LocalCoordSystem[3][3],
-                                              double ElasticLocalRotationalMoment[3],
-                                              double ViscoLocalRotationalMoment[3],
-                                              double equiv_poisson,
-                                              double indentation) override;
-        
-        void AddPoissonContribution(const double equiv_poisson, 
-                                    double LocalCoordSystem[3][3], 
-                                    double& normal_force, 
-                                    double calculation_area, 
+        void AddPoissonContribution(const double equiv_poisson,
+                                    double LocalCoordSystem[3][3],
+                                    double& normal_force,
+                                    double calculation_area,
                                     Matrix* mSymmStressTensor,
-                                    SphericContinuumParticle* element1, 
-                                    SphericContinuumParticle* element2, 
-                                    const ProcessInfo& r_process_info, 
-                                    const int i_neighbor_count, 
+                                    SphericContinuumParticle* element1,
+                                    SphericContinuumParticle* element2,
+                                    const ProcessInfo& r_process_info,
+                                    const int i_neighbor_count,
                                     const double indentation) override;
 
     private:

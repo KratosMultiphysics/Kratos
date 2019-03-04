@@ -105,7 +105,10 @@ public:
     VectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
         Sort();
-        std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        auto p = [](const value_type& v1, const value_type& v2) -> bool {
+            return v1.first == v2.first;
+        };
+        std::unique(mData.begin(), mData.end(), p);
     }
 
     /// Destructor.
@@ -536,10 +539,6 @@ private:
         key_type mKey;
     public:
         EqualKeyTo(key_type k) : mKey(k) {}
-        bool operator()(value_type a, value_type b) const
-        {
-            return a.first == b.first;
-        }
         bool operator()(value_type a) const
         {
             return a.first == mKey;

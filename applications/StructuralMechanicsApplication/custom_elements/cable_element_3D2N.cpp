@@ -19,6 +19,7 @@
 #include "custom_elements/cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 CableElement3D2N::CableElement3D2N(IndexType NewId,
@@ -97,10 +98,10 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
     rRightHandSideVector = ZeroVector(msLocalSize);
     // update Residual
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
-
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -120,10 +121,10 @@ void CableElement3D2N::CalculateRightHandSide(
 
 
     noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
-
-    // add bodyforces
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -137,8 +138,8 @@ void CableElement3D2N::UpdateInternalForces(
 
   this->CreateTransformationMatrix(transformation_matrix);
 
-  const double l = this->CalculateCurrentLength();
-  const double L0 = this->CalculateReferenceLength();
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;

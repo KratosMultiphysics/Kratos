@@ -588,14 +588,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 
         Element::EquationIdVectorType ids(3, 0);
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         const int nelements = static_cast<int>(rModelPart.Elements().size());
 #pragma omp parallel for firstprivate(nelements, ids, constraint_imposer)
         for (int iii = 0; iii < nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
-            pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            constraint_imposer.template ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
+            pScheme->EquationId(*(i_element.base()), ids, r_current_process_info);
+            constraint_imposer.template ApplyConstraints<Element>(*i_element, ids, r_current_process_info);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -615,8 +616,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (int iii = 0; iii < nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
-            pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            constraint_imposer.template ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
+            pScheme->Condition_EquationId(*(i_condition.base()), ids, r_current_process_info);
+            constraint_imposer.template ApplyConstraints<Condition>(*i_condition, ids, r_current_process_info);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -637,7 +638,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (int iii = 0; iii < nconstraints; iii++)
         {
             auto i_constraint = rModelPart.MasterSlaveConstraints().begin() + iii;
-            i_constraint->EquationIdVector(ids, aux_ids, rModelPart.GetProcessInfo());
+            i_constraint->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP

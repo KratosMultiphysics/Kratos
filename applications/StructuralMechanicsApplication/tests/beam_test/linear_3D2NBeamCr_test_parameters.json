@@ -33,7 +33,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletYZ","ROTATION_dirrot","PointLoad3D_neumann","DISPLACEMENT_allnodes"],
+        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletYZ","ROTATION_dirrot","PointLoad3D_neumann","DISPLACEMENT_allnodes"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -113,5 +113,5 @@
             "time_frequency"   : 0.9
         }
     }
-    ]     
+    ]
 }

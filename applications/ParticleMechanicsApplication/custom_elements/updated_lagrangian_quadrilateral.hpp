@@ -97,18 +97,16 @@ protected:
 
         StressMeasureType StressMeasure;
 
-        //for axisymmetric use only
+        // For axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
 
-        //general variables for large displacement use
+        // General variables for large displacement use
         double  detF;
         double  detF0;
         double  detFT;
-        double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
-        Vector  IsoStressVector;
         Vector  N;
         Matrix  B;
         Matrix  F;
@@ -117,14 +115,8 @@ protected:
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
-        Matrix Normal;
 
-        //variables including all integration points
-        //GeometryType::JacobiansType J;
-        //GeometryType::JacobiansType j;
-        Matrix J;
-        Matrix j;
-        Matrix  DeltaPosition;
+        // Variables including all integration points
         Matrix CurrentDisp;
         Matrix PreviousDisp;
 
@@ -503,15 +495,6 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    /**
-     * Container for historical inverse of Jacobian at reference configuration invJ0
-     */
-    Matrix mInverseJ0;
-    Matrix mInverseJ;
-    /**
-     * Container for the total Jacobian determinants
-     */
-    double mDeterminantJ0;
 
     /**
      * Container for constitutive law instances on each integration point

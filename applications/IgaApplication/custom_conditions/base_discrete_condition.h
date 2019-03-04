@@ -81,6 +81,15 @@ public:
         KRATOS_ERROR << "Trying to create a \"BaseDiscreteCondition\"" << std::endl;
     }
 
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override
+    {
+        KRATOS_ERROR << "Trying to create a \"BaseDiscreteCondition\"" << std::endl;
+    };
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id

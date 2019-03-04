@@ -117,7 +117,7 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("KratosSwimmingDEMApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SwimmingDEMApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SwimmingDEMApplication.py" DESTINATION "KratosMultiphysics/SwimmingDEMApplication" RENAME "__init__.py" )
 
 #if(${INSTALL_PYTHON_FILES} MATCHES ON)
 #  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

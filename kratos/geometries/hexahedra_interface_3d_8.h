@@ -870,7 +870,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         //setting up size of jacobian matrix
         rResult.resize( 3, 2 ,false);

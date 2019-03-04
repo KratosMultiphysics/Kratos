@@ -50,9 +50,19 @@ namespace Kratos
 
   private:
 
+      void ImportBrepEdges(
+          const Parameters& rEdges,
+          std::vector<BrepEdge>& rEdgesVector,
+          ModelPart& rModelPart);
+
+      void ImportBrepVertices(
+          const Parameters& rVertices,
+          std::vector<BrepVertex>& rVerticesVector,
+          ModelPart& rModelPart);
+
       void ImportTrimmingCurve(
-          Parameters& rTrimmingCurve,
-          std::vector<BrepTrimmingCurve>& trimming_curves);
+          const Parameters& rTrimmingCurve,
+          std::vector<BrepTrimmingCurve>& rrTrimmingCurves);
 
       int mEchoLevel;
   }; // Class BrepJsonIO

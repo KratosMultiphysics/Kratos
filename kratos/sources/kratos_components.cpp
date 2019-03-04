@@ -19,10 +19,12 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
+#include "includes/master_slave_constraint.h"
+#include "includes/linear_solver_factory.h"
+#include "includes/preconditioner_factory.h"
 #include "utilities/quaternion.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 void AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent)
 {
@@ -128,6 +130,41 @@ void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Point
 {
     KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Add(Name, ThisComponent);
 }
+
+template class KratosComponents<Variable<bool> >;
+template class KratosComponents<Variable<int> >;
+template class KratosComponents<Variable<unsigned int> >;
+template class KratosComponents<Variable<double> >;
+template class KratosComponents<Variable<array_1d<double, 3> > >;
+template class KratosComponents<Variable<array_1d<double, 4> > >;
+template class KratosComponents<Variable<array_1d<double, 6> > >;
+template class KratosComponents<Variable<array_1d<double, 9> > >;
+template class KratosComponents<Variable<Quaternion<double> > >;
+template class KratosComponents<Variable<Vector> >;
+template class KratosComponents<Variable<Matrix> >;
+template class KratosComponents<Variable<std::string> >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
+template class KratosComponents<Variable<Flags> >;
+template class KratosComponents<Flags>;
+template class KratosComponents<DataCommunicator>;
+
+template class KratosComponents<Element>;
+template class KratosComponents<Condition>;
+template class KratosComponents<ConstitutiveLaw>;
+template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
+template class KratosComponents<MasterSlaveConstraint>;
+
+using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
+using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
+using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
+using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+
+template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
+template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

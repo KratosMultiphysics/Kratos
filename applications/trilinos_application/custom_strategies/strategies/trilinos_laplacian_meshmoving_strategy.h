@@ -101,7 +101,7 @@ public:
     {
         KRATOS_TRY
 
-        if(mrReferenceModelPart.GetModel().HasModelPart("LaplacianMeshMovingPart"))
+        if(mrReferenceModelPart.GetModel().HasModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart"))
             KRATOS_ERROR << "LaplacianMeshMovingPart already existing when constructing TrilinosLaplacianMeshMovingStrategy";
 
         // Passed variables
@@ -142,7 +142,7 @@ public:
     */
     virtual ~TrilinosLaplacianMeshMovingStrategy()
     {
-        mrReferenceModelPart.GetModel().DeleteModelPart("LaplacianMeshMovingPart");
+        mrReferenceModelPart.GetModel().DeleteModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart");
     }
 
     /** Destructor.
@@ -360,10 +360,10 @@ private:
 
     void GenerateMeshPart()
     {
-        if(!mrReferenceModelPart.GetModel().HasModelPart("LaplacianMeshMovingPart"))
-            mrReferenceModelPart.GetModel().DeleteModelPart("LaplacianMeshMovingPart");
+        if(!mrReferenceModelPart.GetModel().HasModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart"))
+            mrReferenceModelPart.GetModel().DeleteModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart");
 
-        mpmesh_model_part  = &mrReferenceModelPart.GetModel().CreateModelPart("LaplacianMeshMovingPart");
+        mpmesh_model_part  = &mrReferenceModelPart.GetModel().CreateModelPart(mrReferenceModelPart.Name()+"_StructuralMeshMovingPart");
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

@@ -3,14 +3,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("IgaApplication")
-
 # Import applications
 import KratosMultiphysics.IgaApplication as IgaApplication
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 def CreateSolver(model, custom_settings):
@@ -125,7 +122,7 @@ class IgaSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
-        return max(2, self.settings["buffer_size"].GetDouble())
+        return max(1, self.settings["buffer_size"].GetDouble())
 
     def AddDofs(self):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already
@@ -177,9 +174,6 @@ class IgaSolver(PythonSolver):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
         self._set_and_fill_buffer()
-        print(self.main_model_part)
-
-
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
@@ -303,17 +297,6 @@ class IgaSolver(PythonSolver):
             self.nurbs_brep_modeler.ImportGeometry(self.geometry_reader, geometry_parameters)
 
     def _execute_after_reading(self):
-        # """Prepare computing model part and import constitutive laws. """
-        # # Auxiliary parameters object for the CheckAndPepareModelProcess
-        # params = KratosMultiphysics.Parameters("{}")
-        # params.AddValue("model_part_name",self.settings["model_part_name"])
-        # params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        # params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        # params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # # Assign mesh entities from domain and process sub model parts to the computing model part.
-        # import check_and_prepare_model_process_structural
-        # check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
-
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
@@ -382,16 +365,39 @@ class IgaSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        import convergence_criteria_factory
+        import KratosMultiphysics.StructuralMechanicsApplication.convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _create_linear_solver(self):        
         linear_solver_configuration = self.settings["linear_solver_settings"]
-        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+            # using a default linear solver (selecting the fastest one available)
+            import KratosMultiphysics.kratos_utilities as kratos_utils
+            if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+                from KratosMultiphysics import EigenSolversApplication
+            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+                from KratosMultiphysics import ExternalSolversApplication
+
+            linear_solvers_by_speed = [
+                "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
+                "SparseLUSolver",  # EigenSolversApplication
+                "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
+                "SuperLUSolver",   # ExternalSolversApplication
+                "SkylineLUFactorizationSolver" # in Core, always available, but slow
+            ]
+
+            for solver_name in linear_solvers_by_speed:
+                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
+                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
+                    self.print_on_rank_zero('::[MechanicalSolver]:: ',\
+                        'Using "' + solver_name + '" as default linear solver')
+                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+
+        raise Exception("Linear-Solver could not be constructed!")
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()

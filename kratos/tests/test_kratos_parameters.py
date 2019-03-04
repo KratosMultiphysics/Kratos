@@ -13,102 +13,20 @@ import sys
 # input string with ugly formatting
 json_string = """
 {
-   "int_value" : 10,   "double_value": 2.0,   "bool_value" : true,   "string_value" : "hello",
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
    "level1":
    {
      "list_value":[ 3, "hi", false],
      "tmp" : 5.0
-   }
+   },
+   "string_value" : "hello"
 }
 """
 
 pretty_out = """{
+    "bool_value": true,
+    "double_value": 2.0,
     "int_value": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
-    "level1": {
-        "list_value": [
-            3,
-            "hi",
-            false
-        ],
-        "tmp": 5.0
-    }
-}"""
-
-pretty_out_after_change = """{
-    "int_value": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
-    "level1": {
-        "list_value": [
-            "changed",
-            "hi",
-            false
-        ],
-        "tmp": 5.0
-    }
-}"""
-
-# here the level1 var is set to a double so that a validation error should be thrown
-wrong_type = """{
-    "int_value": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
-    "level1": 0.0
-}"""
-
-# int value is badly spelt
-wrong_spelling = """{
-    "int_values": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
-    "level1": 0.0
-}"""
-
-# wrong on the first level
-# error shall be only detective by recursive validation
-wrong_lev2 = """{
-    "int_value": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
-    "level1": { "a":0.0 }
-}"""
-
-defaults = """
-{
-	"int_value": 10,
-	"double_value": 2.0,
-	"bool_value": false,
-	"string_value": "hello",
-	"level1": {
-		"list_value": [
-			3,
-			"hi",
-			false
-		],
-		"tmp": "here we expect a string"
-	},
-	"new_default_value": -123.0,
-	"new_default_obj": {
-		"aaa": "string",
-		"bbb": false,
-		"ccc": 22
-	}
-}
-"""
-
-
-expected_validation_output = """{
-    "int_value": 10,
-    "double_value": 2.0,
-    "bool_value": true,
-    "string_value": "hello",
     "level1": {
         "list_value": [
             3,
@@ -117,19 +35,101 @@ expected_validation_output = """{
         ],
         "tmp": 5.0
     },
-    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
+
+pretty_out_after_change = """{
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            "changed",
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "string_value": "hello"
+}"""
+
+# here the level1 var is set to a double so that a validation error should be thrown
+wrong_type = """{
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": 0.0,
+    "string_value": "hello"
+}"""
+
+# int value is badly spelt
+wrong_spelling = """{
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_values": 10,
+    "level1": 0.0,
+    "string_value": "hello"
+}"""
+
+# wrong on the first level
+# error shall be only detective by recursive validation
+wrong_lev2 = """{
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": { "a":0.0 },
+    "string_value": "hello"
+}"""
+
+defaults = """
+{
+    "bool_value": false,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": "here we expect a string"
+    },
     "new_default_obj": {
         "aaa": "string",
         "bbb": false,
         "ccc": 22
-    }
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}
+"""
+
+
+expected_validation_output = """{
+    "bool_value": true,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
 }"""
 
 four_levels = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "level2": {
             "level3": {
@@ -137,14 +137,14 @@ four_levels = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 four_levels_variation = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "a":11.0,
         "level2": {
@@ -153,7 +153,8 @@ four_levels_variation = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 four_levels_wrong_variation = """{
@@ -173,10 +174,9 @@ four_levels_wrong_variation = """{
 }"""
 
 four_levels_defaults = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "a":1.0,
         "level2": {
@@ -188,14 +188,15 @@ four_levels_defaults = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
         self.kp = Parameters(json_string)
-        self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
+        self.compact_expected_output = """{"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"}"""
 
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
@@ -325,6 +326,13 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertTrue(kp.Has("new_double"))
         self.assertEqual(kp["new_double"].GetDouble(), 1.0)
 
+    def test_add_empty_array(self):
+        kp = Parameters("{}")
+        kp.AddEmptyArray("new_array")
+
+        self.assertTrue(kp.Has("new_array"))
+        self.assertEqual(kp["new_array"].size(), 0)
+
     def test_iterators(self):
         kp = Parameters(json_string)
 
@@ -341,7 +349,7 @@ class TestParameters(KratosUnittest.TestCase):
             #print(key,value)
 
         #testing values
-        expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
+        expected_values = ['true', '2.0', '10', '{"list_value":[3,"hi",false],"tmp":5.0}','"hello"']
         counter = 0
 
         for value in kp.values():
@@ -349,7 +357,7 @@ class TestParameters(KratosUnittest.TestCase):
             counter += 1
 
         #testing values
-        expected_keys = ['int_value', 'double_value', 'bool_value', 'string_value', 'level1']
+        expected_keys = ['bool_value', 'double_value', 'int_value', 'level1', 'string_value']
         counter = 0
         for key in kp.keys():
             self.assertEqual(key, expected_keys[counter])
@@ -471,7 +479,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-
+                    
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{

@@ -35,7 +35,7 @@
             }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support", "Structure"],
         "rotation_dofs"                      : true
     },
     "processes" : {

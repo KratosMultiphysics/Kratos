@@ -7,6 +7,8 @@ import KratosMultiphysics
 import ctypes as ctp
 
 
+# TODO check if variables are in MP!
+
 class EmpireWrapper:
     # Source of Implementation: https://code.activestate.com/recipes/52558/
     # storage for the instance reference

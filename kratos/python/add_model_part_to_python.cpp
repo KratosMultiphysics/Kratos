@@ -219,9 +219,34 @@ bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int
     return rModelPart.HasProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+bool ModelPartRecursivelyHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+{
+    return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
+}
+
+bool ModelPartRecursivelyHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+{
+    return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
+}
+
+Properties::Pointer ModelPartCreateNewPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+{
+    return rModelPart.CreateNewProperties(PropertiesId, MeshId);
+}
+
+Properties::Pointer ModelPartCreateNewPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+{
+    return rModelPart.CreateNewProperties(PropertiesId, 0);
+}
+
+Properties::Pointer ModelPartGetPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.pGetProperties(PropertiesId, MeshId);
+}
+
+Properties::Pointer ModelPartGetPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+{
+    return rModelPart.pGetProperties(PropertiesId);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -634,6 +659,18 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
 }
 
 template<class TDataType>
+bool CommunicatorSynchronizeVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeVariable(ThisVariable);
+}
+
+template<class TDataType>
+bool CommunicatorSynchronizeNonHistoricalVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeNonHistoricalVariable(ThisVariable);
+}
+
+template<class TDataType>
 bool CommunicatorAssembleCurrentData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
 {
     return rCommunicator.AssembleCurrentData(ThisVariable);
@@ -718,6 +755,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("MaxAll", CommunicatorMaxAll<double> )
         .def("ScanSum", CommunicatorScanSum<int> )
         .def("ScanSum", CommunicatorScanSum<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<int> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<array_1d<double,3> > )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Vector> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Matrix> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<int> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<double> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<array_1d<double,3> > )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Vector> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Matrix> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
@@ -728,6 +775,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
+        .def("__str__", PrintObject<Communicator>);
         ;
 
         py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
@@ -796,7 +844,12 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetTable", &ModelPart::pGetTable)
         .def("HasProperties", ModelPartHasPropertiesById1)
         .def("HasProperties", ModelPartHasPropertiesById2)
-        .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById1)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById2)
+        .def("CreateNewProperties", ModelPartCreateNewPropertiesById1)
+        .def("CreateNewProperties", ModelPartCreateNewPropertiesById2)
+        .def("GetProperties", ModelPartGetPropertiesById1)
+//         .def("GetProperties", ModelPartGetPropertiesById2) // NOTE: This method conflicts with the other GetProperties methods
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)

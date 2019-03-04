@@ -27,7 +27,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_stress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_plane_strain_nodal.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_plane_stress_nodal.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_plane_stress_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.cpp
@@ -83,14 +83,14 @@ else()
 
     ## Define python interface sources
     set( KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES
-        
+
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/dam_python_application.cpp
     )
-    
+
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
     target_link_libraries(KratosDamCore PUBLIC KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
@@ -112,12 +112,12 @@ target_link_libraries(KratosDamApplication PRIVATE KratosDamCore)
 set_target_properties(KratosDamApplication PROPERTIES PREFIX "")
 
 ###############################################################################
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosDamApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosDamApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -135,7 +135,8 @@ install(TARGETS KratosDamCore DESTINATION libs )
 install(TARGETS KratosDamApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DamApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DamApplication.py" DESTINATION "KratosMultiphysics/DamApplication" RENAME "__init__.py")
+
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

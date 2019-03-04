@@ -252,10 +252,13 @@ namespace Kratos
                             int number_of_couplings = coupling_edge.GetNumberOfEdgeTopologies();
                             if (number_of_couplings > 1)
                             {
+                                KRATOS_WATCH(number_of_couplings)
                                 for (int i = 1; i < number_of_couplings; ++i)
                                 {
                                     auto slave_topology = coupling_edge.GetEdgeTopology(i);
 
+                                    KRATOS_WATCH(master_topology.brep_id)
+                                    KRATOS_WATCH(slave_topology.brep_id)
                                     const auto brep_face_2 = GetBrepFace(slave_topology.brep_id);
                                     const auto surface_2 = brep_face_2.GetSurface();
                                     const auto trimming_curve_2 = brep_face_2.GetTrimCurve(slave_topology.trim_index);
@@ -271,7 +274,8 @@ namespace Kratos
                                     {
                                         int id = 0;
                                         if (sub_model_part.GetRootModelPart().Elements().size() > 0)
-                                            int id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
+                                            id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
+
 
                                         IgaIntegrationUtilities::ChangeElementType(
                                             element_vector, sub_model_part, name, id);
@@ -281,7 +285,10 @@ namespace Kratos
                                     {
                                         int id = 0;
                                         if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
-                                            int id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+                                            id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+
+                                        KRATOS_WATCH(sub_model_part.GetRootModelPart().Conditions().size())
+                                        KRATOS_WATCH(id)
 
                                         IgaIntegrationUtilities::ChangeConditionType(
                                             element_vector, sub_model_part, name, id);

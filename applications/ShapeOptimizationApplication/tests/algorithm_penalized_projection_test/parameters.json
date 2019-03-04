@@ -39,8 +39,7 @@
                     "input_type"       : "use_input_model_part"
                 },
                 "gradient_mode"          : "finite_differencing",
-                "step_size"              : 1e-6,
-                "consider_discretization": false
+                "step_size"              : 1e-6
             },
             "project_gradient_on_surface_normals" : true
         }],
@@ -62,22 +61,19 @@
         },
         "optimization_algorithm" : {
             "name"                    : "penalized_projection",
-            "correction_scaling"      : 1.0,
+            "correction_scaling"      : 0.2,
             "use_adaptive_correction" : true,
             "max_iterations"          : 10,
             "relative_tolerance"      : 1e-1,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 1.5
+                "step_size"                  : 0.5
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "design_history_filename" : "design_history",
-            "response_log_filename"   : "response_log",
-            "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "SHAPE_CHANGE" ],
+            "design_output_mode" : "WriteDesignSurface",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid"
             }

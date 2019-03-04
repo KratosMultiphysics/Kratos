@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -123,7 +120,7 @@ class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
         distance_linear_solver_settings = KratosMultiphysics.Parameters( """{
                                        "solver_type" : "AMGCL"
                                    } """)
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
 
         max_iterations=30

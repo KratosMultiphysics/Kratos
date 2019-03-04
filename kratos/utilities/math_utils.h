@@ -354,7 +354,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR << "::WARNING: Size not implemented. Size: " << TDim << std::endl;
+            KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
         }
 
         return InvertedMatrix;
@@ -421,7 +421,7 @@ public:
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
         double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << A << std::endl;
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
         rX = lu_factorization.solve(rB);
 #else
         const SizeType size1 = A.size1();
@@ -429,7 +429,7 @@ public:
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
-        KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
+        KRATOS_DEBUG_ERROR_IF(singular == 1) << "Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
 #endif // ifdef KRATOS_USE_AMATRIX
     }
@@ -472,7 +472,7 @@ public:
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << InputMatrix << std::endl;
             InvertedMatrix = lu_factorization.inverse();
 #else
 
@@ -481,7 +481,7 @@ public:
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
             InvertedMatrix.assign( IdentityMatrix(A.size1()));
-            KRATOS_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << InputMatrix << std::endl;
+            KRATOS_ERROR_IF(singular == 1) << "Matrix is singular: " << InputMatrix << std::endl;
             lu_substitute(A, pm, InvertedMatrix);
 
             // Calculating determinant
@@ -956,11 +956,16 @@ public:
     template< class T1, class T2 , class T3>
     static inline void CrossProduct(T1& c, const T2& a, const T3& b ){
         if (c.size() != 3) c.resize(3);
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3) << "The size of the vectors is different of 3: " << a << ", " << b << " and " << c << std::endl;
-        KRATOS_ERROR_IF(CheckIsAlias(c, a)) << "Aliasing between the output parameter and the first input parameter" << std::endl;
-        KRATOS_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between the output parameter and the second input parameter"  << std::endl;
-#endif
+
+        KRATOS_DEBUG_ERROR_IF(a.size() != 3 || b.size() != 3 || c.size() != 3)
+            << "The size of the vectors is different of 3: "
+            << a << ", " << b << " and " << c << std::endl;
+        KRATOS_DEBUG_ERROR_IF(CheckIsAlias(c, a))
+            << "Aliasing between the output parameter and the first "
+            << "input parameter" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(CheckIsAlias(c, b))  << "Aliasing between "
+            << "the output parameter and the second input parameter"  << std::endl;
+
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
         c[2] = a[0]*b[1] - a[1]*b[0];
@@ -978,10 +983,9 @@ public:
     static inline void UnitCrossProduct(T1& c, const T2& a, const T3& b ){
         CrossProduct(c,a,b);
         const double norm = norm_2(c);
-#ifdef KRATOS_DEBUG
-        if(norm < 1000.0*ZeroTolerance)
-            KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
-#endif
+        KRATOS_DEBUG_ERROR_IF(norm < 1000.0*ZeroTolerance)
+            << "norm is 0 when making the UnitCrossProduct of the vectors "
+            << a << " and " << b << std::endl;
         c/=norm;
     }
 
@@ -1218,31 +1222,29 @@ public:
     }
 
     /**
-     * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension"
-     * @param Destination The matric destination
-     * @param ReducedMatrix The reduced matrix to be computed
-     * @param dimension The dimension where we work
+     * @brief Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension"
+     * @param rDestination The matric destination
+     * @param rReducedMatrix The reduced matrix to be computed
+     * @param Dimension The dimension where we work
      */
-
-    static inline void  ExpandReducedMatrix(
-        MatrixType& Destination,
-        MatrixType& ReducedMatrix,
-        unsigned int dimension
+    static inline void ExpandReducedMatrix(
+        MatrixType& rDestination,
+        const MatrixType& rReducedMatrix,
+        const SizeType Dimension
         )
     {
         KRATOS_TRY;
 
-        const unsigned int size = ReducedMatrix.size2();
+        const SizeType size = rReducedMatrix.size2();
+        IndexType rowindex = 0;
+        IndexType colindex = 0;
 
-        for (unsigned int i = 0; i < size; i++)
-        {
-            unsigned int rowindex = i*dimension;
-            for (unsigned int j = 0; j < size; j++)
-            {
-                unsigned int colindex = j*dimension;
-                for(unsigned int ii=0; ii<dimension; ii++)
-                {
-                    Destination(rowindex+ii,colindex+ii) = ReducedMatrix(i,j);
+        for (IndexType i = 0; i < size; ++i) {
+            rowindex = i * Dimension;
+            for (IndexType j = 0; j < size; ++j) {
+                colindex = j * Dimension;
+                for(IndexType ii = 0; ii < Dimension; ii++) {
+                    rDestination(rowindex+ii, colindex+ii) = rReducedMatrix(i, j);
                 }
             }
         }
@@ -1251,33 +1253,29 @@ public:
     }
 
     /**
-     * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension" ADDING to the destination matrix
-     * @param Destination The matric destination
-     * @param ReducedMatrix The reduced matrix to be added
-     * @param dimension The dimension where we work
+     * @brief Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension" ADDING to the destination matrix
+     * @param rDestination The matric destination
+     * @param rReducedMatrix The reduced matrix to be added
+     * @param Dimension The dimension where we work
      */
-
     static inline void  ExpandAndAddReducedMatrix(
-        MatrixType& Destination,
-        MatrixType& ReducedMatrix,
-        const unsigned int dimension
+        MatrixType& rDestination,
+        const MatrixType& rReducedMatrix,
+        const SizeType Dimension
         )
     {
         KRATOS_TRY;
 
-        const unsigned int size = ReducedMatrix.size2();
-        unsigned int rowindex = 0;
-    unsigned int colindex = 0;
+        const SizeType size = rReducedMatrix.size2();
+        IndexType rowindex = 0;
+        IndexType colindex = 0;
 
-        for (unsigned int i = 0; i < size; i++)
-        {
-            rowindex = i * dimension;
-            for (unsigned int j = 0; j < size; j++)
-            {
-                colindex = j * dimension;
-                for(unsigned int ii = 0; ii < dimension; ii++)
-                {
-                    Destination(rowindex+ii,colindex+ii) += ReducedMatrix(i,j);
+        for (IndexType i = 0; i < size; ++i) {
+            rowindex = i * Dimension;
+            for (IndexType j = 0; j < size; ++j) {
+                colindex = j * Dimension;
+                for(IndexType ii = 0; ii < Dimension; ii++) {
+                    rDestination(rowindex+ii, colindex+ii) += rReducedMatrix(i, j);
                 }
             }
         }

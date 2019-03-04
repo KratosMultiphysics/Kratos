@@ -16,7 +16,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
+    puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -24,13 +25,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
-            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
-        } else {
-            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
-        }
+        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
     }
-    puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
+    puts $FileVar "        \"model_part_name\":                    \"PorousModelPart\","
     puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
@@ -224,29 +221,37 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "    \},"
     }
 
-    ## output_configuration
-    puts $FileVar "    \"output_configuration\": \{"
-    puts $FileVar "        \"result_file_configuration\": \{"
-    puts $FileVar "            \"gidpost_flags\":       \{"
-    puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
-    puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
+    ## Output processes
+    puts $FileVar "    \"output_processes\": \{"
+    puts $FileVar "        \"gid_output\": \[\{"
+    puts $FileVar "            \"python_module\": \"gid_output_process\","
+    puts $FileVar "            \"kratos_module\": \"KratosMultiphysics\","
+    puts $FileVar "            \"process_name\": \"GiDOutputProcess\","
+    puts $FileVar "            \"Parameters\":    \{"
+    puts $FileVar "                \"model_part_name\": \"PorousModelPart.porous_computational_model_part\","
+    puts $FileVar "                \"output_name\": \"$basename\","
+    puts $FileVar "                \"postprocess_parameters\": \{"
+    puts $FileVar "                    \"result_file_configuration\": \{"
+    puts $FileVar "                        \"gidpost_flags\":       \{"
+    puts $FileVar "                            \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
+    puts $FileVar "                            \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
     if { ([GiD_AccessValue get gendata Fracture_Propagation] eq true) || ($IsPeriodic eq true) } {
-        puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
-        puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
-        puts $FileVar "            \},"
-        puts $FileVar "            \"file_label\":          \"time\","
+        puts $FileVar "                            \"GiDPostMode\":           \"GiD_PostAscii\","
+        puts $FileVar "                            \"MultiFileFlag\":         \"MultipleFiles\""
+        puts $FileVar "                        \},"
+        puts $FileVar "                        \"file_label\":          \"time\","
     } else {
-        puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
-        puts $FileVar "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
-        puts $FileVar "            \},"
-        puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
+        puts $FileVar "                            \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
+        puts $FileVar "                            \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
+        puts $FileVar "                        \},"
+        puts $FileVar "                        \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
     }
-    puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
-    puts $FileVar "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
-    puts $FileVar "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
-    puts $FileVar "            \"skin_output\":         [GiD_AccessValue get gendata Skin_output],"
-    puts $FileVar "            \"plane_output\":        \[\],"
+    puts $FileVar "                        \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
+    puts $FileVar "                        \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "                        \"body_output\":         [GiD_AccessValue get gendata Body_output],"
+    puts $FileVar "                        \"node_output\":         [GiD_AccessValue get gendata Node_output],"
+    puts $FileVar "                        \"skin_output\":         [GiD_AccessValue get gendata Skin_output],"
+    puts $FileVar "                        \"plane_output\":        \[\],"
     # nodal_results
     set PutStrings \[
     set iGroup 0
@@ -277,7 +282,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $FileVar "            \"nodal_results\":       $PutStrings,"
+    puts $FileVar "                        \"nodal_results\":       $PutStrings,"
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
@@ -297,18 +302,23 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $FileVar "            \"gauss_point_results\": $PutStrings"
-    puts $FileVar "        \},"
-    puts $FileVar "        \"point_data_configuration\":  \[\]"
+    puts $FileVar "                        \"gauss_point_results\": $PutStrings"
+    puts $FileVar "                    \},"
+    puts $FileVar "                    \"point_data_configuration\":  \[\]"
+    puts $FileVar "                \}"
+    puts $FileVar "            \}"
+    puts $FileVar "        \}\]"
     puts $FileVar "    \},"
 
+    ## Processes
+    puts $FileVar "    \"processes\": \{"
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
     set NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Fluid_Pressure groups]
     incr NumGroups [llength $Groups]
     set iGroup 0
-    puts $FileVar "    \"constraints_process_list\": \[\{"
+    puts $FileVar "        \"constraints_process_list\": \[\{"
     # Solid_Displacement
     set Groups [GiD_Info conditions Solid_Displacement groups]
     WriteConstraintVectorProcess FileVar iGroup $Groups volumes DISPLACEMENT $TableDict $NumGroups
@@ -322,7 +332,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     WritePressureConstraintProcess FileVar iGroup $Groups surfaces WATER_PRESSURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups lines WATER_PRESSURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups points WATER_PRESSURE $TableDict $NumGroups
-
     ## loads_process_list
     set Groups [GiD_Info conditions Force groups]
     set NumGroups [llength $Groups]
@@ -338,17 +347,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     incr NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Body_Acceleration groups]
     incr NumGroups [llength $Groups]
-    if {$IsPeriodic eq true} {
-        set Groups [GiD_Info conditions Interface_Part groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            if {[lindex [lindex $Groups $i] 20] eq true} {
-                incr NumGroups
-            }
-        }
-    }
     if {$NumGroups > 0} {
         set iGroup 0
-        puts $FileVar "    \"loads_process_list\": \[\{"
+        puts $FileVar "        \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
         WriteLoadVectorProcess FileVar iGroup $Groups FORCE $TableDict $NumGroups
@@ -370,15 +371,32 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         # Body_Acceleration
         set Groups [GiD_Info conditions Body_Acceleration groups]
         WriteLoadVectorProcess FileVar iGroup $Groups VOLUME_ACCELERATION $TableDict $NumGroups
+    } else {
+        puts $FileVar "        \"loads_process_list\":       \[\],"
+    }
+    ## auxiliar_process_list
+    set NumGroups 0
+    if {$IsPeriodic eq true} {
+        set Groups [GiD_Info conditions Interface_Part groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                incr NumGroups
+            }
+        }
+    }
+    if {$NumGroups > 0} {
+        set iGroup 0
+        puts $FileVar "        \"auxiliar_process_list\": \[\{"
         # Periodic_Bars
         if {$IsPeriodic eq true} {
             set Groups [GiD_Info conditions Interface_Part groups]
             WritePeriodicInterfaceProcess FileVar iGroup $Groups $NumGroups
         }
     } else {
-        puts $FileVar "    \"loads_process_list\":       \[\]"
+        puts $FileVar "        \"auxiliar_process_list\": \[\]"
     }
 
+    puts $FileVar "    \}"
     puts $FileVar "\}"
 
     close $FileVar

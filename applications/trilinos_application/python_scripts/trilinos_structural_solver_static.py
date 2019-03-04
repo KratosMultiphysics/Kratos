@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.TrilinosApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
