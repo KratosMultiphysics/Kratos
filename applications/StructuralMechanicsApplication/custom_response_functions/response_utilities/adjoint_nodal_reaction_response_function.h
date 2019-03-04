@@ -80,6 +80,8 @@ public:
     ///@name Operations
     ///@{
 
+    void InitializeSolutionStep() override;
+
     void FinalizeSolutionStep() override;
 
     void CalculateGradient(const Element& rAdjointElement,

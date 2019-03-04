@@ -76,6 +76,20 @@ namespace Kratos
 
     AdjointNodalReactionResponseFunction::~AdjointNodalReactionResponseFunction(){}
 
+    void AdjointNodalReactionResponseFunction::InitializeSolutionStep()
+    {
+        KRATOS_TRY;
+
+        const VariableComponentType& r_traced_adjoint_dof =
+            KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
+
+        // check if the given node is really fixed in the direction of the given dof.
+        if((mpTracedNode->GetDof(r_traced_adjoint_dof)).IsFree())
+            KRATOS_ERROR << "Chosen reaction '" << mTracedReactionDofLabel << "' is not fixed on node #" << mpTracedNode->Id() << "!" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
     void AdjointNodalReactionResponseFunction::FinalizeSolutionStep()
     {
         KRATOS_TRY;
