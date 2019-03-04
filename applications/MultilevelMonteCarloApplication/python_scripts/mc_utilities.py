@@ -42,6 +42,8 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 
 
 # TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+# TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
+# TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
 
 
 """
@@ -65,7 +67,6 @@ def AddResultsAux_Task(simulation_results,level):
 auxiliary function of CheckConvergence of the MonteCarlo class
 input:  current_number_samples:                   current number of samples computed
         current_mean:                             current mean
-        current_sample_variance:                  current sample variance
         current_h2:                               current h2 statistics
         current_h3:                               current h3 statistics
         current_sample_central_moment_3_absolute: current third absolute central moment
@@ -76,11 +77,11 @@ input:  current_number_samples:                   current number of samples comp
 output: convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1)
-def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
+def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
-        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
+        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_h2)
         # evaluate probability of failure
         main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
         if(main_contribute < current_delta):
@@ -195,7 +196,6 @@ class MonteCarlo(object):
         # previous_number_samples: total number of samples of previous iteration
         self.previous_number_samples = [0 for _ in range (self.current_number_levels+1)]
         # batch_size: number of iterations of each epoch
-        # TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours
         self.batch_size = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
         # iteration counter
         self.iteration_counter = 0
@@ -306,7 +306,6 @@ class MonteCarlo(object):
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
         current_mean = self.QoI.mean[level]
-        current_sample_variance = self.QoI.sample_variance[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
@@ -314,7 +313,7 @@ class MonteCarlo(object):
         current_tol = self.settings["tolerance"].GetDouble()
         current_delta = self.settings["cphi"].GetDouble()
         convergence_criteria = self.convergence_criteria
-        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,\
+        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
             current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria)
         self.convergence = convergence_boolean
 
@@ -355,7 +354,6 @@ class MonteCarlo(object):
     """
     function updating batch size
     input:  self: an instance of the class
-    TODO: for now batch_size = difference_number_samples, in future flags can be added to have different behaviours
     """
     def UpdateBatch(self):
         self.batch_size = copy.copy(self.difference_number_samples)
