@@ -70,7 +70,7 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         return ModelPartIO(modelpart)
 
     def SetDt(self):
-        self._solver.dt = dt
+        self._GetSolver().dt = dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
@@ -110,12 +110,12 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def _BeforeSolveOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self._solver.dt, self.spheres_model_part)
+        benchmark.ApplyNodalRotation(time, self._GetSolver().dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self).BeforePrintingOperations(time)
         self.SetDt()
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._solver.dt)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._GetSolver().dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)

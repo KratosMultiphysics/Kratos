@@ -327,14 +327,12 @@ class ExplicitStrategy(object):
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
         """
-        self.Procedures.KratosPrintWarning('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead')
         time += self.dt
         self._UpdateTimeInModelParts(time)
         return time
 
     # def AdvanceInTime(self, step, time, is_time_to_print = False):
     #     step += 1
-    #     Logger.Print('Warning: Calls to this method (AdvanceInTime) are deprecated. Use AdvanceSolverInTime instead', label="DEM")
     #     time += self.dt
     #     self._UpdateTimeInModelParts(time, step, is_time_to_print)
     #     return step, time
