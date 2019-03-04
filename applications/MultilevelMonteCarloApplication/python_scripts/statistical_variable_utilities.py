@@ -22,7 +22,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: check absolute third moment from scratch is correct
 # TODO: add computation of raw moments, only the mean is now computed
-# TODO: check equivalence between central moments and central moments computed from scratch
 
 
 """
