@@ -664,7 +664,7 @@ KRATOS_WATCH(Ngauss);  */
                 //add to LHS enrichment contributions
                 Matrix inverse_diag(nenrichments, nenrichments);
                 double det;
-                MathUtils<double>::InvertMatrix(enrichment_diagonal,inverse_diag,det);
+                MathUtils<double>::InvertMatrix(enrichment_diagonal,inverse_diag,det, -1.0);
 
                   //  double inverse_diag_term = 1.0 / ( enrichment_diagonal);
 //        KRATOS_WATCH(this->Id());
