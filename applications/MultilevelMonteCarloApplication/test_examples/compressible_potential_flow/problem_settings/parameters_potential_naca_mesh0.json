@@ -94,7 +94,8 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
-                        "gauss_point_results" : ["PRESSURE","VELOCITY","DENSITY"]
+                        "gauss_point_results" : ["PRESSURE","VELOCITY","DENSITY","WAKE","KUTTA"],
+			"elemental_conditional_flags_results" : ["STRUCTURE"]
                     },
                     "point_data_configuration"  : []
                 }
