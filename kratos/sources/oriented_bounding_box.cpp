@@ -261,7 +261,7 @@ Hexahedra3D8<Point> OrientedBoundingBox<3>::GetEquivalentGeometry() const
 /***********************************************************************************/
 
 template<>
-void OrientedBoundingBox<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+void OrientedBoundingBox<2>::GetEquivalentRotatedGeometry(OutputType& rGeometry)
 {
     for (std::size_t i_point = 0; i_point < 4; ++i_point) {
         array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();
@@ -273,7 +273,7 @@ void OrientedBoundingBox<2>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
 /***********************************************************************************/
 
 template<>
-void OrientedBoundingBox<3>::GetEquivalentRotatedGeometry(OutpuType& rGeometry)
+void OrientedBoundingBox<3>::GetEquivalentRotatedGeometry(OutputType& rGeometry)
 {
     // Getting inverted rotation matrix
     BoundedMatrix<double, 4, 4> rotation_matrix, inverted_rotation_matrix;
