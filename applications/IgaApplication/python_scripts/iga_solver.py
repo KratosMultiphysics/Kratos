@@ -272,9 +272,9 @@ class IgaSolver(PythonSolver):
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            import read_materials_process
-            read_materials_process.Factory(material_settings,self.model)
-            #KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            #import read_materials_process
+            #read_materials_process.Factory(material_settings,self.model)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:
             materials_imported = False

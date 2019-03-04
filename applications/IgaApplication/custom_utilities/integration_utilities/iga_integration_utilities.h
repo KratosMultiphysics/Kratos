@@ -43,7 +43,9 @@ namespace IgaIntegrationUtilities
             p_element->Data() = it_elem->Data();
             p_element->Set(Flags(*it_elem));
 
-            rElementList[i] = p_element;
+            rModelPart.AddNodes(p_element->GetGeometry().begin(), p_element->GetGeometry().end());
+
+            new_element_list.push_back(p_element);
         }
 
         rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
@@ -63,8 +65,6 @@ namespace IgaIntegrationUtilities
         {
             auto it_elem = rElementList[i];
 
-            KRATOS_WATCH(rIdCounter)
-
             auto p_condition = rReferenceCondition.Create(rIdCounter, it_elem->pGetGeometry(), it_elem->pGetProperties());
 
             rIdCounter++;
@@ -79,6 +79,207 @@ namespace IgaIntegrationUtilities
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
+    static std::vector<Element::Pointer> GetIntegrationDomainGeometrySurface(
+        const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
+        const TrimmedSurfaceClipping& rClipper,
+        int ShapeFunctionDerivativesOrder)
+    {
+        std::vector<Element::Pointer> new_elements;
+
+        int degree_u = pSurface->DegreeU();
+        int degree_v = pSurface->DegreeV();
+
+        int degree = std::max(degree_u, degree_v) + 1;
+
+        ANurbs::SurfaceShapeEvaluator<double> shape(
+            pSurface->DegreeU(),
+            pSurface->DegreeV(),
+            ShapeFunctionDerivativesOrder);
+
+        for (int i = 0; i < rClipper.NbSpansU(); ++i)
+        {
+            for (int j = 0; j < rClipper.NbSpansU(); ++j)
+            {
+                if (rClipper.SpanTrimType(i, j) == ANurbs::Empty)
+                {
+                    continue;
+                }
+                else if (rClipper.SpanTrimType(i, j) == ANurbs::Full)
+                {
+                    auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
+                        degree_u + 1,
+                        degree_v + 1,
+                        rClipper.SpanU(i),
+                        rClipper.SpanV(j));
+
+                    for (int i = 0; i < integration_points.size(); ++i)
+                    {
+                        array_1d<double, 2> local_coordinates;
+                        local_coordinates[0] = integration_points[i].u;
+                        local_coordinates[1] = integration_points[i].v;
+
+                        shape.Compute(
+                            pSurface->KnotsU(),
+                            pSurface->KnotsV(),
+                            pSurface->Weights(),
+                            integration_points[i].u,
+                            integration_points[i].v);
+
+                        Element::GeometryType::PointsArrayType non_zero_control_points;
+                        Vector shape_function(shape.NonzeroPoleIndices().size());
+                        Matrix shape_function_derivative(shape.NonzeroPoleIndices().size(), 2);
+                        Matrix shape_function_second_derivative(shape.NonzeroPoleIndices().size(), 3);
+
+                        array_1d<double, 3> location = ZeroVector(3);
+                        for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
+                        {
+                            int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                            int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+
+                            non_zero_control_points.push_back(pSurface->GetNode(
+                                shape.NonzeroPoleIndices()[n].first,
+                                shape.NonzeroPoleIndices()[n].second));
+
+                            if (ShapeFunctionDerivativesOrder > -1)
+                                shape_function[n] = shape(0, indexU, indexV);
+                            if (ShapeFunctionDerivativesOrder > 0)
+                            {
+                                shape_function_derivative(n, 0) = shape(1, indexU, indexV);
+                                shape_function_derivative(n, 1) = shape(2, indexU, indexV);
+                            }
+                            if (ShapeFunctionDerivativesOrder > 1)
+                            {
+                                shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
+                                shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
+                                shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
+                            }
+
+                            location += non_zero_control_points.back().Coordinates()*shape_function(n);
+                        }
+
+                        Element ele(0, non_zero_control_points);
+
+                        Element::Pointer element = Kratos::make_shared<Element>(ele);
+
+                        if (ShapeFunctionDerivativesOrder > -1)
+                        {
+                            element->SetValue(
+                                SHAPE_FUNCTION_VALUES,
+                                shape_function);
+                        }
+                        if (ShapeFunctionDerivativesOrder > 0)
+                        {
+                            element->SetValue(
+                                SHAPE_FUNCTION_LOCAL_DERIVATIVES,
+                                shape_function_derivative);
+                        }
+                        if (ShapeFunctionDerivativesOrder > 1)
+                        {
+                            element->SetValue(
+                                SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
+                                shape_function_second_derivative);
+                        }
+                        element->SetValue(
+                            INTEGRATION_WEIGHT,
+                            integration_points[i].weight);
+
+                        element->SetValue(LOCAL_COORDINATES, local_coordinates);
+
+                        new_elements.push_back(element);
+                    }
+                }
+                else if (rClipper.SpanTrimType(i, j) == ANurbs::Trimmed)
+                {
+                    auto polygons = rClipper.SpanPolygons(i, j);
+
+                    for (int p = 0; p < polygons.size(); ++p)
+                    {
+                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
+
+                        integration_point_polygon.Compute(degree, polygons[p]);
+
+                        for (int i = 0; i < integration_point_polygon.NbIntegrationPoints(); ++i)
+                        {
+                            array_1d<double, 2> local_coordinates;
+                            local_coordinates[0] = integration_point_polygon.IntegrationPoint(i).u;
+                            local_coordinates[1] = integration_point_polygon.IntegrationPoint(i).v;
+
+                            shape.Compute(
+                                pSurface->KnotsU(),
+                                pSurface->KnotsV(),
+                                pSurface->Weights(),
+                                integration_point_polygon.IntegrationPoint(i).u,
+                                integration_point_polygon.IntegrationPoint(i).v);
+
+                            int number_of_non_zero_cps = integration_point_polygon.NbIntegrationPoints();
+                            Element::GeometryType::PointsArrayType non_zero_control_points;
+                            Vector shape_function(number_of_non_zero_cps);
+                            Matrix shape_function_derivative(number_of_non_zero_cps, 2);
+                            Matrix shape_function_second_derivative(number_of_non_zero_cps, 3);
+
+                            array_1d<double, 3> location = ZeroVector(3);
+                            for (int n = 0; n < number_of_non_zero_cps; ++n)
+                            {
+                                int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+                                int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+
+                                non_zero_control_points.push_back(pSurface->GetNode(
+                                    shape.NonzeroPoleIndices()[n].first,
+                                    shape.NonzeroPoleIndices()[n].second));
+
+                                if (ShapeFunctionDerivativesOrder > -1)
+                                    shape_function[n] = shape(0, indexU, indexV);
+                                if (ShapeFunctionDerivativesOrder > 0)
+                                {
+                                    shape_function_derivative(n, 0) = shape(1, indexU, indexV);
+                                    shape_function_derivative(n, 1) = shape(2, indexU, indexV);
+                                }
+                                if (ShapeFunctionDerivativesOrder > 1)
+                                {
+                                    shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
+                                    shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
+                                    shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
+                                }
+
+                                location += non_zero_control_points.back().Coordinates()*shape_function(n);
+                            }
+
+                            Element ele(0, non_zero_control_points);
+
+                            Element::Pointer element = Kratos::make_shared<Element>(ele);
+
+                            if (ShapeFunctionDerivativesOrder > -1)
+                            {
+                                element->SetValue(
+                                    SHAPE_FUNCTION_VALUES,
+                                    shape_function);
+                            }
+                            if (ShapeFunctionDerivativesOrder > 0)
+                            {
+                                element->SetValue(
+                                    SHAPE_FUNCTION_LOCAL_DERIVATIVES,
+                                    shape_function_derivative);
+                            }
+                            if (ShapeFunctionDerivativesOrder > 1)
+                            {
+                                element->SetValue(
+                                    SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
+                                    shape_function_second_derivative);
+                            }
+                            element->SetValue(
+                                INTEGRATION_WEIGHT,
+                                integration_point_polygon.IntegrationPoint(i).weight);
+
+                            element->SetValue(LOCAL_COORDINATES, local_coordinates);
+
+                            new_elements.push_back(element);
+                        }
+                    }
+                }
+            }
+        }
+        return new_elements;
+    }
 
     static std::vector<Element::Pointer> GetIntegrationDomainSurfaceEdgeSurfaceEdge(
         const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface1,
@@ -152,8 +353,8 @@ namespace IgaIntegrationUtilities
                     //std::cout << "derivatives_1[0][0]: " << derivatives_1[0][0] << std::endl;
                     //std::cout << "derivatives_1[0][1]: " << derivatives_1[0][1] << std::endl;
 
-                    KRATOS_WATCH(pSurface1->Weights().NbCols())
-                    KRATOS_WATCH(pSurface1->Weights().NbRows())
+                    //KRATOS_WATCH(pSurface1->Weights().NbCols())
+                    //KRATOS_WATCH(pSurface1->Weights().NbRows())
 
                     shape_1.Compute(
                         pSurface1->KnotsU(),

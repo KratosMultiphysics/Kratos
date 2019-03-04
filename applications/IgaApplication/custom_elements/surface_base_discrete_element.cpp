@@ -31,6 +31,7 @@ namespace Kratos
     void SurfaceBaseDiscreteElement::Initialize()
     {
         KRATOS_TRY
+
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
