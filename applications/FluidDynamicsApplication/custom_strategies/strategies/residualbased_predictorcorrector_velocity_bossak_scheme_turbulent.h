@@ -143,22 +143,22 @@ namespace Kratos {
             void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                              ProcessInfo& rCurrentProcessInfo) const override
             {
-                rVector.resize(1);
-                rVector[0] = &DISPLACEMENT;
+                rVariables.resize(1);
+                rVariables[0] = &DISPLACEMENT;
             }
             void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                               ProcessInfo& rCurrentProcessInfo) const override
             {
-                rVector.resize(2);
-                rVector[0] = &VELOCITY;
-                rVector[1] = &PRESSURE;
+                rVariables.resize(2);
+                rVariables[0] = &VELOCITY;
+                rVariables[1] = &PRESSURE;
             }
 
             void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                                ProcessInfo& rCurrentProcessInfo) const override
             {
-                rVector.resize(1);
-                rVector[0] = &ACCELERATION;
+                rVariables.resize(1);
+                rVariables[0] = &ACCELERATION;
             }
         };
 
