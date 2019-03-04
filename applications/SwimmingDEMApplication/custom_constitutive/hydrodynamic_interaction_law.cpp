@@ -205,4 +205,25 @@ namespace Kratos {
                                                       r_current_process_info);
     }
 
+    void HydrodynamicInteractionLaw::ComputeSteadyViscousTorque(Geometry<Node<3> >& r_geometry,
+                                                                double particle_radius,
+                                                                double fluid_density,
+                                                                double fluid_kinematic_viscosity,
+                                                                array_1d<double, 3>& slip_velocity,
+                                                                array_1d<double, 3>& steady_viscous_torque,
+                                                                const ProcessInfo& r_current_process_info)
+    {
+        const double reynolds_number = ComputeParticleReynoldsNumber(particle_radius,
+                                                                     fluid_kinematic_viscosity,
+                                                                     SWIMMING_MODULUS_3(slip_velocity));
+        return mpSteadyViscousTorqueLaw->ComputeMoment(r_geometry,
+                                                      reynolds_number,
+                                                      particle_radius,
+                                                      fluid_density,
+                                                      fluid_kinematic_viscosity,
+                                                      slip_velocity,
+                                                      steady_viscous_torque,
+                                                      r_current_process_info);
+    }
+
 } // Namespace Kratos
