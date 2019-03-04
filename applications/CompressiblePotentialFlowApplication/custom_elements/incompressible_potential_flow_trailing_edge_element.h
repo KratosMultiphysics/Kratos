@@ -201,10 +201,6 @@ private:
                                             Matrix& lhs_total,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
-    void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      Matrix& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data) const;
-
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
                                    Matrix& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
