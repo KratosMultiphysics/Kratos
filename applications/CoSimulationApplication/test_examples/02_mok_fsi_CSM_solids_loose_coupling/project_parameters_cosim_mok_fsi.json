@@ -11,7 +11,7 @@
         "name" : "mok_fsi",
         "solver_type" : "gauss_seidel_loose_coupling",
         "echo_level" : 1,
-        "start_coupling_time" : 2,
+        "start_coupling_time" : 0.5,
         "participants":
         [
         {
