@@ -124,7 +124,7 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().PointsNumber());
     for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
         node_ids.at(i) = i + 1;
-    auto p_prop = rModelPart.pGetProperties(1);
+    auto p_prop = rModelPart.CreateNewProperties(1);
     rModelPart.CreateNewElement(rElementName, 1, node_ids, p_prop);
     rModelPart.SetBufferSize(2);
     for (auto& r_node : rModelPart.Nodes())

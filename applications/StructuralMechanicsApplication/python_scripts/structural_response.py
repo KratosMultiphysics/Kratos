@@ -297,7 +297,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis.Initialize()
 
     def InitializeSolutionStep(self):
-
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
         Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
@@ -307,16 +306,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
-        # TODO the response value calculation for stresses currently only works on the adjoint modelpart
-        # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
-        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
-
-        # synchronize the modelparts
-        self._SynchronizeAdjointFromPrimal()
-
-        self.adjoint_analysis.InitializeSolutionStep()
-
-
     def CalculateValue(self):
         startTime = timer.time()
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
@@ -324,18 +313,18 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
-
     def CalculateGradient(self):
-        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
         startTime = timer.time()
-        self.adjoint_analysis._GetSolver().Predict()
-        self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        if not self.adjoint_analysis.time < self.adjoint_analysis.end_time:
+            self.adjoint_analysis.end_time += 1
+        self.adjoint_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
-
 
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
-
 
     def GetShapeGradient(self):
         gradient = {}
@@ -343,20 +332,12 @@ class AdjointResponseFunction(ResponseFunctionBase):
             gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
 
-
-    def FinalizeSolutionStep(self):
-        self.adjoint_analysis.FinalizeSolutionStep()
-        self.adjoint_analysis.OutputSolutionStep()
-
-
     def Finalize(self):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
 
-
     def _GetResponseFunctionUtility(self):
         return self.adjoint_analysis._GetSolver().response_function
-
 
     def _SynchronizeAdjointFromPrimal(self):
         Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
@@ -415,11 +396,10 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 solver_settings.AddEmptyValue("move_mesh_flag")
             solver_settings["move_mesh_flag"].SetBool(False)
 
-            if not solver_settings.Has("scheme_settings"):
-                tmp = solver_settings.AddEmptyValue("scheme_settings")
-                if not tmp.Has("scheme_type"):
-                    tmp.AddEmptyValue("scheme_type")
-            solver_settings["scheme_settings"]["scheme_type"].SetString("adjoint_structural")
+            if solver_settings.Has("scheme_settings"):
+                depr_msg = '\nDEPRECATION-WARNING: "scheme_settings" is deprecated, please remove it from your json parameters.\n'
+                KratosMultiphysics.Logger.PrintWarning(__name__, depr_msg)
+                solver_settings.RemoveValue("scheme_settings")
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
