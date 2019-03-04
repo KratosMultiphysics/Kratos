@@ -85,9 +85,8 @@ class PotentialAdjointSolver(LaplacianSolver):
     def FinalizeSolutionStep(self):
         super(PotentialAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
+        self.adjoint_postprocess.UpdateSensitivities()
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()
-        #after adjoint solution, adjoint_postprocess calculates sensitivities
-        self.adjoint_postprocess.UpdateSensitivities() # TODO call postprocess here or in FinalizeSolutionStep ?
 
