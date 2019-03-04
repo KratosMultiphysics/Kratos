@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosCoSimulationApplication ****")
 
-if(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
+if(${CO_SIMULATION_APPLICATION} MATCHES ON)
 
     include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
@@ -37,17 +37,14 @@ if(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     # Add to the KratosMultiphisics Python module
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py" DESTINATION "KratosMultiphysics/CoSimulationApplication" RENAME "__init__.py")
 
-else(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
+elseif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     project (KratosMultiphysics)
     cmake_minimum_required (VERSION 2.8.6)
 
     MESSAGE("Configuring the python only CoSimulationApplication ... ")
-    MESSAGE(${CMAKE_CURRENT_SOURCE_DIR})
     get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-    MESSAGE(${PARENT_DIR})
     get_filename_component(KRATOS_DIR ${PARENT_DIR} DIRECTORY)
-    MESSAGE(${KRATOS_DIR})
 
     ## Write KratosMultiphisics __init__.py 
     #take care: do not indent the lines below
@@ -87,7 +84,6 @@ KM._ImportApplicationAsModule(application, application_name, application_folder,
 ## adding pyKratos to path
 application_path = os.path.join(\"${KRATOS_DIR}/applications\", application_folder)
 python_path = os.path.join(application_path, 'custom_data_structure')
-print(\"################### \", python_path)
 sys.path.append(python_path)
 ")
 
@@ -95,4 +91,4 @@ sys.path.append(python_path)
     #configure_file("${PY_KRATOS}" "${KRATOS_DIR}/KratosMultiphysics/" COPYONLY)
     file(COPY ${PY_KRATOS} DESTINATION "${KRATOS_DIR}/KratosMultiphysics/CoSimulationApplication/pyKratos")
 
-endif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
+endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
