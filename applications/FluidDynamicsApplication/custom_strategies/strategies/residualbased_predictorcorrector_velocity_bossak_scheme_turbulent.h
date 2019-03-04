@@ -80,56 +80,64 @@ namespace Kratos {
     class TDenseSpace //= DenseSpace<double>
     >
     class ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent : public ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace> {
-        class NodalDerivativesExtension : public DerivativesExtension
+        class ElementDerivativesExtension : public DerivativesExtension
         {
-            Node<3>* mpNode;
+            Element* mpElement;
         public:
-            explicit NodalDerivativesExtension(Node<3>* pNode): mpNode(pNode)
+            explicit ElementDerivativesExtension(Element* pElement): mpElement(pElement)
             {}
 
-            void GetZeroDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+            void GetZeroDerivativesVector(std::size_t NodeId,
+                                          std::vector<IndirectScalar<double>>& rVector,
                                           std::size_t Step,
                                           ProcessInfo& rCurrentProcessInfo) override
             {
                 rVector.resize(3);
                 std::size_t index = 0;
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_X, Step);
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_Y, Step);
-                rVector[index] = MakeIndirectScalar(*this->mpNode, DISPLACEMENT_Z, Step);
+                Node<3>& r_node = mpElement->GetGeometry()[NodeId];
+                rVector[index++] = MakeIndirectScalar(r_node, DISPLACEMENT_X, Step);
+                rVector[index++] = MakeIndirectScalar(r_node, DISPLACEMENT_Y, Step);
+                rVector[index] = MakeIndirectScalar(r_node, DISPLACEMENT_Z, Step);
             }
 
-            void GetFirstDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+            void GetFirstDerivativesVector(std::size_t NodeId,
+                                           std::vector<IndirectScalar<double>>& rVector,
                                            std::size_t Step,
                                            ProcessInfo& rCurrentProcessInfo) override
             {
                 rVector.resize(4);
                 std::size_t index = 0;
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_X, Step);
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_Y, Step);
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, VELOCITY_Z, Step);
-                rVector[index] = MakeIndirectScalar(*this->mpNode, PRESSURE, Step);
+                Node<3>& r_node = mpElement->GetGeometry()[NodeId];
+                rVector[index++] = MakeIndirectScalar(r_node, VELOCITY_X, Step);
+                rVector[index++] = MakeIndirectScalar(r_node, VELOCITY_Y, Step);
+                rVector[index++] = MakeIndirectScalar(r_node, VELOCITY_Z, Step);
+                rVector[index] = MakeIndirectScalar(r_node, PRESSURE, Step);
             }
 
-            void GetSecondDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+            void GetSecondDerivativesVector(std::size_t NodeId,
+                                            std::vector<IndirectScalar<double>>& rVector,
                                             std::size_t Step,
                                             ProcessInfo& rCurrentProcessInfo) override
             {
                 rVector.resize(3);
                 std::size_t index = 0;
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, ACCELERATION_X, Step);
-                rVector[index++] = MakeIndirectScalar(*this->mpNode, ACCELERATION_Y, Step);
-                rVector[index] = MakeIndirectScalar(*this->mpNode, ACCELERATION_Z, Step);
+                Node<3>& r_node = mpElement->GetGeometry()[NodeId];
+                rVector[index++] = MakeIndirectScalar(r_node, ACCELERATION_X, Step);
+                rVector[index++] = MakeIndirectScalar(r_node, ACCELERATION_Y, Step);
+                rVector[index] = MakeIndirectScalar(r_node, ACCELERATION_Z, Step);
             }
 
-            void GetFirstDerivativesDofsVector(std::vector<Dof<double>::Pointer>& rVector,
+            void GetFirstDerivativesDofsVector(std::size_t NodeId,
+                                               std::vector<Dof<double>::Pointer>& rVector,
                                                ProcessInfo& rCurrentProcessInfo) override
             {
                 rVector.resize(4);
                 std::size_t index = 0;
-                rVector[index++] = this->mpNode->pGetDof(VELOCITY_X);
-                rVector[index++] = this->mpNode->pGetDof(VELOCITY_Y);
-                rVector[index++] = this->mpNode->pGetDof(VELOCITY_Z);
-                rVector[index++] = this->mpNode->pGetDof(PRESSURE);
+                Node<3>& r_node = mpElement->GetGeometry()[NodeId];
+                rVector[index++] = r_node.pGetDof(VELOCITY_X);
+                rVector[index++] = r_node.pGetDof(VELOCITY_Y);
+                rVector[index++] = r_node.pGetDof(VELOCITY_Z);
+                rVector[index++] = r_node.pGetDof(PRESSURE);
             }
         };
 
@@ -249,14 +257,14 @@ namespace Kratos {
 
             BaseType::Initialize(rModelPart);
 
-            const int number_of_nodes = rModelPart.NumberOfNodes();
+            const int number_of_elements = rModelPart.NumberOfElements();
 
 #pragma omp parallel for
-            for (int i = 0; i < number_of_nodes; i++)
+            for (int i = 0; i < number_of_elements; i++)
             {
-                Node<3>& r_current_node = *(rModelPart.NodesBegin() + i);
-                r_current_node.SetValue(DERIVATIVES_EXTENSION,
-                                        Kratos::make_shared<NodalDerivativesExtension>(&r_current_node));
+                Element& r_element = *(rModelPart.ElementsBegin() + i);
+                r_element.SetValue(DERIVATIVES_EXTENSION,
+                                        Kratos::make_shared<ElementDerivativesExtension>(&r_element));
             }
 
             KRATOS_CATCH("");

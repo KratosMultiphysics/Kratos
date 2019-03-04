@@ -43,36 +43,57 @@ public:
     {
     }
 
-    virtual void GetZeroDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+    virtual void GetZeroDerivativesVector(std::size_t NodeId,
+                                          std::vector<IndirectScalar<double>>& rVector,
                                           std::size_t Step,
                                           ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetFirstDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+    virtual void GetFirstDerivativesVector(std::size_t NodeId,
+                                           std::vector<IndirectScalar<double>>& rVector,
                                            std::size_t Step,
                                            ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetSecondDerivativesVector(std::vector<IndirectScalar<double>>& rVector,
+    virtual void GetSecondDerivativesVector(std::size_t NodeId,
+                                            std::vector<IndirectScalar<double>>& rVector,
                                             std::size_t Step,
                                             ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetZeroDerivativesDofsVector(std::vector<Dof<double>::Pointer>& rVector,
+    virtual void GetZeroDerivativesDofsVector(std::size_t NodeId,
+                                              std::vector<Dof<double>::Pointer>& rVector,
                                               ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetFirstDerivativesDofsVector(std::vector<Dof<double>::Pointer>& rVector,
+    virtual void GetFirstDerivativesDofsVector(std::size_t NodeId,
+                                               std::vector<Dof<double>::Pointer>& rVector,
                                                ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void GetSecondDerivativesDofsVector(std::vector<Dof<double>::Pointer>& rVector,
+    virtual void GetSecondDerivativesDofsVector(std::size_t NodeId,
+                                                std::vector<Dof<double>::Pointer>& rVector,
                                                 ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                                   ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                                    ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                                     ProcessInfo& rCurrentProcessInfo)
     {
     }
 
