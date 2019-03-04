@@ -54,8 +54,8 @@ if __name__ == '__main__':
         "number_samples_screening"        : 2,
         "Lscreening"                      : 1,
         "Lmax"                            : 4,
-        "initial_mesh_size"               : 0.05,
-        "mesh_refinement_coefficient"     : 1.5
+        "initial_mesh_size"               : 0.1,
+        "mesh_refinement_coefficient"     : 100
     }
     """)
     # customize setting parameters of the metric of the adaptive refinement utility
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 		"anisotropy_parameters":{
 			"reference_variable_name"          : "TEMPERATURE",
 			"hmin_over_hmax_anisotropic_ratio" : 0.01,
-			"boundary_layer_max_distance"      : 1000.0,
+			"boundary_layer_max_distance"      : 10.0,
 			"interpolation"                    : "Linear"
 		},
         "local_gradient_variable"              : "TEMPERATURE"
