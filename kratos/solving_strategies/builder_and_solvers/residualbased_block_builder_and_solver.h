@@ -1156,7 +1156,7 @@ protected:
                 max_diag = std::max(std::abs(rA(i,i)), max_diag);
             }
 
-            //apply diagonal values on slaves
+            // Apply diagonal values on slaves
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
                 const int eq_id = mSlaveIds[i];
