@@ -327,15 +327,9 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags == Right.mFlags);
-    }
+    friend bool operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags != Right.mFlags);
-    }
+    friend bool operator!=(const Flags& Left, const Flags& Right );
 
     friend Flags operator|(const Flags& Left, const Flags& Right );
 

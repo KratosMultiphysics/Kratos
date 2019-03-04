@@ -30,6 +30,16 @@ void Flags::load(Serializer& rSerializer)
     rSerializer.load("Flags",  mFlags);
 }
 
+bool operator==(const Flags& Left, const Flags& Right )
+{
+    return (Left.mFlags == Right.mFlags);
+}
+
+bool operator!=(const Flags& Left, const Flags& Right )
+{
+    return (Left.mFlags != Right.mFlags);
+}
+
 Flags operator|(const Flags& Left, const Flags& Right )
 {
     Flags results(Left);
