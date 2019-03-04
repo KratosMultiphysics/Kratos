@@ -682,7 +682,7 @@ void DamageDPlusDMinusMasonry3DLaw::RegulateBezierDeterminators(
 	KRATOS_ERROR_IF(bezier_stretcher <= -1.0) << "Error in Compression Damage: FRACTURE_ENERGY_COMPRESSION is too low, increase it to avoid constitutive snap-back!" << std::endl;
 								   
     // Update Strain values
-	ej += bezier_stretcher * (ej - ep);
+    ej += bezier_stretcher * (ej - ep);
 	ek += bezier_stretcher * (ek - ep);
 	er += bezier_stretcher * (er - ep);
 	eu += bezier_stretcher * (eu - ep);
@@ -708,10 +708,11 @@ double DamageDPlusDMinusMasonry3DLaw::EvaluateBezierCurve(
     double C = x1 - Xi;
     if (std::abs(A) < 1.0e-12) {
         x2 = x2 + 1.0E-6 * (x3-x1);
-        A =  x1 - 2.0 * x2 + x2;
+        A =  x1 - 2.0 * x2 + x3;
         B = 2.0 * (x2 - x1);
         C = x1 - Xi;
     }
+    
     const double D = B * B - 4.0 * A * C;
     const double t = (-B + std::sqrt(D)) / (2.0 * A);
     const double bezier_damage_parameter =  (y1 - 2.0 * y2 + y3) * t * t + (y2 - y1) * 2.0 * t + y1;

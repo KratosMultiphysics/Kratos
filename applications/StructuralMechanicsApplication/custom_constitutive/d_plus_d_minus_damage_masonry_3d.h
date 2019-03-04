@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-//#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
