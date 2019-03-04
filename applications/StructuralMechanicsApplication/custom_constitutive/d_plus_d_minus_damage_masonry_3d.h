@@ -11,14 +11,14 @@
 //  
 //
 #if !defined(KRATOS_D_PLUS_D_MINUS_DAMAGE_MASONRY_3D_H_INCLUDED)
-#define KRATOSD_PLUS_D_MINUS_DAMAGE_MASONRY_3D_H_INCLUDED
+#define KRATOS_D_PLUS_D_MINUS_DAMAGE_MASONRY_3D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_stress.h"
+//#include "custom_constitutive/linear_plane_stress.h"
 
 namespace Kratos
 {
