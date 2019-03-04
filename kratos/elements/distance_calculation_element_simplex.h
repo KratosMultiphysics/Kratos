@@ -243,7 +243,7 @@ public:
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].Is(BOUNDARY))
                     {
-                        rRightHandSideVector[i] += 0.01*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
+                        rRightHandSideVector[i] += 0.1*source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
                         // using the area as weighting factor is excessive. Reduced it to get a closer to constant gradient between the regions close and far away from the interface
                     }
                 
@@ -278,7 +278,7 @@ public:
             //unfortunately the numerical experiments tell that this in too unstable to be used unless a very 
             //good initial approximation is used
 //            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
-            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,0.1)*prod( DN_DX,trans(DN_DX) );
+            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,1.0)*prod( DN_DX,trans(DN_DX) );
         }
     }
 

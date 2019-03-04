@@ -329,6 +329,13 @@ public:
                 Values.SetShapeFunctionsValues(Nvec);
 
                 Vector strain = CalculateStrain();
+                //MODIFICATION: Add limits to the strain. In order to do so, we call the consitutive model of the element:
+                const double gamma_dot = std::sqrt(2.*strain[0] * strain[0] + 2.*strain[1] * strain[1] + 2.*strain[2] * strain[2]
+                    + strain[3] * strain[3] + strain[4] * strain[4] + strain[5] * strain[5]); 
+                double gamma_dot_from_constitutive_law = mp_constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
+                double ratio = fabs(gamma_dot_from_constitutive_law/gamma_dot);
+                if(ratio>1.0 || ratio<1e-20) ratio = 1.0;
+                strain*=ratio; 
                 Values.SetStrainVector(strain);
 
                 Vector stress(strain_size);
@@ -781,7 +788,7 @@ public:
         //add to LHS enrichment contributions
         double det;
         BoundedMatrix<double,4,4> inverse_diag;
-        MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det);
+        MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det,-1.0);
 
         const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
