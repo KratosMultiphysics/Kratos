@@ -19,7 +19,52 @@
 
 namespace Kratos
 {
-void EmbeddedIgaTessellation::CreateTessellation(
+
+void EmbeddedIgaTessellation::CreateTessellation1D(
+    const BrepEdge& rCurveGeometry,
+    std::vector<array_1d<double, 3>>& rPolygon)
+{
+    const int degree = rCurveGeometry.GetCurve3d()->Degree();
+    const int number_cps = rCurveGeometry.GetCurve3d()->NbPoles();
+    const bool is_rational = true;
+    
+    ANurbs::Pointer<ANurbs::CurveGeometry3D> curve_geometry = ANurbs::New<ANurbs::CurveGeometry3D>(degree, number_cps, is_rational);
+    
+    const std::vector<double> knot_vector = rCurveGeometry.GetCurve3d()->Knots();
+    const unsigned int number_knots = rCurveGeometry.GetCurve3d()->NbKnots();
+
+    for (unsigned int knot_i = 0; knot_i < number_knots; ++knot_i)
+    {
+        curve_geometry->SetKnot(knot_i, knot_vector[knot_i]);
+    }
+    for (unsigned int cp_i = 0; cp_i < number_cps; ++cp_i)
+    {
+        const auto node = rCurveGeometry.GetCurve3d()->GetNode(cp_i);
+        curve_geometry->SetPole(cp_i, {node->X(), node->Y(), node->Z()});
+        curve_geometry->SetWeight(cp_i, 
+            rCurveGeometry.GetCurve3d()->GetNode(cp_i)->GetValue(NURBS_CONTROL_POINT_WEIGHT));  
+    }
+
+    // Create the three dimensional curve which is to be tessellated
+    ANurbs::Curve3D curve(curve_geometry);
+
+    // Perform the tessellation of the curve with flatness factor
+    ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
+    tessellation->Compute(curve, 1e-4);
+
+    rPolygon.resize(tessellation->NbPoints()); 
+
+    int trim_index = rCurveGeometry.GetBrepEdgeTopologyVector()[0].trim_index; 
+    for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)
+    { 
+        rPolygon[i][0] = tessellation->Point(i).X(); 
+        rPolygon[i][1] = tessellation->Point(i).Y(); 
+        rPolygon[i][2] = tessellation->Point(i).Z();
+    }
+}
+
+
+void EmbeddedIgaTessellation::CreateTessellation2D(
     const BrepFace& rFaceGeometry, 
     std::vector<std::vector<array_1d<double, 2>>>& rOuterPolygon,
     std::vector<std::vector<array_1d<double, 2>>>& rInnerPolygon)

@@ -36,7 +36,11 @@ public:
     ///@name functions
     ///@{
     
-    static void CreateTessellation(
+    static void CreateTessellation1D(
+        const BrepEdge& rCurveGeometry,
+        std::vector<array_1d<double, 3>>& rPolygon);
+
+    static void CreateTessellation2D(
         const BrepFace& rFaceGeometry,
         std::vector<std::vector<array_1d<double, 2>>>& rOuterPolygon,
         std::vector<std::vector<array_1d<double, 2>>>& rInnerPolygon);

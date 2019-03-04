@@ -164,11 +164,9 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         // char trigenOpts[10] = "QDpza";
         // strcat(trigenOpts, buf); 
 
-        char trigenOpts[10] = "qpza0.1";
+        char trigenOpts[10] = "qpza10";
 
-        std::cout << "triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);" << std::endl; 
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
-        std::cout << "triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));" << std::endl; 
         triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
 
         unsigned int tri_id = 0; 
@@ -181,43 +179,37 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
             }
             tri_id += 3;  
         }
-        std::cout << " EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface" << std::endl; 
         std::vector<Matrix> gauss_points_exact_xyz; 
         EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(
             rFaceGeometry, triangulation_uv, gauss_points_exact_xyz);
 
-        std::cout << "EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface" << std::endl; 
         std::vector<Matrix> gauss_points_approx_xyz; 
         EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
             rFaceGeometry, triangulation_uv, gauss_points_approx_xyz); 
             
         Vector error; 
-        std::cout << "EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface" << std::endl; 
         EmbeddedIgaErrorEstimation::GetError(
             gauss_points_exact_xyz, gauss_points_approx_xyz, error);
         
-        // auto tolerance = false; 
-        // for (unsigned int i = 0; i < error.size(); ++i)
-        // {
-        //     if (error[i] > ele_tolerance)
-        //     {
-        //         tolerance = true; 
-        //         break; 
-        //     }
-        // }
+        auto tolerance = false; 
+        for (unsigned int i = 0; i < error.size(); ++i)
+        {
+            if (error[i] > ele_tolerance)
+            {
+                tolerance = true; 
+                break; 
+            }
+        }
 
-        std::cout << "CleanTriangulationDataStructure(out_data)" << std::endl; 
+        
         CleanTriangulationDataStructure(out_data); 
-        std::cout << "CleanTriangulationDataStructure(vor_out_data)" << std::endl; 
         CleanTriangulationDataStructure(vor_out_data); 
         
-        // if (tolerance == false )    break; 
+        if (tolerance == false )    break; 
         
     }
-    std::cout << "CleanTriangulationDataStructure(in_data)" << std::endl; 
     CleanTriangulationDataStructure(in_data); 
     
-    std::cout << "EmbeddedIgaMapper::MapCartesianSpace" << std::endl; 
     EmbeddedIgaMapper::MapCartesianSpace(
         rFaceGeometry, triangulation_uv, rTriangulation_xyz); 
 }

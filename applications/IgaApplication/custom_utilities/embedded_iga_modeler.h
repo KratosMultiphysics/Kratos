@@ -34,14 +34,14 @@ namespace Kratos
         ///@name functions
         ///@{
 
+        void CreateElements2D(ModelPart& rSkinModelPart);
         void CreateElements3D(ModelPart& rSkinModelPart);
-        // void CreateElements2D(ModelPart& rSkinModelPart);
 
         std::vector<std::vector<double>> PrintMappedPoints();
         std::vector<std::vector<double>> PrintParametricTessellation(); 
         std::vector<std::vector<double>> PrintParametricTriangulation();
         std::vector<std::vector<double>> TestCreateElements3D();
-
+        std::vector<std::vector<double>> PrintCurveTessellationPoints();
 
 
 

@@ -850,7 +850,9 @@ namespace Kratos {
         .def("PrintParametricTriangulation", &EmbeddedIgaModeler::PrintParametricTriangulation)
         .def("PrintMappedPoints", &EmbeddedIgaModeler::PrintMappedPoints)
         .def("CreateElements3D", &EmbeddedIgaModeler::CreateElements3D)
+        .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
         .def("TestCreateElements3D", &EmbeddedIgaModeler::TestCreateElements3D)
+        .def("PrintCurveTessellationPoints", &EmbeddedIgaModeler::PrintCurveTessellationPoints)
         ;
 
     
