@@ -373,8 +373,8 @@ class MonteCarlo(object):
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
         self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level) # consider also to give as input the number of samples computed up to this point,
-                                                                       # i.e. self.number_samples[current_level], instead of using self.StatisticalVariable.number_samples[current_level] inside the function
+        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                  # inside the function because it is a pycompss.runtime.binding.Future object
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)
         self.CheckConvergence(current_level)
