@@ -28,9 +28,9 @@ namespace Kratos
 
         // Get the corresponding dof to the reaction which should be traced
         // by this response function e.g. REACTION_X, REACTION_MOMENT_X,...
-        mTracedReactionDofLabel = ResponseSettings["traced_reaction"].GetString();
+        mTracedReactionLabel = ResponseSettings["traced_reaction"].GetString();
         // Get the corresponding dof to the displacement e.g. REACTION_X --> DISPLACEMENT_X
-        mTracedDisplacementDofLabel = this->GetCorrespondingDisplacementDofLabel(mTracedReactionDofLabel);
+        mTracedDisplacementDofLabel = this->GetCorrespondingDisplacementDofLabel(mTracedReactionLabel);
 
         if(ResponseSettings.Has("adjust_influence_function"))
             mAdjustInfluenceFunction = ResponseSettings["adjust_influence_function"].GetBool();
@@ -39,12 +39,12 @@ namespace Kratos
         mpTracedNode = rModelPart.pGetNode(id_traced_node);
 
         // Check if variable for traced reaction is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionDofLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedReactionDofLabel << std::endl;
+        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionLabel)) )
+            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedReactionLabel << std::endl;
         else
         {
             const VariableComponentType& r_traced_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedReactionDofLabel);
+                KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
                 << "Specified DOF is not available at traced node." << std::endl;
         }
@@ -66,8 +66,6 @@ namespace Kratos
             KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
         }
 
-        //MFusseder TODO check if given node belogs to a support!
-
         FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
         neigbhorFinder.Execute();
         mpNeighborElements = mpTracedNode->GetValue(NEIGHBOUR_ELEMENTS);
@@ -85,7 +83,7 @@ namespace Kratos
 
         // check if the given node is really fixed in the direction of the given dof.
         if((mpTracedNode->GetDof(r_traced_adjoint_dof)).IsFree())
-            KRATOS_ERROR << "Chosen reaction '" << mTracedReactionDofLabel << "' is not fixed on node #" << mpTracedNode->Id() << "!" << std::endl;
+            KRATOS_ERROR << "Chosen reaction '" << mTracedReactionLabel << "' is not fixed on node #" << mpTracedNode->Id() << "!" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -244,7 +242,7 @@ namespace Kratos
         KRATOS_TRY;
 
         const VariableComponentType& r_traced_dof =
-            KratosComponents<VariableComponentType>::Get(mTracedReactionDofLabel);
+            KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
 
         return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
 

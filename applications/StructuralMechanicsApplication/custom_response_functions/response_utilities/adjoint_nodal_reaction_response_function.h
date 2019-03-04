@@ -194,7 +194,7 @@ private:
     ///@{
 
     std::string mTracedDisplacementDofLabel;
-    std::string mTracedReactionDofLabel;
+    std::string mTracedReactionLabel;
     PointTypePointer  mpTracedNode;
     WeakPointerVector<Element > mpNeighborElements;
     bool mAdjustInfluenceFunction = false;
