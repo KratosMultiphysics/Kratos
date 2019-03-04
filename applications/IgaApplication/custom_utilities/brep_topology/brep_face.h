@@ -136,7 +136,7 @@ namespace Kratos
             Matrix& rShapeFunctionSecondDerivative
             ) const;
 
-        TrimmedSurfaceClipping BrepFace::GetSurfaceClipper(
+        TrimmedSurfaceClipping GetSurfaceClipper(
             const double& rAccuracy,
             const double& unit);
 
