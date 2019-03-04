@@ -163,7 +163,7 @@ namespace Kratos
                 std::vector<BrepTrimmingCurve> trimming_curves;
                 if (brep_json["faces"][i].Has("embedded_edges"))
                 {
-                    Parameters& embedded_edges_dict(brep_json["faces"][i]["embedded_edges"]);
+                    const Parameters& embedded_edges_dict(brep_json["faces"][i]["embedded_edges"]);
                     for (int i = 0; i < embedded_edges_dict.size(); ++i)
                     {
                         ImportTrimmingCurve(embedded_edges_dict[i], trimming_curves);
