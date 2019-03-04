@@ -139,6 +139,27 @@ namespace Kratos {
                 rVector[index++] = r_node.pGetDof(VELOCITY_Z);
                 rVector[index++] = r_node.pGetDof(PRESSURE);
             }
+
+            void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                             ProcessInfo& rCurrentProcessInfo) const override
+            {
+                rVector.resize(1);
+                rVector[0] = &DISPLACEMENT;
+            }
+            void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                              ProcessInfo& rCurrentProcessInfo) const override
+            {
+                rVector.resize(2);
+                rVector[0] = &VELOCITY;
+                rVector[1] = &PRESSURE;
+            }
+
+            void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables,
+                                               ProcessInfo& rCurrentProcessInfo) const override
+            {
+                rVector.resize(1);
+                rVector[0] = &ACCELERATION;
+            }
         };
 
     public:
