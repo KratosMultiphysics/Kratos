@@ -119,8 +119,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TrilinosCuttingIsosurfaceApplication >
         (m,"TrilinosCuttingIsosurfaceApplication").def(py::init< Epetra_MpiComm& >() )
         .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
-        //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
-        //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
         .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
         .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
         .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
@@ -147,7 +145,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::enum_<BaseSettingsType::StrategyLabel>(m,"TrilinosStrategyLabel")
         .value("Velocity",BaseSettingsType::Velocity)
         .value("Pressure",BaseSettingsType::Pressure)
-        //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
         ;
 
     py::enum_<BaseSettingsType::TurbulenceModelLabel>(m,"TrilinosTurbulenceModelLabel")
