@@ -113,8 +113,6 @@ namespace Kratos
         // Compute Derivative
         std::string derivative_flag = "DISPLACEMENT_DERIVATIVE";
         DerivativeBuilder::ComputeDerivative(derivative_flag, rDirectElement, rStressVariable, response_gradient, rProcessInfo);
-
-        //OutputUtility::OutputOnTerminal("rOutput", rOutput);
         
         // Size rOutput
         if (rOutput.size() != num_dofs)
@@ -128,8 +126,6 @@ namespace Kratos
             else if( mStressTreatment == StressTreatment::GaussPoint )
                 this->ExtractGaussPointStressDerivative(response_gradient[dof_it], rOutput[dof_it]);
         }
-
-        //OutputUtility::OutputOnTerminal("Gradient", rOutput);
         
         KRATOS_CATCH("");
     }
@@ -178,7 +174,7 @@ namespace Kratos
         rOutput.resize(0);        
 
         // Compute Partial Sensitivity
-        std::vector<unsigned int> traced_elem_ids  = rDesignVariable.GetTracedElementId();
+        std::vector<unsigned int> traced_elem_ids = rDesignVariable.GetTracedElementId();
         if (std::find(traced_elem_ids.begin(), traced_elem_ids.end(),rDirectElement.Id() ) != traced_elem_ids.end())
         {            
             CalculateElementContributionToPartialSensitivity(rDirectElement, rDesignVariable, rStressVariable, 
@@ -189,9 +185,7 @@ namespace Kratos
                 this->ExtractMeanStressDerivative(sensitivity_gradient[0], rOutput);
             else if(mStressTreatment == StressTreatment::GaussPoint)
                 this->ExtractGaussPointStressDerivative(sensitivity_gradient[0], rOutput);
-        }
-        
-        //OutputUtility::OutputOnTerminal("SensitivityGradient", rOutput);
+        } 
 
         KRATOS_CATCH("");
     }
@@ -228,13 +222,15 @@ namespace Kratos
         
         // Define working variables
         TDataType stress_derivative_value;
+        VectorMath::SizeVectorComponents(stress_derivative_value);
         VectorMath::SetToZero(stress_derivative_value);        
     
         // Sizing of rOutput
         if(rOutput.size() != 1)
             rOutput.resize(1);
-        
-        VectorMath::SetToZero(rOutput[0]);
+
+        VectorMath::SizeVectorComponents(rOutput);        
+        VectorMath::SetToZero(rOutput);
         
         // Compute mean value of all gauss points          
         for(IndexType gp_it = 0; gp_it < num_of_stress_positions; ++gp_it)            
@@ -263,7 +259,8 @@ namespace Kratos
         // Sizing of rOutput
         if(rOutput.size() != num_traced_gp)
             rOutput.resize(num_traced_gp);
-
+        
+        VectorMath::SizeVectorComponents(rOutput);
         VectorMath::SetToZero(rOutput);
 
         for (IndexType i = 0; i < num_traced_gp; ++i)

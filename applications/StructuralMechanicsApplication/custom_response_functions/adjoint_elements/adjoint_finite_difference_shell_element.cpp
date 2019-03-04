@@ -206,34 +206,27 @@ void AdjointFiniteDifferencingShellElement::SetValueOnIntegrationPoints(const Va
 {   
     const SizeType  write_points_number = GetGeometry()
             .IntegrationPointsNumber(this->GetIntegrationMethod());
-    
+
     // Sizing of the member variables
     if (mShellForceSensitivity.size() != write_points_number )
         mShellForceSensitivity.resize(write_points_number);
     if (mShellMomentSensitivity.size() != write_points_number)
         mShellMomentSensitivity.resize(write_points_number);
 
-    if (rVariable == SHELL_FORCE_GLOBAL)
+    if (rVariable == SHELL_FORCE_GLOBAL_SENSITIVITY)
         for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
-        {
             if ( mShellForceSensitivity[PointNumber].size1() != 3 || mShellForceSensitivity[PointNumber].size2() != 3 )
                 mShellForceSensitivity[PointNumber].resize(3, 3);
-            if ( rValues[PointNumber].size1() != 3 || rValues[PointNumber].size2() != 3 )
-                KRATOS_ERROR << "Components of the sensitivity vector for variable " << rVariable  <<" are supposed to be a 3x3-Matrix." << std::endl;
-        }        
-    if (rVariable == SHELL_MOMENT_GLOBAL)
+
+    if (rVariable == SHELL_MOMENT_GLOBAL_SENSITIVITY)
         for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
-        {
             if ( mShellMomentSensitivity[PointNumber].size1() != 3 || mShellForceSensitivity[PointNumber].size2() != 3 )
                 mShellMomentSensitivity[PointNumber].resize(3, 3);
-            if ( rValues[PointNumber].size1() != 3 || rValues[PointNumber].size2() != 3 )
-                KRATOS_ERROR << "Components of the sensitivity vector for variable " << rVariable  <<" are supposed to be a 3x3-Matrix." << std::endl;
-        }    
     
     // Wright sensitivity values on the member variables
     if (rValues.size() == write_points_number)
     {
-        
+        std::cout << "in Wright sensitivity values on the member variables" << std::endl;
 	    if (rVariable == SHELL_FORCE_GLOBAL_SENSITIVITY)
 	        for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
                 for( IndexType i = 0; i < rValues[PointNumber].size1(); ++i )
@@ -250,7 +243,7 @@ void AdjointFiniteDifferencingShellElement::SetValueOnIntegrationPoints(const Va
             KRATOS_ERROR << "Sensitivity Variable "<< rVariable <<" is not compatible with adjoint_finite_difference_shell_element." << std::endl;
     }
     else
-        KRATOS_ERROR << "Size of sensitivity vector is unequal to number of integration points" << std::endl;    
+        KRATOS_ERROR << "Size of sensitivity vector is unequal to number of integration points" << std::endl;
 }
 
 void AdjointFiniteDifferencingShellElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,

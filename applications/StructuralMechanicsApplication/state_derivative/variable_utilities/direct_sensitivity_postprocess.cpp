@@ -20,7 +20,6 @@
 #include "direct_sensitivity_postprocess.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/math_utils.h"
-//#include <iomanip>
 
 namespace Kratos
 {
@@ -52,13 +51,9 @@ namespace Kratos
             mpSensitivityModelPart = &mrModelPart;
         }
 
-        mBuildMode = SensitivitySettings["build_mode"].GetString(); 
+        mBuildMode = SensitivitySettings["build_mode"].GetString();         
 
-        //mVariableType = std::string("element_data_type");
-
-        mVariableType = mrDirectSensitivityVariable.GetDesignVariableType();  
-
-        //design_variable_name = std::string("I22");
+        mVariableType = mrDirectSensitivityVariable.GetDesignVariableType();
 
         mDesignVariableName = mrDirectSensitivityVariable.GetDesignVariableName();       
         
@@ -143,19 +138,12 @@ namespace Kratos
 
     void DirectSensitivityPostprocess::UpdateSensitivities(DirectSensitivityResponseFunction& rResponseFunction)
     {
-        KRATOS_TRY;
-
-        std::cout << "in UpdateSensitivities()" << std::endl;
+        KRATOS_TRY;        
 
         if (mBuildMode == "static")
-        {
-            // overwrite existing.
             this->SetAllSensitivityVariablesToZero(rResponseFunction);
-        }
         else
-        {
             KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
-        }
         
         // Define response variables ("MOMENT", "DISPLACEMENT" etc.) for which the sensitivity should get computed
         std::string response_variable_name = rResponseFunction.GetResponseVariableName();
@@ -165,9 +153,8 @@ namespace Kratos
         std::string response_output_variable_name = response_variable_name + std::string("_SENSITIVITY");
                 
         //  Update the sensitivies
-
         if ( KratosComponents<Variable<array_1d<double,3>>>::Has(response_variable_name) )
-        {
+        {        
             if ( KratosComponents<Variable<array_1d<double,3>>>::Has(response_output_variable_name) )
             {   
                 const Variable<array_1d<double,3>>& r_variable =
@@ -182,9 +169,8 @@ namespace Kratos
                     this->UpdateSensitivitiesOnNodes( rResponseFunction, r_variable, r_output_variable);
                 else
                     KRATOS_ERROR << "No matching output variable for " << response_variable_name << " exist." << std::endl;
-            } 
+            }
         }
-
         else if ( KratosComponents<Variable<Matrix>>::Has(response_variable_name) )
         {
             if ( KratosComponents<Variable<Matrix>>::Has(response_output_variable_name) )
@@ -201,9 +187,8 @@ namespace Kratos
                     this->UpdateSensitivitiesOnNodes( rResponseFunction, r_variable, r_output_variable);
                 else
                     KRATOS_ERROR << "No matching output variable for " << response_variable_name << " exist." << std::endl;
-            } 
-        }  
-        
+            }
+        } 
         else
             KRATOS_ERROR << "Unsupported variable: " <<  response_variable_name << "." << std::endl;
     
@@ -217,7 +202,7 @@ namespace Kratos
                                         Variable<TDataType> const& rResponseVariable, 
                                         Variable<TDataType> const& rOutputVariable)
     {
-        KRATOS_TRY;
+        KRATOS_TRY;        
         
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = 1;
@@ -225,17 +210,16 @@ namespace Kratos
         std::vector<std::vector<std::vector<TDataType>>> response_displacement_gradient(num_threads);
         std::vector<std::vector<TDataType>> response_sensitivity_gradient(num_threads);
         std::vector<Vector> displacement_gradient(num_threads);
-        std::vector<std::vector<TDataType>> scalar_product(num_threads);
-        
+        std::vector<std::vector<TDataType>> scalar_product(num_threads); 
+
         int k = 0;
         
         for (auto& elem_i : mrModelPart.Elements())
         {   
             if (!(elem_i.GetValue(UPDATE_SENSITIVITIES)))
-                continue;
+                continue;           
 
-            std::cout << "UpdateElement: ELEMENT: "<< elem_i.Id() << std::endl;
-            //Element::GeometryType& r_geom = elem_i.GetGeometry();
+            std::cout << "UpdateOnGaussPointsElement: ELEMENT: "<< elem_i.Id() << std::endl;            
             
             // No element contribution if the design variable is an condition data type
             if(mVariableType == "condition_data_type")
@@ -244,21 +228,24 @@ namespace Kratos
             // Calculate derivative of the response function wrt. the displacements             
             rResponseFunction.CalculateGradient(elem_i, rResponseVariable, response_displacement_gradient[k], r_process_info);
 
-            OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
+            //OutputUtility::OutputOnTerminal("dg/du", response_displacement_gradient[k]);
 
             // Calculate derivative of the response function wrt. the design variable
             rResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, rResponseVariable,
                                                 response_sensitivity_gradient[k], r_process_info);            
 
-            // Size sensitivity vector
+            // Size sensitivity vector & scalar product
             const SizeType num_traced_integr_pts = response_displacement_gradient[k][0].size();
             sensitivity_vector[k].resize(num_traced_integr_pts);
             scalar_product[k].resize(num_traced_integr_pts);
+
+            VectorMath::SizeVectorComponents(sensitivity_vector[k]);
+            VectorMath::SizeVectorComponents(scalar_product[k]);
                                            
             // Get the displacement vector derived wrt. the design parameter
             elem_i.GetValuesVector(displacement_gradient[k]);
                         
-            OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
+            //OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
                         
             if( (response_displacement_gradient[k].size() > 0) && (displacement_gradient[k].size() > 0) )
             {
@@ -268,7 +255,7 @@ namespace Kratos
                  
                 VectorMath::ScalarProduct(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
 
-                OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
+                //OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);
 
                 VectorMath::SetToZero(sensitivity_vector[k]);
 
@@ -331,12 +318,12 @@ namespace Kratos
             rResponseFunction.CalculatePartialSensitivity(node_i, mrDirectSensitivityVariable, rResponseVariable,
                                                 response_sensitivity_gradient[k], r_process_info);            
 
-            // Size sensitivity vector            
-            VectorMath::SetToZero(sensitivity_vector[k]);
-            VectorMath::SetToZero(scalar_product[k]);
-            VectorMath::SetToZero(displacement_gradient);
+            // Size sensitivity vector & scalar product   
+            VectorMath::SizeVectorComponents(sensitivity_vector[k]);
+            VectorMath::SizeVectorComponents(scalar_product[k]);                    
                                            
             // Get the displacement vector derived wrt. the design parameter
+            VectorMath::SetToZero(displacement_gradient[k]);
             std::string response_variable_name = rResponseVariable.Name();
             std::string adjoint_response_variable_name = std::string("ADJOINT_") + response_variable_name; 
             
@@ -352,8 +339,10 @@ namespace Kratos
 
             OutputUtility::OutputOnTerminal("du/ds", displacement_gradient[k]);
                         
-            if( (response_displacement_gradient[k].size() > 0) || !(EvaluateIfObjectIsOfSizeZero(displacement_gradient[k])) )
-            {                                
+            if( response_displacement_gradient[k].size() > 0 )
+            { 
+                VectorMath::SetToZero(scalar_product[k]);
+
                 VectorMath::Product(response_displacement_gradient[k], displacement_gradient[k], scalar_product[k]); 
 
                 OutputUtility::OutputOnTerminal("ScalarProduct", scalar_product[k]);

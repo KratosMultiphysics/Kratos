@@ -41,7 +41,7 @@ public:
     static void OutputOnTerminal(const std::string output_name, const std::vector<std::vector<array_1d<double, 3>>>& output_vector)
     {
         std::cout << output_name << ":  " << std::endl;
-        //std::cout << std::setw(6);
+        std::cout << std::setprecision(5) << std::fixed;
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
             std::cout << "       ";
@@ -64,6 +64,7 @@ public:
     static void OutputOnTerminal(const std::string output_name, const std::vector<array_1d<double, 3>>& output_vector)
     {
         std::cout << output_name << ":  " << std::endl;
+        std::cout << std::setprecision(5) << std::fixed;
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
             std::cout << "           |";
@@ -82,6 +83,7 @@ public:
     static void OutputOnTerminal(const std::string output_name, const Vector& output_vector)
     {
         std::cout << std::setw(18) << output_name << ":   |";
+        std::cout << std::setprecision(5) << std::fixed;
         for(IndexType i = 0; i < output_vector.size(); ++i)
         {
             if (i == output_vector.size()-1)
@@ -96,37 +98,71 @@ public:
 
     static void OutputOnTerminal(const std::string output_name, const std::vector<std::vector<Matrix>>& output_vector)
     {
-        std::cout << output_name << std::endl; 
+        
+        std::cout << output_name << ":  " << std::endl;
+        std::cout << std::setprecision(5) << std::fixed;
         for (IndexType g = 0; g < output_vector.size(); ++g)
         {
-            std::cout << "       ";
-            for(IndexType k = 0; k < output_vector[g].size(); ++k)
-            {  
-                for(IndexType i = 0; i < output_vector[g][k].size2(); ++i)
-                {   
-                    std::cout << "    |";                 
-                    for(IndexType j = 0; j < output_vector[g][k].size1(); ++j)
+            if (output_vector[g].size() == 1)
+            {
+                for(IndexType i = 0; i < output_vector[g][0].size2(); ++i)
+                {
+                    std::cout << "    |";
+                    for(IndexType j = 0; j < output_vector[g][0].size1(); ++j)
                     {   
-                        if (j == output_vector[g][k].size1()-1)
-                            std::cout << std::setw(8) << output_vector[g][k](j, i) << "|";
+                        if (j == output_vector[g][0].size1()-1)
+                            std::cout << std::setw(12) << output_vector[g][0](j, i) << "|";
                         else
-                            std::cout << std::setw(8) << output_vector[g][k](j, i) << " : ";
+                            std::cout << std::setw(12) << output_vector[g][0](j, i) << " : ";
                     }
-                    if ( k < ( output_vector[g].size() -1 ) )
-                        i = i - 1;
-                    else
-                        std::cout << std::endl; 
-                }   
-            }        
-        std::cout << std::endl;
-        
+                    std::cout << std::endl; 
+                }
+                if (g == output_vector.size() - 1)
+                    std::cout << std::endl;
+                else                            
+                    std::cout << "    |                                          |" << std::endl;
+            }
+            if (output_vector[g].size() == 3)
+            {   
+                for(IndexType i = 0; i < output_vector[g][0].size2(); ++i)
+                {  
+                    std::cout << "    |";                   
+                    for(IndexType j = 0; j < output_vector[g][0].size1(); ++j)
+                    {                                                
+                        if (j == output_vector[g][0].size1()-1)                           
+                            std::cout << std::setw(10) << output_vector[g][0](j, i) << "|    ";
+                        else
+                            std::cout << std::setw(10) << output_vector[g][0](j, i) << " : ";
+                    }
+                    std::cout << "    |"; 
+                    for(IndexType j = 0; j < output_vector[g][0].size1(); ++j)
+                    {                        
+                        if (j == output_vector[g][0].size1()-1)                           
+                            std::cout << std::setw(10) << output_vector[g][1](j, i) << "|    ";
+                        else
+                            std::cout << std::setw(10) << output_vector[g][1](j, i) << " : ";
+                    }
+                    std::cout << "    |"; 
+                    for(IndexType j = 0; j < output_vector[g][0].size1(); ++j)
+                    {                        
+                        if (j == output_vector[g][0].size1()-1)                           
+                            std::cout << std::setw(10) << output_vector[g][1](j, i) << "|";
+                        else
+                            std::cout << std::setw(10) << output_vector[g][1](j, i) << " : ";
+                    }
+                    std::cout << std::endl;
+                    if (i == output_vector[g][0].size2() - 1 )
+                        std::cout << "    |                                    |        |                                    |        |                                    |" << std::endl;                   
+                }
+            }                        
         }
-    } 
+    }
     
 
     static void OutputOnTerminal(const std::string output_name, const std::vector<Matrix>& output_vector)
     {
-        std::cout << output_name << std::endl; 
+        std::cout << output_name << ":  " << std::endl; 
+        std::cout << std::setprecision(5) << std::fixed;
         for(IndexType k = 0; k < output_vector.size(); ++k)
         {   
             for(IndexType i = 0; i < output_vector[k].size2(); ++i)
@@ -135,28 +171,33 @@ public:
                 for(IndexType j = 0; j < output_vector[k].size1(); ++j)
                 {   
                     if (j == output_vector[k].size1()-1)
-                        std::cout << std::setw(8) << output_vector[k](j, i) << "|";
+                        std::cout << std::setw(12) << output_vector[k](j, i) << "|";
                     else
-                        std::cout << std::setw(8) << output_vector[k](j, i) << " : ";
+                        std::cout << std::setw(12) << output_vector[k](j, i) << " : ";
                 }
                 std::cout << std::endl; 
-            }                
-            std::cout << "    |                                  |" << std::endl;            
+            }
+            if (k == output_vector.size() - 1)
+                std::cout << std::endl;
+            else                            
+                std::cout << "    |                                          |" << std::endl;                        
         }
+        std::cout << std::endl;
     } 
     
     static void OutputOnTerminal(const std::string output_name, const Matrix& output_vector)
     {
-        std::cout << output_name << std::endl; 
+        std::cout << output_name << ":  " << std::endl; 
+        std::cout << std::setprecision(5) << std::fixed;
         for(IndexType i = 0; i < output_vector.size2(); ++i)
         {
             std::cout << "    |";
             for(IndexType j = 0; j < output_vector.size1(); ++j)
             {   
                 if (j == output_vector.size1()-1)
-                    std::cout << std::setw(8) << output_vector(j, i) << "|";
+                    std::cout << std::setw(12) << output_vector(j, i) << "|";
                 else
-                    std::cout << std::setw(8) << output_vector(j, i) << " : ";
+                    std::cout << std::setw(12) << output_vector(j, i) << " : ";
             }
             std::cout << std::endl; 
         }

@@ -25,6 +25,7 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/define.h"
 #include "state_derivative/output_utilities/output_utility.h"
+#include "state_derivative/math_functions/vector_math.h"
 
 
 namespace Kratos
@@ -92,7 +93,8 @@ private:
                                 Variable<TDataType> const& rResponseVariable,
                                 std::vector<std::vector<TDataType>>& rOutput, 
                                 const ProcessInfo rCurrentProcessInfo)
-    {        
+    {   
+        
         // Define working variables
         Matrix DerivativeMatrix;
         DerivativeMatrix.clear();
@@ -104,8 +106,8 @@ private:
         rDirectElement.GetDofList(dofs_of_element, process_info);
 
         // To get the number of integration points
-        rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);
-        
+        rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);        
+
         // Size rOutput
         if(DerivativeFlag == "DISPLACEMENT_DERIVATIVE")
             rOutput.resize( dofs_of_element.size() );
@@ -116,11 +118,16 @@ private:
                 
         for (IndexType i = 0; i < rOutput.size(); ++i)
             rOutput[i].resize( dummy_vector.size() );
-        
+
+        VectorMath::SizeVectorComponents(rOutput);
+
+        // Set rOutput to zero
+        VectorMath::SetToZero(rOutput);
+
         for (IndexType dir_it = 0; dir_it < rTracedStresses.size(); ++dir_it)
         {   
             TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(rTracedStresses[dir_it]);  
-            rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));
+            rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
             
             if(DerivativeFlag == "DISPLACEMENT_DERIVATIVE")
                 rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
@@ -130,7 +137,7 @@ private:
             AssembleDerivationVector(rOutput, DerivativeMatrix, dir_it);
                
             DerivativeMatrix.clear();
-        }    
+        }        
     }
     
 
@@ -140,12 +147,12 @@ private:
     {   
         // Define sizes        
         const SizeType num_derivatives = rOutput.size();
-        const SizeType num_gp = rOutput[0].size();
+        const SizeType num_gp = rOutput[0].size();        
         
         // Assemble the results from DerivativeMatrix (results for 1 of the traced stresses) in the output vector
         for (IndexType deriv_it = 0; deriv_it < num_derivatives; ++deriv_it)
             for(IndexType gp_it = 0; gp_it < num_gp; ++gp_it)
-                AssembleComponentOfDerivationVector(rOutput[deriv_it][gp_it], DerivativeMatrix(deriv_it, gp_it), dir_it);                   
+                AssembleComponentOfDerivationVector(rOutput[deriv_it][gp_it], DerivativeMatrix(deriv_it, gp_it), dir_it);
     }
 
 
@@ -156,30 +163,27 @@ private:
     
     
     static void AssembleComponentOfDerivationVector(Matrix& rDerivationVectorComponent, const double& rValue, unsigned int dir_it)
-    {   
-        if (rDerivationVectorComponent.size1() != 3 || rDerivationVectorComponent.size2() != 3)
-            rDerivationVectorComponent.resize(3, 3);
-        
+    {          
+        if (dir_it == 0)            
+            rDerivationVectorComponent(0, 0) = rValue;
         if (dir_it == 1)            
-            rDerivationVectorComponent(1, 1) = rValue;
+            rDerivationVectorComponent(1, 0) = rValue;
         if (dir_it == 2)            
-            rDerivationVectorComponent(1, 2) = rValue;
+            rDerivationVectorComponent(2, 0) = rValue;
         if (dir_it == 3)            
-            rDerivationVectorComponent(1, 3) = rValue;
+            rDerivationVectorComponent(0, 1) = rValue;
         if (dir_it == 4)            
-            rDerivationVectorComponent(2, 1) = rValue;
+            rDerivationVectorComponent(1, 1) = rValue;
         if (dir_it == 5)            
-            rDerivationVectorComponent(2, 2) = rValue;
+            rDerivationVectorComponent(2, 1) = rValue;
         if (dir_it == 6)            
-            rDerivationVectorComponent(2, 3) = rValue;
+            rDerivationVectorComponent(0, 2) = rValue;
         if (dir_it == 7)            
-            rDerivationVectorComponent(3, 1) = rValue;
+            rDerivationVectorComponent(1, 2) = rValue;
         if (dir_it == 8)            
-            rDerivationVectorComponent(3, 2) = rValue;
-        if (dir_it == 9)            
-            rDerivationVectorComponent(3, 3) = rValue;                    
+            rDerivationVectorComponent(2, 2) = rValue;                    
     }
-
+    
     
 }; // class DerivativeBuilder
 
