@@ -39,7 +39,6 @@
             "Parameters"    : {
                 "model_part_name"   : "PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "is_adjoint"	    : true,
                 "velocity_infinity" : [10.0,0.0,0.0]
             }
         },{

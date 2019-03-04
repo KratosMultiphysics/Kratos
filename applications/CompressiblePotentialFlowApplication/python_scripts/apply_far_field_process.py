@@ -17,7 +17,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "inlet_phi": 1.0,
-                "is_adjoint": false,
                 "velocity_infinity": [1.0,0.0,0]
             }  """ );
         
@@ -31,7 +30,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.inlet_phi = settings["inlet_phi"].GetDouble()
-        self.is_adjoint = settings["is_adjoint"].GetBool()
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
         
         
@@ -72,7 +70,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             if(tmp < pos+1e-9):
                 node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
                 node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
-                if self.is_adjoint:
+                if self.model_part.HasNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL):
                     node.Fix(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
                     node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
         
