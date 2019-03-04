@@ -67,7 +67,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Find neighbours
         nodal_neighbour_search.Execute()
 
-        for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
+        for cond in self.upper_surface_model_part.Conditions:
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.SOLID)
+        for cond in self.lower_surface_model_part.Conditions:
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
 

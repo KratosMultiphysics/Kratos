@@ -36,32 +36,40 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-         print('COMPUTE LIFT')
+        print('COMPUTE LIFT')
 
-         rx = 0.0
-         ry = 0.0
-         rz = 0.0
+        rx = 0.0
+        ry = 0.0
+        rz = 0.0
 
-         for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
-           n = cond.GetValue(NORMAL)
-           cp = cond.GetValue(PRESSURE)
+        for cond in self.upper_surface_model_part.Conditions:
+            n = cond.GetValue(NORMAL)
+            cp = cond.GetValue(PRESSURE)
 
-           rx += n[0]*cp
-           ry += n[1]*cp
-           rz += n[2]*cp
+            rx += n[0]*cp
+            ry += n[1]*cp
+            rz += n[2]*cp
 
-         RZ = rz/self.reference_area
-         RX = rx/self.reference_area
-         RY = ry/self.reference_area
+        for cond in self.lower_surface_model_part.Conditions:
+            n = cond.GetValue(NORMAL)
+            cp = cond.GetValue(PRESSURE)
 
-         Cl = RY
-         Cd = RX
+            rx += n[0]*cp
+            ry += n[1]*cp
+            rz += n[2]*cp
 
-         print('Cl = ', Cl)
-         print('Cd = ', Cd)
-         print('RZ = ', RZ)
-         print('Mach = ', self.velocity_infinity[0]/340)
+        RZ = rz/self.reference_area
+        RX = rx/self.reference_area
+        RY = ry/self.reference_area
 
-         if self.create_output_file:
-             with open("cl.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(Cl))
+        Cl = RY
+        Cd = RX
+
+        print('Cl = ', Cl)
+        print('Cd = ', Cd)
+        print('RZ = ', RZ)
+        print('Mach = ', self.velocity_infinity[0]/340)
+
+        if self.create_output_file:
+            with open("cl.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(Cl))

@@ -41,7 +41,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         super(PotentialAdjointSolver, self).AddDofs()
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
-        
+
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
@@ -52,7 +52,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         self.adjoint_postprocess=KratosMultiphysics.StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
         self.adjoint_postprocess.Initialize()
 
-        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)        
+        scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
