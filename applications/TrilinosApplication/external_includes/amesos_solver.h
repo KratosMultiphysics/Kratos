@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  Collaboratos:    Philipp Bucher
+//  Collaborator:    Philipp Bucher
 //
 
 #if !defined (KRATOS_AMESOS_SOLVER_H_INCLUDED)
@@ -62,8 +62,8 @@ public:
     AmesosSolver(Parameters settings)
     {
         Parameters default_settings( R"({
-            "solver_type" : "amesos",
-            "amesos_solver_type" : "Amesos_Klu",
+            "solver_type"                    : "amesos",
+            "amesos_solver_type"             : "Amesos_Klu",
             "trilinos_amesos_parameter_list" : { }
         }  )" );
 
@@ -106,8 +106,7 @@ public:
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mParameterList
         mParameterList = Teuchos::ParameterList();
-        for(auto it = settings["trilinos_amesos_parameter_list"].begin(); it != settings["trilinos_amesos_parameter_list"].end(); it++)
-        {
+        for(auto it = settings["trilinos_amesos_parameter_list"].begin(); it != settings["trilinos_amesos_parameter_list"].end(); it++) {
             if(it->IsString()) mParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mParameterList.set(it.name(), it->GetBool());
