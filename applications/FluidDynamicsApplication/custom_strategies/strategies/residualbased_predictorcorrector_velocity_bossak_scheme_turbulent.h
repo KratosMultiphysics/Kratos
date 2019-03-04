@@ -137,7 +137,7 @@ namespace Kratos {
                 rVector[index++] = r_node.pGetDof(VELOCITY_X);
                 rVector[index++] = r_node.pGetDof(VELOCITY_Y);
                 rVector[index++] = r_node.pGetDof(VELOCITY_Z);
-                rVector[index++] = r_node.pGetDof(PRESSURE);
+                rVector[index] = r_node.pGetDof(PRESSURE);
             }
 
             void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
