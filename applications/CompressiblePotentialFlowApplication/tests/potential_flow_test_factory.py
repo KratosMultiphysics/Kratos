@@ -66,8 +66,8 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
                                 "skin_output"         : false,
                                 "plane_output"        : [],
                                 "nodal_nonhistorical_results" : ["POTENTIAL_JUMP","TRAILING_EDGE","WAKE"],
-                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
-                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","KUTTA"],
+                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
+                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","KUTTA","ELEMENTAL_DISTANCES"],
                                 "elemental_conditional_flags_results": ["STRUCTURE"]
                             },
                             "point_data_configuration"  : []
