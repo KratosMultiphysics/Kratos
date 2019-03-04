@@ -52,7 +52,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             self.modify_parameters(ProjectParameters)
 
             # To avoid many prints
-            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+            if ProjectParameters["problem_data"]["echo_level"].GetInt() == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
             else:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
