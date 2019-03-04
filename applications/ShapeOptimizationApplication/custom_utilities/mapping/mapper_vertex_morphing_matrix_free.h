@@ -142,23 +142,28 @@ public:
         mValuesDestination[2].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
+            auto node_i = destination_nodes_begin + node_itr;
+
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( *node_i,
                                                                              mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
 
-            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(*node_i, number_of_neighbors);
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            ComputeWeightForAllNeighbors( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
-            int node_i_mapping_id = node_i.GetValue(MAPPING_ID);
+            int node_i_mapping_id = node_i->GetValue(MAPPING_ID);
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
@@ -166,18 +171,24 @@ public:
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
                 array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rOriginVariable);
 
+                #pragma omp atomic
                 mValuesDestination[0][node_i_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
                 mValuesDestination[1][node_i_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
                 mValuesDestination[2][node_i_mapping_id] += weight*nodal_variable[2];
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
-            int i = node_i.GetValue(MAPPING_ID);
+            auto node_i = destination_nodes_begin + node_itr;
 
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            int i = node_i->GetValue(MAPPING_ID);
+
+            array_3d& r_node_vector = node_i->FastGetSolutionStepValue(rDestinationVariable);
             r_node_vector(0) = mValuesDestination[0][i];
             r_node_vector(1) = mValuesDestination[1][i];
             r_node_vector(2) = mValuesDestination[2][i];
@@ -199,37 +210,46 @@ public:
         mValuesDestination[0].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
+            auto node_i = destination_nodes_begin + node_itr;
+
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( *node_i,
                                                                              mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
 
-            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(*node_i, number_of_neighbors);
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            ComputeWeightForAllNeighbors( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
-            int node_i_mapping_id = node_i.GetValue(MAPPING_ID);
+            int node_i_mapping_id = node_i->GetValue(MAPPING_ID);
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
 
+                #pragma omp atomic
                 mValuesDestination[0][node_i_mapping_id] += weight*node_j.FastGetSolutionStepValue(rOriginVariable);
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
+            auto node_i = destination_nodes_begin + node_itr;
+            int i = node_i->GetValue(MAPPING_ID);
+
+            node_i->FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -250,23 +270,28 @@ public:
         mValuesOrigin[2].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
+            auto node_i = destination_nodes_begin + node_itr;
+
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( *node_i,
                                                                              mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
 
-            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(*node_i, number_of_neighbors);
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            ComputeWeightForAllNeighbors( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
-            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            array_3d& nodal_variable = node_i->FastGetSolutionStepValue(rDestinationVariable);
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
@@ -274,18 +299,25 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
+                #pragma omp atomic
                 mValuesOrigin[0][neighbor_node_mapping_id] += weight*nodal_variable[0];
+                #pragma omp atomic
                 mValuesOrigin[1][neighbor_node_mapping_id] += weight*nodal_variable[1];
+                #pragma omp atomic
                 mValuesOrigin[2][neighbor_node_mapping_id] += weight*nodal_variable[2];
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
 
-            array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
+        #pragma omp parallel for firstprivate(origin_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrOriginModelPart.NumberOfNodes(); node_itr++)
+        {
+            auto node_i = origin_nodes_begin + node_itr;
+            int i = node_i->GetValue(MAPPING_ID);
+
+            array_3d& r_node_vector = node_i->FastGetSolutionStepValue(rOriginVariable);
             r_node_vector(0) = mValuesOrigin[0][i];
             r_node_vector(1) = mValuesOrigin[1][i];
             r_node_vector(2) = mValuesOrigin[2][i];
@@ -307,23 +339,28 @@ public:
         mValuesOrigin[0].clear();
 
         // Perform mapping
-        for(auto& node_i : mrDestinationModelPart.Nodes())
+        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
+
+        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
         {
+            auto node_i = destination_nodes_begin + node_itr;
+
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
-            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( *node_i,
                                                                              mFilterRadius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
                                                                              mMaxNumberOfNeighbors );
 
-            ThrowWarningIfNumberOfNeighborsExceedsLimit(node_i, number_of_neighbors);
+            ThrowWarningIfNumberOfNeighborsExceedsLimit(*node_i, number_of_neighbors);
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
-            ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            ComputeWeightForAllNeighbors( *node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
 
-            double variable_value = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            double variable_value = node_i->FastGetSolutionStepValue(rDestinationVariable);
             for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
             {
                 ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
@@ -331,15 +368,21 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
+                #pragma omp atomic
                 mValuesOrigin[0][neighbor_node_mapping_id] += weight*variable_value;
             }
         }
 
         // Assign results to nodal variable
-        for(auto& node_i : mrOriginModelPart.Nodes())
+        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
+
+        #pragma omp parallel for firstprivate(origin_nodes_begin)
+        for(IndexType node_itr=0; node_itr<mrOriginModelPart.NumberOfNodes(); node_itr++)
         {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
+            auto node_i = origin_nodes_begin + node_itr;
+            int i = node_i->GetValue(MAPPING_ID);
+
+            node_i->FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
