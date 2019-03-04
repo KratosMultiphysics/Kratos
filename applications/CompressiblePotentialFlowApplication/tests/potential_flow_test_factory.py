@@ -11,14 +11,10 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_anal
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
-if kratos_utilities.IsApplicationAvailable("HDF5Application"):
-    has_hdf5_application = True
-else:
-    has_hdf5_application = False
-if kratos_utilities.IsApplicationAvailable("StructuralMechanicsApplication"):
-    has_structural_application = True
-else:
-    has_structural_application = False
+
+# Check other applications dependency
+hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
+structural_mechanics_is_available = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -31,33 +27,50 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-class PotentialFlowTestFactory(UnitTest.TestCase):
+class PotentialFlowTests(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    def test_execution(self):
+    def test_Naca0012Small(self):
+        file_name = "naca0012_small"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_test"
 
-        with WorkFolderScope(self.work_folder):
-            self._run_test()
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
+
+    def test_Naca0012SmallAdjoint(self):
+        if not hdf5_is_available:
+            self.skipTest("Missing required application: HDF5Application")
+        if not structural_mechanics_is_available:
+            self.skipTest("Missing required application: StructuralMechanicsApplication")
+        file_name = "naca0012_small_adjoint"
+        settings_file_name_primal = file_name + "_primal_parameters.json"
+        settings_file_name_adjoint = file_name + "_parameters.json"
+        work_folder = "naca0012_small_adjoint_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name_primal)
+            self._runTest(settings_file_name_adjoint)
+
             for file_name in os.listdir():
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
-class Naca0012SmallTest(PotentialFlowTestFactory):
-    def __init__(self,argv):
-        super(Naca0012SmallTest, self).__init__(argv)
-        self.file_name = "naca0012_small"
-        self.work_folder = "naca0012_small_test"
-
-    def _run_test(self):
+    def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
-        with open(self.file_name + "_parameters.json",'r') as parameter_file:
-            ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+        with open(settings_file_name,'r') as settings_file:
+            settings = KratosMultiphysics.Parameters(settings_file.read())
 
         if self.print_output:
-            ProjectParameters.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+            settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
                 "gid_output" : [{
                     "python_module" : "gid_output_process",
                     "kratos_module" : "KratosMultiphysics",
@@ -92,31 +105,8 @@ class Naca0012SmallTest(PotentialFlowTestFactory):
                 }]
             }'''))
 
-        potential_flow_analysis = PotentialFlowAnalysis(model,ProjectParameters)
+        potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
-
-@UnitTest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
-@UnitTest.skipUnless(has_structural_application,"Missing required application: StructuralMechanicsApplication")
-class Naca0012SmallAdjointTest(PotentialFlowTestFactory):
-    def __init__(self,argv):
-        super(Naca0012SmallAdjointTest, self).__init__(argv)
-        self.file_name = "naca0012_small_adjoint"
-        self.work_folder = "naca0012_small_adjoint_test"
-
-    def _run_test(self):
-        model_primal = KratosMultiphysics.Model()
-        with open(self.file_name + "_primal_parameters.json",'r') as parameter_file:
-            ProjectParametersPrimal = KratosMultiphysics.Parameters(parameter_file.read())
-
-        primal_analysis = PotentialFlowAnalysis(model_primal,ProjectParametersPrimal)
-        primal_analysis.Run()
-
-        model_adjoint = KratosMultiphysics.Model()
-        with open(self.file_name + "_parameters.json",'r') as parameter_file:
-            ProjectParametersAdjoint = KratosMultiphysics.Parameters(parameter_file.read())
-
-        adjoint_analysis = PotentialFlowAnalysis(model_adjoint,ProjectParametersAdjoint)
-        adjoint_analysis.Run()
 
 if __name__ == '__main__':
     UnitTest.main()
