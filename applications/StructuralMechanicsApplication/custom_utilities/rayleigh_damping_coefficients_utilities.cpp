@@ -20,7 +20,9 @@
 
 namespace Kratos
 {
-Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Parameters ThisParameters)
+namespace RayleighDampingCoefficientsUtilities
+{
+Vector ComputeDampingCoefficients(Parameters ThisParameters)
 {
     KRATOS_TRY
 
@@ -89,4 +91,5 @@ Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Paramete
 
     KRATOS_CATCH("")
 }
+} // namespace RayleighDampingCoefficientsUtilities
 } // namespace Kratos

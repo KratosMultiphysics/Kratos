@@ -17,6 +17,24 @@ namespace Kratos {
     void DEM_KDEM_Mohr_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Mohr_Coulomb to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM_Mohr_Coulomb::Check(Properties::Pointer pProp) const {
+        DEM_KDEM::Check(pProp);
+
+        if(!pProp->Has(INTERNAL_COHESION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable INTERNAL_COHESION should be present in the properties when using DEM_KDEM_Mohr_Coulomb. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(INTERNAL_COHESION) = 0.0;
+        }
+        if(!pProp->Has(INTERNAL_FRICTION_ANGLE)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable INTERNAL_FRICTION_ANGLE should be present in the properties when using DEM_KDEM_Mohr_Coulomb. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(INTERNAL_FRICTION_ANGLE) = 0.0;
+        }
     }
 
     double DEM_KDEM_Mohr_Coulomb::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
