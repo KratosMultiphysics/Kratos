@@ -18,8 +18,8 @@
 // Project includes
 #include "containers/model.h"
 
-namespace Kratos{
-namespace { // internal functions
+namespace Kratos {
+namespace { // empty namespace for internal functions
 /**
  * @brief This method gets the names of all parent-modelparts given a submodelpart-name
  * @param rModelPart The SubModelPart for which the parents-modelpart-names are to be extracted
@@ -33,7 +33,7 @@ void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>
         GetNameWithAscendants(*rModelPart.GetParentModelPart(), rModelPartNames);
     }
 }
-}
+} // empty namespace for internal functions
 
 void Model::Reset()
 {
