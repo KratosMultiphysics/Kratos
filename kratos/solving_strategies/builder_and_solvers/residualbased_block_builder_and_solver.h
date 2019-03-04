@@ -1091,6 +1091,7 @@ protected:
                     IndexType column = 0;
                     for (auto& master_dof : master_dof_list) {
                         if (!(master_dof->IsFixed() || BaseType::mDofSet.find(*master_dof) != BaseType::mDofSet.end())) {
+                            constant_vector[column] = 0.0;
                             for (IndexType i_zero = 0; i_zero < transformation_matrix.size1(); ++i_zero) {
                                 transformation_matrix(i_zero, column) = 0.0;
                             }
