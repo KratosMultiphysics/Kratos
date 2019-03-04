@@ -158,10 +158,6 @@ public:
                                      std::vector<array_1d<double, 3>>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
-                                     std::vector<bool>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -187,83 +183,17 @@ private:
     ///@name Private Operators
     ///@{
 
-    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
-
-    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
-
-    void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
-
-    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
-
-    void GetDofListNormalElement(DofsVectorType& rElementalDofList) const;
-
-    void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
-
-    void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
-
-    void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector);
-
-    void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector);
-
-    void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
-
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
-    void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
-                                            Matrix& lhs_positive,
-                                            Matrix& lhs_negative,
-                                            Matrix& lhs_total,
-                                            const ElementalData<NumNodes, Dim>& data) const;
-
-    void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      Matrix& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data) const;
-
-    void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   Matrix& lhs_total,
-                                   const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row) const;
-
-    void CheckWakeCondition() const;
-
-    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
-
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
+    void GetPotential(array_1d<double, NumNodes>& phis) const;
 
-    void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances) const;
+    void ComputeVelocity(array_1d<double, Dim>& velocity) const;
 
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void ComputeVelocityUpper(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLower(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
-
-    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressure(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Private Operations
