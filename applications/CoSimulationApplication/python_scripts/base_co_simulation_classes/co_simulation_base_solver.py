@@ -213,8 +213,9 @@ class CoSimulationBaseSolver(object):
         data_map = collections.OrderedDict()
         num_data = self.cosim_solver_settings["data"].size()
         for data_conf in self.cosim_solver_settings["data"]:
+            data_name = data_conf["name"].GetString()
             data_conf = self._MakeDataConfig(data_conf)
-            data_map[data_conf["name"].GetString()] = data_conf
+            data_map[data_name] = data_conf
 
         return data_map
 
@@ -222,16 +223,14 @@ class CoSimulationBaseSolver(object):
         default_config = cs_data_structure.Parameters("""
         {
             "name" : "default",
-            "format":"list",
             "dimension" : 0,
-            "size" : 0,
             "geometry_name" : "",
-            "location_on_mesh":""
+            "location_on_mesh":"on_nodes"
         }
         """)
         custom_config.ValidateAndAssignDefaults(default_config)
 
-        return custom_config
+        return custom_config.Clone()
 
     def _GetGeometryNames(self):
         geo_name_list = []

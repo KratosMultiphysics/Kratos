@@ -160,12 +160,14 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             solver = self.participating_solvers[solver_name]
             input_data_list = self.solver_settings[solver_name]["input_data_list"]
             num_input_data = input_data_list.size()
+
             for i in range(num_input_data):
                 input_data = input_data_list[i]
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
                 from_solver_data_conf = from_solver.GetDataConfig(data_name)
-                solver_data_conf = solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())
+                solver_data_conf = (solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())).Clone()
+
                 if(input_data["settings"].Has("mapper_settings")):
                     solver_data_conf.AddValue("origin_data_config",from_solver_data_conf)
                     solver_data_conf.AddValue("mapper_settings", input_data["settings"]["mapper_settings"])
@@ -186,7 +188,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
                 to_solver_data_conf = to_solver.GetDataConfig(data_name)
-                solver_data_conf = solver.GetDataConfig(output_data["settings"]["origin_data"].GetString())
+                solver_data_conf = (solver.GetDataConfig(output_data["settings"]["origin_data"].GetString())).Clone()
+
                 if(output_data["settings"].Has("mapper_settings")):
                     solver_data_conf.AddValue("destination_data_config",to_solver_data_conf)
                     solver_data_conf.AddValue("mapper_settings", output_data["settings"]["mapper_settings"])
@@ -210,15 +213,11 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                                  name as key
     #
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
-        print("########################### ")
-        print("")
-        print(co_simulation_solver_settings)
         num_solvers = co_simulation_solver_settings.size()
         solver_cosim_details = {}
-
-        for i, solver_settings in enumerate(co_simulation_solver_settings):
-            solver_name = solver_settings["name"].GetString()
-            solver_cosim_details[solver_name] = solver_settings
+        for i_solver in range(num_solvers):
+            solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
+            solver_cosim_details[solver_name] = co_simulation_solver_settings[i_solver]
         # TODO check if the data is consistently defined! => maybe do at another place though...
         # - input in one is output in another
         # - one IO is defined for each data_name
