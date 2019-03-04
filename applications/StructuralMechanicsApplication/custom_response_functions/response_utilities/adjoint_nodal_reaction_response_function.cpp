@@ -229,11 +229,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //MFusseder TODO rework!
         const VariableComponentType& r_traced_dof =
             KratosComponents<VariableComponentType>::Get(mTracedReactionDofLabel);
 
-        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
+        return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
 
         KRATOS_CATCH("");
     }
