@@ -10,25 +10,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-# Check if external Apps are available
-if  kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication"):
-    is_eigen_app_missing = False
-else:
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "WARNING: EigenSolversApplication is not available, skipping related tests!")
-    is_eigen_app_missing = True
-
-if  kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
-    is_csm_app_missing = False
-else:
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "WARNING: StructuralMechanicsApplication is not available, skipping related tests!")
-    is_csm_app_missing = True
-
-if  kratos_utilities.CheckIfApplicationsAvailable("MeshMovingApplication"):
-    is_mesh_moving_app_missing = False
-else:
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "WARNING: MeshMovingApplication is not available, skipping related tests!")
-    is_mesh_moving_app_missing = True
-
 # ==============================================================================
 # Import the tests or test_classes to create the suits
 # ==============================================================================
@@ -72,25 +53,16 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(mapper_test('test_execution'))
     smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(opt_process_shell_test('test_execution'))
-    if not is_mesh_moving_app_missing:
-        smallSuite.addTest(opt_process_solid_test('test_execution'))
-    if not is_eigen_app_missing and not is_csm_app_missing:
-        smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
-        smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(algorithm_trust_region_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(trust_region_projector_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
-    if not is_csm_app_missing:
-        smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
+    smallSuite.addTest(opt_process_shell_test('test_execution'))
+    smallSuite.addTest(opt_process_solid_test('test_execution'))
+    smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+    smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
+    smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
+    smallSuite.addTest(algorithm_trust_region_test('test_execution'))
+    smallSuite.addTest(trust_region_projector_test('test_execution'))
+    smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
+    smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
