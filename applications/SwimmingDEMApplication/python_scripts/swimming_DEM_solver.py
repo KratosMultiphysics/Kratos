@@ -200,7 +200,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
 
         if self.CannotIgnoreFluidNow():
-            self.SolveFluid()
+            self.SolveFluidSolutionStep()
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
@@ -218,8 +218,11 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
 
-    def SolveFluid(self):
+    def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
+
+    def SolveDEMSolutionStep(self):
+        self.dem_solver.SolveSolutionStep()
 
     def SolveDEM(self):
         #self.PerformEmbeddedOperations() TO-DO: it's crashing
@@ -244,13 +247,14 @@ class SwimmingDEMSolver(PythonSolver):
 
         if self.integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             # Advance in space only
-            self.dem_solver.SolveSolutionStep()
+            if self.do_solve_dem:
+                self.SolveDEMSolutionStep()
             self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
 
         # Performing the time integration of the DEM part
 
         if self.do_solve_dem:
-            self.dem_solver.SolveSolutionStep()
+            self.SolveDEMSolutionStep()
 
         self.first_DEM_iteration = False
 
