@@ -374,11 +374,10 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Z = primal_node.Z
 
         # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
-            Logger.PrintInfo("> Transfer primal state to adjoint model part.")
-            variable_utils = KratosMultiphysics.VariableUtils()
-            for variable in self.primal_state_variables:
-                variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+        Logger.PrintInfo("> Transfer primal state to adjoint model part.")
+        variable_utils = KratosMultiphysics.VariableUtils()
+        for variable in self.primal_state_variables:
+            variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
 
     def _GetAdjointParameters(self):
@@ -420,6 +419,12 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 if not tmp.Has("scheme_type"):
                     tmp.AddEmptyValue("scheme_type")
             solver_settings["scheme_settings"]["scheme_type"].SetString("adjoint_structural")
+
+            if solver_settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part":
+                solver_settings["model_import_settings"]["input_type"].SetString("mdpa")
+                solver_settings["model_import_settings"].AddEmptyValue("input_filename")
+                model_part_name = solver_settings["model_part_name"].GetString()
+                solver_settings["model_import_settings"]["input_filename"].SetString(model_part_name)
 
             # Dirichlet conditions: change variables
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
