@@ -377,10 +377,12 @@ protected:
             for (int i = 0; i < number_of_dof; i++) {
                 auto it_dof = it_dof_begin + i;
 
-                const IndexType dof_id = it_dof->EquationId();
-
-                residual_dof_value = TSparseSpace::GetValue(b,dof_id);
-                residual_solution_norm += std::pow(residual_dof_value, 2);
+                if(it_dof->IsFixed() == false)
+                {
+                    const IndexType dof_id = it_dof->EquationId();
+                    residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                    residual_solution_norm += std::pow(residual_dof_value, 2);
+                }
                 dof_num++;
             }
         }
