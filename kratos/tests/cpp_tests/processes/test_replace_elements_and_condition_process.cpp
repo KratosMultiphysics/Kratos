@@ -32,8 +32,7 @@ namespace Testing
 typedef Node<3> NodeType;
 
 /**
-* Checks the correct work of the nodal gradient compute
-* Test triangle
+* Checks if the replacement works with triangles (aka 2D geometries)
 */
 KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSuite)
 {
@@ -103,8 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
 }
 
 /**
-* Checks the correct work of the nodal gradient compute
-* Test tetrahedra
+* Checks if the replacement works with tetras (aka 3D geometries)
 */
 KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSuite)
 {
@@ -257,8 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSu
 }
 
 /**
-* Checks the correct work of the nodal gradient compute
-* Test triangle (onyl elements)
+* Checks if the replacement works when only elements are replaced (not conditions)
 */
 KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess3, KratosCoreFastSuite)
 {
