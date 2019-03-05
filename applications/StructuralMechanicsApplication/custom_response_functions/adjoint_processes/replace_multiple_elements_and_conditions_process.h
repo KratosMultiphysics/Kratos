@@ -121,29 +121,25 @@ public:
     }
 
     ///@}
-protected:
-    ///@name Member Variables
+private:
+    ///@name Private Member Variables
     ///@{
 
     ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
     Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
-    std::map<std::string, Element*> mElementsTable;
 
     ///@}
 
-private:
     ///@name Private Operations
     ///@{
 
     /**
-     * @brief This method updates the current elements and conditions ina given model part
+     * @brief This method updates the current elements and conditions in a given model part
      * @param rModelPart The model part where the elements and conditions are assigned
      * @param rRootModelPart The root model part
      */
-    void UpdateSubModelPart(
-        ModelPart& rModelPart,
-        ModelPart& rRootModelPart
-        );
+    void UpdateSubModelPart(ModelPart& rModelPart,
+                            ModelPart& rRootModelPart);
 
     ///@}
 
