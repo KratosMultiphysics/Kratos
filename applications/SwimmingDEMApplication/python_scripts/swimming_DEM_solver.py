@@ -23,7 +23,7 @@ class SwimmingDEMSolver(PythonSolver):
                 "kratos_module" : "KratosMultiphysics",
                 "process_name"  : "CalculateNodalAreaProcess",
                 "Parameters"    : {
-                    "model_part_name" : "FluidModelPart.Parts_fluid",
+                    "model_part_name" : "FluidModelPart",
                     "domain_size" : 3,
                     "fixed_mesh": false
                 }
@@ -39,18 +39,19 @@ class SwimmingDEMSolver(PythonSolver):
             project_parameters["processes"].Remove("non_optional_solver_processes")
             project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
 
-            for process in enumerate(non_optional_processes_list):
+            for process in non_optional_processes_list:
                 if process["python_module"].GetString() != 'calculate_nodal_area_process':
                    project_parameters["processes"]["non_optional_solver_processes"].Append(process)
 
         non_optional_solver_processes = project_parameters["processes"]["non_optional_solver_processes"]
         non_optional_solver_processes.Append(default_processes_settings)
-        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size()-1]["Parameters"]
+        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() -1]["Parameters"]
+        nodal_area_process_parameters["model_part_name"].SetString(self.fluid_solver.main_model_part.Name)
         nodal_area_process_parameters["domain_size"].SetInt(self.domain_size)
 
         if self.fluid_solver.settings.Has('move_mesh_flag'):
             the_mesh_moves = self.fluid_solver.settings["move_mesh_flag"].GetBool()
-            nodal_area_process_parameters["fixed_mesh"].SetBool(the_mesh_moves)
+            nodal_area_process_parameters["fixed_mesh"].SetBool(not the_mesh_moves)
 
         return project_parameters
 
