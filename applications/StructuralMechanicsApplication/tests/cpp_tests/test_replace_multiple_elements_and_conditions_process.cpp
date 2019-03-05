@@ -19,8 +19,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "containers/model.h"
 
-#include <omp.h>
-
 /* Processes */
 #include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
