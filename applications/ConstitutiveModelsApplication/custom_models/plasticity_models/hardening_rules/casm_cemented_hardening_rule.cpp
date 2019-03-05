@@ -144,8 +144,8 @@ namespace Kratos
 
   //TODO
     //process plastic potential derivatives d_g/d_inv
-    double FirstDerivativeP = 1.0;
-    double FirstDerivativeJ2 = 1.0;
+    const double& FirstDerivativeP  = rPlasticPotentialDerivative(0,0);
+    const double& FirstDerivativeJ2 = rPlasticPotentialDerivative(1,1);
 
     //calculate d_b/d_h * d_h/d_gamma
     double dBdGamma = -rB*( rH1*std::fabs( FirstDerivativeP ) + rH2*std::fabs( FirstDerivativeJ2 ) );
