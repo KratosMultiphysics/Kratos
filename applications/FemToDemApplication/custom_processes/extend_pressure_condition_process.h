@@ -69,6 +69,8 @@ public:
     void CalculateNumberOfElementsOnNodes();
     bool CheckIfHasConditionId(const IndexType Id);
 
+    void ResetFlagOnElements();
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;

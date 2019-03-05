@@ -32,7 +32,7 @@ void ExpandWetNodesProcess::Execute()
         extrapolated_elements = 0;
         for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
             
-            bool element_done = (*it_elem)->GetValue(SMOOTHING);
+            bool element_done = (*it_elem)->GetValue(PRESSURE_EXPANDED);
             bool condition_is_active = true;
             if ((*it_elem)->IsDefined(ACTIVE)) {
                 condition_is_active = (*it_elem)->Is(ACTIVE);
@@ -43,7 +43,7 @@ void ExpandWetNodesProcess::Execute()
 
                 this->ExpandWetNodes(it_elem, pressure_id);
                 extrapolated_elements++;
-                (*it_elem)->SetValue(SMOOTHING, true);
+                (*it_elem)->SetValue(PRESSURE_EXPANDED, true);
             }
         }
     }

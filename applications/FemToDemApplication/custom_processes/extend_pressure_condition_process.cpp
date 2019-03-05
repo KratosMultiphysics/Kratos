@@ -34,6 +34,7 @@ void ExtendPressureConditionProcess<2>::Execute()
     // Remove previous line loads-> Only the 1st iteration
     if (r_process_info[ITER] == 1) {
         this->RemovePreviousLineLoads();
+        this->ResetFlagOnElements();
     }
 
     // Genearte the new ones
@@ -171,8 +172,6 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
         }
     }
 
-    KRATOS_ERROR_IF(alone_edge_local_id == 10) << "Unexpected error in extrapolating the pressure load..." << std::endl;
-
     if (number_of_free_edges == 2) {
         const IndexType id_1 = non_free_edge == 0 ? 0 : non_free_edge == 1 ? 1 : 2;
         const IndexType id_2 = non_free_edge == 0 ? 1 : non_free_edge == 1 ? 2 : 0;
@@ -206,6 +205,38 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
         // Adding the conditions to the computing model part
         mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond1);
         mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
+    } else if (number_of_free_edges == 1) {
+
+        const IndexType id_1 = number_of_free_edges == 0 ? 0 : number_of_free_edges == 1 ? 1 : 2;
+        const IndexType id_2 = number_of_free_edges == 0 ? 1 : number_of_free_edges == 1 ? 2 : 0;
+        const IndexType id_3 = number_of_free_edges == 0 ? 2 : number_of_free_edges == 1 ? 0 : 1;
+
+        std::vector<IndexType> condition_nodes_id(2);
+        auto& r_geom = (*itElem)->GetGeometry();
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
+        rMaximumConditionId++;
+
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+
+        const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
+                                        "LineLoadCondition2D2N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
+
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::ResetFlagOnElements()
+{
+    for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        (*it_elem)->SetValue(SMOOTHING, false);
     }
 }
 
