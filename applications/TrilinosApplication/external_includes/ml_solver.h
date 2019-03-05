@@ -71,10 +71,10 @@ public:
     ///@{
 
     /// Constructor with Parameters.
-    MultiLevelSolver(Parameters settings)
+    MultiLevelSolver(Parameters Settings)
     {
-        Parameters default_settings( R"( {
-            "solver_type"                        : "MultiLevelSolver",
+        const Parameters default_settings( R"( {
+            "solver_type"                        : "multi_level",
             "tolerance"                          : 1.0e-6,
             "max_iteration"                      : 200,
             "max_levels"                         : 3,
@@ -86,28 +86,28 @@ public:
             "trilinos_ml_parameter_list"         : {}
         }  )" );
 
-        settings.ValidateAndAssignDefaults(default_settings);
+        Settings.ValidateAndAssignDefaults(default_settings);
 
         //settings for the MultiLevel solver
-        mTolerance = settings["tolerance"].GetDouble();
-        mMaxIterations = settings["max_iteration"].GetInt();
-        mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterations = Settings["max_iteration"].GetInt();
+        mReformPrecAtEachStep = Settings["reform_preconditioner_at_each_step"].GetBool();
 
         //scaling settings
-        if (!settings["scaling"].GetBool()) {
+        if (!Settings["scaling"].GetBool()) {
             mScalingType = NoScaling;
         }
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
-        if (settings["verbosity"].GetInt() == 0) {
+        if (Settings["verbosity"].GetInt() == 0) {
             mAztecParameterList.set("AZ_output", "AZ_none");
         } else {
-            mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
+            mAztecParameterList.set("AZ_output", Settings["verbosity"].GetInt());
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++) {
+        for (auto it = Settings["trilinos_aztec_parameter_list"].begin(); it != Settings["trilinos_aztec_parameter_list"].end(); it++) {
             if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
@@ -116,16 +116,16 @@ public:
 
         mMLParameterList = Teuchos::ParameterList();
 
-        if (!settings["symmetric"].GetBool()) {
+        if (!Settings["symmetric"].GetBool()) {
             ML_Epetra::SetDefaults("NSSA",mMLParameterList);
-            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
+            mMLParameterList.set("ML output", Settings["verbosity"].GetInt());
+            mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
         } else {
             ML_Epetra::SetDefaults("SA",mMLParameterList);
-            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
+            mMLParameterList.set("ML output", Settings["verbosity"].GetInt());
+            mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
             mMLParameterList.set("increasing or decreasing", "increasing");
             mMLParameterList.set("aggregation: type", "MIS");
             mMLParameterList.set("smoother: type", "Chebyshev");
@@ -135,7 +135,7 @@ public:
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = settings["trilinos_ml_parameter_list"].begin(); it != settings["trilinos_ml_parameter_list"].end(); it++) {
+        for (auto it = Settings["trilinos_ml_parameter_list"].begin(); it != Settings["trilinos_ml_parameter_list"].end(); it++) {
             if(it->IsString()) mMLParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mMLParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
@@ -143,12 +143,12 @@ public:
         }
     }
 
-    MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
+    MultiLevelSolver(Teuchos::ParameterList& rAztecParameterList, Teuchos::ParameterList& rMLParameterList, double Tolerance, int MaxIterations)
     {
-        mAztecParameterList = aztec_parameter_list;
-        mMLParameterList = ml_parameter_list;
-        mTolerance = tol;
-        mMaxIterations = nit_max;
+        mAztecParameterList = rAztecParameterList;
+        mMLParameterList = rMLParameterList;
+        mTolerance = Tolerance;
+        mMaxIterations = MaxIterations;
     }
 
     /// Copy constructor.
@@ -171,9 +171,9 @@ public:
     ///@name Operations
     ///@{
 
-    void SetScalingType(ScalingType val)
+    void SetScalingType(ScalingType Value)
     {
-        mScalingType = val;
+        mScalingType = Value;
     }
 
     ScalingType GetScalingType()
@@ -181,9 +181,9 @@ public:
         return mScalingType;
     }
 
-    void SetReformPrecAtEachStep(bool val)
+    void SetReformPrecAtEachStep(bool Value)
     {
-        mReformPrecAtEachStep = val;
+        mReformPrecAtEachStep = Value;
     }
 
     void ResetPreconditioner()
@@ -207,14 +207,14 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         KRATOS_TRY
-        Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
+        Epetra_LinearProblem aztec_problem(&rA,&rX,&rB);
 
         if (this->GetScalingType() == LeftScaling) {
             // don't use this with conjugate gradient
             // it destroys the symmetry
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
-            AztecProblem.LeftScale(scaling_vect);
+            aztec_problem.LeftScale(scaling_vect);
         }
 
         mMLParameterList.set("PDE equations", mNumDof);
@@ -233,7 +233,7 @@ public:
         }
 
         // create an AztecOO solver
-        AztecOO aztec_solver(AztecProblem);
+        AztecOO aztec_solver(aztec_problem);
         aztec_solver.SetParameters(mAztecParameterList);
 
         // set preconditioner and solve
@@ -286,7 +286,7 @@ public:
         int old_ndof = -1;
         unsigned int old_node_id = rdof_set.begin()->Id();
         int ndof = 0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++) {
+        for (auto it = rdof_set.begin(); it!=rdof_set.end(); it++) {
             unsigned int id = it->Id();
             if (id != old_node_id) {
                 old_node_id = id;
