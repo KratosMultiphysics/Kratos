@@ -16,9 +16,6 @@
         },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-            },
         "response_function_settings" : {
                 "response_type"     : "adjoint_nodal_reaction",
                 "use_kratos"        : true,
@@ -26,7 +23,7 @@
                 "step_size"         : 1e-6,
                 "traced_node_id"    : 11,
                 "traced_reaction"        : "REACTION_Z",
-                "adjust_influence_function" : true
+                "adjust_influence_function" : false
             },
         "sensitivity_settings" : {
                 "sensitivity_model_part_name" : "Parts_Beam",
