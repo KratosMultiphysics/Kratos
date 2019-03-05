@@ -408,7 +408,7 @@ public:
         mTime.Current = r_current_process_info[TIME];
         mTime.Delta = r_current_process_info[DELTA_TIME];
 
-        mTime.Middle   = mTime.Current - 0.50*mTime.Delta;   //0.5 * (mTime.Previous + mTime.Current);
+        mTime.Middle   = mTime.Current - 0.50*mTime.Delta;
         mTime.Previous = mTime.Current - 1.00*mTime.Delta;
         mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
 
