@@ -142,12 +142,10 @@ public:
         mValuesDestination[2].clear();
 
         // Perform mapping
-        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
 
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
@@ -181,10 +179,10 @@ public:
         }
 
         // Assign results to nodal variable
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
 
             int i = node_i->GetValue(MAPPING_ID);
 
@@ -210,12 +208,10 @@ public:
         mValuesDestination[0].clear();
 
         // Perform mapping
-        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
 
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
@@ -243,10 +239,10 @@ public:
         }
 
         // Assign results to nodal variable
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
             int i = node_i->GetValue(MAPPING_ID);
 
             node_i->FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
@@ -270,12 +266,10 @@ public:
         mValuesOrigin[2].clear();
 
         // Perform mapping
-        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
 
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
@@ -309,12 +303,10 @@ public:
         }
 
         // Assign results to nodal variable
-        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(origin_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrOriginModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = origin_nodes_begin + node_itr;
+            auto node_i = mrOriginModelPart.NodesBegin() + node_itr;
             int i = node_i->GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i->FastGetSolutionStepValue(rOriginVariable);
@@ -339,12 +331,10 @@ public:
         mValuesOrigin[0].clear();
 
         // Perform mapping
-        const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrDestinationModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = destination_nodes_begin + node_itr;
+            auto node_i = mrDestinationModelPart.NodesBegin() + node_itr;
 
             NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
             std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
@@ -374,12 +364,10 @@ public:
         }
 
         // Assign results to nodal variable
-        const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
-
-        #pragma omp parallel for firstprivate(origin_nodes_begin)
-        for(IndexType node_itr=0; node_itr<mrOriginModelPart.NumberOfNodes(); node_itr++)
+        #pragma omp parallel for
+        for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
-            auto node_i = origin_nodes_begin + node_itr;
+            auto node_i = mrOriginModelPart.NodesBegin() + node_itr;
             int i = node_i->GetValue(MAPPING_ID);
 
             node_i->FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
