@@ -18,8 +18,8 @@ namespace Kratos {
 
 template <SizeType TDim>
 ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
-    ModelPart& r_model_part)
-    : mrModelPart(r_model_part)
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart)
 {
 }
 

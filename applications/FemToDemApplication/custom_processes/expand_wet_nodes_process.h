@@ -14,17 +14,29 @@
 #if !defined(KRATOS_EXPAND_WET_NODES_PROCESS)
 #define KRATOS_EXPAND_WET_NODES_PROCESS
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include <list>
 
 namespace Kratos {
 
 typedef std::size_t SizeType;
 
+/** 
+ * @class ExpandWetNodesProcess
+ * @ingroup FemToDemApplication 
+ * @brief Assigns the pressure Id to the nodes of the elements that are going to be removed
+ * @details When one element is going to be removed, this process assigns the pressure_id
+ * to the rest of the nodes (expand the pressure load)
+ * @author Alejandro Cornejo
+ */
 class ExpandWetNodesProcess : public Process 
 {
 
