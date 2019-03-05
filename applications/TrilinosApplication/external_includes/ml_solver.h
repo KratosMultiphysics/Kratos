@@ -89,7 +89,7 @@ public:
         settings.ValidateAndAssignDefaults(default_settings);
 
         //settings for the MultiLevel solver
-        mtol = settings["tolerance"].GetDouble();
+        mTolerance = settings["tolerance"].GetDouble();
         mmax_iter = settings["max_iteration"].GetInt();
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
 
@@ -147,7 +147,7 @@ public:
     {
         mAztecParameterList = aztec_parameter_list;
         mMLParameterList = ml_parameter_list;
-        mtol = tol;
+        mTolerance = tol;
         mmax_iter = nit_max;
     }
 
@@ -239,7 +239,7 @@ public:
         // set preconditioner and solve
         aztec_solver.SetPrecOperator(&(*mpMLPrec));
 
-        aztec_solver.Iterate(mmax_iter, mtol);
+        aztec_solver.Iterate(mmax_iter, mTolerance);
 
         return true;
         KRATOS_CATCH("");
@@ -326,7 +326,7 @@ private:
     MLPreconditionerPointerType mpMLPrec = nullptr;
     ScalingType mScalingType = LeftScaling;
     bool mReformPrecAtEachStep = true;
-    double mtol;
+    double mTolerance;
     int mmax_iter;
     int mndof = 1;
 
