@@ -162,7 +162,6 @@ void  AddCustomIOToPython(pybind11::module& m)
     .def("Flush",&GidIOType::Flush)
     .def("CloseResultFile",&GidIOType::CloseResultFile)
     //.def("",&DatafileIO::)
-    //.def(self_ns::str(self))
     ;
 
 }

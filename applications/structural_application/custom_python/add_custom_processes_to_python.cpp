@@ -36,6 +36,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -58,7 +59,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
     .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
     .def("GetObjective", &TopologyUpdateProcess::GetObjective)
-    // .def(self_ns::str(self))
+    .def("__str__", PrintObject<TopologyUpdateProcess>)
     ;
 
 }
