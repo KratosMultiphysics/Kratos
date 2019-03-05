@@ -41,6 +41,8 @@ class PotentialAdjointSolver(LaplacianSolver):
         super(PotentialAdjointSolver, self).AddDofs()
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL, True, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL, True, self.main_model_part.Nodes)
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
