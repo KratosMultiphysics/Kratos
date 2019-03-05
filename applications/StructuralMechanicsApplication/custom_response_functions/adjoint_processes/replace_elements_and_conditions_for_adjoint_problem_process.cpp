@@ -247,8 +247,6 @@ namespace Kratos
             replacement_necessary = false;
         else if(name_current_condition == "ShapeOptimizationCondition3D4N")
             replacement_necessary = false;
-        else if(name_current_condition == "SurfaceLoadCondition3D3N")
-            replacement_necessary = false; //TODO not true, should be implemented!
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_condition <<
