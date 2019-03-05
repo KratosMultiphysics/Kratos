@@ -72,19 +72,6 @@ namespace Kratos
                  << "Size of stress displacement derivative does not fit!" << std::endl;
 
             rResponseGradient *= (-1);
-
-            unsigned int node_counter = 0;
-            for(auto& node_i : rAdjointElement.GetGeometry())
-            {
-
-                array_1d<double,3>& local_derivative = node_i.FastGetSolutionStepValue(DFDU);
-                local_derivative[0] = rResponseGradient[node_counter*3 + 0];
-                local_derivative[1] = rResponseGradient[node_counter*3 + 1];
-                local_derivative[2] = rResponseGradient[node_counter*3 + 2];
-
-                node_counter++;
-            }
-
         }
         else
         {
