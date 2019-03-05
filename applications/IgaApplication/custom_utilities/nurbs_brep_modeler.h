@@ -13,6 +13,9 @@
 
 #include "integration_utilities/iga_integration_utilities.h"
 
+#include "spatial_containers/bins_dynamic_objects.h"
+#include "custom_utilities/search_utilities/bins_iga_configure.h"
+
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -66,11 +69,10 @@ namespace Kratos
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
 
-        // void PrintBrepNodes();
-        
-        // void PrintEdgePolygon();
-
-        // void PrintTrimmingPolygon();
+        void GetInterfaceConditions(
+            ModelPart& rModelPart,
+            ModelPart& rIgaModelPart,
+            ModelPart& rInterfaceConditionsModelPart);
 
         void ExportGeometry();
 

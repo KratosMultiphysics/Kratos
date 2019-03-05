@@ -72,6 +72,49 @@ namespace IgaGeometryUtilities
         }
     }
 
+
+	static void CalculateCoordinates(
+		const Element::GeometryType& rGeometry,
+		const Vector& rN,
+		const unsigned int rWorkingSpaceDimension,
+		array_1d<double, 3>& rCoordinates)
+	{
+		const int& number_of_control_points = rGeometry.size();
+		rCoordinates = ZeroVector(rWorkingSpaceDimension);
+		for (int i = 0; i < N.size(); i++)
+		{
+			const NodeType & iNode = GetGeometry()[i];
+			const array_1d<double, 3>& coords = iNode.Coordinates();
+
+			for (int dim = 0; dim < rWorkingSpaceDimension; ++dim)
+			{
+				condition_coords[dim] += rN[i] * coords[dim];
+			}
+		}
+	}
+
+	static double DistanceNodeToElement(
+		const Element::GeometryType& rGeometry,
+		const Vector& rN,
+		const Node<3>::Pointer pNode,
+		const unsigned int rWorkingSpaceDimension
+	)
+	{
+		array_1d<double, 3> coordinates = ZeroVector(3);
+		IgaGeometryUtilities::CalculateCoordinates(
+			rGeometry,
+			rN,
+			rWorkingSpaceDimension,
+			coordinates);
+
+		double pythagoras = 0.0;
+		for (int dim = 0; dim < rWorkingSpaceDimension; ++dim)
+		{
+			pythagoras += std::pow((coordinates[dim] - pNode->Coordinates()[dim]), 2);
+		}
+
+		return std::sqrt(pythagoras);
+	}
 }
 
 } // namespace Kratos

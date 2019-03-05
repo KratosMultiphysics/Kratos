@@ -14,6 +14,7 @@
 #define IGA_SURFACE_UTILITIES_H_INCLUDED
 
 #include "includes/model_part.h"
+#include "includes/node.h"
 #include "custom_utilities/geometry_utilities/iga_geometry_utilities.h"
 
 #include "utilities/math_utils.h"
@@ -21,7 +22,7 @@
 namespace Kratos
 {
 
-namespace IgaSurfaceUtilties
+namespace IgaSurfaceUtilities
 {
 
     static void CalculateBaseVectors(
@@ -64,6 +65,29 @@ namespace IgaSurfaceUtilties
         array_1d<double, 3> g2 = ZeroVector(3);
 
         CalculateBaseVectors(rGeometry, rDN_De, g1, g2, r_g3);
+    }
+
+    static double DistanceNodeToSurfaceElement(
+        const Element::GeometryType& rGeometry,
+        const Vector& rN,
+        const Node::Pointer pNode,
+        const unsigned int rWorkingSpaceDimension
+    )
+    {
+        array_1d<double, 3> coordinates = ZeroVector(3);
+        IgaGeometryUtilities::CalculateCoordinates(
+            rGeometry,
+            rN,
+            rWorkingSpaceDimension,
+            coordinates);
+
+        double pythagoras = 0.0;
+        for (int dim = 0; dim < rWorkingSpaceDimension; ++dim)
+        {
+            pythagoras += std::pow((coordinates[dim] - pNode->Coordinates()[dim]), 2);
+        }
+
+        return std::sqrt(pythagoras)
     }
 }
 

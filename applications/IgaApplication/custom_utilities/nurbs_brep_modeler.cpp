@@ -291,6 +291,8 @@ namespace Kratos
         }
     }
 
+    void NurbsBrepModeler::
+
     void NurbsBrepModeler::ExportGeometry()
     {
         std::cout << "ExportGeometry to FILE..." << std::endl;
