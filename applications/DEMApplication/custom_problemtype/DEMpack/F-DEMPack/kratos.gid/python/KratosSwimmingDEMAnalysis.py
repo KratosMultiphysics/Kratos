@@ -1,0 +1,1 @@
+/home/farrufat/kratos/applications/SwimmingDEMApplication/python_scripts/KratosSwimmingDEMAnalysis.py
