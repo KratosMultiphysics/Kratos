@@ -567,115 +567,43 @@ KRATOS_WATCH(Ngauss);  */
 
 
 
-                if(positive_volume/Area < min_area_ratio)
-                {
-//                     KRATOS_WATCH(this->Id());
-//                     KRATOS_WATCH(positive_volume/Area)
-                    for(unsigned int i=0; i<TDim+1; i++)
+                //We only apply enrichment if we do not have an almost empty/full element
+                if (positive_volume / Area > min_area_ratio && negative_volume / Area > min_area_ratio) {
+
+                    for (unsigned int i = 0; i < TDim; i++)
                     {
-                        if(distances[i] >= 0.0)
+                        const double di = fabs(distances[i]);
+
+                        for (unsigned int j = i + 1; j < TDim + 1; j++)
                         {
-/*
-                            for(unsigned int k=0; k<TDim+1; k++)
+                            const double dj = fabs(distances[j]);
+
+                            if (distances[i] * distances[j] < 0.0) //cut edge
                             {
-                                enrichment_diagonal(i,k) = 0.0;
-                                enrichment_diagonal(k,i) = 0.0;
-                            }*/
-                            enrichment_diagonal(i,i) += 1000.0*max_diag;
-//                             enriched_rhs[i] = 0.0;
-//
-//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
-//                             {
-//                                 enrichment_terms_horizontal(i,k) = 0.0;
-//                                 enrichment_terms_vertical(k,i) = 0.0;
-//                             }
+                                double sum_d = di + dj;
+                                double Ni = dj / sum_d;
+                                double Nj = di / sum_d;
+
+                                double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                                enrichment_diagonal(i, i) += penalty_coeff * Ni*Ni;
+                                enrichment_diagonal(i, j) -= penalty_coeff * Ni*Nj;
+                                enrichment_diagonal(j, i) -= penalty_coeff * Nj*Ni;
+                                enrichment_diagonal(j, j) += penalty_coeff * Nj*Nj;
+
+                            }
                         }
                     }
+
+                    Matrix inverse_diag(nenrichments, nenrichments);
+                    double det;
+                    MathUtils<double>::InvertMatrix(enrichment_diagonal, inverse_diag, det);
+
+                    Matrix tmp = prod(inverse_diag, enrichment_terms_horizontal);
+                    noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical, tmp);
+
+                    Vector tmp2 = prod(inverse_diag, enriched_rhs);
+                    noalias(rRightHandSideVector) -= prod(enrichment_terms_vertical, tmp2);
                 }
-                 if(negative_volume/Area < min_area_ratio)
-                {
-//                     KRATOS_WATCH(this->Id());
-//                     KRATOS_WATCH(negative_volume/Area)
-                    for(unsigned int i=0; i<TDim+1; i++)
-                    {
-                        if(distances[i] < 0.0)
-                        {
-                            enrichment_diagonal(i,i) += 1000.0*max_diag;
-//                             for(unsigned int k=0; k<TDim+1; k++)
-//                             {
-//                                 enrichment_diagonal(i,k) = 0.0;
-//                                 enrichment_diagonal(k,i) = 0.0;
-//                             }
-//                             enrichment_diagonal(i,i) = 1.0; //max_diag;
-//                             enriched_rhs[i] = 0.0;
-//
-//
-//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
-//                             {
-//                                 enrichment_terms_horizontal(i,k) = 0.0;
-//                                 enrichment_terms_vertical(k,i) = 0.0;
-//                             }
-                        }
-                    }
-                }
-
-
-                //ensure the matrix is invertible
-//                 for(unsigned int i=0; i<nenrichments; i++)
-//                 {
-//                     if(fabs(enrichment_diagonal(i,i)) < 1e-30)
-//                     {
-//                         enrichment_diagonal(i,i) = 1.0;
-//                         enriched_rhs[i] = 0.0;
-//                     }
-//                 }
-
-                //"weakly" impose continuity
-//                 KRATOS_WATCH("line 541");
-                for(unsigned int i=0; i<TDim; i++)
-                {
-                    const double di = fabs(distances[i]);
-
-                    for(unsigned int j=i+1; j<TDim+1; j++)
-                    {
-                        const double dj =  fabs(distances[j]);
-
-                        if( distances[i]*distances[j] < 0.0) //cut edge
-                        {
-                            double sum_d = di+dj;
-                            double Ni = dj/sum_d;
-                            double Nj = di/sum_d;
-
-                            double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
-                            enrichment_diagonal(i,i) += penalty_coeff * Ni*Ni;
-                            enrichment_diagonal(i,j) -= penalty_coeff * Ni*Nj;
-                            enrichment_diagonal(j,i) -= penalty_coeff * Nj*Ni;
-                            enrichment_diagonal(j,j) += penalty_coeff * Nj*Nj;
-
-                        }
-                    }
-                }
-//                 KRATOS_WATCH("line 565");
-
-
-//                 KRATOS_WATCH(enrichment_diagonal);
-
-
-                //add to LHS enrichment contributions
-                Matrix inverse_diag(nenrichments, nenrichments);
-                double det;
-                MathUtils<double>::InvertMatrix(enrichment_diagonal,inverse_diag,det);
-
-                  //  double inverse_diag_term = 1.0 / ( enrichment_diagonal);
-//        KRATOS_WATCH(this->Id());
-//        KRATOS_WATCH(enrichment_terms_horizontal);
-//        KRATOS_WATCH(enrichment_terms_vertical);
-//        KRATOS_WATCH(inverse_diag);
-                Matrix tmp = prod(inverse_diag,enrichment_terms_horizontal);
-                noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical,tmp);
-
-                Vector tmp2 = prod(inverse_diag,enriched_rhs);
-                noalias(rRightHandSideVector) -= prod(enrichment_terms_vertical,tmp2);
 
 /*                for (unsigned int i = 0; i < LocalSize; i++)
                     for (unsigned int j = 0; j < LocalSize; j++)
