@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralM
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetProcessInfo(process_info);
     cl_parameters.SetOptions(cl_options);
-    Matrix const_matrix;
+    Matrix const_matrix(6,6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
@@ -169,7 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMecha
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetProcessInfo(process_info);
     cl_parameters.SetOptions(cl_options);
-    Matrix const_matrix;
+    Matrix const_matrix(6,6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechan
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetProcessInfo(process_info);
     cl_parameters.SetOptions(cl_options);
-    Matrix const_matrix;
+    Matrix const_matrix(6,6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
