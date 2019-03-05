@@ -40,6 +40,7 @@ def GetDefaultInputParameters():
             "interaction_start_time"                 : 0.0,
             "pick_individual_forces_option"          : false,
             "do_search_neighbours"                   : true,
+            "do_solve_dem"                           : true,
             "include_faxen_terms_option"             : false,
             "include_faxen_terms_option_comment"     : "(relevant if the Maxey Riley equation is used)",
             "gradient_calculation_type"              : 1,
