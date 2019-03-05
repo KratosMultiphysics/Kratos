@@ -1,5 +1,3 @@
-**/*.csv
-**/*.h5
-**/*.bin.idx
+*.csv
 *.vtk
 *.unv
