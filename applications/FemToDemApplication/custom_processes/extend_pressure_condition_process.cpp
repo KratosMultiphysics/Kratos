@@ -207,9 +207,9 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
         mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond2);
     } else if (number_of_free_edges == 1) {
 
-        const IndexType id_1 = number_of_free_edges == 0 ? 0 : number_of_free_edges == 1 ? 1 : 2;
-        const IndexType id_2 = number_of_free_edges == 0 ? 1 : number_of_free_edges == 1 ? 2 : 0;
-        const IndexType id_3 = number_of_free_edges == 0 ? 2 : number_of_free_edges == 1 ? 0 : 1;
+        const IndexType id_1 = alone_edge_local_id == 0 ? 0 : alone_edge_local_id == 1 ? 1 : 2;
+        const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
+        const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
 
         std::vector<IndexType> condition_nodes_id(2);
         auto& r_geom = (*itElem)->GetGeometry();
