@@ -288,6 +288,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.Dt = self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
         self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.Dt)
+        self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.Dt)
         self.SetDoSolveDEMVariable()
 
     def SetDoSolveDEMVariable(self):
@@ -465,7 +466,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.step       = 0
         self.time       = self.pp.fluid_parameters["problem_data"]["start_time"].GetDouble()
         self.Dt         = self.fluid_solution._GetSolver()._ComputeDeltaTime()
-        self.end_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
+        self.end_time   = self.pp.CFD_DEM["FinalTime"].GetDouble()
         self.Dt_DEM     = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.rigid_face_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
         self.cluster_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
