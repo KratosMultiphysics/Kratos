@@ -44,7 +44,8 @@ public:
 
     bool ElementHasWetNodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
-        int& rPressureId);
+        int& rPressureId,
+        int& rNumberOfWetNodes);
 
     void ExpandWetNodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,

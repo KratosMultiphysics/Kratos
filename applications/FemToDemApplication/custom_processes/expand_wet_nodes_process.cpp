@@ -16,8 +16,8 @@
 namespace Kratos {
 
 ExpandWetNodesProcess::ExpandWetNodesProcess(
-    ModelPart& r_model_part)
-    : mrModelPart(r_model_part)
+    ModelPart& rModelPart)
+    : mrModelPart(rModelPart)
 {
 }
 
@@ -37,10 +37,9 @@ void ExpandWetNodesProcess::Execute()
             if ((*it_elem)->IsDefined(ACTIVE)) {
                 condition_is_active = (*it_elem)->Is(ACTIVE);
             }
-            if (this->ElementHasWetNodes(it_elem, pressure_id) && 
-                                  condition_is_active == false && 
-                                         element_done == false) {
-
+            int number_of_wet_nodes;
+            bool has_wet_nodes = this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes);
+            if (number_of_wet_nodes > 1 && condition_is_active == false && element_done == false) {
                 this->ExpandWetNodes(it_elem, pressure_id);
                 extrapolated_elements++;
                 (*it_elem)->SetValue(PRESSURE_EXPANDED, true);
@@ -54,18 +53,22 @@ void ExpandWetNodesProcess::Execute()
 
 bool ExpandWetNodesProcess::ElementHasWetNodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem,
-    int& rPressureId
+    int& rPressureId,
+    int& rNumberOfWetNodes
     )
 {
+    rNumberOfWetNodes = 0;
+    bool auxiliar = false;
     auto& r_geometry = (*itElem)->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
         if (pressure_id != 0) {
+            rNumberOfWetNodes++;
             rPressureId = pressure_id;
-            return true;
+            auxiliar = true;
         }
     }
-	return false;
+	return auxiliar;
 }
 
 /***********************************************************************************/
