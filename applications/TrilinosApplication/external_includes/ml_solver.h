@@ -100,10 +100,11 @@ public:
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
-        if (Settings["verbosity"].GetInt() == 0) {
+        const int verbosity = Settings["verbosity"].GetInt();
+        if (verbosity == 0) {
             mAztecParameterList.set("AZ_output", "AZ_none");
         } else {
-            mAztecParameterList.set("AZ_output", Settings["verbosity"].GetInt());
+            mAztecParameterList.set("AZ_output", verbosity);
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
@@ -116,16 +117,14 @@ public:
 
         mMLParameterList = Teuchos::ParameterList();
 
+        mMLParameterList.set("ML output", verbosity);
+        mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
         if (!Settings["symmetric"].GetBool()) {
             ML_Epetra::SetDefaults("NSSA",mMLParameterList);
-            mMLParameterList.set("ML output", Settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
         } else {
             ML_Epetra::SetDefaults("SA",mMLParameterList);
-            mMLParameterList.set("ML output", Settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
             mMLParameterList.set("increasing or decreasing", "increasing");
             mMLParameterList.set("aggregation: type", "MIS");
             mMLParameterList.set("smoother: type", "Chebyshev");
