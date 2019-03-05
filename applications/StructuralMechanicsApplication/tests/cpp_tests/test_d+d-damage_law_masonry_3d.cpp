@@ -7,7 +7,7 @@
 //                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Philip Kalkbrenner
-//					 Alejandro Cornejo
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -35,8 +35,8 @@ namespace Testing
 typedef Node<3> NodeType;
 
 /**
-    * Check the correct calculation of the integrated stress with the CL's
-    */
+* Check the correct calculation of the integrated stress with the CL's
+*/
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralMechanicsFastSuite)
 {
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralM
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
     NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-	NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
     Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralM
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
     strain_vector[2] = -0.014644;
-	strain_vector[3] = 0.0;
+    strain_vector[3] = 0.0;
     strain_vector[4] = 0.0;
     strain_vector[5] = 0.0;
 
@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralM
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.55);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
-	material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
+    material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMecha
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
     NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-	NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
     Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMecha
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.000728;
-	strain_vector[3] = 0.0;
+    strain_vector[3] = 0.0;
     strain_vector[4] = 0.0;
     strain_vector[5] = 0.0;
 
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMecha
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.55);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
-	material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
+    material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechan
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 0.5, 0.5, 0.0);
     NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.5, 0.1666666667, 0.5);
-	NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
 
     Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
@@ -210,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechan
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
-	strain_vector[3] = 0.0;
+    strain_vector[3] = 0.0;
     strain_vector[4] = 0.0019998;
     strain_vector[5] = 0.0019998;
 
@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechan
     material_properties.SetValue(BEZIER_CONTROLLER_C1, 0.65);
     material_properties.SetValue(BEZIER_CONTROLLER_C2,  0.55);
     material_properties.SetValue(BEZIER_CONTROLLER_C3, 1.5);
-	material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
+    material_properties.SetValue(TRIAXIAL_COMPRESSION_COEFFICIENT, 0.66);
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
@@ -262,6 +262,6 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechan
     for (int comp = 0; comp < 6; comp++) {
         KRATOS_CHECK_NEAR(test_masonry3d_stress[comp], masonry3d_res[comp], 0.0001e6);
     }
-} 
+}
 } // namespace Testing
 } // namespace Kratos
