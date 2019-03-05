@@ -15,7 +15,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.skipTest("Missing python libraries ( importlib and math)")
 
         self.size_parametric_analysis = 0;
-
+        self.InitialStateCase = False
         self.plot = False
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
@@ -33,7 +33,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         for case in range(0, self.size_parametric_analysis):
             self.current_case = case  
             self._create_material_model_and_law()
-            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self._SetParametricAnalysisVariable(case)
             self.parameters.SetMaterialProperties( self.properties )
     
             self._OpenOutputFile('oedometer.csv')
@@ -57,7 +57,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         for case in range(0, self.size_parametric_analysis):
             self.current_case = case  
             self._create_material_model_and_law()
-            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self._SetParametricAnalysisVariable(case)
             self.parameters.SetMaterialProperties( self.properties )
     
             self._OpenOutputFile('isotropic.csv')
@@ -82,7 +82,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
             self._create_material_model_and_law()
-            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self._SetParametricAnalysisVariable(case)
             self.parameters.SetMaterialProperties( self.properties )
     
             self._OpenOutputFile('undrained_triaxial.csv')
@@ -104,7 +104,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.current_case = case  
             self._create_material_model_and_law()
             
-            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self._SetParametricAnalysisVariable(case)
             self.parameters.SetMaterialProperties( self.properties )
 
             self._test_TriaxialCompression()
@@ -116,7 +116,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     # driver of the triaxial compression
     def _test_TriaxialCompression(self):
    
-        print('NewTriaxial')
+        #print('NewTriaxial')
         #self._create_material_model_and_law()
         
         self.F = self._set_identity_matrix()
@@ -234,7 +234,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 for i in range(0,6):
                     norm += residual[i]*residual[i]
 
-                print('Iteration '+ str(iteracio)+ ' residual '+ str(norm) )
+                #print('Iteration '+ str(iteracio)+ ' residual '+ str(norm) )
                 if (norm < 1e-12):
                     break
                 if (iteracio > 90):
@@ -307,7 +307,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
     # Triaxial test at gauss point
-    def test_BiaxialLoading_Drained(self):
+    def _test_BiaxialLoading_Drained(self):
 
         import math
         import numpy as np
@@ -317,7 +317,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.current_case = case  
             self._create_material_model_and_law()
             
-            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self._SetParametricAnalysisVariable(case)
             self.parameters.SetMaterialProperties( self.properties )
 
             self._test_BiaxialCompression()
@@ -766,16 +766,21 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetElementGeometry( self.geometry )
 
         if ( self.size_parametric_analysis == 0):
-            self.parametric_analysis_variable = KratosMultiphysics.KratosGlobals.GetVariable( settings["parametric_analysis_variable"].GetString() )  
+            if ( settings["parametric_analysis_variable"].GetString() == 'PRESSURE'):
+                self.InitialStateCase = True;
+            else:
+                self.parametric_analysis_variable = KratosMultiphysics.KratosGlobals.GetVariable( settings["parametric_analysis_variable"].GetString() )  
             self.size_parametric_analysis = settings["parametric_analysis_values"].size()
-            self.parametric_analysis_values = [] #self.model_part.GetNodes()
+            self.parametric_analysis_values = [] 
             for i in range(0, self.size_parametric_analysis):
                 value = settings["parametric_analysis_values"][i].GetDouble()
                 self.parametric_analysis_values.append(value)
-        self.initial_stress_state = [];
-        for i in range(0, 3):
-            value = settings["initial_stress_state"][i].GetDouble()
-            self.initial_stress_state.append(value)
+
+            self.initial_stress_state = [];
+
+            for i in range(0, 3):
+                value = settings["initial_stress_state"][i].GetDouble()
+                self.initial_stress_state.append(value)
 
 
     def _GetItemFromModule(self,my_string):
@@ -826,6 +831,14 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         csv_file = open(self.csv_path, "w")
         csv_file.close()
+
+    def _SetParametricAnalysisVariable(self, case):
+
+        if ( self.InitialStateCase):
+            for i in range(0, 3):
+                self.initial_stress_state[i] = self.parametric_analysis_values[case]
+        else:
+            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
 
     def ComputeStrainFromF(self, F):
 

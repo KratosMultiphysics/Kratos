@@ -8,15 +8,15 @@
             },
             "variables": {
                 "KratosMultiphysics.ConstitutiveModelsApplication.REFERENCE_PRESSURE": 1000000.0,
-                "KratosMultiphysics.YOUNG_MODULUS": 50000.0,
+                "KratosMultiphysics.YOUNG_MODULUS": 2500.0,
                 "KratosMultiphysics.POISSON_RATIO": 0.2,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
-                "KratosMultiphysics.CRITICAL_STATE_LINE": 1.4,
+                "KratosMultiphysics.CRITICAL_STATE_LINE": 1.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.CHIS": 0.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 0.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 5.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 1200.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 320.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 70.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 0.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 16.6,
                 "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -15.5
             },
@@ -27,7 +27,7 @@
                 "jacobian": 1.0
             },
             "echo_level" : 0,
-	    "parametric_analysis_variable": "CHIT",
-	    "parametric_analysis_values": [0.2 ],
-	    "initial_stress_state": [-120.0, -120.0, -120.0]
+	    "parametric_analysis_variable": "CHIS",
+	    "parametric_analysis_values": [ 0, 0.05, 0.1, 0.2, 0.3],
+	    "initial_stress_state": [-28.93, -57.85, 28.93]
 }
