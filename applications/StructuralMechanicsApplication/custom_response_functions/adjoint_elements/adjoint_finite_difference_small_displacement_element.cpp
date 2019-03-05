@@ -28,6 +28,124 @@ AdjointFiniteDifferenceSmallDisplacementElement::~AdjointFiniteDifferenceSmallDi
 {
 }
 
+void AdjointFiniteDifferenceSmallDisplacementElement::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+                                                                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // First check applicability of this function
+    KRATOS_ERROR_IF(rStressVariable != STRESS_ON_GP)
+        << "AdjointFiniteDifferenceSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid stress variable! Stress variable not supported for this element!" << std::endl;
+
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    KRATOS_ERROR_IF(traced_stress_type != TracedStressType::VON_MISES_STRESS)
+        << "AdjointFiniteDifferenceSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid stress type! Stress type not supported for this element!" << std::endl;
+
+    KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+        << "This stress displacement derivative computation is only usable for linear cases!" << std::endl;
+
+    // Some working variables
+    const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    const SizeType num_dofs = num_nodes * num_dofs_per_node;
+
+    // Build vector of variables containing the DOF-variables of the primal problem
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    primal_solution_variable_list.reserve(num_dofs_per_node);
+    primal_solution_variable_list.push_back(DISPLACEMENT_X);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Y);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Z);
+
+    std::vector<Matrix> stress_tensor;
+    mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_tensor, rCurrentProcessInfo);
+
+    const unsigned int number_integration_points = stress_tensor.size();
+
+    // Computation of prefactors
+    std::vector<double> sensitivity_prefactors(number_integration_points);
+
+    for(IndexType k = 0; k < number_integration_points; ++k)
+    {
+        Matrix & PK2_k = stress_tensor[k];
+        double radicant = 0.0;
+        radicant += PK2_k(0,0)*PK2_k(0,0) + PK2_k(1,1)*PK2_k(1,1) + PK2_k(2,2)*PK2_k(2,2);
+        radicant -= PK2_k(0,0)*PK2_k(1,1) + PK2_k(0,0)*PK2_k(2,2) + PK2_k(1,1)*PK2_k(2,2);
+        radicant += 3*PK2_k(0,1)*PK2_k(0,1) + 3*PK2_k(0,2)*PK2_k(0,2) + 3*PK2_k(1,2)*PK2_k(1,2);
+        sensitivity_prefactors[k] = 0.5/sqrt(radicant);
+    }
+
+    // Store primal results and initialize deformation
+    Vector initial_state_variables;
+    initial_state_variables.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < num_nodes; ++i)
+    {
+        const IndexType index = i * num_dofs_per_node;
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+        {
+            initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+
+    // Compute gradient using unit deformation states
+    rOutput.resize(num_dofs, number_integration_points, false);
+    rOutput.clear();
+
+    std::vector<Matrix> partial_stress_derivatives;
+
+    for (IndexType i = 0; i < num_nodes; ++i)
+    {
+        const IndexType index = i * num_dofs_per_node;
+
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+        {
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+            mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, partial_stress_derivatives, rCurrentProcessInfo);
+
+            for(IndexType k = 0; k < number_integration_points; ++k)
+            {
+                double sensitivity_entry_k = 0.0;
+                Matrix & PK2_k = stress_tensor[k];
+
+                sensitivity_entry_k += 2*PK2_k(0,0)*partial_stress_derivatives[k](0,0);
+                sensitivity_entry_k += 2*PK2_k(1,1)*partial_stress_derivatives[k](1,1);
+                sensitivity_entry_k += 2*PK2_k(2,2)*partial_stress_derivatives[k](2,2);
+
+                sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](0,0);
+                sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](1,1);
+
+                sensitivity_entry_k -= PK2_k(0,0)*partial_stress_derivatives[k](2,2);
+                sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](0,0);
+
+                sensitivity_entry_k -= PK2_k(1,1)*partial_stress_derivatives[k](2,2);
+                sensitivity_entry_k -= PK2_k(2,2)*partial_stress_derivatives[k](1,1);
+
+                sensitivity_entry_k += 6*PK2_k(0,1)*partial_stress_derivatives[k](0,1);
+                sensitivity_entry_k += 6*PK2_k(0,2)*partial_stress_derivatives[k](0,2);
+                sensitivity_entry_k += 6*PK2_k(1,2)*partial_stress_derivatives[k](1,2);
+
+                sensitivity_entry_k *= sensitivity_prefactors[k];
+
+                rOutput(index+j, k) = sensitivity_entry_k;
+            }
+
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+
+    // Recall primal solution
+    for (IndexType i = 0; i < num_nodes; ++i)
+    {
+        const IndexType index = i * num_dofs_per_node;
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+    }
+
+    KRATOS_CATCH("")
+}
+
 int AdjointFiniteDifferenceSmallDisplacementElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;

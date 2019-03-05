@@ -38,6 +38,13 @@ public:
 
     ~AdjointFiniteDifferenceSmallDisplacementElement() override;
 
+    /**
+     * Calculates the stress-displacement derivative of the given rStressVariable.
+     * For the linear case this happens by calculating the stress using a unit-displacement for each dof.
+     */
+    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+                                               Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
