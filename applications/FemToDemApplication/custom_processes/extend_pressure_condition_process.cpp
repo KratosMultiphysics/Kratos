@@ -171,7 +171,6 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
             non_free_edge = i;
         }
     }
-    KRATOS_WATCH(number_of_free_edges)
 
     if (number_of_free_edges == 2) {
         const IndexType id_1 = non_free_edge == 0 ? 0 : non_free_edge == 1 ? 1 : 2;
