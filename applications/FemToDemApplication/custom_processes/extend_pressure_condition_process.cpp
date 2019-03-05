@@ -32,7 +32,7 @@ void ExtendPressureConditionProcess<2>::Execute()
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
     // Remove previous line loads-> Only the 1st iteration
-    if (r_process_info[ITER] == 1) {
+    if (r_process_info[INTERNAL_PRESSURE_ITERATION] == 1) {
         this->RemovePreviousLineLoads();
         this->ResetFlagOnElements();
     }
@@ -69,7 +69,7 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
     auto& r_process_info = mrModelPart.GetProcessInfo();
     int maximum_condition_id;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
-    r_process_info[ITER] = 0;
+    r_process_info[INTERNAL_PRESSURE_ITERATION] = 0;
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
     for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
@@ -88,12 +88,12 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
             }
             if (wet_nodes_counter == 2) {
                 this->GenerateLineLoads2Nodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
-                r_process_info[ITER] = 10;
+                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
                 (*it_elem)->SetValue(SMOOTHING, true);
             } else if (wet_nodes_counter == 3) {
                 this->GetPressureId(it_elem, pressure_id);
                 this->GenerateLineLoads3Nodes(pressure_id, maximum_condition_id, it_elem);
-                r_process_info[ITER] = 10;
+                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
                 (*it_elem)->SetValue(SMOOTHING, true);
             }
         }
