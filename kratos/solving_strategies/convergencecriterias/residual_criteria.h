@@ -354,13 +354,13 @@ protected:
         SizeType dof_num = 0;
 
         // Auxiliar values
-        TDataType residual_dof_value;
+        TDataType residual_dof_value = 0.0;
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            #pragma omp parallel for reduction(+:residual_solution_norm, dof_num, residual_dof_value)
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
             for (int i = 0; i < number_of_dof; i++) {
                 auto it_dof = it_dof_begin + i;
 
@@ -373,7 +373,7 @@ protected:
                 }
             }
         } else {
-            #pragma omp parallel for reduction(+:residual_solution_norm, dof_num, residual_dof_value)
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
             for (int i = 0; i < number_of_dof; i++) {
                 auto it_dof = it_dof_begin + i;
 
@@ -427,7 +427,6 @@ private:
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
     std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
-
 
     ///@}
     ///@name Private Operators
