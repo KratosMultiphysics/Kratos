@@ -217,7 +217,7 @@ public:
             AztecProblem.LeftScale(scaling_vect);
         }
 
-        mMLParameterList.set("PDE equations", mndof);
+        mMLParameterList.set("PDE equations", mNumDof);
 
         // create the preconditioner now. this is expensive.
         // the preconditioner stores a pointer to the system
@@ -305,9 +305,9 @@ public:
         r_model_part.GetCommunicator().MinAll(old_ndof);
 
         if (old_ndof == -1) {
-            mndof = 1;
+            mNumDof = 1;
         } else {
-            mndof = ndof;
+            mNumDof = ndof;
         }
     }
 
@@ -328,7 +328,7 @@ private:
     bool mReformPrecAtEachStep = true;
     double mTolerance;
     int mMaxIterations;
-    int mndof = 1;
+    int mNumDof = 1;
 
     ///@}
 
