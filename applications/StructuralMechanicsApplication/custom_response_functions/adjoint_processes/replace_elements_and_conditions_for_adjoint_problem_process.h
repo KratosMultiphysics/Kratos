@@ -115,8 +115,6 @@ private:
     ///@{
     void ReplaceToAdjoint();
 
-    void ReplaceToPrimal();
-
     void UpdateSubModelPart(ModelPart& r_sub_model_part, ModelPart& r_root_model_part);
 
     bool GetAdjointElementName(const Element& rElement, std::string& rName);

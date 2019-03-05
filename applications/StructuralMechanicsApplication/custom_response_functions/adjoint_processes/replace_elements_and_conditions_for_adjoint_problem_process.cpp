@@ -42,43 +42,8 @@ namespace Kratos
             this->ReplaceToAdjoint();
             mrModelPart.GetProcessInfo()[IS_ADJOINT] = true;
         }
-        else
-        {
-            this->ReplaceToPrimal();
-            mrModelPart.GetProcessInfo()[IS_ADJOINT] = false;
-        }
     }
 
-    void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToPrimal()
-    {
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            const auto it = mrModelPart.ElementsBegin() + i;
-
-            AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(*it.base());
-            if (p_adjoint_element != nullptr)
-            {
-                (*it.base()) = p_adjoint_element->pGetPrimalElement();
-            }
-        }
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfConditions()); ++i)
-        {
-            const auto it = mrModelPart.ConditionsBegin() + i;
-
-            AdjointSemiAnalyticBaseCondition::Pointer p_adjoint_condition = dynamic_pointer_cast<AdjointSemiAnalyticBaseCondition>(*it.base());
-            if (p_adjoint_condition != nullptr)
-            {
-                (*it.base()) = p_adjoint_condition->pGetPrimalCondition();
-            }
-        }
-
-        //change the sons
-        for (ModelPart::SubModelPartIterator i_sub_model_part = mrModelPart.SubModelPartsBegin(); i_sub_model_part != mrModelPart.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part, mrModelPart );
-    }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToAdjoint()
     {
