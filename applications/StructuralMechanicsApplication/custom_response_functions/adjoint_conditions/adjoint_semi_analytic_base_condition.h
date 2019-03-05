@@ -80,8 +80,6 @@ public:
     {
     }
 
-    virtual ~AdjointSemiAnalyticBaseCondition() {}
-
     ///@}
     ///@name Operators
     ///@{
@@ -94,7 +92,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Condition::Pointer Create(IndexType NewId,
+    Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
@@ -102,7 +100,7 @@ public:
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    virtual Condition::Pointer Create(IndexType NewId,
+    Condition::Pointer Create(IndexType NewId,
                               GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties) const override
     {
@@ -110,12 +108,12 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "EquationIdVector of the base class called!" << std::endl;
     }
 
-    virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "GetDofList of the base class called!" << std::endl;
     }
@@ -125,7 +123,7 @@ public:
         return mPrimalCondition.GetIntegrationMethod();
     }
 
-    virtual void GetValuesVector(Vector& rValues, int Step = 0 ) override
+    void GetValuesVector(Vector& rValues, int Step = 0 ) override
     {
         KRATOS_ERROR << "GetValuesVector of the base class called!" << std::endl;
     }
@@ -253,28 +251,28 @@ public:
         mPrimalCondition.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
-    virtual void Calculate(const Variable<double >& rVariable,
+    void Calculate(const Variable<double >& rVariable,
 			   double& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
+    void Calculate(const Variable< array_1d<double,3> >& rVariable,
 			   array_1d<double,3>& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void Calculate(const Variable<Vector >& rVariable,
+    void Calculate(const Variable<Vector >& rVariable,
 			   Vector& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void Calculate(const Variable<Matrix >& rVariable,
+    void Calculate(const Variable<Matrix >& rVariable,
 			   Matrix& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -282,35 +280,35 @@ public:
     }
 
 
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "Check of the base class called!" << std::endl;
     }
@@ -318,7 +316,7 @@ public:
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
      */
-    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -328,7 +326,7 @@ public:
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a vector design variable.
      */
-    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override
     {

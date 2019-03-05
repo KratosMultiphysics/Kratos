@@ -90,8 +90,6 @@ public:
     {
     }
 
-    ~AdjointSemiAnalyticPointLoadCondition() override {}
-
     ///@}
     ///@name Operations
     ///@{
