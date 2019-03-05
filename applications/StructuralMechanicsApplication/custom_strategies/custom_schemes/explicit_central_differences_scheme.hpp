@@ -412,6 +412,8 @@ public:
         mTime.Previous = mTime.Current - 1.00*mTime.Delta;
         mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
 
+        if (mTime.Previous<0.0) mTime.Previous=0.00;
+        if (mTime.PreviousMiddle<0.0) mTime.PreviousMiddle=0.00;
         // The iterator of the first node
         const auto it_node_begin = rModelPart.NodesBegin();
         const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
