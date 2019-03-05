@@ -209,76 +209,35 @@ private:
     ///@name Private Operations
     ///@{
 
-    template <typename TDataType>
-    void CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
-                                             const Variable<TDataType>& rVariable,
+
+    void CalculateContributionToPartialSensitivity(Element& rAdjointElement,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
+                                             const ProcessInfo& rProcessInfo);
+
+    void CalculateContributionToPartialSensitivity(Condition& rAdjointCondition,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo);
+
+    template <typename TObjectType>
+    void ConstructFilterVector(TObjectType& rAdjointObject, Vector& rFilterVector, ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
+        const VariableComponentType& r_traced_adjoint_dof =
+        KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
+
+        DofsVectorType dof_list;
+        rAdjointObject.GetDofList(dof_list, rProcessInfo);
+        rFilterVector = ZeroVector(dof_list.size());
+
+        for(IndexType i = 0; i < dof_list.size(); ++i)
         {
-             Kratos::Element& ng_elem_i = mpNeighborElements[i];
-
-            if( rAdjointElement.Id() == ng_elem_i.Id() )
+            if (dof_list[i]->Id() == mpTracedNode->Id() &&
+                dof_list[i]->GetVariable() == r_traced_adjoint_dof)
             {
-                const VariableComponentType& r_traced_adjoint_dof =
-                    KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
-
-                ProcessInfo process_info = rProcessInfo;
-                DofsVectorType dofs_of_element;
-                ng_elem_i.GetDofList(dofs_of_element, process_info);
-                Vector lambda_0 = ZeroVector(dofs_of_element.size());
-
-                for(IndexType j = 0; j < dofs_of_element.size(); ++j)
-                {
-                    if (dofs_of_element[j]->Id() == mpTracedNode->Id() &&
-                        dofs_of_element[j]->GetVariable() == r_traced_adjoint_dof)
-                    {
-                        lambda_0[j] = 1.0;
-                    }
-                }
-                noalias(rSensitivityGradient) = prod(rSensitivityMatrix, lambda_0) ;
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    template <typename TDataType>
-    void CalculateConditionContributionToPartialSensitivity(Condition& rAdjointCondition,
-                                             const Variable<TDataType>& rVariable,
-                                             const Matrix& rSensitivityMatrix,
-                                             Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        for(std::size_t i = 0; i < mpNeighborConditions.size(); ++i)
-        {
-            Kratos::Condition& ng_cond_i = mpNeighborConditions[i];
-
-            if( rAdjointCondition.Id() == ng_cond_i.Id() )
-            {
-                const VariableComponentType& r_traced_adjoint_dof =
-                    KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
-
-                ProcessInfo process_info = rProcessInfo;
-                DofsVectorType dofs_of_condition;
-                ng_cond_i.GetDofList(dofs_of_condition, process_info);
-                Vector lambda_0 = ZeroVector(dofs_of_condition.size());
-
-                for(IndexType j = 0; j < dofs_of_condition.size(); ++j)
-                {
-                    if (dofs_of_condition[j]->Id() == mpTracedNode->Id() &&
-                        dofs_of_condition[j]->GetVariable() == r_traced_adjoint_dof)
-                    {
-                        lambda_0[j] = 1.0;
-                    }
-                }
-                noalias(rSensitivityGradient) = prod(rSensitivityMatrix, lambda_0);
+                rFilterVector[i] = 1.0;
             }
         }
 
