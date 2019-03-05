@@ -876,7 +876,7 @@ public:
      */
     void Clear() override
     {
-       BaseType::Clear();
+        BaseType::Clear();
 
         mSlaveIds.clear();
         mMasterIds.clear();
@@ -947,8 +947,9 @@ protected:
     TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
 
-   ///@}
+    ///@}
     ///@name Protected Operators
     ///@{
 
@@ -956,7 +957,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ConstructMasterSlaveConstraintsStructure(ModelPart &rModelPart)
+    void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -965,7 +966,7 @@ protected:
             DofsVectorType slave_dof_list, master_dof_list;
 
             // Constraint initial iterator
-            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+            const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
             std::vector<LockObject> lock_array(indices.size());
@@ -978,16 +979,21 @@ protected:
 
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-                    auto it_const = const_begin + i_const;
-                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+                    auto it_const = it_const_begin + i_const;
 
-                    // Slave DoFs
-                    for (auto &id_i : slave_ids) {
-                        for (auto& master_dof : master_dof_list) {
-                            if (master_dof->IsFixed() || BaseType::mDofSet.find(*master_dof) != BaseType::mDofSet.end()) {
-                                temp_indices[id_i].insert(master_dof->EquationId());
-                            }
+                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                    // It is active by default
+                    bool constraint_is_active = true;
+                    if( it_const->IsDefined(ACTIVE) ) {
+                        constraint_is_active = it_const->Is(ACTIVE);
+                    }
+
+                    if(constraint_is_active) {
+                        it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
+
+                        // Slave DoFs
+                        for (auto &id_i : slave_ids) {
+                            temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                         }
                     }
                 }
@@ -1049,7 +1055,7 @@ protected:
         }
     }
 
-    void BuildMasterSlaveConstraints(ModelPart &rModelPart)
+    void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -1071,9 +1077,14 @@ protected:
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
+        // We clear the set
+        mInactiveSlaveDofs.clear();
+
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
         {
-        #pragma omp for schedule(guided, 512)
+            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+
+            #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
@@ -1086,19 +1097,6 @@ protected:
                 if (constraint_is_active) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
-
-                    // Set to zero the non fixed and solvable dofs
-                    IndexType column = 0;
-                    for (auto& master_dof : master_dof_list) {
-                        if (!(master_dof->IsFixed() || BaseType::mDofSet.find(*master_dof) != BaseType::mDofSet.end())) {
-                            constant_vector[column] = 0.0;
-                            for (IndexType i_zero = 0; i_zero < transformation_matrix.size1(); ++i_zero) {
-                                transformation_matrix(i_zero, column) = 0.0;
-                            }
-                        }
-                        ++column;
-                    }
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
@@ -1108,15 +1106,31 @@ protected:
 
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
-                        double &r_value = mConstantVector[i_global];
+                        double& r_value = mConstantVector[i_global];
                         #pragma omp atomic
                         r_value += constant_value;
                     }
+                } else { // Taking into account inactive constraints
+                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                    auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
+            }
+
+            // We merge all the sets in one thread
+            #pragma omp critical
+            {
+                mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
             }
         }
 
+        // Setting the master dofs into the T and C system
         for (auto eq_id : mMasterIds) {
+            mConstantVector[eq_id] = 0.0;
+            mT(eq_id, eq_id) = 1.0;
+        }
+
+        // Setting inactive slave dofs in the T and C system
+        for (auto eq_id : mInactiveSlaveDofs) {
             mConstantVector[eq_id] = 0.0;
             mT(eq_id, eq_id) = 1.0;
         }
@@ -1140,10 +1154,10 @@ protected:
             TSystemMatrixType T_transpose_matrix(mT.size2(), mT.size1());
             SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mT, 1.0);
 
-            TSystemVectorType bmodified(rb.size());
-            TSparseSpace::Mult(T_transpose_matrix, rb, bmodified);
-            TSparseSpace::Copy(bmodified, rb);
-            bmodified.resize(0, false); //free memory
+            TSystemVectorType b_modified(rb.size());
+            TSparseSpace::Mult(T_transpose_matrix, rb, b_modified);
+            TSparseSpace::Copy(b_modified, rb);
+            b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
             SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
@@ -1153,16 +1167,18 @@ protected:
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
             double max_diag = 0.0;
-            for(unsigned int i=0; i<rA.size1(); ++i) {
+            for(IndexType i = 0; i < rA.size1(); ++i) {
                 max_diag = std::max(std::abs(rA(i,i)), max_diag);
             }
 
             // Apply diagonal values on slaves
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const int eq_id = mSlaveIds[i];
-                rA(eq_id, eq_id) = max_diag;
-                rb[eq_id] = 0.0;
+                const IndexType slave_equation_id = mSlaveIds[i];
+                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                    rA(slave_equation_id, slave_equation_id) = max_diag;
+                    rb[slave_equation_id] = 0.0;
+                }
             }
         }
 
