@@ -78,6 +78,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("SetInviscidForceLaw", &HydrodynamicInteractionLaw::SetInviscidForceLaw)
         .def("SetHistoryForceLaw", &HydrodynamicInteractionLaw::SetHistoryForceLaw)
         .def("SetVorticityInducedLiftLaw", &HydrodynamicInteractionLaw::SetVorticityInducedLiftLaw)
+        .def("SetRotationInducedLiftLaw", &HydrodynamicInteractionLaw::SetRotationInducedLiftLaw)
+        .def("SetSteadyViscousTorqueLaw", &HydrodynamicInteractionLaw::SetSteadyViscousTorqueLaw)
         ;
 
     // Buoyancy laws
@@ -144,7 +146,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         .def(py::init<Parameters&>())
         .def("Clone", &InviscidForceLaw::Clone)
-        .def("SetDragLawInProperties", &InviscidForceLaw::SetInviscidForceLawInProperties)
+        .def("SetInviscidForceLawInProperties", &InviscidForceLaw::SetInviscidForceLawInProperties)
         .def("GetTypeOfLaw", &InviscidForceLaw::GetTypeOfLaw)
         ;
 
