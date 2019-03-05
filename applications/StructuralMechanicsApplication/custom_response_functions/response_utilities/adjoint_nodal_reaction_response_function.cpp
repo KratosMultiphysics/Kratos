@@ -17,6 +17,7 @@
 #include "adjoint_nodal_reaction_response_function.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_conditions_neighbours_process.h"
 
 namespace Kratos
 {
@@ -66,10 +67,12 @@ namespace Kratos
             KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
         }
 
-        FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
-        neigbhorFinder.Execute();
+        FindNodalNeighboursProcess neigbhor_elements_finder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
+        FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
+        neigbhor_elements_finder.Execute();
+        neigbhor_conditions_finder.Execute();
         mpNeighborElements = mpTracedNode->GetValue(NEIGHBOUR_ELEMENTS);
-
+        mpNeighborConditions = mpTracedNode->GetValue(NEIGHBOUR_CONDITIONS);
     }
 
     AdjointNodalReactionResponseFunction::~AdjointNodalReactionResponseFunction(){}
@@ -97,6 +100,8 @@ namespace Kratos
             const VariableComponentType& r_traced_adjoint_dof =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
             mpTracedNode->FastGetSolutionStepValue(r_traced_adjoint_dof) = 1.0;
+
+            mPerformedModificationOfAdjointDisplacements = true;
         }
 
         KRATOS_CATCH("");
@@ -114,7 +119,7 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        for(std::size_t i = 0; i < mpNeighborElements.size(); i++)
+        for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
         {
             Kratos::Element& ng_elem_i = mpNeighborElements[i];
 
@@ -130,12 +135,12 @@ namespace Kratos
                 Matrix left_hand_side;
                 ng_elem_i.CalculateLeftHandSide(left_hand_side, process_info);
 
-                for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+                for(IndexType j = 0; j < dofs_of_element.size(); ++j)
                 {
-                    if (dofs_of_element[i]->Id() == mpTracedNode->Id() &&
-                        dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof)
+                    if (dofs_of_element[j]->Id() == mpTracedNode->Id() &&
+                        dofs_of_element[j]->GetVariable() == r_traced_adjoint_dof)
                     {
-                        rResponseGradient[i] = 1;
+                        rResponseGradient[j] = 1;
                     }
                 }
                 rResponseGradient = prod(left_hand_side, rResponseGradient);
@@ -195,9 +200,14 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        //MFusseder TODO rework!
         KRATOS_TRY;
+
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+
+        if(!mPerformedModificationOfAdjointDisplacements)
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable,
+                                rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+
         KRATOS_CATCH("");
     }
 
@@ -207,9 +217,14 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        //MFusseder TODO rework!
         KRATOS_TRY;
+
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+
+        if(!mPerformedModificationOfAdjointDisplacements)
+            this->CalculateConditionContributionToPartialSensitivity(rAdjointCondition, rVariable,
+                                rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+
         KRATOS_CATCH("");
     }
 
@@ -219,9 +234,14 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        //MFusseder TODO rework!
         KRATOS_TRY;
+
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+
+        if(!mPerformedModificationOfAdjointDisplacements)
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable,
+                                rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+
         KRATOS_CATCH("");
     }
 
@@ -231,9 +251,14 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        //MFusseder TODO rework!
         KRATOS_TRY;
+
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+
+        if(!mPerformedModificationOfAdjointDisplacements)
+            this->CalculateConditionContributionToPartialSensitivity(rAdjointCondition, rVariable,
+                                rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+
         KRATOS_CATCH("");
     }
 
