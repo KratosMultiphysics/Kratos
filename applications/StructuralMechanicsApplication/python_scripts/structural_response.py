@@ -307,15 +307,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
-        # Put primal solution on adjoint model
-        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
-            values_to_transfer = primal_node.GetSolutionStepValue(DISPLACEMENT)
-            adjoint_node.SetSolutionStepValue(DISPLACEMENT, values_to_transfer)
-
-            if self.has_primal_model_part_rotation_dofs:
-                values_to_transfer = primal_node.GetSolutionStepValue(ROTATION)
-                adjoint_node.SetSolutionStepValue(ROTATION, values_to_transfer)
-
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
         self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
@@ -440,9 +431,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
             # Output process:
             # TODO how to add the output process? How find out about the variables?
-            if adjoint_parameters.Has("output_configuration"):
+            if adjoint_parameters.Has("output_processes"):
                 Logger.PrintInfo("> Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
-                adjoint_parameters.RemoveValue("output_configuration")
+                adjoint_parameters.RemoveValue("output_processes")
 
             # sensitivity settings
             adjoint_parameters["solver_settings"].AddValue("sensitivity_settings", self.response_settings["sensitivity_settings"])
