@@ -124,8 +124,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
         const IndexType id_3 = NonWetLocalIdNode == 0 ? 2 : NonWetLocalIdNode == 1 ? 0 : 1;
 
         std::vector<IndexType> condition_nodes_id(2);
-        condition_nodes_id[0] = r_geom[id_3].Id();
-        condition_nodes_id[1] = r_geom[id_2].Id();
+        condition_nodes_id[0] = r_geom[id_2].Id();
+        condition_nodes_id[1] = r_geom[id_3].Id();
         rMaximumConditionId++;
 
         // Adding the nodes to the SubModelPart
@@ -171,6 +171,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
             non_free_edge = i;
         }
     }
+    KRATOS_WATCH(number_of_free_edges)
 
     if (number_of_free_edges == 2) {
         const IndexType id_1 = non_free_edge == 0 ? 0 : non_free_edge == 1 ? 1 : 2;
@@ -179,8 +180,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
 
         std::vector<IndexType> condition_nodes_id(2);
         auto& r_geom = (*itElem)->GetGeometry();
-        condition_nodes_id[0] = r_geom[id_2].Id();
-        condition_nodes_id[1] = r_geom[id_1].Id();
+        condition_nodes_id[0] = r_geom[id_1].Id();
+        condition_nodes_id[1] = r_geom[id_2].Id();
         rMaximumConditionId++;
 
         r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
@@ -193,8 +194,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
                                         condition_nodes_id,
                                         p_properties, 0);
 
-        condition_nodes_id[0] = r_geom[id_1].Id();
-        condition_nodes_id[1] = r_geom[id_3].Id();
+        condition_nodes_id[0] = r_geom[id_3].Id();
+        condition_nodes_id[1] = r_geom[id_1].Id();
         rMaximumConditionId++;
         const auto& r_line_cond2 = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",
@@ -217,8 +218,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
         condition_nodes_id[1] = r_geom[id_2].Id();
         rMaximumConditionId++;
 
-        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
         r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
 
         const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
                                         "LineLoadCondition2D2N",

@@ -168,14 +168,10 @@ class FEMDEM_Solution:
         if self.PressureLoad:
             # we reconstruct the pressure load if necessary
             if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
-                skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                                self.SkinDetectionProcessParameters)
-                skin_detection_process.Execute()
                 self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
                 while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
                     KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
-
-
+            
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
 
