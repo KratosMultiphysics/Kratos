@@ -134,20 +134,6 @@ namespace Kratos
             ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
-
-
-            unsigned int node_counter = 0;
-            for(auto& node_i : rAdjointElement.GetGeometry())
-            {
-                array_1d<double,3>& local_derivative = node_i.FastGetSolutionStepValue(DFDX);
-
-                local_derivative[0] = rSensitivityGradient[node_counter*3 + 0];
-                local_derivative[1] = rSensitivityGradient[node_counter*3 + 1];
-                local_derivative[2] = rSensitivityGradient[node_counter*3 + 2];
-
-                node_counter++;
-            }
-
         }
         else
         {
