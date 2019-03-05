@@ -221,7 +221,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         -70650929.0390236,-71205408.69085957,-71758918.27250087,-72311464.28340018,
         -72863053.1484657,-73413691.21926463,-73963384.77520159,-74512140.02467461,
         -75059963.10620539,]
-        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep],6)
+        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep], delta=1.0e-3)
 
         ##node2
         node_temp = mp.Nodes[2]
@@ -231,7 +231,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         #pointLoad
         self.assertAlmostEqual(load_temp,Force_i)
         #reaction_x
-        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep]*(-1),6)
+        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep]*(-1), delta=1.0e-3)
         #displacement_y
         EA = 210e9*0.01
         L = sqrt(4+1)
@@ -282,7 +282,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         self.assertAlmostEqual(disp_u_2, 0.022296019142446475,6)
-        self.assertAlmostEqual(r_u_1, -Force_X,6)
+        self.assertAlmostEqual(r_u_1, -Force_X,delta=1.0e-3)
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
     def _check_results_dynamic_explicit(self,mp,time_i,time_step,linear_flag):
