@@ -381,8 +381,8 @@ protected:
                     const IndexType dof_id = it_dof->EquationId();
                     residual_dof_value = TSparseSpace::GetValue(b,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
+                    dof_num++;
                 }
-                dof_num++;
             }
         }
 
