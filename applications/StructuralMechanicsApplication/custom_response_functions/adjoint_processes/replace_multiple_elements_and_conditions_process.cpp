@@ -29,9 +29,9 @@ void ReplaceMultipleElementsAndConditionsProcess::Execute()
 
     // replace elements
     std::map<std::string, const Element*> elements_table;
-    Parameters element_table = mSettings["element_name_table"];
-    for(Parameters::iterator it=element_table.begin(); it!=element_table.end(); ++it){
-        elements_table[it.name()] = &KratosComponents<Element>::Get(element_table[it.name()].GetString());
+    Parameters element_name_table = mSettings["element_name_table"];
+    for(Parameters::iterator it=element_name_table.begin(); it!=element_name_table.end(); ++it){
+        elements_table[it.name()] = &KratosComponents<Element>::Get(element_name_table[it.name()].GetString());
     }
 
     #pragma omp parallel for
