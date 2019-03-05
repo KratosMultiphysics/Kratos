@@ -116,7 +116,7 @@ public:
 
         mMLParameterList = Teuchos::ParameterList();
 
-        if (settings["symmetric"].GetBool() == false) {
+        if (!settings["symmetric"].GetBool()) {
             ML_Epetra::SetDefaults("NSSA",mMLParameterList);
             mMLParameterList.set("ML output", settings["verbosity"].GetInt());
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
@@ -226,7 +226,7 @@ public:
         // when the preconditioner is freed. the strategy
         // should take care to Clear() the linear solver
         // before the system matrix.
-        if (mReformPrecAtEachStep == true || !mpMLPrec) {
+        if (mReformPrecAtEachStep || !mpMLPrec) {
             this->ResetPreconditioner();
             MLPreconditionerPointerType tmp(Kratos::make_unique<ML_Epetra::MultiLevelPreconditioner>(rA, mMLParameterList, true));
             mpMLPrec.swap(tmp);
