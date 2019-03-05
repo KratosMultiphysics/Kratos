@@ -142,7 +142,7 @@ class MeshSolverBase(PythonSolver):
 
     def MoveMesh(self):
         # move local and ghost nodes
-        KMM.MoveMesh(self.mesh_model_part.Nodes())
+        KMM.MoveMesh(self.mesh_model_part.Nodes)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
