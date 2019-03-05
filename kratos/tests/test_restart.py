@@ -32,11 +32,6 @@ def IsRestartFile(file_name):
     return os.path.isfile(file_name) and file_name.endswith('.rest')
 
 class TestRestart(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
         kratos_utils.DeleteFileIfExisting("test_restart_file_15.0.rest")

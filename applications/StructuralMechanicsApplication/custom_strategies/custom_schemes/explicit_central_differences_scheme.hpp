@@ -128,7 +128,7 @@ public:
         {
             "time_step_prediction_level" : 0.0,
             "fraction_delta_time"        : 0.9,
-            "max_delta_time"             : 1.0e-5
+            "max_delta_time"             : 1.0e0
         })" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -181,8 +181,8 @@ public:
             Parameters prediction_parameters = Parameters(R"(
             {
                 "time_step_prediction_level" : 2.0,
-                "max_delta_time"             : 1.0e-3,
-                "safety_factor"              : 0.5
+                "max_delta_time"             : 1.0e0,
+                "safety_factor"              : 0.8
             })" );
             prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel);
             prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
@@ -235,8 +235,8 @@ public:
             Parameters prediction_parameters = Parameters(R"(
             {
                 "time_step_prediction_level" : 2.0,
-                "max_delta_time"             : 1.0e-3,
-                "safety_factor"              : 0.5
+                "max_delta_time"             : 1.0e0,
+                "safety_factor"              : 0.8
             })" );
             prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel); // WARNING This could be problematic if PredictionLevel is a double and not a integer
             prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
@@ -804,10 +804,10 @@ private:
         ProcessInfo& rCurrentProcessInfo
         )
     {
-        (pCurrentEntity)->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        pCurrentEntity->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
 
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+        pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+        pCurrentEntity->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
     }
 
     ///@}
