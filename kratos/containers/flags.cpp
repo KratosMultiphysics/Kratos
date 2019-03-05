@@ -40,14 +40,14 @@ bool operator!=(const Flags& Left, const Flags& Right )
     return (Left.mFlags != Right.mFlags);
 }
 
-Flags operator|(const Flags& Left, const Flags& Right )
+Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right )
 {
     Flags results(Left);
     results |= Right;
     return results;
 }
 
-Flags operator&(const Flags& Left, const Flags& Right )
+Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right )
 {
     Flags results(Left);
     results &= Right;

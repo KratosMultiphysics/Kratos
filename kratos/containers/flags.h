@@ -331,9 +331,9 @@ public:
 
     friend bool operator!=(const Flags& Left, const Flags& Right );
 
-    friend Flags operator|(const Flags& Left, const Flags& Right );
+    friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
-    friend Flags operator&(const Flags& Left, const Flags& Right );
+    friend Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right );
 
     const Flags& operator|=(const Flags& Other );
 
