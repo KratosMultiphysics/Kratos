@@ -291,7 +291,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             KratosMultiphysics.DISPLACEMENT_Y)
         test_disp_temp=[]
 
-        if (linear_flag==False):
+        if not linear_flag:
             test_disp_temp = [-0.021876435754392846, -0.08025882554469399,
              -0.15813185652586725, -0.23777687358088162, -0.3064930326402276,
               -0.3573326497214386, -0.3873391702109082, -0.395577009293513,
