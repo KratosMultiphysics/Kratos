@@ -44,7 +44,6 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
     def MultilevelMonteCarloTest(self):
         with KratosUnittest.WorkFolderScope(os.path.join("..","test_examples", self.folder_name),__file__):
             import test_cmlmc_utilities as cmlmc_utilities
-            import adaptive_refinement_utilities as refinement
             from simulation_definition import SimulationScenario
 
             # set the ProjectParameters.json path
