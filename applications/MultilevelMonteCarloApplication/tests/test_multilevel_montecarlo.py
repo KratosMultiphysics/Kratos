@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 
     def MonteCarloTest(self):
-        with KratosUnittest.WorkFolderScope(os.path.join("..","test_examples", self.folder_name),__file__):
+        with KratosUnittest.WorkFolderScope(os.path.join(self.folder_name),__file__):
             import test_mc_utilities as mc_utilities
             from simulation_definition import SimulationScenario
 
@@ -38,11 +38,11 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
             # execute algorithm
             mc_manager.Run()
             """delete files"""
-            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.bin"))
-            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.lst"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join(self.folder_name,"poisson_square_2d.post.bin"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join(self.folder_name,"poisson_square_2d.post.lst"))
 
     def MultilevelMonteCarloTest(self):
-        with KratosUnittest.WorkFolderScope(os.path.join("..","test_examples", self.folder_name),__file__):
+        with KratosUnittest.WorkFolderScope(os.path.join(self.folder_name),__file__):
             import test_cmlmc_utilities as cmlmc_utilities
             from simulation_definition import SimulationScenario
 
@@ -88,8 +88,8 @@ class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
             mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(settings_MLMC_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
             mlmc_manager.Run()
             """delete files"""
-            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.bin"))
-            kratos_utilities.DeleteFileIfExisting(os.path.join("..","test_examples", self.folder_name,"poisson_square_2d.post.lst"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join(self.folder_name,"poisson_square_2d.post.bin"))
+            kratos_utilities.DeleteFileIfExisting(os.path.join(self.folder_name,"poisson_square_2d.post.lst"))
 
 
     def _runTest(self):
