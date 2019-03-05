@@ -49,7 +49,8 @@ namespace Kratos
  * sensitivity analysis
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  AdjointSemiAnalyticBaseCondition
+template <typename TPrimalCondition>
+class AdjointSemiAnalyticBaseCondition
     : public Condition
 {
 public:
@@ -62,22 +63,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    AdjointSemiAnalyticBaseCondition(): Condition()
+    AdjointSemiAnalyticBaseCondition(IndexType NewId = 0)
+    : Condition(NewId), mPrimalCondition(NewId, pGetGeometry())
     {
     }
 
-    AdjointSemiAnalyticBaseCondition(
-        Condition::Pointer pPrimalCondition
-        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry(), pPrimalCondition->pGetProperties() ),
-           mpPrimalCondition(pPrimalCondition)
-        {
-        }
-
-    /// Destructor.
-    ~AdjointSemiAnalyticBaseCondition() override
+    AdjointSemiAnalyticBaseCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry), mPrimalCondition(NewId, pGeometry)
     {
     }
+
+    AdjointSemiAnalyticBaseCondition(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties), mPrimalCondition(NewId, pGeometry, pProperties)
+    {
+    }
+
+    virtual ~AdjointSemiAnalyticBaseCondition() {}
 
     ///@}
     ///@name Operators
@@ -91,66 +94,82 @@ public:
     ///@name Operations
     ///@{
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
+    virtual Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    virtual Condition::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+            NewId, pGeometry, pProperties);
+    }
+
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "EquationIdVector of the base class called!" << std::endl;
     }
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
+    virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "GetDofList of the base class called!" << std::endl;
     }
 
     IntegrationMethod GetIntegrationMethod() override
     {
-        return mpPrimalCondition->GetIntegrationMethod();
+        return mPrimalCondition.GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override
+    virtual void GetValuesVector(Vector& rValues, int Step = 0 ) override
     {
         KRATOS_ERROR << "GetValuesVector of the base class called!" << std::endl;
     }
 
     void Initialize() override
     {
-        mpPrimalCondition->Initialize();
+        mPrimalCondition.Initialize();
     }
 
     void ResetConstitutiveLaw() override
     {
-        mpPrimalCondition->ResetConstitutiveLaw();
+        mPrimalCondition.ResetConstitutiveLaw();
     }
 
     void CleanMemory() override
     {
-        mpPrimalCondition->CleanMemory();
+        mPrimalCondition.CleanMemory();
     }
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
+        mPrimalCondition.InitializeSolutionStep(rCurrentProcessInfo);
     }
 
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
+        mPrimalCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->FinalizeNonLinearIteration(rCurrentProcessInfo);
+        mPrimalCondition.FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->FinalizeSolutionStep(rCurrentProcessInfo);
+        mPrimalCondition.FinalizeSolutionStep(rCurrentProcessInfo);
     }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 				      VectorType& rRightHandSideVector,
 				      ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateLocalSystem(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateLocalSystem(rLeftHandSideMatrix,
 				    rRightHandSideVector,
 				    rCurrentProcessInfo);
     }
@@ -158,7 +177,7 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateLeftHandSide(rLeftHandSideMatrix,
 					rCurrentProcessInfo);
     }
 
@@ -166,7 +185,7 @@ public:
 					const std::vector< Variable< MatrixType > >& rLHSVariables,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrices,
+        mPrimalCondition.CalculateLeftHandSide(rLeftHandSideMatrices,
 					rLHSVariables,
 					rCurrentProcessInfo);
     }
@@ -174,16 +193,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateRightHandSide(rRightHandSideVector,
-					rCurrentProcessInfo);
-    }
-
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->CalculateRightHandSide(rRightHandSideVectors,
-					rRHSVariables,
+        mPrimalCondition.CalculateRightHandSide(rRightHandSideVector,
 					rCurrentProcessInfo);
     }
 
@@ -191,7 +201,7 @@ public:
 							VectorType& rRightHandSideVector,
 							ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
 							rRightHandSideVector,
 							rCurrentProcessInfo);
     }
@@ -199,14 +209,14 @@ public:
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
 					    rCurrentProcessInfo);
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateFirstDerivativesRHS(rRightHandSideVector,
+        mPrimalCondition.CalculateFirstDerivativesRHS(rRightHandSideVector,
 					      rCurrentProcessInfo);
     }
 
@@ -214,7 +224,7 @@ public:
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
 							 rRightHandSideVector,
 							 rCurrentProcessInfo);
     }
@@ -222,49 +232,49 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					       ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
+        mPrimalCondition.CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
 					       rCurrentProcessInfo);
     }
 
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
 					       ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateSecondDerivativesRHS(rRightHandSideVector,
+        mPrimalCondition.CalculateSecondDerivativesRHS(rRightHandSideVector,
 					       rCurrentProcessInfo);
     }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        mPrimalCondition.CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
     }
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+        mPrimalCondition.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
-    void Calculate(const Variable<double >& rVariable,
+    virtual void Calculate(const Variable<double >& rVariable,
 			   double& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    void Calculate(const Variable< array_1d<double,3> >& rVariable,
+    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
 			   array_1d<double,3>& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    void Calculate(const Variable<Vector >& rVariable,
+    virtual void Calculate(const Variable<Vector >& rVariable,
 			   Vector& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
-    void Calculate(const Variable<Matrix >& rVariable,
+    virtual void Calculate(const Variable<Matrix >& rVariable,
 			   Matrix& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -272,35 +282,35 @@ public:
     }
 
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "Check of the base class called!" << std::endl;
     }
@@ -308,7 +318,7 @@ public:
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
      */
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -318,7 +328,7 @@ public:
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a vector design variable.
      */
-    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -327,7 +337,7 @@ public:
 
     Condition::Pointer pGetPrimalCondition()
     {
-        return mpPrimalCondition;
+        return mPrimalCondition;
     }
 
     ///@}
@@ -361,10 +371,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * pointer to the primal condition
-     */
-    Condition::Pointer mpPrimalCondition;
+    TPrimalCondition mPrimalCondition;
 
     ///@}
     ///@name Protected Operators
@@ -429,13 +436,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("mpPrimalCondition", mpPrimalCondition);
+        rSerializer.save("mPrimalCondition", mPrimalCondition);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("mpPrimalCondition", mpPrimalCondition);
+        rSerializer.load("mPrimalCondition", mPrimalCondition);
     }
 
     ///@}

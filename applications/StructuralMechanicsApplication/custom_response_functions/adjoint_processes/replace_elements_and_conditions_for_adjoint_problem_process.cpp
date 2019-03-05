@@ -22,6 +22,8 @@
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
+#include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
+
 namespace Kratos
 {
 
@@ -47,6 +49,19 @@ namespace Kratos
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToAdjoint()
     {
+
+
+        Parameters parameters = Parameters(R"(
+        {
+            "condition_name_table"    : {
+                "PointLoadCondition2D1N" : "AdjointSemiAnalyticPointLoadCondition2D1N",
+                "PointLoadCondition3D1N": "AdjointSemiAnalyticPointLoadCondition3D1N"
+            },
+            "throw_error" : false
+        })" );
+
+        ReplaceMultipleElementsAndConditionsProcess replacement_process(mrModelPart, parameters);
+        replacement_process.Execute();
 
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
@@ -84,27 +99,6 @@ namespace Kratos
                 }
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
-            }
-        }
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfConditions()); ++i)
-        {
-            const auto it = mrModelPart.ConditionsBegin() + i;
-
-            std::string condition_name;
-            const bool replace_condition = GetAdjointConditionName(*it, condition_name);
-
-            if(replace_condition)
-            {
-                if (condition_name == "AdjointSemiAnalyticPointLoadCondition")
-                {
-                    Condition::Pointer p_condition = Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition>(*it.base() );
-
-                    (*it.base()) = p_condition;
-                }
-                else
-                    KRATOS_ERROR << "Unknown adjoint condition: " << condition_name << std::endl;
             }
         }
 
