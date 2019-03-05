@@ -37,9 +37,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def AddVariables(self):
         super(StructuralMechanicsAdjointStaticSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
-
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DFDU)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DFDX)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
