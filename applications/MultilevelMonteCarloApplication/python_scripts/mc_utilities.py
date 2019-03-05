@@ -228,7 +228,7 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def LaunchEpoch(self):
-        for instance in range (self.batch_size[self.current_level]):
+        for _ in range (self.batch_size[self.current_level]):
             self.AddResults(self.ExecuteInstance())
 
     """
