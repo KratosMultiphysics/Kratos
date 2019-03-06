@@ -199,30 +199,25 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             if(distance_to_wake < 0.0):
                 elem.SetValue(CPFApp.KUTTA, True)
 
-    def ComputeMaximumX(self):
-        # This function computes the maximum x coordinate within
-        # all the trailing edge elements' centers
-        maximum_x_coordinate = -1e30
+    @staticmethod
+    def CheckIfElemIsCutByWake(elem):
+        nneg=0
+        distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+        for nodal_distance in distances:
+            if nodal_distance<0:
+                nneg += 1
 
-        # Loop over the elements touching the trailing edge
-        for elem in self.trailing_edge_model_part.Elements:
-            # Find the element touching the trailing edge with maximum x coordinate
-            if(elem.GetGeometry().Center().X > maximum_x_coordinate):
-                maximum_x_coordinate = elem.GetGeometry().Center().X
-
-        return maximum_x_coordinate
+        return nneg==1
 
     def MarkWakeTEElement(self):
         # This function finds the trailing edge element that is further downstream
-        # and marks it as wake trailing edge element
-
-        # Compute the maximum x coordinate within all the trailing edge
-        # elements' centers
-        maximum_x_coordinate = self.ComputeMaximumX()
+        # and marks it as wake trailing edge element. The rest of trailing edge elements are
+        # unassigned from the wake.
 
         for elem in self.trailing_edge_model_part.Elements:
-            if(elem.GetGeometry().Center().X < maximum_x_coordinate):
-                elem.SetValue(CPFApp.WAKE, False)
-            else:
-                elem.Set(KratosMultiphysics.STRUCTURE)
-                elem.SetValue(CPFApp.KUTTA, False)
+            if (elem.GetValue(CPFApp.WAKE)):
+                if(self.CheckIfElemIsCutByWake(elem)): #TE Element
+                    elem.Set(KratosMultiphysics.STRUCTURE)
+                    elem.SetValue(CPFApp.KUTTA, False)
+                else: #Rest of elements touching the trailing edge but not part of the wake
+                    elem.SetValue(CPFApp.WAKE, False)

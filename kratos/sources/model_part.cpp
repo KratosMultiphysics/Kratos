@@ -27,25 +27,6 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
-ModelPart::ModelPart(std::string const& NewName, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(new VariablesList())
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
-    mName = NewName;
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
-
 /// Default constructor.
 ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
@@ -1521,24 +1502,34 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
+    }
     rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         mpProcessInfo->PrintData(rOStream);
+    }
     rOStream << std::endl;
-    for (IndexType i = 0; i < mMeshes.size(); i++)
-    {
+    for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
-    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    {
-        i_sub_model_part->PrintInfo(rOStream, "    ");
+
+    // Printing the submodelparts by their names in alphabetical order
+    std::vector< std::string > submodel_part_names;
+    submodel_part_names.reserve(NumberOfSubModelParts());
+    for (const auto& r_sub_model_part : mSubModelParts) {
+        submodel_part_names.push_back(r_sub_model_part.Name());
+    }
+    std::sort(submodel_part_names.begin(),submodel_part_names.end());
+
+    for (const auto& r_sub_model_part_name : submodel_part_names) {
+        const auto& r_sub_model_part = *(mSubModelParts.find(r_sub_model_part_name));
+        r_sub_model_part.PrintInfo(rOStream, "    ");
         rOStream << std::endl;
-        i_sub_model_part->PrintData(rOStream, "    ");
+        r_sub_model_part.PrintData(rOStream, "    ");
     }
 }
 
@@ -1553,24 +1544,35 @@ void ModelPart::PrintInfo(std::ostream& rOStream, std::string const& PrefixStrin
 
 void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixString) const
 {
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         rOStream << PrefixString << "    Buffer Size : " << mBufferSize << std::endl;
+    }
     rOStream << PrefixString << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << PrefixString << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
-    if (!IsSubModelPart())
+
+    if (!IsSubModelPart()) {
         mpProcessInfo->PrintData(rOStream);
+    }
     rOStream << std::endl;
-    for (IndexType i = 0; i < mMeshes.size(); i++)
-    {
+
+    for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 
-    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    {
-        i_sub_model_part->PrintInfo(rOStream, PrefixString + "    ");
+    // Printing the submodelparts by their names in alphabetical order
+    std::vector< std::string > submodel_part_names;
+    submodel_part_names.reserve(NumberOfSubModelParts());
+    for (const auto& r_sub_model_part : mSubModelParts) {
+        submodel_part_names.push_back(r_sub_model_part.Name());
+    }
+    std::sort(submodel_part_names.begin(),submodel_part_names.end());
+
+    for (const auto& r_sub_model_part_name : submodel_part_names) {
+        const auto& r_sub_model_part = *(mSubModelParts.find(r_sub_model_part_name));
+        r_sub_model_part.PrintInfo(rOStream, PrefixString + "    ");
         rOStream << std::endl;
-        i_sub_model_part->PrintData(rOStream, PrefixString + "    ");
+        r_sub_model_part.PrintData(rOStream, PrefixString + "    ");
     }
 }
 
