@@ -179,7 +179,27 @@ bool OrientedBoundingBox<3>::IsInside(const OrientedBoundingBox<3>& rOtherOrient
 /***********************************************************************************/
 
 template<std::size_t TDim>
-bool OrientedBoundingBox<TDim>::HasIntersection(const OrientedBoundingBox<TDim>& rOtherOrientedBoundingBox) const
+bool OrientedBoundingBox<TDim>::HasIntersection(
+    const OrientedBoundingBox<TDim>& rOtherOrientedBoundingBox,
+    const OBBHasIntersectionType OBBType
+    ) const
+{
+    if (OBBType == OBBHasIntersectionType::Direct) {
+        return DirectHasIntersection(rOtherOrientedBoundingBox);
+    } else if (OBBType == OBBHasIntersectionType::SeparatingAxisTheorem) {
+        return SeparatingAxisTheoremHasIntersection(rOtherOrientedBoundingBox);
+    } else {
+        KRATOS_ERROR << "OBBType not well defined: " << static_cast<int>(OBBType) << std::endl;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<TDim>& rOtherOrientedBoundingBox) const
 {
     /* We check if points are inside */
     // Checking one combination
@@ -225,6 +245,113 @@ bool OrientedBoundingBox<TDim>::HasIntersection(const OrientedBoundingBox<TDim>&
     }
 
     return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox) const
+{
+    // Auxiliar values
+    const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
+    const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
+
+    return !(GetSeparatingPlane2D(relative_position, mOrientationVectors[0], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, mOrientationVectors[1], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, r_orientation_vectors_2[0], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, r_orientation_vectors_2[1], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox)
+        );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<3>& rOtherOrientedBoundingBox) const
+{
+    // Auxiliar values
+    const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
+    const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
+
+    return !(GetSeparatingPlane3D(relative_position, mOrientationVectors[0], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, mOrientationVectors[1], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, mOrientationVectors[2], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[0], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[1], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[2], rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox)
+        );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+bool OrientedBoundingBox<TDim>::GetSeparatingPlane(
+    const array_1d<double, 3>& rRelativePosition,
+    const array_1d<double, 3>& rPlane,
+    const OrientedBoundingBox& rOtherOrientedBoundingBox
+    ) const
+{
+    // 2D/3D computation
+    if (TDim == 2) {
+        return GetSeparatingPlane2D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
+    } else {
+        return GetSeparatingPlane3D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+bool OrientedBoundingBox<TDim>::GetSeparatingPlane2D(
+    const array_1d<double, 3>& rRelativePosition,
+    const array_1d<double, 3>& rPlane,
+    const OrientedBoundingBox& rOtherOrientedBoundingBox
+    ) const
+{
+    const auto& r_half_length_2 = rOtherOrientedBoundingBox.GetHalfLength();
+    const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
+    return (std::abs(inner_prod(rRelativePosition, rPlane)) >
+            (std::abs(inner_prod((mOrientationVectors[0] * mHalfLength[0]), rPlane)) +
+            std::abs(inner_prod((mOrientationVectors[1] * mHalfLength[1]), rPlane)) +
+            std::abs(inner_prod((r_orientation_vectors_2[0] * r_half_length_2[0]), rPlane)) +
+            std::abs(inner_prod((r_orientation_vectors_2[1] * r_half_length_2[1]), rPlane))));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
+bool OrientedBoundingBox<TDim>::GetSeparatingPlane3D(
+    const array_1d<double, 3>& rRelativePosition,
+    const array_1d<double, 3>& rPlane,
+    const OrientedBoundingBox& rOtherOrientedBoundingBox
+    ) const
+{
+    const auto& r_half_length_2 = rOtherOrientedBoundingBox.GetHalfLength();
+    const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
+    return (std::abs(inner_prod(rRelativePosition, rPlane)) >
+            (std::abs(inner_prod((mOrientationVectors[0] * mHalfLength[0]), rPlane)) +
+            std::abs(inner_prod((mOrientationVectors[1] * mHalfLength[1]), rPlane)) +
+            std::abs(inner_prod((mOrientationVectors[2] * mHalfLength[2]), rPlane)) +
+            std::abs(inner_prod((r_orientation_vectors_2[0] * r_half_length_2[0]), rPlane)) +
+            std::abs(inner_prod((r_orientation_vectors_2[1] * r_half_length_2[1]), rPlane)) +
+            std::abs(inner_prod((r_orientation_vectors_2[2] * r_half_length_2[2]), rPlane))));
 }
 
 /***********************************************************************************/
