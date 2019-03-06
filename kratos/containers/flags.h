@@ -186,19 +186,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(Flags ThisFlag)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= ThisFlag.mFlags;
-    }
+    void Set(Flags ThisFlag);
 
-    void Set(Flags ThisFlag, bool Value)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= (ThisFlag.mFlags * BlockType(Value)) | ((ThisFlag.mIsDefined ^ ThisFlag.mFlags) * BlockType(!Value));
-    }
+    void Set(Flags ThisFlag, bool Value);
 
     void Reset(Flags ThisFlag)
     {
@@ -418,7 +408,7 @@ private:
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
-    
+
     ///@}
     ///@name Private  Access
     ///@{
