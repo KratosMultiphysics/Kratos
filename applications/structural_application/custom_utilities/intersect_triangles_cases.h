@@ -108,8 +108,6 @@ public:
 
     typedef IntersectionTriangleCases Intersect;
 
-    IntersectTriangleCases() {};
-
     IntersectTriangleCases(ModelPart& model_part) : mr_model_part(model_part) {}
     virtual ~IntersectTriangleCases() {}
 
@@ -218,8 +216,8 @@ public:
             std::vector<unsigned int>           segment;
             std::vector<double>                 Distances;
             std::vector<unsigned int>::iterator it;
-            vector<array_1d<double, 2> >        Points0;
-            vector<array_1d<double, 2> >        Points1;
+            std::vector<array_1d<double, 2> >        Points0;
+            std::vector<array_1d<double, 2> >        Points1;
             array_1d<double, 2>                 Point;
             array_1d<double, 2>                 Vect;
             array_1d<double, 2>                 Node_Point;
@@ -232,8 +230,8 @@ public:
             unsigned int III = 1;
 
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
 
             for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
@@ -242,20 +240,20 @@ public:
                 Point[0] = 0.00;
                 Point[1] = 0.00;
 
-                Points0(0)[0] = geom[0].X();
-                Points0(0)[1] = geom[0].Y();
-                Points0(1)[0] = geom[1].X();
-                Points0(1)[1] = geom[1].Y();
+                Points0[0][0] = geom[0].X();
+                Points0[0][1] = geom[0].Y();
+                Points0[1][0] = geom[1].X();
+                Points0[1][1] = geom[1].Y();
 
                 I   = 0;
                 III = 1;
                 for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond)
                 {
                     Condition::GeometryType& geom_3 = cond->GetGeometry();
-                    Points1(0)[0] = geom_3[0].X();
-                    Points1(0)[1] = geom_3[0].Y();
-                    Points1(1)[0] = geom_3[1].X();
-                    Points1(1)[1] = geom_3[1].Y();
+                    Points1[0][0] = geom_3[0].X();
+                    Points1[0][1] = geom_3[0].Y();
+                    Points1[1][0] = geom_3[1].X();
+                    Points1[1][1] = geom_3[1].Y();
 
                     if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                     {
@@ -337,16 +335,16 @@ public:
         bool is_case5   = false;
         Element::GeometryType& geom_slave  = SlaveObject->GetGeometry();
         //Element::GeometryType& geom_master = MasterObject->GetGeometry();
-        vector<array_1d<double, 2> >        Points0;
-        vector<array_1d<double, 2> >        Points1;
+        std::vector<array_1d<double, 2> >        Points0;
+        std::vector<array_1d<double, 2> >        Points1;
         array_1d<double, 2>                 Point;
         std::vector<unsigned int>           segment;
 
         WeakPointerVector<Condition>        rConditions;
 
 
-        Points0.resize(2, false);
-        Points1.resize(2, false);
+        Points0.resize(2);
+        Points1.resize(2);
 
         unsigned int I   = 0;
         unsigned int III = 1;
@@ -356,8 +354,8 @@ public:
             if(SlaveNode->Id()!=geom_slave[i].Id())
             {
                 Oposite_Ids[I] =  geom_slave(i);
-                Points0(I)[0]  =  geom_slave[i].X();
-                Points0(I)[1]  =  geom_slave[i].Y();
+                Points0[I][0]  =  geom_slave[i].X();
+                Points0[I][1]  =  geom_slave[i].Y();
                 I++;
             }
         }
@@ -366,10 +364,10 @@ public:
         for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond)
         {
             Condition::GeometryType& geom_3 = cond->GetGeometry();
-            Points1(0)[0] = geom_3[0].X();
-            Points1(0)[1] = geom_3[0].Y();
-            Points1(1)[0] = geom_3[1].X();
-            Points1(1)[1] = geom_3[1].Y();
+            Points1[0][0] = geom_3[0].X();
+            Points1[0][1] = geom_3[0].Y();
+            Points1[1][0] = geom_3[1].X();
+            Points1[1][1] = geom_3[1].Y();
 
             if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
             {
@@ -468,8 +466,8 @@ public:
         KRATOS_TRY
 
 
-        vector<array_1d<double, 2> >      Points0;
-        vector<array_1d<double, 2> >      Points1;
+        std::vector<array_1d<double, 2> >      Points0;
+        std::vector<array_1d<double, 2> >      Points1;
         array_1d<double, 2>               Point;
 
         WeakPointerVector<Condition>& neighb_cond_master  = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
@@ -477,23 +475,23 @@ public:
         {
             array_1d<double,3>& old_pos                       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);
 
-            Points0.resize(2, false);
-            Points1.resize(2, false);
+            Points0.resize(2);
+            Points1.resize(2);
 
-            Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-            Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-            Points0(1)[0] = SlaveNode->X();
-            Points0(1)[1] = SlaveNode->Y();
+            Points0[0][0] = SlaveNode->X0() + old_pos[0];
+            Points0[0][1] = SlaveNode->Y0() + old_pos[1];
+            Points0[1][0] = SlaveNode->X();
+            Points0[1][1] = SlaveNode->Y();
 
             unsigned int JJ = 1;
             for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++)
             {
                 Condition::GeometryType& geom_2 = cond->GetGeometry();
 
-                Points1(0)[0] = geom_2[0].X();
-                Points1(0)[1] = geom_2[0].Y();
-                Points1(1)[0] = geom_2[1].X();
-                Points1(1)[1] = geom_2[1].Y();
+                Points1[0][0] = geom_2[0].X();
+                Points1[0][1] = geom_2[0].Y();
+                Points1[1][0] = geom_2[1].X();
+                Points1[1][1] = geom_2[1].Y();
 
                 if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
                     return true;
@@ -510,7 +508,7 @@ public:
 
 
 private:
-    ModelPart mr_model_part;
+    ModelPart& mr_model_part;
     static const int IT_POINT   = 0;
     static const int IT_SEGMENT = 1;
     static const int IT_EMPTY   = 2;
