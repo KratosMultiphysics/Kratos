@@ -2545,7 +2545,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    Jinv = MathUtils<double>::InvertMatrix<3>(J, detJ);
+    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2567,7 +2567,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    Jinv = MathUtils<double>::InvertMatrix<3>(J, detJ);
+    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2684,7 +2684,8 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
 
     /* Compute the inverse of the Jacobian */
     double aux_det;
-    const BoundedMatrix<double, 2, 2 > JinvPlane = MathUtils<double>::InvertMatrix<2>(jac, aux_det);
+    BoundedMatrix<double, 2, 2 > JinvPlane;
+    MathUtils<double>::InvertMatrix(jac, JinvPlane, aux_det);
 
     /* Compute the Cartesian derivatives */
     noalias(InPlaneCartesianDerivativesGauss) = prod(JinvPlane, trans(local_derivative_patch));

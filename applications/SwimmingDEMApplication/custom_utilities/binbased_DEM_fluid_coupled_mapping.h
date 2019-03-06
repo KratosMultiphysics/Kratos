@@ -94,7 +94,7 @@ typedef ModelPart::ElementsContainerType                      ElementsArrayType;
 typedef ElementsArrayType::ContainerType                      ResultElementsContainerType;
 typedef std::vector<ResultElementsContainerType>              VectorResultElementsContainerType;
 typedef ModelPart::ElementsContainerType::iterator            ElementIteratorType;
-typedef SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
+typedef SwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
 
 typedef ModelPart::NodesContainerType                         NodesArrayType;
 typedef NodesArrayType::ContainerType                         ResultNodesContainerType;
@@ -297,7 +297,7 @@ const Variable<array_1d<double,3>>* mpBodyForcePerUnitMassVariable;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-std::vector<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
+std::vector<SwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 VectorDistanceType mVectorsOfRadii;
@@ -360,7 +360,7 @@ void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
 void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
-double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
+double inline CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
 double inline GetAlpha(const VariableData& r_variable);
 const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
 //***************************************************************************************************************
