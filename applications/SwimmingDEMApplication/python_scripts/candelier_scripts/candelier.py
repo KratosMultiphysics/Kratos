@@ -134,6 +134,7 @@ class AnalyticSimulator:
         NDcoors[2] = float(NDz0 + t * NDw0)
 
         if NDvel is None:
+            NDvel = [0.] * 3
             NDxy = 0.0
             for i in range(4):
                 NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))

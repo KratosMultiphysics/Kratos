@@ -141,18 +141,24 @@ class TwoFluidInletTest(UnitTest.TestCase):
             if (node.Z > 0.7):
                 v_x_ref = 0.1
                 self.assertAlmostEqual( v_x_ref, velocity[0], delta = self.check_tolerance)
+
             self.assertAlmostEqual(0.0, velocity[1], delta = self.check_tolerance)
             self.assertAlmostEqual(0.0, velocity[2], delta = self.check_tolerance)
 
-        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 6 )
-        self.assertAlmostEqual( -0.125, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
-        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 12 )
-        self.assertAlmostEqual( -0.125, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
-        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 43 )
-        self.assertAlmostEqual( -0.3, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
-        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 100 )
-        self.assertAlmostEqual( 0.28749998375, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
+            # checking the distance field in the inlet
+            theoretical_distance = node.Z - 0.5
+            distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            self.assertAlmostEqual( theoretical_distance, distance, delta = self.check_tolerance)
 
+        # checking distance field for other nodes
+        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 40 )
+        self.assertAlmostEqual( 0.0, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
+
+        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 70 )
+        self.assertAlmostEqual( 0.35, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
+
+        test_node = self.simulation._GetSolver().GetComputingModelPart().GetNode( 120 )
+        self.assertAlmostEqual( 0.70, test_node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), delta = self.check_toleranceDistance)
 
 
     def _check_results_mpi( self ):
@@ -183,8 +189,6 @@ class TwoFluidInletTest(UnitTest.TestCase):
         for i in range(0,100):
             file_name = "TwoFluidInletTest/test_inlet_" + str(i) + ".mdpa"
             kratos_utils.DeleteFileIfExisting(file_name)
-
-        print( "clean" )
 
 
 class FluidDynamicsAnalysisWithFlush3D(FluidDynamicsAnalysis):

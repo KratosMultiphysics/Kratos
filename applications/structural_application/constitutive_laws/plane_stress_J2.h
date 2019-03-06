@@ -218,11 +218,11 @@ private:
     array_1d<double, 3 > mbeta_n1;
     double malpha_current;
 
-    void CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & C);
-    void CalculateInverseElasticMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & Cinv);
-    void CalculateP(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & P);
-    void InvertMatrix(const boost::numeric::ublas::bounded_matrix<double, 3, 3 >& InputMatrix,
-                      boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InvertedMatrix,
+    void CalculateElasticMatrix(BoundedMatrix<double, 3, 3 > & C);
+    void CalculateInverseElasticMatrix(BoundedMatrix<double, 3, 3 > & Cinv);
+    void CalculateP(BoundedMatrix<double, 3, 3 > & P);
+    void InvertMatrix(const BoundedMatrix<double, 3, 3 >& InputMatrix,
+                      BoundedMatrix<double, 3, 3 > & InvertedMatrix,
                       double& InputMatrixDet);
 
     double fbar_2(const double dgamma, const array_1d<double, 3 > & xi);

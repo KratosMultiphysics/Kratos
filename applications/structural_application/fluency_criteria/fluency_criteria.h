@@ -79,7 +79,7 @@ public:
 
     typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+    typedef boost::numeric::ublas::matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
     typedef FluencyCriteria FluencyCriteriaType;
 
@@ -162,12 +162,12 @@ public:
         KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivatePotencialFlowCriteria", "");
     }
 
-    virtual void CalculateDerivateFluencyCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria)
+    virtual void CalculateDerivateFluencyCriteriaMultiSurface(const Vector& StressVector, std::vector<Vector>& DerivateFluencyCriteria)
     {
         KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
     }
 
-    virtual void CalculateDerivatePotencialFlowCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow)
+    virtual void CalculateDerivatePotencialFlowCriteriaMultiSurface(const Vector& StressVector, std::vector<Vector>& DerivatePotencialFlow)
     {
         KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
     }
@@ -393,7 +393,7 @@ public:
 
         noalias(StressTensor)         = ZeroMatrix(3,3);
         noalias(Aux_Tensor)           = ZeroMatrix(3,3);
-        noalias(SphericComponent)     = IdentityMatrix(3,3);
+        noalias(SphericComponent)     = IdentityMatrix(3);
         noalias(DesviatoricComponent) = ZeroMatrix(3,3);
 
         Vector  I(3);

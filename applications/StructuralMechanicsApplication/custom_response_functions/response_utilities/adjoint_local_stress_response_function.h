@@ -78,6 +78,8 @@ public:
     ///@name Operations
     ///@{
 
+    using AdjointStructuralResponseFunction::CalculateGradient;
+
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,

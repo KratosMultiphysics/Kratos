@@ -141,9 +141,8 @@ CMAKE_BUILD=(
   -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_WARN_FLAGS} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
-  # NOTE: This is better commented for travis since we don't want to use
-  # a default configuration. (-O0 is prefered here)
-  # -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+  # NOTE: Force Custom mode to prevent to default to Release
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"

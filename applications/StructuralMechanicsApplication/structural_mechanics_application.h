@@ -42,6 +42,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -99,6 +100,8 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 #include "custom_constitutive/linear_isotropic_damage_plane_strain_2d.h"
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
 // Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
@@ -162,6 +165,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+extern template class AdjointSolidElement<TotalLagrangian>;
 
 /**
  * @class KratosStructuralMechanicsApplication
@@ -405,6 +410,7 @@ private:
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
     const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
     const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
 
     /* CONDITIONS*/
     // Point load
@@ -732,7 +738,9 @@ private:
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageSimoJuMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageVonMisesMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageTrescaMohrCoulomb2D;
-    const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D;
+    const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D;	
+    const DamageDPlusDMinusMasonry2DLaw mDamageDPlusDMinusPlaneStressMasonry2DLaw;
+    const DamageDPlusDMinusMasonry3DLaw mDamageDPlusDMinusMasonry3DLaw;
     ///@}
     ///@name Private Operators
     ///@{
