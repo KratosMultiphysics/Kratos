@@ -33,6 +33,13 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 {
 public:
+
+    /// Definition of the size type
+    typedef std::size_t SizeType;
+
+    /// Definition of the index type
+    typedef std::size_t IndexType;
+
     /// Pointer definition of VtkOutput
     KRATOS_CLASS_POINTER_DEFINITION(VtkOutput);
 
