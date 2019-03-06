@@ -117,6 +117,10 @@ public:
            mpFirstCriterion(pFirstCriterion),
            mpSecondCriterion(pSecondCriterion)
     {
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+
     }
 
     /** Copy constructor.
@@ -126,6 +130,9 @@ public:
          mpFirstCriterion(rOther.mpFirstCriterion),
          mpSecondCriterion(rOther.mpSecondCriterion)
      {
+        this->mActualizeRHSIsNeeded = false;
+        if(mpFirstCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
+        if(mpSecondCriterion->GetActualizeRHSflag()) this->mActualizeRHSIsNeeded = true;
      }
 
     /** Destructor.
