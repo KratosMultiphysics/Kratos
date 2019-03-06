@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 0.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
@@ -10,9 +10,9 @@
         "solver_type"                        : "static",
         "echo_level"                         : 0,
         "time_stepping"                      : {
-            "time_step" : 1.0
+            "time_step" : 0.1
         },
-        "analysis_type"                      : "linear",
+        "analysis_type"                      : "non_linear",
         "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,
         "model_import_settings"              : {
@@ -69,22 +69,22 @@
             },
             "output_time_settings" : {
                 "output_step_frequency": 1,
-                "file_name" : "rectangular_plate_structure"
+                "file_name" : "rectangular_plate_structure_primal"
             }
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition",
         "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 10.0,
-            "direction"       : [0.0,0.0,1],
+            "modulus"         : "10.0*t",
+            "direction"       : [0.0,0.0,1.0],
             "interval"        : [0.0,"End"]
         }
     }]},

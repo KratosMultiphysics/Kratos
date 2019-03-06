@@ -83,7 +83,7 @@
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
+                "GiDPostMode"           : "GiD_PostAscii",
                 "WriteDeformedMeshFlag" : "WriteDeformed",
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"

@@ -84,6 +84,34 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
 
+
+        import restart_utility
+        load_model = KratosMultiphysics.Model()
+        load_model_part = load_model.CreateModelPart("rectangular_plate_structure")
+        restart_parameters_load = KratosMultiphysics.Parameters("""
+        {
+            "input_filename"                 : "test_restart_file",
+            "restart_load_file_label"        : "",
+            "serializer_trace"               : "no_trace",
+            "load_restart_files_from_folder" : false
+        }
+        """)
+        restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
+        rest_utility_load = restart_utility.RestartUtility(load_model_part, restart_parameters_load)
+        rest_utility_load.LoadRestart()
+
+        element = self.main_model_part.Elements[2]
+        LHS = KratosMultiphysics.Matrix(18,18)
+        RHS = KratosMultiphysics.Vector(18)
+        element.CalculateLocalSystem(LHS,RHS,self.main_model_part.ProcessInfo)
+        print("LHS", RHS)
+
+        element_load = load_model_part.Elements[2]
+        LHS_load = KratosMultiphysics.Matrix(18,18)
+        RHS_load = KratosMultiphysics.Vector(18)
+        element_load.CalculateLocalSystem(LHS_load,RHS_load,load_model_part.ProcessInfo)
+        print("LHS_Load", RHS_load)
+
         # TODO Armin: hdf5 is reading the displacement but not updating the coordinates
         # TODO Mahmoud: check why KratosMultiphysics.VariableUtils().UpdateInitialToCurrentConfiguration update the nodal position here?
         for node in self.main_model_part.Nodes:

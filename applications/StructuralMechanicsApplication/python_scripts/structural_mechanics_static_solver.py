@@ -5,7 +5,9 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
+import restart_utility
+import time as timer
+from KratosMultiphysics import Parameters, Logger
 # Import base class file
 import structural_mechanics_solver
 
@@ -70,6 +72,55 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             if self.settings["echo_level"].GetInt() > 0:
                 self.print_on_rank_zero("LAMBDA: ", lambda_value)
             self._update_arc_length_point_load(lambda_value)
+
+        ##restart utility hard coded
+        startTimeSave = timer.time()
+        restart_parameters = KratosMultiphysics.Parameters("""
+        {
+            "input_filename"               : "test_restart_file",
+            "restart_save_frequency"       : 1.0,
+            "serializer_trace"               : "no_trace",
+            "save_restart_files_in_folder" : false
+        }
+        """)
+        rest_utility = restart_utility.RestartUtility(self.main_model_part, restart_parameters)
+        rest_utility.SaveRestart()
+        Logger.PrintInfo("> Time needed for saving one step",round(timer.time() - startTimeSave,2),"s")
+
+        ## calculating local system
+        element_save = self.main_model_part.Elements[2]
+        LHS_save = KratosMultiphysics.Matrix(18,18)
+        RHS_save = KratosMultiphysics.Vector(18)
+        element_save.CalculateLocalSystem(LHS_save,RHS_save,self.main_model_part.ProcessInfo)
+        print("LHS_Save", RHS_save)
+
+        ## hard coded loading the model
+        # startTimeLoad = timer.time()
+        # load_model = KratosMultiphysics.Model()
+        # load_model_part = load_model.CreateModelPart("Structure")
+        # restart_parameters_load = KratosMultiphysics.Parameters("""
+        # {
+        #     "input_filename"                 : "test_restart_file",
+        #     "restart_load_file_label"        : "",
+        #     "serializer_trace"               : "no_trace",
+        #     "load_restart_files_from_folder" : false
+        # }
+        # """)
+        # restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
+        # rest_utility_load = restart_utility.RestartUtility(load_model_part, restart_parameters_load)
+        # rest_utility_load.LoadRestart()
+        # Logger.PrintInfo("> Time needed for loading one step",round(timer.time() - startTimeLoad,2),"s")
+
+        # element_load = load_model_part.Elements[1]
+        # LHS_load = KratosMultiphysics.Matrix(18,18)
+        # RHS_load = KratosMultiphysics.Vector(18)
+        # element_load.CalculateLocalSystem(LHS_load,RHS_load,load_model_part.ProcessInfo)
+
+        # import numpy.testing as npt
+        # for i in range(0,24):
+        #     for j in range(0,24):
+        #         npt.assert_almost_equal(LHS_load[i,j],LHS_save[i,j])
+
 
     #### Private functions ####
 

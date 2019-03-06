@@ -2,17 +2,30 @@
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 0.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "static",
-        "echo_level"                         : 0,
-        "time_stepping"                      : {
-            "time_step" : 1.0
-        },
+        "solver_type"                        : "adjoint_static",
         "analysis_type"                      : "linear",
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "compute_reactions"			         : false,
+        "move_mesh_flag"                     : false,
+
+        "scheme_settings" : {
+            "scheme_type"              : "adjoint_structural"
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "build_mode": "static-non-linear-strain-energy"
+        },
+        "echo_level"                         : 0,
         "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,
         "model_import_settings"              : {
@@ -24,14 +37,14 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
+        "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
@@ -46,52 +59,32 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
-            "variable_name"   : "DISPLACEMENT",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_output_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-            "model_part_name" : "rectangular_plate_structure",
+	        "model_part_name" : "rectangular_plate_structure",
             "file_settings" : {
-                "file_access_mode" : "truncate"
-            },
-            "model_part_output_settings" : {
-                "prefix" : "/ModelData"
+                "file_access_mode" : "read_only"
             },
             "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
             },
-            "output_time_settings" : {
-                "output_step_frequency": 1,
-                "file_name" : "rectangular_plate_structure"
-            }
+        "file_name": "rectangular_plate_structure_primal"
         }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 10.0,
-            "direction"       : [0.0,0.0,1],
-            "interval"        : [0.0,"End"]
-        }
-    }]},
-    "_output_configuration"     : {
+     }],
+    "loads_process_list"       : []},
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
+                "GiDPostMode"           : "GiD_PostAscii",
                 "WriteDeformedMeshFlag" : "WriteDeformed",
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"
@@ -103,7 +96,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION", "POINT_LOAD"],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
