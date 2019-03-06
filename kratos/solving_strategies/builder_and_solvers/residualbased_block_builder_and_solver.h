@@ -879,6 +879,7 @@ public:
 
         mSlaveIds.clear();
         mMasterIds.clear();
+        mInactiveSlaveDofs.clear();
         mT.resize(0,0,false);
         mConstantVector.resize(0,false);
     }
