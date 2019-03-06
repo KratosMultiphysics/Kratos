@@ -492,16 +492,6 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeSolutionStep(ModelPart& r_model_part,
-                                            TSystemMatrixType& A,
-                                            TSystemVectorType& Dx,
-                                            TSystemVectorType& b) override
-        {
-            BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
-        }
-        //*************************************************************************************
-        //*************************************************************************************
-
         void InitializeNonLinIteration(ModelPart& r_model_part,
                                                TSystemMatrixType& A,
                                                TSystemVectorType& Dx,
