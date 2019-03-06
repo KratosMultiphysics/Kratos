@@ -45,7 +45,8 @@ namespace Kratos
 //             gid_io.WriteMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
 //             gid_io.InitializeResults(label, rModelPart.GetMesh());
-//             gid_io.PrintOnGaussPoints(PLASTIC_STRAIN, rModelPart, label);
+//             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
+//             gid_io.PrintOnGaussPoints(plastic_strain_variable, rModelPart, label);
 //         }
 //
 //         void GiDIODebugInternalInterpolationElement(ModelPart& rModelPart, const std::string name = "")
@@ -142,6 +143,7 @@ namespace Kratos
             if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
+            const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
@@ -161,7 +163,7 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
-            // Set PLASTIC_STRAIN on the GP
+            // Set ACCUMULATED_PLASTIC_STRAIN on the GP
             for (auto& elem : r_model_part.Elements()) {
                 auto& r_this_geometry = elem.GetGeometry();
 
@@ -175,7 +177,7 @@ namespace Kratos
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
-                    constitutive_law_vector[i]->SetValue(PLASTIC_STRAIN, 1.0, current_process_info);
+                    constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
                 }
             }
 
@@ -185,7 +187,7 @@ namespace Kratos
             "internal_variables_parameters"        :
             {
                 "interpolation_type"                   : "CPT",
-                "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
+                "internal_variable_interpolation_list" : ["ACCUMULATED_PLASTIC_STRAIN"]
             },
             "echo_level" : 0
             })" );
@@ -214,7 +216,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -236,6 +238,7 @@ namespace Kratos
             if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
+            const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
@@ -255,7 +258,7 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
-            // Set PLASTIC_STRAIN on the GP
+            // Set ACCUMULATED_PLASTIC_STRAIN on the GP
             for (auto& elem : r_model_part.Elements()) {
                 auto& r_this_geometry = elem.GetGeometry();
 
@@ -269,7 +272,7 @@ namespace Kratos
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
-                    constitutive_law_vector[i]->SetValue(PLASTIC_STRAIN, 1.0, current_process_info);
+                    constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
                 }
             }
 
@@ -279,7 +282,7 @@ namespace Kratos
             "internal_variables_parameters"        :
             {
                 "interpolation_type"                   : "LST",
-                "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
+                "internal_variable_interpolation_list" : ["ACCUMULATED_PLASTIC_STRAIN"]
             },
             "echo_level" : 0
             })" );
@@ -312,7 +315,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -335,6 +338,7 @@ namespace Kratos
             if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
+            const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
@@ -354,7 +358,7 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
-            // Set PLASTIC_STRAIN on the GP
+            // Set ACCUMULATED_PLASTIC_STRAIN on the GP
             for (auto& elem : r_model_part.Elements()) {
                 auto& r_this_geometry = elem.GetGeometry();
 
@@ -368,7 +372,7 @@ namespace Kratos
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
-                    constitutive_law_vector[i]->SetValue(PLASTIC_STRAIN, 1.0, current_process_info);
+                    constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
                 }
             }
 
@@ -378,7 +382,7 @@ namespace Kratos
             "internal_variables_parameters"        :
             {
                 "interpolation_type"                   : "CPT",
-                "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
+                "internal_variable_interpolation_list" : ["ACCUMULATED_PLASTIC_STRAIN"]
             },
             "echo_level" : 0
             })" );
@@ -407,7 +411,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
@@ -430,6 +434,7 @@ namespace Kratos
             if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
+            const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
@@ -449,7 +454,7 @@ namespace Kratos
                 it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
-            // Set PLASTIC_STRAIN on the GP
+            // Set ACCUMULATED_PLASTIC_STRAIN on the GP
             for (auto& elem : r_model_part.Elements()) {
                 auto& r_this_geometry = elem.GetGeometry();
 
@@ -463,7 +468,7 @@ namespace Kratos
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
-                    constitutive_law_vector[i]->SetValue(PLASTIC_STRAIN, 1.0, current_process_info);
+                    constitutive_law_vector[i]->SetValue(plastic_strain_variable, 1.0, current_process_info);
                 }
             }
 
@@ -473,7 +478,7 @@ namespace Kratos
             "internal_variables_parameters"        :
             {
                 "interpolation_type"                   : "LST",
-                "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
+                "internal_variable_interpolation_list" : ["ACCUMULATED_PLASTIC_STRAIN"]
             },
             "echo_level" : 0
             })" );
@@ -506,7 +511,7 @@ namespace Kratos
 
                 for (std::size_t i = 0; i <integration_points_number; i++) {
                     double aux;
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(plastic_strain_variable, aux) - 1.0), tolerance);
                 }
             }
         }
