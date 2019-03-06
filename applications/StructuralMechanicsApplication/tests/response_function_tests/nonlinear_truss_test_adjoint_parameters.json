@@ -17,9 +17,6 @@
         },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-            },
     "sensitivity_settings" : {
         "sensitivity_model_part_name" : "sensitivity_mp",
         "nodal_sensitivity_variables"  : ["SHAPE"],

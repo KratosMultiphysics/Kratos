@@ -472,7 +472,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         # synchronize the modelparts # TODO this should happen automatically
         Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
 
-       # self._SynchronizeAdjointFromPrimal()
+        #self._SynchronizeAdjointFromPrimal()
 
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
@@ -504,12 +504,11 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = self.response_value
 
-        print("> nonlinear strain energy response = " , self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE])
+        Logger.PrintInfo("> nonlinear strain energy response = " , self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE])
 
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-
         # runs the full loop for adjoint analysis
         self.adjoint_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
@@ -526,7 +525,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
 
     def FinalizeSolutionStep(self):
-        self.adjoint_analysis.FinalizeSolutionStep()
+        # Commented out because this causes finalize solution step to be called twice
+        #self.adjoint_analysis.FinalizeSolutionStep()
         self.adjoint_analysis.OutputSolutionStep()
 
 
