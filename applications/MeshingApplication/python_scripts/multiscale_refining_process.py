@@ -28,7 +28,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                     "model_part_name"                 : "model_part",
                     "error_variable"                  : "RESIDUAL_NORM",
                     "variable_threshold"              : 1e-3,
-                    "allow_refining_dry_domain"       : false
+                    "only_refine_wet_domain"          : false
                 }   
             },
             "variables_to_apply_fixity"       : [],

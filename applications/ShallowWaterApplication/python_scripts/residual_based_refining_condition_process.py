@@ -17,7 +17,7 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
             "model_part_name"           : "model_part",
             "error_variable"            : "RESIDUAL_NORM",
             "variable_threshold"        : 1e-3,
-            "allow_refining_dry_domain" : false
+            "only_refine_wet_domain"    : false
         }
         """)
 
@@ -27,7 +27,7 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
         self.model_part = model[settings["model_part_name"].GetString()]
         self.error_variable = getattr(KratosMultiphysics, settings["error_variable"].GetString())
         self.variable_threshold = settings["variable_threshold"].GetDouble()
-        self.allow_refining_dry_domain = settings["allow_refining_dry_domain"].GetBool()
+        self.only_refine_wet_domain = settings["only_refine_wet_domain"].GetBool()
 
     def Execute(self):
         # TODO: move to a c++ process
@@ -38,12 +38,12 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
             residual = elem.GetValue(KratosMultiphysics.RESIDUAL_NORM)
             if residual > self.variable_threshold:
                 active_element = True
-                if not self.allow_refining_dry_domain:
-                    element_is_dry = True
+                if self.only_refine_wet_domain:
+                    element_is_wet = False
                     for node in elem.GetNodes():
                         if node.GetSolutionStepValue(Shallow.HEIGHT) > 0.0:
-                            element_is_dry = False
-                    active_element = not element_is_dry
+                            element_is_wet = True
+                    active_element = element_is_wet
                 if active_element:
                     for node in elem.GetNodes():
                         node.Set(KratosMultiphysics.TO_REFINE, True)
