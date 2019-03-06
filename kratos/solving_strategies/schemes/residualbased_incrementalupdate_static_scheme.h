@@ -91,10 +91,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /** Default onstructor.
     */
     explicit ResidualBasedIncrementalUpdateStaticScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+        : BaseType()
     {}
 
     /** Copy Constructor.
@@ -177,18 +192,31 @@ public:
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Initialize solution step for all of the elements
+        // Definition of the first element iterator
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
+        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
+            auto it_elem = it_elem_begin + i;
             it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
 
-        // Initialize solution step for all of the conditions
+        // Definition of the first condition iterator
+        const auto it_cond_begin = rModelPart.ConditionsBegin();
+
         #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+            auto it_cond = it_cond_begin + i;
             it_cond->InitializeNonLinearIteration(r_current_process_info);
+        }
+
+        // Definition of the first constraint iterator
+        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
+            auto it_const = it_const_begin + i;
+            it_const->InitializeNonLinearIteration(r_current_process_info);
         }
 
         KRATOS_CATCH( "" );

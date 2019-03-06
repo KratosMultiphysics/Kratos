@@ -921,45 +921,58 @@ namespace Kratos {
 
         //****************************************************************************
 
-        /**
-        bdyn = b - M*acc - D*vel
-
+        /// Add Bossak contributions from the inertial term to the RHS vector.
+        /** This essentially performs bdyn = b - M*acc for the current element.
+         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element itself.
+         *  @param[in] rCurrentElement The fluid element we are assembling.
+         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
+         *  @param[in] rD The elemental velocity/pressure LHS matrix.
+         *  @param[in] rM The elemental acceleration LHS matrix.
+         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
          */
         void AddDynamicsToRHS(Element::Pointer rCurrentElement,
-                              LocalSystemVectorType& RHS_Contribution,
-                              LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
+                              LocalSystemVectorType& rRHS_Contribution,
+                              LocalSystemMatrixType& rD,
+                              LocalSystemMatrixType& rM,
+                              ProcessInfo& rCurrentProcessInfo)
         {
-            //adding inertia contributionDISPLACEMENT
-
-            if (M.size1() != 0) {
+            //adding inertia contribution
+            if (rM.size1() != 0) {
                 int k = OpenMPUtils::ThisThread();
                 rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
                 rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
-                noalias(RHS_Contribution) -= prod(M, macc[k]);
+                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
         }
 
+        /// Add Bossak contributions from the inertial term to the RHS vector.
+        /** This essentially performs bdyn = b - M*acc for the current condition.
+         *  Note that viscous/pressure contributions to the RHS are expected to be added by the element condition.
+         *  @param[in] rCurrentCondition The fluid condition we are assembling.
+         *  @param[in/out] rRHS_Contribution The right hand side term where the contribution will be added.
+         *  @param[in] rD The elemental velocity/pressure LHS matrix.
+         *  @param[in] rM The elemental acceleration LHS matrix.
+         *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
+         */
         void AddDynamicsToRHS(
-                              Condition::Pointer rCurrentElement,
-                              LocalSystemVectorType& RHS_Contribution,
+                              Condition::Pointer rCurrentCondition,
+                              LocalSystemVectorType& rRHS_Contribution,
                               LocalSystemMatrixType& D,
-                              LocalSystemMatrixType& M,
-                              ProcessInfo& CurrentProcessInfo)
+                              LocalSystemMatrixType& rM,
+                              ProcessInfo& rCurrentProcessInfo)
         {
-            //adding inertia contributionDISPLACEMENT
-            if (M.size1() != 0)
+            //adding inertia contribution
+            if (rM.size1() != 0)
             {
                 int k = OpenMPUtils::ThisThread();
-                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
+                rCurrentCondition->GetSecondDerivativesVector(macc[k], 0);
                 (macc[k]) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
+                rCurrentCondition->GetSecondDerivativesVector(maccold[k], 1);
                 noalias(macc[k]) += mAlphaBossak * maccold[k];
 
-                noalias(RHS_Contribution) -= prod(M, macc[k]);
+                noalias(rRHS_Contribution) -= prod(rM, macc[k]);
             }
         }
 

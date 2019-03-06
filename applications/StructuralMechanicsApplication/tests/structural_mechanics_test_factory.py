@@ -2,49 +2,45 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
-
-# Other imports
-import os
-
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+            # The mechanical solver selects automatically the fastest linear-solver available
+            # this might not be appropriate for a test, therefore in case nothing is specified,
+            # the previous default linear-solver is set
+            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
+                default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                    "solver_type": "ExternalSolversApplication.super_lu",
+                    "max_iteration": 500,
+                    "tolerance": 1e-9,
+                    "scaling": false,
+                    "symmetric_scaling": true,
+                    "verbosity": 0
+                }""")
+                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
             self.modify_parameters(ProjectParameters)
 
             # To avoid many prints
-            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+            if ProjectParameters["problem_data"]["echo_level"].GetInt() == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+            else:
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -55,12 +51,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
 class SimpleMeshMovingTest(StructuralMechanicsTestFactory):
@@ -144,6 +140,9 @@ class SprismMembranePatchTests(StructuralMechanicsTestFactory):
 class SprismBendingPatchTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
+class ExplicitSolidBeam(StructuralMechanicsTestFactory):
+    file_name = "explicit_tests/explicit_solid_beam_test"
+
 class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 
@@ -192,17 +191,44 @@ class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/linear_3D2NBeamCr_test"
 
+class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
+    file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"
+
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
 
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
+class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
+
+class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
+
+class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
+
+class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
+
+class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
+
+class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
+
+class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
+
+class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
 
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
+
+class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
@@ -233,6 +259,18 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMe
 
 class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
     file_name = "rigid_test/rigid_test"
+
+class RigidBlockTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_block_mpc"
+
+class RigidEliminationTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_elimination_mpc"
+
+class RigidSphereFailing(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing"
+
+class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing_explicit"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
@@ -280,6 +318,9 @@ class PendulusTLTest(StructuralMechanicsTestFactory):
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
 
+class RayleighProcessTest(StructuralMechanicsTestFactory):
+    file_name = "rayleigh_process_test/test_rayleigh"
+
 class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"
 
@@ -315,6 +356,9 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+
+class TensileTestStructuralTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/TensileTestStructural/TensileTestStructural"
 
 if __name__ == '__main__':
     KratosUnittest.main()

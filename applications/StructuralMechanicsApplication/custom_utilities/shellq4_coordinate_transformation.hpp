@@ -68,19 +68,19 @@ namespace Kratos
 		{
 		}
 
-		virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+		virtual void InitializeSolutionStep()
 		{
 		}
-		
-		virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+
+		virtual void FinalizeSolutionStep()
 		{
 		}
-		
-		virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+		virtual void InitializeNonLinearIteration()
 		{
 		}
-		
-		virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+		virtual void FinalizeNonLinearIteration()
 		{
 		}
 
@@ -98,7 +98,7 @@ namespace Kratos
 			return CreateReferenceCoordinateSystem();
 		}
 
-		virtual Vector CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
+		virtual Vector CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS,
 												   const VectorType & globalDisplacements)
 		{
 			MatrixType R(24, 24);
@@ -142,14 +142,14 @@ namespace Kratos
 			                                                   const Vector& globalDisplacements,
 															   size_t nodeid)
 		{
-			return IdentityMatrix(3,3);
+			return IdentityMatrix(3);
 		}
 
 		virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
 			                                                   const Vector& globalDisplacements,
 															   const Vector& N)
 		{
-			return IdentityMatrix(3,3);
+			return IdentityMatrix(3);
 		}
 
 	public:

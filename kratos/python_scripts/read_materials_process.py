@@ -7,7 +7,7 @@ import KratosMultiphysics
 import sys
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ReadMaterialsProcess(Model, settings["Parameters"])
 
@@ -31,6 +31,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
+        
+        KratosMultiphysics.Logger.PrintWarning("ReadMaterialsProcess", "\n\nDEPRECATED: This process is deprecated, please use the C++ utility: ReadMaterialsUtility")
+        
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
         {

@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -18,19 +15,10 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def __init__(self, model, custom_settings):
 
-        adjoint_settings = KratosMultiphysics.Parameters("""
-        {
-            "scheme_settings" : {
-                "scheme_type": "adjoint_structural"
-            }
-        }
-        """)
-
-        self.validate_and_transfer_matching_settings(custom_settings, adjoint_settings)
-        self.scheme_settings = adjoint_settings["scheme_settings"]
-
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
+        self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
         custom_settings.RemoveValue("response_function_settings")
+        custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsAdjointStaticSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Construction finished")
@@ -42,7 +30,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
@@ -74,16 +61,13 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
+        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
+        self.adjoint_postprocess.Initialize()
+
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
+        self.response_function.Initialize()
 
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
-
-    def Solve(self):
-        if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
-            self._SolveSolutionStepSpecialLinearStrainEnergy()
-        else:
-            super(StructuralMechanicsAdjointStaticSolver, self).Solve()
-
 
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
@@ -92,14 +76,13 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
+        self.adjoint_postprocess.UpdateSensitivities()
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
-        #after adjoint solution, calculate sensitivities
-        self.response_function.UpdateSensitivities()
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
@@ -124,5 +107,4 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
-        self.scheme_settings.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)
+        return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)

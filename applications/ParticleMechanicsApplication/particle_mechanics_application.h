@@ -35,31 +35,41 @@
 
 /* CONDITIONS */
 #include "custom_conditions/mpm_base_load_condition.h"
-#include "custom_conditions/mpm_point_load_condition.h"
-#include "custom_conditions/mpm_line_load_condition_2d.h"
-#include "custom_conditions/mpm_surface_load_condition_3d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+#include "custom_elements/updated_lagrangian_axisymmetry.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_UP_2D_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
+#include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
-#include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
-#include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -219,35 +229,50 @@ private:
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian3D8N;
+    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D3N;
+    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
-    const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
-    const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
-    const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
+    // Grid Conditions:
+    const MPMGridPointLoadCondition mMPMGridPointLoadCondition2D1N;
+    const MPMGridPointLoadCondition mMPMGridPointLoadCondition3D1N;
+    const MPMGridAxisymPointLoadCondition mMPMGridAxisymPointLoadCondition2D1N;
+    const MPMGridLineLoadCondition2D mMPMGridLineLoadCondition2D2N;
+    const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
+    // Particle Conditions:
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D3N;
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;
+    const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D8N;
 
     // Constitutive laws
     // CL: Linear Elastic laws
     const LinearElastic3DLaw                                mLinearElastic3DLaw;
     const LinearElasticPlaneStress2DLaw                     mLinearElasticPlaneStress2DLaw;
     const LinearElasticPlaneStrain2DLaw                     mLinearElasticPlaneStrain2DLaw;
+    const LinearElasticAxisym2DLaw                          mLinearElasticAxisym2DLaw;
     // CL: Hyperelastic laws
     const HyperElastic3DLaw                                 mHyperElastic3DLaw;
     const HyperElasticPlaneStrain2DLaw                      mHyperElasticPlaneStrain2DLaw;
+    const HyperElasticAxisym2DLaw                           mHyperElasticAxisym2DLaw;
     const HyperElasticUP3DLaw                               mHyperElasticUP3DLaw;
     const HyperElasticPlaneStrainUP2DLaw                    mHyperElasticPlaneStrainUP2DLaw;
     // CL: Mohr Coulomb
     const HenckyMCPlastic3DLaw                              mHenckyMCPlastic3DLaw;
     const HenckyMCPlasticPlaneStrain2DLaw                   mHenckyMCPlasticPlaneStrain2DLaw;
+    const HenckyMCPlasticAxisym2DLaw                        mHenckyMCPlasticAxisym2DLaw;
     const HenckyMCPlasticUP3DLaw                            mHenckyMCPlasticUP3DLaw;
     const HenckyMCPlasticPlaneStrainUP2DLaw                 mHenckyMCPlasticPlaneStrainUP2DLaw;
     // CL: Mohr Coulomb Strain Softening
     const HenckyMCStrainSofteningPlastic3DLaw               mHenckyMCStrainSofteningPlastic3DLaw;
     const HenckyMCStrainSofteningPlasticPlaneStrain2DLaw    mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw;
+    const HenckyMCStrainSofteningPlasticAxisym2DLaw         mHenckyMCStrainSofteningPlasticAxisym2DLaw;
     // CL: Borja Cam Clay
     const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
+    const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
 
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;

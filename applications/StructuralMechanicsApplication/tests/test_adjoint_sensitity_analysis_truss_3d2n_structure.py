@@ -6,10 +6,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-try:
-    from KratosMultiphysics.HDF5Application import *
+if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
     has_hdf5_application = True
-except ImportError:
+else:
     has_hdf5_application = False
 
 # This utility will control the execution scope in case we need to access files or we depend
@@ -62,6 +61,11 @@ class TestAdjointSensitivityAnalysisLinearTrussStructure(KratosUnittest.TestCase
 
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
             adjoint_analysis.Run()
+
+            model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            reference_value = 0.7071067811865476
+            sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[1]
+            self.assertAlmostEqual(sensitivity_to_check, reference_value, 4)
 
     # called only once for this class, opposed of tearDown()
     @classmethod

@@ -241,9 +241,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2PlasticityPlaneStrain2DLaw"))
                 return void();
@@ -337,9 +336,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2PlasticityPlaneStrain2DLaw"))
                 return void();
@@ -396,7 +394,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
@@ -438,9 +436,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 3;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2Plasticity3DLaw"))
                 return void();
@@ -535,9 +532,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 3;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2Plasticity3DLaw"))
                 return void();
@@ -594,7 +590,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
@@ -636,9 +632,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
@@ -713,9 +708,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 2;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
@@ -754,7 +748,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
@@ -795,9 +789,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 3;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
@@ -873,9 +866,8 @@ namespace Kratos
             current_process_info[DOMAIN_SIZE] = 3;
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
@@ -914,7 +906,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);

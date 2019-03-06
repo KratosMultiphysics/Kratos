@@ -16,7 +16,7 @@ endif(POLICY CMP0022)
 
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 6)
+set (KratosMultiphysics_MAJOR_VERSION 7)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
@@ -27,7 +27,7 @@ SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
 #SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
 SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
 SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
-#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
 
 # Define internal CMake flags needed
 SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
@@ -92,9 +92,9 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-  message("additional default options were set for gcc")
-  message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-  message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+  message(STATUS "additional default options were set for gcc")
+  message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+  message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -209,7 +209,6 @@ endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
 
 ##*****************************
 #find and include OpenMP if possible
-message(KRATOS_EXCLUDE_OPENMP ${KRATOS_EXCLUDE_OPENMP})
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("**********************************************************")
 	message("OpenMP calculation was excluced artificially. Remove the var")
@@ -219,7 +218,7 @@ if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
     endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("OpenMP included")
+	message(STATUS "OpenMP included")
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -243,8 +242,8 @@ endif(${USE_CUDA} MATCHES ON)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-message("Boost Include: ${Boost_INCLUDE_DIRS}")
-message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 ##*****************************
 
@@ -306,7 +305,7 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
   message("linker flags with blas =" ${BLAS_LINKER_FLAGS})
   message("BLA_VENDOR = " ${BLA_VENDOR})
 
-	# Linking to the absolute value of the lapack
+  # Linking to the absolute value of the lapack
   find_package(LAPACK REQUIRED)
   message("LAPACK = " ${LAPACK_LIBRARIES})
   foreach( l ${LAPACK_LIBRARIES})
@@ -343,7 +342,6 @@ if(${MPI_NEEDED} MATCHES ON )
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-  # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
 # Find zlib (for gidpost)
@@ -352,7 +350,7 @@ find_package(ZLIB)
 if( ZLIB_FOUND )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
 else( ZLIB_FOUND )
-  message( "-- Preparing local ZLIB compilation.")
+  message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
   add_subdirectory(external_libraries/zlib)
@@ -363,11 +361,12 @@ endif( ZLIB_FOUND )
 
 # including the AMatrix
 if( AMATRIX_DIR )
-    message("AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories ( "${AMATRIX_DIR}/include" )
+    message(STATUS "AMATRIX_DIR : ${AMATRIX_DIR}")
+    include_directories("${AMATRIX_DIR}/include")
+    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
-    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
 ##echo user options
@@ -415,33 +414,25 @@ if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
   add_subdirectory(embedded_python)
 endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(external_libraries/mpi_python)
-endif(${MPI_NEEDED} MATCHES ON )
-
 # Set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
-  message("-------------------------------- user defined install dir ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 else(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
-  message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
+# Clean the Module and libs install directories
+install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
-################################################################################
 # install core files for the KratosMultiphysics python module
-# note that this does not install KratosLoader.py, as it is different for installation and packaging runs (see next code block)
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
-
-# Remove the tags in the event of multiple versions of boost being found
-# in the same directory
-# list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
@@ -454,47 +445,3 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed lapack = " ${LAPACK_LIBRARIES})
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-
-################################################################################
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-    #take care: do not indent the lines below
-file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-import os.path
-kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
-kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
-kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
-kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
-sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
-sys.path.append(kratos_scripts)
-sys.path.append(kratos_tests)
-")
-
-    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
-
-    install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics )
-    install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
-    install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
-
-    SET(CPACK_GENERATOR "DEB")
-    SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
-    set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
-    #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
-#    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
-    Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
-
-    INCLUDE(CPack)
-else(${INSTALL_PYTHON_FILES} MATCHES ON)
-    #take care: do not indent the lines below
-    file(WRITE ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics/KratosLoader.py "import sys
-kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
-kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
-sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
-sys.path.append(kratos_scripts)
-sys.path.append(kratos_tests) ")
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)

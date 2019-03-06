@@ -246,7 +246,7 @@ public:
     }
 
     /// Calculate the scalar valued response function.
-    virtual double CalculateValue() = 0;
+    virtual double CalculateValue(ModelPart& rModelPart) = 0;
 
     ///@}
 

@@ -105,7 +105,7 @@ void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
         }
         rVector(m) = 0.0;
     }
-    KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResizeAndInitializeLocalMatrices failed ..");
+    KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ResizeAndInitializeLocalMatrices failed ..");
 }
 
 ///@}
@@ -499,7 +499,7 @@ public:
                 }
             }
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ApplyConstraints failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ApplyConstraints failed ..");
     }
 
     /**
@@ -540,7 +540,7 @@ public:
         // Calculating the K = T' * K *T which is local to this container
         ModifyLHSForConstraints(rLHSContribution, rRHSContribution, rEquationIds);
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise:: Applying Multipoint constraints failed ..");
     }
     ///@}
 private:
@@ -642,7 +642,7 @@ private:
     /**
      * @brief   This function does two operation : F = T'*(F-K*b). This operation is done in place.
      *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
-     *          Individual entries of K and F are modified to achieve the result. 
+     *          Individual entries of K and F are modified to achieve the result.
      * @param   rLHSContribution The lhs matrix of the container
      * @param   rRHSContribution The rhs vector of the container
      * @param   rEquationIds the list of equation ids (extended with the masters).
@@ -736,7 +736,7 @@ private:
 
             index++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalSlaveIndices failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::CalculateLocalSlaveIndices failed ..");
     }
 
     /**
@@ -758,7 +758,7 @@ private:
                             rLocalIndexStructure.slave_index_vector.begin(), rLocalIndexStructure.slave_index_vector.end(),
                             std::back_inserter(rLocalIndexStructure.internal_index_vector));
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalInternalIndices failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::CalculateLocalInternalIndices failed ..");
     }
 
     /**

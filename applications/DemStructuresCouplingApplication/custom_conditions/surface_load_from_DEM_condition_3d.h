@@ -11,7 +11,7 @@
 //
 
 #if !defined(KRATOS_DEM_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED
+#define  KRATOS_DEM_SURFACE_LOAD_FROM_DEM_CONDITION_3D_H_INCLUDED
 
 // Project includes
 #include "includes/define.h"
@@ -154,11 +154,10 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-
 
     virtual void InterpolateSurfaceLoad(array_1d<double,3>& r_surface_load,
                                         const Matrix& n_container,

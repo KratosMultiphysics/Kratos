@@ -48,11 +48,17 @@ class AnalysisStage(object):
         self.RunSolutionLoop()
         self.Finalize()
 
+    def KeepAdvancingSolutionLoop(self):
+        """This function specifies the stopping criteria for breaking the solution loop
+        It can be overridden by derived classes
+        """
+        return self.time < self.end_time
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        while self.time < self.end_time:
+        while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
@@ -73,6 +79,7 @@ class AnalysisStage(object):
         self.ModifyInitialGeometry()
 
         ##here we initialize user-provided processes
+        self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
@@ -198,22 +205,16 @@ class AnalysisStage(object):
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
-        The list of processes is constructed in case it is not existing yet
         """
         if not hasattr(self, '_list_of_processes'):
-            order_processes_initialization = self._GetOrderOfProcessesInitialization()
-            self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
-            list_output_processes = self._GetListOfOutputProcesses()
-            self._list_of_processes.extend(list_output_processes) # Adding the output processes to the regular processes
+            raise Exception("The list of processes was not yet created!")
         return self._list_of_processes
 
     def _GetListOfOutputProcesses(self):
         """This function returns the list of output processes involved in this Analysis
-        The list of output processes is constructed in case it is not existing yet
         """
         if not hasattr(self, '_list_of_output_processes'):
-            order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
-            self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+            raise Exception("The list of output-processes was not yet created!")
         return self._list_of_output_processes
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -270,3 +271,12 @@ class AnalysisStage(object):
         """Returns the name of the Simulation
         """
         return "Analysis"
+
+    def __CreateListOfProcesses(self):
+        """This function creates the processes and the output-processes
+        """
+        order_processes_initialization = self._GetOrderOfProcessesInitialization()
+        self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
+        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes

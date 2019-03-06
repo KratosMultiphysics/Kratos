@@ -186,6 +186,18 @@ if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(ExternalSolversApplication)
 endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
 
+if(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
+  add_subdirectory(DelaunayMeshingApplication)
+endif(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
+
+if(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
+  add_subdirectory(ConstitutiveModelsApplication)
+endif(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
+
+if(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(ContactMechanicsApplication)
+endif(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
+
 if(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
   add_subdirectory(SolidMechanicsApplication)
 endif(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
@@ -201,14 +213,6 @@ endif(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
 if(${PFEM_FLUID_DYNAMICS_APPLICATION} MATCHES ON)
   add_subdirectory(PfemFluidDynamicsApplication)
 endif(${PFEM_FLUID_DYNAMICS_APPLICATION} MATCHES ON)
-
-if(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
-  add_subdirectory(ContactMechanicsApplication)
-endif(${CONTACT_MECHANICS_APPLICATION} MATCHES ON)
-
-if(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
-  add_subdirectory(ConstitutiveModelsApplication)
-endif(${CONSTITUTIVE_MODELS_APPLICATION} MATCHES ON)
 
 if(${UMAT_APPLICATION} MATCHES ON)
   add_subdirectory(UmatApplication)
@@ -259,7 +263,7 @@ if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
 endif(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
 
 if(${DEM_APPLICATION} MATCHES ON)
-  add_subdirectory(DEM_application)
+  add_subdirectory(DEMApplication)
 endif(${DEM_APPLICATION} MATCHES ON)
 
 if(${SWIMMING_DEM_APPLICATION} MATCHES ON)
@@ -283,11 +287,11 @@ if(${MPI_SEARCH_APPLICATION} MATCHES ON)
 endif(${MPI_SEARCH_APPLICATION} MATCHES ON)
 
 if(${METIS_APPLICATION} MATCHES ON)
-  add_subdirectory(metis_application)
+  add_subdirectory(MetisApplication)
 endif(${METIS_APPLICATION} MATCHES ON)
 
 if(${TRILINOS_APPLICATION} MATCHES ON)
-  add_subdirectory(trilinos_application)
+  add_subdirectory(TrilinosApplication)
 endif(${TRILINOS_APPLICATION} MATCHES ON)
 
 if(${TURBULENT_FLOW_APPLICATION} MATCHES ON)
@@ -381,10 +385,6 @@ endif(${EIGEN_SOLVERS_APPLICATION} MATCHES ON)
 if(${STABILIZED_CFD_APPLICATION} MATCHES ON)
   add_subdirectory(StabilizedCFDApplication)
 endif(${STABILIZED_CFD_APPLICATION} MATCHES ON)
-
-if(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
-  add_subdirectory(DelaunayMeshingApplication)
-endif(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
 
 if(${FREE_SURFACE_APPLICATION} MATCHES ON)
   add_subdirectory(FreeSurfaceApplication)

@@ -30,9 +30,9 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES", "Structure"],
         "linear_solver_settings"       : {
-            "solver_type"         : "Super_LU"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "rotation_dofs"                      : true
     },

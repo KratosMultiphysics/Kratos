@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_DRAG_RESPONSE_FUNCTION_H_INCLUDED)
@@ -165,11 +165,11 @@ public:
         KRATOS_CATCH("");
     }
 
-    double CalculateValue() override
+    double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
         KRATOS_ERROR
-            << "DragResponseFunction::CalculateValue() is not implemented!!!\n";
+            << "DragResponseFunction::CalculateValue(ModelPart& rModelPart) is not implemented!!!\n";
         KRATOS_CATCH("");
     }
 

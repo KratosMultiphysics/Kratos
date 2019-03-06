@@ -74,11 +74,6 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const override;
 
-        void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
-
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo) override;
@@ -129,18 +124,14 @@ namespace Kratos
 		void UpdateInternalForces(
 			BoundedVector<double,msLocalSize>& rInternalForces) override;
 
-
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
         /**
          * @brief This function calls the constitutive law to get stresses
          * @param rCurrentProcessInfo Current process info
          * @param rSaveInternalVariables Boolean to save internal constit. law variables
          */
         BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            ProcessInfo& rCurrentProcessInfo,
-            const bool& rSaveInternalVariables) override;
+            const ProcessInfo& rCurrentProcessInfo,
+            const bool rSaveInternalVariables) override;
 
 
 		private:
