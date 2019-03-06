@@ -58,7 +58,8 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -78,6 +79,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_redistribution_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/auxiliar_model_part_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/time_discretization.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/constraint_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -89,6 +91,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
 )
 
 ## Kratos python interface code
@@ -155,6 +158,22 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES})
 target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+
+if (${AMGCL_GPGPU} MATCHES ON)
+    add_subdirectory(
+        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
+        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
+
+    if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
+        target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)
+        add_definitions(-DAMGCL_GPGPU)
+    elseif ("${AMGCL_GPGPU_BACKEND}" STREQUAL "CUDA" AND TARGET VexCL::CUDA)
+        target_link_libraries(KratosCore PUBLIC VexCL::CUDA)
+        add_definitions(-DAMGCL_GPGPU)
+    else()
+        message(WARNING "AMGCL GPGPU backend not found")
+    endif()
+endif()
 
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})

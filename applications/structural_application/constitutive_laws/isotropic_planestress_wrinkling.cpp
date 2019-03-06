@@ -364,8 +364,8 @@ void IsotropicPlaneStressWrinkling::CalculateTangentMatrix(const Vector& StrainV
     }
     else if (state == 2) // slack
     {
-        mCtangent.resize(3,3);
-        mCtangent = ZeroMatrix(3);
+        mCtangent.resize(3,3,false);
+        noalias(mCtangent) = ZeroMatrix(3,3);
 
         ////shear terms
         //double smin=0.00; double smax=0.00;

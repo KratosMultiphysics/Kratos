@@ -226,7 +226,6 @@ void Tresca_Yield_Function::Two_Vector_Return_Mapping_To_Corner
     double NU         = (*mprops)[POISSON_RATIO];
     double G          = 0.5*E / (1.00 + NU);
     double H          =  miso_hardening_modulus;
-    int singular      = 0;
     unsigned int iter = 0;
     double  toler     = 1E-6;
     double norma      = 1.00;
@@ -235,6 +234,7 @@ void Tresca_Yield_Function::Two_Vector_Return_Mapping_To_Corner
     Vector residual   = ZeroVector(2);
     Matrix d          = ZeroMatrix(2,2);
     Matrix d_inv      = ZeroMatrix(2,2);
+    double detd;
 
     switch (mCases)
     {
@@ -246,7 +246,7 @@ void Tresca_Yield_Function::Two_Vector_Return_Mapping_To_Corner
         d(0,1) = -2.00 * G - H;
         d(1,0) = -2.00 * G - H;
         d(1,1) = -4.00 * G - H;
-        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         while(iter++<=100 && norma>= toler)
         {
             maccumulated_plastic_strain_current = maccumulated_plastic_strain_old;
@@ -273,7 +273,7 @@ void Tresca_Yield_Function::Two_Vector_Return_Mapping_To_Corner
         d(0,1) = -2.00 * G - H;
         d(1,0) = -2.00 * G - H;
         d(1,1) = -4.00 * G - H;
-        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         while(iter++<=100 && norma>= toler)
         {
             maccumulated_plastic_strain_current = maccumulated_plastic_strain_old;
