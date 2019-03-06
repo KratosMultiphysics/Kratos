@@ -35,6 +35,23 @@ OrientedBoundingBox<TDim>::OrientedBoundingBox(
 /***********************************************************************************/
 
 template<std::size_t TDim>
+OrientedBoundingBox<TDim>::OrientedBoundingBox(
+    const array_1d<double, 3>& rCenterCoords,
+    const array_1d<array_1d<double, 3>, TDim>& rAxisCoordinates
+    ) : mPointCenter(rCenterCoords)
+{
+    // Iterate the axis coordinates
+    for (std::size_t i = 0; i < TDim; ++i) {
+        mOrientationVectors[i] = rAxisCoordinates[i] - rCenterCoords;
+        mHalfLength[i] = norm_2(mOrientationVectors[i]);
+        mOrientationVectors[i] /= mHalfLength[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<std::size_t TDim>
 const array_1d<double, 3>& OrientedBoundingBox<TDim>::GetCenter() const
 {
     return mPointCenter;

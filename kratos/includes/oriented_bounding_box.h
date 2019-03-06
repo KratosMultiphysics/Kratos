@@ -93,6 +93,16 @@ public:
         const array_1d<double, TDim>& rHalfLength
         );
 
+    /**
+     * @brief Default constructors
+     * @param rCenterPoint The center of the OrientedBoundingBox
+     * @param rAxisCoordinates The coordinates that define the axis (orientation vectors and half lengths)
+     */
+    OrientedBoundingBox(
+        const array_1d<double, 3>& rCenterCoords,
+        const array_1d<array_1d<double, 3>, TDim>& rAxisCoordinates
+        );
+
     ///Copy constructor  (not really required)
     OrientedBoundingBox(const OrientedBoundingBox& rhs):
         mPointCenter(rhs.mPointCenter),
