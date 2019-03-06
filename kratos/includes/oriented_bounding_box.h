@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(OrientedBoundingBox_CLASS_H_DEFINED )
-#define  OrientedBoundingBox_CLASS_H_DEFINED
+#if !defined(OBB_CLASS_H_DEFINED )
+#define  OBB_CLASS_H_DEFINED
 
 // System includes
 
@@ -287,4 +287,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // OrientedBoundingBox_CLASS_H_DEFINED  defined
+#endif // OBB_CLASS_H_DEFINED  defined
