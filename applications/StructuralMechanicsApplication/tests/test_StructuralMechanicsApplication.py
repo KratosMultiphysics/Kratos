@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import subprocess
 
-if kratos_utilities.IsApplicationAvailable("ExternalSolversApplication"):
+if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
     has_external_solvers_application = True
 else:
     has_external_solvers_application = False
@@ -120,6 +120,7 @@ from structural_mechanics_test_factory import Simple3D2NTrussLinearTensionPlasti
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughPlasticTest as T3D2NTrussNonLinearSnapthroughPlasticTest
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearTensionPlasticTest as T3D2NTrussNonLinearTensionPlasticTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T3D2NBeamCrNonLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
@@ -167,7 +168,10 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
+from structural_mechanics_test_factory import RigidBlockTest as TRigidBlockTest
+from structural_mechanics_test_factory import RigidEliminationTest as TRigidEliminationTest
 from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
+from structural_mechanics_test_factory import RigidSphereFailingExplicit as TRigidSphereFailingExplicit
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -330,6 +334,7 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
+    nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     # Shell tests
@@ -346,7 +351,10 @@ def AssembleTestSuites():
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
+    nightSuite.addTest(TRigidBlockTest('test_execution'))
+    nightSuite.addTest(TRigidEliminationTest('test_execution'))
     nightSuite.addTest(TRigidSphereFailing('test_execution'))
+    nightSuite.addTest(TRigidSphereFailingExplicit('test_execution'))
 
     if has_external_solvers_application:
         import KratosMultiphysics.ExternalSolversApplication

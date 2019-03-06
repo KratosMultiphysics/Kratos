@@ -76,11 +76,6 @@ namespace Kratos
             PropertiesType::Pointer pProperties
             ) const override;
 
-        void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
-
         BoundedMatrix<double,msLocalSize,msLocalSize>
          CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
@@ -93,16 +88,6 @@ namespace Kratos
          * @param rinternalForces The current updated internal forces
          */
         void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces) override;
-
-        /**
-         * @brief This function calls the constitutive law to get stresses
-         * @param rCurrentProcessInfo Current process info
-         * @param rSaveInternalVariables Boolean to save internal constit. law variables
-         */
-
-        BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo,
-            const bool rSaveInternalVariables) override;
 
     private:
         // boolean for the cable --> does not resist to compression
