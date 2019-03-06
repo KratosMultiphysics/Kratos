@@ -36,6 +36,14 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    /**
+     * @brief This enum defines the different types of checks that can be done for the HasIntersection:
+     * - Direct: Checks if the nodes are inside the other OBB and if the faces intersect
+     * - SeparatingAxisTheorem: This method is more efficient. The Separating Axis Theorem (SAT for short) essentially states if you are able to draw a line to separate two polygons, then they do not collide. It's that simple.
+     * @details https://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
+     */
+    enum class OBBHasIntersectionType {Direct = 0, SeparatingAxisTheorem = 1};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -56,7 +64,9 @@ namespace Kratos
  *                  ` / \ `
  *                  `/  `
  *                  * `
- * For more details https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+ * For more details
+ *      - https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+ *      - https://gamedev.stackexchange.com/questions/112883/simple-3d-obb-collision-directx9-c
  * @tparam TDim The dimension of the space
  * @author Vicente Mataix Ferrandiz
  */
@@ -167,8 +177,13 @@ public:
 
     /**
      * @brief Computes the intersection between two OrientedBoundingBox (current and new)
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     * @param OBBType The OBB intersection type considered
      */
-    bool HasIntersection(const OrientedBoundingBox& rOtherOrientedBoundingBox) const;
+    bool HasIntersection(
+        const OrientedBoundingBox& rOtherOrientedBoundingBox,
+        const OBBHasIntersectionType OBBType = OBBHasIntersectionType::SeparatingAxisTheorem
+        ) const;
 
     /**
      * @brief This method egnerates an equiavelent geometry (debugging)
@@ -230,6 +245,74 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Computes the intersection between two OrientedBoundingBox (current and new)
+     * @details See https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     */
+    bool DirectHasIntersection(const OrientedBoundingBox& rOtherOrientedBoundingBox) const;
+
+    /**
+     * @brief Computes the intersection between two OrientedBoundingBox (current and new)
+     * @details See: https://gamedev.stackexchange.com/questions/112883/simple-3d-obb-collision-directx9-c
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     */
+    bool SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox& rOtherOrientedBoundingBox) const;
+
+    /**
+     * @brief Check if there's a separating plane in between the selected axis
+     * @param rRelativePosition The difference between the center of the both boxes
+     * @param rPlane The vector which defines the plane
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     */
+    bool GetSeparatingPlane(
+        const array_1d<double, 3>& rRelativePosition,
+        const array_1d<double, 3>& rPlane,
+        const OrientedBoundingBox& rOtherOrientedBoundingBox
+        ) const;
+
+    /**
+     * @brief Check if there's a separating plane in between the selected axis (2D version)
+     * @param rRelativePosition The difference between the center of the both boxes
+     * @param rPlane The vector which defines the plane
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     */
+    bool GetSeparatingPlane2D(
+        const array_1d<double, 3>& rRelativePosition,
+        const array_1d<double, 3>& rPlane,
+        const OrientedBoundingBox& rOtherOrientedBoundingBox
+        ) const;
+
+    /**
+     * @brief Check if there's a separating plane in between the selected axis (3D version)
+     * @param rRelativePosition The difference between the center of the both boxes
+     * @param rPlane The vector which defines the plane
+     * @param rOtherOrientedBoundingBox The other Oriented Bounding Box considered
+     */
+    bool GetSeparatingPlane3D(
+        const array_1d<double, 3>& rRelativePosition,
+        const array_1d<double, 3>& rPlane,
+        const OrientedBoundingBox& rOtherOrientedBoundingBox
+        ) const;
+
+    /**
+     * @brief Fast compute of cross product without considering checks. Performs the cross product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3
+     * @param a First input vector
+     * @param b Second input vector
+     * @return c The resulting vector
+     */
+    static array_1d<double, 3> FastCrossProduct(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
+    {
+        array_1d<double, 3> c;
+
+        c[0] = a[1]*b[2] - a[2]*b[1];
+        c[1] = a[2]*b[0] - a[0]*b[2];
+        c[2] = a[0]*b[1] - a[1]*b[0];
+
+        return c;
+    }
 
     /**
      * @brief This method does a 2D rotation of a point
