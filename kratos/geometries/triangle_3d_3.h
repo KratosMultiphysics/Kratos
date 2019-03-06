@@ -18,6 +18,7 @@
 #define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
 
 // System includes
+#include <iomanip>
 
 // External includes
 
@@ -912,14 +913,51 @@ public:
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            if (std::abs(distance) > 5.0e-1 * Length()) {
-                rResult(0) = 100.0; // Very very far
-                rResult(1) = 100.0;
+            if (std::abs(distance) > 1.0e-6 * Length()) {
 
-                return rResult;
-            } else { // Not in the plane, but allowing certain distance, projecting
-                noalias(point_projected) = rPoint - normal * distance;
+                std::stringstream point_string_out;
+
+                point_string_out
+                << " :\tX:\t"
+                << std::setiosflags(std::ios::scientific)
+                << std::setprecision(3)
+                << std::uppercase
+                << rPoint[0] << "\tY:\t"
+                << std::setiosflags(std::ios::scientific)
+                << std::setprecision(3)
+                << std::uppercase
+                << rPoint[1] << "\tZ:\t"
+                << std::setiosflags(std::ios::scientific)
+                << std::setprecision(3)
+                << std::uppercase
+                << rPoint[2] << std::endl;
+
+                const std::string point_string_to_print = point_string_out.str();
+
+                std::stringstream triangle_string_out;
+                for (IndexType i = 0; i < 3; ++i) {
+                    triangle_string_out
+                    << "Point " << i <<" :\tX:\t"
+                    << std::setiosflags(std::ios::scientific)
+                    << std::setprecision(3)
+                    << std::uppercase
+                    << BaseType::GetPoint( i ).X() << "\tY:\t"
+                    << std::setiosflags(std::ios::scientific)
+                    << std::setprecision(3)
+                    << std::uppercase
+                    << BaseType::GetPoint( i ).Y() << "\tZ:\t"
+                    << std::setiosflags(std::ios::scientific)
+                    << std::setprecision(3)
+                    << std::uppercase
+                    << BaseType::GetPoint( i ).Z() << std::endl;
+                }
+
+                const std::string triangle_string_to_print = triangle_string_out.str();
+
+                KRATOS_WARNING("Triangle3D3") << "The point of coordinates" << point_string_to_print << "is not projected on the 3D triangle:\n" << triangle_string_to_print << "it is in a distance: " << std::abs(distance) << std::endl;
             }
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(point_projected) = rPoint - normal * distance;
         }
 
         // Computation of the rotation matrix
@@ -957,7 +995,6 @@ public:
 
         rResult(0) = xi;
         rResult(1) = eta;
-        rResult(2) = 0.0;
 
         return rResult;
     }
