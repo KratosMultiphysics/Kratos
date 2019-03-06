@@ -159,10 +159,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-<<<<<<< HEAD
-=======
             "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
->>>>>>> master
             "check_constraint_relation"            : true,
             "reset_relation_matrix_each_iteration" : true
         })" );
@@ -486,18 +483,6 @@ protected:
 
         Timer::Start("Build");
 
-<<<<<<< HEAD
-        // We compute only once (or if cleared)
-        if (mCleared) {
-            mCleared = false;
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
-        } else if (mResetRelationMatrixEachIteration) {
-            ResetConstraintSystem();
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
-        }
-
-=======
->>>>>>> master
         // We apply the master/slave realtionship before build
         ApplyMasterSlaveRelation(pScheme, rModelPart, rA, rDx, rb);
 
@@ -1233,73 +1218,6 @@ protected:
     }
 
     /**
-     * @brief Function to perform the build of the RHS.
-     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
-     * @param pScheme The integration scheme considered
-     * @param rModelPart The model part of the problem to solve
-     * @param rb The RHS of the system
-     */
-    void BuildRHSNoDirichlet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemVectorType& rb
-        )
-    {
-        KRATOS_TRY
-
-        // Assemble the constraints
-        const double start_build = OpenMPUtils::GetCurrentTime();
-
-        // We get the global T matrix
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-
-        // We compute only once (or if cleared)
-        if (mCleared) {
-            mCleared = false;
-            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
-        } else if (mResetRelationMatrixEachIteration) {
-            ResetConstraintSystem();
-            ComputeConstraintContribution(pScheme, rModelPart, mResetRelationMatrixEachIteration, mComputeConstantContribution);
-        }
-
-        // We compute the transposed matrix of the global relation matrix
-        TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
-
-        // We build the original system
-        TSystemMatrixType A; // Dummy auxiliar matrix we ned to build anyway because are needed to impose the rigid displacements
-        if (mComputeConstantContribution) {
-            A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, rModelPart);
-            BuildWithoutConstraints(pScheme, rModelPart, A, rb);
-        } else {
-            BuildRHSNoDirichletWithoutConstraints(pScheme, rModelPart, rb);
-        }
-
-        // The proper way to include the constants is in the RHS as T^t(f - A * g)
-        TSystemVectorType rb_copy = rb;
-        if (mComputeConstantContribution) {
-            // We get the g constant vector
-            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
-            TSparseSpace::Mult(A, rDeltaConstantVector, aux_constant_vector);
-            TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
-        }
-
-        rb.resize(mDoFToSolveSystemSize, false);
-
-        // Final multiplication
-        TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
-
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building with constraints" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief This method resize and initializes the system of euqations
      * @details Additionally what is done in the base class the constraints are initialized
      * @param pA The pointer to the LHS matrix
@@ -1582,7 +1500,6 @@ private:
         //
         // That means that if the EquationId is greater than "mEquationSystemSize" the pointed degree of freedom is restrained
         // This is almost the same SetUpSystem from ResidualBasedEliminationBuilderAndSolver, but we don't discard from the system the fixed dofs that are part of a constraint at the same time
-<<<<<<< HEAD
 
         /// First we detect the master fixed DoFs ///
 
@@ -1647,72 +1564,6 @@ private:
         int free_id = 0;
         int fix_id = BaseType::mDofSet.size();
 
-=======
-
-        /// First we detect the master fixed DoFs ///
-
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Vector containing the localization in the system of the different terms
-        DofsVectorType slave_dof_list, master_dof_list;
-
-        // Declaring temporal variables
-        DofsArrayType dof_temp_fixed_master;
-
-        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
-        set_type dof_global_fixed_master_set;
-
-        // Iterate over constraints
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-        #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-        {
-            // We cleate the temporal set and we reserve some space on them
-            set_type dof_temp_fixed_master_set;
-            dof_temp_fixed_master_set.reserve(2000);
-
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = it_const_begin + i_const;
-
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
-                    it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
-
-                    // Filling the set of dofs master and fixed at the same time
-                    for (auto& master_dof : master_dof_list) {
-                        if (master_dof->IsFixed()) {
-                            dof_temp_fixed_master_set.insert(master_dof);
-                        }
-                    }
-                }
-            }
-
-            // We merge all the sets in one thread
-            #pragma omp critical
-            {
-                dof_global_fixed_master_set.insert(dof_temp_fixed_master_set.begin(), dof_temp_fixed_master_set.end());
-            }
-        }
-
-        dof_temp_fixed_master.reserve(dof_global_fixed_master_set.size());
-        for (auto& dof : dof_global_fixed_master_set) {
-            dof_temp_fixed_master.push_back( dof.get() );
-        }
-        dof_temp_fixed_master.Sort();
-        mDoFMasterFixedSet = dof_temp_fixed_master;
-
-        /// Now we compute as expected ///
-        int free_id = 0;
-        int fix_id = BaseType::mDofSet.size();
-
->>>>>>> master
         for (auto& dof : BaseType::mDofSet) {
             if (dof.IsFixed()) {
                 auto it = mDoFMasterFixedSet.find(dof);
@@ -1774,61 +1625,11 @@ private:
     {
         KRATOS_TRY
 
-<<<<<<< HEAD
-        // Auxiliar values
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        TSystemVectorType current_solution(mDoFToSolveSystemSize);
-        TSystemVectorType updated_solution(BaseType::mEquationSystemSize);
-
-        // Get current values
-        IndexType counter = 0;
-        for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                auto it = mDoFSlaveSet.find(*it_dof);
-                if (it == mDoFSlaveSet.end()) {
-                    current_solution[counter] = it_dof->GetSolutionStepValue();
-                    counter += 1;
-                }
-            }
-        }
-
-        // Apply master slave constraints
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
-
-        if (mComputeConstantContribution) {
-            const TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
-        }
-
-        // Update database
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
-                if (is_slave) {
-                    it_dof->GetSolutionStepValue() = updated_solution[equation_id];
-                }
-            }
-        }
-
-        // We check the solution
-        if (mCheckConstraintRelation) {
-            TSystemVectorType Dx_aux(mDoFToSolveSystemSize);
-            TSparseSpace::SetToZero(Dx_aux);
-            KRATOS_ERROR_IF_NOT(CheckMasterSlaveRelation(pScheme, rModelPart, rDx, Dx_aux)) << "The relation between master/slave dofs is not respected" << std::endl;
-        }
-=======
         // First we reset the slave dofs
         ConstraintUtilities::ResetSlaveDofs(rModelPart);
 
         // Now we apply the constraints
         ConstraintUtilities::ApplyConstraints(rModelPart);
->>>>>>> master
 
         KRATOS_CATCH("");
     }
