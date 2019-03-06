@@ -285,7 +285,7 @@ namespace Kratos {
             {
                 Element& r_element = *(rModelPart.ElementsBegin() + i);
                 r_element.SetValue(DERIVATIVES_EXTENSION,
-                                        Kratos::make_shared<ElementDerivativesExtension>(&r_element));
+                                        Kratos::make_unique<ElementDerivativesExtension>(&r_element));
             }
 
             KRATOS_CATCH("");
