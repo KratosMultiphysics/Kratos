@@ -197,8 +197,8 @@ private:
     GeometryType::Pointer  m_skin_nodes;
     double mmass;
     Matrix mInertia;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mRotatedInertia;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mRot;
+    BoundedMatrix<double,3,3> mRotatedInertia;
+    BoundedMatrix<double,3,3> mRot;
     array_1d<double,3> mtranslational_stiffness;
     array_1d<double,3> mrotational_stiffness;
 

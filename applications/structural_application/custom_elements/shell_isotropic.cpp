@@ -158,7 +158,7 @@ void ShellIsotropic::CalculateLocalGlobalTransformation(
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateMembraneB( boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
+void ShellIsotropic::CalculateMembraneB( BoundedMatrix<double,9,3>& Bm,
         const double&  beta0,
         const double& loc1,
         const double& loc2,
@@ -174,32 +174,32 @@ void ShellIsotropic::CalculateMembraneB( boost::numeric::ublas::bounded_matrix<d
     KRATOS_TRY
 
 // 		array_1d<int,9> local_indices;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+// 		BoundedMatrix<double,9,3> mBm;
+// 		BoundedMatrix<double,9,3> mBb;
 //
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q2;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Q3;
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Te;
+    BoundedMatrix<double,3,3> Q;
+    BoundedMatrix<double,3,3> Q1;
+    BoundedMatrix<double,3,3> Q2;
+    BoundedMatrix<double,3,3> Q3;
+    BoundedMatrix<double,3,3> aux33;
+    BoundedMatrix<double,3,3> Te;
 //
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+// 		BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
 //
 // 		array_1d<double,9> H1;
 // 		array_1d<double,9> H2;
 // 		array_1d<double,9> H3;
 // 		array_1d<double,9> H4;
 
-    boost::numeric::ublas::bounded_matrix<double,9,3> TTu;
-// 		boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,9,3> TTu;
+// 		BoundedMatrix<double,3,9> aux39;
 //
-// 		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
-// 		boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+// 		BoundedMatrix<double,18,18> mKloc_system;
+// 		BoundedMatrix<double,18,18> rot18;
 //
 // 		array_1d<double,3> temp;
-// 		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+// 		BoundedMatrix<double,9,9> mKloc99;
 // 		Vector values(18);
 
 
@@ -339,7 +339,7 @@ void ShellIsotropic::CalculateMembraneB( boost::numeric::ublas::bounded_matrix<d
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateBendingB( boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
+void ShellIsotropic::CalculateBendingB( BoundedMatrix<double,9,3>& Bb,
                                         const double& loc2,
                                         const double& loc3,
                                         const double& x12,
@@ -439,12 +439,12 @@ void ShellIsotropic::CalculateBendingB( boost::numeric::ublas::bounded_matrix<do
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateMembraneContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,3>& Bm,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-    boost::numeric::ublas::bounded_matrix<double,9,9>& Km)
+    const BoundedMatrix<double,9,3>& Bm,
+    const BoundedMatrix<double,3,3>& Em,
+    BoundedMatrix<double,9,9>& Km)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,3,9> aux39;
     noalias(aux39) = prod(Em,trans(Bm) );
     noalias(Km) = prod(Bm, aux39);
 
@@ -454,9 +454,9 @@ void ShellIsotropic::CalculateMembraneContribution(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::AssembleMembraneContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,9>& Km,
+    const BoundedMatrix<double,9,9>& Km,
     const double& coeff,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
+    BoundedMatrix<double,18,18>& Kloc_system )
 {
     KRATOS_TRY
     array_1d<int,9> local_indices;
@@ -485,13 +485,13 @@ void ShellIsotropic::AssembleMembraneContribution(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateBendingContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
-    boost::numeric::ublas::bounded_matrix<double,9,9>& Kb
+    const BoundedMatrix<double,9,3>& Bb,
+    const BoundedMatrix<double,3,3>& Eb,
+    BoundedMatrix<double,9,9>& Kb
 )
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+    BoundedMatrix<double,3,9> aux39;
     noalias(aux39) = prod(Eb,trans(Bb) );
     noalias(Kb) = prod(Bb, aux39);
     KRATOS_CATCH("")
@@ -500,9 +500,9 @@ void ShellIsotropic::CalculateBendingContribution(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::AssembleBendingContribution(
-    const boost::numeric::ublas::bounded_matrix<double,9,9>& Kb,
+    const BoundedMatrix<double,9,9>& Kb,
     const double& coeff,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
+    BoundedMatrix<double,18,18>& Kloc_system )
 {
     KRATOS_TRY
     array_1d<int,9> local_indices;
@@ -529,9 +529,9 @@ void ShellIsotropic::AssembleBendingContribution(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateGaussPointContribution(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Eb,
+    BoundedMatrix<double,18,18>& Kloc_system ,
+    const BoundedMatrix<double,3,3>& Em,
+    const BoundedMatrix<double,3,3>& Eb,
     const double& weight,
     const double& h, /*thickness*/
     const double& loc1, /*local coords*/
@@ -545,9 +545,9 @@ void ShellIsotropic::CalculateGaussPointContribution(
     const double& y31
 )
 {
-    boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+    BoundedMatrix<double,9,9> mKloc99;
+    BoundedMatrix<double,9,3> mBm;
+    BoundedMatrix<double,9,3> mBb;
 
     //membrane stiffness
     double beta0 = CalculateBeta( Em );
@@ -568,7 +568,7 @@ void ShellIsotropic::CalculateGaussPointContribution(
 
 //************************************************************************************
 //************************************************************************************
-double ShellIsotropic::CalculateBeta( const boost::numeric::ublas::bounded_matrix<double,3,3>& Em )
+double ShellIsotropic::CalculateBeta( const BoundedMatrix<double,3,3>& Em )
 {
     double nu = GetProperties()[POISSON_RATIO];
     double beta0 = 0.5*(1-4*nu*nu);
@@ -578,7 +578,7 @@ double ShellIsotropic::CalculateBeta( const boost::numeric::ublas::bounded_matri
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateMembraneElasticityTensor(
-    boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+    BoundedMatrix<double,3,3>& Em,
     const double& h
 )
 {
@@ -600,7 +600,7 @@ void ShellIsotropic::CalculateMembraneElasticityTensor(
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateBendingElasticityTensor( boost::numeric::ublas::bounded_matrix<double,3,3>& Eb, const double& h )
+void ShellIsotropic::CalculateBendingElasticityTensor( BoundedMatrix<double,3,3>& Eb, const double& h )
 {
     double NU = GetProperties()[POISSON_RATIO];
     double E = GetProperties()[YOUNG_MODULUS];
@@ -625,9 +625,9 @@ void ShellIsotropic::CalculateAllMatrices(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+    BoundedMatrix<double,18,18> mKloc_system;
+    BoundedMatrix<double,3,3> mEm;
+    BoundedMatrix<double,3,3> mEb;
     Vector values(18);
 
 
@@ -685,7 +685,7 @@ void ShellIsotropic::CalculateAllMatrices(
     CalculatePureDisplacement(values,v1,v2,v3);
     noalias(rRightHandSideVector) = - prod(mKloc_system,values);
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> ProjOperator, WorkMatrix;
+    BoundedMatrix<double,18,18> ProjOperator, WorkMatrix;
     array_1d<double,18> WorkArray;
 
     //add geometric stiffness to the local system
@@ -797,13 +797,13 @@ void ShellIsotropic::RotateToGlobal(
     const array_1d<double,3>& v1,
     const array_1d<double,3>& v2,
     const array_1d<double,3>& v3,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+    const BoundedMatrix<double,18,18>& Kloc_system,
     Matrix& rLeftHandSideMatrix
 )
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
+    BoundedMatrix<double,18,18> rot18=ZeroMatrix(18,18);
+    BoundedMatrix<double,3,3> aux33;
     //calculate local rotation matrix
     aux33(0,0) = v1[0];
     aux33(0,1) = v1[1];
@@ -831,7 +831,7 @@ void ShellIsotropic::RotateToGlobal(
         }
     }
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> temp = prod(Kloc_system,rot18);
+    BoundedMatrix<double,18,18> temp = prod(Kloc_system,rot18);
     noalias(rLeftHandSideMatrix) = prod(trans(rot18),temp);
 
     KRATOS_CATCH("");
@@ -843,15 +843,15 @@ void ShellIsotropic::RotateToGlobal(
     const array_1d<double,3>& v1,
     const array_1d<double,3>& v2,
     const array_1d<double,3>& v3,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system,
+    const BoundedMatrix<double,18,18>& Kloc_system,
     Matrix& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector
 )
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
+    BoundedMatrix<double,18,18> rot18=ZeroMatrix(18,18);
+    BoundedMatrix<double,3,3> aux33;
 
     //calculate local rotation matrix
     aux33(0,0) = v1[0];
@@ -880,7 +880,7 @@ void ShellIsotropic::RotateToGlobal(
         }
     }
 
-    boost::numeric::ublas::bounded_matrix<double,18,18> temp = prod(Kloc_system,rot18);
+    BoundedMatrix<double,18,18> temp = prod(Kloc_system,rot18);
     noalias(rLeftHandSideMatrix) = prod(trans(rot18),temp);
 
     array_1d<double,18> aaa;
@@ -956,9 +956,9 @@ void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVari
     if(Output.size() != 1)
         Output.resize(1);
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+    BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
+    BoundedMatrix<double,9,3> mBm;
 
     if(rVariable==PK2_STRESS_TENSOR)
     {
@@ -1029,10 +1029,10 @@ void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<double >& rVari
 
     if(rVariable==TEMPERATURE)
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-        boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-        boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-        boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+        BoundedMatrix<double,3,3> mEm;
+        BoundedMatrix<double,3,3> mEb;
+        BoundedMatrix<double,9,3> mBm;
+        BoundedMatrix<double,9,3> mBb;
 
         //calculate local coordinates and rotation matrix
         array_1d<double,3> v1;
@@ -1138,8 +1138,8 @@ inline void ShellIsotropic::AddVoigtTensorComponents(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateKg_GaussPointContribution(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system ,
-    const boost::numeric::ublas::bounded_matrix<double,3,3>& Em,
+    BoundedMatrix<double,18,18>& Kloc_system ,
+    const BoundedMatrix<double,3,3>& Em,
     const double& weight,
     const double& h, /*thickness*/
     const double& loc1, /*local coords*/
@@ -1157,15 +1157,15 @@ void ShellIsotropic::CalculateKg_GaussPointContribution(
     KRATOS_TRY
     //definition of auxiliaries ... should be put global to optimize
     array_1d<double,3> local_stress, local_strain;
-    boost::numeric::ublas::bounded_matrix<double,2,2> stress_tensor, Jinv;
-    boost::numeric::ublas::bounded_matrix<double,9,2> DN_Dx;
-    boost::numeric::ublas::bounded_matrix<double,2,9> temp29;
+    BoundedMatrix<double,2,2> stress_tensor, Jinv;
+    BoundedMatrix<double,9,2> DN_Dx;
+    BoundedMatrix<double,2,9> temp29;
 
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
-// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
-    boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
-// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
-    boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+// 		BoundedMatrix<double,3,3> mEm;
+// 		BoundedMatrix<double,3,3> mEb;
+    BoundedMatrix<double,9,3> mBm;
+// 		BoundedMatrix<double,9,3> mBb;
+    BoundedMatrix<double,9,9> mKloc99;
 
     //membrane stresses and strains
     double beta0 = CalculateBeta( Em );
@@ -1179,7 +1179,7 @@ void ShellIsotropic::CalculateKg_GaussPointContribution(
     stress_tensor(1,0) = local_stress[2];
     stress_tensor(1,1) = local_stress[1];
 
-    boost::numeric::ublas::bounded_matrix<double,2,9> DNu_loc,DNv_loc,DNw_loc,DN;
+    BoundedMatrix<double,2,9> DNu_loc,DNv_loc,DNw_loc,DN;
 
     //calculation of the local derivatives
     double alpha = 1.5;
@@ -1225,7 +1225,7 @@ void ShellIsotropic::CalculateKg_GaussPointContribution(
 //************************************************************************************
 void ShellIsotropic::CalculateAndAddKg(
     MatrixType& LHS,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+    BoundedMatrix<double,18,18>& rWorkMatrix,
     const double& x12,
     const double& x23,
     const double& x31,
@@ -1240,7 +1240,7 @@ void ShellIsotropic::CalculateAndAddKg(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+    BoundedMatrix<double,3,3> mEm;
 
     double weight,loc1,loc2,loc3;
 
@@ -1339,7 +1339,7 @@ void ShellIsotropic::Calculate(const Variable<Matrix >& rVariable, Matrix& Outpu
     {
         //resize Kg if needed
         if(Output.size1() != 18) Output.resize(18,18,false);
-        boost::numeric::ublas::bounded_matrix<double,18,18> WorkMatrix;
+        BoundedMatrix<double,18,18> WorkMatrix;
 
         //calculate local coordinates and rotation matrix
         array_1d<double,3> v1;
@@ -1366,9 +1366,9 @@ void ShellIsotropic::Calculate(const Variable<Matrix >& rVariable, Matrix& Outpu
 //************************************************************************************
 void ShellIsotropic::CalculateLocalShapeDerivatives(
     double alpha,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNu_loc ,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNv_loc ,
-    boost::numeric::ublas::bounded_matrix<double,2,9>& DNw_loc ,
+    BoundedMatrix<double,2,9>& DNu_loc ,
+    BoundedMatrix<double,2,9>& DNv_loc ,
+    BoundedMatrix<double,2,9>& DNw_loc ,
     const double& a, /*local coords*/ //loc1
     const double& b, //loc2
     const double& c, //loc3
@@ -1464,7 +1464,7 @@ void ShellIsotropic::CalculateLocalShapeDerivatives(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::CalculateProjectionOperator(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator,
+    BoundedMatrix<double,18,18>& rProjOperator,
     const double& x12,
     const double& x23,
     const double& x31,
@@ -1475,8 +1475,8 @@ void ShellIsotropic::CalculateProjectionOperator(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,18,3> psi = ZeroMatrix(18,3);
-    boost::numeric::ublas::bounded_matrix<double,18,3> rho = ZeroMatrix(18,3);
+    BoundedMatrix<double,18,3> psi = ZeroMatrix(18,3);
+    BoundedMatrix<double,18,3> rho = ZeroMatrix(18,3);
 
     double x21 = -x12;
 
@@ -1511,7 +1511,7 @@ void ShellIsotropic::CalculateProjectionOperator(
     rho(14,0) = 1.0/y31;
 
     //completing the calculation of the projections
-    noalias(rProjOperator) = IdentityMatrix(18,18);
+    noalias(rProjOperator) = IdentityMatrix(18);
     //noalias(rProjOperator) -= prod(trans(psi),rho);
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
@@ -1522,11 +1522,11 @@ void ShellIsotropic::CalculateProjectionOperator(
 //************************************************************************************
 //************************************************************************************
 void ShellIsotropic::ApplyProjection(
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rLeftHandSideMatrix,
+    BoundedMatrix<double,18,18>& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    boost::numeric::ublas::bounded_matrix<double,18,18>& rWorkMatrix,
+    BoundedMatrix<double,18,18>& rWorkMatrix,
     array_1d<double,18>& rWorkArray,
-    const boost::numeric::ublas::bounded_matrix<double,18,18>& rProjOperator
+    const BoundedMatrix<double,18,18>& rProjOperator
 )
 {
     KRATOS_TRY
@@ -1555,8 +1555,8 @@ void ShellIsotropic::UpdateNodalReferenceSystem(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Omega = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> Ttilde;
+    BoundedMatrix<double,3,3> Omega = ZeroMatrix(3,3);
     array_1d<double,3> rot; //this will contain the incremental rotation in the last iteration
 
     //loop over nodes
@@ -1583,7 +1583,7 @@ void ShellIsotropic::UpdateNodalReferenceSystem(
 
         double temp = 1.0/(1.0 + 0.25*omega_scalar_2);
 
-        noalias(Ttilde) = IdentityMatrix(3,3);
+        noalias(Ttilde) = IdentityMatrix(3);
         noalias(Ttilde) += temp * Omega;
         noalias(Ttilde) += 0.5*temp * prod( Omega, Omega);
 
@@ -1618,9 +1618,9 @@ void ShellIsotropic::SaveOriginalReference(
     }
 
     //initializing nodal triad matrices
-    noalias(mTs[0]) = IdentityMatrix(3,3);
-    noalias(mTs[1]) = IdentityMatrix(3,3);
-    noalias(mTs[2]) = IdentityMatrix(3,3);
+    noalias(mTs[0]) = IdentityMatrix(3);
+    noalias(mTs[1]) = IdentityMatrix(3);
+    noalias(mTs[2]) = IdentityMatrix(3);
 
 
     KRATOS_CATCH("")
@@ -1641,7 +1641,7 @@ void ShellIsotropic::CalculatePureDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1660,11 +1660,11 @@ void ShellIsotropic::CalculatePureDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //extract pure rotations from Omega
@@ -1708,7 +1708,7 @@ void ShellIsotropic::CalculatePureMembraneDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1727,11 +1727,11 @@ void ShellIsotropic::CalculatePureMembraneDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1771,7 +1771,7 @@ void ShellIsotropic::CalculatePureBendingDisplacement(
     if(values.size() != MatSize)	values.resize(MatSize,false);
 
     array_1d<double,3> temp_vec, temp_vec1;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Ttilde, temp, Omega, TE, aux;
+    BoundedMatrix<double,3,3> Ttilde, temp, Omega, TE, aux;
 
     //calculating original reference matrix
     for(unsigned int i=0; i<3; i++)
@@ -1790,11 +1790,11 @@ void ShellIsotropic::CalculatePureBendingDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1821,13 +1821,11 @@ void ShellIsotropic::CalculatePureBendingDisplacement(
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::InvertMatrix(const boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
-                                  boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
+void ShellIsotropic::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
+                                  BoundedMatrix<double,3,3>& InvertedMatrix,
                                   double& InputMatrixDet)
 {
     KRATOS_TRY
-    if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
 
     //filling the inverted matrix with the algebraic complements
     //first column

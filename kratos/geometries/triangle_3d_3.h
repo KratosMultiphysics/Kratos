@@ -579,8 +579,14 @@ public:
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
-	bool HasIntersection(const GeometryType& ThisGeometry) override
-	{
+    /**
+     * @brief Test the intersection with another geometry
+     * @details decomposes in smaller triangles
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const GeometryType& ThisGeometry) override
+    {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
         // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
@@ -651,7 +657,7 @@ public:
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;
 
-	}
+    }
 
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
