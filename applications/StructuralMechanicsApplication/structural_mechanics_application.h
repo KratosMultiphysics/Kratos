@@ -37,11 +37,10 @@
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding the adjoint elements */
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 /* Adding shells and membranes elements */
@@ -404,11 +403,10 @@ private:
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
     // Adding adjoint elements
-    const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
-    const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
-    const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
-    const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
-    const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
+    const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
+    // TODO const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
+    // TODO const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
+    // TODO const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
 
     /* CONDITIONS*/

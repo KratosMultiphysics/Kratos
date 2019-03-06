@@ -14,13 +14,13 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "replace_elements_and_conditions_for_adjoint_problem_process.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
-#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
-#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
-#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
+// #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
+// #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
+// #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+// #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+// #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+// #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
+// #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 #include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
 
@@ -53,6 +53,9 @@ namespace Kratos
 
         Parameters parameters = Parameters(R"(
         {
+            "element_name_table"    : {
+                "ShellThinElement3D3N" : "AdjointFiniteDifferencingShellThinElement3D3N"
+            },
             "condition_name_table"    : {
                 "PointLoadCondition2D1N" : "AdjointSemiAnalyticPointLoadCondition2D1N",
                 "PointLoadCondition3D1N": "AdjointSemiAnalyticPointLoadCondition3D1N"
@@ -63,48 +66,6 @@ namespace Kratos
         ReplaceMultipleElementsAndConditionsProcess replacement_process(mrModelPart, parameters);
         replacement_process.Execute();
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            const auto it = mrModelPart.ElementsBegin() + i;
-
-            std::string element_name;
-            const bool replace_element = GetAdjointElementName(*it, element_name);
-
-            if(replace_element)
-            {
-                if (element_name == "AdjointFiniteDifferencingShellElement")
-                {
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingShellElement>(*it.base() );
-
-                    (*it.base()) = p_element;
-                }
-                else if (element_name == "AdjointFiniteDifferenceCrBeamElement")
-                {
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(*it.base() );
-
-                    (*it.base()) = p_element;
-                }
-                else if (element_name == "AdjointFiniteDifferenceTrussElement")
-                {
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceTrussElement>(*it.base() );
-
-                    (*it.base()) = p_element;
-                }
-                else if (element_name == "AdjointFiniteDifferenceTrussLinearElement")
-                {
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceTrussElementLinear>(*it.base() );
-
-                    (*it.base()) = p_element;
-                }
-                else
-                    KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
-            }
-        }
-
-        //change the sons
-        for (ModelPart::SubModelPartIterator i_sub_model_part = mrModelPart.SubModelPartsBegin(); i_sub_model_part != mrModelPart.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part, mrModelPart );
     }
 
     /// Turn back information as a string.
