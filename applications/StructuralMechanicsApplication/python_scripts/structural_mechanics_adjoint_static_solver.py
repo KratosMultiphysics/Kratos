@@ -74,7 +74,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
 
-
+        ## loading serialization files hard coded here
         import restart_utility
         load_model = KratosMultiphysics.Model()
         load_model_part = load_model.CreateModelPart("rectangular_plate_structure")

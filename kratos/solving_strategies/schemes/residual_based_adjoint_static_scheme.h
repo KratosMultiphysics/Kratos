@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED)
@@ -165,7 +165,17 @@ public:
         mpResponseFunction->CalculateGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        // TODO Mahmoud: check the reason for this negative value
+       // noalias(rRHS_Contribution) = -rRHS_Contribution;
+
+        // TODO consult Mike:
+        // LHS may be resized to 0,0 if the condition does not have a LHS.
+        // Obviously in the builder and solver only the size of the LHS is checked, and if that is zero, also the RHS is not assembled
+        // This is why we need to create a ZeroMatrix of size of RHS here.
+        if (rLHS_Contribution.size1() == 0 && rRHS_Contribution.size() != 0)
+            rLHS_Contribution = ZeroMatrix(rRHS_Contribution.size(), rRHS_Contribution.size());
+        KRATOS_ERROR_IF(rLHS_Contribution.size1() != rRHS_Contribution.size()) <<
+                "Condition_CalculateSystemContributions: size missmatch between LHS and RHS!" << std::endl;
 
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
