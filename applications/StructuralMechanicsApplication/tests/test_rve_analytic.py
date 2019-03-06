@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-import rve_analysis
+from KratosMultiphysics.StructuralMechanicsApplication.rve_analysis import RVEAnalysis
 
 import os
 
@@ -49,7 +49,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
     def _aux_rve_computation(self, parameters):
 
         model = KratosMultiphysics.Model()
-        simulation = RVEAnalysis.RVEAnalysis(model, parameters)
+        simulation = RVEAnalysis(model, parameters)
         simulation.Run()
 
         model_part = model["Structure.computing_domain"]
