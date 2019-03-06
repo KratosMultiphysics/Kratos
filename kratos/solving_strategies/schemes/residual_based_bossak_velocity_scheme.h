@@ -32,10 +32,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A scheme for dynamic adjoint equations, using Bossak time integration.
+/// A scheme for steady and dynamic equations, using Bossak time integration.
 /**
  * It can be used for either first- or second-order time derivatives. Elements
- * and conditions must provide a specialization of AdjointExtensions via their
+ * and conditions must provide a specialization of DerivativesExtension via their
  * data value container, which allows the scheme to operate independently of
  * the variable arrangements in the element or condition.
  */
