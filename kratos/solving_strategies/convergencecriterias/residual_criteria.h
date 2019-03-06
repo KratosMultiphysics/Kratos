@@ -109,6 +109,8 @@ public:
             KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
             mRatioTolerance = 1.0e-4;
         }
+
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Constructor.
@@ -119,9 +121,7 @@ public:
           mRatioTolerance(NewRatioTolerance),
           mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance       = NewRatioTolerance;
-        mAlwaysConvergedNorm  = AlwaysConvergedNorm;
-        mInitialResidualIsSet = false;
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Copy constructor.
@@ -133,6 +133,7 @@ public:
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
     {
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Destructor.
@@ -218,6 +219,31 @@ public:
         ) override
     {
         BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+
+        mActiveDofs.resize(rDofSet.size());
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i)
+            mActiveDofs[i] = true;
+
+        #pragma omp parallel for 
+        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+            auto it_dof = rDofSet.begin() + i;
+            if(it_dof->IsFixed())
+                mActiveDofs[it_dof->EquationId()] = false;
+        }
+        
+        for(auto& mpc : rModelPart.MasterSlaveConstraints())
+        {
+            auto& slave_dofs = mpc.GetSlaveDofsVector();
+            auto& master_dofs = mpc.GetMasterDofsVector();
+
+            for(auto& dof : slave_dofs)
+                mActiveDofs[dof->EquationId()] = false;
+            for(auto& dof : master_dofs)
+                mActiveDofs[dof->EquationId()] = false;                
+        }
+
         SizeType size_residual;
         CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, rb);
 
@@ -329,11 +355,10 @@ protected:
         for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
             auto it_dof = rDofSet.begin() + i;
 
-            IndexType dof_id;
+            IndexType dof_id = it_dof->EquationId();
             TDataType residual_dof_value;
 
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
+            if (mActiveDofs[dof_id]) {
                 residual_dof_value = TSparseSpace::GetValue(b,dof_id);
                 residual_solution_norm += std::pow(residual_dof_value, 2);
                 dof_num++;
@@ -380,6 +405,8 @@ private:
     TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
+
+    std::vector<bool> mActiveDofs;
 
 
     ///@}
