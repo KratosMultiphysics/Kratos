@@ -51,7 +51,6 @@
             "interval"        : [0.0,"End"]
         }
     }],
-<<<<<<< HEAD
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_primal_output_process",
@@ -74,9 +73,6 @@
             }
         }
     }],
-=======
-    "list_other_processes" :[],
->>>>>>> 70db213e08af9c8e5aa3faee7ac8ed5342acce1b
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
