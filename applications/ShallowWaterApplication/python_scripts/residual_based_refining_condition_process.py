@@ -29,21 +29,7 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
         self.variable_threshold = settings["variable_threshold"].GetDouble()
         self.only_refine_wet_domain = settings["only_refine_wet_domain"].GetBool()
 
+        self.process = Shallow.ElementalRefiningCriteriaProcess(self.model_part, settings)
+
     def Execute(self):
-        # TODO: move to a c++ process
-        for node in self.model_part.Nodes:
-            node.Set(KratosMultiphysics.TO_REFINE, False)
-        # Set the nodes or the elements which are to refine
-        for elem in self.model_part.Elements:
-            residual = elem.GetValue(KratosMultiphysics.RESIDUAL_NORM)
-            if residual > self.variable_threshold:
-                active_element = True
-                if self.only_refine_wet_domain:
-                    element_is_wet = False
-                    for node in elem.GetNodes():
-                        if node.GetSolutionStepValue(Shallow.HEIGHT) > 0.0:
-                            element_is_wet = True
-                    active_element = element_is_wet
-                if active_element:
-                    for node in elem.GetNodes():
-                        node.Set(KratosMultiphysics.TO_REFINE, True)
+        self.process.Execute()

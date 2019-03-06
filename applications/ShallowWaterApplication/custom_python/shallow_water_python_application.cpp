@@ -21,6 +21,7 @@
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -41,6 +42,7 @@ namespace Python
         ;
 
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     // Registering variables in python
     // Shallow water variables
