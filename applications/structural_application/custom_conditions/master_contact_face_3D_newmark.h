@@ -67,42 +67,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "containers/pointer_vector_set.h"
 
 
 namespace Kratos
 {
-/**
- * stress condition container
- * (REMOVED)
- */
-//     struct StressConditionType:IndexedObject
-//     {
-//         Vector coords;
-//         Vector NormalDirection;
-//         double Stress;
-//         double Weight;
-//         double dA;
-//         double Penalty;
-//         double Gap;
-//         Element::EquationIdVectorType SlaveEquationId;
-//         Vector SlaveNcontainer;
-//
-//     };
-typedef Condition BaseType;
-/**
- * REMOVED
- */
-//     typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
-typedef BaseType::EquationIdVectorType EquationIdVectorType;
-typedef PointerVectorSet< EquationIdVectorType, IndexedObject>
-EquationIdVectorContainerType;
-typedef BaseType::MatrixType LHS_ContributionType;
-typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
-
-//     typedef BaseType::SecondaryCondition SecondaryConditionType;
-//     typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
-
-
 
 /**
  * Contact surface element for 3D contact problems.
@@ -116,6 +85,36 @@ class MasterContactFace3DNewmark : public Condition
 public:
     // Counted pointer of MasterContactFace3DNewmark
     KRATOS_CLASS_POINTER_DEFINITION(MasterContactFace3DNewmark);
+
+    /**
+     * stress condition container
+     * (REMOVED)
+     */
+    //     struct StressConditionType:IndexedObject
+    //     {
+    //         Vector coords;
+    //         Vector NormalDirection;
+    //         double Stress;
+    //         double Weight;
+    //         double dA;
+    //         double Penalty;
+    //         double Gap;
+    //         Element::EquationIdVectorType SlaveEquationId;
+    //         Vector SlaveNcontainer;
+    //
+    //     };
+    typedef Condition BaseType;
+    /**
+     * REMOVED
+     */
+    //     typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
+    // typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    // typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
+    // typedef BaseType::MatrixType LHS_ContributionType;
+    // typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
+
+    //     typedef BaseType::SecondaryCondition SecondaryConditionType;
+    //     typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
 
     /**
      * Default constructor.

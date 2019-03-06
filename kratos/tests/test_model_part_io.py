@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-structural_mechanics_is_available = KratosUtils.IsApplicationAvailable("StructuralMechanicsApplication")
+structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 if structural_mechanics_is_available:
     import KratosMultiphysics.StructuralMechanicsApplication
 
@@ -18,11 +18,6 @@ def GetFilePath(fileName):
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def tearDown(self):
         # Clean up temporary files
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))

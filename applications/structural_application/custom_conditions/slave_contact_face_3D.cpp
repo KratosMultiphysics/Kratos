@@ -341,10 +341,10 @@ void SlaveContactFace3D::EquationIdVector( EquationIdVectorType& rResult,
 
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3D::MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
-{
-}
+// void SlaveContactFace3D::MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
+//         ProcessInfo& rCurrentProcessInfo )
+// {
+// }
 
 //************************************************************************************
 //************************************************************************************
