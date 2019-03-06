@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-import RVEAnalysis
+import rve_analysis
 
 import os
 
