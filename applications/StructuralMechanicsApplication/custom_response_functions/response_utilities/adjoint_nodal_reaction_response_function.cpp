@@ -24,7 +24,7 @@ namespace Kratos
     AdjointNodalReactionResponseFunction::AdjointNodalReactionResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        // Get id of node where a displacement should be traced
+        // Get id of node where a reaction should be traced
         const int id_traced_node = ResponseSettings["traced_node_id"].GetInt();
 
         // Get the corresponding dof to the reaction which should be traced
@@ -39,34 +39,10 @@ namespace Kratos
         // Get pointer to traced node
         mpTracedNode = rModelPart.pGetNode(id_traced_node);
 
-        // Check if variable for traced reaction is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedReactionLabel << std::endl;
-        else
-        {
-            const VariableComponentType& r_traced_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
-            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
-                << "Specified DOF is not available at traced node." << std::endl;
-        }
+        // Check the given variables after reading
+        this->PerformResponseVariablesCheck();
 
-        // Check if variable for traced dof is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDisplacementDofLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDisplacementDofLabel << std::endl;
-        else
-        {
-            const VariableComponentType& r_traced_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedDisplacementDofLabel);
-            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
-                << "Specified DOF is not available at traced node." << std::endl;
-        }
-
-        // Check if variable for traced adjoint dof is valid
-        if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDisplacementDofLabel)) )
-        {
-            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
-        }
-
+        // Find neighbour elements and conditions because they are needed to construct the partial derivatives
         FindNodalNeighboursProcess neigbhor_elements_finder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
         FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
         neigbhor_elements_finder.Execute();
@@ -327,6 +303,41 @@ namespace Kratos
             return "ROTATION_Z";
         else
             KRATOS_ERROR << "Invalid reaction dof label!" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointNodalReactionResponseFunction::PerformResponseVariablesCheck()
+    {
+        KRATOS_TRY;
+
+        // Check if variable for traced reaction is valid
+        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionLabel)) )
+            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedReactionLabel << std::endl;
+        else
+        {
+            const VariableComponentType& r_traced_dof =
+                KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
+            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
+                << "Specified DOF is not available at traced node." << std::endl;
+        }
+
+        // Check if variable for traced dof is valid
+        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDisplacementDofLabel)) )
+            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDisplacementDofLabel << std::endl;
+        else
+        {
+            const VariableComponentType& r_traced_dof =
+                KratosComponents<VariableComponentType>::Get(mTracedDisplacementDofLabel);
+            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
+                << "Specified DOF is not available at traced node." << std::endl;
+        }
+
+        // Check if variable for traced adjoint dof is valid
+        if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDisplacementDofLabel)) )
+        {
+            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
+        }
 
         KRATOS_CATCH("");
     }

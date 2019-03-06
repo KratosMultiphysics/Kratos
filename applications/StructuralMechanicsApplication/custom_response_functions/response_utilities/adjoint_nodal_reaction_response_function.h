@@ -246,6 +246,8 @@ private:
 
     std::string GetCorrespondingDisplacementDofLabel(std::string& rReactionDofLabel) const;
 
+    void PerformResponseVariablesCheck();
+
     ///@}
     ///@name Private  Access
     ///@{
