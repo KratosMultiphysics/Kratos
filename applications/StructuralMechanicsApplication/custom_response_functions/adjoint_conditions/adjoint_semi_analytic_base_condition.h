@@ -333,7 +333,7 @@ public:
         KRATOS_ERROR << "CalculateSensitivityMatrix of the base class called!" << std::endl;
     }
 
-    Condition::Pointer pGetPrimalCondition()
+    Condition& GetPrimalCondition()
     {
         return mPrimalCondition;
     }
