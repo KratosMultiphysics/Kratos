@@ -64,19 +64,22 @@ public:
     ///@{
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId = 0)
-    : Condition(NewId), mPrimalCondition(NewId, pGetGeometry())
+    : Condition(NewId),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry), mPrimalCondition(NewId, pGeometry)
+    : Condition(NewId, pGeometry),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties), mPrimalCondition(NewId, pGeometry, pProperties)
+    : Condition(NewId, pGeometry, pProperties),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 
@@ -120,7 +123,7 @@ public:
 
     IntegrationMethod GetIntegrationMethod() override
     {
-        return mPrimalCondition.GetIntegrationMethod();
+        return mpPrimalCondition->GetIntegrationMethod();
     }
 
     void GetValuesVector(Vector& rValues, int Step = 0 ) override
@@ -130,44 +133,44 @@ public:
 
     void Initialize() override
     {
-        mPrimalCondition.Initialize();
+        mpPrimalCondition->Initialize();
     }
 
     void ResetConstitutiveLaw() override
     {
-        mPrimalCondition.ResetConstitutiveLaw();
+        mpPrimalCondition->ResetConstitutiveLaw();
     }
 
     void CleanMemory() override
     {
-        mPrimalCondition.CleanMemory();
+        mpPrimalCondition->CleanMemory();
     }
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.InitializeSolutionStep(rCurrentProcessInfo);
+        mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
     }
 
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
+        mpPrimalCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.FinalizeNonLinearIteration(rCurrentProcessInfo);
+        mpPrimalCondition->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.FinalizeSolutionStep(rCurrentProcessInfo);
+        mpPrimalCondition->FinalizeSolutionStep(rCurrentProcessInfo);
     }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 				      VectorType& rRightHandSideVector,
 				      ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateLocalSystem(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateLocalSystem(rLeftHandSideMatrix,
 				    rRightHandSideVector,
 				    rCurrentProcessInfo);
     }
@@ -175,7 +178,7 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateLeftHandSide(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrix,
 					rCurrentProcessInfo);
     }
 
@@ -183,7 +186,7 @@ public:
 					const std::vector< Variable< MatrixType > >& rLHSVariables,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateLeftHandSide(rLeftHandSideMatrices,
+        mpPrimalCondition->CalculateLeftHandSide(rLeftHandSideMatrices,
 					rLHSVariables,
 					rCurrentProcessInfo);
     }
@@ -191,7 +194,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateRightHandSide(rRightHandSideVector,
+        mpPrimalCondition->CalculateRightHandSide(rRightHandSideVector,
 					rCurrentProcessInfo);
     }
 
@@ -199,7 +202,7 @@ public:
 							VectorType& rRightHandSideVector,
 							ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
 							rRightHandSideVector,
 							rCurrentProcessInfo);
     }
@@ -207,14 +210,14 @@ public:
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
 					    rCurrentProcessInfo);
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
 					      ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateFirstDerivativesRHS(rRightHandSideVector,
+        mpPrimalCondition->CalculateFirstDerivativesRHS(rRightHandSideVector,
 					      rCurrentProcessInfo);
     }
 
@@ -222,7 +225,7 @@ public:
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
 							 rRightHandSideVector,
 							 rCurrentProcessInfo);
     }
@@ -230,25 +233,25 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					       ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
+        mpPrimalCondition->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
 					       rCurrentProcessInfo);
     }
 
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
 					       ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateSecondDerivativesRHS(rRightHandSideVector,
+        mpPrimalCondition->CalculateSecondDerivativesRHS(rRightHandSideVector,
 					       rCurrentProcessInfo);
     }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        mpPrimalCondition->CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
     }
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
-        mPrimalCondition.CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+        mpPrimalCondition->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
 
     void Calculate(const Variable<double >& rVariable,
@@ -333,9 +336,9 @@ public:
         KRATOS_ERROR << "CalculateSensitivityMatrix of the base class called!" << std::endl;
     }
 
-    Condition& GetPrimalCondition()
+    Condition::Pointer pGetPrimalCondition()
     {
-        return mPrimalCondition;
+        return mpPrimalCondition;
     }
 
     ///@}
@@ -369,7 +372,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TPrimalCondition mPrimalCondition;
+    Condition::Pointer mpPrimalCondition;
 
     ///@}
     ///@name Protected Operators
@@ -434,13 +437,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("mPrimalCondition", mPrimalCondition);
+        rSerializer.save("mpPrimalCondition", mpPrimalCondition);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("mPrimalCondition", mPrimalCondition);
+        rSerializer.load("mpPrimalCondition", mpPrimalCondition);
     }
 
     ///@}
