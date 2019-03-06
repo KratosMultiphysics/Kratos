@@ -386,8 +386,8 @@ void Isotropic_Damage_3D::CalculateCauchyStresses(
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
     double J = MathUtils<double>::Det3( rF );
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> mstemp;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> msaux;
+    BoundedMatrix<double, 3, 3> mstemp;
+    BoundedMatrix<double, 3, 3> msaux;
     /*  Vector StrainVectorPerturbation(6);
       Vector StressVectorPerturbation(6);*/
     noalias( mstemp ) = prod( rF, S );

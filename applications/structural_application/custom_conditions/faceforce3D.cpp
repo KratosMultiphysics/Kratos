@@ -267,9 +267,9 @@ void FaceForce3D::CalculateAndSubKp( Matrix& K, array_1d<double, 3>& ge,
                                      double weight )
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> Kij;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_ge;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> Cross_gn;
+    BoundedMatrix<double, 3, 3> Kij;
+    BoundedMatrix<double, 3, 3> Cross_ge;
+    BoundedMatrix<double, 3, 3> Cross_gn;
     double coeff;
     unsigned int number_of_nodes = GetGeometry().size();
 
@@ -300,7 +300,7 @@ void FaceForce3D::CalculateAndSubKp( Matrix& K, array_1d<double, 3>& ge,
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::MakeCrossMatrix( boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+void FaceForce3D::MakeCrossMatrix( BoundedMatrix<double, 3, 3>& M,
                                    array_1d<double, 3>& U )
 {
     M( 0, 0 ) =  0.00;
@@ -351,7 +351,7 @@ void  FaceForce3D::ExpandReducedMatrix( Matrix& Destination, Matrix& ReducedMatr
 //***********************************************************************************
 //***********************************************************************************
 void  FaceForce3D::SubtractMatrix( MatrixType& Destination,
-                                   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+                                   BoundedMatrix<double, 3, 3>& InputMatrix,
                                    int InitialRow, int InitialCol )
 {
     KRATOS_TRY

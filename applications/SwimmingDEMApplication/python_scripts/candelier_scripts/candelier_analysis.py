@@ -11,13 +11,14 @@ def Cross(a, b):
     return Vector([c0, c1, c2])
 
 from swimming_DEM_analysis import SwimmingDEMAnalysis
+from swimming_DEM_analysis import Say
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
         self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
-
+        #Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
 
@@ -33,6 +34,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
         super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
         candelier_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
+        candelier_pp.include_lift = bool(self.pp.CFD_DEM["lift_force_type"].GetInt())
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.pp.CFD_DEM["fluid_already_calculated"].SetBool(True)
         self.pp.CFD_DEM.AddEmptyValue("load_derivatives").SetBool(False)
@@ -62,6 +64,11 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
 
+            if candelier_pp.include_lift:
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, 0.0)
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, 0.0)
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 2 * candelier_pp.omega)
+
     def _CreateSolver(self):
         import candelier_scripts.candelier_dem_solver as sdem_solver
         self.pp.field_utility = self.GetFieldUtility()
@@ -73,6 +80,12 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
     def FinalizeSolutionStep(self):
         super(CandelierBenchmarkAnalysis, self).FinalizeSolutionStep()
+        analytic_coors = [0.,0.,0.]
+        candelier.sim.CalculatePosition(analytic_coors, self.time * candelier_pp.omega)
+        node = [node for node in self.spheres_model_part.Nodes][0]
+        Say('analytic', analytic_coors)
+        Say('calculated', [value / candelier_pp.R for value in (node.X, node.Y, node.Z)])
+
         if self.pp.CFD_DEM["do_print_results_option"].GetBool():
             for node in self.spheres_model_part.Nodes:
                 r = Vector([node.X, node.Y, node.Z])

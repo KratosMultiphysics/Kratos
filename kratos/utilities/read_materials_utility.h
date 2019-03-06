@@ -83,7 +83,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @brief Default constructor
      * @param rModel The model containing the problem to solve
      */
-    ReadMaterialsUtility(Model& rModel);
+    ReadMaterialsUtility(Model& rModel) : mrModel(rModel) {};
 
     /**
      * @brief Constructor reading directly from file, via parameters
@@ -101,9 +101,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param rModel The model containing the problem to solve
      */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
-
-    /** @brief Destructor */
-    virtual ~ReadMaterialsUtility();
 
     ///@}
     ///@name Operators
@@ -132,7 +129,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const  {
+    std::string Info() const  {
         return "ReadMaterialsUtility";
     }
 

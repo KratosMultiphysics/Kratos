@@ -35,6 +35,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "includes/ublas_interface.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
