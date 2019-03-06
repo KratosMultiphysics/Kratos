@@ -10,22 +10,11 @@ from KratosMultiphysics.StructuralMechanicsApplication.rve_analysis import RVEAn
 
 import os
 
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
 class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -37,7 +26,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
     #@KratosUnittest.skip("Reactions and displacements not 100% accurate")
     def test_rve_computation_elimination_version(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
