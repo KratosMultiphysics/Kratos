@@ -346,14 +346,14 @@ namespace Kratos {
                 for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
                     if (mMeshVelocity == 2)//Lagrangian
                     {
-                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) >= 1e-15)
+                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
                         {
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
-                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
                         }
                         else
                         {
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
                         }
 
                     }
@@ -572,7 +572,7 @@ namespace Kratos {
                 }
             }
 
-            if (mpTurbulenceModel != 0) // If not null
+            if (mpTurbulenceModel) // If not null
                 mpTurbulenceModel->Execute();
 
             KRATOS_CATCH("")
