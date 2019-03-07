@@ -124,20 +124,20 @@ class SwimmingDEMAnalysis(AnalysisStage):
         super(SwimmingDEMAnalysis, self).__init__(model, self.pp.CFD_DEM) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
     def SetFluidParameters(self):
-        self.pp.fluid_parameters = self.project_parameters['fluid_parameters']
+        self.fluid_parameters = self.project_parameters['fluid_parameters']
 
         self.pp.nodal_results, self.pp.gauss_points_results = [], []
-        if self.pp.fluid_parameters.Has('sdem_output_processes'):
-            gid_output_options = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+        if self.fluid_parameters.Has('sdem_output_processes'):
+            gid_output_options = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
             gauss_point_results = result_file_configuration["gauss_point_results"]
-            nodal_variables = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            nodal_variables = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
             self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
     def SetFluidAlgorithm(self):
         import DEM_coupled_fluid_dynamics_analysis
-        self.fluid_solution = DEM_coupled_fluid_dynamics_analysis.DEMCoupledFluidDynamicsAnalysis(self.model, self.pp.fluid_parameters, self.pp)
+        self.fluid_solution = DEM_coupled_fluid_dynamics_analysis.DEMCoupledFluidDynamicsAnalysis(self.model, self.project_parameters, self.pp)
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
@@ -249,7 +249,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Add("print_SLIP_VELOCITY_option").SetBool(False)
 
         # Making all time steps be an exact multiple of the smallest time step
-        self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
+        self.Dt_DEM = self.project_parameters["MaxTimeStep"].GetDouble()
 
         # vestigial variables
         Add("print_steps_per_plot_step").SetInt(1)
@@ -282,13 +282,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # between the individual parameters coming from each sub-application
     # (i.e., fluid and dem apps)
     def ModifyInputParametersForCoherence(self):
-        self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
-        self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
+        output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
+        self.output_time = int(output_time / self.Dt_DEM) * self.Dt_DEM
         self.pp.CFD_DEM["OutputTimeStep"].SetDouble(self.output_time)
-        self.Dt = self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        self.Dt = self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
-        self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.Dt)
-        self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.Dt)
+        self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.Dt)
+        self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.Dt_DEM)
         self.SetDoSolveDEMVariable()
 
     def SetDoSolveDEMVariable(self):
@@ -464,7 +464,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         ##################################################
         self.step       = 0
-        self.time       = self.pp.fluid_parameters["problem_data"]["start_time"].GetDouble()
+        self.time       = self.fluid_parameters["problem_data"]["start_time"].GetDouble()
         self.Dt         = self.fluid_solution._GetSolver()._ComputeDeltaTime()
         self.end_time   = self.pp.CFD_DEM["FinalTime"].GetDouble()
         self.Dt_DEM     = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -907,7 +907,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                           self.pp.CFD_DEM["GravityZ"].GetDouble()]
             modulus_of_body_force = math.sqrt(sum([b**2 for b in body_force]))
 
-            gravity_parameters = self.fluid_solution.parameters['processes']['gravity'][0]['Parameters']
+            gravity_parameters = self.fluid_parameters['processes']['gravity'][0]['Parameters']
             gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
             for i, b in enumerate(body_force):
                 gravity_parameters['direction'][i].SetDouble(b)
