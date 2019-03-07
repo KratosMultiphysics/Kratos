@@ -115,6 +115,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.SetDt()
         self.SetFinalTime()
         super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
+
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
         self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")

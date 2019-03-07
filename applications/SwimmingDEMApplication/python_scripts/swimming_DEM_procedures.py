@@ -242,6 +242,7 @@ class IOTools:
             for node in model_part.Nodes:
                 Results_value = node.GetSolutionStepValue(variables_dictionary[variablename])
                 outputfile.write(str(time) + " " + str(Results_value[0]) + " " + str(Results_value[1]) + " " + str(Results_value[2]) + "\n")
+
     def CreateProblemDirectories(self, main_path, dir_names):
 
         directories = {}

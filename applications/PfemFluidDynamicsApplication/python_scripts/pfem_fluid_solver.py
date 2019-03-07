@@ -4,15 +4,15 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-def CreateSolver(model, project_parameters):
-    return PfemFluidSolver(model, project_parameters)
+def CreateSolver(main_model_part, custom_settings):
+    return PfemFluidSolver(main_model_part, custom_settings)
 
 class PfemFluidSolver:
 
-    def __init__(self, model, project_parameters):
+    def __init__(self, main_model_part, custom_settings):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = model
+        self.main_model_part = main_model_part
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
