@@ -205,6 +205,9 @@ class Solution(object):
 
         self.model_processes.ExecuteBeforeSolutionLoop()
 
+        # Initialize Nodal_Area
+        self.InitializeNodalArea()
+
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
         # Set time settings
@@ -322,7 +325,7 @@ class Solution(object):
             from pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.ProjectParameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
-            KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
+          # KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
 
             return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
@@ -379,6 +382,9 @@ class Solution(object):
         if( report ):
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+
+    def InitializeNodalArea(self):
+        pass
 
     def CalculateNodalArea(self):
         pass

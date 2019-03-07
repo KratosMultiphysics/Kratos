@@ -263,6 +263,33 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianElement<TDim>::GetFluidFractionRateValues(Vector& rValues)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
+
+    for (SizeType i = 0; i < NumNodes; ++i){
+      rValues[i] = rGeom[i].FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+    }
+  }
+
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianElement<TDim>::GetFluidFractionRateOldValues(Vector& rValues)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
+
+    // for (SizeType i = 0; i < NumNodes; ++i){
+    //   rValues[i] = rGeom[i].FastGetSolutionStepValue(FLUID_FRACTION_RATE_OLD);
+    // }
+  }
+
+  template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::GetDensityValues(Vector& rValues,
 							       const int Step)
   {

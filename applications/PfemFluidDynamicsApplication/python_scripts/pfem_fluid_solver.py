@@ -305,12 +305,10 @@ class PfemFluidSolver:
         self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        #self.fluid_solver.InitializeSolutionStep()
 
-        #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        #adaptive_time_interval.Execute()
+        adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        adaptive_time_interval.Execute()
 
-        pass
         #unactive_peak_elements = False
         #unactive_sliver_elements = False
         #set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
@@ -318,6 +316,11 @@ class PfemFluidSolver:
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
+
+    def AdaptTimeStepProcess(self):
+        #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+        #adaptive_time_interval.Execute()
+        pass
 
     def Predict(self):
         pass

@@ -313,6 +313,27 @@ public:
 
     void InitializeSolutionStep() override
     {
+      //this is only called by the fluid DEM couling solver
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+      std::cout<<"COMPUTE FLUID FRACTION RATE    "<<std::endl;
+      for (ModelPart::NodeIterator i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i)
+      {
+        // unsigned int idNode=(i)->Id();
+        const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
+        const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+        double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+        if(std::abs(previousFluidFraction-1.0)>1.0e-15 && std::abs(currentFluidFraction-1.0)>1.0e-15){
+          currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
+		if((i)->Is(FREE_SURFACE)){
+		currentFluidFractionRate*=0.5;
+		}
+        }else{
+          currentFluidFractionRate = 0.0;
+}
+      }
+
     }
 
 
@@ -509,9 +530,9 @@ public:
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-	  const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
-	  const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-	  double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+	  // const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
+	  // const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+	  // double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
 
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
@@ -522,7 +543,7 @@ public:
 	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
 	  CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
-	  currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
+	  // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
     }
 
@@ -701,12 +722,22 @@ protected:
 
       double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
+
+      KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+
+      unsigned int iterationForCheck=3;
+
       // Check convergence
       if(it==maxIt-1){
 
         KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
 	fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
+      }else if(it>iterationForCheck){
+	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
+        if(fixedTimeStep==true){
+          it=maxIt-1;
+        }
       }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -741,6 +772,7 @@ protected:
 
       double DpErrorNorm = 0;
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
+          KRATOS_INFO("TwoStepVPStrategy") <<"       iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
 
       // Check convergence
       if(it==maxIt-1){
@@ -897,6 +929,45 @@ protected:
       }
       return fixedTimeStep;
     }
+
+
+
+
+    bool CheckMomentumConvergence(const double DvErrorNorm)
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double minTolerance=0.99999;
+      bool fixedTimeStep=false;
+
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+      	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,true);
+	      std::cout<< "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: "<<DvErrorNorm<<" higher than 0.9999"<< std::endl;
+	      std::cout<< "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+	      fixedTimeStep=true;
+#pragma omp parallel
+	  {
+	      ModelPart::NodeIterator NodeBegin;
+	      ModelPart::NodeIterator NodeEnd;
+	      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+	      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+	      	itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+	      	itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+		      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+	      }
+	  }
+      }else{
+	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+      }
+      return fixedTimeStep;
+    }
+
+
 
    bool FixTimeStepContinuity(const double DvErrorNorm)
     {

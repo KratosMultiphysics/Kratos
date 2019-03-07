@@ -44,6 +44,7 @@
 #include "custom_processes/build_model_part_boundary_for_fluids_process.hpp"
 #include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
 #include "custom_processes/lagrangian_rotation_process.hpp"
+#include "custom_processes/initialize_nodal_area_process.h"
 
 //Processes
 
@@ -150,6 +151,10 @@ namespace Kratos
       py::class_<LagrangianRotationProcess, LagrangianRotationProcess::Pointer, ProcessBaseType>
       (m,"LagrangianRotationProcess")
       .def( py::init< ModelPart&, Parameters>());
+      ;
+
+      py::class_<InitializeNodalAreaProcess, InitializeNodalAreaProcess::Pointer, Process>(m,"InitializeNodalAreaProcess")
+      .def(py::init<ModelPart&, unsigned int>())
       ;
 
     }
