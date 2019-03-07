@@ -588,8 +588,7 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
         return domain_size;
     }
     else
-
-    return 1.0;
+        return 1.0;
 
     KRATOS_CATCH("")
 }
