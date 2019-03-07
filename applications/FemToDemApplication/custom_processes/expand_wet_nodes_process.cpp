@@ -46,6 +46,7 @@ void ExpandWetNodesProcess::Execute()
             }
         }
     }
+	this->ExpandWetNodesIfTheyAreSkin();
 }
 
 /***********************************************************************************/
@@ -91,5 +92,22 @@ void ExpandWetNodesProcess::ExpandWetNodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
+{
+    Parameters skin_process_parameters = Parameters(R"(
+    {
+        "name_auxiliar_model_part"              : "SkinModelPart",
+        "name_auxiliar_condition"               : "Condition",
+        "list_model_parts_to_assign_conditions" : [],
+        "echo_level"                            : 0
+    })" );
+
+    const auto& r_skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);
+
+
+}
+
+
 
 }

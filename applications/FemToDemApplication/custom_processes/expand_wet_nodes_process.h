@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "processes/skin_detection_process.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
@@ -62,6 +63,8 @@ public:
     void ExpandWetNodes(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         const int PressureId);
+
+    void ExpandWetNodesIfTheyAreSkin();
 
 protected:
     // Member Variables
