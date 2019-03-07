@@ -346,18 +346,20 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance Inversion tolerance
      */
     static void GeneralizedInvertMatrix(
         const MatrixType& rInputMatrix,
         MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
@@ -408,10 +410,11 @@ public:
     }
 
     /**
-     * @brief It inverts matrices of order 2, 3 and 4
+     * @brief It inverts matrices of order 1, 2, 3 and 4 (and general for not bounded matrices)
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance Inversion tolerance
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -421,12 +424,16 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
-        const SizeType size = rInputMatrix.size2();
+        const SizeType size = rInputMatrix.size1();
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != size || rInvertedMatrix.size2() != size) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != size || rInvertedMatrix.size2() != size)
+            rInvertedMatrix.resize(size, size, false);
+#endif // KRATOS_USE_AMATRIX
+        
         if(size == 1) {
-            if(rInvertedMatrix.size1() != 1 || rInvertedMatrix.size2() != 1) {
-                rInvertedMatrix.resize(1,1,false);
-            }
             rInvertedMatrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
         } else if (size == 2) {
@@ -436,13 +443,6 @@ public:
         } else if (size == 4) {
             InvertMatrix4(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
         } else if (std::is_same<TMatrix1, Matrix>::value) {
-
-            const SizeType size1 = rInputMatrix.size1();
-            const SizeType size2 = rInputMatrix.size2();
-            if(rInvertedMatrix.size1() != size1 || rInvertedMatrix.size2() != size2) {
-                rInvertedMatrix.resize(size1, size2,false);
-            }
-
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             Matrix temp(rInputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
@@ -450,7 +450,6 @@ public:
             KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
             rInvertedMatrix = lu_factorization.inverse();
 #else
-
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(rInputMatrix);
             pmatrix pm(A.size1());
@@ -493,9 +492,12 @@ public:
     {
         KRATOS_TRY;
 
-        if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
-            rInvertedMatrix.resize(2,2,false);
-        }
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2)
+            rInvertedMatrix.resize(2, 2, false);
+#endif // KRATOS_USE_AMATRIX
 
         rInputMatrixDet = rInputMatrix(0,0)*rInputMatrix(1,1)-rInputMatrix(0,1)*rInputMatrix(1,0);
 
@@ -524,9 +526,12 @@ public:
     {
         KRATOS_TRY;
 
-        if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
-            rInvertedMatrix.resize(3,3,false);
-        }
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3)
+            rInvertedMatrix.resize(3, 3, false);
+#endif // KRATOS_USE_AMATRIX
 
         // Filling the inverted matrix with the algebraic complements
         // First column
@@ -568,9 +573,12 @@ public:
     {
         KRATOS_TRY;
 
-        if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
+    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+    #else
+        if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4)
             rInvertedMatrix.resize(4, 4, false);
-        }
+    #endif // KRATOS_USE_AMATRIX
 
         /* Compute inverse of the Matrix */
         // First column
