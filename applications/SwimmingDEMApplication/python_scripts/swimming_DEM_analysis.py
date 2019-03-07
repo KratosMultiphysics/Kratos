@@ -629,7 +629,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # applying DEM-to-fluid coupling
 
-        if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
+        if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
 
         # coupling checks (debugging)
