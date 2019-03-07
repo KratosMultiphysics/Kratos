@@ -35,9 +35,9 @@ namespace Kratos
 /// A scheme for steady and dynamic equations, using Bossak time integration.
 /**
  * It can be used for either first- or second-order time derivatives. Elements
- * and conditions must provide a specialization of DerivativesExtension via their
- * data value container, which allows the scheme to operate independently of
- * the variable arrangements in the element or condition.
+ * and conditions must provide a specialization of DerivativesExtension via
+ * their data value container, which allows the scheme to operate independently
+ * of the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
 class ResidualBasedBossakVelocityScheme : public Scheme<TSparseSpace, TDenseSpace>
@@ -236,12 +236,15 @@ public:
         (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
         (pCurrentElement)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentElement)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
 
+        if (mUpdateAcceleration)
+        {
+            (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
+                             mMassMatrix[k], rCurrentProcessInfo);
+        }
         AddDynamicsToLHS(rLHS_Contribution, mDampingMatrix[k], mMassMatrix[k],
                          rCurrentProcessInfo);
-        AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
-                         mMassMatrix[k], rCurrentProcessInfo);
 
         (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -264,9 +267,12 @@ public:
         (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         // adding the dynamic contributions (static is already included)
-        (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-        AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
-                         mMassMatrix[k], rCurrentProcessInfo);
+        if (mUpdateAcceleration)
+        {
+            (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
+                             mMassMatrix[k], rCurrentProcessInfo);
+        }
     }
 
     void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
@@ -283,11 +289,15 @@ public:
         (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+        if (mUpdateAcceleration)
+        {
+            (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
+                             mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
+        }
         AddDynamicsToLHS(rLHS_Contribution, mDampingMatrix[k], mMassMatrix[k],
                          rCurrentProcessInfo);
-        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
-                         mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
@@ -306,10 +316,12 @@ public:
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         // adding the dynamic contributions (static is already included)
-        (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
-                         mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
-
+        if (mUpdateAcceleration)
+        {
+            (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
+                             mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
+        }
         KRATOS_CATCH("");
     }
 
@@ -424,7 +436,7 @@ protected:
                           ProcessInfo& rCurrentProcessInfo)
     {
         // adding inertia contribution
-        if (rMassMatrix.size1() != 0 && mUpdateAcceleration)
+        if (rMassMatrix.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
             rCurrentElement->GetSecondDerivativesVector(
@@ -455,7 +467,7 @@ protected:
                           ProcessInfo& rCurrentProcessInfo)
     {
         // adding inertia contribution
-        if (rMassMatrix.size1() != 0 && mUpdateAcceleration)
+        if (rMassMatrix.size1() != 0)
         {
             int k = OpenMPUtils::ThisThread();
             rCurrentCondition->GetSecondDerivativesVector(
