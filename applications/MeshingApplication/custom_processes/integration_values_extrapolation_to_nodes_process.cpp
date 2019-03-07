@@ -346,8 +346,8 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // The process info
     const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
 
-    if (elements_array.size() != 0)
-    {
+    // First we check if the model part constains at least one element
+    if (elements_array.size() != 0) {
         // The first iterator of elements
         auto it_elem_begin = elements_array.begin();
         auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
