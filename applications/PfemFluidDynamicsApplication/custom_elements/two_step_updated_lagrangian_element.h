@@ -418,8 +418,12 @@ namespace Kratos
 			    const int Step);
       
       void GetPressureValues(Vector& rValues,
-			     const int Step = 0);
-      
+			     const int Step = 0);      
+
+      void GetFluidFractionRateValues(Vector& rValues);
+ 
+      void GetFluidFractionRateOldValues(Vector& rValues);
+
       void GetDensityValues(Vector& rValues,
 			    const int Step = 0);
 
