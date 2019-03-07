@@ -165,8 +165,8 @@ protected:
     virtual void CalculateEquivalentStresses(
         const array_1d<double, 3 > & membrane_strain,
         const array_1d<double, 3 > & bending_strain,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_m,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_f,
+        BoundedMatrix<double, 3, 3 >& Dmat_m,
+        BoundedMatrix<double, 3, 3 >& Dmat_f,
         array_1d<double, 3 > & membrane_stress,
         array_1d<double, 3 > & bending_stress,
         double& h_on_h0, //  ratio between current thickness and original thickness h/h0
@@ -176,12 +176,12 @@ protected:
     //cartesian derivatives (reference configuration)
     array_1d<double,3> mvxe;
     array_1d<double,3> mvye;
-    boost::numeric::ublas::bounded_matrix<double, 2,3 > mdcgM; //central element
-    boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg1;
-    boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg2;
-    boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg3;
+    BoundedMatrix<double, 2,3 > mdcgM; //central element
+    BoundedMatrix<double, 2,6 > mdcg1;
+    BoundedMatrix<double, 2,6 > mdcg2;
+    BoundedMatrix<double, 2,6 > mdcg3;
 
-    boost::numeric::ublas::bounded_matrix<double, 4,3 > mstrains; //save the strains
+    BoundedMatrix<double, 4,3 > mstrains; //save the strains
 
     //area in the reference configuration
     double Area0;
@@ -212,51 +212,51 @@ protected:
     void CalculateCartesianDerOnGauss(
         const double eta1,
         const double eta2,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 3 >& ms_coord,
+        const BoundedMatrix<double, 6, 3 >& ms_coord,
         const array_1d<double,3>& vxe,
         const array_1d<double,3>& vye,
-        boost::numeric::ublas::bounded_matrix<double, 2,2 >& Jinv,
-        boost::numeric::ublas::bounded_matrix<double, 2,6 >& dcg
+        BoundedMatrix<double, 2,2 >& Jinv,
+        BoundedMatrix<double, 2,6 >& dcg
     );
 
     void CalculatePhiG(
-        boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 3 >& ms_coord
+        BoundedMatrix<double, 2,3 >& phiG,
+        const BoundedMatrix<double, 2, 6 >& dcgG,
+        const BoundedMatrix<double, 6, 3 >& ms_coord
     );
 
     void CalculatePhiM(
-        boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiM,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 3 >& dcgM,
-        const boost::numeric::ublas::bounded_matrix<double, 6, 3 >& ms_coord
+        BoundedMatrix<double, 2,3 >& phiM,
+        const BoundedMatrix<double, 2, 3 >& dcgM,
+        const BoundedMatrix<double, 6, 3 >& ms_coord
     );
 
     void CalculateAndAdd_MembraneStrain(
         array_1d<double,3>& strain,
-        const boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG
+        const BoundedMatrix<double, 2,3 >& phiG
     );
 
     void CalculateAndAdd_MembraneB(
-        boost::numeric::ublas::bounded_matrix<double, 3, 18 >& B_m,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 3 >& phiG
+        BoundedMatrix<double, 3, 18 >& B_m,
+        const BoundedMatrix<double, 2, 6 >& dcgG,
+        const BoundedMatrix<double, 2, 3 >& phiG
     );
 
     void Calculate_h_ab(
         array_1d<double, 3 >& h_ab,
         const unsigned int alpha,
         const unsigned int beta,
-        const boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG1,
-        const boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG2,
-        const boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG3,
-        const boost::numeric::ublas::bounded_matrix<double, 2,3 >& dcgM
+        const BoundedMatrix<double, 2,3 >& phiG1,
+        const BoundedMatrix<double, 2,3 >& phiG2,
+        const BoundedMatrix<double, 2,3 >& phiG3,
+        const BoundedMatrix<double, 2,3 >& dcgM
     );
 
     void CalculateAndAdd_Membrane_Kg(
-        boost::numeric::ublas::bounded_matrix<double, 18, 18 >& K,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG1,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG2,
-        const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG3,
+        BoundedMatrix<double, 18, 18 >& K,
+        const BoundedMatrix<double, 2, 6 >& dcgG1,
+        const BoundedMatrix<double, 2, 6 >& dcgG2,
+        const BoundedMatrix<double, 2, 6 >& dcgG3,
         const array_1d<double,3>& membrane_stress
     );
 

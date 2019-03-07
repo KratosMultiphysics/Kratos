@@ -456,7 +456,7 @@ private:
         for( WeakPointerVector< Element >::iterator iel = neighbor_els.begin(); iel != neighbor_els.end(); iel++)
         {
             Geometry< Node<3> >& geom = iel->GetGeometry();
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+            BoundedMatrix<double, TDim+1, TDim> DN_DX;
             array_1d<double,TDim+1> N;
             double volume;
 
@@ -511,7 +511,7 @@ private:
             for( WeakPointerVector< Element >::iterator iel = neighbor_els.begin(); iel != neighbor_els.end(); iel++)
             {
                 Geometry< Node<3> >& geom = iel->GetGeometry();
-                boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+                BoundedMatrix<double, TDim+1, TDim> DN_DX;
                 array_1d<double,TDim+1> N;
                 double volume;
 
@@ -565,10 +565,10 @@ private:
                 //bulding volumetric stiffness for each element
                 std::vector< double> B;
                 B.reserve(patchsize);
-//		boost::numeric::ublas::bounded_matrix<double, TDim*(TDim+1),TDim*(TDim+1)> element_volumetric_K;
+//		BoundedMatrix<double, TDim*(TDim+1),TDim*(TDim+1)> element_volumetric_K;
                 Matrix element_volumetric_K;
 
-                element_volumetric_K.resize(patchsize, patchsize);
+                element_volumetric_K.resize(patchsize, patchsize, false);
 // 		double miu = iel->GetProperties()[MIU];
 // 		double lambda = iel->GetProperties()[LAMBDA];
 // 		miu = miu*deltaT/detF;
@@ -705,7 +705,8 @@ private:
         //KRATOS_WATCH(mDeltaF);
     }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    void localAssembleRHS(Vector& Hpatch, const Vector localH, const vector< int > codetable)
+    template<typename T>
+    inline void localAssembleRHS(Vector& Hpatch, const Vector localH, const T& codetable)
     {
         int size = localH.size();
 
@@ -757,7 +758,8 @@ private:
     }
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    void localAssembleLHS( Matrix& K_patch, const Matrix K_element, const boost::numeric::ublas::vector< int> codetable)
+    template<typename T>
+    void localAssembleLHS( Matrix& K_patch, const Matrix K_element, const T& codetable)
     {
         unsigned int local_size = K_element.size1();
 
@@ -809,7 +811,7 @@ private:
     void CalculateCorrectionForce(ModelPart::ElementsContainerType::iterator& ielem,ModelPart& r_model_part)
     {
         Geometry< Node<3> >& geom = ielem->GetGeometry();
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+        BoundedMatrix<double, TDim+1, TDim> DN_DX;
         array_1d<double,TDim+1> N;
         double volume;
 
@@ -846,7 +848,7 @@ private:
     void CalculateBPV(
         Matrix& BPV,
         const array_1d<double,TDim+1> N,
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX)
+        BoundedMatrix<double, TDim+1, TDim> DN_DX)
 
     {
 
