@@ -42,11 +42,11 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-          #candelier_no_history_test,
-          #candelier_no_history_with_lift_test,
-          #candelier_no_history_non_inertial_test,
-          #candelier_with_history_test,
-          #candelier_with_history_hinsberg_test,
+          candelier_no_history_test,
+          candelier_no_history_with_lift_test,
+          candelier_no_history_non_inertial_test,
+          candelier_with_history_test,
+          candelier_with_history_hinsberg_test,
           Test
           ])
     )

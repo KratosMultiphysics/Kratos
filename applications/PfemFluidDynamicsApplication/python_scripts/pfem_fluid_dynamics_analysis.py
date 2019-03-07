@@ -294,7 +294,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.model_processes.ExecuteAfterOutputStep()
 
         # Calculate Nodal_Area
-        self.CalculateNodalArea()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
