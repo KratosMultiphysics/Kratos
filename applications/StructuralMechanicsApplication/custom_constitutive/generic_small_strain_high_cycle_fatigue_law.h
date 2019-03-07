@@ -217,6 +217,12 @@ protected:
     double GetMinStress() {return mMinStress;}
     void SetMinStress(const double toMinStress) {mMinStress = toMinStress;}
 
+    double GetPreviousMaxStress() {return mPreviousMaxStress;}
+    void SetPreviousMaxStress(const double toPreviousMaxStress) {mPreviousMaxStress = toPreviousMaxStress;}
+
+    double GetPreviousMinStress() {return mPreviousMinStress;}
+    void SetPreviousMinStress(const double toPreviousMinStress) {mPreviousMinStress = toPreviousMinStress;}
+
     unsigned int GetNumberOfCycles() {return mNumberOfCycles;}
     void AddCycle() {mNumberOfCycles++;}
     void SetNumberOfCycles(const unsigned int toCycles) {mNumberOfCycles = toCycles;}
@@ -233,9 +239,6 @@ protected:
     void ResetCycleCounter(){mHasCountedCycle = false;}
     void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
     bool GetCycleCounter() {return mHasCountedCycle;}
-
-    unsigned int GetNewCycleIdentificator() {return mNewCycleIdentificator;}
-    void SetNewCycleIdentificator(const unsigned int toNewCycleIdentificator) {mNewCycleIdentificator = toNewCycleIdentificator;}
 
     ///@}
     ///@name Protected  Access
@@ -262,12 +265,13 @@ private:
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
-    unsigned int mNumberOfCycles = 0;
+    double mPreviousMaxStress = 0.0;
+    double mPreviousMinStress = 0.0;
+    unsigned int mNumberOfCycles = 1;
     double mReversionFactor = 0.0;  // = mMinStress/mMaxStress
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
     bool mHasCountedCycle = false;
-    unsigned int mNewCycleIdentificator=0;
 
     ///@}
     ///@name Private Operators

@@ -100,33 +100,42 @@ public:
 
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
-        double &MaximumStress, 
-        double &MinimumStress, 
+        double &rMaximumStress, 
+        double &rMinimumStress,  
+        double &rPreviousMaximumStress,
+        double &rPreviousMinimumStress,
         const Vector &rPreviousStresses,
         unsigned int& rNumberOfCycles,
         bool& rCycleCounter
         )
     {
-        const double Stress1 = rPreviousStresses[1];
-        const double Stress2 = rPreviousStresses[0];
+        const double stress_1 = rPreviousStresses[1];
+        const double stress_2 = rPreviousStresses[0];
 		
-        const double StressIncrement1 = Stress1 - Stress2;
-        const double StressIncrement2 = CurrentStress - Stress1;
-        
-        if (StressIncrement1 >= 0.001 && StressIncrement2 <= 0.0 && rCycleCounter == false) {
-            MaximumStress = Stress1;
+        const double stress_increment_1 = stress_1 - stress_2;
+        const double stress_increment_2 = CurrentStress - stress_1;
+
+        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0 && rCycleCounter == false) {
+            rMaximumStress = stress_1;
+            rPreviousMaximumStress = rMaximumStress;
+            rCycleCounter = true;
+        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && rCycleCounter == false) {
+            rMinimumStress = stress_1;
+            rPreviousMinimumStress = rMinimumStress;
+            rCycleCounter = true;
+        }
+
+        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && rCycleCounter == true) {
             rNumberOfCycles++;
-            rCycleCounter = true;
-        } else if (StressIncrement1 <= 0.0 && StressIncrement2 >= 0.001 && rCycleCounter == false) {
-            MinimumStress = Stress1;
-            rCycleCounter = true;
+            rPreviousMaximumStress = 0;
+            rPreviousMinimumStress = 0;
         }
     }
 
-    static void CalculateTensionCompressionFactor(const Vector& StressVector, double& rFactor) 
+    static void CalculateTensionCompressionFactor(const Vector& rStressVector, double& rFactor) 
     {
         array_1d<double,3> principal_stresses;
-        ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, StressVector);
+        ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
 
         double abs_component = 0.0, average_component = 0.0, sum_abs = 0.0, sum_average = 0.0;
@@ -179,20 +188,13 @@ public:
 			alphat = ALFAF - (0.5 + 0.5 / rReversionFactor) * AUXR2;
         }
 
-		    // KRATOS_WATCH(Sth)
-			// KRATOS_WATCH(alphat)
-			// KRATOS_WATCH(rReversionFactor)
+
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > yield_stress) {
             rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(NumbreOfCycles), square_betaf));
         } else if (MaxStress > Sth) {
             const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)));
-            //KRATOS_WATCH(std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)))
-            //KRATOS_WATCH(std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat)
-            //KRATOS_WATCH(1 / BETAF)
-			//KRATOS_WATCH(N_F)
             rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
-            //KRATOS_WATCH(rB0)
             rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(NumbreOfCycles), square_betaf));
         }
     }
