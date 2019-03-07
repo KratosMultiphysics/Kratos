@@ -13,7 +13,7 @@ class ProjectionModule:
                 fluid_model_part,
                 balls_model_part,
                 FEM_DEM_model_part,
-               project_parameters,
+                project_parameters,
                 coupling_dem_vars,
                 coupling_fluid_vars,
                 time_filtered_vars,
