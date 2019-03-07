@@ -32,7 +32,7 @@ class SwimmingDEMSolver(PythonSolver):
         """)
 
         if not project_parameters["processes"].Has('non_optional_solver_processes'):
-           project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
 
         else: # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
             non_optional_processes_list = list(project_parameters["processes"]["non_optional_solver_processes"])
