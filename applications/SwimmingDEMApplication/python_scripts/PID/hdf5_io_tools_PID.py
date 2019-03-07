@@ -16,14 +16,14 @@ class FluidHDF5LoaderPID(BaseLoader):
         self.averager = averager
 
     def GetFileName(self):
-        if not self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool():
+        if not self.project_parameters["averaging_has_already_been_done"].GetBool():
             return BaseLoader.GetFileName(self)
         else:
-            original_file_name = self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+            original_file_name = self.project_parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
             return original_file_name.replace('.hdf5', '') + '_averaged.hdf5'
 
     def CheckTimes(self, hdf5_file):
-        if not self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool():
+        if not self.project_parameters["averaging_has_already_been_done"].GetBool():
             BaseLoader.CheckTimes(self, hdf5_file)
         else:
             pass

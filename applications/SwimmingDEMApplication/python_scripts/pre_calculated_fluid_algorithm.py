@@ -13,7 +13,7 @@ class Algorithm(BaseAlgorithm):
 
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
-        Add = self.pp.CFD_DEM.AddEmptyValue
+        Add = self.project_parameters.AddEmptyValue
         Add("fluid_already_calculated").SetBool(True)
         Add("alpha").SetDouble(0.01)
         Add("load_derivatives").SetBool(False)
@@ -25,7 +25,7 @@ class Algorithm(BaseAlgorithm):
     def PerformZeroStepInitializations(self):
         BaseAlgorithm.PerformZeroStepInitializations(self)
         n_nodes = len(self.fluid_model_part.Nodes)
-        self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString('/mesh_' + str(n_nodes) + '_nodes.hdf5')
+        self.project_parameters.AddEmptyValue("prerun_fluid_file_name").SetString('/mesh_' + str(n_nodes) + '_nodes.hdf5')
         self.SetFluidLoader()
 
     def SetFluidLoader(self):
@@ -36,9 +36,9 @@ class Algorithm(BaseAlgorithm):
                                                           self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):
-        if not self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
+        if not self.project_parameters["fluid_already_calculated"].GetBool():
             BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
-            if self.pp.CFD_DEM["do_write_results_to_hdf5"].GetBool():
+            if self.project_parameters["do_write_results_to_hdf5"].GetBool():
                 self.fluid_loader.FillFluidDataStep()
         else:
             BaseAlgorithm.FluidSolve(self, time, solve_system = False)
@@ -46,14 +46,14 @@ class Algorithm(BaseAlgorithm):
                 self.fluid_loader.LoadFluid(time)
 
     def GetFluidLoaderCounter(self):
-        return SDP.Counter(steps_in_cycle = self.pp.CFD_DEM["DEM_steps_per_fluid_load_step"].GetInt(),
+        return SDP.Counter(steps_in_cycle = self.project_parameters["DEM_steps_per_fluid_load_step"].GetInt(),
                            beginning_step = 1,
-                           is_dead = not self.pp.CFD_DEM["fluid_already_calculated"].GetBool())
+                           is_dead = not self.project_parameters["fluid_already_calculated"].GetBool())
 
     def GetRunCode(self):
-        code = SDP.CreateRunCode(self.pp)
+        code = SDP.CreateRunCode(self.project_parameters)
 
-        if self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
+        if self.project_parameters["fluid_already_calculated"].GetBool():
             return code + '_precalculated_fluid'
         else:
             return code
@@ -61,7 +61,7 @@ class Algorithm(BaseAlgorithm):
     def TheSimulationMustGoOn(self):
         it_must_go_on = self.time <= self.end_time
 
-        if self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
+        if self.project_parameters["fluid_already_calculated"].GetBool():
             return it_must_go_on and self.fluid_loader.CanLoadMoreSteps()
         else:
             return it_must_go_on

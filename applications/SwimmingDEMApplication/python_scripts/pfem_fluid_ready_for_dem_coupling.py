@@ -73,7 +73,7 @@ class Solution(MainFluidPFEM.Solution):
         KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]).Execute()
 
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
-        self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars)
+        self.vars_man.AddNodalVariables(self.main_model_part, self.vars_man.fluid_vars)
 
     def GetDeltaTimeFromParameters(self):
         return self.ProjectParameters["problem_data"]["time_step"].GetDouble()

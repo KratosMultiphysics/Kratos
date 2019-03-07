@@ -47,9 +47,9 @@ class FluidHDF5Loader:
     def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
-        self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
-        self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
-        self.load_derivatives = pp.CFD_DEM["load_derivatives"].GetBool()
+        self.store_pressure = project_parameters["store_fluid_pressure_option"].GetBool()
+        self.store_gradient = project_parameters["store_full_gradient_option"].GetBool()
+        self.load_derivatives = project_parameters["load_derivatives"].GetBool()
         self.there_are_more_steps_to_load = True
         self.main_path = main_path
         self.pp = pp
@@ -58,7 +58,7 @@ class FluidHDF5Loader:
 
         number_of_variables = 3
 
-        if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
+        if project_parameters["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
         if self.load_derivatives or self.store_gradient:
             number_of_variables += 9
@@ -67,7 +67,7 @@ class FluidHDF5Loader:
         self.file_name = self.GetFileName()
         self.file_path = main_path + self.file_name
 
-        if pp.CFD_DEM["fluid_already_calculated"].GetBool():
+        if project_parameters["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
@@ -87,7 +87,7 @@ class FluidHDF5Loader:
                 node.SetSolutionStepValue(DENSITY, density)
         else:
             self.dtype = np.float64
-            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
+            if project_parameters["store_fluid_in_single_precision"].GetBool():
                 self.dtype = np.float32
 
             self.compression_type = 'gzip'
@@ -111,7 +111,7 @@ class FluidHDF5Loader:
         self.current_data_array = np.zeros(self.extended_shape)
 
     def GetFileName(self):
-        return self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+        return self.project_parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
 
     def CheckTimes(self, hdf5_file):
         self.times_str = list([str(key) for key in hdf5_file.keys() if 'time' in hdf5_file['/' + key].attrs])
@@ -257,13 +257,13 @@ class ParticleHistoryLoader:
         self.particle_watcher = particle_watcher
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
-        self.prerun_fluid_file_name = pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+        self.prerun_fluid_file_name = project_parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
 
         self.CreateAllParticlesFileIfNecessary()
         self.run_code = None
 
     def CreateAllParticlesFileIfNecessary(self):
-        if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
+        if not self.project_parameters["full_particle_history_watcher"].GetString() == 'Empty':
             nodes = [node for node in self.model_part.Nodes if node.IsNot(BLOCKED)]
             Ids = np.array([node.Id for node in nodes], dtype = int)
             X0s = np.array([node.X0 for node in nodes])
@@ -329,7 +329,7 @@ class ParticleHistoryLoader:
             snapshot.attrs['particles_nondimensional_radius'] = mean_radius
             # storing the input parameters for this run, the one corresponding
             # to the current pre-calculated fluid
-            for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
+            for k, v in ((k, v) for k, v in json.loads(self.project_parameters.WriteJsonString()).items() if 'comment' not in k):
                 snapshot.attrs[k] = v
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']

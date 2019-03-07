@@ -47,7 +47,7 @@ class SwimmingDEMSolver(PythonSolver):
         non_optional_solver_processes.Append(default_processes_settings)
         nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() -1]["Parameters"]
         nodal_area_process_parameters["model_part_name"].SetString(self.fluid_solver.main_model_part.Name)
-        nodal_area_process_parameters["domain_size"].SetInt(self.domain_size)
+        nodal_area_process_parameters["domain_size"].SetInt(self.fluid_domain_dimension)
 
         if self.fluid_solver.settings.Has('move_mesh_flag'):
             the_mesh_moves = self.fluid_solver.settings["move_mesh_flag"].GetBool()
@@ -55,10 +55,11 @@ class SwimmingDEMSolver(PythonSolver):
 
         return project_parameters
 
-    def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
+    def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
         # Validate settings
-        self.pp = pp
-        self.domain_size = pp.domain_size
+        self.field_utility = field_utility
+        self.vars_man = variables_manager
+        self.fluid_domain_dimension = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.fluid_solver = fluid_solver
         self.dem_solver = dem_solver
         self.project_parameters = self._ValidateSettings(project_parameters)
@@ -101,12 +102,12 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_solver.main_model_part,
         self.dem_solver.spheres_model_part,
         self.dem_solver.all_model_parts.Get("RigidFacePart"),
-        self.pp.CFD_DEM,
-        self.pp.coupling_dem_vars,
-        self.pp.coupling_fluid_vars,
-        self.pp.time_filtered_vars,
-        flow_field=self.pp.field_utility,
-        domain_size=self.pp.domain_size
+        self.project_parameters,
+        self.vars_man.coupling_dem_vars,
+        self.vars_man.coupling_fluid_vars,
+        self.vars_man.time_filtered_vars,
+        flow_field=self.field_utility,
+        domain_size=self.fluid_domain_dimension
         )
 
         projection_module.UpdateDatabase(self.h_min)
@@ -118,9 +119,9 @@ class SwimmingDEMSolver(PythonSolver):
         self.using_hinsberg_method = bool(self.project_parameters["basset_force_type"].GetInt() >= 3 or
                                           self.project_parameters["basset_force_type"].GetInt() == 1)
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.pp,
+            self.project_parameters,
             self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(self.pp.domain_size))
+            SDP.FunctionsCalculator(self.fluid_domain_dimension))
 
     def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
@@ -140,9 +141,9 @@ class SwimmingDEMSolver(PythonSolver):
 
     def GetHistoryForceQuadratureCounter(self):
         return SDP.Counter(
-            self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(),
+            self.project_parameters["time_steps_per_quadrature_step"].GetInt(),
             1,
-            self.pp.CFD_DEM["basset_force_type"].GetInt())
+            self.project_parameters["basset_force_type"].GetInt())
 
     def AdvanceInTime(self, step, time):
         self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
