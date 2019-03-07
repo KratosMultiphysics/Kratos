@@ -28,7 +28,7 @@
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
-#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "includes/variables.h"
 #include "includes/condition.h"

@@ -79,7 +79,7 @@ public:
 
     typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+    typedef boost::numeric::ublas::matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
 
 
@@ -109,7 +109,7 @@ public:
 //***********************************************************************
 //***********************************************************************
 
-    static inline double Mc_aully(const vector<double> & v)
+    static inline double Mc_aully(const Vector & v)
 
     {
         KRATOS_TRY
@@ -125,7 +125,7 @@ public:
 //***********************************************************************
 //***********************************************************************
 
-    static inline Vector Sign(const vector<double> &v)
+    static inline Vector Sign(const Vector &v)
 
     {
         KRATOS_TRY
@@ -203,15 +203,15 @@ public:
         KRATOS_TRY
         int iter                            = 50;
         double zero                         = 1.0E-15;
-        matrix<double> SphericComponent     = IdentityMatrix(3,3);
-        matrix<double> DesviatoricComponent = ZeroMatrix(3,3);
-        vector<double> PrincipalStress      = ZeroVector(3);
-        matrix<double> EigenVectors         = ZeroMatrix(3,3);
+        Matrix SphericComponent     = IdentityMatrix(3);
+        Matrix DesviatoricComponent = ZeroMatrix(3,3);
+        Vector PrincipalStress      = ZeroVector(3);
+        Matrix EigenVectors         = ZeroMatrix(3,3);
 
         // Los invariantes seran representados como vectores
-        I     = zero_vector<double>(3);
-        J     = zero_vector<double>(3);
-        J_des = zero_vector<double>(3);
+        I     = ZeroVector(3);
+        J     = ZeroVector(3);
+        J_des = ZeroVector(3);
 
 
         SD_MathUtils<double>::EigenVectors(Tensor, EigenVectors, PrincipalStress, zero, iter);
