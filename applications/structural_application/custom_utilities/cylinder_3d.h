@@ -85,7 +85,7 @@ public:
        *@param e3 point on the dirction vector of the cylinder
        * e1, e2, e3 form a othogonal basis
      */
-    Cylinder3D(Point M,Point e1,Point e2, Point e3)
+    Cylinder3D(array_1d<double, 3> M,array_1d<double, 3> e1,array_1d<double, 3> e2, array_1d<double, 3> e3)
         :mM(M),mE1(e1),mE2(e2),mE3(e3)
     {
         r1 = mE1-M;
@@ -107,7 +107,7 @@ public:
     /**
      *
      */
-   Point& GetCenter()
+   array_1d<double, 3>& GetCenter()
     {
         return mM;
     }
@@ -116,10 +116,10 @@ public:
      * Calculates a point on the cylinder with the parameters s and t.
        *@param s respresents the line segment on the circle
        *@param t represents the distance on the dirction vector of the cylinder from M
-       *@param result a Point in 3D result(s,t) on the cylinder
+       *@param result a array_1d<double, 3> in 3D result(s,t) on the cylinder
        *@return result
      */
-   Point& GetPoint(Point& result, double s , double t)
+   array_1d<double, 3>& GetPoint(array_1d<double, 3>& result, double s , double t)
     {
         result = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
         return result;
@@ -219,10 +219,10 @@ public:
 
 private:
 
-   Point mM;
-   Point mE1;
-   Point mE2;
-   Point mE3;
+   array_1d<double, 3> mM;
+   array_1d<double, 3> mE1;
+   array_1d<double, 3> mE2;
+   array_1d<double, 3> mE3;
     array_1d<double, 3> r1;
     array_1d<double, 3> r2;
     array_1d<double, 3> r3;

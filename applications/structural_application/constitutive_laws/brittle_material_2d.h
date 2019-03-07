@@ -240,7 +240,7 @@ private:
     PropertiesPointer mpProperties;
 
 
-    void CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C);
+    void CalculateElasticMatrix(BoundedMatrix<double,4,4>& C);
     void CalculateElasticStress(array_1d<double,4>& Strain, array_1d<double,4>& Stress);
     void CalculateAlmansiStrain(const Vector& Strain, const Matrix& F,Vector& Almansi);
     void CalculateStress(const Matrix& DeformationGradient, const Vector& StrainVector,  Vector& StressVector);

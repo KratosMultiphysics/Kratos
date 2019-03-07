@@ -159,6 +159,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
             "check_constraint_relation"            : true,
             "reset_relation_matrix_each_iteration" : true
         })" );
@@ -482,7 +483,7 @@ protected:
 
         Timer::Start("Build");
 
-        // We apply the master/slave realtionship before build
+        // We apply the master/slave relationship before build
         ApplyMasterSlaveRelation(pScheme, rModelPart, rA, rDx, rb);
 
         // We compute the effective constant vector

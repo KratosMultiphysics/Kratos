@@ -26,12 +26,20 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
+/** 
+ * @class ExtendPressureConditionProcess
+ * @ingroup FemToDemApplication 
+ * @brief Creates the new presure line loads after removing some elements
+ * @details when several elements are removed this methods generates the line loads
+ * in order to adapt to the new geometry
+ * @author Alejandro Cornejo
+ */
 template <SizeType TDim = 2>
 class ExtendPressureConditionProcess : public Process 
 {
 
 public:
-    /// Pointer definition of ApplyMultipointConstraintsProcess
+    /// Pointer definition of ExtendPressureConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ExtendPressureConditionProcess);
 
     // Constructor
@@ -44,27 +52,36 @@ public:
 
     void Execute() override;
 
-    void CreateAndAddPressureConditions2(
-        ModelPart::ElementsContainerType::ptr_iterator itElem,
-        const unsigned int LocalId,
-        const int PressureId,
-        int& MaximumConditionId,
-        std::vector<IndexType>& ToEraseConditionsId);
+    void RemovePreviousLineLoads();
 
-    void CreateAndAddPressureConditions3(
-        ModelPart::ElementsContainerType::ptr_iterator itElem,
+    void CreateNewConditions();
+
+    void GenerateLineLoads2Nodes(
+        const int NonWetLocalIdNode,
         const int PressureId,
-        int& MaximumConditionId,
-        std::vector<IndexType>& ToEraseConditionsId);
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
+    void GenerateLineLoads3Nodes(
+        const int PressureId,
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
+    void GetPressureId(
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        int& rPressureId);
 
     void GetMaximumConditionIdOnSubmodelPart(
         int& MaximumConditionId);
 
     void CalculateNumberOfElementsOnNodes();
     bool CheckIfHasConditionId(const IndexType Id);
+
+    void ResetFlagOnElements();
+
 protected:
     // Member Variables
-    ModelPart &mr_model_part;
+    ModelPart& mrModelPart;
     std::vector<IndexType> mNodeIdContainer;
     std::vector<int> mNodePressureIdContainer;
 

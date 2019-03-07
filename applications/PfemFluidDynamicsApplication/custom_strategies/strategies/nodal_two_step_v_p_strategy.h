@@ -859,7 +859,7 @@ namespace Kratos {
 	      Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
 	      //Inverse
 
-	      MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad);
+	      MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad,-1.0);
 
 	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	      SpatialVelocityGrad=prod(FgradVel,InvFgrad);
@@ -1162,7 +1162,7 @@ namespace Kratos {
 	    //Inverse
 
 
-	    MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad);
+	    MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad,-1.0);
 
 	    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
@@ -1602,7 +1602,7 @@ namespace Kratos {
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NodalTwoStepVPStrategy" ;
@@ -1610,10 +1610,16 @@ namespace Kratos {
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "NodalTwoStepVPStrategy";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "NodalTwoStepVPStrategy";
+        }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override
+    {
+
+    }
 
 
     ///@}
