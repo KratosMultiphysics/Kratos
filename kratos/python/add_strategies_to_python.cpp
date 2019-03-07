@@ -60,6 +60,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_elementwise.h"
+#include "solving_strategies/builder_and_solvers/rom_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -426,6 +427,11 @@ namespace Kratos
                         ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType::Pointer,
                         BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise")
             .def(py::init< LinearSolverType::Pointer > ())
+            ;
+
+            typedef ROMBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ROMBuilderAndSolverType;
+            py::class_< ROMBuilderAndSolverType, ROMBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ROMBuilderAndSolver")
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
             //********************************************************************
