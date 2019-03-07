@@ -18,7 +18,7 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 // Processes
-#include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
+#include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
 
 // Response Functions
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
@@ -63,9 +63,9 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
 
     // Processes
-    py::class_<ReplaceElementsAndConditionsForAdjointProblemProcess, ReplaceElementsAndConditionsForAdjointProblemProcess::Pointer , Process>
-        (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
-        .def(py::init<ModelPart&>());
+    py::class_<ReplaceMultipleElementsAndConditionsProcess, ReplaceMultipleElementsAndConditionsProcess::Pointer , Process>
+        (m, "ReplaceMultipleElementsAndConditionsProcess")
+        .def(py::init<ModelPart&, Parameters>());
 
     // Response Functions
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointResponseFunction>
