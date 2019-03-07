@@ -10,7 +10,7 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#include "incompressible_potential_flow_element.h"
+#include "custom_elements/incompressible_potential_flow_functions.h"
 
 namespace Kratos
 {
@@ -62,9 +62,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    ComputeLHSGaussPointContribution(data.vol, rLeftHandSideMatrix, data);
+    ComputeLHSGaussPointContribution<Dim,NumNodes>(data.vol, rLeftHandSideMatrix, data);
 
-    GetPotential(data.phis);
+    GetPotential<2,3>(this,data.phis);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
 }
 
@@ -184,7 +184,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     {
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
+        ComputeVelocity<Dim,NumNodes>(this,vaux);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -218,12 +218,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& 
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
-    const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
-{
-    noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
-}
+// template <int Dim, int NumNodes>
+// void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
+//     const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
+// {
+//     noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
+// }
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEnergy()
@@ -231,33 +231,33 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     double internal_energy = 0.0;
     array_1d<double, Dim> velocity;
 
-    ComputeVelocity(velocity);
+    ComputeVelocity<Dim,NumNodes>(this,velocity);
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotential(
-    array_1d<double, NumNodes>& phis) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-}
+// template <int Dim, int NumNodes>
+// void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotential(
+//     array_1d<double, NumNodes>& phis) const
+// {
+//     for (unsigned int i = 0; i < NumNodes; i++)
+//         phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+// }
 
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
+// template <int Dim, int NumNodes>
+// void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocity(
+//     array_1d<double, Dim>& velocity) const
+// {
+//     ElementalData<NumNodes, Dim> data;
 
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+//     // Calculate shape functions
+//     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    GetPotential(data.phis);
+//     GetPotential<2,3>(this,data.phis);
 
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-}
+//     noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+// }
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressure(const ProcessInfo& rCurrentProcessInfo) const
@@ -270,7 +270,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressure(const 
         << "vinfinity_norm2 must be larger than zero." << std::endl;
 
     array_1d<double, Dim> v;
-    ComputeVelocity(v);
+    ComputeVelocity<Dim,NumNodes>(this,v);
 
     double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
@@ -295,5 +295,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerial
 // Template class instantiation
 
 template class IncompressiblePotentialFlowElement<2, 3>;
+template struct ElementalData<3, 2>;
 
 } // namespace Kratos
