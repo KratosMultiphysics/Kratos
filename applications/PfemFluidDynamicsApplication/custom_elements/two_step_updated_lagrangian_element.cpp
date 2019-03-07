@@ -671,13 +671,15 @@ namespace Kratos {
     rElementalVariables.DetFgrad=1;
     MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
-				    rElementalVariables.DetFgrad);
+				    rElementalVariables.DetFgrad,
+                    -1.0);
 
     rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgradVel=1;
     MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
 				    rElementalVariables.InvFgradVel,
-				    rElementalVariables.DetFgradVel);
+				    rElementalVariables.DetFgradVel,
+                    -1.0);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -783,13 +785,15 @@ namespace Kratos {
     rElementalVariables.DetFgrad=1;
     MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
-				    rElementalVariables.DetFgrad);
+				    rElementalVariables.DetFgrad,
+                    -1.0);
 
     rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgradVel=1;
     MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
 				    rElementalVariables.InvFgradVel,
-				    rElementalVariables.DetFgradVel);
+				    rElementalVariables.DetFgradVel,
+                    -1.0);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -1012,7 +1016,7 @@ namespace Kratos {
     FJacobian=1;
 
 
-    MathUtils<double>::InvertMatrix( Fgrad, invFgrad, FJacobian );
+    MathUtils<double>::InvertMatrix( Fgrad, invFgrad, FJacobian, -1.0);
 
     // Fgrad.resize(2,2);
 
@@ -1087,7 +1091,7 @@ namespace Kratos {
     invFgradVel=ZeroMatrix(TDim,TDim);
     FVelJacobian=1;
 
-    MathUtils<double>::InvertMatrix( FgradVel, invFgradVel, FVelJacobian );
+    MathUtils<double>::InvertMatrix( FgradVel, invFgradVel, FVelJacobian, -1.0);
 
 
   }
@@ -1345,34 +1349,34 @@ namespace Kratos {
   }
 
 
-  template < >  
-  double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(const VectorType &SpatialDefRate, 
-									 const array_1d<double, 3> NormalVector) 
-  { 
-   
-    double NormalProjSpatialDefRate=NormalVector[0]*SpatialDefRate[0]*NormalVector[0]+ 
-      NormalVector[1]*SpatialDefRate[1]*NormalVector[1]+ 
-      2*NormalVector[0]*SpatialDefRate[2]*NormalVector[1]; 
- 
-    return NormalProjSpatialDefRate; 
-  } 
- 
-  template < >  
-  double TwoStepUpdatedLagrangianElement<3>::CalcNormalProjectionDefRate(const VectorType &SpatialDefRate, 
-									 const array_1d<double, 3> NormalVector) 
-  { 
-   
-    double  NormalProjSpatialDefRate=NormalVector[0]*SpatialDefRate[0]*NormalVector[0]+ 
-      NormalVector[1]*SpatialDefRate[1]*NormalVector[1]+ 
-      NormalVector[2]*SpatialDefRate[2]*NormalVector[2]+ 
-      2*NormalVector[0]*SpatialDefRate[3]*NormalVector[1]+ 
-      2*NormalVector[0]*SpatialDefRate[4]*NormalVector[2]+ 
-      2*NormalVector[1]*SpatialDefRate[5]*NormalVector[2]; 
-   
-    return NormalProjSpatialDefRate; 
+  template < >
+  double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(const VectorType &SpatialDefRate,
+									 const array_1d<double, 3> NormalVector)
+  {
+
+    double NormalProjSpatialDefRate=NormalVector[0]*SpatialDefRate[0]*NormalVector[0]+
+      NormalVector[1]*SpatialDefRate[1]*NormalVector[1]+
+      2*NormalVector[0]*SpatialDefRate[2]*NormalVector[1];
+
+    return NormalProjSpatialDefRate;
   }
 
-  
+  template < >
+  double TwoStepUpdatedLagrangianElement<3>::CalcNormalProjectionDefRate(const VectorType &SpatialDefRate,
+									 const array_1d<double, 3> NormalVector)
+  {
+
+    double  NormalProjSpatialDefRate=NormalVector[0]*SpatialDefRate[0]*NormalVector[0]+
+      NormalVector[1]*SpatialDefRate[1]*NormalVector[1]+
+      NormalVector[2]*SpatialDefRate[2]*NormalVector[2]+
+      2*NormalVector[0]*SpatialDefRate[3]*NormalVector[1]+
+      2*NormalVector[0]*SpatialDefRate[4]*NormalVector[2]+
+      2*NormalVector[1]*SpatialDefRate[5]*NormalVector[2];
+
+    return NormalProjSpatialDefRate;
+  }
+
+
   template < >
   double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
   {
@@ -1612,9 +1616,9 @@ namespace Kratos {
     return std::sqrt(2.0*NormS);
   }
 
-  
 
-  
+
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
@@ -1804,7 +1808,7 @@ namespace Kratos {
   }
 
 
- 
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
 								const ShapeFunctionsType& rN,

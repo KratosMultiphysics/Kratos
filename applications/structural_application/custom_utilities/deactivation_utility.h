@@ -177,10 +177,10 @@ public:
 
         int number_of_threads = omp_get_max_threads();
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, model_part.Elements().size(), element_partition);
 
-        vector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(number_of_threads, model_part.Conditions().size(), condition_partition);
 
         #pragma omp parallel for
