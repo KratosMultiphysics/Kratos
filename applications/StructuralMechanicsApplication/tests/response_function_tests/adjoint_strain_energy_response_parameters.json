@@ -11,8 +11,9 @@
     },
     "kratos_response_settings":{
         "response_type"    : "adjoint_linear_strain_energy",
-        "gradient_mode"     : "semi_analytic",
-        "step_size"         : 1.0e-5,
+        "gradient_mode"    : "semi_analytic",
+        "step_size"        : 1.0e-5,
+        "adapt_step_size"  : true,
         "primal_settings"  : "rectangular_plate_parameters.json",
         "adjoint_settings"  : "auto",
         "sensitivity_settings" : {

@@ -13,6 +13,7 @@
         "response_type"    : "adjoint_local_stress",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-5,
+        "adapt_step_size"  : true,
         "traced_element_id"    : 2,
         "stress_type"       : "MXX",
         "stress_treatment"  : "mean",
