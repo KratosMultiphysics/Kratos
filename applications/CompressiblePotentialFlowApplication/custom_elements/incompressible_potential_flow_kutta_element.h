@@ -14,36 +14,17 @@
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_KUTTA_ELEMENT_H
 
 // Project includes
-#include "includes/element.h"
-#include "includes/kratos_flags.h"
-#include "compressible_potential_flow_application_variables.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/enrichment_utilities.h"
+#include "custom_elements/incompressible_potential_flow_element.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowKuttaElement : public Element
+class IncompressiblePotentialFlowKuttaElement : public IncompressiblePotentialFlowElement<2,3>
 {
 public:
-    template <unsigned int TNumNodes, unsigned int TDim>
-    struct ElementalData
-    {
-        array_1d<double, TNumNodes> phis, distances;
-        double vol;
-
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        array_1d<double, TNumNodes> N;
-    };
-
-    ///@name Type Definitions
-    ///@{
-
-    typedef Element BaseType;
-
-    ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowKuttaElement
     KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowKuttaElement);
@@ -64,13 +45,13 @@ public:
      * Constructor using an array of nodes
      */
     IncompressiblePotentialFlowKuttaElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes){}
+        : IncompressiblePotentialFlowElement(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
     IncompressiblePotentialFlowKuttaElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry){}
+        : IncompressiblePotentialFlowElement(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
@@ -78,7 +59,7 @@ public:
     IncompressiblePotentialFlowKuttaElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties){}
+        : IncompressiblePotentialFlowElement(NewId, pGeometry, pProperties){}
 
     /**
      * Copy Constructor
@@ -129,34 +110,9 @@ public:
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -179,23 +135,14 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Operators
+protected:
+    ///@name Protected Operators
     ///@{
 
-    void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
-                                          const ElementalData<NumNodes, Dim>& data) const;
-
-    void ComputeElementInternalEnergy();
-
-    void GetPotential(array_1d<double, NumNodes>& phis) const;
-
-    void ComputeVelocity(array_1d<double, Dim>& velocity) const;
-
-    double ComputePressure(const ProcessInfo& rCurrentProcessInfo) const;
+    void GetPotential(array_1d<double, NumNodes>& phis) const override;
 
     ///@}
+private:
     ///@name Serialization
     ///@{
 

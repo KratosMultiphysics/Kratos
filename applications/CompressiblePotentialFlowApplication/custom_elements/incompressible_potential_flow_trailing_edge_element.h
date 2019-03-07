@@ -14,36 +14,18 @@
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_TRAILING_EDGE_ELEMENT_H
 
 // Project includes
-#include "includes/element.h"
-#include "includes/kratos_flags.h"
-#include "compressible_potential_flow_application_variables.h"
-#include "utilities/geometry_utilities.h"
+#include "custom_elements/incompressible_potential_flow_wake_element.h"
 #include "utilities/enrichment_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowTrailingEdgeElement : public Element
+class IncompressiblePotentialFlowTrailingEdgeElement : public IncompressiblePotentialFlowWakeElement<2,3>
 {
 public:
-    template <unsigned int TNumNodes, unsigned int TDim>
-    struct ElementalData
-    {
-        array_1d<double, TNumNodes> phis, distances;
-        double vol;
-
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        array_1d<double, TNumNodes> N;
-    };
-
-    ///@name Type Definitions
-    ///@{
-
-    typedef Element BaseType;
-
-    ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowTrailingEdgeElement
     KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowTrailingEdgeElement);
@@ -64,13 +46,13 @@ public:
      * Constructor using an array of nodes
      */
     IncompressiblePotentialFlowTrailingEdgeElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes){}
+        : IncompressiblePotentialFlowWakeElement(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
     IncompressiblePotentialFlowTrailingEdgeElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry){}
+        : IncompressiblePotentialFlowWakeElement(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
@@ -78,7 +60,7 @@ public:
     IncompressiblePotentialFlowTrailingEdgeElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties){}
+        : IncompressiblePotentialFlowWakeElement(NewId, pGeometry, pProperties){}
 
     /**
      * Copy Constructor
@@ -133,35 +115,12 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
     void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
                                      std::vector<bool>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -186,48 +145,13 @@ public:
 private:
     ///@name Private Operators
     ///@{
-
-    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
-
     void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
-
-    void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
-                                          const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
                                             Matrix& lhs_positive,
                                             Matrix& lhs_negative,
                                             Matrix& lhs_total,
                                             const ElementalData<NumNodes, Dim>& data) const;
-
-    void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   Matrix& lhs_total,
-                                   const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row) const;
-
-    void CheckWakeCondition() const;
-
-    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
-
-    void ComputeElementInternalEnergy();
-
-    void GetPotential(Vector& split_element_values,
-                      const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void ComputeUpperVelocity(array_1d<double, Dim>& velocity) const;
-
-    void ComputeLowerVelocity(array_1d<double, Dim>& velocity) const;
-
-    double ComputeUpperPressure(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeLowerPressure(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Serialization

@@ -48,36 +48,6 @@ Element::Pointer IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::Clone(
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
-        rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes, false);
-    rLeftHandSideMatrix.clear();
-
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    ComputeLHSGaussPointContribution(data.vol, rLeftHandSideMatrix, data);
-
-    GetPotential(data.phis);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    // TODO: improve speed
-    Matrix tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
@@ -112,12 +82,6 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetDofList(DofsVect
     }
 }
 
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    ComputeElementInternalEnergy();
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -141,53 +105,6 @@ int IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::Check(const ProcessI
 
     return out;
     KRATOS_CATCH("");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == PRESSURE){
-        double p = ComputePressure(rCurrentProcessInfo);
-        rValues[0] = p;
-    }
-
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == KUTTA){
-        rValues[0] = this->GetValue(KUTTA);
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == VELOCITY){
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocity(vaux);
-        for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
-        rValues[0] = v;
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,25 +135,6 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::PrintData(std::ostr
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
-    const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
-{
-    noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::ComputeElementInternalEnergy()
-{
-    double internal_energy = 0.0;
-    array_1d<double, Dim> velocity;
-
-    ComputeVelocity(velocity);
-
-    internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetPotential(
     array_1d<double, NumNodes>& phis) const
 {
@@ -248,38 +146,6 @@ void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::GetPotential(
             phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
     }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::ComputeVelocity(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    GetPotential(data.phis);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-}
-
-template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowKuttaElement<Dim, NumNodes>::ComputePressure(const ProcessInfo& rCurrentProcessInfo) const
-{
-    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-    const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v;
-    ComputeVelocity(v);
-
-    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
-               vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-    return pressure_coefficient;
 }
 
 // serializer

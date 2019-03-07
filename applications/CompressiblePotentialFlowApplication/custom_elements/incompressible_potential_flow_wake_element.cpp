@@ -79,15 +79,6 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateLocalSystem
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    // TODO: improve speed
-    Matrix tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
@@ -213,18 +204,6 @@ void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegratio
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-    if (rVariable == TRAILING_EDGE)
-        rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if (rVariable == WAKE)
-        rValues[0] = this->GetValue(WAKE);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -282,13 +261,6 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
     noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowWakeElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
-    const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
-{
-    noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
 }
 
 template <int Dim, int NumNodes>

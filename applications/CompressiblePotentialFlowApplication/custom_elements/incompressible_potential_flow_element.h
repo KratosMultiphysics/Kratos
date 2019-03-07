@@ -18,7 +18,7 @@
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "utilities/enrichment_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -179,8 +179,8 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Operators
+protected:
+    ///@name Protected Operators
     ///@{
 
     void ComputeLHSGaussPointContribution(const double weight,
@@ -189,11 +189,16 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotential(array_1d<double, NumNodes>& phis) const;
+    virtual void GetPotential(array_1d<double, NumNodes>& phis) const;
 
     void ComputeVelocity(array_1d<double, Dim>& velocity) const;
 
     double ComputePressure(const ProcessInfo& rCurrentProcessInfo) const;
+
+    ///@}
+private:
+    ///@name Private Operators
+    ///@{
 
     ///@}
     ///@name Private Operations
