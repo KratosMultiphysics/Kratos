@@ -67,7 +67,6 @@ public:
     // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
     KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
     KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_FLAG);            /// If the flag will be assigned (this means removing all entities of the model part)
-    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_BELONGINGS);      /// If removing the belogings of the removed entity
 
     /// Pointer definition of EntitiesEraseProcess
     KRATOS_CLASS_POINTER_DEFINITION(EntitiesEraseProcess);
@@ -79,13 +78,11 @@ public:
     /**
      * @brief The default parameters
      * @param rModelPart The model part where remove the entities
-     * @param RemoveFromAllLevels If the entities will be removed from all levels
-     * @param AssignFlag If the flag will be assigned (this means removing all entities of the model part)
-     * @param RemoveBelongings If removing the belogings of the removed entity
+     * @param Options The flags definitions
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ASSIGN_FLAG | NOT_REMOVE_BELONGINGS
+        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ASSIGN_FLAG
         );
 
     /**

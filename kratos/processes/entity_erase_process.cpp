@@ -30,10 +30,6 @@ template<class TEntity>
 const Kratos::Flags EntitiesEraseProcess<TEntity>::ASSIGN_FLAG(Kratos::Flags::Create(1));
 template<class TEntity>
 const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_ASSIGN_FLAG(Kratos::Flags::Create(1, false));
-template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_BELONGINGS(Kratos::Flags::Create(2));
-template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_REMOVE_BELONGINGS(Kratos::Flags::Create(2, false));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -70,7 +66,6 @@ EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
     // Assign parameters
     mrOptions.Set(REMOVE_FROM_ALL_LEVELS, ThisParameters["remove_from_all_levels"].GetBool());
     mrOptions.Set(ASSIGN_FLAG, ThisParameters["assign_flag"].GetBool());
-    mrOptions.Set(REMOVE_BELONGINGS, ThisParameters["remove_belongings"].GetBool());
 
     KRATOS_CATCH("")
 }
@@ -108,18 +103,10 @@ void EntitiesEraseProcess<Element>::Execute()
     if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Elements());
 
     // Remove elements
-    if (mrOptions.Is(REMOVE_BELONGINGS)) {
-        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
-            AuxiliarModelPartUtilities(mrModelPart).RemoveElementsAndBelongings(TO_ERASE);
-        } else {
-            AuxiliarModelPartUtilities(mrModelPart).RemoveElementsAndBelongingsFromAllLevels(TO_ERASE);
-        }
+    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+        mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     } else {
-        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
-            mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-        } else {
-            mrModelPart.RemoveElements(TO_ERASE);
-        }
+        mrModelPart.RemoveElements(TO_ERASE);
     }
 
     KRATOS_CATCH("")
@@ -137,18 +124,10 @@ void EntitiesEraseProcess<Condition>::Execute()
     if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
 
     // Remove conditions
-    if (mrOptions.Is(REMOVE_BELONGINGS)) {
-        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
-            AuxiliarModelPartUtilities(mrModelPart).RemoveConditionsAndBelongings(TO_ERASE);
-        } else {
-            AuxiliarModelPartUtilities(mrModelPart).RemoveConditionsAndBelongingsFromAllLevels(TO_ERASE);
-        }
+    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+        mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
     } else {
-        if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
-            mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-        } else {
-            mrModelPart.RemoveConditions(TO_ERASE);
-        }
+        mrModelPart.RemoveConditions(TO_ERASE);
     }
 
     KRATOS_CATCH("")
@@ -163,8 +142,7 @@ Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters()
     Parameters default_parameters = Parameters(R"(
     {
         "remove_from_all_levels" : false,
-        "assign_flag"            : false,
-        "remove_belongings"      : false
+        "assign_flag"            : false
     })" );
 
     return default_parameters;
