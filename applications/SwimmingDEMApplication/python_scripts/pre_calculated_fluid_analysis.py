@@ -28,9 +28,9 @@ class PreCalculatedFluidAnalysis(BaseAnalysis):
 
     def SetFluidLoader(self):
         import hdf5_io_tools
-        self.fluid_loader = hdf5_io_tools.FluidHDF5Loader(self.all_model_parts.Get('FluidPart'),
+        self.fluid_loader = hdf5_io_tools.FluidHDF5Loader(self.project_parameters,
+                                                          self.all_model_parts.Get('FluidPart'),
                                                           self.all_model_parts.Get('SpheresPart'),
-                                                          self.pp,
                                                           self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):

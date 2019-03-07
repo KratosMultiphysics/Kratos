@@ -29,12 +29,6 @@ class VariablesManager:
     def AddNodalVariablesToModelParts(self):
         VariablesManager.AddNodalVariables(model_part, variable_list)
 
-
-    def AddingExtraProcessInfoVariables(self, parameters, fluid_model_part, dem_model_part): #TO-DO: DEPRECATED!
-
-        self.AddExtraProcessInfoVariablesToFluidModelPart(parameters, fluid_model_part)
-        self.AddExtraProcessInfoVariablesToDispersePhaseModelPart(parameters, dem_model_part)
-
     # constructing lists of variables to add
     # * Performing modifications to the input parameters for consistency (provisional until interface does it)
     # * Choosing the variables to be printed
@@ -78,7 +72,9 @@ class VariablesManager:
 
         if parameters["laplacian_calculation_type"].GetInt() == 3: # recovery through solving a system
             fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 1)
-        elif parameters["material_acceleration_calculation_type"].GetInt() == 4 or parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6: # recovery through solving a system
+        elif (parameters["material_acceleration_calculation_type"].GetInt() == 4
+              or parameters["material_acceleration_calculation_type"].GetInt() == 5
+              or parameters["material_acceleration_calculation_type"].GetInt() == 6): # recovery by solving a system
             fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
 
         if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
@@ -109,16 +105,21 @@ class VariablesManager:
         dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["power_law_tol"].GetDouble())
         dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, parameters["drag_porosity_correction_type"].GetInt())
 
-        if parameters["basset_force_type"].GetInt() > 0:
-            dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, parameters["n_init_basset_steps"].GetInt())
-            dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, parameters["time_steps_per_quadrature_step"].GetInt())
-            dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
-            dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, parameters["quadrature_order"].GetInt())
+        for prop in parameters["properties"].values():
+            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
+                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+
+                if (prop["hydrodynamic_law_parameters"]["name"].GetString() != "default"
+                    and history_force_parameters["name"].GetString() != "default"):
+                    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, history_force_parameters["n_init_basset_steps"].GetInt())
+                    dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, history_force_parameters["time_steps_per_quadrature_step"].GetInt())
+                    dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
+                    dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, history_force_parameters["quadrature_order"].GetInt())
+                    break
 
         if parameters["drag_force_type"].GetInt() in {13} or parameters["lift_force_type"].GetInt() == 1:
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
-
 
     def ConstructListsOfVariables(self, parameters):
 
@@ -146,14 +147,18 @@ class VariablesManager:
         if parameters["pressure_grad_recovery_type"].GetInt() > 0:
             self.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
 
-        if parameters["gradient_calculation_type"].GetInt() > 1 or parameters["pressure_grad_recovery_type"].GetInt() > 1 or parameters["material_acceleration_calculation_type"].GetInt() == 7:
+        if (parameters["gradient_calculation_type"].GetInt() > 1
+            or parameters["pressure_grad_recovery_type"].GetInt() > 1
+            or parameters["material_acceleration_calculation_type"].GetInt() == 7
+            or parameters["laplacian_calculation_type"].GetInt() > 1):
             self.fluid_vars += [NODAL_WEIGHTS]
 
         if parameters["material_acceleration_calculation_type"].GetInt():
             self.fluid_vars += [MATERIAL_ACCELERATION]
             self.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
-            if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
+            if (parameters["material_acceleration_calculation_type"].GetInt() == 5
+                or parameters["material_acceleration_calculation_type"].GetInt() == 6):
                 if parameters["store_full_gradient_option"].GetBool():
                     self.fluid_vars += [VELOCITY_X_GRADIENT]
                     self.fluid_vars += [VELOCITY_Y_GRADIENT]
@@ -182,31 +187,45 @@ class VariablesManager:
             self.dem_vars += [DISPLACEMENT_OLD]
             self.dem_vars += [VELOCITY_OLD_OLD]
 
-        if parameters["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'} or parameters["basset_force_type"].GetInt() > 0:
+        if (parameters["TranslationalIntegrationScheme"].GetString()
+            in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}
+            or parameters["basset_force_type"].GetInt() > 0):
             self.dem_vars += [VELOCITY_OLD]
             self.dem_vars += [ADDITIONAL_FORCE_OLD]
             self.dem_vars += [SLIP_VELOCITY]
 
-        if parameters["drag_force_type"].GetInt() > 0 and  parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["drag_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [DRAG_FORCE]
 
         if parameters["drag_force_type"].GetInt() > 1:
             self.dem_vars += [PARTICLE_SPHERICITY]
 
-        if parameters["lift_force_type"].GetInt() > 0 and  parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["lift_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [LIFT_FORCE]
 
-        if parameters["virtual_mass_force_type"].GetInt() > 0 and  parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["virtual_mass_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
 
-        if parameters["basset_force_type"].GetInt() > 0 and  parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["basset_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [BASSET_FORCE]
 
         # clusters variables
         self.clusters_vars = []
 
         # rigid faces variables
-        self.rigid_faces_vars = [VELOCITY, ANGULAR_VELOCITY, DISPLACEMENT, DELTA_DISPLACEMENT, DELTA_ROTATION, CONTACT_FORCES, DEM_PRESSURE, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA, VELOCITY_OLD]
+        self.rigid_faces_vars = [VELOCITY,
+                                 ANGULAR_VELOCITY,
+                                 DISPLACEMENT,
+                                 DELTA_DISPLACEMENT,
+                                 DELTA_ROTATION,
+                                 CONTACT_FORCES,
+                                 DEM_PRESSURE,
+                                 ELASTIC_FORCES,
+                                 PRESSURE,
+                                 TANGENTIAL_ELASTIC_FORCES,
+                                 SHEAR_STRESS,
+                                 NODAL_AREA,
+                                 VELOCITY_OLD]
 
         if parameters["embedded_option"].GetBool():
             self.rigid_faces_vars += [FORCE]
@@ -360,12 +379,14 @@ class VariablesManager:
         self.coupling_fluid_vars = []
         self.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
-        self.coupling_fluid_vars += [KratosGlobals.GetVariable( parameters["body_force_per_unit_mass_variable_name"].GetString() )]
+        self.coupling_fluid_vars += [KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
         if parameters["fluid_model_type"].GetInt() == 0:
             self.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
 
-        if parameters["fluid_model_type"].GetInt() == 0 or parameters["coupling_level_type"].GetInt() > 1 or parameters["drag_force_type"].GetInt() == 4:
+        if (parameters["fluid_model_type"].GetInt() == 0
+            or parameters["coupling_level_type"].GetInt() > 1
+            or parameters["drag_force_type"].GetInt() == 4):
             self.coupling_fluid_vars += [FLUID_FRACTION]
             self.coupling_fluid_vars += [FLUID_FRACTION_OLD]
 
@@ -428,7 +449,8 @@ class VariablesManager:
         if parameters["coupling_level_type"].GetInt() >= 1 or parameters["fluid_model_type"].GetInt() == 0:
             self.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
-        if parameters["coupling_level_type"].GetInt() >= 1 and parameters["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool():
+        if (parameters["coupling_level_type"].GetInt() >= 1
+            and parameters["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool()):
             self.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
 
         if parameters["drag_force_type"].GetInt() in {2} or parameters["lift_force_type"].GetInt() == 1:
@@ -522,10 +544,11 @@ class VariablesManager:
     def ChangeInputDataForConsistency(self, parameters):
         if parameters["coupling_level_type"].GetInt() == 0:
             parameters["project_at_every_substep_option"].SetBool(False)
-            parameters.project_at_every_substep_option = False #TODO: what should we do in these cases?? Discuss
 
+        # the fluid fraction is not projected from DEM (there may not
+        # be a DEM part) but is externally imposed:
         if parameters["flow_in_porous_medium_option"].GetBool():
-            parameters.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
+            parameters["coupling_weighing_type"].SetInt(- 1)
 
         parameters["time_steps_per_stationarity_step"].SetInt(max(1, int(parameters["time_steps_per_stationarity_step"].GetInt())))
 

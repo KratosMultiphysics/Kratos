@@ -32,7 +32,7 @@ class SwimmingDEMSolver(PythonSolver):
         """)
 
         if not project_parameters["processes"].Has('non_optional_solver_processes'):
-            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+           project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
 
         else: # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
             non_optional_processes_list = list(project_parameters["processes"]["non_optional_solver_processes"])
@@ -41,7 +41,7 @@ class SwimmingDEMSolver(PythonSolver):
 
             for process in non_optional_processes_list:
                 if process["python_module"].GetString() != 'calculate_nodal_area_process':
-                   project_parameters["processes"]["non_optional_solver_processes"].Append(process)
+                    project_parameters["processes"]["non_optional_solver_processes"].Append(process)
 
         non_optional_solver_processes = project_parameters["processes"]["non_optional_solver_processes"]
         non_optional_solver_processes.Append(default_processes_settings)
@@ -140,10 +140,15 @@ class SwimmingDEMSolver(PythonSolver):
         return SDP.Counter(1, 1, there_is_something_to_recover)
 
     def GetHistoryForceQuadratureCounter(self):
-        return SDP.Counter(
-            self.project_parameters["time_steps_per_quadrature_step"].GetInt(),
-            1,
-            self.project_parameters["basset_force_type"].GetInt())
+        for prop in self.project_parameters["properties"].values():
+            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
+                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                if history_force_parameters.Has("time_steps_per_quadrature_step"):
+                    time_steps_per_quadrature_step = history_force_parameters["time_steps_per_quadrature_step"].GetInt()
+
+                    return SDP.Counter(steps_in_cycle=time_steps_per_quadrature_step, beginning_step=1)
+
+        return SDP.Counter(is_dead=True)
 
     def AdvanceInTime(self, step, time):
         self.step, self.time = self.dem_solver.AdvanceInTime(step, time)

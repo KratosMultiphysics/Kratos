@@ -44,7 +44,7 @@ def Index():
 
 class FluidHDF5Loader:
 
-    def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
+    def __init__(self, project_parameters, fluid_model_part, particles_model_part, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = project_parameters["store_fluid_pressure_option"].GetBool()
@@ -52,7 +52,6 @@ class FluidHDF5Loader:
         self.load_derivatives = project_parameters["load_derivatives"].GetBool()
         self.there_are_more_steps_to_load = True
         self.main_path = main_path
-        self.pp = pp
         self.fluid_model_part = fluid_model_part
         self.disperse_phase_model_part = particles_model_part
 
@@ -98,11 +97,12 @@ class FluidHDF5Loader:
 
             with h5py.File(self.file_path, 'w') as f:
                 f.attrs['kinematic viscosity'] = viscosity
-                f.attrs['time step'] = pp.Dt
+                f.attrs['time step'] = project_parameters.Dt
                 f.attrs['density'] = density
-                f.attrs['solver type'] = pp.FluidSolverConfiguration.solver_type
-                f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
-                f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
+                solver_settings = project_parameters["fluid_parameters"]["solver_settings"]
+                f.attrs['solver type'] = solver_settings["solver_type"].GetString()
+                f.attrs['linear system solver type'] = solver_settings["linear_solver_settings"]["solver_type"].GetString()
+                f.attrs['use orthogonal subscales'] = False
                 nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
                 f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
 
@@ -251,19 +251,19 @@ class FluidHDF5Loader:
         Say('Finished loading fluid from hdf5 file.\n')
 
 class ParticleHistoryLoader:
-    def __init__(self, particles_model_part, particle_watcher, pp, main_path):
-        self.pp = pp
+    def __init__(self, parameters, particles_model_part, particle_watcher, main_path):
+        self.parameters = parameters
         self.model_part = particles_model_part
         self.particle_watcher = particle_watcher
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
-        self.prerun_fluid_file_name = project_parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
+        self.prerun_fluid_file_name = parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
 
         self.CreateAllParticlesFileIfNecessary()
         self.run_code = None
 
     def CreateAllParticlesFileIfNecessary(self):
-        if not self.project_parameters["full_particle_history_watcher"].GetString() == 'Empty':
+        if not self.parameters["full_particle_history_watcher"].GetString() == 'Empty':
             nodes = [node for node in self.model_part.Nodes if node.IsNot(BLOCKED)]
             Ids = np.array([node.Id for node in nodes], dtype = int)
             X0s = np.array([node.X0 for node in nodes])
@@ -329,7 +329,7 @@ class ParticleHistoryLoader:
             snapshot.attrs['particles_nondimensional_radius'] = mean_radius
             # storing the input parameters for this run, the one corresponding
             # to the current pre-calculated fluid
-            for k, v in ((k, v) for k, v in json.loads(self.project_parameters.WriteJsonString()).items() if 'comment' not in k):
+            for k, v in ((k, v) for k, v in json.loads(self.parameters.WriteJsonString()).items() if 'comment' not in k):
                 snapshot.attrs[k] = v
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']

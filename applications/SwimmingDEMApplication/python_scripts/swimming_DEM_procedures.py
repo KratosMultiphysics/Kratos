@@ -71,7 +71,7 @@ def SetModelPartSolutionStepValue(model_part, var, value):
     for node in model_part.Nodes:
         node.SetSolutionStepValue(var, 0, value)
 
-def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
+def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_model_part):
     checker = SDEMApp.VariableChecker()
 
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
@@ -229,9 +229,8 @@ def FunctionsCalculator(domain_size=3):
 
 class IOTools:
 
-    def __init__(self, Param):
-
-        self.param = Param
+    def __init__(self, parameters):
+        self.parameters = parameters
 
     def PrintParticlesResults(self, variables, time, model_part):
 

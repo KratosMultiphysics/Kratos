@@ -22,7 +22,10 @@ class TJunctionAnalysis(BaseAnalysis):
     def PerformZeroStepInitializations(self):
         BaseAnalysis.PerformZeroStepInitializations(self)
         import hdf5_io_tools
-        self.particles_loader = hdf5_io_tools.ParticleHistoryLoader(self.all_model_parts.Get('SpheresPart'), self.disperse_phase_solution.watcher, self.pp, self.main_path)
+        self.particles_loader = hdf5_io_tools.ParticleHistoryLoader(self.project_parameters,
+                                                                    self.all_model_parts.Get('SpheresPart'),
+                                                                    self.disperse_phase_solution.watcher,
+                                                                    self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):
         BaseAnalysis.FluidSolve(self, time, solve_system)

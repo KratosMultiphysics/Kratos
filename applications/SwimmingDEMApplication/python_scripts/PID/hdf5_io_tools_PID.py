@@ -6,12 +6,12 @@ BaseLoader = hdf5_io_tools.FluidHDF5Loader
 
 class FluidHDF5LoaderPID(BaseLoader):
     def __init__(self,
+                 parameters,
                  fluid_model_part,
                  particles_model_part,
-                 pp,
                  main_path,
                  averager):
-        BaseLoader.__init__(self, fluid_model_part, particles_model_part, pp, main_path)
+        BaseLoader.__init__(self, fluid_model_part, particles_model_part, parameters, main_path)
         self.dataset_name = 'stationary_field'
         self.averager = averager
 

@@ -60,11 +60,12 @@ class RotatingAleAnalysis(BaseAnalysis):
                                             original_file_path = self.main_path,
                                             initial_time = initial_averaging_time,
                                             steps_per_average_step = steps_per_average_step)
-            self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.all_model_parts.Get('FluidPart'),
-                                                                    self.all_model_parts.Get('SpheresPart'),
-                                                                    self.pp,
-                                                                    self.main_path,
-                                                                    averager)
+
+            self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.project_parameters,
+                                                                     self.all_model_parts.Get('FluidPart'),
+                                                                     self.all_model_parts.Get('SpheresPart'),
+                                                                     self.main_path,
+                                                                     averager)
         else:
             BaseAnalysis.SetFluidLoader(self)
 

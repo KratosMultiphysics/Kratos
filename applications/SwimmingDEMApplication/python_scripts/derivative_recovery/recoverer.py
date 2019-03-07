@@ -14,7 +14,7 @@ class DerivativesRecoverer:
         self.cplusplus_recovery_tool = DerivativeRecoveryTool3D(model_part, project_parameters)
 
 class EmptyGradientRecoverer(DerivativesRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         pass
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
         pass
@@ -28,7 +28,7 @@ class EmptyGradientRecoverer(DerivativesRecoverer):
         pass
 
 class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         pass
     def RecoverMaterialAcceleration(self):
         pass
@@ -36,7 +36,7 @@ class EmptyMaterialAccelerationRecoverer(DerivativesRecoverer):
         pass
 
 class EmptyVorticityRecoverer(DerivativesRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         pass
     def RecoverVorticityFromGradient(self):
         pass
@@ -44,7 +44,7 @@ class EmptyVorticityRecoverer(DerivativesRecoverer):
         pass
 
 class EmptyLaplacianRecoverer(DerivativesRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         pass
     def RecoverVectorLaplacian(self, vector_variable, laplacian_variable):
         pass
@@ -52,8 +52,8 @@ class EmptyLaplacianRecoverer(DerivativesRecoverer):
         pass
 
 class GradientRecoverer(EmptyGradientRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
-        DerivativesRecoverer.__init__(self,  project_parameters, model_part)
+    def __init__(self, project_parameters, model_part):
+        DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverGradientOfVelocity(self):
         self.RecoverGradientOfVector(VELOCITY, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
@@ -62,7 +62,7 @@ class GradientRecoverer(EmptyGradientRecoverer):
         self.RecoverGradientOfScalar(FLUID_FRACTION, FLUID_FRACTION_GRADIENT)
 
 class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAccelerationRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverMaterialAcceleration(self):
         self.RecoverMaterialAccelerationFromGradient()
@@ -70,7 +70,7 @@ class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAcceleration
         self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
 
 class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVorticityFromGradient(self):
         self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
@@ -78,7 +78,7 @@ class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
         self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
 
 class LaplacianRecoverer(GradientRecoverer, EmptyLaplacianRecoverer):
-    def __init__(self,  project_parameters, pp, model_part):
+    def __init__(self, project_parameters, model_part):
         DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVelocityLaplacian(self):
         self.RecoverVectorLaplacian(VELOCITY, VELOCITY_LAPLACIAN)
