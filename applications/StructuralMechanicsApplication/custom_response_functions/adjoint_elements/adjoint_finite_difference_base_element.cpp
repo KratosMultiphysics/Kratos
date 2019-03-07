@@ -544,16 +544,30 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 // private
 double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = 0.0;
+    if(this->GetValue(APPLY_ADAPTIVE_PERTURBATION))
+    {
+        const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
+        delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    }
+    else
+        delta = this->GetValue(PERTURBATION_SIZE);
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
 double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = 0.0;
+    if(this->GetValue(APPLY_ADAPTIVE_PERTURBATION))
+    {
+        const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
+        delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    }
+    else
+        delta = this->GetValue(PERTURBATION_SIZE);
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }

@@ -106,6 +106,7 @@ private:
 
     unsigned int mGradientMode;
     double mDelta;
+    bool mApplyAdaptivePerturbation;
 
     ///@}
     ///@name Private Operators

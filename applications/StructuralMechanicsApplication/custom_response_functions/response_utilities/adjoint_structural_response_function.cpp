@@ -38,6 +38,11 @@ namespace Kratos
             mGradientMode = 1;
             double delta = ResponseSettings["step_size"].GetDouble();
             mDelta = delta;
+
+            if(ResponseSettings.Has("adapt_step_size"))
+                mApplyAdaptivePerturbation = ResponseSettings["adapt_step_size"].GetBool();
+            else
+                mApplyAdaptivePerturbation = false;
         }
         else
             KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
@@ -54,6 +59,8 @@ namespace Kratos
         {
             VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Elements());
             VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, mrModelPart.Conditions());
+            VariableUtils().SetNonHistoricalVariable(APPLY_ADAPTIVE_PERTURBATION, mApplyAdaptivePerturbation, mrModelPart.Elements());
+            VariableUtils().SetNonHistoricalVariable(APPLY_ADAPTIVE_PERTURBATION, mApplyAdaptivePerturbation, mrModelPart.Conditions());
         }
 
         KRATOS_CATCH("");
