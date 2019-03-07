@@ -165,10 +165,6 @@ namespace Kratos
 ///@{
 
 extern template class AdjointSolidElement<TotalLagrangian>;
-// TODO extern template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
-// TODO extern template class AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
-// TODO extern template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
-// TODO extern template class AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
 
 /**
  * @class KratosStructuralMechanicsApplication
