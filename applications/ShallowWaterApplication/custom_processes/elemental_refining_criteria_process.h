@@ -67,22 +67,34 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /// Constructor
+    ElementalRefiningCriteriaProcess(
+        ModelPart& rThisModelPart,
+        Variable<double> ThisVariable,
+        double Threshold,
+        bool OnlyRefineWetDomain
+    ) : mrModelPart(rThisModelPart)
+      , mVariable(ThisVariable)
+      , mThreshold(Threshold)
+      , mOnlyRefineWetDomain(OnlyRefineWetDomain)
+    {}
+
+    /// Constructor with parameters
     ElementalRefiningCriteriaProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
-    ):mrModelPart(rThisModelPart)
+    ) : mrModelPart(rThisModelPart)
     {
 
     Parameters default_parameters = Parameters(R"(
     {
-        "model_part_name"         : "main_model_part",
         "error_variable"          : "RESIDUAL_NORM",
         "variable_threshold"      : 1e-2,
         "only_refine_wet_domain"  : true
     })");
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+    mVariable = KratosComponents< Variable<double> >::Get(ThisParameters["error_variable"].GetString());
     mThreshold = ThisParameters["variable_threshold"].GetDouble();
     mOnlyRefineWetDomain = ThisParameters["only_refine_wet_domain"].GetBool();
 
@@ -236,6 +248,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    Variable<double> mVariable = RESIDUAL_NORM;
     double mThreshold;
     bool mOnlyRefineWetDomain;
 

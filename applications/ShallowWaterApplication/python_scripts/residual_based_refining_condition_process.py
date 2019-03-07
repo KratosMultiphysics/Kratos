@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics.MeshingApplication as Meshing
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -17,6 +18,7 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
             "model_part_name"           : "model_part",
             "error_variable"            : "RESIDUAL_NORM",
             "variable_threshold"        : 1e-3,
+            "increase_threshold"        : true,
             "only_refine_wet_domain"    : true
         }
         """)
@@ -24,12 +26,21 @@ class ResidualBasedRefiningConditionProcess(KratosMultiphysics.Process):
         # Overwrite the default settings with user-provided parameters
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.model_part = model[settings["model_part_name"].GetString()]
-        self.error_variable = getattr(KratosMultiphysics, settings["error_variable"].GetString())
-        self.variable_threshold = settings["variable_threshold"].GetDouble()
-        self.only_refine_wet_domain = settings["only_refine_wet_domain"].GetBool()
+        model_part = model[settings["model_part_name"].GetString()]
 
-        self.process = Shallow.ElementalRefiningCriteriaProcess(self.model_part, settings)
+        # Creation of the parameters for the c++ process
+        criteria_parameters = KratosMultiphysics.Parameters("""{}""")
+        criteria_parameters.AddValue("error_variable", settings["error_variable"])
+        criteria_parameters.AddValue("only_refine_wet_domain", settings["only_refine_wet_domain"])
+        criteria_parameters.AddValue("variable_threshold", settings["variable_threshold"])
+
+        if settings["increase_threshold"].GetBool():
+            variable_threshold = settings["variable_threshold"].GetDouble()
+            next_subscale_index = model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] + 1
+            variable_threshold *= next_subscale_index
+            criteria_parameters["variable_threshold"].SetDouble(variable_threshold)
+
+        self.process = Shallow.ElementalRefiningCriteriaProcess(model_part, criteria_parameters)
 
     def Execute(self):
         self.process.Execute()

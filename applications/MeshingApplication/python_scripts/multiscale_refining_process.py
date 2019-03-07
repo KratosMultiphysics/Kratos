@@ -19,8 +19,6 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "current_subscale"                : 0,
             "maximum_number_of_subscales"     : 4,
             "echo_level"                      : 0,
-            "error_variable"                  : "RESIDUAL_NORM",
-            "variable_threshold"              : 1e-3,
             "refining_condition_parameters"   : {
                 "kratos_module"                   : "KratosMultiphysics.ShallowWaterApplication",
                 "python_module"                   : "residual_based_refining_condition_process",
@@ -28,7 +26,8 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                     "model_part_name"                 : "model_part",
                     "error_variable"                  : "RESIDUAL_NORM",
                     "variable_threshold"              : 1e-3,
-                    "only_refine_wet_domain"          : false
+                    "increase_threshold"              : true,
+                    "only_refine_wet_domain"          : true
                 }   
             },
             "variables_to_apply_fixity"       : [],

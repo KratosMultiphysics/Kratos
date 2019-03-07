@@ -37,6 +37,7 @@ namespace Python
         py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>(m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, Variable<double>, double, bool>())
         .def("Execute",&ElementalRefiningCriteriaProcess::Execute)
         ;
     }
