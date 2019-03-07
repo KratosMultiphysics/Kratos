@@ -38,7 +38,7 @@
 
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
-// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 // TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 // TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
@@ -404,7 +404,7 @@ private:
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
-    // TODO const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
+    const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
     // TODO const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
     // TODO const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;

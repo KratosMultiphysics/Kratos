@@ -54,7 +54,8 @@ namespace Kratos
         Parameters parameters = Parameters(R"(
         {
             "element_name_table"    : {
-                "ShellThinElement3D3N" : "AdjointFiniteDifferencingShellThinElement3D3N"
+                "ShellThinElement3D3N" : "AdjointFiniteDifferencingShellThinElement3D3N",
+                "CrLinearBeamElement3D2N" : "AdjointFiniteDifferenceCrBeamElementLinear3D2N"
             },
             "condition_name_table"    : {
                 "PointLoadCondition2D1N" : "AdjointSemiAnalyticPointLoadCondition2D1N",

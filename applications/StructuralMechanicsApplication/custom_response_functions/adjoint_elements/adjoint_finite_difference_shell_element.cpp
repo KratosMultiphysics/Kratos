@@ -31,6 +31,7 @@ int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessIn
 
     int return_value = BaseType::Check(rCurrentProcessInfo);
 
+    KRATOS_ERROR_IF_NOT(this->mHasRotationDofs) << "Adjoint shell element does not have rotation dofs!" << std::endl;
     KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
