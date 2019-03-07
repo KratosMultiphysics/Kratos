@@ -86,24 +86,13 @@ void KratosMappingApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::stringstream banner;
-    banner << "    KRATOS ______  ___                      _____\n"
-           << "           ___   |/  /_____ ___________________(_)_____________ _\n"
-           << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/\n"
-           << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /\n"
-           << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /\n"
-           << "                            /_/     /_/                 /____/\n"
-           << "Initializing KratosMappingApplication..." << std::endl;
-
-    int rank = 0;
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    int mpi_initialized = 0;
-    MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized) MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-
-    if (rank == 0) KRATOS_INFO("") << banner.str();
+    KRATOS_INFO("") << "    KRATOS ______  ___                      _____\n"
+                    << "           ___   |/  /_____ ___________________(_)_____________ _\n"
+                    << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/\n"
+                    << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /\n"
+                    << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /\n"
+                    << "                            /_/     /_/                 /____/\n"
+                    << "Initializing KratosMappingApplication..." << std::endl;
 
     // registering the mappers using the registration-macro
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
