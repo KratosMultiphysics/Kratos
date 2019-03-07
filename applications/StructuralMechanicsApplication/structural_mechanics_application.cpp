@@ -146,8 +146,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the adjoint elements
       mAdjointFiniteDifferencingShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mAdjointFiniteDifferenceCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-      // TODO mAdjointFiniteDifferenceTrussElement(),
-      // TODO mAdjointFiniteDifferenceTrussLinearElement(),
+      mAdjointFiniteDifferenceTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mAdjointFiniteDifferenceTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mTotalLagrangianAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
 
       /* CONDITIONS */
@@ -538,8 +538,8 @@ void KratosStructuralMechanicsApplication::Register() {
     //Register the adjoint elements
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingShellThinElement3D3N", mAdjointFiniteDifferencingShellThinElement3D3N )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElementLinear3D2N", mAdjointFiniteDifferenceCrBeamElementLinear3D2N )
-    // TODO KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement", mAdjointFiniteDifferenceTrussElement)
-    // TODO KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement", mAdjointFiniteDifferenceTrussLinearElement)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement3D2N", mAdjointFiniteDifferenceTrussElement3D2N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement3D2N", mAdjointFiniteDifferenceTrussLinearElement3D2N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D3N", mTotalLagrangianAdjoint2D3N)
 
     // Register the conditions

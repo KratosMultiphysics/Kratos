@@ -21,6 +21,8 @@
 #include "includes/checks.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
 
 
 namespace Kratos
@@ -613,6 +615,8 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
 template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 
 } // namespace Kratos
 

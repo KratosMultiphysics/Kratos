@@ -39,8 +39,8 @@
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
-// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
-// TODO #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 /* Adding shells and membranes elements */
@@ -165,6 +165,10 @@ namespace Kratos
 ///@{
 
 extern template class AdjointSolidElement<TotalLagrangian>;
+// TODO extern template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
+// TODO extern template class AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
+// TODO extern template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
+// TODO extern template class AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
 
 /**
  * @class KratosStructuralMechanicsApplication
@@ -405,8 +409,8 @@ private:
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
-    // TODO const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
-    // TODO const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
+    const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
+    const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
 
     /* CONDITIONS*/
