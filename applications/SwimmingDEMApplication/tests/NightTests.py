@@ -27,8 +27,8 @@ class candelier_with_history_hinsberg_test(TF.TestFactory):
      file_name = "candelier_tests/candelier"
      file_parameters = "candelier_tests/ProjectParametersWithHistoryHinsberg.json"
 
-class Test(SPFEMTF.TestFactory):
-     file_name = "PFEM-DEM_tests/Test"
+class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
+     file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
      file_parameters = "PFEM-DEM_tests/ProjectParameters.json"
 
 # This test is ready to run but the implementation is not complete
@@ -47,7 +47,7 @@ def SetTestSuite(suites):
           candelier_no_history_non_inertial_test,
           candelier_with_history_test,
           candelier_with_history_hinsberg_test,
-          Test
+          sdem_pfem_coupling_one_way_test
           ])
     )
 

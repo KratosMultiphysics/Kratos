@@ -11,18 +11,21 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
     def __init__(self, model, parameters=None, pp=None):
         self.model = model
         self.pp = pp
-        self.parameters = parameters
-        self.dimension = pp.fluid_parameters["problem_data"]["dimension"].GetInt()
+        self.sdem_project_parameters = parameters
+        self.project_parameters = self.sdem_project_parameters['fluid_parameters']
+        self.dimension = self.project_parameters["problem_data"]["dimension"].GetInt()
         pp.nodal_results, pp.gauss_points_results = [], []
 
-        if pp.fluid_parameters.Has('output_configuration'):
-            gid_output_options = self.parameters["output_configuration"]["result_file_configuration"]
+        if self.project_parameters.Has('output_configuration'):
+            gid_output_options = self.project_parameters["output_configuration"]["result_file_configuration"]
             gauss_point_results = gid_output_options["gauss_point_results"]
-            nodal_variables = self.parameters["output_configuration"]["result_file_configuration"]["nodal_results"]
+            nodal_variables = self.project_parameters["output_configuration"]["result_file_configuration"]["nodal_results"]
             pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
-        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.parameters)
+        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
+        self.parameters = self.project_parameters
+
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):

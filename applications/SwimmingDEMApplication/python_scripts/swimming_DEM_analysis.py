@@ -194,7 +194,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Add("store_fluid_pressure_option").SetBool(False)
         Add("laplacian_calculation_type").SetInt(0)
         Add("faxen_terms_type").SetInt(0)
-        Add("material_acceleration_calculation_type").SetInt(8)
+        Add("material_acceleration_calculation_type").SetInt(1)
         Add("faxen_force_type").SetInt(0)
         Add("vorticity_calculation_type").SetInt(5)
         Add("print_FLUID_VEL_PROJECTED_RATE_option").SetBool(False)

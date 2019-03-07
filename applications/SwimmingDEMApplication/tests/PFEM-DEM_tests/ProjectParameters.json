@@ -138,7 +138,7 @@
 "print_VELOCITY_LAPLACIAN_option"            : false,
 "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
 
-"problem_name" : "PFEM-DEM_tests/Test",
+"problem_name" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
 "properties": [{
     "model_part_name": "settling_particles",
     "properties_id": 3,
@@ -185,7 +185,7 @@
 },
 "fluid_parameters"  : {
     "problem_data"             : {
-        "problem_name"    : "PFEM-DEM_tests/Test",
+        "problem_name"    : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
         "model_part_name" : "Main Domain",
         "dimension"       : 3,
         "time_step"       : 0.001,
@@ -209,7 +209,7 @@
         "solver_type"                        : "pfem_fluid_solver_analysis",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "PFEM-DEM_tests/Test",
+            "input_filename"   : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
             "input_file_label" : 0
         },
         "maximum_pressure_iterations"        : 7,
@@ -435,7 +435,7 @@
 
     "dem_parameters" : {
         "problem_data"     : {
-            "problem_name"  : "PFEM-DEM_tests/Test",
+            "problem_name"  : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
             "parallel_type" : "OpenMP",
             "echo_level"    : 0,
             "start_time"    : 0.0,
@@ -485,7 +485,7 @@
         "NeighbourSearchFrequency"         : 1,
         "TestType"                         : "None",
         "ElementType"                      : "SwimmingDEMElement",
-        "problem_name"                     : "PFEM-DEM_tests/Test",
+        "problem_name"                     : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
         "GraphExportFreq"                  : 1e-3,
         "VelTrapGraphExportFreq"           : 1e-3,
         "OutputTimeStep"                   : 1,

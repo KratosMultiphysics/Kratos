@@ -14,7 +14,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetFluidAlgorithm(self):
         import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
-        self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model,self.pp.fluid_parameters, self.pp)
+        self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model,self.project_parameters, self.pp)
         self.fluid_solution.main_path = self.main_path
 
     def SetCouplingParameters(self, parameters):
@@ -24,18 +24,8 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
         super(SDEMPFEMAnalysis,self).SetBetaParameters()
-        #self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
         self.pp.CFD_DEM["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
-
-    #def SetCouplingParameters(self, varying_parameters):
-        #parameters_file = open("parametersDEM.json",'r')
-        #self.pp.CFD_DEM = Parameters(parameters_file.read())
-        #self.SetDoSolveDEMVariable()
-        #self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
-        #self.SetBetaParameters()
-        #self.SetCustomBetaParameters(varying_parameters)
-        #self.pp.domain_size = self.fluid_solution.parameters["problem_data"]["domain_size"].GetInt()
-        #super(Algorithm,self).SetCouplingParameters(varying_parameters)
+        self.pp.CFD_DEM["material_acceleration_calculation_type"].SetInt(8)
 
     def SetAllModelParts(self):
         self.all_model_parts = self.disperse_phase_solution.all_model_parts

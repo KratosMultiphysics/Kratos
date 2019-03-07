@@ -39,15 +39,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         #### PARSING THE PARAMETERS ####
 
-        # Import input
-        # if file_parameters == "parameters.json":
-        #     parameter_file = open("parameters.json",'r')
-        #     self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        # else:
-        #     self.parameters = self._import_project_parameters(file_parameters)
-
         #set echo level
-        self.echo_level = self.parameters["problem_data"]["echo_level"].GetInt()
+        self.echo_level = parameters["problem_data"]["echo_level"].GetInt()
 
         # Print solving time
         self.report = False
@@ -57,46 +50,40 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         print(" ")
 
         # defining the number of threads:
-        num_threads = self.parameters["problem_data"]["threads"].GetInt()
+        num_threads = parameters["problem_data"]["threads"].GetInt()
         self.SetParallelSize(num_threads)
         print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
         #parallel.PrintOMPInfo()
 
 
         print(" ")
-        print("::[KPFEM Simulation]:: [Time Step:", self.parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
+        print("::[KPFEM Simulation]:: [Time Step:", parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
 
         #### Model_part settings start ####
         super(PfemFluidDynamicsAnalysis,self).__init__(model,parameters)
         # Defining the model_part
-        self.main_model_part = self.model.GetModelPart(self.parameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part = self.model.GetModelPart(parameters["problem_data"]["model_part_name"].GetString())
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.parameters["time_stepping"]["time_step"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.parameters["problem_data"]["start_time"].GetDouble())
-        if( self.parameters["problem_data"].Has("gravity_vector") ):
-             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, self.parameters["problem_data"]["gravity_vector"][0].GetDouble())
-             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, self.parameters["problem_data"]["gravity_vector"][1].GetDouble())
-             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, self.parameters["problem_data"]["gravity_vector"][2].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["problem_data"]["dimension"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["time_stepping"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, parameters["problem_data"]["start_time"].GetDouble())
+        if( parameters["problem_data"].Has("gravity_vector") ):
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, parameters["problem_data"]["gravity_vector"][0].GetDouble())
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
+             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
 
         ###TODO replace this "model" for real one once available in kratos core
-        self.Model = {self.parameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
-
-        #construct the solver (main setting methods are located in the solver_module)
-        #solver_module = __import__(self.parameters["solver_settings"]["solver_type"].GetString())
-        #self.solver = solver_module.CreateSolver(self.main_model_part, self.parameters["solver_settings"])
-        #### Output settings start ####
-
+        self.Model = {parameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
 
 
         self.problem_path = os.getcwd()
-        self.problem_name = self.parameters["problem_data"]["problem_name"].GetString()
+        self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
     def _CreateSolver(self):
 
-        solver_module = __import__(self.parameters["solver_settings"]["solver_type"].GetString())
-        return solver_module.CreateSolver(self.model, self.pp.fluid_parameters)
+        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        return solver_module.CreateSolver(self.model, self.project_parameters)
 
     def AddNodalVariablesToModelPart(self):
 
@@ -134,8 +121,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
         ## Get the list of the submodel part in the object Model
-        for i in range(self.parameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+        for i in range(self.project_parameters["solver_settings"]["processes_sub_model_part_list"].size()):
+            part_name = self.project_parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
             if( self.main_model_part.HasSubModelPart(part_name) ):
                 self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
@@ -156,17 +143,17 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         import process_handler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
-        process_parameters.AddValue("echo_level", self.parameters["problem_data"]["echo_level"])
-        process_parameters.AddValue("constraints_process_list", self.parameters["constraints_process_list"])
-        process_parameters.AddValue("loads_process_list", self.parameters["loads_process_list"])
-        if( self.parameters.Has("problem_process_list") ):
-            process_parameters.AddValue("problem_process_list", self.parameters["problem_process_list"])
-        if( self.parameters.Has("output_process_list") ):
-            process_parameters.AddValue("output_process_list", self.parameters["output_process_list"])
-        if( self.parameters.Has("processes_sub_model_part_tree_list") ):
-            process_parameters.AddValue("processes_sub_model_part_tree_list",self.parameters["processes_sub_model_part_tree_list"])
-        if( self.parameters.Has("check_process_list") ):
-            process_parameters.AddValue("check_process_list", self.parameters["check_process_list"])
+        process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
+        process_parameters.AddValue("constraints_process_list", self.project_parameters["constraints_process_list"])
+        process_parameters.AddValue("loads_process_list", self.project_parameters["loads_process_list"])
+        if( self.project_parameters.Has("problem_process_list") ):
+            process_parameters.AddValue("problem_process_list", self.project_parameters["problem_process_list"])
+        if( self.project_parameters.Has("output_process_list") ):
+            process_parameters.AddValue("output_process_list", self.project_parameters["output_process_list"])
+        if( self.project_parameters.Has("processes_sub_model_part_tree_list") ):
+            process_parameters.AddValue("processes_sub_model_part_tree_list",self.project_parameters["processes_sub_model_part_tree_list"])
+        if( self.project_parameters.Has("check_process_list") ):
+            process_parameters.AddValue("check_process_list", self.project_parameters["check_process_list"])
 
         self.model_processes = process_handler.ProcessHandler(self.Model, process_parameters)
 
@@ -222,8 +209,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        self.end_time   = self.parameters["problem_data"]["end_time"].GetDouble()
-        self.delta_time = self.parameters["problem_data"]["time_step"].GetDouble()
+        self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
+        self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
 
 
     def RunMainTemporalLoop(self):
@@ -328,9 +315,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
 
     def SetGraphicalOutput(self):
-        if( self.parameters.Has("output_configuration") ):
+        if( self.project_parameters.Has("output_configuration") ):
             from pfem_fluid_gid_output_process import GiDOutputProcess
-            self.output_settings = self.parameters["output_configuration"]
+            self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             #KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
 
@@ -356,7 +343,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.graphical_output.ExecuteFinalizeSolutionStep()
 
     def GraphicalOutputPrintOutput(self):
-        if( self.parameters.Has("output_configuration") ):
+        if( self.project_parameters.Has("output_configuration") ):
             self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
