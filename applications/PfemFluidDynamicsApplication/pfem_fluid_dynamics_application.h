@@ -54,7 +54,6 @@
 #include "includes/ublas_interface.h"
 
 #include "geometries/triangle_3d_3.h"
-#include "geometries/line_2d.h"
 
 // yield Criteria
 

@@ -98,8 +98,8 @@ namespace Kratos
                                        PropertiesType::Pointer pProperties,
                                        Condition::Pointer Master,
                                        Condition::Pointer Slave,
-                                      Point& MasterContactLocalPoint,
-                                      Point& SlaveContactLocalPoint,
+                                      array_1d<double, 3>& MasterContactLocalPoint,
+                                      array_1d<double, 3>& SlaveContactLocalPoint,
                                        int SlaveIntegrationPointIndex
                                        );
         /**
@@ -208,7 +208,7 @@ namespace Kratos
         Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
                                           const GeometryType::CoordinatesArrayType& rPoint );
         
-       Point& GlobalCoordinates(Condition::Pointer Surface,Point& rResult,Point const& LocalCoordinates);
+       array_1d<double, 3>& GlobalCoordinates(Condition::Pointer Surface,array_1d<double, 3>& rResult, array_1d<double, 3> const& LocalCoordinates);
         
         
         Vector GetRelativTangentialVelocity(Matrix& T);

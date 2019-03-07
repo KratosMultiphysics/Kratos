@@ -74,11 +74,6 @@ class ProjectionModule:
         for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
 
-        # calculating the fluid nodal areas that are needed for the coupling
-
-        self.area_calculator = CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)
-        self.area_calculator.Execute()
-
     def UpdateDatabase(self, HMin):
 
         if self.dimension == 3:
@@ -103,6 +98,7 @@ class ProjectionModule:
             self.InterpolateVelocityOnSlipVelocity()
 
     def ProjectFromFluid(self, alpha):
+
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
                                                 self.particles_model_part,
                                                 self.project_parameters,
