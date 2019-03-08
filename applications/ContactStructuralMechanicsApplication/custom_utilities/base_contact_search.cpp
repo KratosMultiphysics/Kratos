@@ -541,7 +541,19 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
                             p_indexes_pairs->AddId(p_cond_master->Id());
                     }
                 } else {
-                    AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                    // Some auxiliar values
+                    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                    const bool frictional_problem = mrMainModelPart.Is(SLIP);
+
+                    // Slave geometry
+                    const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
+
+                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                        // Master condition
+                        Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+
+                        AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                    }
                 }
             }
         }
@@ -615,7 +627,20 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
                     }
                 }
             } else {
-//                 AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                // Some auxiliar values
+                const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                const bool frictional_problem = mrMainModelPart.Is(SLIP);
+
+                // Slave geometry
+                const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
+
+                for (auto p_leaf : leaves) {
+                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        if (p_cond_master->Is(SELECTED)) {
+                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                        }
+                    }
+                }
             }
         }
     }
@@ -873,34 +898,6 @@ inline IndexType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetMaximum
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
-    ModelPart& rComputingModelPart,
-    IndexType& rConditionId,
-    Condition::Pointer pCondSlave,
-    PointVector& rPointsFound,
-    const IndexType NumberOfPointsFound,
-    IndexMap::Pointer IndexesPairs
-    )
-{
-    // Some auxiliar values
-    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
-    const bool frictional_problem = mrMainModelPart.Is(SLIP);
-
-    // Slave geometry
-    const array_1d<double, 3>& r_normal_slave = pCondSlave->GetValue(NORMAL);
-
-    for (IndexType i_point = 0; i_point < NumberOfPointsFound; ++i_point ) {
-        // Master condition
-        Condition::Pointer p_cond_master = rPointsFound[i_point]->GetCondition();
-
-        AuxiliarAddPotentialPairing(rComputingModelPart, rConditionId, pCondSlave, r_normal_slave, p_cond_master, IndexesPairs, active_check_factor, frictional_problem);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AuxiliarAddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,

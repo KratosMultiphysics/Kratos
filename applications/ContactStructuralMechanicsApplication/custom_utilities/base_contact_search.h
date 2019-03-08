@@ -404,24 +404,6 @@ private:
     inline IndexType GetMaximumConditionsIds();
 
     /**
-     * @brief This method checks the potential pairing between two conditions/geometries
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param rPointsFound The potential pairs found
-     * @param NumberOfPointsFound The number of potential pairs found
-     * @param IndexesPairs The id sets of potential pairs
-     */
-    void AddPotentialPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        Condition::Pointer pCondSlave,
-        PointVector& rPointsFound,
-        const IndexType NumberOfPointsFound,
-        IndexMap::Pointer IndexesPairs
-        );
-
-    /**
      * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
@@ -432,7 +414,7 @@ private:
      * @param ActiveCheckFactor The value used auxiliarly to check if the node is in the potential contact zone
      * @param FrictionalProblem If the problem is frictional or not
      */
-    void AuxiliarAddPotentialPairing(
+    void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
         Condition::Pointer pCondSlave,
