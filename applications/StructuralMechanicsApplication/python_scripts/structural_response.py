@@ -523,10 +523,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
 
-
+    # TODO Mahmoud: check whether this function is needed or not
     def FinalizeSolutionStep(self):
-        # Commented out because this causes finalize solution step to be called twice
-        #self.adjoint_analysis.FinalizeSolutionStep()
         self.adjoint_analysis.OutputSolutionStep()
 
 
