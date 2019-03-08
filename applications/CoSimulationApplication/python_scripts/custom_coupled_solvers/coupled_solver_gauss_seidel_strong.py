@@ -3,12 +3,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 
 
 def Create(custom_settings):
-    return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
+    return GaussSeidelIterativeStrongCoupledSolver(custom_settings)
 
 
-class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
+class GaussSeidelIterativeStrongCoupledSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
+        super(GaussSeidelIterativeStrongCoupledSolver, self).__init__(custom_settings)
         if not self.number_of_participants == 2:
             raise Exception(cs_tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
@@ -27,28 +27,28 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
 
     def Initialize(self):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
+        super(GaussSeidelIterativeStrongCoupledSolver, self).Initialize()
         for conv_accelerator in self.convergence_accelerators_list:
             conv_accelerator.Initialize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Initialize()
 
     def Finalize(self):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).Finalize()
+        super(GaussSeidelIterativeStrongCoupledSolver, self).Finalize()
         for conv_accelerator in self.convergence_accelerators_list:
             conv_accelerator.Finalize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Finalize()
 
     def InitializeSolutionStep(self):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
+        super(GaussSeidelIterativeStrongCoupledSolver, self).InitializeSolutionStep()
         for accelerator in self.convergence_accelerators_list:
             accelerator.InitializeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).FinalizeSolutionStep()
+        super(GaussSeidelIterativeStrongCoupledSolver, self).FinalizeSolutionStep()
         for accelerator in self.convergence_accelerators_list:
             accelerator.FinalizeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
@@ -99,7 +99,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
 
     def PrintInfo(self):
-        super(GaussSeidelIterativeStrongCouplingSolver, self).PrintInfo()
+        super(GaussSeidelIterativeStrongCoupledSolver, self).PrintInfo()
         for accelerator in self.convergence_accelerators_list:
             accelerator.PrintInfo()
         for accelerator in self.convergence_accelerators:
