@@ -28,15 +28,15 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
     def Initialize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
-        for conv_acceleraror in self.convergence_accelerators_list:
-            conv_acceleraror.Initialize()
+        for conv_accelerator in self.convergence_accelerators_list:
+            conv_accelerator.Initialize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Initialize()
 
     def Finalize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Finalize()
-        for conv_acceleraror in self.convergence_accelerators_list:
-            conv_acceleraror.Finalize()
+        for conv_accelerator in self.convergence_accelerators_list:
+            conv_accelerator.Finalize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Finalize()
 
