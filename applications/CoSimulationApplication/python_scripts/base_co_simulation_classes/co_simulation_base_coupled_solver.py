@@ -2,8 +2,7 @@
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_data_structure as data_str
-cs_data_structure = data_str.__DATA_STRUCTURE__
+cs_data_structure = cs_tools.cs_data_structure
 import collections
 
 ##
