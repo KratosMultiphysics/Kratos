@@ -16,7 +16,7 @@
 // External includes
 
 
-// Project includes 
+// Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
@@ -45,6 +45,8 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -64,7 +66,7 @@ namespace Kratos
   template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement : public TwoStepUpdatedLagrangianElement<TDim>
     {
-  
+
     protected:
 
 
@@ -75,7 +77,7 @@ namespace Kratos
       ///@}
       ///@name Protected member Variables
       ///@{
- 
+
 
     public:
       ///@name Type Definitions
@@ -86,7 +88,7 @@ namespace Kratos
 
       ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
-	    
+
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
 
@@ -179,7 +181,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement const& rOther):
       BaseType(rOther)
       {}
-      
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement()
         {}
@@ -225,11 +227,11 @@ namespace Kratos
       void GetNodesPosition(Vector& rValues,
 			    const ProcessInfo& rCurrentProcessInfo,
 			    double theta);
-            
+
       void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
 				 Matrix& rNContainer,
 				 Vector& rGaussWeights);
-      
+
       void InitializeElementalVariables(ElementalVariables & rElementalVariables) override{
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"InitializeElementalVariables","");
@@ -279,7 +281,7 @@ namespace Kratos
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override;
-   
+
     private:
 
 

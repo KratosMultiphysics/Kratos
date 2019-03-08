@@ -7,9 +7,9 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "eigen_value",
-        "scheme_type"                        : "dynamic",
-        "echo_level"                         : 0,
+        "solver_type"     : "eigen_value",
+        "scheme_type"     : "dynamic",
+        "echo_level"      : 0,
         "model_part_name" : "solid_cantilever",
         "domain_size"     : 3,
         "time_stepping" : {
@@ -32,62 +32,64 @@
             "processes_sub_model_part_list"      : ["DISPLACEMENT_fixed_support"],
             "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module"       : "assign_vector_variable_process",
-        "kratos_module"       : "KratosMultiphysics",
-        "help"                : "This process fixes the selected components of a given vector variable",
-        "process_name"        : "AssignVectorVariableProcess",
-        "Parameters"          : {
-            "mesh_id"         : 0,
-            "model_part_name" : "solid_cantilever.DISPLACEMENT_fixed_support",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
-        }
-    }],
-    "loads_process_list"       : [],
-    "list_other_processes"     : [
-        {
-            "python_module"   : "postprocess_eigenvalues_process",
-            "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",
-            "help"                  : "This process postprocces the eigen values for GiD",
-            "process_name"          : "PostProcessEigenvaluesProcess",
-            "Parameters"            : {
-                "result_file_name" : "solid_cantilever_freq",
-                "computing_model_part_name"   : "solid_cantilever",
-                "animation_steps"   :  6,
-                "result_file_format_use_ascii" : false
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module"       : "assign_vector_variable_process",
+            "kratos_module"       : "KratosMultiphysics",
+            "help"                : "This process fixes the selected components of a given vector variable",
+            "process_name"        : "AssignVectorVariableProcess",
+            "Parameters"          : {
+                "mesh_id"         : 0,
+                "model_part_name" : "solid_cantilever.DISPLACEMENT_fixed_support",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
             }
-        }
-    ],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [
+            {
+                "python_module"   : "postprocess_eigenvalues_process",
+                "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",
+                "help"                  : "This process postprocces the eigen values for GiD",
+                "process_name"          : "PostProcessEigenvaluesProcess",
+                "Parameters"            : {
+                    "result_file_name" : "solid_cantilever_freq",
+                    "computing_model_part_name"   : "solid_cantilever",
+                    "animation_steps"   :  6,
+                    "result_file_format_use_ascii" : false
+                }
+            }
+        ]
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "solid_cantilever",
+                "output_name"            : "solid_cantilever",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "nodal_results"       : ["DISPLACEMENT"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
     }
 }

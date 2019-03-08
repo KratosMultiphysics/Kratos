@@ -13,13 +13,12 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 from KratosMultiphysics import *
-from KratosMultiphysics.MeshMovingApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 import time as timer
 from mesh_controller_base import MeshController
-from mesh_moving_analysis import MeshMovingAnalysis
+from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
@@ -29,7 +28,7 @@ class MeshControllerWithSolver(MeshController) :
         {
             "apply_mesh_solver" : true,
             "solver_settings" : {
-                "solver_type" : "mesh_solver_structural_similarity",
+                "solver_type" : "structural_similarity",
                 "model_part_name"       : "",
                 "model_import_settings"              : {
                     "input_type"     : "use_input_model_part"

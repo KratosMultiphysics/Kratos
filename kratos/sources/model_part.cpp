@@ -149,10 +149,9 @@ ModelPart::IndexType ModelPart::CreateSolutionStep()
 
 ModelPart::IndexType ModelPart::CloneSolutionStep()
 {
-    if (IsSubModelPart())
-        //Todo KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        KRATOS_ERROR << "Calling the CloneSolutionStep method of the sub model part " << Name()
-                     << " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
     const int nnodes = static_cast<int>(Nodes().size());
     auto nodes_begin = NodesBegin();
@@ -172,12 +171,11 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
 
 ModelPart::IndexType ModelPart::CloneTimeStep()
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
-        //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        IndexType new_index = CloneSolutionStep();
+    IndexType new_index = CloneSolutionStep();
     mpProcessInfo->SetAsTimeStepInfo();
 
     return new_index;
@@ -186,12 +184,11 @@ ModelPart::IndexType ModelPart::CloneTimeStep()
 
 ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //KRATOS_ERROR << "Calling the CreateTimeStep method of the sub model part " << Name()
-        //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        IndexType new_index = CreateSolutionStep();
+    IndexType new_index = CreateSolutionStep();
     mpProcessInfo->SetAsTimeStepInfo(NewTime);
 
     return new_index;
@@ -199,12 +196,11 @@ ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 
 ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the CloneSolutionStep method of the sub model part ", Name())
-        //	KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
-        //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        IndexType new_index = CloneSolutionStep();
+    IndexType new_index = CloneSolutionStep();
     mpProcessInfo->SetAsTimeStepInfo(NewTime);
 
     return new_index;
@@ -212,13 +208,12 @@ ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 
 void ModelPart::OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
-        //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
-            node_iterator->OverwriteSolutionStepData(SourceSolutionStepIndex, DestinationSourceSolutionStepIndex);
+    for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
+        node_iterator->OverwriteSolutionStepData(SourceSolutionStepIndex, DestinationSourceSolutionStepIndex);
 
 }
 
@@ -229,18 +224,16 @@ void ModelPart::ReduceTimeStep(ModelPart& rModelPart, double NewTime)
     //ATTENTION: this function does not touch the coordinates of the nodes.
     //It just resets the database values to the values at the beginning of the time step
 
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //	KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
-        //				<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        rModelPart.OverwriteSolutionStepData(1, 0);
+    rModelPart.OverwriteSolutionStepData(1, 0);
     rModelPart.GetProcessInfo().SetCurrentTime(NewTime);
 
     KRATOS_CATCH("error in reducing the time step")
 
 }
-
 
 /** Inserts a node in the mesh with ThisIndex.
 */
@@ -301,8 +294,6 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
     KRATOS_CATCH("");
 }
 
-
-
 /** Inserts a node in the mesh with ThisIndex.
 */
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
@@ -322,10 +313,10 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     if( existing_node_it != root_nodes.end())
     {
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
-        double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
+        double distance = std::sqrt( std::pow( existing_node_it->X() - x,2) + std::pow(existing_node_it->Y() - y,2) + std::pow(existing_node_it->Z() - z,2) );
 
-        if(distance > std::numeric_limits<double>::epsilon()*1000)
-            KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
+        KRATOS_ERROR_IF(distance > std::numeric_limits<double>::epsilon()*1000)
+            << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
 
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
         return *(existing_node_it.base());
@@ -368,10 +359,10 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     if( existing_node_it != GetMesh(ThisIndex).NodesEnd())
     {
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
-        double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
+        double distance = std::sqrt( std::pow( existing_node_it->X() - x,2) + std::pow(existing_node_it->Y() - y,2) + std::pow(existing_node_it->Z() - z,2) );
 
-        if(distance > std::numeric_limits<double>::epsilon()*1000)
-            KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
+        KRATOS_ERROR_IF(distance > std::numeric_limits<double>::epsilon()*1000)
+            << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
 
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
         return *(existing_node_it.base());
@@ -384,7 +375,6 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
 
     return p_new_node;
     KRATOS_CATCH("")
-
 }
 
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType NodeId, ModelPart::NodeType const& rSourceNode, ModelPart::IndexType ThisIndex)
@@ -414,7 +404,6 @@ void ModelPart::AssignNode(ModelPart::NodeType::Pointer pThisNode, ModelPart::In
     GetMesh(ThisIndex).AddNode(pThisNode);
 
 }
-
 
 /** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
@@ -534,13 +523,12 @@ ModelPart& ModelPart::GetRootModelPart()
 
 void ModelPart::SetNodalSolutionStepVariablesList()
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //KRATOS_ERROR << "Calling the SetNodalSolutionStepVariablesList method of the sub model part " << Name()
-        //			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
-        for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-            i_node->SetSolutionStepVariablesList(mpVariablesList);
+    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
+        i_node->SetSolutionStepVariablesList(mpVariablesList);
 }
 
 /** Inserts a Table
@@ -576,7 +564,6 @@ void ModelPart::RemoveTableFromAllLevels(ModelPart::IndexType TableId)
     RemoveTable(TableId);
 }
 
-
 /** Inserts a properties in the mesh with ThisIndex.
 */
 void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties, ModelPart::IndexType ThisIndex)
@@ -589,10 +576,8 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
     auto existing_prop_it = GetMesh(ThisIndex).Properties().find(pNewProperties->Id());
     if( existing_prop_it != GetMesh(ThisIndex).Properties().end() )
     {
-        if( &(*existing_prop_it) != pNewProperties.get() )
-        {
-            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << ", property Id is :" << pNewProperties->Id();
-        }
+        KRATOS_ERROR_IF( &(*existing_prop_it) != pNewProperties.get() )
+            << "trying to add a property with existing Id within the model part : " << Name() << ", property Id is :" << pNewProperties->Id();
     }
     else
     {
@@ -685,8 +670,8 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
         }
         else //node did exist already
         {
-            if(&(*existing_element_it) != (pNewElement.get()))//check if the pointee coincides
-                KRATOS_ERROR << "attempting to add pNewElement with Id :" << pNewElement->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+            KRATOS_ERROR_IF(&(*existing_element_it) != (pNewElement.get()))//check if the pointee coincides
+                << "attempting to add pNewElement with Id :" << pNewElement->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
         }
     }
 }
@@ -763,8 +748,8 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     }
 
     auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
-    if(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
-        KRATOS_ERROR << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
 
 
     //create the new element
@@ -889,7 +874,6 @@ void ModelPart::RemoveElementsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveElements(IdentifierFlag);
 }
 
-
 /*
     Functions for Master-Slave Constraint
 */
@@ -913,10 +897,8 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
         }
         else //master-slave constraint did exist already
         {
-            if(&(*existing_constraint_it) != (pNewMasterSlaveConstraint.get()))//check if the pointee coincides
-            {
-                KRATOS_ERROR << "attempting to add Master-Slave constraint with Id :" << pNewMasterSlaveConstraint->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
-            }
+            KRATOS_ERROR_IF(&(*existing_constraint_it) != (pNewMasterSlaveConstraint.get()))//check if the pointee coincides
+                << "attempting to add Master-Slave constraint with Id :" << pNewMasterSlaveConstraint->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
         }
     }
 }
@@ -981,8 +963,8 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
     }
 
     auto existing_constraint_iterator = GetMesh(ThisIndex).MasterSlaveConstraints().find(Id);
-    if(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
-        KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
+    KRATOS_ERROR_IF(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
+        << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
 
 
     //create the new element
@@ -1029,8 +1011,8 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
                 return p_new_constraint;
         }
 
-        if(GetMesh(ThisIndex).HasMasterSlaveConstraint(Id))
-            KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
+        KRATOS_ERROR_IF(GetMesh(ThisIndex).HasMasterSlaveConstraint(Id))
+            << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
 
 
             //create the new element
@@ -1053,7 +1035,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
     KRATOS_CATCH("")
 
 }
-
 
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
                                                                                     ModelPart::IndexType Id,
@@ -1085,8 +1066,8 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
         }
 
         auto existing_constraint_iterator = GetMesh(ThisIndex).MasterSlaveConstraints().find(Id);
-        if(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
-            KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
+        KRATOS_ERROR_IF(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
+            << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
 
 
             //create the new element
@@ -1110,7 +1091,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
 
 }
 
-
 /** Remove the master-slave constraint with given Id from this modelpart and all its subs.
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId,  IndexType ThisIndex)
@@ -1129,7 +1109,6 @@ void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint, ThisIndex);
 }
-
 
 /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
 */
@@ -1215,8 +1194,6 @@ const ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(
     return GetMesh(ThisIndex).GetMasterSlaveConstraint(MasterSlaveConstraintId);
 }
 
-
-
 /** Inserts a condition in the mesh with ThisIndex.
 */
 void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, ModelPart::IndexType ThisIndex)
@@ -1235,8 +1212,8 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
         }
         else //node did exist already
         {
-            if(&(*existing_condition_it) != (pNewCondition.get()))//check if the pointee coincides
-                KRATOS_ERROR << "attempting to add pNewCondition with Id :" << pNewCondition->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
+            KRATOS_ERROR_IF(&(*existing_condition_it) != (pNewCondition.get()))//check if the pointee coincides
+                << "attempting to add pNewCondition with Id :" << pNewCondition->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
         }
     }
 }
@@ -1306,31 +1283,10 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     }
 
     auto existing_condition_iterator = GetMesh(ThisIndex).Conditions().find(Id);
-    if(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
-    {
-        KRATOS_ERROR << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
+    KRATOS_ERROR_IF(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
+        << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
 
-//         if(pConditionNodes.size() != existing_condition_iterator.size())
-//             KRATOS_ERROR << "trying to construct a condition with a different number of nodes. Element Id is ";
-//
-//         //check if the ids of nodes coincides
-//         bool nodes_are_matching = true;
-//         for(unsigned int i=0; i<pConditionNodes.size(); i++)
-//         {
-//
-//             if(pConditionNodes[i].Id() != existing_condition_iterator->GetGeometry()[i].Id())
-//             {
-//                 nodes_are_matching = false;
-//                 break;
-//             }
-//         }
-//         if(nodes_are_matching == false)
-//             KRATOS_THROW_ERROR << "Error when attempting to construct condition with Id" << Id << " a condition with the same Id exists with the following geometry " << existing_condition_iterator->GetGeometry();
-//
-//         return *(existing_condition_iterator.base());
-    }
-
-    //get the element
+    //get the condition
     ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
     ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pConditionNodes, pProperties);
 
@@ -1340,7 +1296,6 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     return p_condition;
     KRATOS_CATCH("")
 }
-
 
 /** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
@@ -1456,37 +1411,20 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
-    if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
-    {
-        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
-        p_model_part->SetParentModelPart(this);
-        p_model_part->mBufferSize = this->mBufferSize;
-        p_model_part->mpProcessInfo = this->mpProcessInfo;
-        mSubModelParts.insert(p_model_part);
-        return *p_model_part;
-    }
-    else
-        KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
-        // Here a warning would be enough. To be disscussed. Pooyan.
-        //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
-    }
+    // Here a warning would be enough. To be disscussed. Pooyan.
+    KRATOS_ERROR_IF(mSubModelParts.find(NewSubModelPartName) != mSubModelParts.end())
+        << "There is an already existing sub model part with name \"" << NewSubModelPartName
+        << "\" in model part: \"" << Name() << "\"" << std::endl;
 
-KRATOS_DEPRECATED void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
-{
-    KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
-//     if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
-//         // Here a warning would be enough. To be disscussed. Pooyan.
-//         KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-//
-//     if (IsSubModelPart())
-//     {
-//         mpParentModelPart->AddSubModelPart(pThisSubModelPart);
-//         return;
-//     }
-//
-//     pThisSubModelPart->SetParentModelPart(this);
+    ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+    Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
+    p_model_part->SetParentModelPart(this);
+    p_model_part->mBufferSize = this->mBufferSize;
+    p_model_part->mpProcessInfo = this->mpProcessInfo;
+    mSubModelParts.insert(p_model_part);
+    return *p_model_part;
 }
+
 /** Remove a sub modelpart with given name.
 */
 void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
@@ -1509,10 +1447,7 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(name);
 
-    if (i_sub_model_part == mSubModelParts.end())
-        KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
-        //KRATOS_ERROR << "The sub modelpart  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
-
+    KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub model part  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
     mSubModelParts.erase(name);
 }
@@ -1531,15 +1466,14 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 
 void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 {
-    if (IsSubModelPart())
-        KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-        //	KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
-        //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+    KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
+        << Name() << " please call the one of the root model part: "
+        << GetRootModelPart().Name() << std::endl;
 
     for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-        {
-            i_sub_model_part->mBufferSize = NewBufferSize;
-        }
+    {
+        i_sub_model_part->mBufferSize = NewBufferSize;
+    }
 
     mBufferSize = NewBufferSize;
 
@@ -1587,27 +1521,36 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
+    }
     rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         mpProcessInfo->PrintData(rOStream);
+    }
     rOStream << std::endl;
-    for (IndexType i = 0; i < mMeshes.size(); i++)
-    {
+    for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
-    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    {
-        i_sub_model_part->PrintInfo(rOStream, "    ");
+
+    // Printing the submodelparts by their names in alphabetical order
+    std::vector< std::string > submodel_part_names;
+    submodel_part_names.reserve(NumberOfSubModelParts());
+    for (const auto& r_sub_model_part : mSubModelParts) {
+        submodel_part_names.push_back(r_sub_model_part.Name());
+    }
+    std::sort(submodel_part_names.begin(),submodel_part_names.end());
+
+    for (const auto& r_sub_model_part_name : submodel_part_names) {
+        const auto& r_sub_model_part = *(mSubModelParts.find(r_sub_model_part_name));
+        r_sub_model_part.PrintInfo(rOStream, "    ");
         rOStream << std::endl;
-        i_sub_model_part->PrintData(rOStream, "    ");
+        r_sub_model_part.PrintData(rOStream, "    ");
     }
 }
-
 
 /// Print information about this object.
 
@@ -1620,24 +1563,35 @@ void ModelPart::PrintInfo(std::ostream& rOStream, std::string const& PrefixStrin
 
 void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixString) const
 {
-    if (!IsSubModelPart())
+    if (!IsSubModelPart()) {
         rOStream << PrefixString << "    Buffer Size : " << mBufferSize << std::endl;
+    }
     rOStream << PrefixString << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << PrefixString << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
-    if (!IsSubModelPart())
+
+    if (!IsSubModelPart()) {
         mpProcessInfo->PrintData(rOStream);
+    }
     rOStream << std::endl;
-    for (IndexType i = 0; i < mMeshes.size(); i++)
-    {
+
+    for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 
-    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    {
-        i_sub_model_part->PrintInfo(rOStream, PrefixString + "    ");
+    // Printing the submodelparts by their names in alphabetical order
+    std::vector< std::string > submodel_part_names;
+    submodel_part_names.reserve(NumberOfSubModelParts());
+    for (const auto& r_sub_model_part : mSubModelParts) {
+        submodel_part_names.push_back(r_sub_model_part.Name());
+    }
+    std::sort(submodel_part_names.begin(),submodel_part_names.end());
+
+    for (const auto& r_sub_model_part_name : submodel_part_names) {
+        const auto& r_sub_model_part = *(mSubModelParts.find(r_sub_model_part_name));
+        r_sub_model_part.PrintInfo(rOStream, PrefixString + "    ");
         rOStream << std::endl;
-        i_sub_model_part->PrintData(rOStream, PrefixString + "    ");
+        r_sub_model_part.PrintData(rOStream, PrefixString + "    ");
     }
 }
 
@@ -1668,10 +1622,8 @@ void ModelPart::load(Serializer& rSerializer)
     std::string ModelPartName;
     rSerializer.load("Name", ModelPartName);
 
-    if(ModelPartName != mName) //checking if the name is correct
-    {
-        KRATOS_ERROR << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
-    }
+    KRATOS_ERROR_IF(ModelPartName != mName) //checking if the name is correct
+        << "trying to load a model part called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
 
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);

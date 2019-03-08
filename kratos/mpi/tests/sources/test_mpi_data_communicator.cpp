@@ -1014,7 +1014,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPICoreFastSuite
     if (world_size > 1)
     {
         // two-buffer version
-        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
 
         // return version
         std::vector<int> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
@@ -1028,22 +1028,6 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPICoreFastSuite
             KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
         }
     }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the ranks has the wrong source/destination
-        int wrong_send_rank = send_rank;
-        if (mpi_world_communicator.Rank() == 0) {
-            wrong_send_rank = 2;
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
-
-        // Input size != output size
-        std::vector<int> local_vector_wrong_size{1,2,3};
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
-    }
-    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
@@ -1060,7 +1044,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSu
     if (world_size > 1)
     {
         // two-buffer version
-        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
 
         // return version
         std::vector<double> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
@@ -1074,22 +1058,6 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSu
             KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
         }
     }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the ranks has the wrong source/destination
-        int wrong_send_rank = send_rank;
-        if (mpi_world_communicator.Rank() == 0) {
-            wrong_send_rank = 2;
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
-
-        // Input size != output size
-        std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
-    }
-    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosMPICoreFastSuite)
@@ -1107,7 +1075,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosMPICoreFastSu
     if (world_size > 1)
     {
         // two-buffer version
-        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
 
         // return version
         std::string return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
@@ -1116,23 +1084,6 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosMPICoreFastSu
         KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
         KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
     }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the ranks has the wrong source/destination
-        int wrong_send_rank = send_rank;
-        if (mpi_world_communicator.Rank() == 0) {
-            wrong_send_rank = 2;
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
-
-        // Input size != output size
-        std::string local_string_wrong_size;
-        local_string_wrong_size.resize(send_buffer.size()+1);
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_string_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
-    }
-    #endif
 }
 
 // Broadcast //////////////////////////////////////////////////////////////////

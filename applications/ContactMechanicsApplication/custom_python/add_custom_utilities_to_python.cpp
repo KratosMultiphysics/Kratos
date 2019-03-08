@@ -30,7 +30,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   py::class_<RigidBodyElementCreationUtility>(m,"RigidBodyCreationUtility")
       .def(py::init<>())
-      .def("CreateRigidBodyElement",&RigidBodyElementCreationUtility::CreateRigidBodyElement)
+      .def("CreateRigidBody",&RigidBodyElementCreationUtility::CreateRigidBody)
+      .def("CreateLinks",&RigidBodyElementCreationUtility::CreateLinks)
       ;
 }
 

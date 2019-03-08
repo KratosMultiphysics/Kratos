@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo&  Lucia Barbu
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
@@ -288,10 +288,6 @@ private:
     Vector mPrevStressVector = ZeroVector(VoigtSize);
     Vector mPrevInelasticStrainVector = ZeroVector(VoigtSize);
 
-    // Non Converged values
-    Vector mNonConvPrevStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvPrevInelasticStrainVector = ZeroVector(VoigtSize);
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -302,13 +298,9 @@ private:
 
     Vector& GetPreviousStressVector() { return mPrevStressVector; }
     void SetPreviousStressVector(const Vector& PrevStressVector) { mPrevStressVector = PrevStressVector; }
-    Vector& GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-    void SetNonConvPreviousStressVector(const Vector& NonConvPrevStressVector) { mNonConvPrevStressVector = NonConvPrevStressVector; }
 
     Vector& GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
     void SetPreviousInelasticStrainVector(const Vector& PrevInelasticStrainVector) { mPrevInelasticStrainVector = PrevInelasticStrainVector; }
-    Vector& GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
-    void SetNonConvPreviousInelasticStrainVector(const Vector& NonConvPrevInelasticStrainVector) { mNonConvPrevInelasticStrainVector = NonConvPrevInelasticStrainVector; }
 
     /**
      * @brief Compute visco-elasticity
@@ -336,8 +328,6 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PrevStressVector", mPrevStressVector);
         rSerializer.save("PrevInelasticStrainVector", mPrevInelasticStrainVector);
-        rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.save("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
     }
 
     void load(Serializer& rSerializer) override
@@ -345,8 +335,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PrevStressVector", mPrevStressVector);
         rSerializer.load("PrevInelasticStrainVector", mPrevInelasticStrainVector);
-        rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.load("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
     }
 
     ///@}
