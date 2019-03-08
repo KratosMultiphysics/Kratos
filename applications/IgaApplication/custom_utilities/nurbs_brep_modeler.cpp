@@ -31,76 +31,6 @@ namespace Kratos
         }
     }
 
-    //void NurbsBrepModeler::ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters)
-    //{
-    //    for (int i = 0; i < rModelPartParameters["element_condition_list"].size(); ++i)
-    //    {
-    //        Parameters element_parameter = rModelPartParameters["element_condition_list"][i];
-
-    //        std::string sub_model_part_name = element_parameter["iga_model_part"].GetString();
-    //        ModelPart& sub_model_part = model_part.HasSubModelPart(sub_model_part_name)
-    //            ? model_part.GetSubModelPart(sub_model_part_name)
-    //            : model_part.CreateSubModelPart(sub_model_part_name);
-
-    //        std::string geometry_type = element_parameter["geometry_type"].GetString();
-
-    //        if (geometry_type == "Geometry3DStrong")
-    //        {
-    //            bool success = false;
-    //            for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
-    //            {
-    //                int brep_id = element_parameter["brep_ids"][j].GetInt();
-    //                Vector parameter = element_parameter["parameters"]["local_parameters"].GetVector();
-    //                success = m_brep_model_vector[0].GetNodesGeometry(
-    //                    sub_model_part, brep_id, parameter[0], parameter[1]);
-    //            }
-    //            continue;
-    //        }
-    //        else
-    //        {
-    //            std::string type = element_parameter["parameters"]["type"].GetString();
-    //            std::string name = element_parameter["parameters"]["name"].GetString();
-    //            int property_id = element_parameter["parameters"]["properties_id"].GetInt();
-    //            int shape_function_derivatives_order = element_parameter["parameters"]["shape_function_derivatives_order"].GetInt();
-
-
-    //            std::vector<std::string> variable_list;
-    //            for (int j = 0; j < element_parameter["parameters"]["variables"].size(); ++j)
-    //            {
-    //                variable_list.push_back(element_parameter["parameters"]["variables"][j].GetString());
-    //            }
-
-    //            if (element_parameter.Has("brep_ids"))
-    //            {
-    //                for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
-    //                {
-    //                    int brep_id = element_parameter["brep_ids"][j].GetInt();
-    //                    if (geometry_type == "Geometry3D")
-    //                        bool success = m_brep_model_vector[0].GetIntegrationDomainGeometry(
-    //                            sub_model_part, brep_id, type, name,
-    //                            property_id, shape_function_derivatives_order, variable_list);
-    //                    if (geometry_type == "BrepCoupling")
-    //                        bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
-    //                            sub_model_part, brep_id, type, name,
-    //                            property_id, shape_function_derivatives_order, variable_list);
-    //                    if (geometry_type == "Brep")
-    //                        bool success = m_brep_model_vector[0].GetIntegrationDomainBrep(
-    //                            sub_model_part, brep_id, type, name,
-    //                            property_id, shape_function_derivatives_order, variable_list);
-    //                }
-    //            }
-    //            else
-    //            {
-    //                if (geometry_type == "BrepCoupling")
-    //                    bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
-    //                        sub_model_part, type, name,
-    //                        property_id, shape_function_derivatives_order, variable_list);
-    //            }
-    //        }
-    //    }
-    //}
-
-
     const BrepEdge& NurbsBrepModeler::GetBrepEdge(int& rBrepId) const
     {
         for (int i = 0; i < m_brep_model_vector.size(); ++i)
@@ -186,7 +116,6 @@ namespace Kratos
                 std::string name = element_parameter["parameters"]["name"].GetString();
                 int shape_function_derivatives_order = element_parameter["parameters"]["shape_function_derivatives_order"].GetInt();
 
-
                 std::vector<std::string> variable_list;
                 for (int j = 0; j < element_parameter["parameters"]["variables"].size(); ++j)
                 {
@@ -198,12 +127,45 @@ namespace Kratos
                     for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
                     {
                         int brep_id = element_parameter["brep_ids"][j].GetInt();
-                        if (geometry_type == "GeometryFace")
+                        if (geometry_type == "GeometrySurface")
                         {
-                            GetBrepFace(brep_id).GetGeometryIntegrationTrimmed(
-                                sub_model_part, type, name,
-                                shape_function_derivatives_order,
-                                variable_list);
+                            auto brep_face = GetBrepFace(brep_id);
+                            brep_face.GetGeometryIntegrationTrimmed(
+                                sub_model_part,
+                                 type,
+                                 name,
+                                 shape_function_derivatives_order, 
+                                 variable_list);
+                            /*
+                            auto element_vector = IgaIntegrationUtilities::GetIntegrationDomainGeometrySurface(
+                                brep_face.GetSurface(),
+                                brep_face.GetSurfaceClipper(0.001, 0.00001),
+                                shape_function_derivatives_order);
+
+                            for(auto element = element_vector.begin(); element != element_vector.end(); ++element)
+                                (*element)->SetValue(BREP_ID, brep_id);
+
+                            if (type == "element")
+                            {
+                                int id = 1;
+                                if (sub_model_part.GetRootModelPart().Elements().size() > 0)
+                                    id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
+
+                                IgaIntegrationUtilities::ChangeElementType(
+                                    element_vector, sub_model_part, name, id);
+                            }
+
+                            if (type == "condition")
+                            {
+                                int id = 0;
+                                if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
+                                    id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
+
+                                IgaIntegrationUtilities::ChangeConditionType(
+                                    element_vector, sub_model_part, name, id);
+                            }*/
+
+                            KRATOS_WATCH(sub_model_part)
                         }
                         if (geometry_type == "SurfaceEdge")
                         {
@@ -272,7 +234,7 @@ namespace Kratos
 
                                     if (type == "element")
                                     {
-                                        int id = 0;
+                                        int id = 1;
                                         if (sub_model_part.GetRootModelPart().Elements().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Elements().back().Id() + 1;
 
@@ -283,7 +245,7 @@ namespace Kratos
 
                                     if (type == "condition")
                                     {
-                                        int id = 0;
+                                        int id = 1;
                                         if (sub_model_part.GetRootModelPart().Conditions().size() > 0)
                                             id = sub_model_part.GetRootModelPart().Conditions().back().Id() + 1;
 
@@ -343,31 +305,6 @@ namespace Kratos
         BrepJsonIO a; 
         //a.ExportNurbsGeometry(m_brep_model_vector);         
     }
-
-
-    // void NurbsBrepModeler::PrintBrepNodes()
-    // {   
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].GetModelNodes();
-    //     }
-    // }
-
-    // void NurbsBrepModeler::PrintEdgePolygon()
-    // {   
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].PrintEdgeNodes();
-    //     }
-    // }
-
-    // void NurbsBrepModeler::PrintTrimmingPolygon()
-    // {
-    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
-    //     {
-    //         m_brep_model_vector[i].PrintTrimmingNodes();
-    //     }
-    // }
 
     NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
         : m_model_part(rModelPart)

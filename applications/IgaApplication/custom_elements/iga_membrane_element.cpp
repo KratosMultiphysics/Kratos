@@ -102,10 +102,11 @@ void IgaMembraneElement::EquationIdVector(
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
-
-//KRATOS_WATCH(number_of_nodes)
-//KRATOS_WATCH(rLeftHandSideMatrix)
-
+/*
+KRATOS_WATCH(number_of_nodes)
+KRATOS_WATCH(rRightHandSideVector)
+KRATOS_WATCH(rLeftHandSideMatrix)
+*/
 
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -133,7 +134,7 @@ void IgaMembraneElement::EquationIdVector(
         Matrix BMembrane = ZeroMatrix (3, mat_size);
         CalculateBMembrane(BMembrane, actual_metric);
 
-        ////KRATOS_WATCH(BMembrane)
+        //KRATOS_WATCH(BMembrane)
 
         //Matrix B11;
         //Matrix B22;
@@ -146,21 +147,27 @@ void IgaMembraneElement::EquationIdVector(
             actual_metric);
 
         double integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA * GetProperties()[THICKNESS];
-
+/*
+        KRATOS_WATCH(rSecondVariationStrain.B11)
+        KRATOS_WATCH(rSecondVariationStrain.B22)
+        KRATOS_WATCH(rSecondVariationStrain.B12)
+*/
         // Define Prestress
-        double thickness = this->GetProperties().GetValue(THICKNESS);
+//        //double thickness = this->GetProperties().GetValue(THICKNESS);
         
         Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
-
-        //n_prestress = prod(mInitialMetric.Q, n_prestress_nichttransformiert) * thickness;
-        //Vector S_total = constitutive_variables_membrane.S + S_prestress;
-        Vector S_total = S_prestress;
-        constitutive_variables_membrane.S = ZeroVector(3);
+        //Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
+        //Vector S_prestress = prod(mInitialMetric.Q, S_prestress_nichttransformiert); //* thickness;
+        Vector S_total = constitutive_variables_membrane.S + S_prestress;
+        //Vector S_total = S_prestress;
+        //constitutive_variables_membrane.S = ZeroVector(3);
 
         //KRATOS_WATCH(thickness)
-        //KRATOS_WATCH(S_prestress)
-        //KRATOS_WATCH(constitutive_variables_membrane.S)
-        //KRATOS_WATCH(S_total)
+        /*KRATOS_WATCH(S_prestress)
+        KRATOS_WATCH(constitutive_variables_membrane.E)
+        KRATOS_WATCH(constitutive_variables_membrane.S)
+        KRATOS_WATCH(constitutive_variables_membrane.D)
+        KRATOS_WATCH(S_total)*/
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
 
@@ -175,7 +182,9 @@ void IgaMembraneElement::EquationIdVector(
                 BMembrane, 
                 constitutive_variables_membrane.D, 
                 integration_weight);
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+
+    /*KRATOS_WATCH(rLeftHandSideMatrix)
+    KRATOS_WATCH(constitutive_variables_membrane.D)*/
 
             // adding  non-linear-contribution to Stiffness-Matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
@@ -195,8 +204,8 @@ void IgaMembraneElement::EquationIdVector(
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), S_total);
         }
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
-    //KRATOS_WATCH(rRightHandSideVector)
+   /* KRATOS_WATCH(rLeftHandSideMatrix)
+    KRATOS_WATCH(rRightHandSideVector)*/
 
         KRATOS_CATCH("");
     }
@@ -355,7 +364,7 @@ void IgaMembraneElement::CalculateMetric(
         mConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
         //KRATOS_WATCH(rThisConstitutiveVariablesMembrane.D)
 
-        double thickness = this->GetProperties().GetValue(THICKNESS);
+//        //double thickness = this->GetProperties().GetValue(THICKNESS);
         
         //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.S = prod(

@@ -15,6 +15,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if (parallelism == "OpenMP"):
         if (solver_type == "static"):
             solver_module_name = "iga_static_solver"
+        elif (solver_type == "formfinding"):
+            solver_module_name = "iga_formfinding_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\""

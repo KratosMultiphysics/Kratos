@@ -125,6 +125,8 @@ void IgaEdgeCableElement::CalculateAll(
     Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
     const Vector& t = GetValue(TANGENTS);
 
+//KRATOS_WATCH(integration_weight)
+
     // get properties
 
     const auto& properties = GetProperties();
@@ -136,6 +138,7 @@ void IgaEdgeCableElement::CalculateAll(
 //KRATOS_WATCH(E)
 //KRATOS_WATCH(A)
 //KRATOS_WATCH(prestress)
+//KRATOS_WATCH(rLeftHandSideMatrix)
 
     // compute base vectors
 
@@ -149,12 +152,13 @@ void IgaEdgeCableElement::CalculateAll(
 
     // green-lagrange strain
 
-    const double e11_membrane = 0.0;//0.5 * (actual_aa - reference_aa);
+    const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
     // normal force
 
-    const double s11_membrane = prestress * A;//+ e11_membrane * A * E / reference_aa;
+    const double s11_membrane = prestress * A + e11_membrane * A * E / reference_aa;
 
+//KRATOS_WATCH(prestress)
 //KRATOS_WATCH(s11_membrane)
 
     //for (std::size_t k = 0; k < NumberOfDofs(); k++){
@@ -168,10 +172,16 @@ void IgaEdgeCableElement::CalculateAll(
         const std::size_t shape_index_r = GetShapeIndex(r);
         //const double t_u = t[0];
         //const double t_v = t[1];
- 
+
+        //KRATOS_WATCH(r)
+        //KRATOS_WATCH(dof_type_r)
+        //KRATOS_WATCH(shape_index_r)
+  
         const double epsilon_var_r = actual_base_vector[dof_type_r] *
             (shape_derivatives(shape_index_r, 0) * t[0] 
             + shape_derivatives(shape_index_r, 1) * t[1]) / reference_aa;
+        
+        //KRATOS_WATCH(epsilon_var_r)
  
        if (ComputeLeftHandSide) {
             for (std::size_t s = 0; s < NumberOfDofs(); s++) {
@@ -180,27 +190,42 @@ void IgaEdgeCableElement::CalculateAll(
                 const Vector& t = GetValue(TANGENTS);
                 //const double t_u = t[0];
                 //const double t_v = t[1];
+
+            //KRATOS_WATCH(s)
+            //KRATOS_WATCH(dof_type_s)
+            //KRATOS_WATCH(shape_index_s)
  
                 const double epsilon_var_s =
                     actual_base_vector[dof_type_s] *
                     (shape_derivatives(shape_index_s, 0) * t[0]
                     + shape_derivatives(shape_index_s, 1) * t[1])
                     / reference_aa;
- 
+
+                //KRATOS_WATCH(epsilon_var_s)
+
                 rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
                     epsilon_var_s;
+
+            
  
                 if (dof_type_r == dof_type_s) {
                     const double epsilon_var_rs =
                         (shape_derivatives(shape_index_r, 0) * t[0] + shape_derivatives(shape_index_r, 1) * t[1]) *
                         (shape_derivatives(shape_index_s, 0) * t[0] + shape_derivatives(shape_index_s, 1) * t[1]) / reference_aa;
+                    
+                //KRATOS_WATCH(epsilon_var_rs)
  
                     rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
+
+                //KRATOS_WATCH(rLeftHandSideMatrix)
                 }
             }
         }
         if (ComputeRightHandSide) {
             rRightHandSideVector[r] = -s11_membrane * epsilon_var_r;
+            
+         //KRATOS_WATCH(rLeftHandSideMatrix)
+         //KRATOS_WATCH(rRightHandSideVector)
         }
     }
     //}

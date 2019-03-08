@@ -46,6 +46,23 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override;
 
+    /**
+	* @brief Creates a new element
+	* @param NewId The Id of the new created element
+	* @param pGeom The pointer to the geometry of the element
+	* @param pProperties The pointer to property
+	* @return The pointer to the created element
+	*/
+	Element::Pointer Create(
+		IndexType NewId,
+		GeometryType::Pointer pGeom,
+		PropertiesType::Pointer pProperties
+	) const override
+	{
+		return Kratos::make_shared<IgaEdgeCableElement>(
+			NewId, pGeom, pProperties);
+	};
+
     void GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo) override;
