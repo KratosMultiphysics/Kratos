@@ -36,7 +36,7 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "mesh_id"           : 0,
-                "model_part_name"   : "PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
             }
@@ -47,8 +47,8 @@
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Wake2D_Wake_Auto1",
-                "upper_surface_model_part_name" : "Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "Body2D_LowerSurface",
+                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
+                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
                 "wake_direction"       : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
@@ -59,8 +59,8 @@
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart",
-                "upper_surface_model_part_name" : "Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "Body2D_LowerSurface",
+                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
+                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
             }
@@ -70,7 +70,7 @@
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Body2D_UpperSurface"
+                "model_part_name" : "MainModelPart.Body2D_UpperSurface"
             }
         },{
             "python_module" : "placeholder_process",
@@ -78,7 +78,7 @@
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Body2D_LowerSurface"
+                "model_part_name" : "MainModelPart.Body2D_LowerSurface"
             }
         }],
         "auxiliar_process_list" :[{
