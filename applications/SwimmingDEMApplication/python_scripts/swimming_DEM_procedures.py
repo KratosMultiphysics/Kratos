@@ -13,8 +13,7 @@ def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
-def AddExtraDofs(project_parameters,
-                 fluid_model_part,
+def AddExtraDofs(fluid_model_part,
                  spheres_model_part,
                  cluster_model_part,
                  DEM_inlet_model_part,
