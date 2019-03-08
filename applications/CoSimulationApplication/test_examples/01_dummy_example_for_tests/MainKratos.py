@@ -10,7 +10,7 @@ if __name__ == '__main__':
     if len(argv) != 2:
         err_msg =  'Wrong number of input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
-        err_msg += '    "python co_simulation_analysis.py <cosim-parameter-file>.json"\n'
+        err_msg += '    "python MainKratos.py <cosim-parameter-file>.json"\n'
         raise Exception(err_msg)
 
     parameter_file_name = argv[1]
