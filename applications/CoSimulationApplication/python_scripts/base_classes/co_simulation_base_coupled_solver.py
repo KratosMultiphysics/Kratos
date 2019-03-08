@@ -1,6 +1,6 @@
 # co simulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
 cs_data_structure = cs_tools.cs_data_structure
 import collections
