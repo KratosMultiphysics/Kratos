@@ -22,6 +22,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/elemental_refining_criteria_process.h"
+#include "custom_processes/initial_perturbation_process.h"
 
 
 namespace Kratos
@@ -39,6 +40,10 @@ namespace Python
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<ModelPart&, Variable<double>, double, bool>())
         .def("Execute",&ElementalRefiningCriteriaProcess::Execute)
+        ;
+
+        py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>(m, "InitialPerturbationProcess")
+        .def(py::init<ModelPart&, Parameters&>())
         ;
     }
 

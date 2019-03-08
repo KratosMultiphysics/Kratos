@@ -10,12 +10,11 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED )
-#define  KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED
+#ifndef KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED
+#define KRATOS_INITIAL_PERTURBATION_PROCESS_H_INCLUDED
 
 
 // System includes
-#include <string>
 #include <iostream>
 
 
@@ -24,6 +23,11 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "processes/process.h"
+#include "geometries/point.h"
+#include "includes/kratos_parameters.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -53,7 +57,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class InitialPerturbationProcess : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) InitialPerturbationProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -67,20 +71,44 @@ public:
     ///@{
 
     /// Default constructor.
-    InitialPerturbationProcess();
+    InitialPerturbationProcess(
+        ModelPart& rThisModelPart,
+        Parameters& rThisParameters);
 
     /// Destructor.
-    virtual ~InitialPerturbationProcess();
+    ~InitialPerturbationProcess() override {}
 
     ///@}
     ///@name Operators
     ///@{
 
+    /*
+     * @brief This operator is provided to call the process as a function and simply calls the Execute method.
+     */
+    void operator()()
+    {
+        Execute();
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
+    void Execute() override;
+
+    /**
+     * @brief Perform a check with the parameters.
+     */
+    int Check() override;
+
+    /**
+     * @brief this function is designed for being execute once before the solution loop but
+     * after all of the solvers where built
+     */
+    void ExecuteBeforeSolutionLoop() override;
 
     ///@}
     ///@name Access
@@ -97,13 +125,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "InitialPerturbationProcess" ;
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "InitialPerturbationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -159,6 +192,12 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart& mrModelPart;
+    Variable<double> mVariable = FREE_SURFACE_ELEVATION;
+    double mDefaultValue;
+    // Point mSourcePoint;
+    double mInfluenceDistance;
+    double mPerturbation;
 
     ///@}
     ///@name Private Operators
@@ -185,10 +224,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    InitialPerturbationProcess& operator=(InitialPerturbationProcess const& rOther);
+    // InitialPerturbationProcess& operator=(InitialPerturbationProcess const& rOther);
 
     /// Copy constructor.
-    InitialPerturbationProcess(InitialPerturbationProcess const& rOther);
+    // InitialPerturbationProcess(InitialPerturbationProcess const& rOther);
 
 
     ///@}
