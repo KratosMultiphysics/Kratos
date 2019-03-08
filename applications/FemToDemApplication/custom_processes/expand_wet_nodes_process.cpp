@@ -46,7 +46,19 @@ void ExpandWetNodesProcess::Execute()
             }
         }
     }
+    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        (*it_elem)->SetValue(PRESSURE_EXPANDED, false);
+    }
+
 	this->ExpandWetNodesIfTheyAreSkin();
+
+
+
+    for (auto it_node = mrModelPart.Nodes().ptr_begin(); it_node != mrModelPart.Nodes().ptr_end(); ++it_node) {
+        if ((*it_node)->GetValue(PRESSURE_ID) != 0) {
+            KRATOS_WATCH((*it_node)->Id())
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -101,13 +113,90 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
         "name_auxiliar_condition"               : "Condition",
         "list_model_parts_to_assign_conditions" : [],
         "echo_level"                            : 0
-    })" );
+    })");
 
-    const auto& r_skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);
+    auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters); // TODO what's up in 3d?
+    skin_process.Execute();
+	auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
 
 
+
+
+    // for (auto it_node = r_sub_model_part.Nodes().ptr_begin(); it_node != r_sub_model_part.Nodes().ptr_end(); ++it_node) {
+    //     KRATOS_WATCH((*it_node)->Id())
+    // }
+
+    // for (auto it_node = mrModelPart.Nodes().ptr_begin(); it_node != mrModelPart.Nodes().ptr_end(); ++it_node) {
+    //     if ((*it_node)->GetValue(PRESSURE_ID) != 0) {
+    //         KRATOS_WATCH((*it_node)->Id())
+    //     }
+    // }
+
+
+
+
+
+    // Let's assign the flag IS_SKIN to the nodes
+    for (auto it_node = r_sub_model_part.Nodes().ptr_begin(); it_node != r_sub_model_part.Nodes().ptr_end(); ++it_node) {
+        (*it_node)->SetValue(IS_SKIN, true);
+    }
+
+    int expanded_elements = 1;
+    while (expanded_elements > 0) {
+        expanded_elements = 0;
+        for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+            auto& r_geometry = (*it_elem)->GetGeometry();
+
+            // if ((*it_elem)->Id() == 158) {
+            //     int number_of_wet_nodes, pressure_id;
+            //     bool aux = this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes);
+            //     KRATOS_WATCH(aux)
+            //     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            //         auto& r_node = r_geometry[i];
+            //         pressure_id = r_node.GetValue(PRESSURE_ID);
+            //         KRATOS_WATCH(pressure_id)
+            //         KRATOS_WATCH(r_node.GetValue(IS_SKIN))
+            //         if (pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
+            //             // KRATOS_WATCH(pressure_id)
+            //             // KRATOS_WATCH(r_node.GetValue(IS_SKIN))
+            //         }
+            //     }
+            // }
+
+            bool element_done = (*it_elem)->GetValue(PRESSURE_EXPANDED);
+            int number_of_wet_nodes, pressure_id;
+            // Indicator to reconstruct the Pressure afterwards
+            auto& r_process_info = mrModelPart.GetProcessInfo();
+
+            if (this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes) && element_done == false) {
+                // Loop over the nodes
+                for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                    auto& r_node = r_geometry[i];
+                    pressure_id = r_node.GetValue(PRESSURE_ID);
+                    if (pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
+                        r_node.SetValue(PRESSURE_ID, pressure_id);
+                        expanded_elements++;
+                        (*it_elem)->SetValue(PRESSURE_EXPANDED, true);
+                        r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
+
+
+                        // if ((*it_elem)->Id() == 158) {
+                        //     KRATOS_WATCH(pressure_id)
+                        //     KRATOS_WATCH(r_node.GetValue(IS_SKIN))
+                        // }
+
+
+
+                    }
+                }
+            }
+        }
+    }
+    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        (*it_elem)->SetValue(PRESSURE_EXPANDED, false);
+    }
 }
 
 
 
-}
+} // namespace Kratos
