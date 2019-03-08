@@ -78,6 +78,7 @@ def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_mod
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
+        SetModelPartSolutionStepValue(balls_model_part, BASSET_FORCE, Vector([0.]*3)) #TODO: investigate this
 
 def FixModelPart(model_part):
 
@@ -549,36 +550,36 @@ class ResultsFileCreator:
 def CreateRunCode(parameters):
     code = []
 
-    if project_parameters["basset_force_type"].GetInt() > 0:
+    if parameters["basset_force_type"].GetInt() > 0:
         history_or_not = 'H'
     else:
         history_or_not = 'NH'
 
     code.append(history_or_not)
 
-    if project_parameters["basset_force_type"].GetInt() == 4:
+    if parameters["basset_force_type"].GetInt() == 4:
         method_name = 'Hinsberg'
-        number_of_exponentials = 'm=' + str(project_parameters.number_of_exponentials)
-        time_window = 'tw=' + str(project_parameters["time_window"].GetDouble())
+        number_of_exponentials = 'm=' + str(parameters.number_of_exponentials)
+        time_window = 'tw=' + str(parameters["time_window"].GetDouble())
         code.append(method_name)
         code.append(number_of_exponentials)
         code.append(time_window)
 
-    elif project_parameters["basset_force_type"].GetInt() > 0:
+    elif parameters["basset_force_type"].GetInt() > 0:
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = project_parameters["TranslationalIntegrationScheme"].GetString()
+        method_name = parameters["TranslationalIntegrationScheme"].GetString()
         code.append(method_name)
 
-    DEM_dt = 'Dt=' + str(project_parameters["MaxTimeStep"].GetDouble())
+    DEM_dt = 'Dt=' + str(parameters["MaxTimeStep"].GetDouble())
     code.append(DEM_dt)
 
-    if project_parameters["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / project_parameters["time_steps_per_quadrature_step"].GetInt(), 3))
+    if parameters["basset_force_type"].GetInt() > 0:
+        phi = 'phi=' + str(round(1 / parameters["time_steps_per_quadrature_step"].GetInt(), 3))
         code.append(phi)
 
-    quadrature_order = 'QuadOrder=' + str(project_parameters["quadrature_order"].GetInt())
+    quadrature_order = 'QuadOrder=' + str(parameters["quadrature_order"].GetInt())
     code.append(quadrature_order)
 
     return '_' + '_'.join(code)
