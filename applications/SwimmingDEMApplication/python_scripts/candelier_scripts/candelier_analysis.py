@@ -16,32 +16,32 @@ from swimming_DEM_analysis import Say
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
-        self._GetSolver().is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
+        self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
         self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
         #Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
 
     def GetEmbeddedCounter(self):
-        return SDP.Counter(1, 3, self.pp.CFD_DEM["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        return SDP.Counter(1, 3, self.project_parameters["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 4, 0)
 
     def GetDebugInfo(self):
-        return SDP.Counter(self.pp.CFD_DEM["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
+        return SDP.Counter(self.project_parameters["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
 
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
         super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
-        candelier_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
-        candelier_pp.include_lift = bool(self.pp.CFD_DEM["lift_force_type"].GetInt())
+        candelier_pp.include_history_force = bool(self.project_parameters["basset_force_type"].GetInt())
+        candelier_pp.include_lift = bool(self.project_parameters["lift_force_type"].GetInt())
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
-        self.pp.CFD_DEM["fluid_already_calculated"].SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("load_derivatives").SetBool(False)
+        self.project_parameters["fluid_already_calculated"].SetBool(True)
+        self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
 
     def SetUpResultsDatabase(self):
         import candelier_scripts.candelier_hdf5 as candelier_hdf5
-        self.results_database = candelier_hdf5.ResultsCandelier(self.pp, self.main_path)
+        self.results_database = candelier_hdf5.ResultsCandelier(self.project_parameters, self.main_path)
 
     def PerformZeroStepInitializations(self):
         # Impose initial velocity to be that of the fluid for the x/y-components
@@ -71,12 +71,12 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
     def _CreateSolver(self):
         import candelier_scripts.candelier_dem_solver as sdem_solver
-        self.pp.field_utility = self.GetFieldUtility()
         return sdem_solver.CandelierDEMSolver(self.model,
-                                              self.pp.CFD_DEM,
+                                              self.project_parameters,
+                                              self.GetFieldUtility(),
                                               self.fluid_solution._GetSolver(),
                                               self.disperse_phase_solution._GetSolver(),
-                                              self.pp)
+                                              self.vars_man)
 
     def FinalizeSolutionStep(self):
         super(CandelierBenchmarkAnalysis, self).FinalizeSolutionStep()
@@ -86,7 +86,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         Say('analytic', analytic_coors)
         Say('calculated', [value / candelier_pp.R for value in (node.X, node.Y, node.Z)])
 
-        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+        if self.project_parameters["do_print_results_option"].GetBool():
             for node in self.spheres_model_part.Nodes:
                 r = Vector([node.X, node.Y, node.Z])
                 self.results_database.MakeReading(self.time, r)
