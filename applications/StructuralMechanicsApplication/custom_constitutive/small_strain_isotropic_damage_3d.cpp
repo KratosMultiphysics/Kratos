@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "linear_isotropic_damage_3D_law.h"
+#include "small_strain_isotropic_damage_3d.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
 
@@ -20,7 +20,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearIsotropicDamage3D::LinearIsotropicDamage3D()
+SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D()
     : ConstitutiveLaw()
 {
 }
@@ -28,7 +28,7 @@ LinearIsotropicDamage3D::LinearIsotropicDamage3D()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearIsotropicDamage3D::LinearIsotropicDamage3D(const LinearIsotropicDamage3D &rOther)
+SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(const SmallStrainIsotropicDamage3D &rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -36,22 +36,22 @@ LinearIsotropicDamage3D::LinearIsotropicDamage3D(const LinearIsotropicDamage3D &
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearIsotropicDamage3D::Clone() const
+ConstitutiveLaw::Pointer SmallStrainIsotropicDamage3D::Clone() const
 {
-    return Kratos::make_shared<LinearIsotropicDamage3D>(LinearIsotropicDamage3D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(SmallStrainIsotropicDamage3D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearIsotropicDamage3D::~LinearIsotropicDamage3D()
+SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool LinearIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
+bool SmallStrainIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
 {
     if(rThisVariable == INELASTIC_FLAG){
         return true;
@@ -62,7 +62,7 @@ bool LinearIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
+bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
     return false;
 }
@@ -70,7 +70,7 @@ bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearIsotropicDamage3D::GetValue(
+bool& SmallStrainIsotropicDamage3D::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
     )
@@ -85,7 +85,7 @@ bool& LinearIsotropicDamage3D::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::InitializeMaterial(
+void SmallStrainIsotropicDamage3D::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -99,23 +99,14 @@ void LinearIsotropicDamage3D::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearIsotropicDamage3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainIsotropicDamage3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // In small deformation is the same as compute Cauchy
     InitializeMaterialResponseCauchy(rValues);
@@ -124,7 +115,7 @@ void LinearIsotropicDamage3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Par
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void SmallStrainIsotropicDamage3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // In small deformation is the same as compute Cauchy
     InitializeMaterialResponseCauchy(rValues);
@@ -133,7 +124,16 @@ void LinearIsotropicDamage3D::InitializeMaterialResponseKirchhoff(ConstitutiveLa
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     double strain_variable;
     this->CalculateStressResponse(rValues, strain_variable);
@@ -143,7 +143,7 @@ void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     // In small deformation is the same as compute Cauchy
     FinalizeMaterialResponseCauchy(rValues);
@@ -152,7 +152,7 @@ void LinearIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     // In small deformation is the same as compute Cauchy
     FinalizeMaterialResponseCauchy(rValues);
@@ -161,7 +161,7 @@ void LinearIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // In small deformation is the same as compute Cauchy
     FinalizeMaterialResponseCauchy(rValues);
@@ -170,7 +170,7 @@ void LinearIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rVal
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateMaterialResponsePK1(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -178,7 +178,7 @@ void LinearIsotropicDamage3D::CalculateMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -186,7 +186,7 @@ void LinearIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -194,7 +194,7 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rVa
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValues)
+void SmallStrainIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     double strain_variable;
     this->CalculateStressResponse(rValues, strain_variable);
@@ -203,7 +203,7 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateStressResponse(
+void SmallStrainIsotropicDamage3D::CalculateStressResponse(
     Parameters& rValues,
     double& rStrainVariable)
 {
@@ -257,7 +257,7 @@ void LinearIsotropicDamage3D::CalculateStressResponse(
 //************************************************************************************
 //************************************************************************************
 
-double& LinearIsotropicDamage3D::CalculateValue(
+double& SmallStrainIsotropicDamage3D::CalculateValue(
     Parameters& rValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -291,7 +291,7 @@ double& LinearIsotropicDamage3D::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-double LinearIsotropicDamage3D::EvaluateHardeningLaw(
+double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
         double StrainVariable,
         const Properties &rMaterialProperties)
 {
@@ -316,7 +316,7 @@ double LinearIsotropicDamage3D::EvaluateHardeningLaw(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateElasticMatrix(
+void SmallStrainIsotropicDamage3D::CalculateElasticMatrix(
     const Properties &rMaterialProperties, Matrix &rElasticMatrix)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
@@ -343,7 +343,7 @@ void LinearIsotropicDamage3D::CalculateElasticMatrix(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::GetLawFeatures(Features& rFeatures)
+void SmallStrainIsotropicDamage3D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -356,7 +356,7 @@ void LinearIsotropicDamage3D::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int LinearIsotropicDamage3D::Check(
+int SmallStrainIsotropicDamage3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -390,7 +390,7 @@ int LinearIsotropicDamage3D::Check(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::save(Serializer& rSerializer) const
+void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
@@ -400,7 +400,7 @@ void LinearIsotropicDamage3D::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::load(Serializer& rSerializer)
+void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);
