@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "small_strain_isotropic_damage_3d.h"
 
 namespace Kratos
 {
@@ -41,7 +41,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearIsotropicDamage3D
+ * @class LinearIsotropicDamageTractionOnly3D
  * @ingroup StructuralMechanicsApplication
  * @brief Defines a damage with hardening/softening constitutive law in 3D
  * @details This material law is defined by the parameters:
@@ -55,7 +55,7 @@ namespace Kratos
  * @author Marcelo Raschi
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamageTractionOnly3D
-    : public ConstitutiveLaw
+    : public SmallStrainIsotropicDamage3D
 
 {
 public:
@@ -66,7 +66,7 @@ public:
     typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
 
-    // Counted pointer of LinearIsotropicDamage3DLaw
+    // Counted pointer of LinearIsotropicDamageTractionOnly3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamageTractionOnly3D);
 
     ///@}
@@ -94,230 +94,23 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
-    ///@}
-    ///@name Operators
-    ///@{
-    ///@}
-
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures The Features of the law
-     */
-    void GetLawFeatures(Features& rFeatures) override;
+//    /**
+//     * @brief This method computes the stress and constitutive tensor
+//     * @param rValues The norm of the deviation stress
+//     * @param rStrainVariable
+//     */
+//    void CalculateStressResponse(
+//            ConstitutiveLaw::Parameters& rValues,
+//            double& rStrainVariable) override;
 
     /**
-     * @brief Dimension of the law:
+     * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
+     * @param rStressVectorPos
+     * @param rStressVector
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 6;
-    };
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (bool)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<bool>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<double>& rThisVariable) override;
-
-    /**
-     * @brief Returns the value of a specified variable (bool)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
-
-    /**
-     * @brief This is to be called at the very beginning of the calculation
-     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void InitializeMaterial(const Properties& rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues) override;
-
-    /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Cauchy stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Cauchy stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
-
-    /**
-     * @brief calculates the value of a specified variable
-     * @param rValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
-     * @param rMaterialProperties The properties of the material
-     * @param rElementGeometry The geometry of the element
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {
-        rOStream << "Linear Isotropic Damage 3D constitutive law\n";
-    };
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-
-    ///@name Protected member Variables
-    ///@{
-    bool mInelasticFlag; /// Flags when in inelastic regime
-    double mStrainVariable;
-    ///@}
-
-    ///@name Protected Operators
-    ///@{
-    ///@}
-
-    ///@name Protected Operations
-    ///@{
-
-    /**
-     * @brief This method computes the stress and constitutive tensor
-     * @param rValues The norm of the deviation stress
-     * @param rStrainVariable
-     */
-    virtual void CalculateStressResponse(
-            ConstitutiveLaw::Parameters& rValues,
-            double& rStrainVariable);
-
-    double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
-
-    /**
-     * @brief This method computes the constitutive tensor
-     * @param rMaterialProperties The properties of the material
-     * @param rElasticMatrix The elastic tensor/matrix to be computed
-     */
-    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
-    ///@}
+    void ComputePositiveStressVector(
+            Vector& rStressVectorPos,
+            Vector& rStressVector) override;
 
 private:
 

@@ -309,7 +309,18 @@ protected:
             ConstitutiveLaw::Parameters& rValues,
             double& rStrainVariable);
 
-    double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
+    /**
+     * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
+     * @param rStressVectorPos
+     * @param rStressVector
+     */
+    virtual void ComputePositiveStressVector(
+            Vector& rStressVectorPos,
+            Vector& rStressVector);
+
+    double EvaluateHardeningLaw(
+            double StrainVariable,
+            const Properties &rMaterialProperties);
 
     /**
      * @brief This method computes the constitutive tensor
