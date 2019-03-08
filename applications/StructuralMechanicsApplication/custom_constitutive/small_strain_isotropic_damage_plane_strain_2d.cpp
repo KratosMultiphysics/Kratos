@@ -16,7 +16,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D()
+SmallStrainIsotropicDamagePlaneStrain2D::SmallStrainIsotropicDamagePlaneStrain2D()
     : SmallStrainIsotropicDamage3D()
 {
 }
@@ -24,26 +24,26 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
-    const LinearIsotropicDamagePlaneStrain2D &rOther) = default;
+SmallStrainIsotropicDamagePlaneStrain2D::SmallStrainIsotropicDamagePlaneStrain2D(
+    const SmallStrainIsotropicDamagePlaneStrain2D &rOther) = default;
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearIsotropicDamagePlaneStrain2D::Clone() const
+ConstitutiveLaw::Pointer SmallStrainIsotropicDamagePlaneStrain2D::Clone() const
 {
-    return Kratos::make_shared<LinearIsotropicDamagePlaneStrain2D>(LinearIsotropicDamagePlaneStrain2D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamagePlaneStrain2D>(SmallStrainIsotropicDamagePlaneStrain2D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearIsotropicDamagePlaneStrain2D::~LinearIsotropicDamagePlaneStrain2D() = default;
+SmallStrainIsotropicDamagePlaneStrain2D::~SmallStrainIsotropicDamagePlaneStrain2D() = default;
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::CalculateElasticMatrix(
+void SmallStrainIsotropicDamagePlaneStrain2D::CalculateElasticMatrix(
     const Properties &rMaterialProperties, Matrix &rElasticMatrix)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
@@ -71,7 +71,7 @@ void LinearIsotropicDamagePlaneStrain2D::CalculateElasticMatrix(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::GetLawFeatures(Features& rFeatures)
+void SmallStrainIsotropicDamagePlaneStrain2D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
@@ -84,7 +84,7 @@ void LinearIsotropicDamagePlaneStrain2D::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::save(Serializer& rSerializer) const
+void SmallStrainIsotropicDamagePlaneStrain2D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainIsotropicDamage3D);
 }
@@ -92,7 +92,7 @@ void LinearIsotropicDamagePlaneStrain2D::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::load(Serializer& rSerializer)
+void SmallStrainIsotropicDamagePlaneStrain2D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainIsotropicDamage3D);
 }

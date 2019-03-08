@@ -53,7 +53,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamagePlaneStrain2D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamagePlaneStrain2D
     : public SmallStrainIsotropicDamage3D
 
 {
@@ -67,22 +67,22 @@ public:
     typedef std::size_t SizeType;
 
     // Counted pointer of LinearIsotropicDamagePlaneStrain2DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamagePlaneStrain2D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamagePlaneStrain2D);
 
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamagePlaneStrain2D();
+    SmallStrainIsotropicDamagePlaneStrain2D();
 
     /**
      * @brief Copy constructor.
      */
-    LinearIsotropicDamagePlaneStrain2D(const LinearIsotropicDamagePlaneStrain2D& rOther);
+    SmallStrainIsotropicDamagePlaneStrain2D(const SmallStrainIsotropicDamagePlaneStrain2D& rOther);
 
     /**
      * @brief Destructor.
      */
-    ~LinearIsotropicDamagePlaneStrain2D() override;
+    ~SmallStrainIsotropicDamagePlaneStrain2D() override;
 
     /**
     * @brief Clone function
