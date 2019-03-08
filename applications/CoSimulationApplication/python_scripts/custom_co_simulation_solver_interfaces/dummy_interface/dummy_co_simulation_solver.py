@@ -35,7 +35,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_list.keys():
                 data_obj = data_structure.KratosGlobals.GetVariable(data_name)
-                node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
+                node.SetSolutionStepValue(data_obj, 0, [data+random.uniform(0, 0.99) for data in data_value])
 
     def PrintInfo(self):
         #cs_tools.PrintInfo( self.data_list.keys() )
@@ -54,7 +54,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_list.keys():
                 data_obj = data_structure.KratosGlobals.GetVariable(data_name)
-                node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
+                node.SetSolutionStepValue(data_obj, 0, [data+random.uniform(0,0.99) for data in data_value])
     def Check(self):
         cs_tools.PrintInfo(cs_tools.bcolors.GREEN+"Check from dummy co simulation solver", "CHECKED !"+cs_tools.bcolors.ENDC)
 
