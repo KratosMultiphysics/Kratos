@@ -1,5 +1,5 @@
 # co simulation imports
-from ... base_classes.base_io import CoSimulationBaseIO
+from ... base_classes.co_simulation_base_io import CoSimulationBaseIO
 from ... import co_simulation_tools as cs_tools
 
 

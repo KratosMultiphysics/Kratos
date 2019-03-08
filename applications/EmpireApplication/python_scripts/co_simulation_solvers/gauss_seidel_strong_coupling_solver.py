@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from co_simulation_solvers.base_coupling_solver import CoSimulationBaseCouplingSolver
+from co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
 
 # Other imports
 from co_simulation_convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator

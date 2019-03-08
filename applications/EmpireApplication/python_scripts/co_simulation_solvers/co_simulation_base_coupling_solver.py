@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from co_simulation_solvers.base_solver import CoSimulationBaseSolver
+from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-from co_simulation_predictors.predictor_factory import CreatePredictor
+from co_simulation_predictors.co_simulation_predictor_factory import CreatePredictor
 import co_simulation_tools as cosim_tools
 from co_simulation_tools import couplingsolverprint, bold
 

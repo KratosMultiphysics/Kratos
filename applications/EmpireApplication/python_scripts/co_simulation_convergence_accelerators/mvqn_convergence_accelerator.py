@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division
 # Date: Feb. 20, 2017
 
 # Importing the base class
-from base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 
 # Other imports
 import numpy as np

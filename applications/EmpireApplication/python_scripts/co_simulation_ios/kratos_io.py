@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 # Importing the base class
-from base_io import CoSimulationBaseIO
+from co_simulation_base_io import CoSimulationBaseIO
 
 # Other imports
 import numpy as np
