@@ -18,14 +18,18 @@ except ImportError as e:
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
                                     '{0}'.format(e)).group(1)
 
+import os
+import sys
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
+
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 # Exact integration tests
 from test_process_factory import TestProcessFactory as TTestProcessFactory
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
-import sys
-sys.path.insert(0, '../../../kratos/tests/')
 from test_mortar_mapper import TestMortarMapperCore as TTestMortarMapperCore
 
 # Mesh tying tests
