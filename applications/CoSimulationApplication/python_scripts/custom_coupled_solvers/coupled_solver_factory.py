@@ -7,6 +7,6 @@ def CreateCoupledSolver(settings):
     """
     coupled_solver_type = settings["coupled_solver_settings"]["solver_type"]
     module_name = coupled_solver_type.GetString()
-    module_full = 'KratosMultiphysics.CoSimulationApplication.custom_coupled_solvers.'+module_name+'_coupled_solver'
+    module_full = 'KratosMultiphysics.CoSimulationApplication.custom_coupled_solvers.coupled_solver_'+module_name
     coupled_solver_module = __import__(module_full, fromlist=[module_name])
     return coupled_solver_module.Create(settings)
