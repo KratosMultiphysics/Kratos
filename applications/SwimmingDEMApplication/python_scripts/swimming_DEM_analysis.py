@@ -468,8 +468,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.AddExtraProcessInfoVariablesToFluid()
 
-        SDP.AddExtraDofs(self.project_parameters,
-                         self.fluid_model_part,
+        SDP.AddExtraDofs(self.fluid_model_part,
                          self.spheres_model_part,
                          self.cluster_model_part,
                          self.DEM_inlet_model_part,
