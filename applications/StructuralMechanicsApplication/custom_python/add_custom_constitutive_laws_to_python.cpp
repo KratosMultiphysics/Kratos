@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include <custom_constitutive/linear_isotropic_damage_plane_strain_2d.h>
+#include <custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h>
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 // Elastic laws
@@ -35,7 +35,7 @@
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
-#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_traction_only_3D_law.h"
 
 // Plastic, damage laws and viscosities
@@ -151,12 +151,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"SmallStrainJ2Plasticity3DLaw").def(py::init<>())
     ;
 
-    py::class_< LinearIsotropicDamagePlaneStrain2D, typename LinearIsotropicDamagePlaneStrain2D::Pointer,  ConstitutiveLaw  >
-    (m,"LinearIsotropicDamagePlaneStrain2DLaw").def(py::init<>())
+    py::class_< SmallStrainIsotropicDamagePlaneStrain2D, typename SmallStrainIsotropicDamagePlaneStrain2D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamagePlaneStrain2DLaw").def(py::init<>())
     ;
 
-    py::class_< LinearIsotropicDamage3D, typename LinearIsotropicDamage3D::Pointer,  ConstitutiveLaw  >
-    (m,"LinearIsotropicDamage3DLaw").def(py::init<>())
+    py::class_< SmallStrainIsotropicDamage3D, typename SmallStrainIsotropicDamage3D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamage3DLaw").def(py::init<>())
     ;
 
     py::class_< LinearIsotropicDamageTractionOnly3D, typename LinearIsotropicDamageTractionOnly3D::Pointer,  ConstitutiveLaw  >
