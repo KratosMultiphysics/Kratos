@@ -412,13 +412,35 @@ private:
      * @param NumberOfPointsFound The number of potential pairs found
      * @param IndexesPairs The id sets of potential pairs
      */
-    inline void AddPotentialPairing(
+    void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
         Condition::Pointer pCondSlave,
         PointVector& rPointsFound,
         const IndexType NumberOfPointsFound,
         IndexMap::Pointer IndexesPairs
+        );
+
+    /**
+     * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pCondMaster The pointer to the master condition
+     * @param IndexesPairs The id sets of potential pairs
+     * @param ActiveCheckFactor The value used auxiliarly to check if the node is in the potential contact zone
+     * @param FrictionalProblem If the problem is frictional or not
+     */
+    void AuxiliarAddPotentialPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId,
+        Condition::Pointer pCondSlave,
+        const array_1d<double, 3>& rSlaveNormal,
+        Condition::Pointer pCondMaster,
+        IndexMap::Pointer IndexesPairs,
+        const double ActiveCheckFactor,
+        const bool FrictionalProblem
         );
 
     /**

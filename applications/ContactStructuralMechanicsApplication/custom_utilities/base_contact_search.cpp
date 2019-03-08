@@ -615,7 +615,6 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
                     }
                 }
             } else {
-                // TODO: Add something equivalent (requires modify the method)
 //                 AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
             }
         }
@@ -887,86 +886,107 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPai
     const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
     // Slave geometry
-    GeometryType& r_geom_slave = pCondSlave->GetGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondSlave->GetValue(NORMAL);
 
     for (IndexType i_point = 0; i_point < NumberOfPointsFound; ++i_point ) {
-        bool at_least_one_node_potential_contact = false;
-
         // Master condition
         Condition::Pointer p_cond_master = rPointsFound[i_point]->GetCondition();
 
-        if (mCheckGap == CheckGap::DirectCheck) {
-            // Master geometry
-            const array_1d<double, 3>& normal_master = p_cond_master->GetValue(NORMAL);
-            GeometryType& r_geom_master = p_cond_master->GetGeometry();
+        AuxiliarAddPotentialPairing(rComputingModelPart, rConditionId, pCondSlave, r_normal_slave, p_cond_master, IndexesPairs, active_check_factor, frictional_problem);
+    }
+}
 
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                if (r_geom_slave[i_node].IsNot(ACTIVE)) {
-                    Point projected_point;
-                    double aux_distance = 0.0;
-                    const array_1d<double, 3> normal = r_geom_slave[i_node].GetValue(NORMAL);
-                    if (norm_2(normal) < ZeroTolerance)
-                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, r_normal_slave);
-                    else
-                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, normal);
+/***********************************************************************************/
+/***********************************************************************************/
 
-                    array_1d<double, 3> result;
-                    if (aux_distance <= r_geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                        at_least_one_node_potential_contact = true;
-                        r_geom_slave[i_node].Set(ACTIVE, true);
-                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                            NodeType& node = r_geom_slave[i_node];
-                            if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                                if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                    node.Set(SLIP, true);
-                                } else {
-                                    node.Set(SLIP, false);
-                                }
-                            }
-                        }
-                    }
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AuxiliarAddPotentialPairing(
+    ModelPart& rComputingModelPart,
+    IndexType& rConditionId,
+    Condition::Pointer pCondSlave,
+    const array_1d<double, 3>& rSlaveNormal,
+    Condition::Pointer pCondMaster,
+    IndexMap::Pointer IndexesPairs,
+    const double ActiveCheckFactor,
+    const bool FrictionalProblem
+    )
+{
+    // Slave geometry
+    GeometryType& r_slave_geometry = pCondSlave->GetGeometry();
 
-                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, -normal_master);
-                    if (aux_distance <= r_geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                        at_least_one_node_potential_contact = true;
-                        r_geom_slave[i_node].Set(ACTIVE, true);
-                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                            NodeType& node = r_geom_slave[i_node];
-                            if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                                if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                    node.Set(SLIP, true);
-                                } else {
-                                    node.Set(SLIP, false);
-                                }
-                            }
-                        }
-                    }
-                } else
+    // Auxiliar bool
+    bool at_least_one_node_potential_contact = false;
+
+    if (mCheckGap == CheckGap::DirectCheck) {
+        // Master geometry
+        const array_1d<double, 3>& normal_master = pCondMaster->GetValue(NORMAL);
+        GeometryType& r_geom_master = pCondMaster->GetGeometry();
+
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            if (r_slave_geometry[i_node].IsNot(ACTIVE)) {
+                Point projected_point;
+                double aux_distance = 0.0;
+                const array_1d<double, 3> normal = r_slave_geometry[i_node].GetValue(NORMAL);
+                if (norm_2(normal) < ZeroTolerance)
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, rSlaveNormal);
+                else
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, normal);
+
+                array_1d<double, 3> result;
+                if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     at_least_one_node_potential_contact = true;
-            }
-        } else {
-            at_least_one_node_potential_contact = true;
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                r_geom_slave[i_node].Set(ACTIVE, true);
-                if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                    NodeType& r_node = r_geom_slave[i_node];
-                    if (norm_2(r_geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                        if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                r_node.Set(SLIP, true);
+                    r_slave_geometry[i_node].Set(ACTIVE, true);
+                    if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                        NodeType& node = r_slave_geometry[i_node];
+                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                node.Set(SLIP, true);
                             } else {
-                                r_node.Set(SLIP, false);
+                                node.Set(SLIP, false);
                             }
+                        }
+                    }
+                }
+
+                aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, -normal_master);
+                if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
+                    at_least_one_node_potential_contact = true;
+                    r_slave_geometry[i_node].Set(ACTIVE, true);
+                    if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                        NodeType& node = r_slave_geometry[i_node];
+                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                node.Set(SLIP, true);
+                            } else {
+                                node.Set(SLIP, false);
+                            }
+                        }
+                    }
+                }
+            } else
+                at_least_one_node_potential_contact = true;
+        }
+    } else {
+        at_least_one_node_potential_contact = true;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            r_slave_geometry[i_node].Set(ACTIVE, true);
+            if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                NodeType& r_node = r_slave_geometry[i_node];
+                if (norm_2(r_slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                    if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            r_node.Set(SLIP, true);
+                        } else {
+                            r_node.Set(SLIP, false);
                         }
                     }
                 }
             }
         }
-
-        if (at_least_one_node_potential_contact)
-            AddPairing(rComputingModelPart, rConditionId, pCondSlave, p_cond_master, IndexesPairs);
     }
+
+    if (at_least_one_node_potential_contact)
+        AddPairing(rComputingModelPart, rConditionId, pCondSlave, pCondMaster, IndexesPairs);
 }
 
 /***********************************************************************************/
