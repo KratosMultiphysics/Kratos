@@ -53,11 +53,8 @@ else(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     #take care: do not indent the lines below
     file(WRITE ${KRATOS_DIR}/KratosMultiphysics/__init__.py "import sys
 import os.path
-kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
-kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
 kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
 kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
-sys.path.append(kratos_libs)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests)
 
@@ -87,12 +84,7 @@ KM._ImportApplicationAsModule(application, application_name, application_folder,
 ## adding pyKratos to path
 application_path = os.path.join(\"${KRATOS_DIR}/applications\", application_folder)
 python_path = os.path.join(application_path, 'custom_data_structure')
-print(\"################### \", python_path)
 sys.path.append(python_path)
 ")
-
-    file(GLOB PY_KRATOS  "${CMAKE_CURRENT_SOURCE_DIR}/custom_data_structure/pyKratos/*.py")
-    #configure_file("${PY_KRATOS}" "${KRATOS_DIR}/KratosMultiphysics/" COPYONLY)
-    file(COPY ${PY_KRATOS} DESTINATION "${KRATOS_DIR}/KratosMultiphysics/CoSimulationApplication/pyKratos")
 
 endif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
