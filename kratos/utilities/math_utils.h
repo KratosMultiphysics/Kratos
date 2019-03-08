@@ -1600,7 +1600,22 @@ public:
             rA.resize(size1, size2, false);
 #endif // KRATOS_USE_AMATRIX
 
-        noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
+        // Direct multiplication
+        // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
+        
+        // Manual multiplication
+        rA.clear();
+        for(IndexType k = 0; k< rD.size1(); ++k) {
+            for(IndexType l = 0; l < rD.size2(); ++l) {
+                const double Dkl = rD(k, l);
+                for(IndexType j = 0; j < rB.size2(); ++j) {
+                    const double DklBlj = Dkl * rB(l, j);
+                    for(IndexType i = 0; i< rB.size2(); ++i) {
+                        rA(i, j) += rB(k, i) * DklBlj;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1630,7 +1645,22 @@ public:
             rA.resize(size1, size2, false);
 #endif // KRATOS_USE_AMATRIX
 
-        noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
+        // Direct multiplication
+        // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
+        
+        // Manual multiplication
+        rA.clear();
+        for(IndexType k = 0; k< rD.size1(); ++k) {
+            for(IndexType l = 0; l < rD.size2(); ++l) {
+                const double Dkl = rD(k,l);
+                for(IndexType j = 0; j < rB.size1(); ++j) {
+                    const double DklBjl = Dkl * rB(j,l);
+                    for(IndexType i = 0; i< rB.size1(); ++i) {
+                        rA(i, j) += rB(i, k) * DklBjl;
+                    }
+                }
+            }
+        }
     }
 
     /**
