@@ -397,20 +397,20 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixPointerType mpTMatrix = NULL;             /// This is matrix containing the global relation for the constraints
-    TSystemMatrixPointerType mpOldAMatrix = NULL;          /// This is matrix containing the old LHS structure
-    TSystemVectorPointerType mpConstantVector = NULL;      /// This is vector containing the rigid movement of the constraint
-    TSystemVectorPointerType mpDeltaConstantVector = NULL; /// This is vector contains the effective constant displacement
-    DofsArrayType mDoFMasterFixedSet;                      /// The set containing the fixed master DoF of the system
-    DofsArrayType mDoFSlaveSet;                            /// The set containing the slave DoF of the system
-    SizeType mDoFToSolveSystemSize = 0;                    /// Number of degrees of freedom of the problem to actually be solved
-    IndexMapType mReactionEquationIdMap;                   /// In order to know the corresponding EquaionId for each component of the reaction vector
+    TSystemMatrixType mTMatrix;                     /// This is matrix containing the global relation for the constraints
+    TSystemMatrixType mOldAMatrix;                  /// This is matrix containing the old LHS structure
+    TSystemVectorType mConstantVector;              /// This is vector containing the rigid movement of the constraint
+    TSystemVectorType mDeltaConstantVector;         /// This is vector contains the effective constant displacement
+    DofsArrayType mDoFMasterFixedSet;               /// The set containing the fixed master DoF of the system
+    DofsArrayType mDoFSlaveSet;                     /// The set containing the slave DoF of the system
+    SizeType mDoFToSolveSystemSize = 0;             /// Number of degrees of freedom of the problem to actually be solved
+    IndexMapType mReactionEquationIdMap;            /// In order to know the corresponding EquaionId for each component of the reaction vector
 
-    bool mCheckConstraintRelation = false;                 /// If we do a constraint check relation
-    bool mResetRelationMatrixEachIteration = false;        /// If we reset the relation matrix at each iteration
+    bool mCheckConstraintRelation = false;          /// If we do a constraint check relation
+    bool mResetRelationMatrixEachIteration = false; /// If we reset the relation matrix at each iteration
 
-    bool mComputeConstantContribution = false;             /// If we compute the constant contribution of the MPC
-    bool mCleared = true;                                  /// If the system has been reseted
+    bool mComputeConstantContribution = false;      /// If we compute the constant contribution of the MPC
+    bool mCleared = true;                           /// If the system has been reseted
 
     ///@}
     ///@name Protected Operators
@@ -556,13 +556,10 @@ protected:
 
         ApplyDirichletConditionsRHS(pScheme, rModelPart, rb);
 
-        // We get the global T matrix
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-
         // Reconstruct the RHS
         TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
-        TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+        TSparseSpace::Mult(mTMatrix, rb_copy, rb);
 
         // Adding contribution to reactions
         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
@@ -1112,9 +1109,6 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // We get the global T matrix
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
@@ -1126,15 +1120,14 @@ protected:
 
         // We compute the transposed matrix of the global relation matrix
         TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mTMatrix, 1.0);
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
             // We get the g constant vector
-            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
-            TSparseSpace::Mult(rA, rDeltaConstantVector, aux_constant_vector);
+            TSystemVectorType aux_constant_vector(mDeltaConstantVector);
+            TSparseSpace::Mult(rA, mDeltaConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
@@ -1143,17 +1136,14 @@ protected:
         SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
 
         // We do a backup of the matrix before apply the constraints
-        if (mpOldAMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
-            TSystemMatrixPointerType pNewOldAMatrix = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-            mpOldAMatrix.swap(pNewOldAMatrix);
-        }
-        (*mpOldAMatrix).swap(rA);
+        (mOldAMatrix).swap(rA);
+
         // We resize of system of equations
         rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize, false);
         rb.resize(mDoFToSolveSystemSize, false);
 
         // Final multiplication
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mTMatrix, rA);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
         // Cleaning up memory
@@ -1186,9 +1176,6 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // We get the global T matrix
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
@@ -1200,7 +1187,7 @@ protected:
 
         // We compute the transposed matrix of the global relation matrix
         TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, mTMatrix, 1.0);
 
         // We build the original system
         TSystemMatrixType A; // Dummy auxiliar matrix we ned to build anyway because are needed to impose the rigid displacements
@@ -1216,9 +1203,8 @@ protected:
         TSystemVectorType rb_copy = rb;
         if (mComputeConstantContribution) {
             // We get the g constant vector
-            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-            TSystemVectorType aux_constant_vector(rDeltaConstantVector);
-            TSparseSpace::Mult(A, rDeltaConstantVector, aux_constant_vector);
+            TSystemVectorType aux_constant_vector(mDeltaConstantVector);
+            TSparseSpace::Mult(A, mDeltaConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
 
@@ -1264,60 +1250,38 @@ protected:
 
         // Now we resize the relation matrix used on the MPC solution
         if(rModelPart.MasterSlaveConstraints().size() > 0) {
-            if (mpTMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
-                TSystemMatrixPointerType pNewT = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-                mpTMatrix.swap(pNewT);
-            }
-
-            // The rigid movement
-            if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
-                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
-                mpConstantVector.swap(pNewConstantVector);
-            }
-
-            // The effective rigid movement
-            if (mpDeltaConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
-                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
-                mpDeltaConstantVector.swap(pNewConstantVector);
-            }
-
-            // System matrices/vectors
-            TSystemMatrixType& rTMatrix = *mpTMatrix;
-            TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-
             // Resizing the system matrix
-            if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() || mCleared) { // If the matrix is not initialized
-                rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
-                ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
+            if (mTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() || mCleared) { // If the matrix is not initialized
+                mTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
+                ConstructRelationMatrixStructure(pScheme, mTMatrix, rModelPart);
             } else {
-                if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mDoFToSolveSystemSize) {
+                if (mTMatrix.size1() != BaseType::mEquationSystemSize || mTMatrix.size2() != mDoFToSolveSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                    rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
-                    ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
+                    mTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
+                    ConstructRelationMatrixStructure(pScheme, mTMatrix, rModelPart);
                 }
             }
 
             // Resizing the system vector
             // The rigid movement
-            if (rConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
-                rConstantVector.resize(BaseType::mEquationSystemSize, false);
+            if (mConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
+                mConstantVector.resize(BaseType::mEquationSystemSize, false);
                 mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
             } else {
-                if (rConstantVector.size() != BaseType::mEquationSystemSize) {
+                if (mConstantVector.size() != BaseType::mEquationSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                    rConstantVector.resize(BaseType::mEquationSystemSize, false);
+                    mConstantVector.resize(BaseType::mEquationSystemSize, false);
                     mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
                 }
             }
             // The effective rigid movement
             if (mComputeConstantContribution) {
-                if (rDeltaConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
-                    rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
+                if (mDeltaConstantVector.size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
+                    mDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                 } else {
-                    if (rDeltaConstantVector.size() != BaseType::mEquationSystemSize) {
+                    if (mDeltaConstantVector.size() != BaseType::mEquationSystemSize) {
                         KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                        rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
+                        mDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                     }
                 }
             }
@@ -1466,12 +1430,10 @@ protected:
         mReactionEquationIdMap.clear();
 
         // Clear constraint system
-        if (mpTMatrix != nullptr)
-            TSparseSpace::Clear(mpTMatrix);
-        if (mpConstantVector != nullptr)
-            TSparseSpace::Clear(mpConstantVector);
-        if (mpDeltaConstantVector != nullptr)
-            TSparseSpace::Clear(mpDeltaConstantVector);
+        mTMatrix.resize(0, 0, false);
+        mOldAMatrix.resize(0, 0, false);
+        mConstantVector.resize(0, false);
+        mDeltaConstantVector.resize(0, false);
 
         // Set the flag
         mCleared = true;
@@ -1702,13 +1664,11 @@ private:
         }
 
         // Apply master slave constraints
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSparseSpace::Mult(rTMatrix, current_solution, updated_solution);
+        TSparseSpace::Mult(mTMatrix, current_solution, updated_solution);
 
         if (mComputeConstantContribution) {
             ComputeConstraintContribution(pScheme, rModelPart, false, true);
-            const TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, rConstantVector);
+            TSparseSpace::UnaliasedAdd(updated_solution, 1.0, mConstantVector);
         }
 
         TSparseSpace::UnaliasedAdd(residual_solution, -1.0, updated_solution);
@@ -1741,18 +1701,14 @@ private:
     {
         KRATOS_TRY
 
-        // We get the global T matrix and the constant vector
-        const TSystemMatrixType& rTMatrix = *mpTMatrix;
-
         // We reconstruct the complete vector of Unknowns
         TSystemVectorType Dx_copy = rDx;
         rDx.resize(BaseType::mEquationSystemSize);
-        TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
+        TSparseSpace::Mult(mTMatrix, Dx_copy, rDx);
 
         // Add the constant vector
         if (mComputeConstantContribution) {
-            const TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-            TSparseSpace::UnaliasedAdd(rDx, 1.0, rDeltaConstantVector);
+            TSparseSpace::UnaliasedAdd(rDx, 1.0, mDeltaConstantVector);
         }
 
         // We check the solution
@@ -1761,13 +1717,13 @@ private:
         }
 
         // Simply restore old LHS
-        (rA).swap(*mpOldAMatrix);
-        mpOldAMatrix = NULL;
+        rA.swap(mOldAMatrix);
+        mOldAMatrix.resize(0, 0, false);
 
         // Reconstruct the RHS
         TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
-        TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+        TSparseSpace::Mult(mTMatrix, rb_copy, rb);
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
     }
@@ -2010,10 +1966,9 @@ private:
      */
     void ResetConstraintSystem()
     {
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
-        double *Tvalues = rTMatrix.value_data().begin();
+        double *Tvalues = mTMatrix.value_data().begin();
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
+        for (int i = 0; i < static_cast<int>(mTMatrix.nnz()); ++i) {
             Tvalues[i] = 0.0;
         }
 
@@ -2035,12 +1990,11 @@ private:
 
         // Setting ones
         for (auto& solv_dof : solvable_dof_reorder) {
-            rTMatrix(solv_dof.first, solv_dof.second) = 1.0;
+            mTMatrix(solv_dof.first, solv_dof.second) = 1.0;
         }
 
         if (mComputeConstantContribution) {
-            TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSparseSpace::SetToZero(rConstantVector);
+            TSparseSpace::SetToZero(mConstantVector);
         }
     }
 
@@ -2095,15 +2049,11 @@ private:
     {
         KRATOS_TRY;
 
-        // We build the global T matrix and the g constant vector
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
-        TSystemVectorType& rConstantVector = *mpConstantVector;
-
         // Filling constant vector
         if (ComputeConstantVector) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
+                mConstantVector[i] = 0.0;
             }
         }
 
@@ -2172,7 +2122,7 @@ private:
                                 const double constant_value = constant_vector[i];
                                 if (std::abs(constant_value) > 0.0) {
                                     auxiliar_temp_constant_equations_ids.insert(i_global);
-                                    double& r_value = rConstantVector[i_global];
+                                    double& r_value = mConstantVector[i_global];
                                     #pragma omp atomic
                                     r_value += constant_value;
                                 }
@@ -2191,7 +2141,7 @@ private:
 
                     if (ComputeTranslationMatrix) {
                         // Assemble the constraint contribution
-                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
+                        AssembleRelationMatrix(mTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
                     }
                 }
             }
@@ -2221,15 +2171,12 @@ private:
         )
     {
         if (mComputeConstantContribution) {
-            // We get
-            const TSystemMatrixType& rTMatrix = *mpTMatrix;
-            TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSystemVectorType& rDeltaConstantVector = *mpDeltaConstantVector;
-            TSparseSpace::Copy(rConstantVector, rDeltaConstantVector);
+            // We copy the constant vector
+            TSparseSpace::Copy(mConstantVector, mDeltaConstantVector);
 
             // We reconstruct the complete vector of Unknowns
             TSystemVectorType Dx(BaseType::mEquationSystemSize);
-            TSparseSpace::Mult(rTMatrix, rDxSolved, Dx);
+            TSparseSpace::Mult(mTMatrix, rDxSolved, Dx);
 
             // Compute the effective constant vector
             // Auxiliar initial dof iterator
@@ -2260,10 +2207,10 @@ private:
                 }
             }
             TSystemVectorType u_bar_complete(BaseType::mEquationSystemSize);
-            TSparseSpace::Mult(rTMatrix, u_bar, u_bar_complete);
+            TSparseSpace::Mult(mTMatrix, u_bar, u_bar_complete);
 
-            TSparseSpace::UnaliasedAdd(rDeltaConstantVector, 1.0, u_bar_complete);
-            TSparseSpace::UnaliasedAdd(rDeltaConstantVector, -1.0, u);
+            TSparseSpace::UnaliasedAdd(mDeltaConstantVector, 1.0, u_bar_complete);
+            TSparseSpace::UnaliasedAdd(mDeltaConstantVector, -1.0, u);
         }
     }
 
