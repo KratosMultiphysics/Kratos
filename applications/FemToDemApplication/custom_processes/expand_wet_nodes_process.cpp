@@ -121,9 +121,10 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
 
-    // Let's assign the flag IS_SKIN to the nodes
-    for (auto it_node = r_sub_model_part.Nodes().ptr_begin(); it_node != r_sub_model_part.Nodes().ptr_end(); ++it_node) {
-        (*it_node)->SetValue(IS_SKIN, true);
+    #pragma omp parallel for
+    for(int i = 0; i<static_cast<int>(r_sub_model_part.Nodes().size()); i++) {
+        auto it_node = r_sub_model_part.NodesBegin() + i;
+        it_node->SetValue(IS_SKIN, true);
     }
 
     int expanded_elements = 1;
