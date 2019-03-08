@@ -25,8 +25,6 @@
 "include_faxen_terms_option_comment"     : "(relevant if the Maxey Riley equation is used)",
 "gradient_calculation_type"              : 1,
 "gradient_calculation_type_comment"      : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-"laplacian_calculation_type"             : 2,
-"laplacian_calculation_type_comment"     : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
 "buoyancy_force_type"                    : 2,
 "buoyancy_force_type_comment"            : "null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity",
 "drag_force_type"                        : 10,
@@ -144,6 +142,8 @@
         "history_force_parameters": {
             "name":"BoussinesqBassetHistoryForceLaw",
             "quadrature_order": 2,
+            "time_steps_per_quadrature_step": 1,
+            "n_init_basset_steps": 0,
             "mae_parameters": {
                 "do_use_mae": false,
                 "m": 10,
