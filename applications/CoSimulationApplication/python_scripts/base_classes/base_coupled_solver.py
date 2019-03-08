@@ -1,6 +1,6 @@
 # co simulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.base_solver import CoSimulationBaseSolver
 # Other imports
 cs_data_structure = cs_tools.cs_data_structure
 import collections
@@ -246,7 +246,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param conv_acc_settings dict: setting of the convergence criteria to be make
     def _CreateConvergenceCriteria(self, conv_criteria_settings): # probably better in some utils file
         conv_criteria = []
-        import KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_convergence_criteria as criteria
+        import KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.base_convergence_criteria as criteria
         num_criteria = conv_criteria_settings.size()
         for i in range(num_criteria):
             criteria_setting = conv_criteria_settings[i]
