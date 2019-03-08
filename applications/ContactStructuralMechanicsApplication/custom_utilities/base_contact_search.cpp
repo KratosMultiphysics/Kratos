@@ -396,168 +396,24 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
     if (r_sub_computing_contact_model_part.Conditions().size() > 0)
         ClearMortarConditions();
 
-    // Auxiliar model parts and components
-    ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-    const int num_conditions = static_cast<int>(r_conditions_array.size());
-    const auto it_cond_begin = r_conditions_array.begin();
-
     // In case of not predefined master/slave we reset the flags
     if (!mPredefinedMasterSlave) {
         NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
+        ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
         VariableUtils().SetFlag(SLAVE, false, r_nodes_array);
         VariableUtils().SetFlag(MASTER, false, r_nodes_array);
         VariableUtils().SetFlag(SLAVE, false, r_conditions_array);
         VariableUtils().SetFlag(MASTER, false, r_conditions_array);
     }
 
-    // We check if we are in a dynamic or static case
-    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
-
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
     // Using KDTree
     if (type_search != SearchTreeType::OtreeWithOBB) {
-        // Some auxiliar values
-        const IndexType allocation_size = mThisParameters["allocation_size"].GetInt();              // Allocation size for the vectors and max number of potential results
-        const double search_factor = mThisParameters["search_factor"].GetDouble();                  // The search factor to be considered
-        IndexType bucket_size = mThisParameters["bucket_size"].GetInt();                            // Bucket size for kd-tree
-
-        // Create a tree
-        // It will use a copy of mNodeList (a std::vector which contains pointers)
-        // Copying the list is required because the tree will reorder it for efficiency
-        KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
-
-        // Now we iterate over the conditions
-//         #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-
-            if (!mPredefinedMasterSlave || it_cond->Is(SLAVE) == !mInvertedSearch) {
-                // Initialize values
-                PointVector points_found(allocation_size);
-
-                IndexType number_points_found = 0;
-
-                if (type_search == SearchTreeType::KdtreeInRadius) {
-                    GeometryType& r_geometry = it_cond->GetGeometry();
-                    const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
-
-                    const double search_radius = search_factor * Radius(it_cond->GetGeometry());
-
-                    number_points_found = tree_points.SearchInRadius(r_center, search_radius, points_found.begin(), allocation_size);
-                } else if (type_search == SearchTreeType::KdtreeInBox) {
-                    // Auxiliar values
-                    const double length_search = search_factor * it_cond->GetGeometry().Length();
-
-                    // Compute max/min points
-                    NodeType min_point, max_point;
-                    it_cond->GetGeometry().BoundingBox(min_point, max_point);
-
-                    // Get the normal in the extrema points
-                    Vector N_min, N_max;
-                    GeometryType::CoordinatesArrayType local_point_min, local_point_max;
-                    it_cond->GetGeometry().PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
-                    it_cond->GetGeometry().PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
-                    it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
-                    it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
-
-                    const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
-                    const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
-
-                    ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
-                    ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
-
-                    number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), allocation_size);
-                } else {
-                    KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mThisParameters["type_search"].GetString() << std::endl;
-                }
-
-                if (number_points_found > 0) {
-                    // We resize the vector to the actual size
-    //                 points_found.resize(number_points_found); // NOTE: May be ineficient
-
-                #ifdef KRATOS_DEBUG
-                    // NOTE: We check the list
-                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
-                        points_found[i_point]->Check();
-                #endif
-
-                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
-
-                    // If not active we check if can be potentially in contact
-                    if (mCheckGap == CheckGap::MappingCheck) {
-                        for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                            Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
-                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
-
-                            if (condition_checked_right == CheckResult::OK)
-                                p_indexes_pairs->AddId(p_cond_master->Id());
-                        }
-                    } else {
-                        AddPotentialPairing(r_sub_computing_contact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
-                    }
-                }
-            }
-        }
+        SearchUsingKDTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
     } else { // Using octree
-        KRATOS_ERROR_IF(mInvertedSearch) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
-        KRATOS_ERROR_IF_NOT(mPredefinedMasterSlave) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
-
-        // Getting model
-        ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-        ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
-        const std::string master_model_part_name = "MasterSubModelPart" + mThisParameters["id_name"].GetString();
-        ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart(master_model_part_name);
-        const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
-        ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
-
-        Parameters octree_parameters = mThisParameters["octree_search_parameters"];
-        octree_parameters.AddEmptyValue("first_model_part_name");
-        octree_parameters.AddEmptyValue("second_model_part_name");
-        octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
-        octree_parameters["second_model_part_name"].SetString(master_model_part_name);
-
-        const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
-        const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
-        octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
-
-        // Creating the process
-        FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
-        octree_search_process.ExecuteInitialize();
-
-        // Definition of the leaves of the tree
-        FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
-
-//         #pragma omp parallel for // TODO: Make me parallel!!!
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-
-            // We perform the search
-            leaves.clear();
-            octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
-
-            if (it_cond->Is(SELECTED)) {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
-
-                // If not active we check if can be potentially in contact
-                if (mCheckGap == CheckGap::MappingCheck) {
-                    for (auto p_leaf : leaves) {
-                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
-                            if (p_cond_master->Is(SELECTED)) {
-                                const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
-
-                                if (condition_checked_right == CheckResult::OK)
-                                    p_indexes_pairs->AddId(p_cond_master->Id());
-                            }
-                        }
-                    }
-                } else {
-                    // TODO: Add something equivalent (requires modify the method)
-    //                 AddPotentialPairing(r_sub_computing_contact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
-                }
-            }
-        }
+        SearchUsingOcTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
     }
 
     // In case of not predefined master/slave we assign the master/slave nodes and conditions
@@ -584,6 +440,185 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
         }
         // We compute the weighted reaction
         ComputeWeightedReaction();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
+    ModelPart& rSubContactModelPart,
+    ModelPart& rSubComputingContactModelPart
+    )
+{
+    // Some auxiliar values
+    const IndexType allocation_size = mThisParameters["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
+    const double search_factor = mThisParameters["search_factor"].GetDouble();     // The search factor to be considered
+    IndexType bucket_size = mThisParameters["bucket_size"].GetInt();               // Bucket size for kd-tree
+
+    // We check if we are in a dynamic or static case
+    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
+
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
+
+    // Create a tree
+    // It will use a copy of mNodeList (a std::vector which contains pointers)
+    // Copying the list is required because the tree will reorder it for efficiency
+    KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
+
+    // Auxiliar model parts and components
+    ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
+    const int num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
+    IndexType condition_id = GetMaximumConditionsIds();
+
+    // Now we iterate over the conditions
+//     #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        if (!mPredefinedMasterSlave || it_cond->Is(SLAVE) == !mInvertedSearch) {
+            // Initialize values
+            PointVector points_found(allocation_size);
+
+            IndexType number_points_found = 0;
+
+            if (type_search == SearchTreeType::KdtreeInRadius) {
+                GeometryType& r_geometry = it_cond->GetGeometry();
+                const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
+
+                const double search_radius = search_factor * Radius(it_cond->GetGeometry());
+
+                number_points_found = tree_points.SearchInRadius(r_center, search_radius, points_found.begin(), allocation_size);
+            } else if (type_search == SearchTreeType::KdtreeInBox) {
+                // Auxiliar values
+                const double length_search = search_factor * it_cond->GetGeometry().Length();
+
+                // Compute max/min points
+                NodeType min_point, max_point;
+                it_cond->GetGeometry().BoundingBox(min_point, max_point);
+
+                // Get the normal in the extrema points
+                Vector N_min, N_max;
+                GeometryType::CoordinatesArrayType local_point_min, local_point_max;
+                it_cond->GetGeometry().PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
+                it_cond->GetGeometry().PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
+                it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
+                it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
+
+                const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
+
+                ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
+                ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
+
+                number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), allocation_size);
+            } else {
+                KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mThisParameters["type_search"].GetString() << std::endl;
+            }
+
+            if (number_points_found > 0) {
+                // We resize the vector to the actual size
+//                 points_found.resize(number_points_found); // NOTE: May be ineficient
+
+            #ifdef KRATOS_DEBUG
+                // NOTE: We check the list
+                for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
+                    points_found[i_point]->Check();
+            #endif
+
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+
+                // If not active we check if can be potentially in contact
+                if (mCheckGap == CheckGap::MappingCheck) {
+                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                        Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+                        const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
+
+                        if (condition_checked_right == CheckResult::OK)
+                            p_indexes_pairs->AddId(p_cond_master->Id());
+                    }
+                } else {
+                    AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                }
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
+    ModelPart& rSubContactModelPart,
+    ModelPart& rSubComputingContactModelPart
+    )
+{
+    KRATOS_ERROR_IF(mInvertedSearch) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
+    KRATOS_ERROR_IF_NOT(mPredefinedMasterSlave) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
+
+    // Getting model
+    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+    const std::string master_model_part_name = "MasterSubModelPart" + mThisParameters["id_name"].GetString();
+    ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart(master_model_part_name);
+    const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
+    ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
+
+    Parameters octree_parameters = mThisParameters["octree_search_parameters"];
+    octree_parameters.AddEmptyValue("first_model_part_name");
+    octree_parameters.AddEmptyValue("second_model_part_name");
+    octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
+    octree_parameters["second_model_part_name"].SetString(master_model_part_name);
+
+    const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
+    const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
+    octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
+
+    // Creating the process
+    FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
+    octree_search_process.ExecuteInitialize();
+
+    // Definition of the leaves of the tree
+    FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
+
+    // Auxiliar model parts and components
+    ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
+    const int num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
+    IndexType condition_id = GetMaximumConditionsIds();
+
+//     #pragma omp parallel for // TODO: Make me parallel!!!
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        // We perform the search
+        leaves.clear();
+        octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+
+        if (it_cond->Is(SELECTED)) {
+            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+
+            // If not active we check if can be potentially in contact
+            if (mCheckGap == CheckGap::MappingCheck) {
+                for (auto p_leaf : leaves) {
+                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        if (p_cond_master->Is(SELECTED)) {
+                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
+
+                            if (condition_checked_right == CheckResult::OK)
+                                p_indexes_pairs->AddId(p_cond_master->Id());
+                        }
+                    }
+                }
+            } else {
+                // TODO: Add something equivalent (requires modify the method)
+//                 AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+            }
+        }
     }
 }
 
