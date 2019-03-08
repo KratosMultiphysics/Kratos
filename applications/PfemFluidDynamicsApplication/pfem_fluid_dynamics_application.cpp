@@ -37,8 +37,6 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 
-#include "geometries/line_2d.h"
-
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 

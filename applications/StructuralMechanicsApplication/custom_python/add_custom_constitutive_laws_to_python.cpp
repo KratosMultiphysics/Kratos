@@ -52,6 +52,7 @@
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -1284,6 +1285,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
         py::class_< DamageDPlusDMinusMasonry2DLaw, typename DamageDPlusDMinusMasonry2DLaw::Pointer, ConstitutiveLaw >
     (m, "DamageDPlusDMinusPlaneStressMasonry2DLaw").def(py::init<>())
     ;
+
+		py::class_< DamageDPlusDMinusMasonry3DLaw, typename DamageDPlusDMinusMasonry3DLaw::Pointer, ConstitutiveLaw >
+	(m, "DamageDPlusDMinusMasonry3DLaw").def(py::init<>())
+	;
 }
 
 }  // namespace Python.

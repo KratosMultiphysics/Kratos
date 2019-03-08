@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -24,9 +24,9 @@
 
 namespace Kratos
 {
-	std::string LoggerOutput::Info() const
-	{
-		return "LoggerOutput";
+    std::string LoggerOutput::Info() const
+    {
+        return "LoggerOutput";
     }
 
     void LoggerOutput::WriteHeader()
@@ -37,12 +37,15 @@ namespace Kratos
         mrStream << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
         mrStream << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
     }
-    
+
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
     {
-		auto message_severity = TheMessage.GetSeverity();
-        if (message_severity <= mSeverity)
+        auto message_severity = TheMessage.GetSeverity();
+        if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            if(TheMessage.IsDistributed())
+                mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
+
             if(TheMessage.GetLabel().size())
                 mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
             else
@@ -50,52 +53,52 @@ namespace Kratos
         }
     }
 
-	void LoggerOutput::Flush()
-	{
-		mrStream << std::flush;
-	}
+    void LoggerOutput::Flush()
+    {
+        mrStream << std::flush;
+    }
 
-	/// Print information about this object.
-	void LoggerOutput::PrintInfo(std::ostream& rOStream) const
-	{
-		rOStream << Info();
-	}
+    /// Print information about this object.
+    void LoggerOutput::PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
-	/// Print object's data.
-	void LoggerOutput::PrintData(std::ostream& rOStream) const
-	{
-		rOStream << "Max Level : " << mMaxLevel;
-	}
+    /// Print object's data.
+    void LoggerOutput::PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "Max Level : " << mMaxLevel;
+    }
 
-	/// char stream function
-	LoggerOutput& LoggerOutput::operator << (const char * rString)
-	{
-		mrStream << rString;
+    /// char stream function
+    LoggerOutput& LoggerOutput::operator << (const char * rString)
+    {
+        mrStream << rString;
 
-		return *this;
-	}
+        return *this;
+    }
 
-	LoggerOutput& LoggerOutput::operator << (std::ostream& (*pf)(std::ostream&))
-	{
-		std::stringstream buffer;
-		pf(buffer);
+    LoggerOutput& LoggerOutput::operator << (std::ostream& (*pf)(std::ostream&))
+    {
+        std::stringstream buffer;
+        pf(buffer);
 
-		mrStream << buffer.str();
+        mrStream << buffer.str();
 
-		return *this;
-	}
+        return *this;
+    }
 
 
-	/// output stream function
-	std::ostream& operator << (std::ostream& rOStream,
-		const LoggerOutput& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+    /// output stream function
+    std::ostream& operator << (std::ostream& rOStream,
+        const LoggerOutput& rThis)
+    {
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
+        return rOStream;
+    }
 
 
 }  // namespace Kratos.

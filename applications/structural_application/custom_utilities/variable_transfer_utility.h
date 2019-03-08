@@ -58,6 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 //External includes
 #include "boost/smart_ptr.hpp"
+#include "boost/numeric/ublas/matrix.hpp"
+#include "boost/numeric/ublas/vector.hpp"
 #include "boost/timer.hpp"
 #include "boost/progress.hpp"
 
@@ -88,9 +90,11 @@ public:
     typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Geometry<Node<3> >::GeometryType GeometryType;
     typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
     typedef LinearSolver<SpaceType, DenseSpaceType> LinearSolverType;
+    typedef boost::numeric::ublas::zero_matrix<double> UblasZeroMatrix;
+    typedef boost::numeric::ublas::zero_vector<double> UblasZeroVector;
 
     /**
      * Constructor.
@@ -108,7 +112,7 @@ public:
         std::cout << "VariableTransferUtility created" << std::endl;
         mEchoLevel = 0;
     }
-    
+
     /**
      * Destructor.
      */
@@ -119,7 +123,7 @@ public:
     {
         mEchoLevel = Level;
     }
-    
+
     int GetEchoLevel()
     {
         return mEchoLevel;
@@ -269,7 +273,7 @@ public:
     {
         TransferSpecificVariable( rSource, rTarget, PRESTRESS );
     }
-    
+
     /**
      * Transfer of PRESTRESS.
      * This transfers the in-situ stress from rSource to rTarget.
@@ -641,12 +645,12 @@ public:
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
         int number_of_threads = 1;
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
 #ifdef _OPENMP
         number_of_threads = omp_get_max_threads();
         double start_transfer = omp_get_wtime();
 #endif
-        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
         boost::progress_display show_progress( TargetMeshElementsArray.size() );
@@ -775,7 +779,7 @@ public:
         SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 
         for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
                 it != ElementsArray.ptr_end(); ++it )
@@ -812,9 +816,9 @@ public:
         {
             for(unsigned int secondvalue=0; secondvalue<3; secondvalue++)
             {
-                noalias(g)= ZeroVector(model_part.NumberOfNodes());
+                boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
+                boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
 
-                noalias(b)= ZeroVector(model_part.NumberOfNodes());
                 //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
                 // see Jiao + Heath "Common-refinement-based data tranfer ..."
                 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -978,7 +982,7 @@ public:
 
 //        }//END firstvalue
 //    }
-    
+
         // omp version
     void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
     {
@@ -995,14 +999,14 @@ public:
         SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
 
         int number_of_threads = 1;
 #ifdef _OPENMP
         number_of_threads = omp_get_max_threads();
 #endif
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         boost::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
@@ -1027,7 +1031,7 @@ public:
         {
             ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 const IntegrationPointsArrayType& integration_points
@@ -1062,7 +1066,7 @@ public:
 #endif
                     }
                 }
-                
+
                 ++show_progress;
             }
         }
@@ -1070,13 +1074,13 @@ public:
 
         for(unsigned int firstvalue = 0; firstvalue < 6; ++firstvalue)
         {
-            noalias(g)= ZeroVector(model_part.NumberOfNodes());
-            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -1085,7 +1089,7 @@ public:
             {
                 ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( ElementsArrayType::ptr_iterator it = it_begin;
                         it != it_end;
                         ++it )
@@ -1139,7 +1143,7 @@ public:
 //            Timer::Stop("Transfer result");
 
         }//END firstvalue
-        
+
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
             omp_destroy_lock(&lock_array[i]);
@@ -1172,7 +1176,7 @@ public:
 //            it->GetSolutionStepValue(rThisVariable)
 //            = 0.0;
 //        }
-// 
+//
 //        //SetUpEquationSystem
 //        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 //        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
@@ -1190,23 +1194,23 @@ public:
 //        {
 //            const IntegrationPointsArrayType& integration_points
 //            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-// 
+//
 //            GeometryType::JacobiansType J(integration_points.size());
 //            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
-// 
+//
 //            std::vector<double> ValuesOnIntPoint(integration_points.size());
-// 
+//
 //            (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
-// 
+//
 //            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
-// 
+//
 //            Matrix InvJ(3,3);
 //            double DetJ;
-// 
+//
 //            for(unsigned int point=0; point< integration_points.size(); point++)
 //            {
 //                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
-// 
+//
 //                double dV= DetJ*integration_points[point].Weight();
 //                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
 //                {
@@ -1245,14 +1249,14 @@ public:
         SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
 
         int number_of_threads = 1;
 #ifdef _OPENMP
         number_of_threads = omp_get_max_threads();
 #endif
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
         boost::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
@@ -1277,7 +1281,7 @@ public:
         {
             ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 const IntegrationPointsArrayType& integration_points
@@ -1312,19 +1316,19 @@ public:
 #endif
                     }
                 }
-                
+
                 ++show_progress;
             }
         }
 //        Timer::Stop("Assemble Transferred stiffness matrix");
 
-            noalias(g)= ZeroVector(model_part.NumberOfNodes());
-            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(model_part.NumberOfNodes());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(model_part.NumberOfNodes());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -1333,7 +1337,7 @@ public:
             {
                 ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( ElementsArrayType::ptr_iterator it = it_begin;
                         it != it_end;
                         ++it )
@@ -1426,7 +1430,7 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
         for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
@@ -1464,8 +1468,8 @@ public:
         {
             for(unsigned int secondvalue= 0; secondvalue< 3; secondvalue++)
             {
-                noalias(b)= ZeroVector(rTarget.NumberOfNodes());
-                noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+                boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
+                boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
                 //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
                 // see Jiao + Heath "Common-refinement-based data tranfer ..."
                 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1562,7 +1566,7 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
 
@@ -1599,8 +1603,8 @@ public:
         }
         for(unsigned int firstvalue= 0; firstvalue< 6; firstvalue++)
         {
-            noalias(b)= ZeroVector(rTarget.NumberOfNodes());
-            noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+            boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
+            boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
             //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1694,11 +1698,11 @@ public:
         }
         //SetUpEquationSystem
         SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(M)= UblasZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         SpaceType::VectorType g(rTarget.NumberOfNodes());
-        noalias(g)= ZeroVector(rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(g)= UblasZeroVector(rTarget.NumberOfNodes());
         SpaceType::VectorType b(rTarget.NumberOfNodes());
-        noalias(b)= ZeroVector(rTarget.NumberOfNodes());
+        boost::numeric::ublas::noalias(b)= UblasZeroVector(rTarget.NumberOfNodes());
         //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
         // see Jiao + Heath "Common-refinement-based data tranfer ..."
         // International Journal for numerical methods in engineering 61 (2004) 2402--2427
@@ -1789,7 +1793,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i=0; i< oldElement.GetGeometry().size(); i++)
         {
             noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -1825,7 +1829,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
         {
             noalias(temp)= oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -1870,7 +1874,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = pPressureGeometry->ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i= 0; i< pPressureGeometry->size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -1899,7 +1903,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i= 0; i< sourceElement.GetGeometry().size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -1924,7 +1928,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i=0; i<sourceElement.GetGeometry().size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -2074,17 +2078,17 @@ public:
         double newValue = 0.0;
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
     }
-    
+
 protected:
     LinearSolverType::Pointer mpLinearSolver;
-    
+
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     void ConstructMatrixStructure (
@@ -2150,8 +2154,8 @@ protected:
         }
 #else
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> matrix_partition;
-        CreatePartition(number_of_threads, indices.size(), matrix_partition);
+        std::vector<unsigned int> matrix_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, indices.size(), matrix_partition);
         for( int k=0; k<number_of_threads; k++ )
         {
             #pragma omp parallel
@@ -2172,7 +2176,7 @@ protected:
         }
 #endif
     }
-    
+
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
@@ -2189,25 +2193,13 @@ protected:
         }
 
     }
-    
-    //**********AUXILIARY FUNCTION**************************************************************
-    //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
 
 private:
     int mEchoLevel;
-    
-    
-    
-    
+
+
+
+
 };//Class Scheme
 }//namespace Kratos.
 
