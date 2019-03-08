@@ -46,8 +46,11 @@ void ExpandWetNodesProcess::Execute()
             }
         }
     }
-    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-        (*it_elem)->SetValue(PRESSURE_EXPANDED, false);
+    
+    #pragma omp parallel for
+    for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+        auto it_elem = mrModelPart.ElementsBegin() + i;
+        it_elem->SetValue(PRESSURE_EXPANDED, false);
     }
 
 	this->ExpandWetNodesIfTheyAreSkin();
@@ -155,8 +158,11 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
             }
         }
     }
-    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-        (*it_elem)->SetValue(PRESSURE_EXPANDED, false);
+
+    #pragma omp parallel for
+    for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+        auto it_elem = mrModelPart.ElementsBegin() + i;
+        it_elem->SetValue(PRESSURE_EXPANDED, false);
     }
 }
 
