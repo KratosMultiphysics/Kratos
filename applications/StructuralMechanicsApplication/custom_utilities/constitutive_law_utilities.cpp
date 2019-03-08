@@ -454,7 +454,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     }
 
     // Calculate E matrix
-    const BoundedMatrixType E_matrix = prod(eigen_vectors_matrix, prod<BoundedMatrixType>(eigen_values_matrix, trans(eigen_vectors_matrix)));
+    BoundedMatrixType E_matrix;
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
 
     // Hencky Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
@@ -485,7 +486,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     }
 
     // Calculate E matrix
-    const BoundedMatrixType E_matrix = prod(eigen_vectors_matrix, prod<BoundedMatrixType>(eigen_values_matrix, trans(eigen_vectors_matrix)));
+    BoundedMatrixType E_matrix;
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
 
     // Biot Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
@@ -836,7 +838,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
     }
 
     // Calculate exponential matrix
-    noalias(plastic_deformation_gradient_increment) = prod(eigen_vectors_matrix, prod<Matrix>(eigen_values_matrix, trans(eigen_vectors_matrix)));
+    MathUtils<double>::BDBtProductOperation(plastic_deformation_gradient_increment, eigen_values_matrix, eigen_vectors_matrix);
 
     // Pre and post multiply by Re
     plastic_deformation_gradient_increment = prod(plastic_deformation_gradient_increment, rRe);

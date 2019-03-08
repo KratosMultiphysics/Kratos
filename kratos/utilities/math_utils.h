@@ -1574,6 +1574,66 @@ public:
      }
 
     /**
+     * @brief Calculates the product operation B'DB
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
+     * @tparam TMatrixType3 The type of matrix considered (3)
+     */
+    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
+    static inline void BtDBProductOperation(
+        TMatrixType1& rA,
+        const TMatrixType2& rD,
+        const TMatrixType3& rB
+        )
+    {
+        // The sizes
+        const SizeType size1 = rB.size2();
+        const SizeType size2 = rB.size2();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rA.size1() != size1 || rA.size2() != size2)
+            rA.resize(size1, size2, false);
+#endif // KRATOS_USE_AMATRIX
+
+        noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
+    }
+
+    /**
+     * @brief Calculates the product operation BDB'
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
+     * @tparam TMatrixType3 The type of matrix considered (3)
+     */
+    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
+    static inline void BDBtProductOperation(
+        TMatrixType1& rA,
+        const TMatrixType2& rD,
+        const TMatrixType3& rB
+        )
+    {
+        // The sizes
+        const SizeType size1 = rB.size1();
+        const SizeType size2 = rB.size1();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("BDBtProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BDBtProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rA.size1() != size1 || rA.size2() != size2)
+            rA.resize(size1, size2, false);
+#endif // KRATOS_USE_AMATRIX
+
+        noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
+    }
+
+    /**
      * @brief Calculates the eigenvectors and eigenvalues of given symmetric matrix
      * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is LDL'
      * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
@@ -1582,7 +1642,8 @@ public:
      * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
      * @param Tolerance The largest value considered to be zero
      * @param MaxIterations Maximum number of iterations
-     * @tparam TMatrixType The type of matrix considered
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
      */
     template<class TMatrixType1, class TMatrixType2>
     static inline bool GaussSeidelEigenSystem(
@@ -1709,7 +1770,7 @@ public:
      * @warning This method is deprecated. Will be removed soon
      */
     template<SizeType TDim>
-    KRATOS_DEPRECATED_MESSAGE("Please use GaussSeidelEigenSystem() instead")
+    KRATOS_DEPRECATED_MESSAGE("Please use GaussSeidelEigenSystem() instead. Note the resulting EigenVectors matrix is transposed respect GaussSeidelEigenSystem()")
     static inline bool EigenSystem(
         const BoundedMatrix<TDataType, TDim, TDim>& rA,
         BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,

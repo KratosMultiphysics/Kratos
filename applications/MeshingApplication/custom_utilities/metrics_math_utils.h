@@ -94,9 +94,10 @@ public:
 
         MathUtils<double>::GaussSeidelEigenSystem(n_matrix, emat, auxmat, 1e-18, 20);
 
-        typedef MatrixType temp_type;
-        const MatrixType lambdamat =  prod(emat, prod<temp_type>(metric1_matrix, trans(emat)));
-        const MatrixType mumat =  prod(emat, prod<temp_type>(metric2_matrix, trans(emat)));
+        MatrixType lambdamat;
+        MathUtils<double>::BDBtProductOperation(lambdamat, metric1_matrix, emat);
+        MatrixType mumat;
+        MathUtils<double>::BDBtProductOperation(mumat, metric2_matrix, emat);
 
         for (std::size_t i = 0; i < TDim; ++i)
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
@@ -104,9 +105,10 @@ public:
         MatrixType invemat;
         MathUtils<double>::InvertMatrix(emat, invemat, auxdet);
 
-        MatrixType IntersectionMatrix = prod(invemat, prod<temp_type>(auxmat, trans(invemat)));
+        MatrixType intersection_matrix;
+        MathUtils<double>::BDBtProductOperation(intersection_matrix, auxmat, invemat);
 
-        const TensorArrayType& Intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(IntersectionMatrix);
+        const TensorArrayType& Intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
 
         return Intersection;
     }

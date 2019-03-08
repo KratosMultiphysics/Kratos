@@ -160,7 +160,8 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     }
 
     // We compute the product
-    const MatrixType& metric_matrix =  prod(eigen_vector_matrix, prod<MatrixType>(eigen_values_matrix, trans(eigen_vector_matrix)));
+    MatrixType metric_matrix;
+    MathUtils<double>::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
 
     // Finally we transform to a vector
     const TensorArrayType& metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
