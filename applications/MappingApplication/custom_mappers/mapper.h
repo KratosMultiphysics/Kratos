@@ -52,7 +52,7 @@ public:
 
     typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
 
-    typedef typename TSparseSpace::MatrixType  TMappingMatrixType;
+    typedef typename TSparseSpace::MatrixType TMappingMatrixType;
 
     ///@}
     ///@name Life Cycle

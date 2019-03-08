@@ -2749,7 +2749,7 @@ namespace Kratos
 
 	    //if checking all the neighbour elements did not work, we have to use the bins
 		//ask to the container for the list of candidate elements
-		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
+		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{coords}, result_begin, MaxNumberOfResults );
 
 		if(results_found>0){
 		//loop over the candidate elements and check if the particle falls within
@@ -2855,7 +2855,7 @@ namespace Kratos
 
 		//if checking all the neighbour elements did not work, we have to use the bins
 		//ask to the container for the list of candidate elements
-		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
+		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{coords}, result_begin, MaxNumberOfResults );
 
 		if(results_found>0)
 		{
@@ -2927,7 +2927,7 @@ namespace Kratos
 
 
 		//ask to the container for the list of candidate elements
-		SizeType results_found = mpTopographicBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
+		SizeType results_found = mpTopographicBinsObjectDynamic->SearchObjectsInCell(Point{coords}, result_begin, MaxNumberOfResults );
 		//KRATOS_WATCH(results_found)
 
 		if(results_found>0){

@@ -5,8 +5,6 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-#check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
     return DamUPSolver(main_model_part, custom_settings)

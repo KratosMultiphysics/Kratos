@@ -573,7 +573,7 @@ public:
             }
             else
             {
-                KRATOS_INFO("MPM_Strategy") << "WARNING: no free DOFs!! " << std::endl;
+                KRATOS_WARNING("MPM_Strategy") << "WARNING: no free DOFs!! " << std::endl;
             }
 
             // Updating the results stored in the database
@@ -787,7 +787,7 @@ public:
             }
             else
             {
-                KRATOS_INFO("MPM_Strategy") << "WARNING: no free DOFs!! " << std::endl;
+                KRATOS_WARNING("MPM_Strategy") << "WARNING: no free DOFs!! " << std::endl;
             }
 
             // Updating the results stored in the database
@@ -1164,9 +1164,9 @@ protected:
 
     void MaxIterationsExceeded()
     {
-        KRATOS_INFO("MPMStrategy") << "***************************************************" << std::endl;
-        KRATOS_INFO("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        KRATOS_INFO("MPM_Strategy") << "***************************************************" << std::endl;
+        KRATOS_WARNING("MPMStrategy") << "***************************************************" << std::endl;
+        KRATOS_WARNING("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+        KRATOS_WARNING("MPM_Strategy") << "***************************************************" << std::endl;
 
     }
 

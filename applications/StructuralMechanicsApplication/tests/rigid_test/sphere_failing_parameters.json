@@ -1,0 +1,119 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "sphere_failing",
+        "parallel_type" : "OpenMP",
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "rigid_test/sphere_failing"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "rigid_test/sphere_failing_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "block_builder"                      : false,
+        "line_search"                        : false,
+        "convergence_criterion"              : "displacement_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },
+        {
+            "python_module" : "impose_rigid_movement_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name"      : "Parts_Parts_Auto1",
+                "master_variable_name" : "DISPLACEMENT_Z",
+                "interval"             : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [],
+        "check_analytic_results_process" : [
+        {
+            "python_module"   : "check_scalar_to_nodes_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"          : "CheckValueProcess",
+            "Parameters"            : {
+                    "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
+                    "variable_name"   : "VELOCITY_Z",
+                    "interval"        : [0.0, "End"],
+                    "value"           : "-9.81*(t + 0.05)",
+                    "tolerance_rank"  : 8
+            }
+        }]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "sphere_failing",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+                        "gauss_point_results" : ["VON_MISES_STRESS"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    }
+}

@@ -1,14 +1,4 @@
 {
-    "problem_data"             : {
-        "problem_name"    : "structure",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
-        "echo_level"      : 1
-    },
     "optimization_settings" : {
         "model_settings" : {
             "domain_size"              : 3,
@@ -56,8 +46,7 @@
                 "response_type"          : "strain_energy",
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-6,
-                "consider_discretization": false
+                "step_size"              : 1e-6
             },
             "project_gradient_on_surface_normals" : true
         }],
@@ -81,18 +70,17 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "response_log_filename"   : "response_log",
-            "design_history_filename" : "design_history",
-            "design_output_mode"      : "WriteOptimizationModelPart",
-            "nodal_results" : [ "SHAPE_CHANGE" ],
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid",
-                "result_file_configuration" : {
-                    "gidpost_flags"       : {
-                        "GiDPostMode"           : "GiD_PostBinary"
-                    },
-                    "output_frequency"    : 1.0
+                "gid_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
                 }
             }
         }

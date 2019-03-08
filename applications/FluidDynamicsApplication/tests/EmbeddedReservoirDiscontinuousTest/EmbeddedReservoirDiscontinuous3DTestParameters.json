@@ -1,0 +1,85 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "embedded_reservoir_discontinuous_3D",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.2
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name"             : "FluidModelPart",
+        "domain_size"                 : 3,
+        "solver_type"                 : "Embedded",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "embedded_reservoir_discontinuous_3D"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 10,
+        "relative_velocity_tolerance" : 1e-7,
+        "absolute_velocity_tolerance" : 1e-9,
+        "relative_pressure_tolerance" : 1e-7,
+        "absolute_pressure_tolerance" : 1e-9,
+        "linear_solver_settings"      : {
+            "solver_type": "skyline_lu_factorization"
+        },
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["Outlet3D_Top","NoSlip3D_Walls","NoSlip3D_Bottom"],
+        "no_skin_parts"               : [],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        },
+        "formulation"                 : {
+            "element_type": "embedded_symbolic_navier_stokes_discontinuous",
+            "is_slip" : true,
+            "dynamic_tau": 1.0,
+            "slip_length" : 1.0e-6,
+            "penalty_coefficient": 1.0e-2
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet3D_Top",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 1.0e+06,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Walls"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip3D_Bottom"
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Parts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 0.0,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "auxiliar_process_list"            : []
+    }
+}

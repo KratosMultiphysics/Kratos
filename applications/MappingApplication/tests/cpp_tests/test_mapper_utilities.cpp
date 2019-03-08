@@ -19,7 +19,6 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
-// #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
 
 namespace Kratos {
@@ -147,7 +146,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
 {
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
-    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
     MapperLocalSystemPointerVector local_systems;
 

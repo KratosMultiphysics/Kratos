@@ -76,12 +76,12 @@ class CoupledFluidThermalSolver(PythonSolver):
             modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.thermal_solver.main_model_part,
                                       "EulerianConvDiff2D",
-                                      "ThermalFace2D")
+                                      "ThermalFace2D2N")
         else:
             modeler.GenerateModelPart(self.fluid_solver.main_model_part,
                                       self.thermal_solver.main_model_part,
                                       "EulerianConvDiff3D",
-                                      "ThermalFace3D")
+                                      "ThermalFace3D3N")
 
         # Set the saved convection diffusion settings to the new thermal model part
         self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)

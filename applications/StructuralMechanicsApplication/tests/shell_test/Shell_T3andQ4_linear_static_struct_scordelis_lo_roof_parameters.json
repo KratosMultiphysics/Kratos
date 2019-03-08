@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Surface_T3_thin","Parts_Surface_Q4_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface_Q4_thick","SurfaceLoad3D_Surface_Q4_thin","SurfaceLoad3D_Surface_T3_thick","SurfaceLoad3D_Surface_T3_thin"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface_Q4_thick","SurfaceLoad3D_Surface_Q4_thin","SurfaceLoad3D_Surface_T3_thick","SurfaceLoad3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
     "processes" : {

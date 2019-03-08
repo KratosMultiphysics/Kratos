@@ -1,11 +1,40 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
-    
-    default_settings = KratosMultiphysics.Parameters("""
-        {
+
+    default_settings = KratosMultiphysics.Parameters(
+        """{
+            "Dimension"                        : 3,
+            "GravityX"                         : 0.0,
+            "GravityY"                         : 0.0,
+            "GravityZ"                         : -9.81,
+
+            "OutputFileType"                   : "Binary",
+            "Multifile"                        : "multiple_files",
+
+            "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
+            "MaxTimeStep"                      : 0.005,
+            "FinalTime"                        : 1.0,
+            "ControlTime"                      : 4.0,
+            "NeighbourSearchFrequency"         : 1,
+            "TestType" : "None",
+
+            "ElementType"                      : "SwimmingDEMElement",
+            "echo_level"                       : 1,
+            "problem_data"     : {
+                "problem_name"  : "dummy_name.Provide_a_real_one",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 1,
+                "start_time"    : 0.0,
+                "end_time"      : 1
+            },
+            "do_print_results_option"                : true,
+            "processes" : {
+                "auxiliar_process_list": []
+            },
+            "json_output_process"  : [],
+            "sdem_output_processes" : {},
             "coupling_level_type"                    : 1,
             "time_averaging_type"                    : 0,
             "interaction_start_time"                 : 0.0,
@@ -91,30 +120,13 @@ def GetDefaultInputParameters():
             "regularization_coefficient"             : 0.0,
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
+            "basset_force_type"                      : 0,
+            "time_window"                            : 0.04,
+            "number_of_exponentials"                 : 2,
+            "frame_of_reference_type"                : 0,
+            "angular_velocity_of_frame_Z"            : 0.0,
 
-            "GraphExportFreq"                  : 1e-3,
-            "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 0.5,
-            "PostDisplacement"                 : true,
-            "PostVelocity"                     : true,
-            "PostElasticForces"                : false,
-            "PostContactForces"                : false,
-            "PostRigidElementForces"           : false,
-            "PostTangentialElasticForces"      : false,
-            "PostTotalForces"                  : false,
-            "PostShearStress"                  : false,
-            "PostNonDimensionalVolumeWear"     : false,
-            "PostNodalArea"                    : false,
-            "PostRHS"                          : false,
-            "PostDampForces"                   : false,
-            "PostAppliedForces"                : false,
-            "PostRadius"                       : true,
-            "PostGroupId"                      : false,
-            "PostExportId"                     : false,
-            "PostAngularVelocity"              : false,
-            "PostParticleMoment"               : false,
-            "PostEulerAngles"                  : false,
-            "PostBoundingBox"                  : false,
             "PostPressure"                     : false,
             "PostFluidPressure"                          : false,
             "print_REYNOLDS_NUMBER_option"               : false,
@@ -144,9 +156,12 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
-            
+            "problem_name" : "",
             "PredefinedSkinOption"             : false,
-            "MeanRadius"                       : 0.0001
+            "MeanRadius"                       : 0.0001,
+            "properties": [{}],
+            "fluid_parameters" : {},
+            "dem_parameters" : {}
             }""")
-            
+
     return default_settings

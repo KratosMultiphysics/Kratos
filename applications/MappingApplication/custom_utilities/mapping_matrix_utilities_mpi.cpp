@@ -17,6 +17,7 @@
 #include<set>
 
 // External includes
+#include "Epetra_FECrsGraph.h"
 
 // Project includes
 #include "mapping_matrix_utilities.h"

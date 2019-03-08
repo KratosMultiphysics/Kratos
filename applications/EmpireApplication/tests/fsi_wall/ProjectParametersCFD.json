@@ -30,7 +30,7 @@
         "solver_type" : "ale_fluid",
         "ale_boundary_parts" : ["NoSlip2D_FSI_Interface"],
         "mesh_motion_solver_settings"               :   {
-            "solver_type" : "mesh_solver_structural_similarity"
+            "solver_type" : "structural_similarity"
         },
         "fluid_solver_settings" : {
             "solver_type"                 : "Monolithic",
@@ -53,10 +53,10 @@
             "relative_pressure_tolerance" : 1e-8,
             "absolute_pressure_tolerance" : 1e-8,
             "linear_solver_settings"      : {
-                "solver_type"         : "BICGSTABSolver",
+                "solver_type"         : "bicgstab",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-10,
-                "preconditioner_type" : "ILU0Preconditioner",
+                "preconditioner_type" : "ilu0",
                 "scaling"             : false
             },
             "volume_model_part_name"      : "Parts_Fluid",

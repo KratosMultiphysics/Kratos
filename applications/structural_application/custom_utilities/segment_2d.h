@@ -187,8 +187,8 @@ public:
 
     static Intersect IntersectSegment(
         PointType& Point,
-        vector<PointType >& Points0,
-        vector<PointType >& Points1)
+        std::vector<PointType >& Points0,
+        std::vector<PointType >& Points1)
     {
 
         KRATOS_TRY
@@ -213,10 +213,10 @@ public:
                 Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
                 //comprobando que el punto no sea el extremo del segmento
                 array_1d<double, 4 > aa;
-                aa[0] = std::fabs(Points0(0)[0]- Point[0]);
-                aa[1] = std::fabs(Points0(0)[1]- Point[1]);
-                aa[2] = std::fabs(Points1(1)[0]- Point[0]);
-                aa[3] = std::fabs(Points1(1)[1]- Point[1]);
+                aa[0] = std::fabs(Points0[0][0]- Point[0]);
+                aa[1] = std::fabs(Points0[0][1]- Point[1]);
+                aa[2] = std::fabs(Points1[1][0]- Point[0]);
+                aa[3] = std::fabs(Points1[1][1]- Point[1]);
 
                 if( (aa[0]<toler && aa[1]<toler) || (aa[2]<toler && aa[3]<toler))
                 {

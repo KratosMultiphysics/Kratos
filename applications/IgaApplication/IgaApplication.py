@@ -12,15 +12,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
+import KratosMultiphysics as KM
 from KratosIgaApplication import *
 application = KratosIgaApplication()
 application_name = "KratosIgaApplication"
 application_folder = "IgaApplication"
 
-# The following lines are common for all applications
-from .. import application_importer
-import inspect
-# Information about the file that imported this, to check for unexpected imports
-caller = inspect.stack()[1]
-application_importer.ImportApplication(application, application_name,
-    application_folder, caller, __path__)
+KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)

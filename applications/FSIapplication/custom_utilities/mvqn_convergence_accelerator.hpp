@@ -216,8 +216,7 @@ public:
             MatrixType v_svd; // Orthogonal matrix (n x n)
             std::string svd_type = "Jacobi"; // SVD decomposition type
             double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-            const auto svd_its = SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
-
+            SVDUtils<double>::SingularValueDecomposition(aux2, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
 
             // Get the eigenvalues vector. Remember that eigenvalues 
             // of trans(A)*A are equal to the eigenvalues of A^2

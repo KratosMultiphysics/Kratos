@@ -44,14 +44,13 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 
     #pragma omp parallel for
     for (int i=0; i<num_nodes_local; ++i) {
-        // TODO this should be working in omp, not usre though (could allocate data in parallel...)
         ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
     }
 
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
+double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
 {
     double search_safety_factor = 1.2;
     double max_element_size = 0.0;
@@ -66,10 +65,12 @@ double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
     }
     else {
-        if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "MAPPER WARNING, no conditions/elements for search radius "
-                        << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
-                        << "using nodes (less efficient, bcs search radius will be larger)" << std::endl;
+        KRATOS_WARNING_IF("Mapper", EchoLevel > 0)
+            << "No conditions/elements for computation of search radius found in\n"
+            << "ModelPart \"" << rModelPart.Name() << "\", using nodes for computing it\n"
+            << "(less efficient, because search radius will be larger)\n"
+            << "It is recommended to specify the search-radius manually\n"
+            << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
     }
 
@@ -187,11 +188,11 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
 }
 
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
-                              const Point& rPoint)
+                              const array_1d<double, 3>& rCoords)
 {   // The Bounding Box should have some tolerance already!
-    if (rPoint.X() < rBoundingBox[0] && rPoint.X() > rBoundingBox[1])   // check x-direction
-        if (rPoint.Y() < rBoundingBox[2] && rPoint.Y() > rBoundingBox[3])   // check y-direction
-            if (rPoint.Z() < rBoundingBox[4] && rPoint.Z() > rBoundingBox[5])   // check z-direction
+    if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
+        if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])   // check y-direction
+            if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
                 return true;
     return false;
 }

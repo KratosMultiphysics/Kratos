@@ -221,7 +221,17 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening, const MatrixType & rPlasticPotentialDerivative)
+    {
+      KRATOS_TRY
+	
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
 
+      return rDeltaHardening;
+	
+      KRATOS_CATCH(" ")
+    }
+    
     virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening)
     {
       KRATOS_TRY

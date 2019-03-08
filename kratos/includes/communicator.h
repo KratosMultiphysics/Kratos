@@ -568,7 +568,7 @@ public:
 
     }
 
-    virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
+    virtual bool SynchronizeVariable(Variable<int> const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -576,7 +576,7 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
+    virtual bool SynchronizeVariable(Variable<double> const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -584,7 +584,7 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -592,7 +592,22 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 4 > > const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 9 > > const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<Vector> const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -600,7 +615,7 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
+    virtual bool SynchronizeVariable(Variable<Matrix> const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -608,27 +623,42 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeNonHistoricalVariable(Variable<int> const& ThisVariable)
+    virtual bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable)
     {
         return true;
     }
 
-    virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& ThisVariable)
+    virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable)
     {
         return true;
     }
 
-    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& rThisVariable)
     {
         return true;
     }
 
-    virtual bool SynchronizeNonHistoricalVariable(Variable<Vector> const& ThisVariable)
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 4 > > const& rThisVariable)
     {
         return true;
     }
 
-    virtual bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& ThisVariable)
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 6 > > const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 9 > > const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Vector> const& rThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable)
     {
         return true;
     }

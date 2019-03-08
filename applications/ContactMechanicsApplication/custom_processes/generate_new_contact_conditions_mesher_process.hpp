@@ -113,7 +113,7 @@ namespace Kratos
 	std::cout<<" [ GENERATE NEW CONTACT ELEMENTS: "<<std::endl;
         std::cout<<"   Total Conditions BEFORE: ["<<mrModelPart.Conditions().size()<<"] ];"<<std::endl;
       }
-      
+
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
@@ -207,7 +207,7 @@ namespace Kratos
 		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].GetProperties().PrintData(std::cout);
 		// std::cout<<std::endl;
 
-		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
+		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition);
 		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
 		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
 
@@ -235,7 +235,7 @@ namespace Kratos
 		  for(unsigned int i=0; i<4; ++i)
 		    {
 		      if(!edge_nodes[i] && rMasterGeometry[i].Id() != rMasterNode.Id())
-			pContactCondition->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer(rMasterGeometry(i)) );
+			pContactCondition->GetValue(MASTER_NODES).push_back( rMasterGeometry(i) );
 		    }
 		}
 

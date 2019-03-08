@@ -17,6 +17,8 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "includes/process_info.h"
+#include "includes/variables.h"
 #include "input_output/logger.h"
 #include "time_discretization.h"
 
@@ -34,6 +36,13 @@ std::array<double, 2> BDF1::ComputeBDFCoefficients(const double DeltaTime) const
     coefficients[1] = -1.0/DeltaTime;
 
     return coefficients;
+}
+
+std::array<double, 2> BDF1::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
 std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime) const
@@ -62,6 +71,14 @@ std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime, const
     return coefficients;
 }
 
+std::array<double, 3> BDF2::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME],
+                                  rProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME]);
+}
+
 std::array<double, 4> BDF3::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
@@ -77,6 +94,13 @@ std::array<double, 4> BDF3::ComputeBDFCoefficients(const double DeltaTime) const
     coefficients[3] =  -2.0 / denom;
 
     return coefficients;
+}
+
+std::array<double, 4> BDF3::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
 std::array<double, 5> BDF4::ComputeBDFCoefficients(const double DeltaTime) const
@@ -95,6 +119,13 @@ std::array<double, 5> BDF4::ComputeBDFCoefficients(const double DeltaTime) const
     coefficients[4] =   3.0 / denom;
 
     return coefficients;
+}
+
+std::array<double, 5> BDF4::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
 std::array<double, 6> BDF5::ComputeBDFCoefficients(const double DeltaTime) const
@@ -116,6 +147,13 @@ std::array<double, 6> BDF5::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
+std::array<double, 6> BDF5::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
+}
+
 std::array<double, 7> BDF6::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
@@ -134,6 +172,13 @@ std::array<double, 7> BDF6::ComputeBDFCoefficients(const double DeltaTime) const
     coefficients[6] =   10.0 / denom;
 
     return coefficients;
+}
+
+std::array<double, 7> BDF6::ComputeBDFCoefficients(const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DELTA_TIME)) << "No DELTA_TIME "
+        << "defined in the ProcessInfo!" << std::endl;
+    return ComputeBDFCoefficients(rProcessInfo[DELTA_TIME]);
 }
 
 } // namespace TimeDiscretization.

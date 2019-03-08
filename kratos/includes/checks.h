@@ -24,8 +24,11 @@
 #define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed because " << #IsTrue << " is not true"
 #define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed because " << #IsFalse << " is not false"
 
-#define KRATOS_CHECK_EQUAL(a,b) if(!(a == b)) KRATOS_ERROR << "Check failed because " << #a << " is not equal to " << #b
-#define KRATOS_CHECK_NOT_EQUAL(a,b) if(a == b) KRATOS_ERROR << "Check failed because " << #a << " is equal to " << #b
+#define KRATOS_CHECK_EQUAL(a,b) if(!((a) == (b))) KRATOS_ERROR << "Check failed because " << #a << " is not equal to " << #b
+#define KRATOS_CHECK_NOT_EQUAL(a,b) if((a) == (b)) KRATOS_ERROR << "Check failed because " << #a << " is equal to " << #b
+
+#define KRATOS_CHECK_STRING_EQUAL(a,b) if(a.compare(b) != 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\""
+#define KRATOS_CHECK_STRING_NOT_EQUAL(a,b) if(a.compare(b) == 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\""
 
 #define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\""
 #define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\""

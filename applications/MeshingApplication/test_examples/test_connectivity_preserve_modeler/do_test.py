@@ -58,7 +58,7 @@ origin_model_part.Properties[10].SetValue(PRESSURE, prop_initial_value)
 # generate a new model part with different elements. Will use THE SAME Nodes, Properties and ProcessInfo as the original one
 # but will have different Elements and Conditions
 connectivity_model_part_generator = ConnectivityPreserveModeler()
-connectivity_model_part_generator.GenerateModelPart(origin_model_part, new_model_part, "ConvDiff2D", "ThermalFace2D")
+connectivity_model_part_generator.GenerateModelPart(origin_model_part, new_model_part, "ConvDiff2D", "ThermalFace2D2N")
 
 # verify buffer size is assigned correctly
 benchmarking.Output(origin_model_part.GetBufferSize(), "test expected value for buffer_size on origin_model_part", buffer_size)
