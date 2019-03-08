@@ -54,8 +54,10 @@ def Norm2OfScalarVariable(model_part, nodal_varible):
 # Set and read input data
 # =======================================================================================================
 
+model = Model()
+
 # Import model parts
-plate_with_trias = ModelPart("plate_with_trias")
+plate_with_trias = model.CreateModelPart("plate_with_trias")
 plate_with_trias.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
 plate_with_trias.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
 plate_with_trias.AddNodalSolutionStepVariable(SHAPE_UPDATE)
@@ -65,7 +67,7 @@ plate_with_trias.AddNodalSolutionStepVariable(AIR_PRESSURE)
 model_part_io = ModelPartIO("plate_with_trias")
 model_part_io.ReadModelPart(plate_with_trias)
 
-plate_with_quads = ModelPart("plate_with_quads")
+plate_with_quads = model.CreateModelPart("plate_with_quads")
 plate_with_quads.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
 plate_with_quads.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
 plate_with_quads.AddNodalSolutionStepVariable(SHAPE_UPDATE)
