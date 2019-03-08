@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
 
