@@ -125,7 +125,7 @@ namespace Kratos
 
 
     /**
-     * Calculate Yield Condition Stresses derivative
+     * Calculate Plastic Potential Condition Stresses derivative
      */
 
     virtual VectorType& CalculateDeltaPlasticPotential(const PlasticDataType& rVariables, VectorType& rDeltaPlasticPotential) override
@@ -142,6 +142,24 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+
+    /**
+     * Calculate Yield Condition Stresses derivative
+     */
+
+    virtual VectorType& CalculateDeltaStressInvPlasticPotential(const PlasticDataType& rVariables, VectorType& rDeltaStressInvPlasticPotential) override
+    {
+      KRATOS_TRY
+
+      if ( mpPlasticPotential) {
+         rDeltaStressInvPlasticPotential = mpPlasticPotential->CalculateDeltaStressInvYieldCondition( rVariables, rDeltaStressInvPlasticPotential );
+      }else {
+         rDeltaStressInvPlasticPotential = this->CalculateDeltaStressInvYieldCondition( rVariables, rDeltaStressInvPlasticPotential );
+      }
+      return rDeltaStressInvPlasticPotential;
+
+      KRATOS_CATCH(" ")
+    }
 
 
     ///@}

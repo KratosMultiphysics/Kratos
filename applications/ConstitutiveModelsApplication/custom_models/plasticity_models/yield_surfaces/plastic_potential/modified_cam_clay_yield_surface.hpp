@@ -111,31 +111,61 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const ModelDataType & rModelData = rVariables.GetModelData();
-      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+      //get stress matrix
+      const ModelDataType & rModelData      = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix   = rModelData.GetStressMatrix();
 
-      // Material Parameters
-      const Properties& rProperties = rModelData.GetProperties();
-      const double& rShearM = rProperties[CRITICAL_STATE_LINE];
-
-      // compute something with the hardening rule
-
-
-      double MeanStress, J2, LodeAngle;
-
-      VectorType V1, V2;
-      // more work is requiered
-      StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
+      VectorType V1, V2, dFdInv;
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 
-      double ThirdInvariantEffect = 1.0; // LMV: to be done
-      double PreconsolidationStress;
-      PreconsolidationStress = MeanStress + 3.0/MeanStress * pow( J2 / rShearM / ThirdInvariantEffect, 2.0);
+      //calculate derivative with respect to invariants
+      dFdInv = this->CalculateDeltaStressInvYieldCondition( rVariables, dFdInv);
 
-
-      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / rShearM, 2) * J2 * V2;
+      rDeltaStressYieldCondition = dFdInv(0) * V1 + dFdInv(1) * V2;
 
       return rDeltaStressYieldCondition;
+
+      KRATOS_CATCH(" ")
+    }
+
+    //*************************************************************************************
+    //*************************************************************************************
+    // evaluation of the derivative of the yield surface respect the stresses
+    VectorType& CalculateDeltaStressInvYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressInvYieldCondition) override
+    {
+      KRATOS_TRY
+
+      const ModelDataType & rModelData      = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix   = rModelData.GetStressMatrix();
+
+      //get constants
+      const Properties& rProperties   = rModelData.GetProperties();
+      const double& rShearM           = rProperties[CRITICAL_STATE_LINE];
+      const double& rFriction         = rMaterialProperties[FRICTION_ANGLE];
+
+      //initiate output
+      VectorType VInv = ZeroVector(6);
+      double dFdp, dFdJ2;
+
+      //calculate stress invariants
+      double MeanStress, LodeAngle, J2;
+      StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
+
+      //calcualte third invariant effect on M
+      double ThirdInvEffect = 1.0;
+      ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+
+      //calculate preconsolidation pressure
+      double PreconStress = MeanStress + 3.0/MeanStress * pow( J2/rShearM/ThirdInvEffect, 2.0);
+
+      //
+      dFdp = 2.0*MeanStress - PreconStress;
+      dFdJ2 = 2.0*3.0*pow(1.0/rShearM, 2.0) * J2;
+      VInv(0) = dFdp;
+      VInv(1) = dFdJ2;
+      rDeltaStressInvYieldCondition = VInv;
+
+      return rDeltaStressInvYieldCondition;
 
       KRATOS_CATCH(" ")
     }

@@ -399,6 +399,7 @@ namespace Kratos
 
             }
 
+
             //***************************************************************************************
             //***************************************************************************************
             // Correct Yield Surface Drift According to
@@ -513,6 +514,7 @@ namespace Kratos
                KRATOS_CATCH("")
             }
 
+
             //***************************************************************************************
             //***************************************************************************************
             // Compute Elasto Plastic Matrix
@@ -520,8 +522,8 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      // evaluate constitutive matrix and plastic flow
-      Matrix ElasticMatrix(6,6);
+               // evaluate constitutive matrix and plastic flow
+               Matrix ElasticMatrix(6,6);
                noalias(ElasticMatrix) = ZeroMatrix(6,6);
                this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
 
@@ -548,6 +550,7 @@ namespace Kratos
 
                KRATOS_CATCH("")
             }
+
 
             //***************************************************************************************
             //***************************************************************************************
@@ -860,7 +863,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType EigenVectors;
+               MatrixType EigenVectors;
                EigenVectors.clear();
 
                rHenckyStrain.clear();
@@ -896,7 +899,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType DeformationGradientReference;
+               MatrixType DeformationGradientReference;
                MatrixType DeformationGradientFinal;
                MatrixType Identity = IdentityMatrix(3);
 
@@ -918,7 +921,8 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType InverseMatrix; double detMatrix;
+               MatrixType InverseMatrix;
+               double detMatrix;
                InverseMatrix.clear();
                ConstitutiveModelUtilities::InvertMatrix3( rDeltaDeformationMatrix, InverseMatrix, detMatrix);
                rInitialLeftCauchyGreen = prod( InverseMatrix, rInitialLeftCauchyGreen);

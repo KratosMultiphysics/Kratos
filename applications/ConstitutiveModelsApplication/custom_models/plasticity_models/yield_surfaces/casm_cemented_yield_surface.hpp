@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CASM_YIELD_SURFACE_H_INCLUDED )
-#define      KRATOS_CASM_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_CASM_CEMENTED_YIELD_SURFACE_H_INCLUDED )
+#define      KRATOS_CASM_CEMENTED_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -57,7 +57,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmYieldSurface : public NonAssociativeYieldSurface<THardeningRule>
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CasmCementedYieldSurface : public NonAssociativeYieldSurface<THardeningRule>
   {    
   public:
 
@@ -73,26 +73,26 @@ namespace Kratos
     typedef typename YieldSurface<THardeningRule>::Pointer        BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
 
-    /// Pointer definition of CasmYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( CasmYieldSurface );
+    /// Pointer definition of CasmCementedYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( CasmCementedYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CasmYieldSurface() : BaseType() {}
+    CasmCementedYieldSurface() : BaseType() {}
 
     /// Default constructor.
-    CasmYieldSurface(BaseTypePointer const & rpPlasticPotential) : 
+    CasmCementedYieldSurface(BaseTypePointer const & rpPlasticPotential) : 
        BaseType(rpPlasticPotential) {}
 
     /// Copy constructor.
-    CasmYieldSurface(CasmYieldSurface const& rOther) : BaseType(rOther) {}
+    CasmCementedYieldSurface(CasmCementedYieldSurface const& rOther) : BaseType(rOther) {}
 
 
     /// Assignment operator.
-    CasmYieldSurface& operator=(CasmYieldSurface const& rOther)
+    CasmCementedYieldSurface& operator=(CasmCementedYieldSurface const& rOther)
     {
       BaseType::operator=(rOther);
       return *this;
@@ -101,11 +101,11 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new CasmYieldSurface(*this));
+      return BaseTypePointer(new CasmCementedYieldSurface(*this));
     }
 
     /// Destructor.
-    virtual ~CasmYieldSurface() {}
+    virtual ~CasmCementedYieldSurface() {}
 
 
     ///@}
@@ -136,19 +136,20 @@ namespace Kratos
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
       //get internal variables
-      const double& rP0   = rVariables.Internal.Variables[5];
+      const double& rPc   = rVariables.Internal.Variables[6];
+      const double& rPt   = rVariables.Internal.Variables[7];
 
       //calculate stress invariants
       double MeanStress, J2, LodeAngle;
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
 
-      //calcualte third invariant effect
+      //calcualte third invariant effect on M
       double ThirdInvEffect = 1.0;
       ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
 
       //evaluate yield function
-      rYieldCondition = std::pow(-std::sqrt(3.0)*J2/(rShearM/ThirdInvEffect*(MeanStress)), rShapeN );
-      rYieldCondition += 1.0/std::log(rSpacingR)*std::log(MeanStress/rP0);
+      rYieldCondition = std::pow(-std::sqrt(3.0)*J2/(rShearM/ThirdInvEffect*(MeanStress + rPt)), rShapeN );
+      rYieldCondition += 1.0/std::log(rSpacingR)*std::log((MeanStress + rPt)/(rPc + rPt);
 
       return rYieldCondition;
 
@@ -173,7 +174,8 @@ namespace Kratos
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
       //get internal variables
-      const double& rP0   = rVariables.Internal.Variables[5];
+      const double& rPc   = rVariables.Internal.Variables[6];
+      const double& rPt   = rVariables.Internal.Variables[7];
 
       //calculate stress invariants and derivatives
       double MeanStress, J2, LodeAngle;
@@ -196,10 +198,10 @@ namespace Kratos
         double KLode, KLodeDeriv, C2, C3;
         ShapeAtDeviatoricPlaneMCCUtility::CalculateKLodeCoefficients( KLode, KLodeDeriv, LodeAngle);
 
-        C2 = -std::tan(3.0*LodeAngle)*rShapeN*std::pow(6.0,rShapeN)*std::pow(J2,rShapeN-1)*std::pow(-MeanStress*rShearM*(3.0-std::sin(Friction)),-rShapeN);
+        C2 = -std::tan(3.0*LodeAngle)*rShapeN*std::pow(6.0,rShapeN)*std::pow(J2,rShapeN-1)*std::pow(-(MeanStress+rPt)*rShearM*(3.0-std::sin(Friction)),-rShapeN);
         C2 *= std::pow(KLode,rShapeN-1) * KLodeDeriv;
 
-        C3 = -rShapeN*std::pow(6.0,rShapeN)*std::sqrt(3.0)*std::pow(J2,rShapeN-3.0)*std::pow(-MeanStress*rShearM*(3.0-std::sin(Friction)),-rShapeN);
+        C3 = -rShapeN*std::pow(6.0,rShapeN)*std::sqrt(3.0)*std::pow(J2,rShapeN-3.0)*std::pow(-(MeanStress+rPt)*rShearM*(3.0-std::sin(Friction)),-rShapeN);
         C3 /= (2.0 * std::cos(3.0*LodeAngle));
         C3 *= std::pow(KLode,rShapeN-1.0)*KLodeDeriv;
 
@@ -232,20 +234,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "CasmYieldSurface" ;
+      buffer << "CasmCementedYieldSurface" ;
       return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "CasmYieldSurface";
+      rOStream << "CasmCementedYieldSurface";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "CasmYieldSurface Data";
+      rOStream << "CasmCementedYieldSurface Data";
     }
 
 
@@ -345,7 +347,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class CasmYieldSurface
+  }; // Class CasmCementedYieldSurface
 
   ///@}
 
@@ -364,6 +366,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CASM_YIELD_SURFACE_H_INCLUDED  defined 
+#endif // KRATOS_CASM_CEMENTED_YIELD_SURFACE_H_INCLUDED  defined 
 
 
