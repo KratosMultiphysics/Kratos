@@ -66,9 +66,6 @@ kratos/includes/kratos_version.h
 *.o.sol
 *.o.mesh
 
-# pyCharm directory
-.idea
-
 *.bak
 
 applications/python_scripts/beam_profiles\.csv
