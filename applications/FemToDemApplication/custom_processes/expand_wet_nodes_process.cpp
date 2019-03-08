@@ -107,9 +107,19 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
         "echo_level"                            : 0
     })");
 
-    auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters); // TODO what's up in 3d?
-    skin_process.Execute();
-	auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+	
+    // Evaluating according dimension
+    if (dimension == 2) {
+        auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);
+	skin_process.Execute();
+    } else {
+	auto skin_process = SkinDetectionProcess<3>(mrModelPart, skin_process_parameters);
+	skin_process.Execute();
+    }
+    
+    auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
 
     // Let's assign the flag IS_SKIN to the nodes
     for (auto it_node = r_sub_model_part.Nodes().ptr_begin(); it_node != r_sub_model_part.Nodes().ptr_end(); ++it_node) {
