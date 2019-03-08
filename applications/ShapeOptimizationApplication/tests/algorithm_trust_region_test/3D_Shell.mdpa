@@ -5296,7 +5296,7 @@ Begin Conditions PointLoadCondition3D1N// GUI group identifier: load
     3419 0 893
 End Conditions
 
-Begin Conditions ShapeOptimizationCondition3D3N// GUI group identifier: solid
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: solid
          1          1       1284       1272       1280
          2          1       1259       1249       1252
          3          1       1701       1714       1695
