@@ -305,7 +305,7 @@ double LinearIsotropicDamage3D::EvaluateHardeningLaw(
     const double tolerance = std::numeric_limits<double>::epsilon();
 
     if (StrainVariable < strain_variable_init)
-        return StrainVariable;
+        return strain_variable_init;
     stress_variable = strain_variable_init + hardening_modulus * (StrainVariable - strain_variable_init);
     if ((hardening_modulus > tolerance && stress_variable > stress_variable_inf) ||
         (hardening_modulus < tolerance && stress_variable < stress_variable_inf))
