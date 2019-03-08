@@ -197,7 +197,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _CreateSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
         num_solvers = len(SolversDataMap.keys())
-        import KratosMultiphysics.CoSimulationApplication.custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
+        import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as factory
 
         for solver_name, settings in SolversDataMap.items():
             solver = factory.CreateSolverInterface(solver_name,cs_data_structure.Parameters(settings))
