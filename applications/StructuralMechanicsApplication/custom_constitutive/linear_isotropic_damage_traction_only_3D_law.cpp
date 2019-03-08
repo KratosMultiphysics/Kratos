@@ -66,7 +66,7 @@ bool LinearIsotropicDamageTractionOnly3D::Has(const Variable<bool>& rThisVariabl
 bool LinearIsotropicDamageTractionOnly3D::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == DAMAGE_VARIABLE){
-        return true;
+        return false; // we need to pass false so program calls CalculateValue
     }
     return false;
 }
@@ -231,32 +231,39 @@ void LinearIsotropicDamageTractionOnly3D::CalculateStressResponse(
         CalculateElasticMatrix(rMaterialProperties, r_constitutive_matrix);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
 
+/////////////////////////////////////////
         BoundedMatrix<double, 3, 3> eigen_values(3, 3);
         eigen_values.clear();
+        BoundedMatrix<double, 3, 3> eigen_vectors_t(3, 3);
+        eigen_vectors_t.clear();
         BoundedMatrix<double, 3, 3> eigen_vectors(3, 3);
         eigen_vectors.clear();
         BoundedMatrix<double, 3, 3> stress_matrix;
         stress_matrix = MathUtils<double>::StressVectorToTensor(r_stress_vector);
-
-        MathUtils<double>::EigenSystem<3> (stress_matrix, eigen_vectors, eigen_values);
+        MathUtils<double>::EigenSystem<3> (stress_matrix, eigen_vectors_t, eigen_values);
+        eigen_vectors = trans(eigen_vectors_t); // workaround, eigensystem routine returning transposed vectors
+        KRATOS_WATCH(stress_matrix)
+        KRATOS_WATCH(eigen_vectors)
+        KRATOS_WATCH(eigen_values)
         for (unsigned int i = 0; i < 3; i++)
         {
             if (eigen_values(i, i) < 0.)
             {
-                //eigen_values(i, i) = 0.;
+                eigen_values(i, i) = 0.;
             }
         }
-        KRATOS_WATCH(stress_matrix)
-        KRATOS_WATCH(eigen_vectors)
-        KRATOS_WATCH(eigen_values)
 
-        noalias(eigen_values) = prod( eigen_values, eigen_vectors);
-        noalias(stress_matrix) = prod(trans(eigen_vectors), eigen_values);
+        BoundedMatrix<double, 3, 3> aux(3, 3);
+        // DEBUG: bad implementation? A = Q L Q^-1
+        //aux = prod( eigen_values, eigen_vectors);
+        //noalias(stress_matrix) = prod(trans(eigen_vectors), aux);
+        aux = prod(eigen_values, trans(eigen_vectors));
+        noalias(stress_matrix) = prod(eigen_vectors, aux);
         r_stress_vector_pos = MathUtils<double>::StressTensorToVector(stress_matrix);
-        //KRATOS_WATCH(r_stress_vector_pos)
-
+        KRATOS_WATCH(r_stress_vector_pos)
+        KRATOS_WATCH(r_stress_vector)
+/////////////////////////////////////////
         const double strain_norm = std::sqrt(inner_prod(r_stress_vector_pos, r_strain_vector));
-
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
@@ -278,8 +285,7 @@ void LinearIsotropicDamageTractionOnly3D::CalculateStressResponse(
             const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
                                        / (rStrainVariable * rStrainVariable * rStrainVariable);
             r_constitutive_matrix *= (1. - damage_variable);
-            //r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector_pos, r_stress_vector);
-            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
+            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector_pos, r_stress_vector);
             r_stress_vector *= (1. - damage_variable);
         }
     }
@@ -336,7 +342,7 @@ double LinearIsotropicDamageTractionOnly3D::EvaluateHardeningLaw(
     const double tolerance = std::numeric_limits<double>::epsilon();
 
     if (StrainVariable < strain_variable_init)
-        return StrainVariable;
+        return strain_variable_init;
     stress_variable = strain_variable_init + hardening_modulus * (StrainVariable - strain_variable_init);
     if ((hardening_modulus > tolerance && stress_variable > stress_variable_inf) ||
         (hardening_modulus < tolerance && stress_variable < stress_variable_inf))
