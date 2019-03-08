@@ -1,6 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 
 class CoSimulationAnalysis(object):
     """
@@ -13,6 +14,10 @@ class CoSimulationAnalysis(object):
         self.echo_level = 0
         if "echo_level" in self.cs_settings["problem_data"]:
             self.echo_level = self.cs_settings["problem_data"]["echo_level"].GetInt()
+
+        self.end_time = self.cs_settings["problem_data"]["end_time"].GetDouble()
+        self.time = self.cs_settings["problem_data"]["start_time"].GetDouble()
+        self.step = 0
 
     def Run(self):
         self.Initialize()
@@ -28,11 +33,6 @@ class CoSimulationAnalysis(object):
             self.OutputSolutionStep()
 
     def Initialize(self):
-        # Stepping and time settings
-        self.end_time = self.cs_settings["problem_data"]["end_time"].GetDouble()
-        self.time = self.cs_settings["problem_data"]["start_time"].GetDouble()
-        self.step = 0
-
         # Initialize solver
         self._GetSolver().Initialize()
         self._GetSolver().Check()
@@ -45,7 +45,6 @@ class CoSimulationAnalysis(object):
         self._GetSolver().PrintInfo()
 
     def InitializeSolutionStep(self):
-        # Increase time and step
         self.step += 1
         self.time = self._GetSolver().AdvanceInTime(self.time)
 
@@ -53,7 +52,6 @@ class CoSimulationAnalysis(object):
                            "CoSimulationAnalysis", "Time = {0:.10f}".format(self.time) +
                            " | Step = " + str(self.step) + cs_tools.bcolors.ENDC)
 
-        # Initialize solution step
         self._GetSolver().InitializeSolutionStep()
 
     def Predict(self):
