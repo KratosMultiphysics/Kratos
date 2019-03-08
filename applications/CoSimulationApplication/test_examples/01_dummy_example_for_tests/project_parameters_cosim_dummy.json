@@ -8,7 +8,7 @@
     },
     "coupled_solver_settings" :
     {
-        "name" : "mok_fsi",
+        "name" : "dummy",
         "solver_type" : "gauss_seidel_loose_coupling",
         "echo_level" : 1,
         "num_coupling_iterations" : 20,
