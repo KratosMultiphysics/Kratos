@@ -131,7 +131,7 @@ namespace Kratos
 
       //get constants
       const double& rShearM   = rMaterialProperties[CRITICAL_STATE_LINE];
-      const double& rFriction = rMaterialProperties[FRICTION_ANGLE];
+      const double& rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
       const double& rSpacingR = rMaterialProperties[SPACING_RATIO];
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
@@ -149,7 +149,7 @@ namespace Kratos
 
       //evaluate yield function
       rYieldCondition = std::pow(-std::sqrt(3.0)*J2/(rShearM/ThirdInvEffect*(MeanStress + rPt)), rShapeN );
-      rYieldCondition += 1.0/std::log(rSpacingR)*std::log((MeanStress + rPt)/(rPc + rPt);
+      rYieldCondition += 1.0/std::log(rSpacingR)*std::log((MeanStress + rPt)/(rPc + rPt));
 
       return rYieldCondition;
 
@@ -169,7 +169,7 @@ namespace Kratos
 
       //get constants
       const double& rShearM   = rMaterialProperties[CRITICAL_STATE_LINE];
-      const double& rFriction = rMaterialProperties[FRICTION_ANGLE];
+      const double& rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
       const double& rSpacingR = rMaterialProperties[SPACING_RATIO];
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
@@ -196,10 +196,10 @@ namespace Kratos
       {
         double Friction = rFriction * Globals::Pi / 180.0;
         double KLode, KLodeDeriv, C2, C3;
-        ShapeAtDeviatoricPlaneMCCUtility::CalculateKLodeCoefficients( KLode, KLodeDeriv, LodeAngle);
+        ShapeAtDeviatoricPlaneMCCUtility::CalculateKLodeCoefficients( KLode, KLodeDeriv, LodeAngle, rFriction);
 
-        C2 = -std::tan(3.0*LodeAngle)*rShapeN*std::pow(6.0,rShapeN)*std::pow(J2,rShapeN-1)*std::pow(-(MeanStress+rPt)*rShearM*(3.0-std::sin(Friction)),-rShapeN);
-        C2 *= std::pow(KLode,rShapeN-1) * KLodeDeriv;
+        C2 = -std::tan(3.0*LodeAngle)*rShapeN*std::pow(6.0,rShapeN)*std::pow(J2,rShapeN-1.0)*std::pow(-(MeanStress+rPt)*rShearM*(3.0-std::sin(Friction)),-rShapeN);
+        C2 *= std::pow(KLode,rShapeN-1.0) * KLodeDeriv;
 
         C3 = -rShapeN*std::pow(6.0,rShapeN)*std::sqrt(3.0)*std::pow(J2,rShapeN-3.0)*std::pow(-(MeanStress+rPt)*rShearM*(3.0-std::sin(Friction)),-rShapeN);
         C3 /= (2.0 * std::cos(3.0*LodeAngle));

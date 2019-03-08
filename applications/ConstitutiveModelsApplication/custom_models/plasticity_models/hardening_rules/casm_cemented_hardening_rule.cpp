@@ -117,12 +117,11 @@ namespace Kratos
 
     //get constants
     const double& rShearM         = rMaterialProperties[CRITICAL_STATE_LINE];
-    const double& rFriction       = rMaterialProperties[FRICTION_ANGLE];
+    const double& rFriction       = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
     const double& rSpacingR       = rMaterialProperties[SPACING_RATIO];
     const double& rShapeN         = rMaterialProperties[SHAPE_PARAMETER];
     const double& rOtherSlope     = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
     const double& rSwellingSlope  = rMaterialProperties[SWELLING_SLOPE];
-    const double& rOtherSlope     = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
     const double& rH1             = rMaterialProperties[DEGRADATION_RATE_COMPRESSION];
     const double& rH2             = rMaterialProperties[DEGRADATION_RATE_SHEAR];
     const double& rOmega          = rMaterialProperties[PLASTIC_DEVIATORIC_STRAIN_HARDENING];

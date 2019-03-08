@@ -135,13 +135,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const ModelDataType & rModelData      = rVariables.GetModelData();
-      const MatrixType    & rStressMatrix   = rModelData.GetStressMatrix();
+      const ModelDataType& rModelData         = rVariables.GetModelData();
+      const Properties& rMaterialProperties   = rModelData.GetProperties();
+      const MatrixType& rStressMatrix         = rModelData.GetStressMatrix();
 
       //get constants
       const Properties& rProperties   = rModelData.GetProperties();
       const double& rShearM           = rProperties[CRITICAL_STATE_LINE];
-      const double& rFriction         = rMaterialProperties[FRICTION_ANGLE];
+      const double& rFriction         = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
 
       //initiate output
       VectorType VInv = ZeroVector(6);

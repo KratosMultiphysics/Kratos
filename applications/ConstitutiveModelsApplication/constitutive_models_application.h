@@ -98,6 +98,7 @@
 //#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/casm_associated_soil_model.hpp"
 #include "custom_models/plasticity_models/casm_mcc_soil_model.hpp"
+#include "custom_models/plasticity_models/borja_casm_cemented_mcc_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
@@ -109,6 +110,7 @@
 #include "custom_models/plasticity_models/yield_surfaces/tresca_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/casm_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/non_associative_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/casm_cemented_yield_surface.hpp"
 
 //hardening rules
 #include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
@@ -121,6 +123,7 @@
 #include "custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/mohr_coulomb_v1_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/casm_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/casm_cemented_hardening_rule.hpp"
 
 //#include "constitutive_models_application_variables.h"
 
@@ -331,6 +334,7 @@ namespace Kratos {
     const TrescaModel                              mTrescaModel;
     const CasmAssociatedSoilModel                  mCasmAssociatedSoilModel;
     const CasmMCCSoilModel                         mCasmMCCSoilModel;
+    const BorjaCasmCementedMccModel                mBorjaCasmCementedMccModel;
 
     //yield criteria
     const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;
@@ -341,7 +345,8 @@ namespace Kratos {
     const GensNovaYieldSurface<HardeningRule>           mGensNovaYieldSurface;
     const MohrCoulombV1YieldSurface<HardeningRule>      mMohrCoulombV1YieldSurface;
     const TrescaYieldSurface<HardeningRule>             mTrescaYieldSurface;
-    const CasmYieldSurface<HardeningRule>             mCasmYieldSurface;
+    const CasmYieldSurface<HardeningRule>               mCasmYieldSurface;
+    const CasmCementedYieldSurface<HardeningRule>       mCasmCementedYieldSurface;
     
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;
@@ -355,6 +360,7 @@ namespace Kratos {
     const GensNovaHardeningRule                     mGensNovaHardeningRule;
     const MohrCoulombV1HardeningRule                mMohrCoulombV1HardeningRule;
     const CasmHardeningRule                         mCasmHardeningRule;
+    const CasmCementedHardeningRule                 mCasmCementedHardeningRule;
       
        
     ///@}

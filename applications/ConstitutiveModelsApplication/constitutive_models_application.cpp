@@ -73,6 +73,15 @@ void KratosConstitutiveModelsApplication::Register() {
 
    KRATOS_REGISTER_VARIABLE( SPACING_RATIO )
    KRATOS_REGISTER_VARIABLE( SHAPE_PARAMETER )
+   KRATOS_REGISTER_VARIABLE( P0 )
+   KRATOS_REGISTER_VARIABLE( PC )
+   KRATOS_REGISTER_VARIABLE( BONDING )
+   KRATOS_REGISTER_VARIABLE( INITIAL_BONDING )
+   KRATOS_REGISTER_VARIABLE( DEGRADATION_THRESHOLD )
+   KRATOS_REGISTER_VARIABLE( DEGRADATION_RATE_COMPRESSION )
+   KRATOS_REGISTER_VARIABLE( DEGRADATION_RATE_SHEAR )
+   KRATOS_REGISTER_VARIABLE( ALPHA_TENSILE )
+   KRATOS_REGISTER_VARIABLE( PLASTIC_DEVIATORIC_STRAIN_HARDENING )
 
    KRATOS_REGISTER_VARIABLE( PS )   
    KRATOS_REGISTER_VARIABLE( PT )   
@@ -150,6 +159,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "TrescaModel", mTrescaModel );
   Serializer::Register( "CasmAssociatedSoilModel", mCasmAssociatedSoilModel );
   Serializer::Register( "CasmMCCSoilModel", mCasmMCCSoilModel );
+  Serializer::Register( "BorjaCasmCementedMccModel", mBorjaCasmCementedMccModel );
 
   //yield criteria
   Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
@@ -159,6 +169,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "ModifiedCamClayYieldSurface", mModifiedCamClayYieldSurface );
   Serializer::Register( "MohrCoulombV1YieldSurface", mMohrCoulombV1YieldSurface );
   Serializer::Register( "TrescaYieldSurface", mTrescaYieldSurface );
+  Serializer::Register( "CasmCementedYieldSurface", mCasmCementedYieldSurface );
 
   //hardening rules
   Serializer::Register( "SimoExponentialHardeningRule", mSimoExponentialHardeningRule );
@@ -171,6 +182,7 @@ void KratosConstitutiveModelsApplication::Register() {
   Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
   Serializer::Register( "GensNovaHardeningRule", mGensNovaHardeningRule);
   Serializer::Register( "MohrCoulombV1HardeningRule", mMohrCoulombV1HardeningRule );
+  Serializer::Register( "CasmCementedHardeningRule", mCasmCementedHardeningRule );
 
 
   Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );

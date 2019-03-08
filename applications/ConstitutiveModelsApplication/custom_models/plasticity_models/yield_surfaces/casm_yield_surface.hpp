@@ -131,7 +131,7 @@ namespace Kratos
 
       //get constants
       const double& rShearM   = rMaterialProperties[CRITICAL_STATE_LINE];
-      const double& rFriction = rMaterialProperties[FRICTION_ANGLE];
+      const double& rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
       const double& rSpacingR = rMaterialProperties[SPACING_RATIO];
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
@@ -168,7 +168,7 @@ namespace Kratos
 
       //get constants
       const double& rShearM   = rMaterialProperties[CRITICAL_STATE_LINE];
-      const double& rFriction = rMaterialProperties[FRICTION_ANGLE];
+      const double& rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
       const double& rSpacingR = rMaterialProperties[SPACING_RATIO];
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
@@ -194,7 +194,7 @@ namespace Kratos
       {
         double Friction = rFriction * Globals::Pi / 180.0;
         double KLode, KLodeDeriv, C2, C3;
-        ShapeAtDeviatoricPlaneMCCUtility::CalculateKLodeCoefficients( KLode, KLodeDeriv, LodeAngle);
+        ShapeAtDeviatoricPlaneMCCUtility::CalculateKLodeCoefficients( KLode, KLodeDeriv, LodeAngle, rFriction);
 
         C2 = -std::tan(3.0*LodeAngle)*rShapeN*std::pow(6.0,rShapeN)*std::pow(J2,rShapeN-1)*std::pow(-MeanStress*rShearM*(3.0-std::sin(Friction)),-rShapeN);
         C2 *= std::pow(KLode,rShapeN-1) * KLodeDeriv;
