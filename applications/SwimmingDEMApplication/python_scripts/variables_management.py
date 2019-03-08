@@ -199,7 +199,7 @@ class VariablesManager:
         if parameters["virtual_mass_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
 
-        if parameters["basset_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if True or parameters["basset_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [BASSET_FORCE]
 
         # clusters variables
@@ -331,7 +331,12 @@ class VariablesManager:
 
         self.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
-    pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+        self.dem_printing_vars = []
+
+        self.clusters_printing_vars = []
+        self.fluid_printing_vars = []
+        self.rigid_faces_printing_vars = []
+        self.time_filtered_vars = []
 
         for variable in self.nodal_results:
             self.fluid_printing_vars += [eval(variable)]

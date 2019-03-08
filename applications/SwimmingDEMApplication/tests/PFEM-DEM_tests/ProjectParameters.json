@@ -4,6 +4,13 @@
 "GravityY"                         : 0.0,
 "GravityZ"                         : -9.81,
 
+"problem_data"     : {
+    "problem_name"  : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
+    "parallel_type" : "OpenMP",
+    "echo_level"    : 0,
+    "start_time"    : 0.0,
+    "end_time"      : 0.005
+},
 
 "TranslationalIntegrationScheme"   : "Symplectic_Euler",
 "MaxTimeStep"                      : 2.5e-6,
@@ -37,7 +44,7 @@
 "include_faxen_terms_option_comment"     : "(relevant if the Maxey Riley equation is used)",
 "gradient_calculation_type"              : 1,
 "gradient_calculation_type_comment"      : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-"laplacian_calculation_type"             : 2,
+"laplacian_calculation_type"             : 1,
 "laplacian_calculation_type_comment"     : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
 "buoyancy_force_type"                    : 2,
 "buoyancy_force_type_comment"            : "null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity",
@@ -107,7 +114,7 @@
 "frame_of_reference_type"                : 1,
 "angular_velocity_of_frame_Z"            : 0.5,
 
-"OutputTimeStep"                             : 1,
+"OutputTimeStep"                             : 0.001,
 "PostPressure"                               : false,
 "PostFluidPressure"                          : false,
 "print_REYNOLDS_NUMBER_option"               : false,
@@ -207,6 +214,7 @@
       }],
     "solver_settings"          : {
         "solver_type"                        : "pfem_fluid_solver_analysis",
+        "domain_size"                        : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
@@ -434,13 +442,7 @@
 },
 
     "dem_parameters" : {
-        "problem_data"     : {
-            "problem_name"  : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
-            "parallel_type" : "OpenMP",
-            "echo_level"    : 0,
-            "start_time"    : 0.0,
-            "end_time"      : 0.005
-        },
+
         "do_print_results_option"          : false,
         "Dimension"                        : 3,
         "PeriodicDomainOption"             : false,
@@ -480,7 +482,7 @@
         "RotationalIntegrationScheme"      : "Direct_Integration",
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 2.5e-6,
-        "FinalTime"                        : 10.0,
+        "FinalTime"                        : 0.005,
         "ControlTime"                      : 4.0,
         "NeighbourSearchFrequency"         : 1,
         "TestType"                         : "None",

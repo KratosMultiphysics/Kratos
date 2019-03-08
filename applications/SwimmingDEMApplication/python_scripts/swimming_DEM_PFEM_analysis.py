@@ -5,7 +5,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_procedures as SDP
-import variables_management as vars_man
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 sys.path.insert(0,'')
@@ -14,7 +13,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetFluidAlgorithm(self):
         import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
-        self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model,self.project_parameters, self.pp)
+        self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
         self.fluid_solution.main_path = self.main_path
 
     def SetCouplingParameters(self, parameters):
@@ -25,9 +24,9 @@ class SDEMPFEMAnalysis(BaseAnalysis):
     def SetBetaParameters(self):
 
         super(SDEMPFEMAnalysis,self).SetBetaParameters()
-        self.pp.CFD_DEM["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
-        self.pp.CFD_DEM["material_acceleration_calculation_type"].SetInt(8)
-        self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
+        self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
+        self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
+        #self.vars_man.Dt = self.project_parameters['fluid_parameters']["problem_data"]["time_step"]
 
     def SetAllModelParts(self):
         self.all_model_parts = self.disperse_phase_solution.all_model_parts
@@ -46,7 +45,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def TransferWallsFromPfemToDem(self):
         destination_model_part = self.disperse_phase_solution.rigid_face_model_part
-        bodies_parts_list = self.fluid_solution.parameters["solver_settings"]["bodies_list"]
+        bodies_parts_list = self.fluid_solution.project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Rigid":
@@ -70,9 +69,9 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def FluidInitialize(self):
 
-        self.fluid_solution.vars_man=vars_man
+        self.fluid_solution.vars_man=self.vars_man
         self.fluid_solution.Initialize()
-        bodies_parts_list = self.fluid_solution.parameters["solver_settings"]["bodies_list"]
+        bodies_parts_list = self.fluid_solution.project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Fluid":
@@ -129,7 +128,8 @@ class SDEMPFEMAnalysis(BaseAnalysis):
     def SetPostUtils(self):
         general_model_part = self.fluid_solution.main_model_part
         self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
-                                        self.pp,
+                                        self.project_parameters,
+                                        self.vars_man,
                                         general_model_part,
                                         self.disperse_phase_solution.spheres_model_part,
                                         self.disperse_phase_solution.cluster_model_part,

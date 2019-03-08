@@ -18,7 +18,7 @@ import KratosMultiphysics.SolidMechanicsApplication
 import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
 import pfem_fluid_solver_analysis as pfem_solver
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class PfemFluidDynamicsAnalysis(AnalysisStage):
 
