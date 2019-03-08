@@ -1574,45 +1574,59 @@ public:
      }
 
     /**
-     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
-     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is LDL'
      * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
-     * @param A The given symmetric matrix the eigenvectors are to be calculated.
+     * @param rA The given symmetric matrix the eigenvectors are to be calculated.
      * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
      * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
      * @param Tolerance The largest value considered to be zero
      * @param MaxIterations Maximum number of iterations
+     * @tparam TMatrixType The type of matrix considered
      */
-    template<SizeType TDim>
-    static inline bool EigenSystem(
-        const BoundedMatrix<TDataType, TDim, TDim>& A,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool GaussSeidelEigenSystem(
+        const TMatrixType1& rA,
+        TMatrixType2& rEigenVectorsMatrix,
+        TMatrixType2& rEigenValuesMatrix,
         const TDataType Tolerance = 1.0e-18,
         const SizeType MaxIterations = 20
         )
     {
         bool is_converged = false;
-        rEigenValuesMatrix = ZeroMatrix(TDim,TDim);
-        BoundedMatrix<TDataType, TDim, TDim> temp_mat = A;
-        BoundedMatrix<TDataType, TDim, TDim> aux_A;
 
-        const BoundedMatrix<TDataType, TDim, TDim> identity_matrix = IdentityMatrix(TDim);
-        BoundedMatrix<TDataType, TDim, TDim> V_matrix = identity_matrix;
-        BoundedMatrix<TDataType, TDim, TDim> aux_V_matrix;
-        BoundedMatrix<TDataType, TDim, TDim> rotation_matrix;
+        const SizeType size = rA.size1();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("EigenSystem", rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenVectorsMatrix matrix. Please resize before compute" << std::endl;
+        KRATOS_WARNING_IF("EigenSystem", rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenValuesMatrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size)
+            rEigenVectorsMatrix.resize(size, size, false);
+        if (rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size)
+            rEigenValuesMatrix.resize(size, size, false);
+#endif // KRATOS_USE_AMATRIX
+
+        const TMatrixType2 identity_matrix = IdentityMatrix(size);
+        noalias(rEigenVectorsMatrix) = identity_matrix;
+        noalias(rEigenValuesMatrix) = rA;
+
+        // Auxiliar values
+        TMatrixType2 aux_A, aux_V_matrix, rotation_matrix;
+        TDataType a, u, c, s, gamma, teta;
+        IndexType index1, index2;
 
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
-            TDataType a = 0.0;
-            IndexType index1 = 0;
-            IndexType index2 = 1;
+            a = 0.0;
+            index1 = 0;
+            index2 = 1;
 
-            for(IndexType i = 0; i < TDim; ++i) {
-                for(IndexType j = (i + 1); j < TDim; ++j) {
-                    if((std::abs(temp_mat(i, j)) > a ) && (std::abs(temp_mat(i, j)) > Tolerance)) {
-                        a = std::abs(temp_mat(i,j));
+            for(IndexType i = 0; i < size; ++i) {
+                for(IndexType j = (i + 1); j < size; ++j) {
+                    if((std::abs(rEigenValuesMatrix(i, j)) > a ) && (std::abs(rEigenValuesMatrix(i, j)) > Tolerance)) {
+                        a = std::abs(rEigenValuesMatrix(i,j));
                         index1 = i;
                         index2 = j;
                         is_converged = false;
@@ -1625,8 +1639,8 @@ public:
             }
 
             // Calculation of Rotation angle
-            const TDataType gamma = (temp_mat(index2, index2)-temp_mat(index1, index1)) / (2 * temp_mat(index1, index2));
-            TDataType u = 1.0;
+            gamma = (rEigenValuesMatrix(index2, index2)-rEigenValuesMatrix(index1, index1)) / (2 * rEigenValuesMatrix(index1, index2));
+            u = 1.0;
 
             if(std::abs(gamma) > Tolerance && std::abs(gamma)< (1.0/Tolerance)) {
                 u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
@@ -1636,51 +1650,78 @@ public:
                 }
             }
 
-            const TDataType c = 1.0 / (std::sqrt(1.0 + u * u));
-            const TDataType s = c * u;
-            const TDataType teta = s / (1.0 + c);
+            c = 1.0 / (std::sqrt(1.0 + u * u));
+            s = c * u;
+            teta = s / (1.0 + c);
 
             // Rotation of the Matrix
-            aux_A = temp_mat;
-            aux_A(index2, index2) = temp_mat(index2,index2) + u * temp_mat(index1, index2);
-            aux_A(index1, index1) = temp_mat(index1,index1) - u * temp_mat(index1, index2);
+            noalias(aux_A) = rEigenValuesMatrix;
+            aux_A(index2, index2) = rEigenValuesMatrix(index2,index2) + u * rEigenValuesMatrix(index1, index2);
+            aux_A(index1, index1) = rEigenValuesMatrix(index1,index1) - u * rEigenValuesMatrix(index1, index2);
             aux_A(index1, index2) = 0.0;
             aux_A(index2, index1) = 0.0;
 
-            for(IndexType i = 0; i < TDim; ++i) {
+            for(IndexType i = 0; i < size; ++i) {
                 if((i!= index1) && (i!= index2)) {
-                    aux_A(index2, i) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
-                    aux_A(i, index2) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
-                    aux_A(index1, i) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
-                    aux_A(i, index1) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
+                    aux_A(index2, i) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
+                    aux_A(i, index2) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
+                    aux_A(index1, i) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
+                    aux_A(i, index1) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
                 }
             }
 
-            temp_mat = aux_A;
+            noalias(rEigenValuesMatrix) = aux_A;
 
             // Calculation of the eigeneigen vector matrix V
-            rotation_matrix = identity_matrix;
+            noalias(rotation_matrix) = identity_matrix;
             rotation_matrix(index2, index1) = -s;
             rotation_matrix(index1, index2) =  s;
             rotation_matrix(index1, index1) =  c;
             rotation_matrix(index2, index2) =  c;
 
-            aux_V_matrix = ZeroMatrix(TDim, TDim);
+            noalias(aux_V_matrix) = ZeroMatrix(size, size);
 
-            for(IndexType i = 0; i < TDim; ++i) {
-                for(IndexType j = 0; j < TDim; ++j) {
-                    for(IndexType k = 0; k < TDim; ++k) {
-                        aux_V_matrix(i, j) += V_matrix(i, k) * rotation_matrix(k, j);
+            for(IndexType i = 0; i < size; ++i) {
+                for(IndexType j = 0; j < size; ++j) {
+                    for(IndexType k = 0; k < size; ++k) {
+                        aux_V_matrix(i, j) += rEigenVectorsMatrix(i, k) * rotation_matrix(k, j);
                     }
                 }
             }
-            V_matrix = aux_V_matrix;
+            noalias(rEigenVectorsMatrix) = aux_V_matrix;
         }
 
         KRATOS_WARNING_IF("MathUtils::EigenSystem", !is_converged) << "Spectral decomposition not converged " << std::endl;
 
+        return is_converged;
+    }
+
+    /**
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is L'DL
+     * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
+     * @param A The given symmetric matrix the eigenvectors are to be calculated.
+     * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
+     * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
+     * @param Tolerance The largest value considered to be zero
+     * @param MaxIterations Maximum number of iterations
+     * @tparam TDim The size of the bounded matrix
+     * @warning This method is deprecated. Will be removed soon
+     */
+    template<SizeType TDim>
+    KRATOS_DEPRECATED_MESSAGE("Please use GaussSeidelEigenSystem() instead")
+    static inline bool EigenSystem(
+        const BoundedMatrix<TDataType, TDim, TDim>& rA,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        )
+    {
+        const bool is_converged = GaussSeidelEigenSystem(rA, rEigenVectorsMatrix, rEigenValuesMatrix, Tolerance, MaxIterations);
+
+        const BoundedMatrix<TDataType, TDim, TDim> V_matrix = rEigenVectorsMatrix;
         for(IndexType i = 0; i < TDim; ++i) {
-            rEigenValuesMatrix(i, i) = temp_mat(i, i);
             for(IndexType j = 0; j < TDim; ++j) {
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
