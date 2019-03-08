@@ -50,11 +50,8 @@ elseif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     #take care: do not indent the lines below
     file(WRITE ${KRATOS_DIR}/KratosMultiphysics/__init__.py "import sys
 import os.path
-kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
-kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
 kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
 kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
-sys.path.append(kratos_libs)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests)
 
