@@ -4,7 +4,7 @@
 # Updated : Aditya Ghantasala
 # Date: Feb. 20, 2017
 
-from base_co_simulation_classes.co_simulation_base_predictor import CoSimulationBasePredictor
+from base_co_simulation_classes.base_predictor import CoSimulationBasePredictor
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 

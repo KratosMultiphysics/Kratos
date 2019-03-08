@@ -1,4 +1,4 @@
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
+from KratosMultiphysics.CoSimulationApplication.base_classes.base_coupled_solver import CoSimulationBaseCoupledSolver
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 
