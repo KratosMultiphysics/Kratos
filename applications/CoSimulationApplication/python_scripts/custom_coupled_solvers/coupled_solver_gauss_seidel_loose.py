@@ -3,11 +3,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 
 
 def Create(custom_settings):
-    return GaussSeidelLooseCouplingSolver(custom_settings)
+    return GaussSeidelLooseCoupledSolver(custom_settings)
 
-class GaussSeidelLooseCouplingSolver(CoSimulationBaseCoupledSolver):
+
+class GaussSeidelLooseCoupledSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
-        super(GaussSeidelLooseCouplingSolver, self).__init__(custom_settings)
+        super(GaussSeidelLooseCoupledSolver, self).__init__(custom_settings)
         if not self.number_of_participants == 2:
             raise Exception(cs_tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
@@ -19,16 +20,16 @@ class GaussSeidelLooseCouplingSolver(CoSimulationBaseCoupledSolver):
             self.participating_solver_names.append(particip_settings['name'])
 
     def Initialize(self):
-        super(GaussSeidelLooseCouplingSolver, self).Initialize()
+        super(GaussSeidelLooseCoupledSolver, self).Initialize()
 
     def Finalize(self):
-        super(GaussSeidelLooseCouplingSolver, self).Finalize()
+        super(GaussSeidelLooseCoupledSolver, self).Finalize()
 
     def InitializeSolutionStep(self):
-        super(GaussSeidelLooseCouplingSolver, self).InitializeSolutionStep()
+        super(GaussSeidelLooseCoupledSolver, self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(GaussSeidelLooseCouplingSolver, self).FinalizeSolutionStep()
+        super(GaussSeidelLooseCoupledSolver, self).FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         if self.coupling_started:
@@ -47,4 +48,4 @@ class GaussSeidelLooseCouplingSolver(CoSimulationBaseCoupledSolver):
         return self.settings['name'].GetString()
 
     def PrintInfo(self):
-        super(GaussSeidelLooseCouplingSolver, self).PrintInfo()
+        super(GaussSeidelLooseCoupledSolver, self).PrintInfo()
