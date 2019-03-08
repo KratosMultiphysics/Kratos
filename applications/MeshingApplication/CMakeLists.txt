@@ -85,11 +85,11 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingCore KratosCore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
 endif(${INCLUDE_MMG} MATCHES ON)
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-    target_link_libraries(KratosMeshingCore ${TETGEN_LIBRARIES})
+    target_link_libraries(KratosMeshingCore PUBLIC ${TETGEN_LIBRARIES})
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ###############################################################
