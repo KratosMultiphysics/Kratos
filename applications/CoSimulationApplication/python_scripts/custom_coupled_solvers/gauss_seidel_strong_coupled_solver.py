@@ -1,33 +1,29 @@
-# co simulation imports
 from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-# Other imports
-import os
 
 def Create(custom_settings):
     return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
-#Comment Use "Strong" or "Iterative"
-#Comment same for weak/loose
-#Comment I vote for strong & weak
+
+
 class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
         super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
         if not self.number_of_participants == 2:
             raise Exception(cs_tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        ### Importing the Participant modules
+        # Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
 
         for p in range(0,self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
-        #Comment how the settings are specified has to be consistent!
-        ### Making the convergence accelerator for this strategy
+        # Comment how the settings are specified has to be consistent!
+        # Making the convergence accelerator for this strategy
         self.convergence_accelerators_list = self._CreateConvergenceAccelerators(self.settings["convergence_accelerators"])
 
-        ### Creating the convergence criterion
+        # Creating the convergence criterion
         self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
 
     def Initialize(self):
@@ -43,7 +39,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             conv_acceleraror.Finalize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Finalize()
-
 
     def InitializeSolutionStep(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
