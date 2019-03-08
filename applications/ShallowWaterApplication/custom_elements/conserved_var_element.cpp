@@ -209,7 +209,10 @@ namespace Kratos
         // Inertia terms
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
-        // Subtracting the dirichlet term (since we use a residualbased approach)
+        // Substracting the bottom diffusion
+        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+
+        // Subtracting the dirichlet term (since we use a residualbased approach) 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
 
         rRightHandSideVector *= Area * variables.lumping_factor;

@@ -203,6 +203,7 @@ void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector,
 
     Matrix d;
     Matrix d_inv;
+    double detd;
     Vector delta_gamma;
     Vector residual;
     noalias(mcurrent_Ft) = mFt;
@@ -291,7 +292,7 @@ void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector,
         d(0,1) = -(-2.00 * G / 3.00 + K );
         d(1,0) = -(-2.00 * G / 3.00 + K );
         d(1,1) = -( 4.00 * G / 3.00 + K ) + H;
-        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
 
 
         //unsigned int cases = 0;
@@ -427,7 +428,7 @@ void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector,
             d(2,1) = -(-2.00 * G / 3.00 + K );
             d(2,2) = -( 4.00 * G / 3.00 + K ) + H;
 
-            singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+            MathUtils<double>::InvertMatrix(d, d_inv, detd);
             noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual));
 
             if(delta_gamma[0] < 0.00)

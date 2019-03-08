@@ -21,7 +21,7 @@ def GetDefaultInputParameters():
             "TestType" : "None",
 
             "ElementType"                      : "SwimmingDEMElement",
-            "echo_level"                  : 1,
+            "echo_level"                       : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
                 "parallel_type" : "OpenMP",
@@ -30,7 +30,9 @@ def GetDefaultInputParameters():
                 "end_time"      : 1
             },
             "do_print_results_option"                : true,
-            "processes" : {},
+            "processes" : {
+                "auxiliar_process_list": []
+            },
             "json_output_process"  : [],
             "sdem_output_processes" : {},
             "coupling_level_type"                    : 1,
