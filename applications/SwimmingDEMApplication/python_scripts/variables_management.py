@@ -199,7 +199,14 @@ class VariablesManager:
         if parameters["virtual_mass_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
 
-        if True or parameters["basset_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        will_need_basset_force_variable = False
+        for prop in parameters["properties"].values():
+            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
+                if prop["hydrodynamic_law_parameters"]["history_force_parameters"]["name"].GetString() != 'default':
+                    will_need_basset_force_variable = True
+                    break
+
+        if will_need_basset_force_variable:
             self.dem_vars += [BASSET_FORCE]
 
         # clusters variables

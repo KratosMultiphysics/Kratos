@@ -26,7 +26,6 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         super(SDEMPFEMAnalysis,self).SetBetaParameters()
         self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
         self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
-        #self.vars_man.Dt = self.project_parameters['fluid_parameters']["problem_data"]["time_step"]
 
     def SetAllModelParts(self):
         self.all_model_parts = self.disperse_phase_solution.all_model_parts
