@@ -17,7 +17,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
 #include "spaces/ublas_space.h"
 
@@ -63,21 +63,21 @@ namespace Kratos
         typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
         typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
-        void ComplexOrientationMPCGiDIODebug(ModelPart& rModelPart)
-        {
-            GidIO<> gid_io("TEST_COMPLEX_MPC", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
-
-            gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(rModelPart.GetMesh());
-            gid_io.FinalizeMesh();
-            gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResults(LAGRANGE_DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResults(FORCE_RESIDUAL, rModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResults(REACTION, rModelPart.Nodes(), label, 0);
-            gid_io.InitializeResults(label, rModelPart.GetMesh());
-        }
+//         void ComplexOrientationMPCGiDIODebug(ModelPart& rModelPart)
+//         {
+//             GidIO<> gid_io("TEST_COMPLEX_MPC", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+//             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const double label = static_cast<double>(nl_iter);
+//
+//             gid_io.InitializeMesh(label);
+//             gid_io.WriteMesh(rModelPart.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(LAGRANGE_DISPLACEMENT, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(FORCE_RESIDUAL, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(REACTION, rModelPart.Nodes(), label, 0);
+//             gid_io.InitializeResults(label, rModelPart.GetMesh());
+//         }
 
         void CreateComplexOrientationMPCGeometry(ModelPart& rModelPart)
         {
@@ -160,7 +160,8 @@ namespace Kratos
             pstrategy->SetEchoLevel(0);
             pstrategy->Solve();
 
-            ComplexOrientationMPCGiDIODebug(r_model_part);
+//             // DEBUG ONLY
+//             ComplexOrientationMPCGiDIODebug(r_model_part);
 
             KRATOS_CHECK_LESS_EQUAL(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_X) + 5.3651e-7), 1.0e-4);
             KRATOS_CHECK_LESS_EQUAL(std::abs(r_model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) + 5.3651e-7), 1.0e-4);
