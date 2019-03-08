@@ -686,9 +686,9 @@ class DeformationSmallStrainIsotropicDamage3D(DeformationSmallStrainIsotropicDam
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
-class DeformationLinearIsotropicDamageTractionOnly3D(DeformationLinearIsotropicDamage):
+class DeformationLinearIsotropicDamageTractionOnly3D(DeformationSmallStrainIsotropicDamage):
     def __init__(self):
-        DeformationLinearIsotropicDamage.__init__(self)
+        DeformationSmallStrainIsotropicDamage.__init__(self)
         self.cl = LinearIsotropicDamageTractionOnly3D()
 
     def initialize_reference_stress(self, strain_size):
@@ -911,9 +911,9 @@ class SmallStrainIsotropicDamage3D(SmallStrainIsotropicDamage):
     def create_constitutive_Law():
         return StructuralMechanicsApplication.SmallStrainIsotropicDamage3DLaw()
 
-class LinearIsotropicDamageTractionOnly3D(LinearIsotropicDamage):
+class LinearIsotropicDamageTractionOnly3D(SmallStrainIsotropicDamage):
     def __init__(self):
-        LinearIsotropicDamage.__init__(self)
+        SmallStrainIsotropicDamage.__init__(self)
         self.dim = 3
 
     @staticmethod
