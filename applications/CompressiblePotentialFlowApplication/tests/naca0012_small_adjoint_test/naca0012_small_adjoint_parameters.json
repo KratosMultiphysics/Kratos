@@ -37,7 +37,7 @@
             "python_module" : "apply_far_field_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name"   : "PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
             }
@@ -45,9 +45,9 @@
             "python_module" : "define_wake_process_2d",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "fluid_part_name" : "Parts_Parts_Auto1",
-                "upper_surface_model_part_name" : "Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "Body2D_LowerSurface",
+                "fluid_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
+                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
                 "wake_direction"       : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }

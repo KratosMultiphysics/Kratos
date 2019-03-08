@@ -1,7 +1,4 @@
-from KratosMultiphysics import *
 import KratosMultiphysics
-from numpy import *
-import itertools
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -43,16 +40,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         rz = 0.0
 
         for cond in self.upper_surface_model_part.Conditions:
-            n = cond.GetValue(NORMAL)
-            cp = cond.GetValue(PRESSURE)
+            n = cond.GetValue(KratosMultiphysics.NORMAL)
+            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             rx += n[0]*cp
             ry += n[1]*cp
             rz += n[2]*cp
 
         for cond in self.lower_surface_model_part.Conditions:
-            n = cond.GetValue(NORMAL)
-            cp = cond.GetValue(PRESSURE)
+            n = cond.GetValue(KratosMultiphysics.NORMAL)
+            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             rx += n[0]*cp
             ry += n[1]*cp

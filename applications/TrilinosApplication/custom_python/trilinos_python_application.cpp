@@ -25,7 +25,6 @@
 #include "custom_python/add_trilinos_linear_solvers_to_python.h"
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
-#include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_zoltan_processes_to_python.h"
 
@@ -53,7 +52,6 @@ PYBIND11_MODULE(KratosTrilinosApplication,m)
     AddLinearSolvers(m);
     AddProcesses(m);
     AddStrategies(m);
-    AddCustomIOToPython(m);
     AddCustomUtilitiesToPython(m);
     AddZoltanProcessesToPython(m);
 

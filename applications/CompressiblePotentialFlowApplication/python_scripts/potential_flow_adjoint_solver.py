@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-from potential_flow_solver import LaplacianSolver
+from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import LaplacianSolver
 import KratosMultiphysics.StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
