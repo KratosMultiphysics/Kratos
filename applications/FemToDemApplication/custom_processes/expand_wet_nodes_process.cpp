@@ -113,10 +113,10 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     // Evaluating according dimension
     if (dimension == 2) {
         auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);
-	skin_process.Execute();
+	    skin_process.Execute();
     } else {
-	auto skin_process = SkinDetectionProcess<3>(mrModelPart, skin_process_parameters);
-	skin_process.Execute();
+	    auto skin_process = SkinDetectionProcess<3>(mrModelPart, skin_process_parameters);
+	    skin_process.Execute();
     }
     
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
@@ -137,7 +137,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
             // Indicator to reconstruct the Pressure afterwards
             auto& r_process_info = mrModelPart.GetProcessInfo();
 
-            if (this->ElementHasWetNodes(it_elem, node_pressure_id, number_of_wet_nodes) && element_done == false) {
+            if (this->ElementHasWetNodes(it_elem, node_pressure_id, number_of_wet_nodes) && !element_done) {
                 // Loop over the nodes
                 for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
                     auto& r_node = r_geometry[i];
