@@ -461,8 +461,8 @@ private:
 
     const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
-    const SmallStrainIsotropicDamage3D mLinearIsotropicDamage3D;
-    const LinearIsotropicDamagePlaneStrain2D mLinearIsotropicDamagePlaneStrain2D;
+    const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
+    const LinearIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;
 
     // Damage and plasticity laws
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
