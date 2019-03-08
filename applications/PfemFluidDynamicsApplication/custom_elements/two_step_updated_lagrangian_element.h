@@ -534,6 +534,10 @@ namespace Kratos
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 			  MatrixType &FgradVel,
+			  const double theta);
+
+      void CalcVelDefGradAndInverse(const ShapeFunctionDerivativesType& rDN_DX,
+			  MatrixType &FgradVel,
 			  MatrixType &invFgradVel,
 			  double &FVelJacobian,
 			  const double theta);
