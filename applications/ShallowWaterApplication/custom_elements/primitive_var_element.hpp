@@ -92,19 +92,30 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new Primitive variables element and return a pointer to it
     virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new PrimitiveVarElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared< PrimitiveVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("")
     }
 
-    /// Clone a new Primitive variables element and return a pointer to it
+    virtual Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        KRATOS_TRY
+        return Kratos::make_shared< PrimitiveVarElement <TNumNodes> >(NewId, pGeom, pProperties));
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * It clones the selected element variables, creating a new one
+     * @param NewId the ID of the new element
+     * @param rThisNodes the nodes of the new element
+     * @return a Pointer to the new element
+     */
     virtual Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        Element::Pointer p_new_elem = Kratos::make_shared< PrimitiveVarElement <TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Element::Pointer p_new_elem = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
