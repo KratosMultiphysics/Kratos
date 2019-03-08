@@ -124,7 +124,6 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             self.visualization_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
         else:
             self._TransferSubstepToRefinedInterface()
-            substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
 
     def ExecuteFinalizeSolutionStep(self):
         pass
