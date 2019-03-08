@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+import ast
 
 class VariablesManager:
     @staticmethod
@@ -26,9 +27,6 @@ class VariablesManager:
     def __init__(self, parameters):
         self.project_parameters = parameters
 
-    def AddNodalVariablesToModelParts(self):
-        VariablesManager.AddNodalVariables(model_part, variable_list)
-
     # constructing lists of variables to add
     # * Performing modifications to the input parameters for consistency (provisional until interface does it)
     # * Choosing the variables to be printed
@@ -36,8 +34,8 @@ class VariablesManager:
     #       instance to be filled with the other phase's info through the coupling process
     # * Listing nodal variables to be added to the model parts (memory will be allocated for them).
     #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
-
-    def AddFrameOfReferenceRelatedVariables(self, parameters, model_part):
+    @staticmethod
+    def AddFrameOfReferenceRelatedVariables(parameters, model_part):
         frame_of_reference_type = parameters["frame_of_reference_type"].GetInt()
         model_part.ProcessInfo.SetValue(FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
 
@@ -60,7 +58,7 @@ class VariablesManager:
 
     def AddExtraProcessInfoVariablesToFluidModelPart(self, parameters, fluid_model_part):
 
-        self.AddFrameOfReferenceRelatedVariables(parameters, fluid_model_part)
+        VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, fluid_model_part)
 
         fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
         gravity = Vector(3)
@@ -88,7 +86,7 @@ class VariablesManager:
 
     def AddExtraProcessInfoVariablesToDispersePhaseModelPart(self, parameters, dem_model_part):
 
-        self.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
+        VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
         dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling_level_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, parameters["buoyancy_force_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, parameters["drag_force_type"].GetInt())
@@ -122,11 +120,6 @@ class VariablesManager:
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
 
     def ConstructListsOfVariables(self, parameters):
-
-        # INPUT CHANGES FOR CONSISTENCY
-        # performing some extra changes on Project Parameters, ensuring consistency in the input
-        self.ChangeInputDataForConsistency(parameters)
-
         # PRINTING VARIABLES
         # constructing lists of variables to be printed
         self.ConstructListsOfResultsToPrint(parameters)
@@ -540,18 +533,3 @@ class VariablesManager:
         if parameters["print_VECTORIAL_ERROR_option"].GetBool():
             self.nodal_results += ["VECTORIAL_ERROR"]
             self.nodal_results += ["VECTORIAL_ERROR_1"]
-
-    def ChangeInputDataForConsistency(self, parameters):
-        if parameters["coupling_level_type"].GetInt() == 0:
-            parameters["project_at_every_substep_option"].SetBool(False)
-
-        # the fluid fraction is not projected from DEM (there may not
-        # be a DEM part) but is externally imposed:
-        if parameters["flow_in_porous_medium_option"].GetBool():
-            parameters["coupling_weighing_type"].SetInt(- 1)
-
-        parameters["time_steps_per_stationarity_step"].SetInt(max(1, int(parameters["time_steps_per_stationarity_step"].GetInt())))
-
-        if parameters["coupling_level_type"].GetInt() > 1:
-            parameters["stationary_problem_option"].SetBool(False)
-

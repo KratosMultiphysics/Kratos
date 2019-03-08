@@ -79,6 +79,6 @@ class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
 
 class LaplacianRecoverer(GradientRecoverer, EmptyLaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
-        DerivativesRecoverer.__init__(self, project_parameters, model_part)
+        GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVelocityLaplacian(self):
         self.RecoverVectorLaplacian(VELOCITY, VELOCITY_LAPLACIAN)

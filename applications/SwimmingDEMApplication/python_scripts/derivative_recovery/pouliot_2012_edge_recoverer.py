@@ -157,10 +157,10 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
         Pouliot2012EdgeDerivativesRecoverer.__init__(self, project_parameters, model_part)
-        self.element_type = self.GetElementType(pp)
-        self.condition_type = self.GetConditionType(pp)
+        self.element_type = self.GetElementType(project_parameters)
+        self.condition_type = self.GetConditionType(project_parameters)
         self.FillUpModelPart(self.element_type)
-        self.DOFs = self.GetDofs(pp)
+        self.DOFs = self.GetDofs(project_parameters)
         self.AddDofs(self.DOFs)
         self.domain_size = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
 

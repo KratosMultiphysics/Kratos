@@ -209,7 +209,23 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_time_step = int(self.fluid_time_step / self.time_step) * self.time_step
         self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
+
+        if self.project_parameters["coupling_level_type"].GetInt() == 0:
+            self.project_parameters["project_at_every_substep_option"].SetBool(False)
+
+        # the fluid fraction is not projected from DEM (there may not
+        # be a DEM part) but is externally imposed:
+        if self.project_parameters["flow_in_porous_medium_option"].GetBool():
+            self.project_parameters["coupling_weighing_type"].SetInt(- 1)
+
+        time_steps_per_stationarity_step = self.project_parameters["time_steps_per_stationarity_step"].GetInt()
+        self.project_parameters["time_steps_per_stationarity_step"].SetInt(max(1, int(time_steps_per_stationarity_step)))
+
+        if self.project_parameters["coupling_level_type"].GetInt() > 1:
+            self.project_parameters["stationary_problem_option"].SetBool(False)
+
         self.SetDoSolveDEMVariable()
+
         self.TransferBodyForceFromDisperseToFluid()
 
     def TransferBodyForceFromDisperseToFluid(self):
