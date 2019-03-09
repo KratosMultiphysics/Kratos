@@ -373,6 +373,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
+        TSparseSpace::CreateDofUpdater();
+
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVectorOld;
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVector;
     std::vector<LocalSystemVectorType> mValuesVector;
@@ -530,9 +533,6 @@ private:
     ///@{
 
     BossakConstants mBossak;
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
 
     std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentVelocityVector;
     std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentAccelerationVector;
