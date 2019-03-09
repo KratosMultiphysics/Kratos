@@ -2,33 +2,33 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
-class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
+class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
 
     def __init__(self, model, parameters=None, variables_management=None):
         self.model = model
         self.sdem_project_parameters = parameters
         self.project_parameters = self.sdem_project_parameters['fluid_parameters']
+        self.dimension = self.project_parameters["problem_data"]["dimension"].GetInt()
         self.vars_man = variables_management
         variables_management.nodal_results, variables_management.gauss_points_results = [], []
 
-        if self.project_parameters.Has('output_processes'):
-            gid_output_options = self.project_parameters["output_processes"]["gid_output"][0]["Parameters"]
-            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-            gauss_point_results = result_file_configuration["gauss_point_results"]
-            nodal_variables = self.project_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+        if self.project_parameters.Has('output_configuration'):
+            gid_output_options = self.project_parameters["output_configuration"]["result_file_configuration"]
+            gauss_point_results = gid_output_options["gauss_point_results"]
+            nodal_variables = self.project_parameters["output_configuration"]["result_file_configuration"]["nodal_results"]
             variables_management.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             variables_management.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
-        super(DEMCoupledFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
+        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
         self.AddFluidVariablesBySwimmingDEMAlgorithm()
-        super(DEMCoupledFluidDynamicsAnalysis, self).Initialize()
+        super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
 
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
@@ -61,5 +61,5 @@ if __name__ == '__main__':
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
-    simulation = DEMCoupledFluidDynamicsAnalysis(model, parameters)
+    simulation = DEMCoupledFluidDynamicsAnalysis(model,parameters)
     simulation.Run()

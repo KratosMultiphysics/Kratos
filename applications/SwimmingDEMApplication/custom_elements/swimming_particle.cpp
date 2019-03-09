@@ -66,7 +66,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> buoyancy = ZeroVector(3);
     array_1d<double, 3> drag_force = ZeroVector(3);
     array_1d<double, 3> inviscid_force = ZeroVector(3);
-    array_1d<double, 3>& history_force = node.FastGetSolutionStepValue(BASSET_FORCE);
+    array_1d<double, 3> history_force = ZeroVector(3);
     array_1d<double, 3> vorticity_induced_lift = ZeroVector(3);
     array_1d<double, 3> rotation_induced_lift = ZeroVector(3);
     array_1d<double, 3> steady_viscous_torque = ZeroVector(3);
