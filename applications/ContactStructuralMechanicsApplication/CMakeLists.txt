@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosContactStructuralMechanicsApplication ****")
+message("**** Configuring KratosContactStructuralMechanicsApplication ****")
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -69,7 +69,7 @@ set_target_properties(KratosContactStructuralMechanicsCore PROPERTIES COMPILE_DE
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosContactStructuralMechanicsApplication PUBLIC KratosContactStructuralMechanicsCore)
+target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosContactStructuralMechanicsCore)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
