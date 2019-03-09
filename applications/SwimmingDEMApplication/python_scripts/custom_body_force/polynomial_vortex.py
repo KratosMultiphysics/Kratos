@@ -54,13 +54,13 @@ class PolynomialVortex(ManufacturedSolution):
 
     def u1(self, x1, x2, t):
         return self.f(x1) * self.df(x2) * self.g(t)
-    
+
     def u2(self, x1, x2, t):
         return -self.df(x1) * self.f(x2) * self.g(t)
 
     def du1dt(self, x1, x2, t):
         return self.f(x1) * self.df(x2) * self.dg(t)
-    
+
     def du2dt(self, x1, x2, t):
         return -self.df(x1) * self.f(x2) * self.dg(t)
 

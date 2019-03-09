@@ -1,7 +1,7 @@
 import KratosMultiphysics
 
-def ManufacturedSolution(custom_settings):
-    return PolynomialVortex(custom_settings)
+def CreateManufacturedSolution(custom_settings):
+    return ManufacturedSolution(custom_settings)
 
 class ManufacturedSolution(object):
     def __init__(self, settings):
@@ -27,20 +27,11 @@ class ManufacturedSolution(object):
 
     # Public methods
 
-    def BodyForce(self, x1, x2, t):
-        return [self.body_force1(x1, x2, t), self.body_force2(x1, x2, t), self.body_force3(x1, x2, t)]
-
     def BodyForce(self, x1, x2, x3, t):
         return [self.body_force1(x1, x2, t), self.body_force2(x1, x2, t), self.body_force3(x1, x2, t)]
 
-    def Velocity(self, x1, x2, t):
-        return [self.u1(x1, x2, t), self.u2(x1, x2, t), self.u3(x1, x2, t)]
-
     def Velocity(self, x1, x2, x3, t):
         return [self.u1(x1, x2, t), self.u2(x1, x2, t), self.u3(x1, x2, t)]
-
-    def Pressure(self, x1, x2, t):
-        return self.p(x1, x2, t)
 
     def Pressure(self, x1, x2, x3, t):
         return self.p(x1, x2, t)

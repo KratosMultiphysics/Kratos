@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 import h5py
 import numpy as np
-import datetime as dt
 
 class Hdf5OutputTool:
     def __init__(self, model, settings, ):
@@ -45,14 +44,14 @@ class Hdf5OutputTool:
                 if self.vortex_dset.attrs[attr] != value.GetDouble():
                     self.vortex_dset.attrs["Warning"] = "There are several vortex definitions in this dataset"
             self.vortex_dset.attrs[attr] = value.GetDouble()
-    
+
     def WriteAverageRelativeError(self, rel_err):
         case_data = (self.settings["framework"].GetString(),
                      self.model_part.Nodes.__len__(),
                      self.model_part.Elements.__len__(),
                      self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME],
                      rel_err)
-        
+
         case_idx = self.vortex_dset.len()
         self.vortex_dset.resize((case_idx+1,))
         self.vortex_dset[case_idx] = case_data
