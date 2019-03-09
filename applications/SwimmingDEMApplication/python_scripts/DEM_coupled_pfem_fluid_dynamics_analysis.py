@@ -8,24 +8,22 @@ from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
 class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
 
-    def __init__(self, model, parameters=None, pp=None):
+    def __init__(self, model, parameters=None, variables_management=None):
         self.model = model
-        self.pp = pp
         self.sdem_project_parameters = parameters
         self.project_parameters = self.sdem_project_parameters['fluid_parameters']
         self.dimension = self.project_parameters["problem_data"]["dimension"].GetInt()
-        pp.nodal_results, pp.gauss_points_results = [], []
+        self.vars_man = variables_management
+        variables_management.nodal_results, variables_management.gauss_points_results = [], []
 
         if self.project_parameters.Has('output_configuration'):
             gid_output_options = self.project_parameters["output_configuration"]["result_file_configuration"]
             gauss_point_results = gid_output_options["gauss_point_results"]
             nodal_variables = self.project_parameters["output_configuration"]["result_file_configuration"]["nodal_results"]
-            pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
-            pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
+            variables_management.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
+            variables_management.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
         super(DEMCoupledPFEMFluidDynamicsAnalysis, self).__init__(model, self.project_parameters)
-        self.parameters = self.project_parameters
-
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
@@ -33,7 +31,7 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
 
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
-        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
+        self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
 
     def RunSingleTimeStep(self):
         self.InitializeSolutionStep()

@@ -54,7 +54,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamage3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamage3D
     : public ConstitutiveLaw
 
 {
@@ -67,7 +67,7 @@ public:
     typedef std::size_t SizeType;
 
     // Counted pointer of LinearIsotropicDamage3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamage3D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamage3D);
 
     ///@}
     ///@name Lyfe Cycle
@@ -76,17 +76,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamage3D();
+    SmallStrainIsotropicDamage3D();
 
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamage3D(const LinearIsotropicDamage3D& rOther);
+    SmallStrainIsotropicDamage3D(const SmallStrainIsotropicDamage3D& rOther);
 
     /**
      * @brief Default constructor.
      */
-    ~LinearIsotropicDamage3D() override;
+    ~SmallStrainIsotropicDamage3D() override;
 
     /**
      * @brief Clone function
