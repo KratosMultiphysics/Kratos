@@ -728,7 +728,7 @@ protected:
     }
 
     /**
-      *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
      * @param rA The LHS matrix
      * @param rDx The Unknowns vector
      * @param rb The RHS vector
@@ -744,18 +744,18 @@ protected:
         KRATOS_TRY
 
         double norm_b = 0.0;
-        if (TSparseSpace::Size(rb) != 0)
+        if (TSparseSpace::Size(rb) > 0)
             norm_b = TSparseSpace::TwoNorm(rb);
 
-        if (norm_b != 0.0) {
+        if (norm_b > 0.0) {
              // Create the auxiliar dof set
              DofsArrayType aux_dof_set;
              aux_dof_set.reserve(mDoFToSolveSystemSize);
-             for (auto& dof : BaseType::mDofSet) {
-                 if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                    auto it = mDoFSlaveSet.find(dof);
+             for (auto& r_dof : BaseType::mDofSet) {
+                 if (r_dof.EquationId() < BaseType::mEquationSystemSize) {
+                    auto it = mDoFSlaveSet.find(r_dof);
                     if (it == mDoFSlaveSet.end())
-                        aux_dof_set.push_back( &dof );
+                        aux_dof_set.push_back( &r_dof );
                  }
              }
              aux_dof_set.Sort();
