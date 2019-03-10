@@ -297,7 +297,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.project_parameters.Has('sdem_output_processes') and self.do_print_results:
             gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-            write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
+            write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditions"
             deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
             old_gid_output_post_options_dict = {'GiD_PostAscii':'Ascii','GiD_PostBinary':'Binary','GiD_PostAsciiZipped':'AsciiZipped'}
             old_gid_output_multiple_file_option_dict = {'SingleFile':'Single','MultipleFiles':'Multiples'}
@@ -542,7 +542,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # applying DEM-to-fluid coupling
 
-        if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
+        if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
 
         # coupling checks (debugging)
@@ -563,6 +563,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _Print(self):
         os.chdir(self.post_path)
+        import define_output
+        self.drag_list = define_output.DefineDragList()
+        self.drag_file_output_list = []
 
         if self.particles_results_counter.Tick():
             self.io_tools.PrintParticlesResults(
