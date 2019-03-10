@@ -26,6 +26,7 @@
 #include "custom_utilities/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/active_set_utilities.h"
+#include "custom_utilities/interface_preprocess.h"
 
 namespace Kratos
 {
@@ -206,6 +207,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<>())
     .def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet)
     .def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet)
+    ;
+
+    // Interface preprocess
+    py::class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")
+    .def(py::init<ModelPart&>())
+    .def("GenerateInterfacePart",&InterfacePreprocessCondition::GenerateInterfacePart)
     ;
 }
 
