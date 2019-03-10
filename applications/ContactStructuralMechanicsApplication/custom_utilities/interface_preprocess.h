@@ -51,7 +51,7 @@ namespace Kratos
  * @todo Add parallelization
  * @author Vicente Mataix Ferrandiz
  */
-class InterfacePreprocessCondition
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) InterfacePreprocessCondition
 {
 public:
     ///@name Type Definitions
@@ -112,7 +112,76 @@ public:
     void GenerateInterfacePart(
         ModelPart& rInterfacePart,
         Parameters ThisParameters =  Parameters(R"({})")
-        );
+        )
+	{
+		KRATOS_TRY;
+
+		Parameters default_parameters = Parameters(R"(
+		{
+			"simplify_geometry"                    : false,
+			"contact_property_id"                  : 0
+		})");
+
+		ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+		const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+		const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
+
+		IndexType cond_counter = 0;
+
+		// Generate Conditions from original the edges that can be considered interface
+		if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
+			cond_counter = rInterfacePart.Conditions().size();
+			// Check and creates the properties
+			CheckAndCreateProperties(rInterfacePart);
+		} else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
+													  // We reorder the conditions
+			IndexType cond_id = ReorderConditions();
+
+			// Store new properties in a map
+			std::unordered_map<IndexType, Properties::Pointer> new_properties;
+			if (contact_property_id == 0) new_properties = CreateNewProperties();
+
+			if (TDim == 2) {
+				// We iterate over the elements and check the nodes on the interface
+				for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
+					GeometryType& this_geometry = it_elem->GetGeometry();
+					Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
+					KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
+
+					if (this_geometry.LocalSpaceDimension() == 2) {
+						for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
+							GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+					} else {
+						GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+					}
+				}
+			} else {
+				// Generate Conditions from original the faces that can be considered interface
+				for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
+					GeometryType& this_geometry = it_elem->GetGeometry();
+					Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
+					KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
+
+					if (this_geometry.LocalSpaceDimension() == 3) {
+						for (IndexType i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
+							GenerateFaceCondition(rInterfacePart, p_prop, this_geometry.Faces()[i_face], simplest_geometry, cond_counter, cond_id);
+					} else {
+						GenerateFaceCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+					}
+				}
+			}
+		} else {
+			KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
+		}
+
+		// NOTE: Reorder ID if parallellization
+
+		const IndexType num_nodes = rInterfacePart.Nodes().size();
+		PrintNodesAndConditions(num_nodes, cond_counter);
+
+		KRATOS_CATCH("");
+	}
     
 protected:
     ///@name Protected static Member Variables
