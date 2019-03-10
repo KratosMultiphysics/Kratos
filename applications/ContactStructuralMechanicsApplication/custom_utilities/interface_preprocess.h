@@ -7,7 +7,7 @@
 //                                       license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
 
 #if !defined(KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED )
@@ -27,7 +27,7 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-    
+
 ///@}
 ///@name Type Definitions
 ///@{
@@ -35,15 +35,15 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-  
+
 /**
  * @ingroup ContactStructuralMechanicsApplication
  * @class InterfacePreprocessCondition
@@ -56,7 +56,7 @@ class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) InterfacePreprocessCo
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Geometric definitions
     typedef Point                                              PointType;
     typedef Node<3>                                             NodeType;
@@ -73,16 +73,16 @@ public:
     typedef ModelPart::NodesContainerType                 NodesArrayType;
     typedef ModelPart::ElementsContainerType           ElementsArrayType;
     typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
-    
+
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Constructor
-    
+
     /**
      * @brief This is the default constructor
      * @param rMainModelPrt The model part to consider
@@ -91,14 +91,14 @@ public:
     :mrMainModelPart(rMainModelPrt)
     {
     }
-    
+
     /// Destructor.
     virtual ~InterfacePreprocessCondition() = default;
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -108,81 +108,11 @@ public:
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
-    template<const std::size_t TDim>
     void GenerateInterfacePart(
         ModelPart& rInterfacePart,
         Parameters ThisParameters =  Parameters(R"({})")
-        )
-	{
-		KRATOS_TRY;
+        );
 
-		Parameters default_parameters = Parameters(R"(
-		{
-			"simplify_geometry"                    : false,
-			"contact_property_id"                  : 0
-		})");
-
-		ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-		const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
-		const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
-
-		IndexType cond_counter = 0;
-
-		// Generate Conditions from original the edges that can be considered interface
-		if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
-			cond_counter = rInterfacePart.Conditions().size();
-			// Check and creates the properties
-			CheckAndCreateProperties(rInterfacePart);
-		} else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
-													  // We reorder the conditions
-			IndexType cond_id = ReorderConditions();
-
-			// Store new properties in a map
-			std::unordered_map<IndexType, Properties::Pointer> new_properties;
-			if (contact_property_id == 0) new_properties = CreateNewProperties();
-
-			if (TDim == 2) {
-				// We iterate over the elements and check the nodes on the interface
-				for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
-					GeometryType& this_geometry = it_elem->GetGeometry();
-					Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
-					KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
-
-					if (this_geometry.LocalSpaceDimension() == 2) {
-						for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
-							GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
-					} else {
-						GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
-					}
-				}
-			} else {
-				// Generate Conditions from original the faces that can be considered interface
-				for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
-					GeometryType& this_geometry = it_elem->GetGeometry();
-					Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
-					KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
-
-					if (this_geometry.LocalSpaceDimension() == 3) {
-						for (IndexType i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
-							GenerateFaceCondition(rInterfacePart, p_prop, this_geometry.Faces()[i_face], simplest_geometry, cond_counter, cond_id);
-					} else {
-						GenerateFaceCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
-					}
-				}
-			}
-		} else {
-			KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
-		}
-
-		// NOTE: Reorder ID if parallellization
-
-		const IndexType num_nodes = rInterfacePart.Nodes().size();
-		PrintNodesAndConditions(num_nodes, cond_counter);
-
-		KRATOS_CATCH("");
-	}
-    
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -214,13 +144,13 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrMainModelPart; /// The main model part storing all the information
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -289,7 +219,7 @@ private:
         const IndexType CondId,
         Condition const& rCondition
         );
-    
+
     /**
      * @brief This method assign the corresponding master/slave flag to the condition in function of its nodes
      * @param pCond The pointer to the condition
@@ -305,13 +235,13 @@ private:
         const IndexType NodesCounter,
         const IndexType CondCounter
         );
-    
+
     /**
      * @brief It reorders the Ids of the conditions
      * @return cond_id: The Id from the last condition
      */
     IndexType ReorderConditions();
-    
+
     /**
      * @brief This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
@@ -329,7 +259,7 @@ private:
         IndexType& CondCounter,
         IndexType& CondId
         );
-    
+
     /**
      * @brief This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
@@ -347,7 +277,7 @@ private:
         IndexType& CondCounter,
         IndexType& CondId
         );
-    
+
     ///@}
     ///@name Private  Access
     ///@{
