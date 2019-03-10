@@ -350,10 +350,7 @@ class SearchBaseProcess(KM.Process):
         # It should create the conditions automatically
         interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
         interface_parameters["contact_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
-        if self.dimension == 2:
-            self.interface_preprocess.GenerateInterfacePart2D(partial_model_part, interface_parameters)
-        else:
-            self.interface_preprocess.GenerateInterfacePart3D(partial_model_part, interface_parameters)
+        self.interface_preprocess.GenerateInterfacePart(partial_model_part, interface_parameters)
 
     def _initialize_process_info(self):
         """ This method initializes some values from the process info
