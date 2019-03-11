@@ -9,7 +9,6 @@
 // System includes
 
 // External includes
-#include "mpi.h"
 
 // Project includes
 #include "metis_application.h"
@@ -24,28 +23,12 @@ void KratosMetisApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::stringstream banner; // TODO: use Logger once mpi-logger is implemented
-    banner << "    KRATOS  __  __      _   _\n"
-           << "           |  \\/  | ___| |_(_)___\n"
-           << "           | |\\/| |/ _ \\ __| / __|\n"
-           << "           | |  | |  __/ |_| \\__ \\\n"
-           << "           |_|  |_|\\___|\\__|_|___/\n"
-           << "Initializing KratosMetisApplication..." << std::endl;
-
-    int mpi_is_initialized = 0;
-    int rank = -1;
-    MPI_Initialized(&mpi_is_initialized);
-
-    if (mpi_is_initialized){
-        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    }
-
-    if (mpi_is_initialized) {
-        if (rank == 0) KRATOS_INFO("") << banner.str();
-    }
-    else {
-        KRATOS_INFO("") << banner.str();
-    }
+    KRATOS_INFO("") << "    KRATOS  __  __      _   _\n"
+                    << "           |  \\/  | ___| |_(_)___\n"
+                    << "           | |\\/| |/ _ \\ __| / __|\n"
+                    << "           | |  | |  __/ |_| \\__ \\\n"
+                    << "           |_|  |_|\\___|\\__|_|___/\n"
+                    << "Initializing KratosMetisApplication..." << std::endl;
 }
 
 }  // namespace Kratos.

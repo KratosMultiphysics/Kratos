@@ -96,9 +96,9 @@ public:
      */
     IsotropicDamageIMPLEX();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new IsotropicDamageIMPLEX() );
+        ConstitutiveLaw::Pointer p_clone( new IsotropicDamageIMPLEX() );
         return p_clone;
     }
 
