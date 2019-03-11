@@ -60,7 +60,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
+        Preprocess.GenerateInterfacePart(self.contact_model_part, interface_parameters)
 
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:

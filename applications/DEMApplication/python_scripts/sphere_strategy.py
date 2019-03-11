@@ -576,7 +576,6 @@ class ExplicitStrategy(object):
 
         if not param:
             DiscontinuumConstitutiveLaw = globals().get(properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME])()
-
             coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
             type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
