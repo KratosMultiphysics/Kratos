@@ -402,8 +402,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
-    def RunMainTemporalLoop(self):   # DEPRECATED
-        self.RunSolutionLoop()
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):

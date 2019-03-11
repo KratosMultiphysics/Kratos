@@ -473,13 +473,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
         SDP.AddExtraDofs(self.fluid_model_part,
                          self.spheres_model_part,
                          self.cluster_model_part,
-                         self.DEM_inlet_model_part,
+                         self.dem_inlet_model_part,
                          self.vars_man)
 
     def DispersePhaseInitialize(self):
         self.vars_man.__class__.AddNodalVariables(self.spheres_model_part, self.vars_man.dem_vars)
         self.vars_man.__class__.AddNodalVariables(self.rigid_face_model_part, self.vars_man.rigid_faces_vars)
-        self.vars_man.__class__.AddNodalVariables(self.DEM_inlet_model_part, self.vars_man.inlet_vars)
+        self.vars_man.__class__.AddNodalVariables(self.dem_inlet_model_part, self.vars_man.inlet_vars)
         self.vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.project_parameters,
                                                                            self.disperse_phase_solution.spheres_model_part)
 
@@ -515,14 +515,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.analytic_face_watcher.MakeMeasurements()
         self.analytic_particle_watcher.MakeMeasurements()
 
-    def RunSolutionLoop(self):
-        while self.TheSimulationMustGoOn():
-            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+    # def RunMainTemporalLoop(self):
+    #     self.RunSolutionLoop()
 
     def InitializeSolutionStep(self):
         self.TellTime()
@@ -631,7 +625,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             if self.project_parameters["type_of_inlet"].GetString() == 'VelocityImposed':
                 self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             elif self.project_parameters["type_of_inlet"].GetString() == 'ForceImposed':
-                self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
+                self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
 
             self.disperse_phase_solution.DEM_inlet = self.DEM_inlet
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.disperse_phase_solution.creator_destructor)

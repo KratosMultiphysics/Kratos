@@ -16,7 +16,7 @@ def Say(*args):
 def AddExtraDofs(fluid_model_part,
                  spheres_model_part,
                  cluster_model_part,
-                 DEM_inlet_model_part,
+                 dem_inlet_model_part,
                  variables_manager):
 
     if VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
