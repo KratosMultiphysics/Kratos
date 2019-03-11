@@ -275,7 +275,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         tangent_eta[1] = J(1, 1);
         tangent_xi[2]  = J(2, 0);
         tangent_eta[2] = J(2, 1);
-
+        
         array_1d<double, 3 > normal;
         MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
 
