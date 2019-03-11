@@ -425,19 +425,12 @@ protected:
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 
-    // Non Converged values
-    double mNonConvPlasticDissipation = 0.0;
-    double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
-
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
 
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
     Vector mBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedPreviousStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
