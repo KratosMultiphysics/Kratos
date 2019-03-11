@@ -651,14 +651,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (double version).
@@ -678,14 +674,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (string version).
@@ -705,14 +697,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::string("");
-        }
+        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (int version).
@@ -727,7 +715,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     /// Exchange data with other ranks (double version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -741,7 +732,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -755,7 +749,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::string& rSendValues, const int SendDestination, const int SendTag,
         std::string& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     // Broadcast
 
