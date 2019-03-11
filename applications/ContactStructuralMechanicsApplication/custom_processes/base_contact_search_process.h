@@ -56,7 +56,7 @@ namespace Kratos
 /**
  * @class BaseContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This utilitiy has as objective to create the contact conditions.
+ * @brief This process has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
@@ -237,7 +237,7 @@ public:
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "BaseContactSearchProcess";
     }
@@ -245,7 +245,7 @@ public:
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
