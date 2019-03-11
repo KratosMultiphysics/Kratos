@@ -11,12 +11,8 @@
 //  Main authors:    Abel
 //
 
-
-
 #if !defined(KRATOS_OCTREE_H_INCLUDED )
 #define  KRATOS_OCTREE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -1024,13 +1020,6 @@ namespace Kratos {
 
               }
             }
-
-
-//            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
-//            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
-
-
-
         }
 
         void Insert(typename cell_type::pointer_type object){
@@ -1199,11 +1188,7 @@ namespace Kratos {
                   double high[3];
                   child->GetMinPointNormalized(low);
                   child->GetMaxPointNormalized(high);
-//                  KRATOS_WATCH_3(low);
-//                  KRATOS_WATCH_3(high);
-//                  KRATOS_WATCH_3(min_coord);
-//                  KRATOS_WATCH_3(max_coord);
-//                  KRATOS_WATCH(Collides(min_coord, max_coord, low, high));
+
                   if (Collides(min_coord, max_coord, low, high))
                     cells_stack.push_back(child);
                 }
@@ -1215,11 +1200,6 @@ namespace Kratos {
                 cell->GetMinPointNormalized(cell_min_point);
                 cell->GetMaxPointNormalized(cell_max_point);
 
-//                KRATOS_WATCH(object->GetGeometry());
-//                KRATOS_WATCH(tolerance);
-//                std::cout << "cell_min_point : " << cell_min_point[0] << "," << cell_min_point[1] << "," << cell_min_point[2] << std::endl;
-//                std::cout << "cell_max_point : " << cell_max_point[0] << "," << cell_max_point[1] << "," << cell_max_point[2] << std::endl;
-
                 // I have to put this in no normailzed part. Pooyan.
                 ScaleBackToOriginalCoordinate(cell_min_point);
                 ScaleBackToOriginalCoordinate(cell_max_point);
@@ -1230,20 +1210,9 @@ namespace Kratos {
                   leaves.push_back(cell);
               }
             }
-
-//            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
-//            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
-
         }
 
-
-
-
-
-
   //////////////////////////////////////////////////////////
-
-
 
 
        inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
