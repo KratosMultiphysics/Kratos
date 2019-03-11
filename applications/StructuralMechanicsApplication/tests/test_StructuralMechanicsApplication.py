@@ -208,6 +208,7 @@ from structural_response_function_test_factory import TestAdjointStressResponseF
 from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
 from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
 from structural_response_function_test_factory import TestEigenfrequencyResponseFunction as TTestEigenfrequencyResponseFunction
+from test_adjoint_strain_energy_response_nonlinear_structure import AdjointSensitivityNonlinearTruss as TAdjointSensitivityNonlinearTruss
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -383,6 +384,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    nightSuite.addTest(TAdjointSensitivityNonlinearTruss())
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
