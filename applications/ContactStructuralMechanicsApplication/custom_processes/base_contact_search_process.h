@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED )
-#define  KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED
+#if !defined(KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED )
+#define  KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -54,7 +54,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class BaseContactSearch
+ * @class BaseContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This utilitiy has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
@@ -65,7 +65,8 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) BaseContactSearch
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) BaseContactSearchProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -101,8 +102,8 @@ public:
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of BaseContactSearch
-    KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearch );
+    /// Pointer definition of BaseContactSearchProcess
+    KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
 
     ///@}
     ///@name  Enum's
@@ -135,20 +136,46 @@ public:
      *          -# InterfaceMapper = InterfacePreprocess()
      *          -# InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
-    BaseContactSearch(
+    BaseContactSearchProcess(
         ModelPart& rMainModelPart,
         Parameters ThisParameters =  Parameters(R"({})")
         );
 
-    virtual ~BaseContactSearch()= default;;
+    /// Destructor.
+    ~BaseContactSearchProcess() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
+    void operator()()
+    {
+        Execute();
+    }
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
+    void Execute() override;
+
+    /**
+     * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
+
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override;
 
     /**
      * @brief This function initializes the ALM frictionless mortar conditions already created
@@ -212,7 +239,7 @@ public:
 
     virtual std::string Info() const
     {
-        return "BaseContactSearch";
+        return "BaseContactSearchProcess";
     }
 
     /************************************ PRINT INFO ***********************************/
@@ -519,7 +546,7 @@ private:
 
     ///@}
 
-}; // Class BaseContactSearch
+}; // Class BaseContactSearchProcess
 
 ///@}
 
@@ -536,14 +563,14 @@ private:
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>& rThis);
+                                  BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis);
 
 /***************************** OUTPUT STREAM FUNCTION ******************************/
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>& rThis)
+                                  const BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis)
 {
     return rOStream;
 }
@@ -552,4 +579,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED  defined
+#endif // KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

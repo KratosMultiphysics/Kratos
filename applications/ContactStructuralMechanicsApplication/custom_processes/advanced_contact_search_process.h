@@ -7,17 +7,17 @@
 //					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
-#if !defined(KRATOS_ADVANCED_CONTACT_SEARCH_H_INCLUDED )
-#define  KRATOS_ADVANCED_CONTACT_SEARCH_H_INCLUDED
+#if !defined(KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED )
+#define  KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_utilities/base_contact_search.h"
+#include "custom_processes/base_contact_search_process.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -42,35 +42,35 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
- * @class AdvancedContactSearch
+
+/**
+ * @class AdvancedContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This utilitiy has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
- * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
+ * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AdvancedContactSearch
-    : public BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AdvancedContactSearchProcess
+    : public BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// The definition of the base type
-    typedef BaseContactSearch<TDim, TNumNodes, TNumNodesMaster> BaseType;
+    typedef BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster> BaseType;
 
     /// General type definitions
     typedef typename BaseType::NodesArrayType           NodesArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::NodeType                       NodeType;
     typedef typename BaseType::GeometryType               GeometryType;
-    
+
     /// Index type definition
     typedef std::size_t IndexType;
 
@@ -80,9 +80,9 @@ public:
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-4;
 
-    /// Pointer definition of AdvancedContactSearch
-    KRATOS_CLASS_POINTER_DEFINITION( AdvancedContactSearch );
-      
+    /// Pointer definition of AdvancedContactSearchProcess
+    KRATOS_CLASS_POINTER_DEFINITION( AdvancedContactSearchProcess );
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -100,18 +100,18 @@ public:
      *                       - The integration order considered
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
-     *                       - TypeSearch: 0 means search in radius, 1 means search in box 
+     *                       - TypeSearch: 0 means search in radius, 1 means search in box
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
      *          -# InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
-    AdvancedContactSearch(
-        ModelPart& rMainModelPart, 
-        Parameters ThisParameters =  Parameters(R"({})") 
-        ); 
-    
-    virtual ~AdvancedContactSearch()= default;;
+    AdvancedContactSearchProcess(
+        ModelPart& rMainModelPart,
+        Parameters ThisParameters =  Parameters(R"({})")
+        );
+
+    virtual ~AdvancedContactSearchProcess()= default;;
 
     ///@}
     ///@name Operators
@@ -120,7 +120,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -135,15 +135,15 @@ public:
 
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
-    
+
     std::string Info() const override
     {
-        return "AdvancedContactSearch";
+        return "AdvancedContactSearchProcess";
     }
 
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
-    
+
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -156,7 +156,7 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -167,7 +167,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -226,7 +226,7 @@ private:
         double& a,
         double& b
         );
-    
+
     /**
      * @brief This method sets as active a node and it predicts the value of its LM
      * @param ItNode The node iterator to set
@@ -373,7 +373,7 @@ private:
 
     ///@}
 
-}; // Class AdvancedContactSearch
+}; // Class AdvancedContactSearchProcess
 
 ///@}
 
@@ -387,17 +387,17 @@ private:
 
 // /****************************** INPUT STREAM FUNCTION ******************************/
 // /***********************************************************************************/
-// 
+//
 // template<class TPointType, class TPointerType>
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   AdvancedContactSearch& rThis);
-// 
+//                                   AdvancedContactSearchProcess& rThis);
+//
 // /***************************** OUTPUT STREAM FUNCTION ******************************/
 // /***********************************************************************************/
-// 
+//
 // template<class TPointType, class TPointerType>
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const AdvancedContactSearch& rThis)
+//                                   const AdvancedContactSearchProcess& rThis)
 // {
 //     return rOStream;
 // }
@@ -406,4 +406,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADVANCED_CONTACT_SEARCH_H_INCLUDED  defined
+#endif // KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

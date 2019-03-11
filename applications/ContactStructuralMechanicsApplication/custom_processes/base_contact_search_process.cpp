@@ -22,13 +22,13 @@
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/base_contact_search.h"
+#include "custom_processes/base_contact_search_process.h"
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
 
 namespace Kratos
 {
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearch(
+BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchProcess(
     ModelPart & rMainModelPart,
     Parameters ThisParameters
     ):mrMainModelPart(rMainModelPart),
@@ -113,7 +113,53 @@ BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearch(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
+{
+    // We execute the different phases of the process all together
+    this->ExecuteInitialize();
+    this->ExecuteInitializeSolutionStep();
+    this->ExecuteFinalizeSolutionStep();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitialize()
+{
+    // We initialize the search utility
+    this->CheckContactModelParts();
+    this->CreatePointListMortar();
+    this->InitializeMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitializeSolutionStep()
+{
+    // We compute the search pairs
+    this->ClearMortarConditions();
+    this->UpdateMortarConditions();
+//     this->CheckMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteFinalizeSolutionStep()
+{
+    // We clear the pairs
+    this->ClearMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarConditions()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -136,7 +182,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarCondit
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationModelParts(ModelPart& rModelPart)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationModelParts(ModelPart& rModelPart)
 {
     // We check if the MasterSubModelPart already exists
     const std::string& id_name = mThisParameters["id_name"].GetString();
@@ -219,7 +265,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationMo
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions()
 {
     ResetContactOperators();
 
@@ -248,7 +294,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -298,7 +344,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar()
 {
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
@@ -333,7 +379,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
 {
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
@@ -374,7 +420,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions()
 {
     // We update the list of points
     UpdatePointListMortar();
@@ -447,7 +493,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
     ModelPart& rSubContactModelPart,
     ModelPart& rSubComputingContactModelPart
     )
@@ -564,7 +610,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
     ModelPart& rSubContactModelPart,
     ModelPart& rSubComputingContactModelPart
     )
@@ -650,7 +696,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
@@ -677,7 +723,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
@@ -694,7 +740,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -728,7 +774,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 {
     mInvertedSearch = !mInvertedSearch;
 }
@@ -737,7 +783,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarConditions(NodesArrayType& rNodesArray)
 {
     VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
 }
@@ -746,7 +792,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarCondi
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarConditions(NodesArrayType& rNodesArray)
 {
     const array_1d<double, 3> zero_array = ZeroVector(3);
     VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
@@ -756,7 +802,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarC
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray)
 {
     VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
 }
@@ -765,7 +811,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMo
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckCondition(
+inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckCondition(
     IndexMap::Pointer pIndexesPairs,
     const Condition::Pointer pCond1,
     const Condition::Pointer pCond2,
@@ -801,7 +847,7 @@ inline typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckResult
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
 {
     // We iterate over the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
@@ -878,7 +924,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline IndexType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetMaximumConditionsIds()
+inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetMaximumConditionsIds()
 {
     ConditionsArrayType& r_conditions_array = mrMainModelPart.Conditions();
 
@@ -897,7 +943,7 @@ inline IndexType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetMaximum
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
@@ -990,7 +1036,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPai
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
     )
@@ -1034,7 +1080,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGap(const bool SearchOrientation)
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGap(const bool SearchOrientation)
 {
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
@@ -1117,7 +1163,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGa
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
 {
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
@@ -1141,7 +1187,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveN
                 SetActiveNode(it_node, common_epsilon, scale_factor);
             } else {
             #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("BaseContactSearch", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
+                KRATOS_WARNING_IF("BaseContactSearchProcess", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
             #endif
                 SetInactiveNode(it_node);
             }
@@ -1153,7 +1199,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveN
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     NodesArrayType::iterator ItNode,
     const double CommonEpsilon,
     const double ScaleFactor
@@ -1168,7 +1214,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
     // If the node has been already actived we do not inactivate
     if (ItNode->IsNot(MARKER)) {
@@ -1203,7 +1249,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesA
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeightedReaction()
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeWeightedReaction()
 {
     // Auxiliar zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
@@ -1248,7 +1294,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarConditions(
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarConditions(
     ModelPart& rContactModelPart,
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
@@ -1308,7 +1354,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline double BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::Radius(GeometryType& ThisGeometry)
+inline double BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Radius(GeometryType& ThisGeometry)
 {
     double radius = 0.0;
     const Point& r_center = ThisGeometry.Center();
@@ -1327,7 +1373,7 @@ inline double BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::Radius(Geomet
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators()
 {
     // We iterate over the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -1387,7 +1433,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ConvertSearchTree(const std::string& str)
+typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertSearchTree(const std::string& str)
 {
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
 
@@ -1407,7 +1453,7 @@ typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType Bas
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ConvertCheckGap(const std::string& str)
+typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertCheckGap(const std::string& str)
 {
     if(str == "NoCheck" || str == "no_check")
         return CheckGap::NoCheck;
@@ -1423,7 +1469,7 @@ typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseConta
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
+Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -1456,10 +1502,10 @@ Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParame
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class BaseContactSearch<2, 2>;
-template class BaseContactSearch<3, 3>;
-template class BaseContactSearch<3, 4>;
-template class BaseContactSearch<3, 3, 4>;
-template class BaseContactSearch<3, 4, 3>;
+template class BaseContactSearchProcess<2, 2>;
+template class BaseContactSearchProcess<3, 3>;
+template class BaseContactSearchProcess<3, 4>;
+template class BaseContactSearchProcess<3, 3, 4>;
+template class BaseContactSearchProcess<3, 4, 3>;
 
 }  // namespace Kratos.
