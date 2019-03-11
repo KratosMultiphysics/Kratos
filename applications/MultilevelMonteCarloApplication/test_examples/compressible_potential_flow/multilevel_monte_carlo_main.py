@@ -48,12 +48,12 @@ if __name__ == '__main__':
     # customize setting parameters of the MLMC simulation
     settings_MLMC_simulation = KratosMultiphysics.Parameters("""
     {
-        "tol0"                            : 0.25,
-        "tolF"                            : 0.1,
-        "cphi"                            : 1.0,
+        "initial_tolerance"               : 0.25,
+        "tolerance"                       : 0.1,
+        "confidence"                      : 1.0,
         "number_samples_screening"        : 2,
-        "Lscreening"                      : 1,
-        "Lmax"                            : 4,
+        "levels_screening"                : 1,
+        "maximum_number_levels"           : 4,
         "initial_mesh_size"               : 0.1,
         "mesh_refinement_coefficient"     : 100
     }
