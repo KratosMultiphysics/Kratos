@@ -72,8 +72,10 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
         # Initialize the design variable 
         if  self.direct_settings["variable_type"].GetString() == "element_data_type":
             self.variable = StructuralMechanicsApplication.DirectSensitivityElementDataVariable(self.main_model_part, self.direct_settings)
+        elif  self.direct_settings["variable_type"].GetString() == "nodal_data_type":
+            self.variable = StructuralMechanicsApplication.DirectSensitivityNodalDataVariable(self.main_model_part, self.direct_settings)
         else:
-            raise Exception("invalid variable_type: " + direct_variable_settings["variable_type"].GetString())       
+            raise Exception("invalid variable_type: " + self.direct_settings["variable_type"].GetString())       
 
         super(StructuralMechanicsDirectSensitivitySolver, self).Initialize()
 

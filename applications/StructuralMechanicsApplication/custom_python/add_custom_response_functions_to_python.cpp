@@ -37,6 +37,7 @@
 // Direct Sensitivity variables
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_element_data_variable.h"
+#include "state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.h"
 
 // Adjoint postprocessing
 #include "custom_response_functions/response_utilities/adjoint_postprocess.h"
@@ -88,6 +89,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<DirectSensitivityElementDataVariable, DirectSensitivityElementDataVariable::Pointer, DirectSensitivityVariable>
         (m, "DirectSensitivityElementDataVariable")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<DirectSensitivityNodalDataVariable, DirectSensitivityNodalDataVariable::Pointer, DirectSensitivityVariable>
+        (m, "DirectSensitivityNodalDataVariable")
         .def(py::init<ModelPart&, Parameters>());
     
     // Response Functions
