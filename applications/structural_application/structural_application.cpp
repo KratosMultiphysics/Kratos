@@ -73,7 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
@@ -1107,7 +1106,7 @@ void KratosStructuralApplication::Register() {
 
  const MembraneElement  KratosStructuralApplication::msMembraneElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))));
 
- const Face2D  KratosStructuralApplication::msFace2D(0, Element::GeometryType::Pointer(new Line2D<Node<3> >(Element::GeometryType::PointsArrayType(2))));
+ const Face2D  KratosStructuralApplication::msFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))));
 
  const Face3D  KratosStructuralApplication::msFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))));
 */
