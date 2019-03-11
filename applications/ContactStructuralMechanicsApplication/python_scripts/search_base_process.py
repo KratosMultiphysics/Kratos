@@ -222,7 +222,7 @@ class SearchBaseProcess(KM.Process):
         if self._get_if_is_interval():
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if modified is False and (self.database_step >= database_step_update or global_step == 1):
+            if not modified and (self.database_step >= database_step_update or global_step == 1):
                 for key in self.settings["search_model_part"].keys():
                     if self.settings["search_model_part"][key].size() > 0:
                         self.search_utility_list[key].ExecuteFinalizeSolutionStep()
