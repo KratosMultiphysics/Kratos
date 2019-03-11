@@ -138,7 +138,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        rGlobalValues = Sum(rLocalValues, Root);
+    }
 
     /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -150,7 +153,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        rGlobalValues = Sum(rLocalValues, Root);
+    }
 
     /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
@@ -217,7 +223,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Min");
+        rGlobalValues = Min(rLocalValues, Root);
+    }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -229,7 +238,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Min");
+        rGlobalValues = Min(rLocalValues, Root);
+    }
 
     /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
@@ -296,7 +308,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Max");
+        rGlobalValues = Max(rLocalValues, Root);
+    }
 
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -308,7 +323,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Max");
+        rGlobalValues = Max(rLocalValues, Root);
+    }
 
     // Allreduce operations
 
@@ -370,7 +388,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SumAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        rGlobalValues = SumAll(rLocalValues);
+    }
 
     /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -380,7 +401,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SumAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        rGlobalValues = SumAll(rLocalValues);
+    }
 
     /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
@@ -440,7 +464,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MinAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        rGlobalValues = MinAll(rLocalValues);
+    }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -450,7 +477,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MinAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        rGlobalValues = MinAll(rLocalValues);
+    }
 
     /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
@@ -510,7 +540,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MaxAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        rGlobalValues = MaxAll(rLocalValues);
+    }
 
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -520,7 +553,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MaxAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        rGlobalValues = MaxAll(rLocalValues);
+    }
 
     // Scan operations
 
@@ -577,7 +613,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void ScanSum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rPartialSums) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        rPartialSums = ScanSum(rLocalValues);
+    }
 
     /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double version).
     /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
@@ -588,7 +627,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void ScanSum(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rPartialSums) const
-    {}
+    {
+        DebugSizeCheck(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        rPartialSums = ScanSum(rLocalValues);
+    }
 
     // Sendrecv operations
 
@@ -1294,6 +1336,17 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
   private:
 
+    ///@name Private operations
+    ///@{
+
+    void DebugSizeCheck(std::size_t Size1, std::size_t Size2, const std::string& CallName) const
+    {
+        KRATOS_DEBUG_ERROR_IF(Size1 != Size2)
+        << "Input error in call to DataCommunicator::" << CallName
+        << ": The sizes of the local and distributed buffers do not match." << std::endl;
+    }
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 
