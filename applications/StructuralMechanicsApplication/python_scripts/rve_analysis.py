@@ -71,7 +71,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     def RunSolutionLoop(self):
 
-        #super(RVEAnalysis, self).RunSolutionLoop()
         perturbation = self.perturbation
 
         boundary_mp = self.model[self.boundary_mp_name]
@@ -295,7 +294,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             Agauss = A/ngauss
             for item in tmp:
                 avg_stress = avg_stress + item*Agauss
-        
+
         self._GetSolver().Clear()
 
         KratosMultiphysics.Logger.PrintInfo(
