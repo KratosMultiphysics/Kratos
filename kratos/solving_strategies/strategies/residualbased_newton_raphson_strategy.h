@@ -790,6 +790,10 @@ class ResidualBasedNewtonRaphsonStrategy
             MaxIterationsExceeded();
         }
 
+        if (this->GetEchoLevel() > 0){
+            KRATOS_INFO("NR-Strategy") << "Iteration " << IterationNumber << " / " << mMaxIterationNumber << std::endl;
+        }
+
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
         if (residual_is_updated == false)
@@ -1037,10 +1041,6 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
-
-        if (this->GetEchoLevel() != 0){
-            KRATOS_INFO("NR-Strategy") << "Iteration " << IterationNumber << " / " << mMaxIterationNumber << std::endl;
-        }
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
