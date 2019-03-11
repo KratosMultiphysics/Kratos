@@ -68,6 +68,29 @@ void AdjointFiniteDifferenceTrussElementLinear::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);
 }
 
+void AdjointFiniteDifferenceTrussElementLinear::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+{   
+    const SizeType  write_points_number = 1;
+
+    if (rValues.size() != write_points_number)
+        rValues.resize(write_points_number); 
+
+    if (rVariable == FORCE_SENSITIVITY)
+    {
+        if(this->Has(rVariable))
+        {
+            const array_1d<double, 3 >& output_value = this->GetValue(rVariable);
+            for (IndexType PointNumber = 0; PointNumber < write_points_number; ++PointNumber)
+                rValues[PointNumber] = output_value;
+        }
+        else
+            KRATOS_ERROR << "Error at getting " << rVariable << " values on integration points." << std::endl; 
+    }    
+
+}  
+
 } // namespace Kratos.
 
 
