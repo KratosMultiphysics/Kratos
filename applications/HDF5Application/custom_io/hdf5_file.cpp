@@ -315,7 +315,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -338,7 +338,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -364,7 +364,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -388,7 +388,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, rValue.c_str()) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -602,7 +602,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -643,7 +643,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue[0]) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -684,7 +684,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     // Read attribute.
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, &rValue(0,0)) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
@@ -727,7 +727,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     rValue = std::string(buffer, dims[0]);
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");

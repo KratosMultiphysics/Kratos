@@ -207,7 +207,7 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteConditions(rModelPart.Conditions());
     WriteSubModelParts(rModelPart);
 
-    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to write model part \"" << rModelPart.Name()
         << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
@@ -228,7 +228,7 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
     ReadSubModelParts(rModelPart);
 
-    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to read model part \"" << rModelPart.Name()
         << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 

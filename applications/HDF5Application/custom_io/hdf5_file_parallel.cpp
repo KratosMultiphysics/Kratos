@@ -292,7 +292,7 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
     rInfo.BlockSize = local_dims[0];
     rInfo.TotalSize = global_dims[0];
 
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
@@ -389,7 +389,7 @@ void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
     rInfo.BlockSize = local_dims[0];
     rInfo.TotalSize = global_dims[0];
 
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
@@ -488,7 +488,7 @@ void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
@@ -568,7 +568,7 @@ void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2 && GetPID() == 0)
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
