@@ -220,9 +220,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
     .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double, const bool>())
     .def(py::init<Model&, Parameters>())
     ;
 }

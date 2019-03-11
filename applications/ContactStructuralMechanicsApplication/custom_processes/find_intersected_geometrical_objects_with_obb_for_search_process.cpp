@@ -31,20 +31,6 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 /***********************************************************************************/
 
 FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
-    ModelPart& rPart1,
-    ModelPart& rPart2,
-    const double* NewScaleFactor,
-    const double* NewOffset,
-    const double BoundingBoxFactor,
-    const bool DebugOBB
-    ) : BaseType(rPart1, rPart2, NewScaleFactor, NewOffset, BoundingBoxFactor, DebugOBB)
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : BaseType(rModel, ThisParameters)
