@@ -651,7 +651,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
 
         return rSendValues;
@@ -674,7 +674,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
 
         return rSendValues;
@@ -697,7 +697,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        KRATOS_ERROR_IF(SendDestination != RecvSource)
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
 
         return rSendValues;
