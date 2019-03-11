@@ -383,20 +383,6 @@ public:
         );
 
     /**
-     * @brief Constructor to be used.
-     * @param rPart1 First model part (the one to compute the intersection)
-     * @param rPart2 Second model part (the "skin" model part)
-     * @param NewScaleFactor The scalar factors ofthe Octree
-     * @param NewOffset The offsets of the Octree
-     */
-    FindIntersectedGeometricalObjectsProcess(
-        ModelPart& rPart1,
-        ModelPart& rPart2,
-        const double* NewScaleFactor,
-        const double* NewOffset
-        );
-
-    /**
      * @brief Constructor to be used. (with model and Parameters)
      * @param rModel The model containing all model parts
      * @param ThisParameters The configuration parameters
