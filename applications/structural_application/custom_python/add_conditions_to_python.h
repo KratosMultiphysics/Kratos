@@ -71,7 +71,7 @@ namespace Kratos
 {
 namespace Python
 {
-void  AddCustomConditionsToPython();
+void  AddCustomConditionsToPython(pybind11::module& m);
 }  // namespace Python.
 
 }  // namespace Kratos.

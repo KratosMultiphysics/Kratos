@@ -10,11 +10,11 @@ class ProductOfSinesBenchmarkAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
-        Add = self.pp.CFD_DEM.AddEmptyValue
+        Add = self.project_parameters.AddEmptyValue
         Add("field_period").SetDouble(1.0)
 
     def GetFieldUtility(self):
-        period = self.pp.CFD_DEM["field_period"].GetDouble()
+        period = self.project_parameters["field_period"].GetDouble()
         self.flow_field = ProductOfSines(period)
         space_time_set = SpaceTimeSet()
         self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)

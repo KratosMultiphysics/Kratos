@@ -6,24 +6,24 @@ import candelier_scripts.candelier as candelier
 import candelier_scripts.candelier_parameters as ch_pp
 
 class ResultsCandelier:
-    def __init__(self, pp, path):
+    def __init__(self, parameters, path):
         self.sim = candelier.AnalyticSimulator(ch_pp)
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
-        self.dt = pp.CFD_DEM["MaxTimeStep"].GetDouble()
-        self.N_q = pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt()
-        self.quadrature_order = pp.CFD_DEM["quadrature_order"].GetInt()
+        self.dt = project_parameters["MaxTimeStep"].GetDouble()
+        self.N_q = project_parameters["time_steps_per_quadrature_step"].GetInt()
+        self.quadrature_order = project_parameters["quadrature_order"].GetInt()
         self.reading_index = 0
         self.times = []
         self.errors = []
-        ch_pp.include_history_force = bool(pp.CFD_DEM["basset_force_type"].GetInt())
+        ch_pp.include_history_force = bool(project_parameters["basset_force_type"].GetInt())
 
-        if pp.CFD_DEM["basset_force_type"].GetInt() == 2:
+        if project_parameters["basset_force_type"].GetInt() == 2:
             self.method = 'Daitche'
         else:
             self.method = 'Hinsberg'
-            self.m = pp.CFD_DEM["number_of_exponentials"].GetInt()
-            self.t_w = pp.CFD_DEM["time_window"].GetDouble()
+            self.m = project_parameters["number_of_exponentials"].GetInt()
+            self.t_w = project_parameters["time_window"].GetDouble()
 
         self.result_code = self.method + '_dt=' + str(self.dt) + '_Nq=' + str(self.N_q) + '_quadrature_order=' + str(self.quadrature_order)
         if self.method == 'Hinsberg':
