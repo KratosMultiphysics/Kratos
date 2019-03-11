@@ -399,6 +399,7 @@ class SearchBaseProcess(KM.Process):
         """
 
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
+        search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
         search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
@@ -414,42 +415,9 @@ class SearchBaseProcess(KM.Process):
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
 
-        # We compute the number of nodes of the geometry
-        number_nodes, number_nodes_master = self._compute_number_nodes()
-
         # We create the search process
-        simple_search = self.settings["search_parameters"]["simple_search"].GetBool()
-        if self.dimension == 2:
-            if simple_search:
-                self.search_utility_list[key] = CSMA.SimpleContactSearchProcess2D2N(self.computing_model_part, search_parameters)
-            else:
-                self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess2D2N(self.computing_model_part, search_parameters)
-        else:
-            if number_nodes == 3:
-                if number_nodes_master == 3:
-                    if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D3N(self.computing_model_part, search_parameters)
-                    else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D3N(self.computing_model_part, search_parameters)
-                else:
-                    if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D3N4N(self.computing_model_part, search_parameters)
-                    else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D3N4N(self.computing_model_part, search_parameters)
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
 
-            elif number_nodes == 4:
-                if number_nodes_master == 3:
-                    if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D4N3N(self.computing_model_part, search_parameters)
-                    else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D4N3N(self.computing_model_part, search_parameters)
-                else:
-                    if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D4N(self.computing_model_part, search_parameters)
-                    else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D4N(self.computing_model_part, search_parameters)
-            else:
-                raise Exception("Geometries not compatible. Check all the geometries are linear")
 
     def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.

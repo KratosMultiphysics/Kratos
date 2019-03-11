@@ -28,6 +28,7 @@
 #include "custom_processes/alm_variables_calculation_process.h"
 #include "custom_processes/contact_spr_error_process.h"
 #include "custom_processes/compute_dynamic_factor_process.h"
+#include "custom_processes/contact_search_wrapper_process.h"
 #include "custom_processes/simple_contact_search_process.h"
 #include "custom_processes/advanced_contact_search_process.h"
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
@@ -71,6 +72,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ContactSPRErrorProcess<3>, ContactSPRErrorProcess<3>::Pointer, Process >(m, "ContactSPRErrorProcess3D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    // Wrapper contact search
+    py::class_<ContactSearchWrapperProcess, typename ContactSearchWrapperProcess::Pointer, Process>(m, "ContactSearchProcess")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     ;
