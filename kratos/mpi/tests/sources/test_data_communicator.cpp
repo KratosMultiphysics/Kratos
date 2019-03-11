@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -143,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1.0);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -232,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -265,7 +265,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1.0);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -354,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -387,7 +387,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuit
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], -1.0);
+            KRATOS_CHECK_EQUAL(output[i], local[i]);
         }
     }
 
@@ -449,7 +449,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosMPICoreFastSuit
     serial_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -472,7 +472,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastS
     serial_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -530,7 +530,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosMPICoreFastSuit
     serial_communicator.MinAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -553,7 +553,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastS
     serial_communicator.MinAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -611,7 +611,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllIntVector, KratosMPICoreFastSuit
     serial_communicator.MaxAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -634,7 +634,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosMPICoreFastS
     serial_communicator.MaxAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -677,7 +677,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSui
     serial_communicator.ScanSum(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
@@ -700,7 +700,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFast
     serial_communicator.ScanSum(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], local[i]);
     }
 
     // return buffer version
