@@ -75,7 +75,7 @@ namespace Kratos
         {
             const VariableComponentType& r_traced_adjoint_dof =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
-            mpTracedNode->FastGetSolutionStepValue(r_traced_adjoint_dof) = 1.0;
+            mpTracedNode->FastGetSolutionStepValue(r_traced_adjoint_dof) = -1.0;
 
             mPerformedModificationOfAdjointDisplacements = true;
         }

@@ -237,7 +237,7 @@ private:
             if (dof_list[i]->Id() == mpTracedNode->Id() &&
                 dof_list[i]->GetVariable() == r_traced_adjoint_dof)
             {
-                rFilterVector[i] = 1.0;
+                rFilterVector[i] = -1.0;
             }
         }
 
