@@ -94,18 +94,15 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         search_parameters = KM.Parameters("""
         {
-            "dynamic_search"              : true
+            "dynamic_search"              : true,
+            "simple_search"               : false
         }
         """)
-        if (num_nodes == 3):
-            contact_search = CSMA.AdvancedContactSearchProcess3D3N(self.main_model_part, search_parameters)
-        else:
-            contact_search = CSMA.AdvancedContactSearchProcess3D4N(self.main_model_part, search_parameters)
+        contact_search = CSMA.ContactSearchProcess(self.main_model_part, search_parameters)
 
         # We initialize the search utility
-        contact_search.CreatePointListMortar()
-        contact_search.InitializeMortarConditions()
-        contact_search.UpdateMortarConditions()
+        contact_search.ExecuteInitialize()
+        contact_search.ExecuteInitializeSolutionStep()
 
         ## DEBUG
         #self.__post_process()
