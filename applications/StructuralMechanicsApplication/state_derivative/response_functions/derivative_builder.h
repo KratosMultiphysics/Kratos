@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "state_derivative/output_utilities/output_utility.h"
 #include "state_derivative/math_functions/vector_math.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
+#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 
 
 namespace Kratos
@@ -51,55 +51,19 @@ public:
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
     
-    // Calculate the derivative of the response variable and assemble the results in a vector        
+    // Calculate the derivative of the response variable wrt. the displacement and assemble the results in a vector
     template <typename TDataType>
-    static void ComputeDerivative(const std::string& DerivativeFlag,
-                                Element& rDirectElement, 
-                                Variable<TDataType> const& rResponseVariable,
-                                std::vector<std::vector<TDataType>>& rOutput, 
-                                const ProcessInfo rCurrentProcessInfo)
-    {  
-        if (rResponseVariable == MOMENT)
-        {
-            std::vector<std::string> moments = { std::string("MX"), std::string("MY"), std::string("MZ") };
-            DeriveStressVariable(DerivativeFlag, rDirectElement, moments , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }
-        if (rResponseVariable == FORCE)
-        {
-            std::vector<std::string> forces = { std::string("FX"), std::string("FY"), std::string("FZ") };
-            DeriveStressVariable(DerivativeFlag, rDirectElement, forces , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }
-        if (rResponseVariable == SHELL_MOMENT_GLOBAL)
-        {
-            std::vector<std::string> shell_moments = { std::string("MXX"), std::string("MXY"), std::string("MXZ"), std::string("MYX"), 
-                                    std::string("MYY"), std::string("MYZ"), std::string("MZX"), std::string("MZY"), std::string("MZZ") };
-            DeriveStressVariable(DerivativeFlag, rDirectElement, shell_moments , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }  
-        if (rResponseVariable == SHELL_FORCE_GLOBAL)
-        {
-            std::vector<std::string> shell_forces = { std::string("FXX"), std::string("FXY"), std::string("FXZ"), std::string("FYX"), 
-                                    std::string("FYY"), std::string("FYZ"), std::string("FZX"), std::string("FZY"), std::string("FZZ") };
-            DeriveStressVariable(DerivativeFlag, rDirectElement, shell_forces , rResponseVariable, rOutput, rCurrentProcessInfo);
-        }                       
-    }
-    
-    
-    
-private:
-
-    template <typename TDataType>
-    static void DeriveStressVariable(const std::string& DerivativeFlag,
-                                Element& rDirectElement,                                
-                                const std::vector<std::string>& rTracedStresses,
-                                Variable<TDataType> const& rResponseVariable,
-                                std::vector<std::vector<TDataType>>& rOutput, 
-                                const ProcessInfo rCurrentProcessInfo)
-    {   
-        
+    static void ComputeStressDisplacementDerivative( Element& rDirectElement, 
+                                    Variable<TDataType> const& rResponseVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput, 
+                                    const ProcessInfo rCurrentProcessInfo)
+    { 
         // Define working variables
         Matrix DerivativeMatrix;
         DerivativeMatrix.clear();
         std::vector<TDataType> dummy_vector;
+        std::vector<std::string> traced_stresses_list;
+        GetTracedStressesList( rResponseVariable, traced_stresses_list );
 
         // To get the number of Dofs
         DofsVectorType dofs_of_element;    
@@ -108,47 +72,120 @@ private:
 
         // To get the number of integration points
         rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);        
-
-        // Size rOutput
-        if(DerivativeFlag == "DISPLACEMENT_DERIVATIVE")
-            rOutput.resize( dofs_of_element.size() );
-        else if (DerivativeFlag == "DESIGN_VARIABLE_DERIVATIVE")
-            rOutput.resize(1);
-        else
-            KRATOS_ERROR << "Response Variable can only get derived by the initial state results or by a design variable!" << std::endl;
+        const SizeType num_gp = dummy_vector.size();
+        
+        // Size rOutput        
+        rOutput.resize( dofs_of_element.size() );        
                 
         for (IndexType i = 0; i < rOutput.size(); ++i)
-            rOutput[i].resize( dummy_vector.size() );
+            rOutput[i].resize( num_gp );
 
         VectorMath::SizeVectorComponents(rOutput);
 
         // Set rOutput to zero
         VectorMath::SetToZero(rOutput);
 
-        if (dummy_vector.size() == 1 && rResponseVariable == FORCE)
-            DeriveTrussForce(DerivativeFlag, rDirectElement, rResponseVariable ,rOutput, rCurrentProcessInfo);    
+        if (num_gp == 1 && rResponseVariable == FORCE)
+            DeriveTrussForceDisplacementDerivative(rDirectElement, rResponseVariable ,rOutput, rCurrentProcessInfo);    
         else
         {
-            for (IndexType dir_it = 0; dir_it < rTracedStresses.size(); ++dir_it)
+            for (IndexType dir_it = 0; dir_it < traced_stresses_list.size(); ++dir_it)
             {   
-                TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(rTracedStresses[dir_it]);  
+                TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(traced_stresses_list[dir_it]);  
                 rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
-            
-                if(DerivativeFlag == "DISPLACEMENT_DERIVATIVE")
-                    rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
-                else if (DerivativeFlag == "DESIGN_VARIABLE_DERIVATIVE")
-                    rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
+                            
+                rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
 
+                
+                
                 AssembleDerivationVector(rOutput, DerivativeMatrix, dir_it);
                
                 DerivativeMatrix.clear();
             }
-        }        
+        }          
     }
 
+    // Calculate the derivative of the response variable wrt. the design variable and assemble the results in a vector
     template <typename TDataType>
-    static void DeriveTrussForce(const std::string& DerivativeFlag,
-                                Element& rDirectElement,
+    static void ComputeStressDesignVariableDerivative( Element& rDirectElement, 
+                                    Variable<TDataType> const& rResponseVariable,
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    std::vector<std::vector<TDataType>>& rOutput, 
+                                    const ProcessInfo rCurrentProcessInfo)
+    { 
+        // Define working variables
+        Matrix DerivativeMatrix;
+        DerivativeMatrix.clear();
+        Matrix extracted_derivative_matrix;
+        extracted_derivative_matrix.clear();
+        std::vector<TDataType> dummy_vector;
+        std::vector<std::string> traced_stresses_list;
+        GetTracedStressesList( rResponseVariable, traced_stresses_list );
+        
+        // To get the number of integration points
+        rDirectElement.CalculateOnIntegrationPoints(rResponseVariable, dummy_vector, rCurrentProcessInfo);        
+        const SizeType num_gp = dummy_vector.size();
+        
+        // Size rOutput        
+        rOutput.resize(1);        
+                
+        for (IndexType i = 0; i < rOutput.size(); ++i)
+            rOutput[i].resize( num_gp );
+
+        VectorMath::SizeVectorComponents(rOutput);
+
+        // Set rOutput to zero
+        VectorMath::SetToZero(rOutput);
+
+        if (num_gp == 1 && rResponseVariable == FORCE)
+            DeriveTrussForceDesignVariableDerivative(rDirectElement, rResponseVariable, rDesignVariable, rOutput, rCurrentProcessInfo);    
+        else
+        {
+            for (IndexType dir_it = 0; dir_it < traced_stresses_list.size(); ++dir_it)
+            {   
+                TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType(traced_stresses_list[dir_it]);  
+                rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
+                            
+                rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
+                
+                if ( rDesignVariable.GetDesignVariableType() != "nodal_data_type")
+                    AssembleDerivationVector(rOutput, DerivativeMatrix, dir_it);    
+                else    
+                {                    
+                    rDesignVariable.ExtractDataFromDerivativeMatrix(rDirectElement, extracted_derivative_matrix, DerivativeMatrix);
+                    AssembleDerivationVector(rOutput, extracted_derivative_matrix, dir_it);                    
+                }
+                DerivativeMatrix.clear();
+            }
+        }         
+    } 
+    
+private: 
+
+    template <typename TDataType>
+    static void GetTracedStressesList(Variable<TDataType> const& rResponseVariable,
+                                    std::vector<std::string>& rTracedStresses)
+    {  
+        if (rResponseVariable == MOMENT)
+            rTracedStresses = { std::string("MX"), std::string("MY"), std::string("MZ") };
+
+        else if (rResponseVariable == FORCE)
+            rTracedStresses = { std::string("FX"), std::string("FY"), std::string("FZ") };
+
+        else if (rResponseVariable == SHELL_MOMENT_GLOBAL)
+            rTracedStresses = { std::string("MXX"), std::string("MXY"), std::string("MXZ"), std::string("MYX"), 
+                std::string("MYY"), std::string("MYZ"), std::string("MZX"), std::string("MZY"), std::string("MZZ") };
+
+        else if (rResponseVariable == SHELL_FORCE_GLOBAL)
+            rTracedStresses = { std::string("FXX"), std::string("FXY"), std::string("FXZ"), std::string("FYX"), 
+                std::string("FYY"), std::string("FYZ"), std::string("FZX"), std::string("FZY"), std::string("FZZ") };
+
+        else
+            KRATOS_ERROR << "ResponseVariable " << rResponseVariable.Name() << " is not yet implemented in DerivativeBuilder" << std::endl;                 
+    }    
+
+    template <typename TDataType>
+    static void DeriveTrussForceDisplacementDerivative(Element& rDirectElement,
                                 Variable<TDataType> const& rResponseVariable,
                                 std::vector<std::vector<TDataType>>& rOutput, 
                                 const ProcessInfo rCurrentProcessInfo)
@@ -159,19 +196,48 @@ private:
 
         TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType("FX");  
         rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
-            
-        if(DerivativeFlag == "DISPLACEMENT_DERIVATIVE")
-            rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
-        else if (DerivativeFlag == "DESIGN_VARIABLE_DERIVATIVE")
-            rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
+           
+        rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
 
-        AssembleDerivationVector(rOutput, DerivativeMatrix, 0);
-               
+        AssembleDerivationVector(rOutput, DerivativeMatrix, 0);               
         DerivativeMatrix.clear();
-
         AssembleDerivationVector(rOutput, DerivativeMatrix, 1);
+        AssembleDerivationVector(rOutput, DerivativeMatrix, 2);                     
+    }
 
-        AssembleDerivationVector(rOutput, DerivativeMatrix, 2);                       
+    template <typename TDataType>
+    static void DeriveTrussForceDesignVariableDerivative(Element& rDirectElement,
+                                Variable<TDataType> const& rResponseVariable,
+                                DirectSensitivityVariable& rDesignVariable,
+                                std::vector<std::vector<TDataType>>& rOutput, 
+                                const ProcessInfo rCurrentProcessInfo)
+    { 
+        // Define working variables
+        Matrix DerivativeMatrix;
+        DerivativeMatrix.clear();
+        Matrix extracted_derivative_matrix;
+        extracted_derivative_matrix.clear();
+
+        TracedStressType traced_stress = StressResponseDefinitions::ConvertStringToTracedStressType("FX");  
+        rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress));            
+           
+        rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, DerivativeMatrix, rCurrentProcessInfo);
+
+        if ( rDesignVariable.GetDesignVariableType() != "nodal_data_type")
+        {
+            AssembleDerivationVector(rOutput, DerivativeMatrix, 0);               
+            DerivativeMatrix.clear();
+            AssembleDerivationVector(rOutput, DerivativeMatrix, 1);
+            AssembleDerivationVector(rOutput, DerivativeMatrix, 2); 
+        }
+        else    
+        {                    
+            rDesignVariable.ExtractDataFromDerivativeMatrix(rDirectElement, extracted_derivative_matrix, DerivativeMatrix);
+            AssembleDerivationVector(rOutput, extracted_derivative_matrix, 0);
+            extracted_derivative_matrix.clear();
+            AssembleDerivationVector(rOutput, extracted_derivative_matrix, 1);
+            AssembleDerivationVector(rOutput, extracted_derivative_matrix, 2);                     
+        }                     
     }
     
 

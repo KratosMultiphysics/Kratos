@@ -111,8 +111,7 @@ namespace Kratos
         VectorMath::SetToZero(response_gradient);
 
         // Compute Derivative
-        std::string derivative_flag = "DISPLACEMENT_DERIVATIVE";
-        DerivativeBuilder::ComputeDerivative(derivative_flag, rDirectElement, rStressVariable, response_gradient, rProcessInfo);
+        DerivativeBuilder::ComputeStressDisplacementDerivative(rDirectElement, rStressVariable, response_gradient, rProcessInfo);
         
         // Size rOutput
         if (rOutput.size() != num_dofs)
@@ -205,9 +204,8 @@ namespace Kratos
         double delta = rDesignVariable.GetPerturbationSize(); 
         rDirectElement.SetValue(PERTURBATION_SIZE, delta);
 
-        // CalculateOnIntegrationPoints compute the derivative of the local stress wrt. the design variable
-        std::string derivative_flag = "DESIGN_VARIABLE_DERIVATIVE";
-        DerivativeBuilder::ComputeDerivative(derivative_flag, rDirectElement, rStressVariable, rOutput, rProcessInfo);
+        // Compute the derivative of the local stress wrt. the design variable        
+        DerivativeBuilder::ComputeStressDesignVariableDerivative(rDirectElement, rStressVariable, rDesignVariable, rOutput, rProcessInfo);
     }
 
     template <typename TDataType>
