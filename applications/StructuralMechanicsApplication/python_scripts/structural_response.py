@@ -425,10 +425,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
             with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e0ace4a86587e7b3e703aa42297ee2d830a9da4a
         return adjoint_parameters
 
 # ==============================================================================
