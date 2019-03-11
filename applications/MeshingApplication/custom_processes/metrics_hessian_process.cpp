@@ -116,7 +116,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     // Declaring the eigen system
     MatrixType eigen_vector_matrix, eigen_values_matrix;
 
-    MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
 
     // We check is the interpolation error is near zero. If it is we will correct it
     if (interpolation_error < std::numeric_limits<double>::epsilon()) { // In practice, the Hessian of function u can be 0, e.g. if u is linear, then |Hu| is not definite. In this particular case, the interpolation error is 0 and we want to prescribe a mesh size which is infinite. To solve this issue, this infinite size prescription is truncated by imposing maximal size hmax . This is equivalent to truncate tiny eigenvalues by lambda  = 1/hmax^2 . See [1] pag. 34
@@ -160,7 +160,8 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     }
 
     // We compute the product
-    const MatrixType& metric_matrix =  prod(trans(eigen_vector_matrix), prod<MatrixType>(eigen_values_matrix, eigen_vector_matrix));
+    MatrixType metric_matrix;
+    MathUtils<double>::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
 
     // Finally we transform to a vector
     const TensorArrayType& metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);

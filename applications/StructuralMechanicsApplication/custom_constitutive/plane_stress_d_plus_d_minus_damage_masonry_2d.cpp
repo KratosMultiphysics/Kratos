@@ -708,7 +708,7 @@ double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
     double C = x1 - Xi;
     if (std::abs(A) < 1.0e-12) {
         x2 = x2 + 1.0E-6 * (x3-x1);
-        A =  x1 - 2.0 * x2 + x2;
+        A =  x1 - 2.0 * x2 + x3;
         B = 2.0 * (x2 - x1);
         C = x1 - Xi;
     }

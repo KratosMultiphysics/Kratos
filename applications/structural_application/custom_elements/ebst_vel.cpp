@@ -208,7 +208,7 @@ void EbstVel::Calculate( const Variable<double>& rVariable, double& Output, cons
 {
 
     double Area = GetGeometry().Area();
-// 	  boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
+// 	  BoundedMatrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
 // 	  array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
 // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
