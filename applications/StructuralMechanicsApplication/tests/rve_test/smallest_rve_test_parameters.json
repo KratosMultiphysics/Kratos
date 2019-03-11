@@ -10,10 +10,10 @@
         "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
         "averaging_mp_name" : "Structure.computing_domain",
         "print_rve_post"    : false,
-        "perturbation"      : 1e-6  
+        "perturbation"      : 1e-6
     },
     "solver_settings"  : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "model_part_name"                    : "Structure",
         "block_builder"                      : true,
         "multi_point_constraints_used"       : true,
