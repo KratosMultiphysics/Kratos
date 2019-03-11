@@ -144,7 +144,7 @@ public:
         // Perform mapping
         const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
 
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(destination_nodes_begin + node_itr);
@@ -181,7 +181,7 @@ public:
         }
 
         // Assign results to nodal variable
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(destination_nodes_begin + node_itr);
@@ -212,7 +212,7 @@ public:
         // Perform mapping
         const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
 
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(destination_nodes_begin + node_itr);
@@ -243,7 +243,7 @@ public:
         }
 
         // Assign results to nodal variable
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(destination_nodes_begin + node_itr);
@@ -272,7 +272,7 @@ public:
         // Perform mapping
         const auto destination_nodes_begin = mrDestinationModelPart.NodesBegin();
 
-        #pragma omp parallel for firstprivate(destination_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(destination_nodes_begin + node_itr);
@@ -311,7 +311,7 @@ public:
         // Assign results to nodal variable
         const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
 
-        #pragma omp parallel for firstprivate(origin_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(origin_nodes_begin + node_itr);
@@ -376,7 +376,7 @@ public:
         // Assign results to nodal variable
         const auto origin_nodes_begin = mrOriginModelPart.NodesBegin();
 
-        #pragma omp parallel for firstprivate(origin_nodes_begin)
+        #pragma omp parallel for
         for(int node_itr=0; node_itr < static_cast<int>(mrOriginModelPart.NumberOfNodes()); node_itr++)
         {
             auto& node_i = *(origin_nodes_begin + node_itr);
