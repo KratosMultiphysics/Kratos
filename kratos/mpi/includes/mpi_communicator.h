@@ -268,13 +268,13 @@ public:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                double* receive_buffer = new double[receive_buffer_size];
+                int* send_buffer = new int[send_buffer_size];
+                int* receive_buffer = new int[receive_buffer_size];
 
                 // Filling the send buffer
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
                 {
-                    *(std::size_t*) (send_buffer + position) = i_element->Id();
+                    *(send_buffer + position) = i_element->Id();
                     position += elemental_data_size;
                 }
 
@@ -289,7 +289,7 @@ public:
                 position = 0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
                 {
-                    i_element->SetId(*reinterpret_cast<std::size_t*> (receive_buffer + position));
+                    i_element->SetId(receive_buffer + position);
                     position += elemental_data_size;
                 }
 
