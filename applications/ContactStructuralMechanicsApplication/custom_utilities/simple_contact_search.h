@@ -55,7 +55,7 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class SimpleContactSearch
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) SimpleContactSearch
     : public BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
