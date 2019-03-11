@@ -52,8 +52,8 @@ namespace  Kratos
         for(int i = 0; i < num_nodes; ++i)
         {
             auto it_node = rNodes.begin() + i;
-            noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
-             it_node->GetInitialPosition().Coordinates()+it_node->FastGetSolutionStepValue(DISPLACEMENT)-it_node->GetIntermediatePosition();
+            array_1d<double, 3>& r_current_delta_disp = it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            r_current_delta_disp = it_node->GetInitialPosition().Coordinates()+it_node->FastGetSolutionStepValue(DISPLACEMENT)-it_node->GetIntermediatePosition();
         }
 
         KRATOS_INFO("MoveMeshUtility") << " DELTA_DISPLACEMENT successfully set from intermediate position " << std::endl;
