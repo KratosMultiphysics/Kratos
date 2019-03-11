@@ -89,8 +89,7 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
         new_offset[i] = r_offset[i];
     }
 
-    mOctree.SetScaleFactor(new_scale_factor);
-    mOctree.SetOffset(new_offset);
+    mOctree = OctreeType(new_scale_factor, new_offset);
 }
 
 /***********************************************************************************/
