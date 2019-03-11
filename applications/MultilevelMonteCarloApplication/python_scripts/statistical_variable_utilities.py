@@ -3,8 +3,8 @@ from __future__ import absolute_import, division # makes KratosMultiphysics back
 # Import packages
 import numpy as np
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 """

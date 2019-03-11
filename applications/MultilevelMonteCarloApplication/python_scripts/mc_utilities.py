@@ -17,8 +17,8 @@ from statistical_variable_utilities import StatisticalVariable
 # Import random variable generator
 import generator_utilities as generator
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 """
