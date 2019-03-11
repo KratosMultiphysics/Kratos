@@ -1072,10 +1072,8 @@ class ResidualBasedNewtonRaphsonStrategy
     virtual void MaxIterationsExceeded()
     {
         KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
-            << "\n***************************************************\n"
-            << "******* ATTENTION: max iterations ( " << mMaxIterationNumber
-            << " ) exceeded ********\n"
-            << "***************************************************" << std::endl;
+            << " ATTENTION: max iterations ( " << mMaxIterationNumber
+            << " ) exceeded!" << std::endl;
     }
 
     ///@}
