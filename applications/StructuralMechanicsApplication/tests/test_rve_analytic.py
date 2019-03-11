@@ -34,6 +34,38 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def _aux_rve_computation(self, parameters):
 
+        if parameters["rve_settings"]["print_rve_post"].GetBool():
+            parameters["output_processes"].AddValue("gid_output", KratosMultiphysics.Parameters(R'''[{
+                "python_module" : "gid_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "GiDOutputProcess",
+                "help"          : "This process writes postprocessing files for GiD",
+                "Parameters"    : {
+                    "model_part_name"        : "Structure.computing_domain",
+                    "output_name"            : "rve_test/smallest_rve_test",
+                    "postprocess_parameters" : {
+                        "result_file_configuration" : {
+                            "gidpost_flags"       : {
+                                "GiDPostMode"           : "GiD_PostBinary",
+                                "WriteDeformedMeshFlag" : "WriteDeformed",
+                                "WriteConditionsFlag"   : "WriteConditions",
+                                "MultiFileFlag"         : "SingleFile"
+                            },
+                            "file_label"          : "step",
+                            "output_control_type" : "step",
+                            "output_frequency"    : 1,
+                            "body_output"         : true,
+                            "node_output"         : false,
+                            "skin_output"         : false,
+                            "plane_output"        : [],
+                            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+                            "gauss_point_results" : ["PK2_STRESS_TENSOR"]
+                        },
+                        "point_data_configuration"  : []
+                    }
+                }
+            }]'''))
+
         model = KratosMultiphysics.Model()
         simulation = RVEAnalysis(model, parameters)
         simulation.Run()
@@ -71,8 +103,6 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
                     abs(Cestimated[i, j] - Canalytic[i, j])/(l+2*G), 0.0, 5)
 
         if not parameters["rve_settings"]["print_rve_post"].GetBool():
-            kratos_utilities.DeleteFileIfExisting("smallest_test.post.bin")
-            kratos_utilities.DeleteFileIfExisting("rve_test.post.lst")
             kratos_utilities.DeleteFileIfExisting("rve_elasticity_tensor.txt")
 
 
