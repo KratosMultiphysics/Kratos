@@ -28,7 +28,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     const Vector& rDirection
     )
 {
-    KRATOS_ERROR_IF(rMasterModelPart.Conditions().size() == 0) << "the master is expected to have conditions and it is empty" << std::endl;
+    KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "the master is expected to have conditions and it is empty" << std::endl;
 
     const Vector translation = prod(rStrainTensor, rDirection);
 
@@ -127,8 +127,7 @@ MasterSlaveConstraint::Pointer RVEPeriodicityUtility::GenerateConstraint(
         master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
 
     auto pconstraint = Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
-    //mrModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector);
-    rConstraintId += 1;
+    rConstraintId++;
     return pconstraint;
 }
 
@@ -139,11 +138,11 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
 {
     // Get the components
     const std::string& r_base_variable_name = rVariable.Name();
-    auto& rVar_x = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_X");
-    auto& rVar_y = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Y");
-    auto& rVar_z = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Z");
+    auto& r_var_x = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_X");
+    auto& r_var_y = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Y");
+    auto& r_var_z = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Z");
 
-    for(auto& r_data : mAuxPairings) {
+    for (auto& r_data : mAuxPairings) {
         auto& r_master_data = r_data.second;
         auto& r_master_ids = std::get<0>(r_master_data);
         auto& r_master_weights = std::get<1>(r_master_data);
@@ -173,10 +172,11 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
         it_node->Set(MASTER, false);
     }
     // Compute the max id of the constraint
-    IndexType ConstraintId = 0;
-    if (mrModelPart.MasterSlaveConstraints().size() != 0)
-        ConstraintId = (mrModelPart.MasterSlaveConstraints().end() - 1)->Id();
-    ConstraintId += 1;
+    IndexType constraint_id = 0;
+    if (mrModelPart.NumberOfMasterSlaveConstraints() != 0) {
+        constraint_id = (mrModelPart.MasterSlaveConstraints().end() - 1)->Id();
+    }
+    constraint_id++;
 
     // Define translation vector
     Vector xtranslation(1);
@@ -205,25 +205,27 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
 
         // Flag slave and master nodes
         mrModelPart.pGetNode(slave_id)->Set(SLAVE);
-        for (auto id : r_master_ids)
+        for (auto id : r_master_ids) {
             mrModelPart.pGetNode(id)->Set(MASTER);
+        }
 
         // Obtain the slave node
         auto pslave_node = mrModelPart.pGetNode(slave_id);
 
         // Define relation matrix (same for the different components)
         Matrix relation_matrix(1, r_master_weights.size());
-        for (IndexType i = 0; i < relation_matrix.size2(); ++i)
+        for (IndexType i = 0; i < relation_matrix.size2(); ++i) {
             relation_matrix(0, i) = r_master_weights[i];
+        }
 
         xtranslation[0] = r_T[0];
-        constraints.push_back(GenerateConstraint(ConstraintId,rVar_x, pslave_node, r_master_ids, relation_matrix, xtranslation));
+        constraints.push_back(GenerateConstraint(constraint_id, r_var_x, pslave_node, r_master_ids, relation_matrix, xtranslation));
 
         ytranslation[0] = r_T[1];
-        constraints.push_back(GenerateConstraint(ConstraintId,rVar_y, pslave_node, r_master_ids, relation_matrix, ytranslation));
+        constraints.push_back(GenerateConstraint(constraint_id, r_var_y, pslave_node, r_master_ids, relation_matrix, ytranslation));
 
         ztranslation[0] = r_T[2];
-        constraints.push_back(GenerateConstraint(ConstraintId,rVar_z, pslave_node, r_master_ids, relation_matrix, ztranslation));
+        constraints.push_back(GenerateConstraint(constraint_id, r_var_z, pslave_node, r_master_ids, relation_matrix, ztranslation));
     }
 
     mrModelPart.AddMasterSlaveConstraints(constraints.begin(), constraints.end());
