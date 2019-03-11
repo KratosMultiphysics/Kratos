@@ -23,6 +23,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "state_derivative/output_utilities/output_utility.h"
 
 
 
@@ -106,6 +107,10 @@ public:
 
     virtual double GetPerturbationSize();
 
+    virtual void ExtractDataFromDerivativeMatrix(Element& rDirectElement,
+                                        Matrix& rExtractedDerivativeMatrix,
+                                        const Matrix& rDerivativeMatrix);
+
     
 
     ///@}
@@ -115,11 +120,10 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
+    ModelPart* mpTracedModelPart = nullptr;
     double mDelta;
     std::string mDesignVariableName;
     std::string mVariableType;
-    unsigned int mTracedElement;
-
      
     ///@}
     ///@name protected Operators

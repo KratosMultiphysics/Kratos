@@ -97,11 +97,7 @@ protected:
 private:
     ///@name private member Variables
     ///@{
-        std::vector<unsigned int> mIdTracedElement;
-        Element mTracedElement;   
-        Element::Pointer mpTracedElement;        
-        ProcessInfo mProcessInfo;
-
+        std::vector<unsigned int> mTracedElementIdVector;        
     ///@}
 
     ///@name private Operators

@@ -25,10 +25,12 @@ namespace Kratos
     : DirectSensitivityVariable(rModelPart, VariableSettings)
     {
         // Get traced element
-        const SizeType num_traced_elem = VariableSettings["traced_element_id"].size();
-        mIdTracedElement.resize(num_traced_elem);
-        for (IndexType i = 0; i < num_traced_elem; ++i)
-            mIdTracedElement[i] = VariableSettings["traced_element_id"][i].GetInt();
+        if (mTracedElementIdVector.size() != 0)
+            mTracedElementIdVector.resize(0);
+
+        for (auto& elem_i : mpTracedModelPart->Elements())
+            mTracedElementIdVector.push_back(elem_i.Id()); 
+            
         //mpTracedElement = rModelPart.pGetElement(mIdTracedElement);
     }
 
@@ -59,7 +61,7 @@ namespace Kratos
 
         rPseudoLoadVector.clear();
 
-        if (std::find(mIdTracedElement.begin(), mIdTracedElement.end(),rDirectElement.Id() ) != mIdTracedElement.end())    
+        if (std::find(mTracedElementIdVector.begin(), mTracedElementIdVector.end(),rDirectElement.Id() ) != mTracedElementIdVector.end())    
         {   
             // Calculate Sensitivity Matrix
             if (KratosComponents<Variable<double>>::Has(mDesignVariableName))
@@ -106,6 +108,6 @@ namespace Kratos
     
     std::vector<unsigned int>  DirectSensitivityElementDataVariable::GetTracedElementId() 
     {              
-        return mIdTracedElement;
+        return mTracedElementIdVector;
     } 
 }    
