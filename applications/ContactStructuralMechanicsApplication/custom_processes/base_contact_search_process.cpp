@@ -23,7 +23,6 @@
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
 #include "custom_processes/base_contact_search_process.h"
-#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
 
 namespace Kratos
 {
@@ -615,81 +614,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     ModelPart& rSubComputingContactModelPart
     )
 {
-    KRATOS_ERROR_IF(mInvertedSearch) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
-    KRATOS_ERROR_IF_NOT(mPredefinedMasterSlave) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
-
-    // Getting model
-    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
-    const std::string master_model_part_name = "MasterSubModelPart" + mThisParameters["id_name"].GetString();
-    ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart(master_model_part_name);
-    const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
-    ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
-
-    Parameters octree_parameters = mThisParameters["octree_search_parameters"];
-    octree_parameters.AddEmptyValue("first_model_part_name");
-    octree_parameters.AddEmptyValue("second_model_part_name");
-    octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
-    octree_parameters["second_model_part_name"].SetString(master_model_part_name);
-
-    const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
-    const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
-    octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
-
-    // Creating the process
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
-    octree_search_process.ExecuteInitialize();
-
-    // Definition of the leaves of the tree
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
-
-    // Auxiliar model parts and components
-    ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
-    const int num_conditions = static_cast<int>(r_conditions_array.size());
-    const auto it_cond_begin = r_conditions_array.begin();
-    IndexType condition_id = GetMaximumConditionsIds();
-
-//     #pragma omp parallel for // TODO: Make me parallel!!!
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-
-        // We perform the search
-        leaves.clear();
-        octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
-
-        if (it_cond->Is(SELECTED)) {
-            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
-
-            // If not active we check if can be potentially in contact
-            if (mCheckGap == CheckGap::MappingCheck) {
-                for (auto p_leaf : leaves) {
-                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
-                        if (p_cond_master->Is(SELECTED)) {
-                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
-
-                            if (condition_checked_right == CheckResult::OK)
-                                p_indexes_pairs->AddId(p_cond_master->Id());
-                        }
-                    }
-                }
-            } else {
-                // Some auxiliar values
-                const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
-                const bool frictional_problem = mrMainModelPart.Is(SLIP);
-
-                // Slave geometry
-                const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
-
-                for (auto p_leaf : leaves) {
-                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
-                        if (p_cond_master->Is(SELECTED)) {
-                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    KRATOS_ERROR << "Octree implemention not added yet" << std::endl;
 }
 
 /***********************************************************************************/

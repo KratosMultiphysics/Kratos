@@ -31,7 +31,6 @@
 #include "custom_processes/contact_search_wrapper_process.h"
 #include "custom_processes/simple_contact_search_process.h"
 #include "custom_processes/advanced_contact_search_process.h"
-#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
 
 namespace Kratos
 {
@@ -214,16 +213,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 4, 3>::ResetContactOperators)
     .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::CheckMortarConditions)
     .def("InvertSearch",&AdvancedContactSearchProcess<3, 4, 3>::InvertSearch)
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBForSearchProcess, FindIntersectedGeometricalObjectsWithOBBForSearchProcess::Pointer, Process>(m,"FindIntersectedGeometricalObjectsWithOBBForSearchProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
     ;
 }
 }  // namespace Python.
