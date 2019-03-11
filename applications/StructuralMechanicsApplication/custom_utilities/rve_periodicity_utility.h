@@ -10,7 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED)
+#if !defined (KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED)
 #define KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED
 
 // System includes
@@ -26,23 +26,6 @@ namespace Kratos
 {
 ///@addtogroup StructuralMechanicsApplication
 ///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -89,16 +72,23 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
         ModelPart& rDestinationModelPart,
         std::size_t EchoLevel = 0
         ) : mrModelPart(rDestinationModelPart)
-          , mEchoLevel(EchoLevel)
-    {
+          , mEchoLevel(EchoLevel)  { }
 
-    }
+    /// Copy constructor.
+    RVEPeriodicityUtility(RVEPeriodicityUtility const& rOther) = delete;
 
     /// Destructor.
-    virtual ~RVEPeriodicityUtility() {}
+    virtual ~RVEPeriodicityUtility() = default;
 
     ///@}
     ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    RVEPeriodicityUtility &operator=(RVEPeriodicityUtility const& rOther) = delete;
+
+    ///@}
+    ///@name Operations
     ///@{
 
     /**
@@ -119,18 +109,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
      * @param rVariable is the value to which the pairing condition will be applied (needs to be a Variable with components)
      */
     void Finalize(const Variable<array_1d<double, 3>>& rVariable);
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -154,21 +132,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
   protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
+    ///@name Protected Operations
     ///@{
 
     /**
@@ -190,28 +156,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
         );
 
     ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -222,7 +168,7 @@ private:
     std::size_t mEchoLevel = 0; /// The echo level of the utility
 
     ///@}
-    ///@name Private Operators
+    ///@name Private Operations
     ///@{
 
     /**
@@ -244,35 +190,8 @@ private:
         );
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RVEPeriodicityUtility &operator=(RVEPeriodicityUtility const& rOther) = delete;
-
-    /// Copy constructor.
-    RVEPeriodicityUtility(RVEPeriodicityUtility const& rOther) = delete;
-
-    ///@}
 
 }; // Class RVEPeriodicityUtility
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output
@@ -301,4 +220,4 @@ inline std::ostream &operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED defined
