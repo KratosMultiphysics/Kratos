@@ -123,9 +123,8 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         return min_corner, max_corner
 
     def __PopulateMp(self, face_name, coordinate, component, eps, mp):
-        if(len(mp.Conditions) == 0):
-            raise Exception(
-                "Boundary_mp is expected to have conditions and has none")
+        if mp.NumberOfConditions() == 0:
+            raise Exception("Boundary_mp is expected to have conditions and has none")
 
         mp = mp.GetRootModelPart()
 
@@ -150,7 +149,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     def _ConstructFaceModelParts(self, min_corner, max_corner, mp):
 
-        eps = 0.0001*(max_corner[0] - min_corner[0])/len(mp.Nodes)
+        eps = 0.0001*(max_corner[0] - min_corner[0])/mp.NumberOfNodes()
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, mp.Nodes)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, mp.Nodes)
@@ -165,11 +164,11 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self.min_y_face = self.__PopulateMp("min_y_face", min_corner[1], 1, eps, mp)
         self.min_z_face = self.__PopulateMp("min_z_face", min_corner[2], 2, eps, mp)
 
-        if len(self.min_x_face.Conditions) == 0:
+        if self.min_x_face.NumberOfConditions() == 0:
             raise Exception("min_x_face has 0 conditions")
-        if len(self.min_y_face.Conditions) == 0:
+        if self.min_y_face.NumberOfConditions() == 0:
             raise Exception("min_y_face has 0 conditions")
-        if len(self.min_z_face.Conditions) == 0:
+        if self.min_z_face.NumberOfConditions() == 0:
             raise Exception("min_z_face has 0 conditions")
 
     def _SelectClosestNode(self, mp, coords):
