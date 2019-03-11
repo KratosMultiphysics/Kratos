@@ -7,17 +7,17 @@
 //					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
-#if !defined(KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED )
-#define  KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED
+#if !defined(KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED )
+#define  KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "processes/simple_mortar_mapper_process.h" 
+#include "processes/simple_mortar_mapper_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
@@ -27,7 +27,7 @@
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
-#include "spatial_containers/spatial_containers.h" // kd-tree 
+#include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
 {
@@ -44,7 +44,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -52,31 +52,32 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
- * @class BaseContactSearch
+
+/**
+ * @class BaseContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This utilitiy has as objective to create the contact conditions.
+ * @brief This process has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
- * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
+ * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) BaseContactSearch
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) BaseContactSearchProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
-    
+
     /// Index type definition
     typedef std::size_t                                           IndexType;
 
@@ -87,7 +88,7 @@ public:
     typedef PointVector::iterator                             PointIterator;
     typedef std::vector<double>                              DistanceVector;
     typedef DistanceVector::iterator                       DistanceIterator;
-    
+
     /// KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
@@ -101,14 +102,14 @@ public:
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of BaseContactSearch
-    KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearch );
-      
+    /// Pointer definition of BaseContactSearchProcess
+    KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
+
     ///@}
     ///@name  Enum's
     ///@{
 
-    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, Kdop = 2};
+    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, OtreeWithOBB = 2, Kdop = 3};
 
     enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
 
@@ -129,37 +130,63 @@ public:
      *                       - The integration order considered
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
-     *                       - TypeSearch: 0 means search in radius, 1 means search in box 
+     *                       - TypeSearch: 0 means search in radius, 1 means search in box
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
      *          -# InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
-    BaseContactSearch(
-        ModelPart& rMainModelPart, 
-        Parameters ThisParameters =  Parameters(R"({})") 
-        ); 
-    
-    virtual ~BaseContactSearch()= default;;
+    BaseContactSearchProcess(
+        ModelPart& rMainModelPart,
+        Parameters ThisParameters =  Parameters(R"({})")
+        );
+
+    /// Destructor.
+    ~BaseContactSearchProcess() override = default;
 
     ///@}
     ///@name Operators
     ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * @brief This function initializes the ALM frictionless mortar conditions already created 
+     * @brief Execute method is used to execute the Process algorithms.
+     */
+    void Execute() override;
+
+    /**
+     * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
+
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override;
+
+    /**
+     * @brief This function initializes the ALM frictionless mortar conditions already created
      */
     void InitializeMortarConditions();
-    
+
     /**
-     * @brief This function clears the mortar conditions already created 
+     * @brief This function clears the mortar conditions already created
      */
     void ClearMortarConditions();
-      
+
     /**
      * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
      */
@@ -179,22 +206,22 @@ public:
      * @brief This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      */
     void UpdateMortarConditions();
-    
+
     /**
      * @brief It checks the current mortar conditions
      */
     void CheckMortarConditions();
-    
+
     /**
      * @brief It sets if the search is inverted
      */
     void InvertSearch();
-    
+
     /**
      * @brief This resets the contact operators
      */
     void ResetContactOperators();
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -209,16 +236,16 @@ public:
 
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
-    
-    virtual std::string Info() const
+
+    std::string Info() const override
     {
-        return "BaseContactSearch";
+        return "BaseContactSearchProcess";
     }
 
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
-    
-    virtual void PrintInfo(std::ostream& rOStream) const
+
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -230,7 +257,7 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -252,7 +279,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -331,7 +358,27 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-       
+
+    /**
+     * @brief This auxiliar method performs the seach using a KDTree
+     * @param rSubContactModelPart The submodel part studied
+     * @param rSubComputingContactModelPart The computing contact submodel part
+     */
+    void SearchUsingKDTree(
+        ModelPart& rSubContactModelPart,
+        ModelPart& rSubComputingContactModelPart
+        );
+
+    /**
+     * @brief This auxiliar method performs the seach using a Octree
+     * @param rSubContactModelPart The submodel part studied
+     * @param rSubComputingContactModelPart The computing contact submodel part
+     */
+    void SearchUsingOcTree(
+        ModelPart& rSubContactModelPart,
+        ModelPart& rSubComputingContactModelPart
+        );
+
     /**
      * @brief This method sets the origin destination model maps when only one model part is provided
      * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
@@ -340,28 +387,28 @@ private:
     void SetOriginDestinationModelParts(ModelPart& rModelPart);
 
     /**
-     * @brief This function clears the mortar conditions already created 
+     * @brief This function clears the mortar conditions already created
      * @param rNodesArray The array of nodes to clear
      */
     void ClearScalarMortarConditions(NodesArrayType& rNodesArray);
-    
+
     /**
-     * @brief This function clears the mortar conditions already created 
+     * @brief This function clears the mortar conditions already created
      * @param rNodesArray The array of nodes to clear
      */
     void ClearComponentsMortarConditions(NodesArrayType& rNodesArray);
-    
+
     /**
-     * @brief This function clears the ALM frictionless mortar conditions already created 
+     * @brief This function clears the ALM frictionless mortar conditions already created
      * @param rNodesArray The array of nodes to clear
      */
     void ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray);
-    
+
     /**
      * @brief It check the conditions if they are correctly detected
      * @param pIndexesPairs Set containing the ids to the conditions
      * @param pCond1 The pointer to the condition in the destination model part
-     * @param pCond2 The pointer to the condition in the destination model part  
+     * @param pCond2 The pointer to the condition in the destination model part
      * @param InvertedSearch If the search is inverted
      * @return If OK or Fail on the check
      */
@@ -371,7 +418,7 @@ private:
         const Condition::Pointer pCond2,
         const bool InvertedSearch = false
         );
-    
+
     /**
      * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
      * @param rModelPart The model part to assign the flags
@@ -382,25 +429,29 @@ private:
      * @brief This method gets the maximum the ID of the conditions
      */
     inline IndexType GetMaximumConditionsIds();
-    
+
     /**
-     * @brief This method checks the potential pairing between two conditions/geometries
+     * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
      * @param pCondSlave The pointer to the slave condition
-     * @param rPointsFound The potential pairs found 
-     * @param NumberOfPointsFound The number of potential pairs found
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pCondMaster The pointer to the master condition
      * @param IndexesPairs The id sets of potential pairs
+     * @param ActiveCheckFactor The value used auxiliarly to check if the node is in the potential contact zone
+     * @param FrictionalProblem If the problem is frictional or not
      */
-    inline void AddPotentialPairing(
+    void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
         Condition::Pointer pCondSlave,
-        PointVector& rPointsFound,
-        const IndexType NumberOfPointsFound,
-        IndexMap::Pointer IndexesPairs
+        const array_1d<double, 3>& rSlaveNormal,
+        Condition::Pointer pCondMaster,
+        IndexMap::Pointer IndexesPairs,
+        const double ActiveCheckFactor,
+        const bool FrictionalProblem
         );
-    
+
     /**
      * @brief This method add a new pair to the computing model part
      * @param rComputingModelPart The modelpart  used in the assemble of the system
@@ -414,7 +465,7 @@ private:
         Condition::Pointer pCondSlave,
         Condition::Pointer pCondMaster
         );
-    
+
     /**
      * @brief This method add a new pair to the computing model part
      * @param rComputingModelPart The modelpart  used in the assemble of the system
@@ -430,18 +481,18 @@ private:
         Condition::Pointer pCondMaster,
         IndexMap::Pointer IndexesPairs
         );
-    
+
     /**
-     * @brief This method computes the gap using a mapper 
+     * @brief This method computes the gap using a mapper
      * @param SearchOrientation The orientation of the search (inverted or not)
      */
     inline void ComputeMappedGap(const bool SearchOrientation);
-    
+
     /**
      * @brief This method sets as inactive a node and it sets to zero its LM
      */
     inline void ComputeWeightedReaction();
-    
+
     /**
      * @brief This method switchs the flag of an array of nodes
      * @param rNodes The set of nodes where the flags are reset
@@ -455,7 +506,7 @@ private:
             it_node->Flip(MASTER);
         }
     }
-    
+
     /**
      * @brief This method creates the auxiliar the pairing
      * @param rContactModelPart The modelpart  used in the assemble of the system
@@ -467,20 +518,20 @@ private:
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
         );
-    
-    /**  
-     * @brief Calculates the minimal distance between one node and its center 
-     * @return The radius of the geometry 
-     */ 
+
+    /**
+     * @brief Calculates the minimal distance between one node and its center
+     * @return The radius of the geometry
+     */
     static inline double Radius(GeometryType& ThisGeometry);
-    
+
     /**
      * @brief This converts the framework string to an enum
      * @param str The string
      * @return SearchTreeType: The equivalent enum
      */
     SearchTreeType ConvertSearchTree(const std::string& str);
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -495,7 +546,7 @@ private:
 
     ///@}
 
-}; // Class BaseContactSearch
+}; // Class BaseContactSearchProcess
 
 ///@}
 
@@ -507,25 +558,25 @@ private:
 ///@name Input and output
 ///@{
 
-// /****************************** INPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-// 
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   BaseContactSearch& rThis);
-// 
-// /***************************** OUTPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-// 
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const BaseContactSearch& rThis)
-// {
-//     return rOStream;
-// }
+/****************************** INPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis);
+
+/***************************** OUTPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis)
+{
+    return rOStream;
+}
 
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED  defined
+#endif // KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined
