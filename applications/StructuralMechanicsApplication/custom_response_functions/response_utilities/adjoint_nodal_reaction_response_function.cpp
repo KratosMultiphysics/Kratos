@@ -27,14 +27,14 @@ namespace Kratos
         // Get id of node where a reaction should be traced
         const int id_traced_node = ResponseSettings["traced_node_id"].GetInt();
 
-        // Get the corresponding dof to the reaction which should be traced
+        // Get label of the reaction which should be traced
         // by this response function e.g. REACTION_X, REACTION_MOMENT_X,...
         mTracedReactionLabel = ResponseSettings["traced_reaction"].GetString();
-        // Get the corresponding dof to the displacement e.g. REACTION_X --> DISPLACEMENT_X
-        mTracedDisplacementDofLabel = this->GetCorrespondingDisplacementDofLabel(mTracedReactionLabel);
+        // Get the label of the correspondig displacement e.g. REACTION_X --> DISPLACEMENT_X
+        mTracedDisplacementLabel = this->GetCorrespondingDisplacementLabel(mTracedReactionLabel);
 
-        if(ResponseSettings.Has("adjust_influence_function"))
-            mAdjustInfluenceFunction = ResponseSettings["adjust_influence_function"].GetBool();
+        if(ResponseSettings.Has("adjust_adjoint_displacement"))
+            mAdjustAdjointDisplacement = ResponseSettings["adjust_adjoint_displacement"].GetBool();
 
         // Get pointer to traced node
         mpTracedNode = rModelPart.pGetNode(id_traced_node);
@@ -57,12 +57,12 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_adjoint_dof =
-            KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
+        const VariableComponentType& r_corresponding_adjoint_dof =
+            KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
 
-        // check if the given node is really fixed in the direction of the given dof.
-        if((mpTracedNode->GetDof(r_traced_adjoint_dof)).IsFree())
-            KRATOS_ERROR << "Chosen reaction '" << mTracedReactionLabel << "' is not fixed on node #" << mpTracedNode->Id() << "!" << std::endl;
+        // check if the given node is really fixed in the direction of the traced reaction.
+        if((mpTracedNode->GetDof(r_corresponding_adjoint_dof)).IsFree())
+            KRATOS_ERROR << "The dof '" << r_corresponding_adjoint_dof << "' corresponding to the chosen reaction '"<< mTracedReactionLabel << "' is not fixed on node #" << mpTracedNode->Id() << "!" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -71,13 +71,15 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(mAdjustInfluenceFunction)
+        /* With this adjustment the adjoint displacements will be equivalent to the discrete influence function.
+        The modification can be justified by the partial derivate of the response w.r.t. to the design variable.
+        Please note: adjusting the adjoint displacments replaces the computation of the partial derivate of the response
+        w.r.t. to the design variable. */
+        if(mAdjustAdjointDisplacement)
         {
-            const VariableComponentType& r_traced_adjoint_dof =
-                KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
-            mpTracedNode->FastGetSolutionStepValue(r_traced_adjoint_dof) = -1.0;
-
-            mPerformedModificationOfAdjointDisplacements = true;
+            const VariableComponentType& r_corresponding_adjoint_dof =
+                KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
+            mpTracedNode->FastGetSolutionStepValue(r_corresponding_adjoint_dof) = -1.0;
         }
 
         KRATOS_CATCH("");
@@ -168,7 +170,7 @@ namespace Kratos
 
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
-        if(!mPerformedModificationOfAdjointDisplacements)
+        if(!mAdjustAdjointDisplacement)
             this->CalculateContributionToPartialSensitivity(rAdjointElement,
                                 rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
 
@@ -185,7 +187,7 @@ namespace Kratos
 
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
-        if(!mPerformedModificationOfAdjointDisplacements)
+        if(!mAdjustAdjointDisplacement)
             this->CalculateContributionToPartialSensitivity(rAdjointCondition,
                                 rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
 
@@ -202,7 +204,7 @@ namespace Kratos
 
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
-        if(!mPerformedModificationOfAdjointDisplacements)
+        if(!mAdjustAdjointDisplacement)
             this->CalculateContributionToPartialSensitivity(rAdjointElement,
                                 rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
 
@@ -219,7 +221,7 @@ namespace Kratos
 
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
-        if(!mPerformedModificationOfAdjointDisplacements)
+        if(!mAdjustAdjointDisplacement)
             this->CalculateContributionToPartialSensitivity(rAdjointCondition,
                                 rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
 
@@ -230,10 +232,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_dof =
+        const VariableComponentType& r_traced_reaction =
             KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
 
-        return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
+        return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_reaction, 0);
 
         KRATOS_CATCH("");
     }
@@ -285,7 +287,7 @@ namespace Kratos
     }
 
 
-    std::string AdjointNodalReactionResponseFunction::GetCorrespondingDisplacementDofLabel(std::string& rReactionDofLabel) const
+    std::string AdjointNodalReactionResponseFunction::GetCorrespondingDisplacementLabel(std::string& rReactionLabel) const
     {
         KRATOS_TRY;
 
@@ -297,7 +299,7 @@ namespace Kratos
         reaction_displacement_table["REACTION_MOMENT_Y"] = "ROTATION_Y";
         reaction_displacement_table["REACTION_MOMENT_Z"] = "ROTATION_Z";
 
-        auto it_table = reaction_displacement_table.find(rReactionDofLabel);
+        auto it_table = reaction_displacement_table.find(rReactionLabel);
         KRATOS_ERROR_IF(it_table == reaction_displacement_table.end()) << "Given reaction label is not valid!" << std::endl;
 
         return it_table->second;
@@ -311,30 +313,30 @@ namespace Kratos
 
         // Check if variable for traced reaction is valid
         if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedReactionLabel << std::endl;
+            KRATOS_ERROR << mTracedReactionLabel << " is not available!" << std::endl;
         else
         {
-            const VariableComponentType& r_traced_dof =
+            const VariableComponentType& r_traced_reaction =
                 KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
-            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
-                << "Specified DOF is not available at traced node." << std::endl;
+            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_reaction) )
+                << mTracedReactionLabel << " is not available at traced node." << std::endl;
         }
 
-        // Check if variable for traced dof is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDisplacementDofLabel)) )
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDisplacementDofLabel << std::endl;
+        // Check if the displacement variable corresponding to the chosen reaction is valid
+        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDisplacementLabel)) )
+            KRATOS_ERROR << mTracedDisplacementLabel << " is not available!" << std::endl;
         else
         {
-            const VariableComponentType& r_traced_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedDisplacementDofLabel);
-            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_dof) )
-                << "Specified DOF is not available at traced node." << std::endl;
+            const VariableComponentType& r_corresponding_dof =
+                KratosComponents<VariableComponentType>::Get(mTracedDisplacementLabel);
+            KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_corresponding_dof) )
+                << mTracedDisplacementLabel << " is not available at traced node." << std::endl;
         }
 
-        // Check if variable for traced adjoint dof is valid
-        if( !(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDisplacementDofLabel)) )
+        // Check if the adjoint displacement variable corresponding to the chosen reaction is valid
+        if(!(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDisplacementLabel)))
         {
-            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
+            KRATOS_ERROR << (std::string("ADJOINT_") + mTracedDisplacementLabel) << " is not available!" << std::endl;
         }
 
         KRATOS_CATCH("");

@@ -45,7 +45,8 @@ namespace Kratos
 
 /** \brief AdjointNodalReactionResponseFunction
 *
-* MFusseder TODO add details of class
+* This is a response function which traces a chosen reaction force of a single
+* node as response. It is designed to be used in adjoint sensitivity analysis.
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalReactionResponseFunction : public AdjointStructuralResponseFunction
 {
@@ -195,13 +196,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mTracedDisplacementDofLabel;
+    std::string mTracedDisplacementLabel;
     std::string mTracedReactionLabel;
     PointTypePointer  mpTracedNode;
     WeakPointerVector<Element> mpNeighborElements;
     WeakPointerVector<Condition> mpNeighborConditions;
-    bool mAdjustInfluenceFunction = false;
-    bool mPerformedModificationOfAdjointDisplacements = false;
+    bool mAdjustAdjointDisplacement = false;
 
     ///@}
     ///@name Private Operators
@@ -222,13 +222,19 @@ private:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo);
 
+    /*
+    The task of the filter vector is to deliver the row or column of a element quantity
+    like the stiffness matrix or the sensitivity matrix corresponding to the dof which is fixed by
+    the traced reaction. Since the filtered row/column is always needed negative, the filter
+    vector is multiplied with (-1).
+    */
     template <typename TObjectType>
     void ConstructFilterVector(TObjectType& rAdjointObject, Vector& rFilterVector, ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_adjoint_dof =
-        KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementDofLabel);
+        const VariableComponentType& r_corresponding_adjoint_dof =
+        KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
 
         DofsVectorType dof_list;
         rAdjointObject.GetDofList(dof_list, rProcessInfo);
@@ -237,7 +243,7 @@ private:
         for(IndexType i = 0; i < dof_list.size(); ++i)
         {
             if (dof_list[i]->Id() == mpTracedNode->Id() &&
-                dof_list[i]->GetVariable() == r_traced_adjoint_dof)
+                dof_list[i]->GetVariable() == r_corresponding_adjoint_dof)
             {
                 rFilterVector[i] = -1.0;
             }
@@ -246,7 +252,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    std::string GetCorrespondingDisplacementDofLabel(std::string& rReactionDofLabel) const;
+    std::string GetCorrespondingDisplacementLabel(std::string& rReactionLabel) const;
 
     void PerformResponseVariablesCheck();
 

@@ -23,7 +23,7 @@
                 "step_size"         : 1e-6,
                 "traced_node_id"    : 11,
                 "traced_reaction"        : "REACTION_Z",
-                "adjust_influence_function" : false
+                "adjust_adjoint_displacement" : false
             },
         "sensitivity_settings" : {
                 "sensitivity_model_part_name" : "Parts_Beam",
