@@ -51,7 +51,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         with controlledExecutionScope(_get_test_working_dir()):
             solve_primal_problem()
 
-    def local_stress_response(self):
+    def test_local_stress_response(self):
         #Create the adjoint solver
         with controlledExecutionScope(_get_test_working_dir()):
             with open("beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
@@ -80,7 +80,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         self.assertAlmostEqual(sensitivities_to_check[6], reference_values[3], 3)
         self.assertAlmostEqual(sensitivities_to_check[7], reference_values[4], 5)
 
-    def nodal_displacement_response(self):
+    def test_nodal_displacement_response(self):
         # Create the adjoint solver
         with controlledExecutionScope(_get_test_working_dir()):
             with open("beam_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
@@ -107,7 +107,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
         self.assertAlmostEqual(sensitivities_to_check[3], reference_values[3], 5)
 
-    def strain_energy_response(self):
+    def test_strain_energy_response(self):
         # Create the adjoint solver
         with controlledExecutionScope(_get_test_working_dir()):
             with open("beam_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
@@ -139,26 +139,15 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             with open("beam_test_nodal_reaction_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-            #model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
-
+            model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
             model_adjoint = Model()
-
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-
             adjoint_analysis.Run()
 
-       #    # Check sensitivities for the parameter I22
-       #    reference_values = [-0.45410279537614157, -0.37821875982596204, -0.006200296058668847, 0.0004340210813670321]
-       #    sensitivities_to_check = []
-       #    element_list = [1,6,10]
-       #    for element_id in element_list:
-       #        sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
-       #    sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2])
-
-       #self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
-       #self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 4)
-       #self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
-       #self.assertAlmostEqual(sensitivities_to_check[3], reference_values[3], 5)
+        # Check sensitivity for the parameter POINT_LOAD
+        reference_values = -0.31249774999397384
+        sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2]
+        self.assertAlmostEqual(reference_values, sensitivity_to_check, 4)
 
     # called only once for this class, opposed of tearDown()
     @classmethod

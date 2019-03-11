@@ -106,7 +106,23 @@
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
-     }]
+     }],
+     "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
+                "gauss_points_check_variables" : ["I22_SENSITIVITY"],
+                "input_file_name"  : "beam_test_nodal_reaction_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-5,
+                "time_frequency"   : -2.0
+            }
+        }
+        ]
     },
     "_json_output_process" : [
         {
@@ -116,29 +132,10 @@
             "process_name"  : "JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY"],
-                "output_file_name" : "beam_test_nodal_disp_results.json",
+                "gauss_points_output_variables" : ["I22_SENSITIVITY"],
+                "output_file_name" : "beam_test_nodal_reaction_results.json",
                 "model_part_name"  : "Structure",
                 "time_frequency"   : -2.0
             }
-        }],
-    "output_configuration"     : {
-            "result_file_configuration" : {
-                "gidpost_flags"       : {
-                    "GiDPostMode"           : "GiD_PostAscii",
-                    "WriteDeformedMeshFlag" : "WriteUndeformed",
-                    "WriteConditionsFlag"   : "WriteConditions",
-                    "MultiFileFlag"         : "SingleFile"
-                },
-                "file_label"          : "step",
-                "output_control_type" : "step",
-                "output_frequency"    : 1,
-                "body_output"         : true,
-                "node_output"         : false,
-                "skin_output"         : false,
-                "plane_output"        : [],
-                "nodal_results"       : ["ADJOINT_DISPLACEMENT", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
-                "gauss_point_results" : ["I22_SENSITIVITY"]
-            },
-            "point_data_configuration"  : []
-        }
+        }]
 }
