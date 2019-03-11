@@ -22,12 +22,13 @@
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/base_contact_search.h"
+#include "custom_processes/base_contact_search_process.h"
+#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
 
 namespace Kratos
 {
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearch(
+BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchProcess(
     ModelPart & rMainModelPart,
     Parameters ThisParameters
     ):mrMainModelPart(rMainModelPart),
@@ -112,7 +113,53 @@ BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearch(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
+{
+    // We execute the different phases of the process all together
+    this->ExecuteInitialize();
+    this->ExecuteInitializeSolutionStep();
+    this->ExecuteFinalizeSolutionStep();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitialize()
+{
+    // We initialize the search utility
+    this->CheckContactModelParts();
+    this->CreatePointListMortar();
+    this->InitializeMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteInitializeSolutionStep()
+{
+    // We compute the search pairs
+    this->ClearMortarConditions();
+    this->UpdateMortarConditions();
+//     this->CheckMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ExecuteFinalizeSolutionStep()
+{
+    // We clear the pairs
+    this->ClearMortarConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarConditions()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -135,7 +182,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarCondit
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationModelParts(ModelPart& rModelPart)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationModelParts(ModelPart& rModelPart)
 {
     // We check if the MasterSubModelPart already exists
     const std::string& id_name = mThisParameters["id_name"].GetString();
@@ -218,7 +265,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationMo
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions()
 {
     ResetContactOperators();
 
@@ -247,7 +294,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -297,71 +344,83 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar()
 {
-    // Clearing the vector
-    mPointListDestination.clear();
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
-    // Iterate in the conditions
-    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
-    ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
+    // Using KDTree
+    if (type_search != SearchTreeType::OtreeWithOBB) {
+        // Clearing the vector
+        mPointListDestination.clear();
 
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
-        auto it_cond = it_cond_begin + i;
-        if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
-            mPointListDestination.push_back(Kratos::make_shared<PointItem>((*it_cond.base())));
+        // Iterate in the conditions
+        ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+        ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+        ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+            auto it_cond = it_cond_begin + i;
+            if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
+                mPointListDestination.push_back(Kratos::make_shared<PointItem>((*it_cond.base())));
+            }
         }
-    }
 
-#ifdef KRATOS_DEBUG
-    // NOTE: We check the list
-    for (IndexType i_point = 0; i_point < mPointListDestination.size(); ++i_point )
-        mPointListDestination[i_point]->Check();
-#endif
+    #ifdef KRATOS_DEBUG
+        // NOTE: We check the list
+        for (IndexType i_point = 0; i_point < mPointListDestination.size(); ++i_point )
+            mPointListDestination[i_point]->Check();
+    #endif
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
 {
-    // We check if we are in a dynamic or static case
-    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
-    const double delta_time = (dynamic) ? mrMainModelPart.GetProcessInfo()[DELTA_TIME] : 0.0;
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
-    // The contact model parts
-    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+    // Using KDTree
+    if (type_search != SearchTreeType::OtreeWithOBB) {
+        // We check if we are in a dynamic or static case
+        const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
+        const double delta_time = (dynamic) ? mrMainModelPart.GetProcessInfo()[DELTA_TIME] : 0.0;
 
-    // We compute the delta displacement
-    if (dynamic) {
-        ContactUtilities::ComputeStepJump(r_sub_contact_model_part, delta_time);
-    }
+        // The contact model parts
+        ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+        ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
 
-    if (mCheckGap == CheckGap::MappingCheck && dynamic) {
-        NodesArrayType& r_update_r_nodes_array = r_sub_contact_model_part.Nodes();
-        const auto it_node_begin = r_update_r_nodes_array.begin();
+        // We compute the delta displacement
+        if (dynamic) {
+            ContactUtilities::ComputeStepJump(r_sub_contact_model_part, delta_time);
+        }
+
+        if (mCheckGap == CheckGap::MappingCheck && dynamic) {
+            NodesArrayType& r_update_r_nodes_array = r_sub_contact_model_part.Nodes();
+            const auto it_node_begin = r_update_r_nodes_array.begin();
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(r_update_r_nodes_array.size()); ++i) {
+                auto it_node = it_node_begin + i;
+                noalias(it_node->Coordinates()) += it_node->GetValue(DELTA_COORDINATES);
+            }
+        }
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_update_r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            noalias(it_node->Coordinates()) += it_node->GetValue(DELTA_COORDINATES);
-        }
+        for(int i = 0; i < static_cast<int>(mPointListDestination.size()); ++i)
+            mPointListDestination[i]->UpdatePoint();
     }
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mPointListDestination.size()); ++i)
-        mPointListDestination[i]->UpdatePoint();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions()
 {
     // We update the list of points
     UpdatePointListMortar();
@@ -383,14 +442,72 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
     if (r_sub_computing_contact_model_part.Conditions().size() > 0)
         ClearMortarConditions();
 
+    // In case of not predefined master/slave we reset the flags
+    if (!mPredefinedMasterSlave) {
+        NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
+        ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+        VariableUtils().SetFlag(SLAVE, false, r_nodes_array);
+        VariableUtils().SetFlag(MASTER, false, r_nodes_array);
+        VariableUtils().SetFlag(SLAVE, false, r_conditions_array);
+        VariableUtils().SetFlag(MASTER, false, r_conditions_array);
+    }
+
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
+
+    // Using KDTree
+    if (type_search != SearchTreeType::OtreeWithOBB) {
+        SearchUsingKDTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
+    } else { // Using octree
+        SearchUsingOcTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
+    }
+
+    // In case of not predefined master/slave we assign the master/slave nodes and conditions
+    if (!mPredefinedMasterSlave)
+        NotPredefinedMasterSlave(r_sub_contact_model_part);
+
+    // We create the submodelparts for master and slave
+    SetOriginDestinationModelParts(r_sub_contact_model_part);
+
+    // We map the Coordinates to the slave side from the master
+    if (mCheckGap == CheckGap::MappingCheck) {
+        CheckPairing(r_sub_computing_contact_model_part, condition_id);
+    } else {
+        // We revert the nodes to the original position
+        if (mThisParameters["dynamic_search"].GetBool()) {
+            if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
+                NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+                    auto it_node = r_nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) -= it_node->GetValue(DELTA_COORDINATES);
+                }
+            }
+        }
+        // We compute the weighted reaction
+        ComputeWeightedReaction();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTree(
+    ModelPart& rSubContactModelPart,
+    ModelPart& rSubComputingContactModelPart
+    )
+{
+    // Some auxiliar values
+    const IndexType allocation_size = mThisParameters["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results
+    const double search_factor = mThisParameters["search_factor"].GetDouble();     // The search factor to be considered
+    IndexType bucket_size = mThisParameters["bucket_size"].GetInt();               // Bucket size for kd-tree
+
     // We check if we are in a dynamic or static case
     const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
 
-    // Some auxiliar values
-    const IndexType allocation_size = mThisParameters["allocation_size"].GetInt();              // Allocation size for the vectors and max number of potential results
-    const double search_factor = mThisParameters["search_factor"].GetDouble();                  // The search factor to be considered
-    SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString()); // The search tree considered
-    IndexType bucket_size = mThisParameters["bucket_size"].GetInt();                            // Bucket size for kd-tree
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
@@ -398,22 +515,15 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
     KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
 
     // Auxiliar model parts and components
-    ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
-
-    // In case of not predefined master/slave we reset the flags
-    if (!mPredefinedMasterSlave) {
-        NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-        VariableUtils().SetFlag(SLAVE, false, r_nodes_array);
-        VariableUtils().SetFlag(MASTER, false, r_nodes_array);
-        VariableUtils().SetFlag(SLAVE, false, r_conditions_array);
-        VariableUtils().SetFlag(MASTER, false, r_conditions_array);
-    }
+    const auto it_cond_begin = r_conditions_array.begin();
+    IndexType condition_id = GetMaximumConditionsIds();
 
     // Now we iterate over the conditions
-//     #pragma omp parallel for firstprivate(tree_points) // FIXME: Make me parallel!!!
+//     #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
     for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
 
         if (!mPredefinedMasterSlave || it_cond->Is(SLAVE) == !mInvertedSearch) {
             // Initialize values
@@ -451,8 +561,9 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
                 ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
 
                 number_points_found = tree_points.SearchInBox(min_point, max_point, points_found.begin(), allocation_size);
-            } else
+            } else {
                 KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mThisParameters["type_search"].GetString() << std::endl;
+            }
 
             if (number_points_found > 0) {
                 // We resize the vector to the actual size
@@ -462,7 +573,6 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
                 // NOTE: We check the list
                 for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
                     points_found[i_point]->Check();
-//                 KRATOS_INFO("Check search") << "The search is properly done" << std::endl;
             #endif
 
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
@@ -477,36 +587,22 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
                             p_indexes_pairs->AddId(p_cond_master->Id());
                     }
                 } else {
-                    AddPotentialPairing(r_sub_computing_contact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                    // Some auxiliar values
+                    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                    const bool frictional_problem = mrMainModelPart.Is(SLIP);
+
+                    // Slave geometry
+                    const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
+
+                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                        // Master condition
+                        Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+
+                        AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                    }
                 }
             }
         }
-    }
-
-    // In case of not predefined master/slave we assign the master/slave nodes and conditions
-    if (!mPredefinedMasterSlave)
-        NotPredefinedMasterSlave(r_sub_contact_model_part);
-
-    // We create the submodelparts for master and slave
-    SetOriginDestinationModelParts(r_sub_contact_model_part);
-
-    // We map the Coordinates to the slave side from the master
-    if (mCheckGap == CheckGap::MappingCheck) {
-        CheckPairing(r_sub_computing_contact_model_part, condition_id);
-    } else {
-        // We revert the nodes to the original position
-        if (mThisParameters["dynamic_search"].GetBool()) {
-            if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
-                NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = r_nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) -= it_node->GetValue(DELTA_COORDINATES);
-                }
-            }
-        }
-        // We compute the weighted reaction
-        ComputeWeightedReaction();
     }
 }
 
@@ -514,7 +610,93 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTree(
+    ModelPart& rSubContactModelPart,
+    ModelPart& rSubComputingContactModelPart
+    )
+{
+    KRATOS_ERROR_IF(mInvertedSearch) << "Octree only works with not inverted master/slave model parts (for now)" << std::endl;
+    KRATOS_ERROR_IF_NOT(mPredefinedMasterSlave) << "Octree only works with predefined master/slave model part (for now)" << std::endl;
+
+    // Getting model
+    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+    const std::string master_model_part_name = "MasterSubModelPart" + mThisParameters["id_name"].GetString();
+    ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart(master_model_part_name);
+    const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
+    ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
+
+    Parameters octree_parameters = mThisParameters["octree_search_parameters"];
+    octree_parameters.AddEmptyValue("first_model_part_name");
+    octree_parameters.AddEmptyValue("second_model_part_name");
+    octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
+    octree_parameters["second_model_part_name"].SetString(master_model_part_name);
+
+    const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
+    const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
+    octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
+
+    // Creating the process
+    FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
+    octree_search_process.ExecuteInitialize();
+
+    // Definition of the leaves of the tree
+    FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
+
+    // Auxiliar model parts and components
+    ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
+    const int num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
+    IndexType condition_id = GetMaximumConditionsIds();
+
+//     #pragma omp parallel for // TODO: Make me parallel!!!
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        // We perform the search
+        leaves.clear();
+        octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+
+        if (it_cond->Is(SELECTED)) {
+            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+
+            // If not active we check if can be potentially in contact
+            if (mCheckGap == CheckGap::MappingCheck) {
+                for (auto p_leaf : leaves) {
+                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        if (p_cond_master->Is(SELECTED)) {
+                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
+
+                            if (condition_checked_right == CheckResult::OK)
+                                p_indexes_pairs->AddId(p_cond_master->Id());
+                        }
+                    }
+                }
+            } else {
+                // Some auxiliar values
+                const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                const bool frictional_problem = mrMainModelPart.Is(SLIP);
+
+                // Slave geometry
+                const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
+
+                for (auto p_leaf : leaves) {
+                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                        if (p_cond_master->Is(SELECTED)) {
+                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
@@ -541,7 +723,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
@@ -558,7 +740,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions()
 {
     // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -592,7 +774,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 {
     mInvertedSearch = !mInvertedSearch;
 }
@@ -601,7 +783,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InvertSearch()
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarConditions(NodesArrayType& rNodesArray)
 {
     VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
 }
@@ -610,7 +792,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMortarCondi
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarConditions(NodesArrayType& rNodesArray)
 {
     const array_1d<double, 3> zero_array = ZeroVector(3);
     VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
@@ -620,7 +802,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearComponentsMortarC
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray)
 {
     VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
 }
@@ -629,7 +811,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictionlessMo
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckCondition(
+inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckCondition(
     IndexMap::Pointer pIndexesPairs,
     const Condition::Pointer pCond1,
     const Condition::Pointer pCond2,
@@ -665,7 +847,7 @@ inline typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckResult
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
 {
     // We iterate over the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
@@ -742,7 +924,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline IndexType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetMaximumConditionsIds()
+inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetMaximumConditionsIds()
 {
     ConditionsArrayType& r_conditions_array = mrMainModelPart.Conditions();
 
@@ -761,114 +943,107 @@ inline IndexType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetMaximum
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
-    PointVector& rPointsFound,
-    const IndexType NumberOfPointsFound,
-    IndexMap::Pointer IndexesPairs
+    const array_1d<double, 3>& rSlaveNormal,
+    Condition::Pointer pCondMaster,
+    IndexMap::Pointer IndexesPairs,
+    const double ActiveCheckFactor,
+    const bool FrictionalProblem
     )
 {
-    // Some auxiliar values
-    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
-    const bool frictional_problem = mrMainModelPart.Is(SLIP);
-
     // Slave geometry
-    GeometryType& r_geom_slave = pCondSlave->GetGeometry();
-    const array_1d<double, 3>& r_normal_slave = pCondSlave->GetValue(NORMAL);
+    GeometryType& r_slave_geometry = pCondSlave->GetGeometry();
 
-    for (IndexType i_point = 0; i_point < NumberOfPointsFound; ++i_point ) {
-        bool at_least_one_node_potential_contact = false;
+    // Auxiliar bool
+    bool at_least_one_node_potential_contact = false;
 
-        // Master condition
-        Condition::Pointer p_cond_master = rPointsFound[i_point]->GetCondition();
+    if (mCheckGap == CheckGap::DirectCheck) {
+        // Master geometry
+        const array_1d<double, 3>& normal_master = pCondMaster->GetValue(NORMAL);
+        GeometryType& r_geom_master = pCondMaster->GetGeometry();
 
-        if (mCheckGap == CheckGap::DirectCheck) {
-            // Master geometry
-            const array_1d<double, 3>& normal_master = p_cond_master->GetValue(NORMAL);
-            GeometryType& r_geom_master = p_cond_master->GetGeometry();
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            if (r_slave_geometry[i_node].IsNot(ACTIVE)) {
+                Point projected_point;
+                double aux_distance = 0.0;
+                const array_1d<double, 3> normal = r_slave_geometry[i_node].GetValue(NORMAL);
+                if (norm_2(normal) < ZeroTolerance)
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, rSlaveNormal);
+                else
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, normal);
 
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                if (r_geom_slave[i_node].IsNot(ACTIVE)) {
-                    Point projected_point;
-                    double aux_distance = 0.0;
-                    const array_1d<double, 3> normal = r_geom_slave[i_node].GetValue(NORMAL);
-                    if (norm_2(normal) < ZeroTolerance)
-                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, r_normal_slave);
-                    else
-                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, normal);
-
-                    array_1d<double, 3> result;
-                    if (aux_distance <= r_geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                        at_least_one_node_potential_contact = true;
-                        r_geom_slave[i_node].Set(ACTIVE, true);
-                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                            NodeType& node = r_geom_slave[i_node];
-                            if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                                if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                    node.Set(SLIP, true);
-                                } else {
-                                    node.Set(SLIP, false);
-                                }
-                            }
-                        }
-                    }
-
-                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_geom_slave[i_node], projected_point, normal_master, -normal_master);
-                    if (aux_distance <= r_geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                        at_least_one_node_potential_contact = true;
-                        r_geom_slave[i_node].Set(ACTIVE, true);
-                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                            NodeType& node = r_geom_slave[i_node];
-                            if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                                if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                    node.Set(SLIP, true);
-                                } else {
-                                    node.Set(SLIP, false);
-                                }
-                            }
-                        }
-                    }
-                } else
+                array_1d<double, 3> result;
+                if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     at_least_one_node_potential_contact = true;
-            }
-        } else {
-            at_least_one_node_potential_contact = true;
-            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                r_geom_slave[i_node].Set(ACTIVE, true);
-                if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional_problem) {
-                    NodeType& r_node = r_geom_slave[i_node];
-                    if (norm_2(r_geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                        if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                r_node.Set(SLIP, true);
+                    r_slave_geometry[i_node].Set(ACTIVE, true);
+                    if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                        NodeType& node = r_slave_geometry[i_node];
+                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                node.Set(SLIP, true);
                             } else {
-                                r_node.Set(SLIP, false);
+                                node.Set(SLIP, false);
                             }
+                        }
+                    }
+                }
+
+                aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, -normal_master);
+                if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
+                    at_least_one_node_potential_contact = true;
+                    r_slave_geometry[i_node].Set(ACTIVE, true);
+                    if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                        NodeType& node = r_slave_geometry[i_node];
+                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                node.Set(SLIP, true);
+                            } else {
+                                node.Set(SLIP, false);
+                            }
+                        }
+                    }
+                }
+            } else
+                at_least_one_node_potential_contact = true;
+        }
+    } else {
+        at_least_one_node_potential_contact = true;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            r_slave_geometry[i_node].Set(ACTIVE, true);
+            if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
+                NodeType& r_node = r_slave_geometry[i_node];
+                if (norm_2(r_slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                    if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            r_node.Set(SLIP, true);
+                        } else {
+                            r_node.Set(SLIP, false);
                         }
                     }
                 }
             }
         }
-
-        if (at_least_one_node_potential_contact)
-            AddPairing(rComputingModelPart, rConditionId, pCondSlave, p_cond_master, IndexesPairs);
     }
+
+    if (at_least_one_node_potential_contact)
+        AddPairing(rComputingModelPart, rConditionId, pCondSlave, pCondMaster, IndexesPairs);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
     )
 {
     // Getting the corresponding submodelparts
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+    ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + mThisParameters["id_name"].GetString());
 
     // We set the gap to an enormous value in order to initialize it
     VariableUtils().SetNonHistoricalVariable(NORMAL_GAP, 1.0e12, r_sub_contact_model_part.Nodes());
@@ -905,7 +1080,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGap(const bool SearchOrientation)
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGap(const bool SearchOrientation)
 {
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
@@ -988,7 +1163,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGa
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
 {
     // We get the process info
     const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
@@ -1012,7 +1187,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveN
                 SetActiveNode(it_node, common_epsilon, scale_factor);
             } else {
             #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("BaseContactSearch", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
+                KRATOS_WARNING_IF("BaseContactSearchProcess", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
             #endif
                 SetInactiveNode(it_node);
             }
@@ -1024,7 +1199,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveN
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     NodesArrayType::iterator ItNode,
     const double CommonEpsilon,
     const double ScaleFactor
@@ -1039,7 +1214,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
     // If the node has been already actived we do not inactivate
     if (ItNode->IsNot(MARKER)) {
@@ -1074,7 +1249,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesA
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeightedReaction()
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeWeightedReaction()
 {
     // Auxiliar zero array
     const array_1d<double, 3> zero_array = ZeroVector(3);
@@ -1119,7 +1294,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarConditions(
+inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarConditions(
     ModelPart& rContactModelPart,
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
@@ -1179,7 +1354,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline double BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::Radius(GeometryType& ThisGeometry)
+inline double BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Radius(GeometryType& ThisGeometry)
 {
     double radius = 0.0;
     const Point& r_center = ThisGeometry.Center();
@@ -1198,7 +1373,7 @@ inline double BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::Radius(Geomet
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators()
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators()
 {
     // We iterate over the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -1258,7 +1433,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ConvertSearchTree(const std::string& str)
+typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertSearchTree(const std::string& str)
 {
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
 
@@ -1266,6 +1441,8 @@ typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType Bas
         return SearchTreeType::KdtreeInRadius;
     else if(str == "InBox" || str == "in_box")
         return SearchTreeType::KdtreeInBox;
+    else if (str == "OtreeWithOBB" || str == "octree_with_obb")
+        return SearchTreeType::OtreeWithOBB;
     else if (str == "KDOP" || str == "kdop")
         return SearchTreeType::Kdop;
     else
@@ -1276,7 +1453,7 @@ typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SearchTreeType Bas
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ConvertCheckGap(const std::string& str)
+typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ConvertCheckGap(const std::string& str)
 {
     if(str == "NoCheck" || str == "no_check")
         return CheckGap::NoCheck;
@@ -1292,7 +1469,7 @@ typename BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckGap BaseConta
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
+Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -1310,7 +1487,13 @@ Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParame
         "id_name"                              : "",
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
-        "debug_mode"                           : false
+        "debug_mode"                           : false,
+        "octree_search_parameters" : {
+            "scale_factor"           : [1.0, 1.0, 1.0],
+            "offset"                 : [0.0, 0.0, 0.0],
+            "bounding_box_factor"    : 0.1,
+            "debug_obb"              : false
+            }
     })" );
 
     return default_parameters;
@@ -1319,10 +1502,10 @@ Parameters BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParame
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class BaseContactSearch<2, 2>;
-template class BaseContactSearch<3, 3>;
-template class BaseContactSearch<3, 4>;
-template class BaseContactSearch<3, 3, 4>;
-template class BaseContactSearch<3, 4, 3>;
+template class BaseContactSearchProcess<2, 2>;
+template class BaseContactSearchProcess<3, 3>;
+template class BaseContactSearchProcess<3, 4>;
+template class BaseContactSearchProcess<3, 3, 4>;
+template class BaseContactSearchProcess<3, 4, 3>;
 
 }  // namespace Kratos.

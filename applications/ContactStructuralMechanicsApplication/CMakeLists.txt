@@ -18,9 +18,6 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ## UTILITIES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mortar_explicit_contribution_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/base_contact_search.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_contact_search.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simple_contact_search.cpp
 
     ## PROCESSES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
@@ -29,6 +26,9 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/base_contact_search_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/advanced_contact_search_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/simple_contact_search_process.cpp
 
     ## CONDITIONS
     # Mortar condition

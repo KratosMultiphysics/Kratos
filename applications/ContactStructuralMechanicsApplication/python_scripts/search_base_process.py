@@ -170,9 +170,7 @@ class SearchBaseProcess(KM.Process):
         for key in self.settings["search_model_part"].keys():
             if self.settings["search_model_part"][key].size() > 0:
                 # We initialize the search utility
-                self.search_utility_list[key].CheckContactModelParts()
-                self.search_utility_list[key].CreatePointListMortar()
-                self.search_utility_list[key].InitializeMortarConditions()
+                self.search_utility_list[key].ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -195,11 +193,7 @@ class SearchBaseProcess(KM.Process):
             # We solve one linear step with a linear strategy if needed
             for key in self.settings["search_model_part"].keys():
                 if self.settings["search_model_part"][key].size() > 0:
-                    # Clear current pairs
-                    self.search_utility_list[key].ClearMortarConditions()
-                    # Update database
-                    self.search_utility_list[key].UpdateMortarConditions()
-                    #self.search_utility_list[key].CheckMortarConditions()
+                    self.search_utility_list[key].ExecuteInitializeSolutionStep()
 
                     # Debug
                     if self.settings["search_parameters"]["debug_mode"].GetBool():
@@ -224,7 +218,15 @@ class SearchBaseProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        pass
+        global_step = self.main_model_part.ProcessInfo[KM.STEP]
+        if self._get_if_is_interval():
+            modified = self.main_model_part.Is(KM.MODIFIED)
+            database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
+            if modified is False and (self.database_step >= database_step_update or global_step == 1):
+                for key in self.settings["search_model_part"].keys():
+                    if self.settings["search_model_part"][key].size() > 0:
+                        self.search_utility_list[key].ExecuteFinalizeSolutionStep()
+                self.database_step = 0
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -240,15 +242,7 @@ class SearchBaseProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        global_step = self.main_model_part.ProcessInfo[KM.STEP]
-        if self._get_if_is_interval():
-            modified = self.main_model_part.Is(KM.MODIFIED)
-            database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if modified is False and (self.database_step >= database_step_update or global_step == 1):
-                for key in self.settings["search_model_part"].keys():
-                    if self.settings["search_model_part"][key].size() > 0:
-                        self.search_utility_list[key].ClearMortarConditions()
-                self.database_step = 0
+        pass
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -427,33 +421,33 @@ class SearchBaseProcess(KM.Process):
         simple_search = self.settings["search_parameters"]["simple_search"].GetBool()
         if self.dimension == 2:
             if simple_search:
-                self.search_utility_list[key] = CSMA.SimpleContactSearch2D2N(self.computing_model_part, search_parameters)
+                self.search_utility_list[key] = CSMA.SimpleContactSearchProcess2D2N(self.computing_model_part, search_parameters)
             else:
-                self.search_utility_list[key] = CSMA.AdvancedContactSearch2D2N(self.computing_model_part, search_parameters)
+                self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess2D2N(self.computing_model_part, search_parameters)
         else:
             if number_nodes == 3:
                 if number_nodes_master == 3:
                     if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearch3D3N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D3N(self.computing_model_part, search_parameters)
                     else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearch3D3N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D3N(self.computing_model_part, search_parameters)
                 else:
                     if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearch3D3N4N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D3N4N(self.computing_model_part, search_parameters)
                     else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearch3D3N4N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D3N4N(self.computing_model_part, search_parameters)
 
             elif number_nodes == 4:
                 if number_nodes_master == 3:
                     if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D4N3N(self.computing_model_part, search_parameters)
                     else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D4N3N(self.computing_model_part, search_parameters)
                 else:
                     if simple_search:
-                        self.search_utility_list[key] = CSMA.SimpleContactSearch3D4N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.SimpleContactSearchProcess3D4N(self.computing_model_part, search_parameters)
                     else:
-                        self.search_utility_list[key] = CSMA.AdvancedContactSearch3D4N(self.computing_model_part, search_parameters)
+                        self.search_utility_list[key] = CSMA.AdvancedContactSearchProcess3D4N(self.computing_model_part, search_parameters)
             else:
                 raise Exception("Geometries not compatible. Check all the geometries are linear")
 
