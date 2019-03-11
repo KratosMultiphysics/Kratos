@@ -515,22 +515,17 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<FindIntersectedGeometricalObjectsProcess<Element>, FindIntersectedGeometricalObjectsProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsProcess")
     .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
     .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<FindIntersectedGeometricalObjectsProcess<Condition>, FindIntersectedGeometricalObjectsProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsProcess")
     .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
     .def(py::init<Model&, Parameters>())
     ;
     py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsWithOBBProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
     .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double, const bool>())
     .def(py::init<Model&, Parameters>())
     ;
 
@@ -538,9 +533,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
     .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double*, const double*, const double, const bool>())
     .def(py::init<Model&, Parameters>())
     ;
 }

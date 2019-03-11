@@ -43,23 +43,6 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 
 template<class TEntity>
 FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
-    ModelPart& rPart1,
-    ModelPart& rPart2,
-    const double* NewScaleFactor,
-    const double* NewOffset
-    ) : mrModelPart1(rPart1),
-        mrModelPart2(rPart2),
-        mOctree(OctreeType(NewScaleFactor, NewOffset))
-{
-    const Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TEntity>
-FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPart1(rModel.GetModelPart(ThisParameters["first_model_part_name"].GetString())),
@@ -75,21 +58,6 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
-
-    // Getting scale factor and offset
-    double* new_scale_factor = new double[3];
-    double* new_offset = new double[3];
-
-    const Vector& r_scale_factor = mThisParameters["scale_factor"].GetVector();
-    KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
-    const Vector& r_offset = mThisParameters["offset"].GetVector();
-    KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
-    for (IndexType i = 0; i < 3; ++i) {
-        new_scale_factor[i] = r_scale_factor[i];
-        new_offset[i] = r_offset[i];
-    }
-
-    mOctree = OctreeType(new_scale_factor, new_offset);
 }
 
 /***********************************************************************************/
