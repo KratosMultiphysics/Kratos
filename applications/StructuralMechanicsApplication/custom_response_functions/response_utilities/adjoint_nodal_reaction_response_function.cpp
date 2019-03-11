@@ -71,10 +71,12 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        /* With this adjustment the adjoint displacements will be equivalent to the discrete influence function.
-        The modification can be justified by the partial derivate of the response w.r.t. to the design variable.
-        Please note: adjusting the adjoint displacments replaces the computation of the partial derivate of the response
-        w.r.t. to the design variable. */
+        /*
+        With this adjustment the adjoint displacements will be equivalent to the discrete influence function.
+        The modification can be justified by the partial derivative of the response w.r.t. to the design variable.
+        Please note: adjusting the adjoint displacement replaces the upcoming computation of the partial derivative of the response
+        w.r.t. to the design variable.
+        */
         if(mAdjustAdjointDisplacement)
         {
             const VariableComponentType& r_corresponding_adjoint_dof =
