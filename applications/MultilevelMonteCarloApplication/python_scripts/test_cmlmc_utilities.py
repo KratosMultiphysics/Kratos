@@ -347,7 +347,7 @@ class MultilevelMonteCarlo(object):
     """
     def LaunchEpoch(self):
         for level in range(self.current_number_levels+1):
-            for instance in range (self.difference_number_samples[level]):
+            for _ in range (self.difference_number_samples[level]):
                 self.AddResults(self.ExecuteInstance(level))
 
     """

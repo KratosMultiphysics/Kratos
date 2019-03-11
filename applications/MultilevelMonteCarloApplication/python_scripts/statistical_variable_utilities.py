@@ -21,32 +21,36 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 
 # TODO: check absolute third moment from scratch is correct
-# TODO: distinguish between raw and central moments, now central moments are computed, raw moments only the mean
+# TODO: add computation of raw moments, only the mean is now computed
 
 
 """
 auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
 input:  sample: new value that will update the statistics
-        old_mean:   old mean
-        old_M1:     old first central moment multiplied by number samples, i.e. M_p = number_samples * central_moment
-        compute_M1: boolean setting if computation is needed
-        old_M2:     old second central moment multiplied by number samples, i.e. M_p = number_samples * central_moment
-        compute_M2: boolean setting if computation is needed
-        old_M3:     old third central moment multiplied by number samples
-        compute_M3: boolean setting if computation is needed
-        old_M4:     old fourth central moment multiplied by number samples
-        compute_M4: boolean settings if computation is needed
-        nsamples:   old number of samples computed, starts from 1
-output: new_mean:            updated mean
-        new_sample_variance: updated sample variance
-        new_M1:              updated M1
-        new_M2:              updated M2
-        new_M3:              updated M3
-        new_M4:              updated M4
-        nsamples:            updated number of samples
+        old_mean:             old mean
+        old_central_moment_1: old first central moment
+        compute_M1:           boolean setting if computation is needed
+        old_central_moment_2: old second central moment
+        compute_M2:           boolean setting if computation is needed
+        old_central_moment_3: old third central moment
+        compute_M3:           boolean setting if computation is needed
+        old_central_moment_1: old fourth central moment
+        compute_M4:           boolean settings if computation is needed
+        nsamples:             old number of samples computed, starts from 1
+output: new_mean:             updated mean
+        new_sample_variance:  updated sample variance
+        new_central_moment_1: updated central_moment_1
+        new_central_moment_2: updated central_moment_2
+        new_central_moment_3: updated central_moment_3
+        new_central_moment_4: updated central_moment_4
+        nsamples:             updated number of samples
 """
 @ExaquteTask(returns=7)
-def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M1,compute_M1,old_M2,compute_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
+def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples):
+    old_M1 = old_central_moment_1 * nsamples
+    old_M2 = old_central_moment_2 * nsamples
+    old_M3 = old_central_moment_3 * nsamples
+    old_M4 = old_central_moment_4 * nsamples
     nsamples = nsamples + 1
     if nsamples == 1:
         new_mean = sample
@@ -75,7 +79,11 @@ def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M1,compute_M1,old_M
             new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
         else:
             new_M4 = old_M4 # we are not updating
-    return new_mean,new_sample_variance,new_M1,new_M2,new_M3,new_M4,nsamples
+    new_central_moment_1 = new_M1 / nsamples
+    new_central_moment_2 = new_M2 / nsamples
+    new_central_moment_3 = new_M3 / nsamples
+    new_central_moment_4 = new_M4 / nsamples
+    return new_mean,new_sample_variance,new_central_moment_1,new_central_moment_2,new_central_moment_3,new_central_moment_4,nsamples
 
 
 """
@@ -293,21 +301,26 @@ class StatisticalVariable(object):
         number_samples_level = self.number_samples[level]
         sample = self.values[level][i_sample]
         old_mean = self.mean[level]
-        old_M1 = self.central_moment_1[level] * number_samples_level
+        # old_M1 = self.central_moment_1[level] * number_samples_level
+        old_central_moment_1 = self.central_moment_1[level]
         compute_M1 = self.central_moment_1_to_compute
-        old_M2 = self.central_moment_2[level] * number_samples_level
+        # old_M2 = self.central_moment_2[level] * number_samples_level
+        old_central_moment_2 = self.central_moment_2[level]
         compute_M2 = self.central_moment_2_to_compute
-        old_M3 = self.central_moment_3[level] * number_samples_level
+        # old_M3 = self.central_moment_3[level] * number_samples_level
+        old_central_moment_3 = self.central_moment_3[level]
         compute_M3 = self.central_moment_3_to_compute
-        old_M4 = self.central_moment_4[level] * number_samples_level
+        # old_M4 = self.central_moment_4[level] * number_samples_level
+        old_central_moment_4 = self.central_moment_4[level]
         compute_M4 = self.central_moment_4_to_compute
-        new_mean,new_sample_variance,new_M1,new_M2,new_M3,new_M4,number_samples_level = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M1,compute_M1,old_M2,compute_M2,old_M3,compute_M3,old_M4,compute_M4,number_samples_level)
+        new_mean,new_sample_variance,new_central_moment_1,new_central_moment_2,new_central_moment_3,new_central_moment_4,number_samples_level \
+            = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,number_samples_level)
         self.mean[level] = new_mean
         self.sample_variance[level] = new_sample_variance
-        self.central_moment_1[level] = new_M1 / number_samples_level
-        self.central_moment_2[level] = new_M2 / number_samples_level
-        self.central_moment_3[level] = new_M3 / number_samples_level
-        self.central_moment_4[level] = new_M4 / number_samples_level
+        self.central_moment_1[level] = new_central_moment_1
+        self.central_moment_2[level] = new_central_moment_2
+        self.central_moment_3[level] = new_central_moment_3
+        self.central_moment_4[level] = new_central_moment_4
         self.number_samples[level] = number_samples_level
 
     """
@@ -354,8 +367,7 @@ class StatisticalVariable(object):
     input:  self:  an instance of the class
             level: defined level
     """
-    def ComputeSampleCentralMomentsFromScratch(self,level):
-        number_samples_level = self.number_samples[level]
+    def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
         curr_mean = self.mean[level]
         # initialize central moements
         central_moment_from_scratch_1 = 0.0

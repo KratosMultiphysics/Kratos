@@ -180,7 +180,6 @@ class MonteCarlo(object):
         # previous_number_samples : total number of samples of previous iteration
         self.previous_number_samples = [0 for _ in range (self.current_number_levels+1)]
         # batch_size : number of iterations of each epoch
-        # TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours
         self.batch_size = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
         # iteration counter
         self.iteration_counter = 0
@@ -213,7 +212,7 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def LaunchEpoch(self):
-        for instance in range (self.batch_size[self.current_level]):
+        for _ in range (self.batch_size[self.current_level]):
             self.AddResults(self.ExecuteInstance())
 
     """
@@ -340,7 +339,6 @@ class MonteCarlo(object):
     """
     function updating batch size
     input:  self: an instance of the class
-    TODO: for now batch_size = difference_number_samples, in future flags can be added to have different behaviours
     """
     def UpdateBatch(self):
         self.batch_size = copy.copy(self.difference_number_samples)

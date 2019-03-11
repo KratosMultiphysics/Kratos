@@ -9,7 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
-//
+//                   Philipp Bucher
 //
 
 // System includes
@@ -19,8 +19,60 @@
 // Project includes
 #include "processes/replace_elements_and_condition_process.h"
 
-namespace Kratos
+namespace Kratos {
+namespace {
+
+template <class TEntity, class TEntityContainer>
+void ReplaceEntities(const TEntity& rReferenceEntity,
+                     TEntityContainer& rEntityContainer)
 {
+    #pragma omp parallel for
+    for (int i=0; i<static_cast<int>(rEntityContainer.size()); ++i) {
+        auto it_entity = rEntityContainer.begin() + i;
+
+        auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), it_entity->pGetGeometry(), it_entity->pGetProperties());
+
+        // Deep copy data and flags
+        p_new_entity->Data() = it_entity->Data();
+        p_new_entity->Set(Flags(*it_entity));
+
+        (*it_entity.base()) = p_new_entity;
+    }
+}
+
+void UpdateSubModelPart(
+    ModelPart& rModelPart,
+    ModelPart& rRootModelPart,
+    const bool UpdateElements,
+    const bool UpdateConditions
+    )
+{
+    // Change the model part itself
+    if (UpdateElements) {
+        #pragma omp parallel for
+        for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
+            auto it_elem = rModelPart.ElementsBegin() + i;
+
+            (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
+        }
+    }
+
+    if (UpdateConditions) {
+        #pragma omp parallel for
+        for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+
+            (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
+        }
+    }
+
+    // Change the submodelparts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        UpdateSubModelPart(r_sub_model_part, rRootModelPart, UpdateElements, UpdateConditions);
+    }
+}
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -29,67 +81,21 @@ void ReplaceElementsAndConditionsProcess::Execute()
 {
     ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
 
-    const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
-    const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
+    const std::string element_name = mSettings["element_name"].GetString();
+    const std::string condition_name = mSettings["condition_name"].GetString();
 
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_root_model_part.Elements().size()); i++) {
-        auto it_elem = r_root_model_part.ElementsBegin() + i;
-
-        auto p_element = rReferenceElement.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
-
-        // Deep copy elemental data and flags
-        p_element->Data() = it_elem->Data();
-        p_element->Set(Flags(*it_elem));
-
-        (*it_elem.base()) = p_element;
+    if (element_name != "") {
+        ReplaceEntities(KratosComponents<Element>::Get(element_name), r_root_model_part.Elements());
     }
 
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_root_model_part.Conditions().size()); i++) {
-        auto it_cond = r_root_model_part.ConditionsBegin() + i;
-
-        auto p_condition = rReferenceCondition.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
-
-        // Deep copy elemental data and flags
-        p_condition->Data() = it_cond->Data();
-        p_condition->Set(Flags(*it_cond));
-
-        (*it_cond.base()) = p_condition;
+    if (condition_name != "") {
+        ReplaceEntities(KratosComponents<Condition>::Get(condition_name), r_root_model_part.Conditions());
     }
 
     // Change the submodelparts
-    for (auto& i_sub_model_part : r_root_model_part.SubModelParts()) {
-        UpdateSubModelPart( i_sub_model_part, r_root_model_part );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ReplaceElementsAndConditionsProcess::UpdateSubModelPart(
-    ModelPart& rModelPart,
-    ModelPart& rRootModelPart
-    )
-{
-    // Change the model part itself
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
-        auto it_elem = rModelPart.ElementsBegin() + i;
-
-        (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
-    }
-
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
-
-        (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
-    }
-
-    // Change the submodelparts
-    for (auto& i_sub_model_part : rModelPart.SubModelParts()) {
-        UpdateSubModelPart( i_sub_model_part, rRootModelPart );
+    for (auto& r_sub_model_part : r_root_model_part.SubModelParts()) {
+        UpdateSubModelPart(r_sub_model_part, r_root_model_part,
+                           element_name != "", condition_name != "");
     }
 }
 
