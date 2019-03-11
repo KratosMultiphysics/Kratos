@@ -346,18 +346,20 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance Inversion tolerance
      */
     static void GeneralizedInvertMatrix(
         const MatrixType& rInputMatrix,
         MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
@@ -392,9 +394,9 @@ public:
         )
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(rA);
         double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << rA << std::endl;
         rX = lu_factorization.solve(rB);
 #else
         const SizeType size1 = A.size1();
@@ -408,10 +410,11 @@ public:
     }
 
     /**
-     * @brief It inverts matrices of order 2, 3 and 4
+     * @brief It inverts matrices of order 1, 2, 3 and 4 (and general for not bounded matrices)
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance Inversion tolerance
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -421,12 +424,16 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
-        const SizeType size = rInputMatrix.size2();
+        const SizeType size = rInputMatrix.size1();
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != size || rInvertedMatrix.size2() != size) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != size || rInvertedMatrix.size2() != size)
+            rInvertedMatrix.resize(size, size, false);
+#endif // KRATOS_USE_AMATRIX
+        
         if(size == 1) {
-            if(rInvertedMatrix.size1() != 1 || rInvertedMatrix.size2() != 1) {
-                rInvertedMatrix.resize(1,1,false);
-            }
             rInvertedMatrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
         } else if (size == 2) {
@@ -436,13 +443,6 @@ public:
         } else if (size == 4) {
             InvertMatrix4(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
         } else if (std::is_same<TMatrix1, Matrix>::value) {
-
-            const SizeType size1 = rInputMatrix.size1();
-            const SizeType size2 = rInputMatrix.size2();
-            if(rInvertedMatrix.size1() != size1 || rInvertedMatrix.size2() != size2) {
-                rInvertedMatrix.resize(size1, size2,false);
-            }
-
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             Matrix temp(rInputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
@@ -450,7 +450,6 @@ public:
             KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
             rInvertedMatrix = lu_factorization.inverse();
 #else
-
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(rInputMatrix);
             pmatrix pm(A.size1());
@@ -493,9 +492,12 @@ public:
     {
         KRATOS_TRY;
 
-        if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
-            rInvertedMatrix.resize(2,2,false);
-        }
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2)
+            rInvertedMatrix.resize(2, 2, false);
+#endif // KRATOS_USE_AMATRIX
 
         rInputMatrixDet = rInputMatrix(0,0)*rInputMatrix(1,1)-rInputMatrix(0,1)*rInputMatrix(1,0);
 
@@ -524,9 +526,12 @@ public:
     {
         KRATOS_TRY;
 
-        if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
-            rInvertedMatrix.resize(3,3,false);
-        }
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+#else
+        if (rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3)
+            rInvertedMatrix.resize(3, 3, false);
+#endif // KRATOS_USE_AMATRIX
 
         // Filling the inverted matrix with the algebraic complements
         // First column
@@ -568,9 +573,12 @@ public:
     {
         KRATOS_TRY;
 
-        if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
+    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("InvertMatrix", rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) << "InvertMatrix has detected an incorrect size of your inverted matrix. Please resize before compute" << std::endl;
+    #else
+        if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4)
             rInvertedMatrix.resize(4, 4, false);
-        }
+    #endif // KRATOS_USE_AMATRIX
 
         /* Compute inverse of the Matrix */
         // First column
@@ -1574,150 +1582,45 @@ public:
      }
 
     /**
-     * @brief Calculates the product operation B'DB
-     * @param rA The resulting matrix
-     * @param rD The "center" matrix
-     * @param rB The matrices to be transposed
-     * @tparam TMatrixType1 The type of matrix considered (1)
-     * @tparam TMatrixType2 The type of matrix considered (2)
-     * @tparam TMatrixType3 The type of matrix considered (3)
-     */
-    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
-    static inline void BtDBProductOperation(
-        TMatrixType1& rA,
-        const TMatrixType2& rD,
-        const TMatrixType3& rB
-        )
-    {
-        // The sizes
-        const SizeType size1 = rB.size2();
-        const SizeType size2 = rB.size2();
-
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
-        if (rA.size1() != size1 || rA.size2() != size2)
-            rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
-
-        // Direct multiplication
-        // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
-        
-        // Manual multiplication
-        rA.clear();
-        for(IndexType k = 0; k< rD.size1(); ++k) {
-            for(IndexType l = 0; l < rD.size2(); ++l) {
-                const double Dkl = rD(k, l);
-                for(IndexType j = 0; j < rB.size2(); ++j) {
-                    const double DklBlj = Dkl * rB(l, j);
-                    for(IndexType i = 0; i< rB.size2(); ++i) {
-                        rA(i, j) += rB(k, i) * DklBlj;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @brief Calculates the product operation BDB'
-     * @param rA The resulting matrix
-     * @param rD The "center" matrix
-     * @param rB The matrices to be transposed
-     * @tparam TMatrixType1 The type of matrix considered (1)
-     * @tparam TMatrixType2 The type of matrix considered (2)
-     * @tparam TMatrixType3 The type of matrix considered (3)
-     */
-    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
-    static inline void BDBtProductOperation(
-        TMatrixType1& rA,
-        const TMatrixType2& rD,
-        const TMatrixType3& rB
-        )
-    {
-        // The sizes
-        const SizeType size1 = rB.size1();
-        const SizeType size2 = rB.size1();
-
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BDBtProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BDBtProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
-        if (rA.size1() != size1 || rA.size2() != size2)
-            rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
-
-        // Direct multiplication
-        // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
-        
-        // Manual multiplication
-        rA.clear();
-        for(IndexType k = 0; k< rD.size1(); ++k) {
-            for(IndexType l = 0; l < rD.size2(); ++l) {
-                const double Dkl = rD(k,l);
-                for(IndexType j = 0; j < rB.size1(); ++j) {
-                    const double DklBjl = Dkl * rB(j,l);
-                    for(IndexType i = 0; i< rB.size1(); ++i) {
-                        rA(i, j) += rB(i, k) * DklBjl;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @brief Calculates the eigenvectors and eigenvalues of given symmetric matrix
-     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is LDL'
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
      * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
-     * @param rA The given symmetric matrix the eigenvectors are to be calculated.
+     * @param A The given symmetric matrix the eigenvectors are to be calculated.
      * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
      * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
      * @param Tolerance The largest value considered to be zero
      * @param MaxIterations Maximum number of iterations
-     * @tparam TMatrixType1 The type of matrix considered (1)
-     * @tparam TMatrixType2 The type of matrix considered (2)
      */
-    template<class TMatrixType1, class TMatrixType2>
-    static inline bool GaussSeidelEigenSystem(
-        const TMatrixType1& rA,
-        TMatrixType2& rEigenVectorsMatrix,
-        TMatrixType2& rEigenValuesMatrix,
+    template<SizeType TDim>
+    static inline bool EigenSystem(
+        const BoundedMatrix<TDataType, TDim, TDim>& A,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
         const TDataType Tolerance = 1.0e-18,
         const SizeType MaxIterations = 20
         )
     {
         bool is_converged = false;
+        rEigenValuesMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<TDataType, TDim, TDim> temp_mat = A;
+        BoundedMatrix<TDataType, TDim, TDim> aux_A;
 
-        const SizeType size = rA.size1();
-
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("EigenSystem", rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenVectorsMatrix matrix. Please resize before compute" << std::endl;
-        KRATOS_WARNING_IF("EigenSystem", rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenValuesMatrix matrix. Please resize before compute" << std::endl;
-#else
-        if (rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size)
-            rEigenVectorsMatrix.resize(size, size, false);
-        if (rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size)
-            rEigenValuesMatrix.resize(size, size, false);
-#endif // KRATOS_USE_AMATRIX
-
-        const TMatrixType2 identity_matrix = IdentityMatrix(size);
-        noalias(rEigenVectorsMatrix) = identity_matrix;
-        noalias(rEigenValuesMatrix) = rA;
-
-        // Auxiliar values
-        TMatrixType2 aux_A, aux_V_matrix, rotation_matrix;
-        TDataType a, u, c, s, gamma, teta;
-        IndexType index1, index2;
+        const BoundedMatrix<TDataType, TDim, TDim> identity_matrix = IdentityMatrix(TDim);
+        BoundedMatrix<TDataType, TDim, TDim> V_matrix = identity_matrix;
+        BoundedMatrix<TDataType, TDim, TDim> aux_V_matrix;
+        BoundedMatrix<TDataType, TDim, TDim> rotation_matrix;
 
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
-            a = 0.0;
-            index1 = 0;
-            index2 = 1;
+            TDataType a = 0.0;
+            IndexType index1 = 0;
+            IndexType index2 = 1;
 
-            for(IndexType i = 0; i < size; ++i) {
-                for(IndexType j = (i + 1); j < size; ++j) {
-                    if((std::abs(rEigenValuesMatrix(i, j)) > a ) && (std::abs(rEigenValuesMatrix(i, j)) > Tolerance)) {
-                        a = std::abs(rEigenValuesMatrix(i,j));
+            for(IndexType i = 0; i < TDim; ++i) {
+                for(IndexType j = (i + 1); j < TDim; ++j) {
+                    if((std::abs(temp_mat(i, j)) > a ) && (std::abs(temp_mat(i, j)) > Tolerance)) {
+                        a = std::abs(temp_mat(i,j));
                         index1 = i;
                         index2 = j;
                         is_converged = false;
@@ -1730,8 +1633,8 @@ public:
             }
 
             // Calculation of Rotation angle
-            gamma = (rEigenValuesMatrix(index2, index2)-rEigenValuesMatrix(index1, index1)) / (2 * rEigenValuesMatrix(index1, index2));
-            u = 1.0;
+            const TDataType gamma = (temp_mat(index2, index2)-temp_mat(index1, index1)) / (2 * temp_mat(index1, index2));
+            TDataType u = 1.0;
 
             if(std::abs(gamma) > Tolerance && std::abs(gamma)< (1.0/Tolerance)) {
                 u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
@@ -1741,78 +1644,51 @@ public:
                 }
             }
 
-            c = 1.0 / (std::sqrt(1.0 + u * u));
-            s = c * u;
-            teta = s / (1.0 + c);
+            const TDataType c = 1.0 / (std::sqrt(1.0 + u * u));
+            const TDataType s = c * u;
+            const TDataType teta = s / (1.0 + c);
 
             // Rotation of the Matrix
-            noalias(aux_A) = rEigenValuesMatrix;
-            aux_A(index2, index2) = rEigenValuesMatrix(index2,index2) + u * rEigenValuesMatrix(index1, index2);
-            aux_A(index1, index1) = rEigenValuesMatrix(index1,index1) - u * rEigenValuesMatrix(index1, index2);
+            aux_A = temp_mat;
+            aux_A(index2, index2) = temp_mat(index2,index2) + u * temp_mat(index1, index2);
+            aux_A(index1, index1) = temp_mat(index1,index1) - u * temp_mat(index1, index2);
             aux_A(index1, index2) = 0.0;
             aux_A(index2, index1) = 0.0;
 
-            for(IndexType i = 0; i < size; ++i) {
+            for(IndexType i = 0; i < TDim; ++i) {
                 if((i!= index1) && (i!= index2)) {
-                    aux_A(index2, i) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
-                    aux_A(i, index2) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
-                    aux_A(index1, i) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
-                    aux_A(i, index1) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
+                    aux_A(index2, i) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
+                    aux_A(i, index2) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
+                    aux_A(index1, i) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
+                    aux_A(i, index1) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
                 }
             }
 
-            noalias(rEigenValuesMatrix) = aux_A;
+            temp_mat = aux_A;
 
             // Calculation of the eigeneigen vector matrix V
-            noalias(rotation_matrix) = identity_matrix;
+            rotation_matrix = identity_matrix;
             rotation_matrix(index2, index1) = -s;
             rotation_matrix(index1, index2) =  s;
             rotation_matrix(index1, index1) =  c;
             rotation_matrix(index2, index2) =  c;
 
-            noalias(aux_V_matrix) = ZeroMatrix(size, size);
+            aux_V_matrix = ZeroMatrix(TDim, TDim);
 
-            for(IndexType i = 0; i < size; ++i) {
-                for(IndexType j = 0; j < size; ++j) {
-                    for(IndexType k = 0; k < size; ++k) {
-                        aux_V_matrix(i, j) += rEigenVectorsMatrix(i, k) * rotation_matrix(k, j);
+            for(IndexType i = 0; i < TDim; ++i) {
+                for(IndexType j = 0; j < TDim; ++j) {
+                    for(IndexType k = 0; k < TDim; ++k) {
+                        aux_V_matrix(i, j) += V_matrix(i, k) * rotation_matrix(k, j);
                     }
                 }
             }
-            noalias(rEigenVectorsMatrix) = aux_V_matrix;
+            V_matrix = aux_V_matrix;
         }
 
         KRATOS_WARNING_IF("MathUtils::EigenSystem", !is_converged) << "Spectral decomposition not converged " << std::endl;
 
-        return is_converged;
-    }
-
-    /**
-     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
-     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is L'DL
-     * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
-     * @param A The given symmetric matrix the eigenvectors are to be calculated.
-     * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
-     * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
-     * @param Tolerance The largest value considered to be zero
-     * @param MaxIterations Maximum number of iterations
-     * @tparam TDim The size of the bounded matrix
-     * @warning This method is deprecated. Will be removed soon
-     */
-    template<SizeType TDim>
-    KRATOS_DEPRECATED_MESSAGE("Please use GaussSeidelEigenSystem() instead. Note the resulting EigenVectors matrix is transposed respect GaussSeidelEigenSystem()")
-    static inline bool EigenSystem(
-        const BoundedMatrix<TDataType, TDim, TDim>& rA,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
-        const TDataType Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20
-        )
-    {
-        const bool is_converged = GaussSeidelEigenSystem(rA, rEigenVectorsMatrix, rEigenValuesMatrix, Tolerance, MaxIterations);
-
-        const BoundedMatrix<TDataType, TDim, TDim> V_matrix = rEigenVectorsMatrix;
         for(IndexType i = 0; i < TDim; ++i) {
+            rEigenValuesMatrix(i, i) = temp_mat(i, i);
             for(IndexType j = 0; j < TDim; ++j) {
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
