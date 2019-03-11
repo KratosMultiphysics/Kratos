@@ -289,20 +289,18 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rReactionDofLabel == "REACTION_X")
-            return "DISPLACEMENT_X";
-        else if (rReactionDofLabel == "REACTION_Y")
-            return "DISPLACEMENT_Y";
-        else if (rReactionDofLabel == "REACTION_Z")
-            return "DISPLACEMENT_Z";
-        else if (rReactionDofLabel == "REACTION_MOMENT_X")
-            return "ROTATION_X";
-        else if (rReactionDofLabel == "REACTION_MOMENT_Y")
-            return "ROTATION_Y";
-        else if (rReactionDofLabel == "REACTION_MOMENT_Z")
-            return "ROTATION_Z";
-        else
-            KRATOS_ERROR << "Invalid reaction dof label!" << std::endl;
+        std::map<std::string, std::string> reaction_displacement_table;
+        reaction_displacement_table["REACTION_X"] = "DISPLACEMENT_X";
+        reaction_displacement_table["REACTION_Y"] = "DISPLACEMENT_Y";
+        reaction_displacement_table["REACTION_Z"] = "DISPLACEMENT_Z";
+        reaction_displacement_table["REACTION_MOMENT_X"] = "ROTATION_X";
+        reaction_displacement_table["REACTION_MOMENT_Y"] = "ROTATION_Y";
+        reaction_displacement_table["REACTION_MOMENT_Z"] = "ROTATION_Z";
+
+        auto it_table = reaction_displacement_table.find(rReactionDofLabel);
+        KRATOS_ERROR_IF(it_table == reaction_displacement_table.end()) << "Given reaction label is not valid!" << std::endl;
+
+        return it_table->second;
 
         KRATOS_CATCH("");
     }
