@@ -148,24 +148,24 @@ namespace Kratos
     void TimoshenkoBeamElement::CalculateSectionProperties()
     {
         KRATOS_TRY
-        
+
         unsigned int number_of_nodes = GetGeometry().size();
-        
+
         //std::cout << "CalculateSectionProperties is called" << std::endl;
         //**********************************************************************************
         //Initialization of auxiliary variables
-        //**********************************************************************************        
+        //**********************************************************************************
         array_1d<double, 3> x_0;    // Vector that contains coordinates of the node 0
         array_1d<double, 3> x_1;    // Vector that contains coordinates of the node 1
         array_1d<double, 3> length; // Vector that contains the direction of the beam
         //**********************************************************************************
         // Initializing area
         //**********************************************************************************
-        mArea = GetProperties()[AREA];   
+        mArea = GetProperties()[AREA];
         //**********************************************************************************
         // Initializing effective shear area for rectangular cross section
         //**********************************************************************************
-        mArea_y = GetProperties()[AREA_Y]; 
+        mArea_y = GetProperties()[AREA_Y];
         mArea_z = GetProperties()[AREA_Z];
         //**********************************************************************************
         // Calculating moments of inertia
@@ -182,7 +182,7 @@ namespace Kratos
         //        KRATOS_WATCH(mInertia_x)
         //        KRATOS_WATCH(mInertia_y)
         //        KRATOS_WATCH(mInertia_z)
-        
+
         if (number_of_nodes == 2)
         {
             x_0( 0 ) = GetGeometry()[0].X0();
@@ -191,7 +191,7 @@ namespace Kratos
             x_1( 0 ) = GetGeometry()[1].X0();
             x_1( 1 ) = GetGeometry()[1].Y0();
             x_1( 2 ) = GetGeometry()[1].Z0();
-        } 
+        }
         else if (number_of_nodes == 3)
         {
             x_0( 0 ) = GetGeometry()[0].X0();
@@ -262,7 +262,7 @@ namespace Kratos
 
     void TimoshenkoBeamElement::EquationIdVector(EquationIdVectorType& rResult,
             ProcessInfo& CurrentProcessInfo)
-    {    
+    {
         unsigned int number_of_nodes = GetGeometry().size();
         if (number_of_nodes == 2)
         {
@@ -434,16 +434,16 @@ namespace Kratos
             if(fabs(sine) < 1E-7) sine = 0.00;
             if(fabs(cosine) < 1E-7) cosine = 0.00;
 
-            Load[0]= Distr_load[0]*sine;   
-            Load[1]= Distr_load[0]*cosine;         
+            Load[0]= Distr_load[0]*sine;
+            Load[1]= Distr_load[0]*cosine;
 
-            Load_X[0]= Load[0]*mLength/2.00;     
-            Load_X[1]= -(Load[1]*mLength)/2.00;  
+            Load_X[0]= Load[0]*mLength/2.00;
+            Load_X[1]= -(Load[1]*mLength)/2.00;
             Load_X[2]= 0.00;
 
-            Load_X[3]= 0.00;                                                                                                      
-            Load_X[4]= 0.00;                                                                                                  
-            Load_X[5]= -(Load[1])*mLength*mLength/12.00;;                                        
+            Load_X[3]= 0.00;
+            Load_X[4]= 0.00;
+            Load_X[5]= -(Load[1])*mLength*mLength/12.00;;
             Load_X[6]= Load[0]*mLength/2.00;
             Load_X[7]= -(Load[1])*mLength/2.00;
             Load_X[8]= 0.00;
@@ -484,18 +484,18 @@ namespace Kratos
             if(fabs(sine) < 1E-7) sine = 0.00;
             if(fabs(cosine) < 1E-7) cosine = 0.00;
 
-            Load[0] = Distr_load[1]*sine;      
-            Load[1] = Distr_load[1]*cosine;          
+            Load[0] = Distr_load[1]*sine;
+            Load[1] = Distr_load[1]*cosine;
 
-            Load_Y[0] = -Load[0]*mLength/2.00;      
-            Load_Y[1] = -(Load[1]*mLength)/2.00;   
+            Load_Y[0] = -Load[0]*mLength/2.00;
+            Load_Y[1] = -(Load[1]*mLength)/2.00;
             Load_Y[2] = 0.00;
 
             Load_Y[3] = 0.00;
 
             Load_Y[4] = 0.00;
 
-            Load_Y[5] = -(Load[1])*mLength*mLength/12.00;                                        
+            Load_Y[5] = -(Load[1])*mLength*mLength/12.00;
             Load_Y[6] = -(Load[0])*mLength/2.00;
             Load_Y[7] = -(Load[1])*mLength/2.00;
             Load_Y[8] = 0.00;
@@ -539,14 +539,14 @@ namespace Kratos
             if(fabs(cosine) < 1E-7) cosine = 0.00;
 
 
-            Load[0]= Distr_load[2]*sine;  // load in axial direction      
-            Load[1]= Distr_load[2]*cosine; //       
+            Load[0]= Distr_load[2]*sine;  // load in axial direction
+            Load[1]= Distr_load[2]*cosine; //
 
-            Load_Z[0]= -Load[0]*mLength/2.00;      
+            Load_Z[0]= -Load[0]*mLength/2.00;
             Load_Z[1]= 0.00;
-            Load_Z[2]= -(Load[1]*mLength)/2.00;   
+            Load_Z[2]= -(Load[1]*mLength)/2.00;
             Load_Z[3]= 0.00;
-            Load_Z[4]= -Load[1]*mLength*mLength/12.00;        
+            Load_Z[4]= -Load[1]*mLength*mLength/12.00;
 
             Load_Z[5]= 0.00;
             Load_Z[6]= -Load[0]*mLength/2.00;
@@ -577,10 +577,10 @@ namespace Kratos
         Vector x_zero(6); // vector containing nodal coordinates
         Vector Vector_zero(3); // vector containing projections of lengths
 
-        noalias(Normal_zero) =    zero_vector<double>(9);
-        noalias(x_zero)      =    zero_vector<double>(6);
-        noalias(Vector_zero) =    zero_vector<double>(3);
-        noalias(Rotation)    =    zero_matrix<double>(6*number_of_nodes, 6*number_of_nodes);
+        noalias(Normal_zero) =    ZeroVector(9);
+        noalias(x_zero)      =    ZeroVector(6);
+        noalias(Vector_zero) =    ZeroVector(3);
+        noalias(Rotation)    =    ZeroMatrix(6*number_of_nodes, 6*number_of_nodes);
 
         double nx, ny, nz, theta;
 
@@ -624,7 +624,7 @@ namespace Kratos
             if (ny == 0.0)
             {
                 theta = 0.0;
-            }      
+            }
         }
         else
         {
@@ -674,7 +674,7 @@ namespace Kratos
         if(LocalMatrix.size1() != 6*number_of_nodes || LocalMatrix.size2() != 6*number_of_nodes)
         {
             LocalMatrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
-        }  
+        }
         noalias(LocalMatrix) = ZeroMatrix(6*number_of_nodes, 6*number_of_nodes);
 
         //Initialization of local stiffness matrix
@@ -696,7 +696,7 @@ namespace Kratos
 
         //Initialize local variables
         Matrix B( 6, mat_size );
-        Matrix C = zero_matrix<double>(6, 6);
+        Matrix C = ZeroMatrix(6, 6);
         C(0, 0) = EA;
         C(1, 1) = GAy;
         C(2, 2) = GAz;
@@ -740,7 +740,7 @@ namespace Kratos
             AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight, mDetJ0[PointNumber] );
 
             //contribution of internal forces
-            AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );            
+            AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );
              */
         }
 
@@ -766,7 +766,7 @@ namespace Kratos
             Matrix aux_matrix;
             Vector LocalBody;
             Vector CurrentDisplacement;
-            
+
 //            if (number_of_nodes==2){
 //                array_1d<double, 12> CurrentDisplacement;
 //            }
@@ -785,7 +785,7 @@ namespace Kratos
             CalculateLocalMatrix(LocalMatrix);
             CalculateTransformationMatrix(Rotation);
             noalias(aux_matrix) = prod(Rotation, LocalMatrix);
-            noalias(rLeftHandSideMatrix)= prod(aux_matrix, Matrix(trans(Rotation)));    
+            noalias(rLeftHandSideMatrix)= prod(aux_matrix, Matrix(trans(Rotation)));
 
             //Calculating RHS
             CalculateExternalLoadVector(Rotation, LocalBody, rRightHandSideVector);
@@ -807,8 +807,8 @@ namespace Kratos
             //std::cout << rLeftHandSideMatrix << std::endl;
 
             //KRATOS_WATCH(CurrentDisplacement)
-            //KRATOS_WATCH(rLeftHandSideMatrix)    
-            //KRATOS_WATCH(rRightHandSideVector)    
+            //KRATOS_WATCH(rLeftHandSideMatrix)
+            //KRATOS_WATCH(rRightHandSideVector)
             KRATOS_CATCH("")
         }
 
@@ -820,7 +820,7 @@ namespace Kratos
                 const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
                 noalias( B_Operator ) = ZeroMatrix( 6, 6*number_of_nodes );
-                
+
                 //TODO:check if right operators are called
 
                 for ( unsigned int i = 0; i < number_of_nodes; ++i )

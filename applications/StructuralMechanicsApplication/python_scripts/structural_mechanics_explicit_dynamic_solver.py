@@ -29,7 +29,8 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         {
             "scheme_type"                : "central_differences",
             "time_step_prediction_level" : 0,
-            "max_delta_time"             : 1.0e-5,
+            "delta_time_refresh"         : 1000,
+            "max_delta_time"             : 1.0e0,
             "fraction_delta_time"        : 0.9,
             "rayleigh_alpha"             : 0.0,
             "rayleigh_beta"              : 0.0
@@ -38,6 +39,9 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
+
+        # Delta time refresh counter
+        self.delta_time_refresh_counter = self.dynamic_settings["delta_time_refresh"].GetInt()
 
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
@@ -68,7 +72,11 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             
     def ComputeDeltaTime(self):
         if self.dynamic_settings["time_step_prediction_level"].GetInt() > 1:
-            self.delta_time = StructuralMechanicsApplication.CalculateDeltaTime(self.GetComputingModelPart(), self.delta_time_settings)
+            if self.delta_time_refresh_counter >= self.dynamic_settings["delta_time_refresh"].GetInt():
+                self.delta_time = StructuralMechanicsApplication.CalculateDeltaTime(self.GetComputingModelPart(), self.delta_time_settings)
+                self.delta_time_refresh_counter = 0
+            else:
+                self.delta_time_refresh_counter += 1
         return self.delta_time
 
     def Initialize(self):

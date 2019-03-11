@@ -20,7 +20,9 @@
 
 namespace Kratos
 {
-Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Parameters ThisParameters)
+namespace RayleighDampingCoefficientsUtilities
+{
+Vector ComputeDampingCoefficients(Parameters ThisParameters)
 {
     KRATOS_TRY
 
@@ -67,7 +69,8 @@ Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Paramete
 
             // We compute the inverse
             double det;
-            const BoundedMatrix<double, 2, 2> inverse_frequencies_matrix = MathUtils<double>::InvertMatrix<2>(frequencies_matrix, det);
+            BoundedMatrix<double, 2, 2> inverse_frequencies_matrix;
+            MathUtils<double>::InvertMatrix(frequencies_matrix, inverse_frequencies_matrix, det);
 
             // We can compute now
             const array_1d<double, 2> aux_solution = prod(inverse_frequencies_matrix, damping_ratios);
@@ -89,4 +92,5 @@ Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Paramete
 
     KRATOS_CATCH("")
 }
+} // namespace RayleighDampingCoefficientsUtilities
 } // namespace Kratos

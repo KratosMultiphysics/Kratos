@@ -11,12 +11,8 @@
 //
 //
 
-
-
 #if !defined(KRATOS_MODEL_PART_H_INCLUDED )
 #define  KRATOS_MODEL_PART_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,9 +20,7 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -260,8 +254,6 @@ public:
     */
     typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
 
-
-
     ///@}
     ///@name Flags
     ///@{
@@ -273,13 +265,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018")
-        ModelPart(std::string const& NewName, Model& rOwnerModel);
-
 
     /// Destructor.
     ~ModelPart() override;
-
 
     ///@}
     ///@name Operators
@@ -291,7 +279,6 @@ public:
     ///@}
     ///@name Solution Steps
     ///@{
-
 
     IndexType CreateSolutionStep();
 
@@ -365,7 +352,6 @@ public:
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
-
             }
         }
 
@@ -547,7 +533,6 @@ public:
         return mpVariablesList->DataSize() * mBufferSize;
     }
 
-
     ///@}
     ///@name Tables
     ///@{
@@ -612,7 +597,6 @@ public:
         return mTables.GetContainer();
     }
 
-
     ///@}
     ///@name MasterSlaveConstraints
     ///@{
@@ -651,8 +635,6 @@ public:
     {
         return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
-
-
 
     /** Inserts a master-slave constraint in the current modelpart.
      */
@@ -782,7 +764,6 @@ public:
     MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
     /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
     const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
-
 
     ///@}
     ///@name Properties
@@ -1160,7 +1141,6 @@ public:
         return GetMesh(ThisIndex).ElementsArray();
     }
 
-
     ///@}
     ///@name Conditions
     ///@{
@@ -1378,11 +1358,9 @@ public:
     ModelPart& GetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
-            return *i;
+        return *i;
     }
 
     /** Returns a shared pointer to the sub_model part with given string name
@@ -1391,9 +1369,7 @@ public:
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
 
         return (i.base()->second).get();
     }

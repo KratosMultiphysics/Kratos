@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-if kratos_utilities.IsApplicationAvailable("HDF5Application"):
+if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
     has_hdf5_application = True
 else:
     has_hdf5_application = False
