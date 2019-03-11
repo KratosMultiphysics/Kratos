@@ -817,8 +817,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
-    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
-    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    // Serial communication is only well defined for the trivial case.
+    int send_rank = 0;
+    int recv_rank = 0;
 
     std::vector<int> send_buffer = {world_rank, world_rank};
     std::vector<int> recv_buffer = {-1, -1};
@@ -827,23 +829,38 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<int> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-
-    if (send_rank == world_rank)
+    for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
-        for (int i = 0; i < 2; i++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
-        }
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
-    else
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
+        "Input error in call to DataCommunicator::SendRecv"
+    );
+    #endif
+
+    // remote calls are not supported
+    if (world_size > 2) {
+        send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+        recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
 }
 
@@ -854,33 +871,50 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
-    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
-    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
-    std::vector<double> recv_buffer{-1.0, -1.0};
+    // Serial communication is only well defined for the trivial case.
+    int send_rank = 0;
+    int recv_rank = 0;
+
+    std::vector<double> send_buffer = {2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer = {-1.0, -1.0};
 
     // two-buffer version
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
     // return version
     std::vector<double> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-
-    if (send_rank == world_rank)
+    for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
-        for (int i = 0; i < 2; i++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
-        }
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
-    else
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
+        "Input error in call to DataCommunicator::SendRecv"
+    );
+    #endif
+
+    // remote calls are not supported
+    if (world_size > 2) {
+        send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+        recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
 }
 
@@ -891,8 +925,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
-    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
-    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    // Serial communication is only well defined for the trivial case.
+    int send_rank = 0;
+    int recv_rank = 0;
 
     std::string send_buffer("Hello world!");
     // The output is only needed to be of the same size, I initialize it to check it later.
@@ -900,18 +936,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 
     // two-buffer version
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
-    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "************");
+    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "Hello world!");
 
     // return version
     std::string return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "Hello world!");
 
-    if (send_rank == world_rank)
-    {
-        KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
-    }
-    else
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+    #ifdef KRATOS_DEBUG
+    std::string wrong_size_recv("*");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.SendRecv(send_buffer, send_rank, 0, wrong_size_recv, recv_rank, 0),
+        "Input error in call to DataCommunicator::SendRecv"
+    );
+    #endif
+
+    // remote calls are not supported
+    if (world_size > 2) {
+        send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+        recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
 }
 
