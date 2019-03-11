@@ -46,10 +46,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     def __CustomInitializeSolutionStep(self, strain, boundary_mp, averaging_mp):
         #reset position
-        for node in averaging_mp.Nodes:
-            node.X = node.X0
-            node.Y = node.Y0
-            node.Z = node.Z0
+        KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(averaging_mp.Nodes)
 
         self.ApplyBoundaryConditions()  # here the processes are called
 
@@ -309,10 +306,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             self.OutputSolutionStep()
 
         # Reset position of nodes
-        for node in averaging_mp.Nodes:
-            node.X = node.X0
-            node.Y = node.Y0
-            node.Z = node.Z0
+        KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(averaging_mp.Nodes)
         zero = KratosMultiphysics.Vector(3)
         zero[0] = 0.0
         zero[1] = 0.0
