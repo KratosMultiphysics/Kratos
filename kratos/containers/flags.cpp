@@ -39,7 +39,7 @@ void Flags::Set(Flags ThisFlag)
 void Flags::Set(Flags ThisFlag, bool value)
 {
     mIsDefined |= ThisFlag.mIsDefined;
-    mFlags = (mFlags & ~ThisFlag.mIsDefined) | ThisFlag.mIsDefined * BlockType(value);
+    mFlags = (mFlags & ~ThisFlag.mIsDefined) | (ThisFlag.mIsDefined * BlockType(value));
 }
 
 bool operator==(const Flags& Left, const Flags& Right )
