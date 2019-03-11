@@ -24,6 +24,8 @@
 #include "custom_processes/initial_dem_skin_process.hpp"
 #include "custom_processes/extend_pressure_condition_process.h"
 #include "custom_processes/assign_pressure_id_process.h"
+#include "custom_processes/expand_wet_nodes_process.h"
+
 
 namespace Kratos
 {
@@ -64,6 +66,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<AssignPressureIdProcess, AssignPressureIdProcess::Pointer, Process>(m, "AssignPressureIdProcess")
 		.def(init<ModelPart &>())
 		.def("Execute", &AssignPressureIdProcess::Execute);
+
+	class_<ExpandWetNodesProcess, ExpandWetNodesProcess::Pointer, Process>(m, "ExpandWetNodesProcess")
+		.def(init<ModelPart &>())
+		.def("Execute", &ExpandWetNodesProcess::Execute);
 
 	// Normalized Free Energy extrapolation to Nodes
 	class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")

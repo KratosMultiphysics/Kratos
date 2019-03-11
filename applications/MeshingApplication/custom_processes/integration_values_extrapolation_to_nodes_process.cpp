@@ -346,28 +346,31 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // The process info
     const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
 
-    // The first iterator of elements
-    auto it_elem_begin = elements_array.begin();
-    auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
+    // First we check if the model part constains at least one element
+    if (elements_array.size() != 0) {
+        // The first iterator of elements
+        auto it_elem_begin = elements_array.begin();
+        auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
-    // Auxiliar values
-    const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
-    const SizeType integration_points_number = integration_points.size();
+        // Auxiliar values
+        const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
+        const SizeType integration_points_number = integration_points.size();
 
-    // We init the vector sizes
-    for ( const auto& i_var : mVectorVariable) {
-        std::vector<Vector> aux_result(integration_points_number);
-        it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-        mSizeVectors.insert({i_var, aux_result[0].size()});
-    }
+        // We init the vector sizes
+        for ( const auto& i_var : mVectorVariable) {
+            std::vector<Vector> aux_result(integration_points_number);
+            it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            mSizeVectors.insert({i_var, aux_result[0].size()});
+        }
 
-    // We init the matrix sizes
-    for ( const auto& i_var : mMatrixVariable) {
-        std::vector<Matrix> aux_result(integration_points_number);
-        it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-        std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
-        mSizeMatrixes.insert({i_var, aux_pair});
+        // We init the matrix sizes
+        for ( const auto& i_var : mMatrixVariable) {
+            std::vector<Matrix> aux_result(integration_points_number);
+            it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
+            mSizeMatrixes.insert({i_var, aux_pair});
+        }
     }
 }
 

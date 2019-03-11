@@ -28,7 +28,6 @@
 
 namespace Kratos
 {
-
 /**
  * @class GeometryUtils
  * @ingroup KratosCore

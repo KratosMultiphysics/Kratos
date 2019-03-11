@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-dependencies_are_available = KratosUtils.AreApplicationsAvailable(["StructuralMechanicsApplication", "FluidDynamicsApplication"])
+dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 if dependencies_are_available:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     import KratosMultiphysics.StructuralMechanicsApplication
@@ -18,11 +18,6 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def _prepare_test(self):
         # Define a Model
         self.current_model = KratosMultiphysics.Model()

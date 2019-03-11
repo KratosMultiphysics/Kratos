@@ -74,7 +74,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         pre_process = CSMA.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KM.Parameters("""{"simplify_geometry": false}""")
-        pre_process.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
+        pre_process.GenerateInterfacePart(self.contact_model_part, interface_parameters)
 
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:

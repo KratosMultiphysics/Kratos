@@ -242,8 +242,7 @@ namespace Testing {
 
 //     KRATOS_TEST_CASE_IN_SUITE(GeometryUtilsCalculateTetrahedraIntersectionPoints, KratosCoreFastSuite)
 //     {
-//         Tetrahedra3D4 <NodeType> tetrahedra = GenerateExampleTetrahedra();
-// 
+//         Tetrahedra3D4 <NodeType> tetrahedra = GenerateExampleTetrahedra()
 //         // Computing the info
 //         array_1d<double, 4> distances;
 //         distances[0] = 0.1;
@@ -330,6 +329,5 @@ namespace Testing {
             }
         }
     }
-
 }  // namespace Testing.
 }  // namespace Kratos.

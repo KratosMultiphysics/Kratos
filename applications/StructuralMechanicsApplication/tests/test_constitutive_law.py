@@ -286,7 +286,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
     def test_Isotropic_Damage_3D(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
-        deformation_test = DeformationLinearIsotropicDamage3D()
+        deformation_test = DeformationSmallStrainIsotropicDamage3D()
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
@@ -295,7 +295,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("test")
 
-        deformation_test = DeformationLinearIsotropicDamagePlaneStrain2D()
+        deformation_test = DeformationSmallStrainIsotropicDamagePlaneStrain2D()
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
@@ -638,7 +638,7 @@ class DeformationSmallStrainJ2PlasticityPlaneStrain2D(DeformationSmallStrainJ2Pl
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
-class DeformationLinearIsotropicDamage(Deformation):
+class DeformationSmallStrainIsotropicDamage(Deformation):
     def __init__(self):
         Deformation.__init__(self)
         self.nr_timesteps = 10
@@ -647,10 +647,10 @@ class DeformationLinearIsotropicDamage(Deformation):
         self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
         cl_params.SetStrainVector(self.strain)
 
-class DeformationLinearIsotropicDamage3D(DeformationLinearIsotropicDamage):
+class DeformationSmallStrainIsotropicDamage3D(DeformationSmallStrainIsotropicDamage):
     def __init__(self):
-        DeformationLinearIsotropicDamage.__init__(self)
-        self.cl = LinearIsotropicDamage3D()
+        DeformationSmallStrainIsotropicDamage.__init__(self)
+        self.cl = SmallStrainIsotropicDamage3D()
 
     def initialize_reference_stress(self, strain_size):
         self.initial_strain = KratosMultiphysics.Vector(strain_size)
@@ -679,10 +679,10 @@ class DeformationLinearIsotropicDamage3D(DeformationLinearIsotropicDamage):
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
-class DeformationLinearIsotropicDamagePlaneStrain2D(DeformationLinearIsotropicDamage):
+class DeformationSmallStrainIsotropicDamagePlaneStrain2D(DeformationSmallStrainIsotropicDamage):
     def __init__(self):
-        DeformationLinearIsotropicDamage.__init__(self)
-        self.cl = LinearIsotropicDamagePlaneStrain2D()
+        DeformationSmallStrainIsotropicDamage.__init__(self)
+        self.cl = SmallStrainIsotropicDamagePlaneStrain2D()
 
     def initialize_reference_stress(self, strain_size):
         self.initial_strain = KratosMultiphysics.Vector(strain_size)
@@ -709,10 +709,10 @@ class DeformationLinearIsotropicDamagePlaneStrain2D(DeformationLinearIsotropicDa
         return self.reference_stress[i]
 
 # todo -****************************
-class DeformationSmallStrainIsotropicPlasticity3D(DeformationLinearIsotropicDamage):
+class DeformationSmallStrainIsotropicPlasticity3D(DeformationSmallStrainIsotropicDamage):
     def __init__(self):
-        DeformationLinearIsotropicDamage.__init__(self)
-        self.cl = LinearIsotropicDamage3D()
+        DeformationSmallStrainIsotropicDamage.__init__(self)
+        self.cl = SmallStrainIsotropicDamage3D()
 
     def initialize_reference_stress(self, strain_size):
         self.initial_strain = KratosMultiphysics.Vector(strain_size)
@@ -848,7 +848,7 @@ class SmallStrainJ2PlasticityPlaneStrain2D(SmallStrainJ2Plasticity):
     def create_constitutive_Law():
         return StructuralMechanicsApplication.SmallStrainJ2PlasticityPlaneStrain2DLaw()
 
-class LinearIsotropicDamage(LinearElastic):
+class SmallStrainIsotropicDamage(LinearElastic):
     def __init__(self):
         self.young_modulus = 3000
         self.poisson_ratio = 0.3
@@ -863,23 +863,23 @@ class LinearIsotropicDamage(LinearElastic):
         properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
         return properties
 
-class LinearIsotropicDamage3D(LinearIsotropicDamage):
+class SmallStrainIsotropicDamage3D(SmallStrainIsotropicDamage):
     def __init__(self):
-        LinearIsotropicDamage.__init__(self)
+        SmallStrainIsotropicDamage.__init__(self)
         self.dim = 3
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.LinearIsotropicDamage3DLaw()
+        return StructuralMechanicsApplication.SmallStrainIsotropicDamage3DLaw()
 
-class LinearIsotropicDamagePlaneStrain2D(LinearIsotropicDamage):
+class SmallStrainIsotropicDamagePlaneStrain2D(SmallStrainIsotropicDamage):
     def __init__(self):
-        LinearIsotropicDamage.__init__(self)
+        SmallStrainIsotropicDamage.__init__(self)
         self.dim = 2
 
     @staticmethod
     def create_constitutive_Law():
-        return StructuralMechanicsApplication.LinearIsotropicDamagePlaneStrain2DLaw()
+        return StructuralMechanicsApplication.SmallStrainIsotropicDamagePlaneStrain2DLaw()
 
 if __name__ == '__main__':
     KratosUnittest.main()
