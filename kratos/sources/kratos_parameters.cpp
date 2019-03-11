@@ -1016,7 +1016,7 @@ void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
     KRATOS_TRY
 
     this->ValidateDefaults(rDefaultParameters);
-    this->AssignDefaults(rDefaultParameters);
+    this->AddMissingParameters(rDefaultParameters);
 
     KRATOS_CATCH("")
 }
@@ -1069,7 +1069,7 @@ void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
     KRATOS_CATCH("")
 }
 
-void Parameters::AssignDefaults(const Parameters& rDefaultParameters)
+void Parameters::AddMissingParameters(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
 
@@ -1094,7 +1094,7 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
     KRATOS_TRY
 
     this->RecursivelyValidateDefaults(rDefaultParameters);
-    this->RecursivelyAssignDefaults(rDefaultParameters);
+    this->RecursivelyAddMissingParameters(rDefaultParameters);
 
     KRATOS_CATCH("")
 }
@@ -1151,7 +1151,7 @@ void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameter
     KRATOS_CATCH("")
 }
 
-void Parameters::RecursivelyAssignDefaults(const Parameters& rDefaultParameters)
+void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
 
@@ -1169,7 +1169,7 @@ void Parameters::RecursivelyAssignDefaults(const Parameters& rDefaultParameters)
                 Parameters subobject = (*this)[r_item_name];
                 Parameters defaults_subobject = rDefaultParameters[r_item_name];
 
-                subobject.RecursivelyAssignDefaults(defaults_subobject);
+                subobject.RecursivelyAddMissingParameters(defaults_subobject);
             }
         }
     }

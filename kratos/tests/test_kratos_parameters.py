@@ -360,23 +360,23 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
 
-    def test_assign_defaults(self):
+    def test_add_missing_parameters(self):
         # only missing parameters are added, no complaints if there already exist more than in the defaults
         kp = Parameters(json_string)
         tmp = Parameters(incomplete_with_extra_parameter)
 
-        kp.AssignDefaults(tmp)
+        kp.AddMissingParameters(tmp)
 
         self.assertEqual(kp["new_default_obj"]["aaa"].GetString(), "string")
         self.assertEqual(kp["string_value"].GetString(), "hello")
         self.assertFalse(kp["level1"].Has("new_sublevel"))
 
-    def test_recursively_assign_defaults(self):
+    def test_recursively_add_missing_parameters(self):
         # only missing parameters are added, no complaints if there already exist more than in the defaults
         kp = Parameters(json_string)
         tmp = Parameters(incomplete_with_extra_parameter)
 
-        kp.RecursivelyAssignDefaults(tmp)
+        kp.RecursivelyAddMissingParameters(tmp)
 
         self.assertTrue(kp["level1"].Has("new_sublevel"))
         self.assertEqual(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive")

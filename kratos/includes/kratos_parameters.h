@@ -747,7 +747,7 @@ public:
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check
      */
-    void AssignDefaults(const Parameters& rDefaultParameters);
+    void AddMissingParameters(const Parameters& rDefaultParameters);
 
     /**
      * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters.
@@ -755,7 +755,7 @@ public:
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
      */
-    void RecursivelyAssignDefaults(const Parameters& rDefaultParameters);
+    void RecursivelyAddMissingParameters(const Parameters& rDefaultParameters);
 
     /**
      * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
