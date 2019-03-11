@@ -25,8 +25,8 @@ if __name__ == '__main__':
     # customize setting parameters of the MC simulation"""
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
-        "tolerance" : 0.1,
-        "cphi" : 5e-1,
+        "tolerance"  : 0.1,
+        "confidence" : 5e-1,
         "batch_size" : 20,
         "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
     }
@@ -48,13 +48,12 @@ if __name__ == '__main__':
     # customize setting parameters of the MLMC simulation
     settings_MLMC_simulation = KratosMultiphysics.Parameters("""
     {
-        "tol0"                            : 0.25,
-        "tolF"                            : 0.1,
-        "cphi"                            : 1.0,
-        "number_samples_screening"        : 25,
-        "Lscreening"                      : 2,
-        "Lmax"                            : 4,
-        "initial_mesh_size"               : 0.5
+        "initial_tolerance"             : 0.25,
+        "tolerance"                     : 0.1,
+        "confidence"                    : 1.0,
+        "number_samples_screening"      : 25,
+        "levels_screening"              : 2,
+        "initial_mesh_size"             : 0.5
     }
     """)
     # customize setting parameters of the metric of the adaptive refinement utility

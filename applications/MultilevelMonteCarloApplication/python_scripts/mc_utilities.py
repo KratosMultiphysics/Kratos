@@ -17,8 +17,8 @@ from statistical_variable_utilities import StatisticalVariable
 # Import random variable generator
 import generator_utilities as generator
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 """
@@ -160,13 +160,13 @@ class MonteCarlo(object):
             raise Exception ("Please provide the path of the project parameters json file")
         # default settings of the Monte Carlo algorithm
         # tolerance:            tolerance
-        # cphi:                 confidence on tolerance
+        # confidence:                 confidence on tolerance
         # batch_size:           number of samples per batch size
         # convergence_criteria: convergence criteria to get if convergence is achieved
         default_settings = KratosMultiphysics.Parameters("""
         {
             "tolerance" : 1e-1,
-            "cphi" : 1e-1,
+            "confidence" : 1e-1,
             "batch_size" : 50,
             "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
         }
@@ -311,10 +311,10 @@ class MonteCarlo(object):
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         current_h4 = self.QoI.h_statistics_4[level]
         current_tol = self.settings["tolerance"].GetDouble()
-        current_delta = self.settings["cphi"].GetDouble()
+        current_conf = self.settings["confidence"].GetDouble()
         convergence_criteria = self.convergence_criteria
         convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
-            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria)
+            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_conf,convergence_criteria)
         self.convergence = convergence_boolean
 
     """
