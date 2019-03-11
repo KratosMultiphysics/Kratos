@@ -8,7 +8,6 @@ from __future__ import print_function, absolute_import, division
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # ==============================================================================
 # Import the tests or test_classes to create the suits
