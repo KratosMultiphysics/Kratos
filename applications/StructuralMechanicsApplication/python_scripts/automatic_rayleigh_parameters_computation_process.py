@@ -178,7 +178,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
                     "number_of_eigenvalues"      : 2,
                     "search_dimension"           : 15,
                     "linear_solver_settings": {
-                        "solver_type": "SkylineLUComplexSolver"
+                        "solver_type": "skyline_lu_complex"
                     }
                 }
             }

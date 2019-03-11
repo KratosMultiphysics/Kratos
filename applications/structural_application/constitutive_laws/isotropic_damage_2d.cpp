@@ -381,8 +381,8 @@ void Isotropic_Damage_2D::CalculateCauchyStresses(
 
     double J = MathUtils<double>::Det2( rF );
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> mstemp;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> msaux;
+    BoundedMatrix<double, 2, 2> mstemp;
+    BoundedMatrix<double, 2, 2> msaux;
 //   Matrix ConstitutiveMatrixAux(3,3);
 //   Vector StrainVectorPerturbation(3);
 //   Vector StressVectorPerturbation(3);
@@ -472,8 +472,8 @@ void Isotropic_Damage_2D::CalculateStressAndTangentMatrix(
     double last_damage       =  md_new;
     double last_r            =  mr_new;
 
-    /*   boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-       boost::numeric::ublas::bounded_matrix<double,2,2> msaux;*/
+    /*   BoundedMatrix<double,2,2> mstemp;
+       BoundedMatrix<double,2,2> msaux;*/
     Matrix ConstitutiveMatrixAux( 3, 3 );
     Vector StrainVectorPerturbation( 3 );
     Vector StressVectorPerturbation( 3 );
