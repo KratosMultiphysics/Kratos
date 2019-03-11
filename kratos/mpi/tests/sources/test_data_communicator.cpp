@@ -124,6 +124,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Sum(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Sum"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuite)
@@ -157,6 +165,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Sum(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Sum"
+    );
+    #endif
 }
 
 // Min ////////////////////////////////////////////////////////////////////////
@@ -246,6 +262,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Min(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Min"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuite)
@@ -279,6 +303,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Min(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Min"
+    );
+    #endif
 }
 
 // Max ////////////////////////////////////////////////////////////////////////
@@ -368,6 +400,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Max(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Max"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuite)
@@ -401,6 +441,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuit
             KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Max(local, wrong_size_global, root),
+        "Input error in call to DataCommunicator::Max"
+    );
+    #endif
 }
 
 // SumAll /////////////////////////////////////////////////////////////////////
@@ -459,6 +507,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosMPICoreFastSuit
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.SumAll(local, wrong_size_global),
+        "Input error in call to DataCommunicator::SumAll"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastSuite)
@@ -482,6 +538,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllDoubleVector, KratosMPICoreFastS
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.SumAll(local, wrong_size_global),
+        "Input error in call to DataCommunicator::SumAll"
+    );
+    #endif
 }
 
 // MinAll /////////////////////////////////////////////////////////////////////
@@ -540,6 +604,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosMPICoreFastSuit
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.MinAll(local, wrong_size_global),
+        "Input error in call to DataCommunicator::MinAll"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastSuite)
@@ -563,6 +635,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllDoubleVector, KratosMPICoreFastS
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.MinAll(local, wrong_size_global),
+        "Input error in call to DataCommunicator::MinAll"
+    );
+    #endif
 }
 
 // MaxAll /////////////////////////////////////////////////////////////////////
@@ -687,6 +767,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSui
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.ScanSum(local, wrong_size_global),
+        "Input error in call to DataCommunicator::ScanSum"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFastSuite)
@@ -710,6 +798,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFast
     {
         KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_global{-1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.ScanSum(local, wrong_size_global),
+        "Input error in call to DataCommunicator::ScanSum"
+    );
+    #endif
 }
 
 // SendRecv ///////////////////////////////////////////////////////////////////
