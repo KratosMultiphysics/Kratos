@@ -237,15 +237,15 @@ class MultilevelMonteCarlo(object):
             self.to_pickle_custom_metric_remesh_refinement_parameters = True
             self.custom_remesh_refinement_parameters = custom_settings_remesh_refinement
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
-        # tol0: tolerance iter 0
-        # tolF: tolerance final
-        # cphi: confidence on tolerance
+        # initial_tolerance: tolerance iter 0
+        # tolerance: tolerance final
+        # confidence: confidence on tolerance
         # number_samples_screening: number of samples for screening phase
-        # L0: number of levels for screening phase
-        # Lmax: maximum number of levels
+        # number_levels_screening: number of levels for screening phase
+        # maximum_number_levels: maximum number of levels
         # mesh_refinement_coefficient: coefficient of mesh refinement
         # initial_mesh_size: size of coarsest/initial mesh
-        # minimum_add_level: minimum number of samples to add if at least one is going to be added
+        # minimum_samples_add: minimum number of samples to add if at least one is going to be added
         # k0: certainty Parameter 0 rates (confidence in the variance models)
         # k1: certainty Parameter 1 rates (confidence in the weak convergence model)
         # r1: cost increase first iterations CMLMC
@@ -256,15 +256,15 @@ class MultilevelMonteCarlo(object):
             "k1" : 0.1,
             "r1" : 1.25,
             "r2" : 1.15,
-            "tol0" : 0.25,
-            "tolF" : 0.1,
-            "cphi" : 1.0,
+            "initial_tolerance" : 0.25,
+            "tolerance" : 0.1,
+            "confidence" : 1.0,
             "number_samples_screening" : 25,
-            "Lscreening" : 2,
-            "Lmax" : 4,
+            "levels_screening" : 2,
+            "maximum_number_levels" : 4,
             "mesh_refinement_coefficient" : 2,
             "initial_mesh_size" : 0.5,
-            "minimum_add_level" : 6.0,
+            "minimum_samples_add_level" : 6.0,
             "splitting_parameter_max" : 0.9,
             "splitting_parameter_min" : 0.1
         }
@@ -276,15 +276,15 @@ class MultilevelMonteCarlo(object):
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # current_number_levels: number of levels of current iteration
-        self.current_number_levels = self.settings["Lscreening"].GetInt()
+        self.current_number_levels = self.settings["levels_screening"].GetInt()
         # previous_number_levels: number of levels of previous iteration
         self.previous_number_levels = None
         # current_level: current level of work
         self.current_level = 0
         # number_samples: total number of samples of current iteration
-        self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
         # difference_number_samples: difference between number of samples of current and previous iterations
-        self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
         # previous_number_samples: total number of samples of previous iteration
         self.previous_number_samples = None
         # rates_error: dictionary containing the values of the parameters
@@ -322,11 +322,11 @@ class MultilevelMonteCarlo(object):
         # difference_QoI: Quantity of Interest of the considered problem organized per levels
         #                 difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1
         self.difference_QoI = StatisticalVariable(self.current_number_levels)
-        self.difference_QoI.values = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
+        self.difference_QoI.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         self.difference_QoI.type = "scalar"
         # time_ML: time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels
         self.time_ML = StatisticalVariable(self.current_number_levels)
-        self.time_ML.values = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
+        self.time_ML.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)] # list containing the time to compute the level=l simulations
 
         ########################################################################
         # observation: levels start from level 0                               #
@@ -499,18 +499,18 @@ class MultilevelMonteCarlo(object):
     """
     def FinalizeScreeningPhase(self):
         # prepare lists
-        self.difference_QoI.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.central_moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.central_moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.central_moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.central_moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.central_moment_1 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.central_moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.central_moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.central_moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.mean = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.sample_variance = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.central_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.central_moment_3 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.central_moment_4 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.mean = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.sample_variance = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.central_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.central_moment_3 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.central_moment_4 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         # compute mean, sample variance and second moment for difference QoI and time ML
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.number_samples[level]):
@@ -709,7 +709,7 @@ class MultilevelMonteCarlo(object):
     def ComputeMeshParameters(self):
         h0 = self.settings["initial_mesh_size"].GetDouble()
         M  = self.settings["mesh_refinement_coefficient"].GetInt()
-        for level in range(self.settings["Lmax"].GetInt()+1):
+        for level in range(self.settings["maximum_number_levels"].GetInt()+1):
             h_current_level = h0 * M**(-level)
             mesh_parameter_current_level = h_current_level**(-1)
             self.mesh_sizes.append(h_current_level)
@@ -799,8 +799,8 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeNumberIterationsMLMC(self):
-        tolF = self.settings["tolF"].GetDouble()
-        tol0 = self.settings["tol0"].GetDouble()
+        tolF = self.settings["tolerance"].GetDouble()
+        tol0 = self.settings["initial_tolerance"].GetDouble()
         r2 = self.settings["r2"].GetDouble()
         r1 = self.settings["r1"].GetDouble()
         self.number_iterations_iE = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
@@ -810,7 +810,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeTolerancei(self):
-        tol0 = self.settings["tol0"].GetDouble()
+        tol0 = self.settings["initial_tolerance"].GetDouble()
         r1 = self.settings["r1"].GetDouble()
         current_iter = self.current_iteration
         tol = tol0 / (r1**(current_iter))
@@ -828,9 +828,9 @@ class MultilevelMonteCarlo(object):
         gamma  = self.rates_error["gamma"]
         calpha = self.rates_error["calpha"]
         alpha = self.rates_error["alpha"]
-        cphi = self.settings["cphi"].GetDouble()
+        cphi = self.settings["confidence"].GetDouble()
         mesh_parameters_all_levels = self.mesh_parameters
-        Lmax = self.settings["Lmax"].GetInt()
+        Lmax = self.settings["maximum_number_levels"].GetInt()
         Lmin = self.current_number_levels
         if len(self.bayesian_variance) < (Lmax+1):
             self.EstimateBayesianVariance(Lmax)
@@ -888,10 +888,10 @@ class MultilevelMonteCarlo(object):
     def ComputeNumberSamples(self):
         current_number_levels = self.current_number_levels
         bayesian_variance = self.bayesian_variance
-        min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_add_level"].GetDouble())
+        min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_samples_add_level"].GetDouble())
         cgamma = self.rates_error["cgamma"]
         gamma  = self.rates_error["gamma"]
-        cphi = self.settings["cphi"].GetDouble()
+        cphi = self.settings["confidence"].GetDouble()
         mesh_parameters_current_levels = self.mesh_parameters[0:current_number_levels+1]
         theta = self.theta_i
         tol = self.tolerance_i
@@ -956,7 +956,7 @@ class MultilevelMonteCarlo(object):
         variance_from_bayesian = np.zeros(np.size(self.number_samples))
         for lev in range(self.current_number_levels+1):
             variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
-        self.difference_QoI.statistical_error = self.settings["cphi"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
+        self.difference_QoI.statistical_error = self.settings["confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
         total_error = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
         self.total_error = total_error
 
