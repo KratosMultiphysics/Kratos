@@ -253,7 +253,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
         CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        CalculateEquivalentStressThreshold( rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
+        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
         CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
         CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator, rBackStressVector, rValues);
         

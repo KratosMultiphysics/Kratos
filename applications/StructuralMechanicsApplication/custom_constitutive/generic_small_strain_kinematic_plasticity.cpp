@@ -117,6 +117,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         // Kinematic back stress substracted
         predictive_stress_vector -= back_stress_vector;
+        KRATOS_WATCH(back_stress_vector)
 
 		const double threshold_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -137,6 +138,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length, back_stress_vector,
                 previous_stress_vector);
+
+            //KRATOS_WATCH(predictive_stress_vector)
+            //KRATOS_WATCH(back_stress_vector)
 
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
@@ -245,17 +249,12 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+	Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
-    }
-
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
 
     // We get some variables
