@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -129,58 +130,6 @@ namespace Kratos {
         ///@}
         ///@name Operations
         ///@{
-
-        /**
-         * @brief This method sets manually the scale factors of the BB
-         * @param NewScaleFactor The scalar factors to be set
-         */
-        void SetScaleFactor(const double*  NewScaleFactor)
-        {
-            for(int i = 0 ; i < DIMENSION ; i++) {
-                mScaleFactor[i] = NewScaleFactor[i];
-            }
-        }
-
-        /**
-         * @brief This method sets manually the offsets of the BB
-         * @param NewOffset The offsets to be set
-         */
-        void SetOffset(const double*  NewOffset)
-        {
-            for(int i = 0 ; i < DIMENSION ; i++) {
-                mOffset[i] = NewOffset[i];
-            }
-        }
-
-        /**
-         * @brief This method gets the scale factors of the BB
-         * @return The scalar factors of the octree
-         */
-        double* GetScaleFactor() const
-        {
-            double* scale_factor = new double[DIMENSION];
-
-            for(int i = 0 ; i < DIMENSION ; i++) {
-                scale_factor[i] = mScaleFactor[i];
-            }
-
-            return scale_factor;
-        }
-
-        /**
-         * @brief This method gets the offsets of the BB
-         * @return The offsets of the octree
-         */
-        double* GetOffset() const
-        {
-            double* offset = new double[DIMENSION];
-
-            for(int i = 0 ; i < DIMENSION ; i++) {
-                offset[i] = mOffset[i];
-            }
-
-            return offset;
-        }
 
         void SetBoundingBox(const coordinate_type * Low, const coordinate_type * High)
         {
