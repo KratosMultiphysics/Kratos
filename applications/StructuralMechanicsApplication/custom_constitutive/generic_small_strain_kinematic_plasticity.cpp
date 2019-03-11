@@ -333,6 +333,8 @@ bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const V
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         return true;
+    } else if (rThisVariable == BACK_STRESS_VECTOR) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -345,7 +347,14 @@ bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const V
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
 {
-    return BaseType::Has(rThisVariable);
+    if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
+        return true;
+    } else if (rThisVariable == BACK_STRESS_TENSOR) {
+        return true;
+    } else {
+        return BaseType::Has(rThisVariable);
+    }
+    return false;
 }
 
 /***********************************************************************************/
@@ -413,6 +422,8 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mPlasticStrain;
+    } else if (rThisVariable == BACK_STRESS_VECTOR) {
+        rValue = mBackStressVector;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -431,7 +442,7 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
         rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
     } else if (rThisVariable == BACK_STRESS_TENSOR) {
-
+        rValue = MathUtils<double>::StressVectorToTensor(mBackStressVector);
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -451,7 +462,6 @@ double& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
     if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
         const Vector& r_stress_vector = rParameterValues.GetStressVector();
         TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
-
         return rValue;
     } else {
         return this->GetValue(rThisVariable, rValue);
@@ -501,13 +511,9 @@ int GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Check(
     )
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
-
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-    
     if ((check_base + check_integrator) > 0) return 1;
-
     return 0;
 }
 
