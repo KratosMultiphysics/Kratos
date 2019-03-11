@@ -8,8 +8,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 from KratosMultiphysics.StructuralMechanicsApplication.rve_analysis import RVEAnalysis
 
-import os
-
 class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
