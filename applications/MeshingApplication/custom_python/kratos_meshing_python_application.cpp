@@ -55,6 +55,8 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     //for ULF (surface_tension) application:
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SUBSCALE_INDEX)
 }
 
 }  // namespace Python.
@@ -62,6 +64,3 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined
-
-
-
