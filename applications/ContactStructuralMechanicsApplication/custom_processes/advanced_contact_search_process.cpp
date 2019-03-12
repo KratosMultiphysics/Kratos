@@ -16,13 +16,13 @@
 // Project includes
 #include "utilities/variable_utils.h"
 #include "custom_utilities/contact_utilities.h"
-#include "custom_utilities/advanced_contact_search.h"
+#include "custom_processes/advanced_contact_search_process.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::AdvancedContactSearch(
+AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AdvancedContactSearchProcess(
     ModelPart & rMainModelPart,
     Parameters ThisParameters
     ) : BaseType(rMainModelPart, ThisParameters)
@@ -33,7 +33,7 @@ AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::AdvancedContactSearch(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
     )
@@ -62,7 +62,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInactiveNodes()
 {
     // We get the process info
     const ProcessInfo& r_process_info = BaseType::mrMainModelPart.GetProcessInfo();
@@ -157,7 +157,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveInact
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeLinearRegressionGapPressure(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLinearRegressionGapPressure(
     double& a,
     double& b
     )
@@ -237,7 +237,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeLinearRegre
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithRegression(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithRegression(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -296,7 +296,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithR
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectScalarMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectScalarMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -309,7 +309,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectScalarMorta
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectComponentsMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectComponentsMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -322,7 +322,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectComponentsM
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -372,7 +372,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFriction
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessComponentsMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessComponentsMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -424,7 +424,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFriction
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionalMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionalMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -443,7 +443,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFriction
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictScalarMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictScalarMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -456,7 +456,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictScalarMorta
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictComponentsMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictComponentsMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -469,7 +469,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictComponentsM
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -504,7 +504,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFriction
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessComponentsMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessComponentsMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -541,7 +541,7 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFriction
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionalMortarLM(
+void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionalMortarLM(
     typename NodesArrayType::iterator ItNode,
     const double a,
     const double b
@@ -559,10 +559,10 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::PredictALMFriction
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AdvancedContactSearch<2, 2>;
-template class AdvancedContactSearch<3, 3>;
-template class AdvancedContactSearch<3, 4>;
-template class AdvancedContactSearch<3, 3, 4>;
-template class AdvancedContactSearch<3, 4, 3>;
+template class AdvancedContactSearchProcess<2, 2>;
+template class AdvancedContactSearchProcess<3, 3>;
+template class AdvancedContactSearchProcess<3, 4>;
+template class AdvancedContactSearchProcess<3, 3, 4>;
+template class AdvancedContactSearchProcess<3, 4, 3>;
 
 }  // namespace Kratos.

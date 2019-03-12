@@ -104,7 +104,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         self.model_part_controller.Initialize()
         self.model_part_controller.SetMinimalBufferSize(2)
-        self.model_part_controller.ComputeUnitSurfaceNormals()
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
@@ -151,6 +150,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         # Specify bead direction
         bead_direction = self.algorithm_settings["bead_direction"].GetVector()
         if len(bead_direction) == 0:
+            self.model_part_controller.ComputeUnitSurfaceNormals()
             for node in self.design_surface.Nodes:
                 normalized_normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
                 node.SetValue(BEAD_DIRECTION,normalized_normal)

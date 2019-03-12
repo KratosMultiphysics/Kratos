@@ -941,6 +941,7 @@ class FEMDEM_Solution:
             elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
             elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
             elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
+            elem.SetValue(KratosFemDem.IS_SKIN, 0)
             elem.SetValue(KratosFemDem.SMOOTHING, 0)
             elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
             elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
