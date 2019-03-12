@@ -132,6 +132,22 @@ namespace Kratos
 			const Variable<Matrix>& rThisVariable,
 			Matrix& rValue) override;
 
+		/**
+			* @brief Sets the value of a specified variable (double)
+			* @param rVariable the variable to be returned
+			* @param rValue new value of the specified variable
+			* @param rCurrentProcessInfo the process info
+			*/
+		virtual	void SetValue(
+			Variable<double>& rVariable,
+			const Variable<double>& rValue,
+			const ProcessInfo& rCurrentProcessInfo);
+
+		/**
+		 * @brief method helps knowing the node ID for diagnostic reasons
+		 */
+		void Diagnose();
+
 		void InitializeMaterial(
 			const Properties& rMaterialProperties,
 			const GeometryType& rElementGeometry,
@@ -277,6 +293,11 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 
+		/** @brief diagnostic parameters
+		 * @details parameters are only used for diagnostic reasons
+		 */
+		enum diagnostic_enum {elem1 = 1, elem2 = 2} m_diagnose;
+
 		/** @brief general material parameters
 		 * @ m_elastic_uniaxial_compressive_strength...elastic limit uniaxial compressive strength (unequal to compressive strength)
 		 * @ m_elastic_biaxial_compressive_strength...elastic limit biaxial compressive strength (unequal to compressive strength)
@@ -284,6 +305,7 @@ namespace Kratos
 		double m_elastic_uniaxial_compressive_strength, m_tensile_strength, m_elastic_biaxial_compressive_strength, m_E, m_nu, m_Gf;
 		
 		Matrix m_D0;
+		Matrix m_D;
 		
 		Vector m_elastic_strain;
 		Vector m_plastic_strain;
@@ -297,7 +319,7 @@ namespace Kratos
 		/** @brief distinction between three proposals for the damage surface
 		 * @detail 1=ORIGINAL, 2=COMPDYN/proposal A, 3=HOMOGENEOUS/proposal B
 		 */
-		int usedEquivalentEffectiveStressDefinition;
+		int m_used_equivalent_effective_stress_definition;
 
 		/** @brief damage variables
 		 * @ m_damage_compression...negative damage variable
@@ -330,9 +352,18 @@ namespace Kratos
 		///@{
 
 		/**
-		 * @brief This method is the core of the constitutive law implementation which orders the single methods
+		 * @brief This method computes the stress vector and passes the stiffness matrix for each Gauss point
 		 */
 		void CalculateMaterialResponseInternal(
+			const Vector& rStrainVector,
+			Vector& rStressVector,
+			Matrix& rConstitutiveLaw);
+
+		/**
+		 * @brief This method is the core of the constitutive law implementation 
+		 * which computes the damage variables and the stiffness matrix of the damaged system
+		 */
+		void FinalizeMaterialResponseInternal(
 			const Vector& rStrainVector,
 			Vector& rStressVector,
 			Matrix& rConstitutiveLaw);

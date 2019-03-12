@@ -475,6 +475,13 @@ bool ConstitutiveLaw::IsIncremental()
 }
 
 /**
+ * @brief method helps knowing the node ID for diagnostic reasons		 
+ */
+void ConstitutiveLaw::Diagnose()
+{
+}
+
+/**
  * This is to be called at the very beginning of the calculation
  * (e.g. from InitializeElement) in order to initialize all relevant
  * attributes of the constitutive law
