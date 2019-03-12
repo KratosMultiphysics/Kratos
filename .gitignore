@@ -1,6 +1,10 @@
 # Recovery files
 *~
 
+# Build
+build/*
+build.cmd
+
 # Compiled python
 *.pyc
 
@@ -74,3 +78,4 @@ applications/python_scripts/beam_profiles\.csv
 
 # .vs folder
 .vs/*
+.vscode/*
