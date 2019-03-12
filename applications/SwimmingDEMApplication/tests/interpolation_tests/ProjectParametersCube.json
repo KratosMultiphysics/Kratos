@@ -156,7 +156,7 @@
 "problem_name" : "cube",
 
 "processes" : {
-    "auxiliar_process_list": [        {
+    "check_interpolated_fluid_velocity": [        {
         "python_module"   : "check_vector_components_to_nodes_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
@@ -166,8 +166,8 @@
             "model_part_name"      : "SpheresPart",
             "variable_name"        : "FLUID_VEL_PROJECTED",
             "interval"             : [0.1, 1e30],
-            "value"                : ["x*t", "y*t", "z*t"],
-            "tolerance_rank"       : 6,
+            "value"                : ["0.1* x*t", "0.2 * y*t", "0.3 * z*t"],
+            "tolerance_rank"       : 12,
             "reference_conf"       : false,
             "local_axes"           : {}
         }

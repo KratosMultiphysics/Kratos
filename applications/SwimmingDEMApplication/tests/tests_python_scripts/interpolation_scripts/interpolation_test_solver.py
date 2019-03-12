@@ -12,9 +12,16 @@ class InterpolationTestSolver(BaseSolver):
                                                       fluid_solver,
                                                       dem_solver,
                                                       variables_manager)
-        self.vx = 1.0
-        self.vy = 1.0
-        self.vz = 1.0
+
+    def ReturnExactVelocity(self, t, x, y, z):
+        interpolate_process_data = self.project_parameters['processes']['check_interpolated_fluid_velocity'][0]
+        interpolate_process_parameters = interpolate_process_data['Parameters']
+        field_def = [entry.GetString() for entry in interpolate_process_parameters['value']]
+        field = [eval(field_def[0]),
+                 eval(field_def[1]),
+                 eval(field_def[2])]
+
+        return Vector(field)
 
     def CannotIgnoreFluidNow(self):
         return self.calculating_fluid_in_current_step
@@ -22,11 +29,7 @@ class InterpolationTestSolver(BaseSolver):
     def SolveFluidSolutionStep(self):
 
         for node in self.fluid_solver.main_model_part.Nodes:
-            velocity = Vector(3)
-            velocity[0] = self.vx * node.X
-            velocity[1] = self.vy * node.Y
-            velocity[2] = self.vz * node.Z
-            velocity *= self.next_time_to_solve_fluid
+            velocity = self.ReturnExactVelocity(self.next_time_to_solve_fluid, node.X, node.Y, node.Z)
             node.SetSolutionStepValue(VELOCITY, velocity)
 
     def SolveDEM(self):
