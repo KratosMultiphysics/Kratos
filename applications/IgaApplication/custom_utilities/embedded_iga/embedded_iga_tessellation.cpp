@@ -90,7 +90,7 @@ void EmbeddedIgaTessellation::CreateTessellation2D(
 
             const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
 
-            tessellation->Compute(curve_on_surface, 1e-2);
+            tessellation->Compute(curve_on_surface, 1e-3);
 
 
             // polygon vector needs to be resized to the current number of points + the new points

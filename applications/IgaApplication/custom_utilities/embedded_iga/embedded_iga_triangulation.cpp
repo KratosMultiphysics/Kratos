@@ -151,20 +151,22 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     
 
     float max_area;
-    const auto ele_tolerance = 1; 
+    const auto ele_tolerance = 0.1; 
     std::vector<Matrix> triangulation_uv; 
-    for (int it = 1; it < 2; it++)
+    for (int it = 1; it < 20; it++)
     {
+        std::cout << "Iteration " << it << std::endl; 
+
         InitTriangulationDataStructure(out_data); 
         InitTriangulationDataStructure(vor_out_data); 
 
-        // max_area = 10.0/it;
-        // char buf[100];
-        // gcvt(max_area, 6, buf);    
-        // char trigenOpts[10] = "QDpza";
-        // strcat(trigenOpts, buf); 
+        max_area = 10.0/it;
+        char buf[100];
+        gcvt(max_area, 6, buf);    
+        char trigenOpts[10] = "QDpza";
+        strcat(trigenOpts, buf); 
 
-        char trigenOpts[10] = "qpza0.1";
+        // char trigenOpts[10] = "Dpza0.1";
 
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
         triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
@@ -191,6 +193,9 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         EmbeddedIgaErrorEstimation::GetError(
             gauss_points_exact_xyz, gauss_points_approx_xyz, error);
         
+        auto max_error = *std::max_element(std::begin(error), std::end(error));
+        KRATOS_WATCH(max_error)
+
         auto tolerance = false; 
         for (unsigned int i = 0; i < error.size(); ++i)
         {
@@ -200,7 +205,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
                 break; 
             }
         }
-
         
         CleanTriangulationDataStructure(out_data); 
         CleanTriangulationDataStructure(vor_out_data); 
