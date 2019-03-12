@@ -29,7 +29,12 @@ namespace Kratos
 
         void GiDIOSearchDebug(ModelPart& rModelPart)
         {
-            GidIO<> gid_io("TEST_SEARCH_PROCESS", GiD_PostAscii, SingleFile, WriteUndeformed,  WriteConditions);
+            // Activating
+            for (auto& r_cond : rModelPart.Conditions()) {
+                r_cond.Set(ACTIVE);
+            }
+
+            GidIO<> gid_io("TEST_SEARCH_PROCESS", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
 
