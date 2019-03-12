@@ -184,11 +184,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment, threshold_indicator;
 
+        const Vector& r_previous_back_stress = rBackStressVector;
+
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-            //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
+
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
@@ -199,6 +201,16 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
+
+            // std::cout << "*********************" << std::endl;
+            // KRATOS_WATCH(iteration)
+            // // KRATOS_WATCH(rPlasticDenominator)
+            // KRATOS_WATCH(rUniaxialStress)
+            // KRATOS_WATCH(rThreshold)
+            // KRATOS_WATCH(rBackStressVector)
+            // KRATOS_WATCH(rPlasticStrainIncrement)
+            // // KRATOS_WATCH(rPlasticStrain)
+            // std::cout << "*********************" << std::endl;
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -296,7 +308,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rPreviousStressVector,
         const Vector& rPlasticStrainIncrement,
-        Vector& rBackStressVector
+        Vector& rBackStressVector,
         )
     {
         const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
@@ -333,7 +345,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                     rBackStressVector += (2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
                 } else {
                     const Vector& delta_stress = rPredictiveStressVector - rPreviousStressVector;
-                    rBackStressVector += ((2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) +
+                    rBackStressVector += rConvergedBackStress + ((2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) +
                                          r_kinematic_parameters[2] * delta_stress) / denominator;
                 }
                 break;

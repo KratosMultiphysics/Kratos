@@ -117,7 +117,6 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         // Kinematic back stress substracted
         predictive_stress_vector -= back_stress_vector;
-        KRATOS_WATCH(back_stress_vector)
 
 		const double threshold_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -138,9 +137,6 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length, back_stress_vector,
                 previous_stress_vector);
-
-            //KRATOS_WATCH(predictive_stress_vector)
-            //KRATOS_WATCH(back_stress_vector)
 
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
