@@ -13,14 +13,11 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
     def __init__(self, name, custom_settings):
         super(DummyCoSimulationSolver, self).__init__(name, custom_settings)
         self.name = name
-        cs_tools.PrintInfo("########################### constructor of", self.name)
         self.dummy_model_part = self.model.CreateModelPart('dummy_model_part')
         for variable_name in self.data_list.keys():
             if(not data_structure.KratosGlobals.HasVariable(variable_name)):
                 self.variable_obj = data_structure.Array1DVariable3(variable_name)
                 self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
-                cs_tools.PrintInfo("###################", variable_name, " ########## :: ", self.variable_obj)
-                cs_tools.PrintInfo("###################", data_structure.KratosGlobals.HasVariable(variable_name))
             else:
                 self.variable_obj = data_structure.KratosGlobals.GetVariable(variable_name)
                 self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
@@ -35,7 +32,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_list.keys():
                 data_obj = data_structure.KratosGlobals.GetVariable(data_name)
-                node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
+                node.SetSolutionStepValue(data_structure.MESH_DISPLACEMENT, 0,  [data+random.uniform(0,0.99) for data in data_value])
 
     def PrintInfo(self):
         #cs_tools.PrintInfo( self.data_list.keys() )
@@ -54,7 +51,12 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_list.keys():
                 data_obj = data_structure.KratosGlobals.GetVariable(data_name)
-                node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
+                node.SetSolutionStepValue(data_name, 0, [data+random.uniform(0,0.99) for data in data_value])
+
+        for node in self.dummy_model_part.Nodes:
+            for data_name in self.data_list.keys():
+                data_obj = data_structure.KratosGlobals.GetVariable(data_name)
+
     def Check(self):
         cs_tools.PrintInfo(cs_tools.bcolors.GREEN+"Check from dummy co simulation solver", "CHECKED !"+cs_tools.bcolors.ENDC)
 
