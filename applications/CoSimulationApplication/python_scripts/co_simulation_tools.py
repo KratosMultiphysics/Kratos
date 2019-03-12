@@ -118,3 +118,20 @@ def PrintInfo(label, *args):
 #  @param args          The arguments to be printed
 def PrintWarning(label, *args):
     print(label, " ".join(map(str,args)))
+
+
+
+## Class CoSimulationData: Class to hold different properties of the data field contributed in
+#                           CoSimulation.
+#
+class CoSimulationData(object):
+    def __init__(self):
+        self.name = None
+        self.variable = None
+        self.filters = []
+        self.dimension = 0
+        self.location_on_mesh = None
+        self.mesh_name = ""
+
+
+
