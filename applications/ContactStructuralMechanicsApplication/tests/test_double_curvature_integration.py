@@ -79,18 +79,15 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
             "search_factor"               : 3.5,
             "allocation_size"             : 1000,
             "check_gap"                   : "NoCheck",
-            "type_search"                 : "InRadius"
+            "type_search"                 : "InRadius",
+            "simple_search"               : false
         }
         """)
-        if (num_nodes == 3):
-            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D3N(self.main_model_part, search_parameters)
-        else:
-            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D4N(self.main_model_part, search_parameters)
+        contact_search = ContactStructuralMechanicsApplication.ContactSearchProcess(self.main_model_part, search_parameters)
 
         # We initialize the search utility
-        contact_search.CreatePointListMortar()
-        contact_search.InitializeMortarConditions()
-        contact_search.UpdateMortarConditions()
+        contact_search.ExecuteInitialize()
+        contact_search.ExecuteInitializeSolutionStep()
 
         if (num_nodes == 3):
             ## DEBUG
