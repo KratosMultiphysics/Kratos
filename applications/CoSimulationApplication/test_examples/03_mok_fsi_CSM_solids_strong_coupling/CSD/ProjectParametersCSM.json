@@ -4,7 +4,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.01,
+        "time_step"       : 0.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 1
@@ -26,9 +26,9 @@
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 1e-7,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 1e-7,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 15,
+        "residual_relative_tolerance"        : 1e-8,
+        "residual_absolute_tolerance"        : 1e-10,
+        "max_iteration"                      : 20,
         "problem_domain_sub_model_part_list" : ["Parts_Structure"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","GENERIC_FSI","PointLoad2D_FSI"],
         "rotation_dofs"                      : false

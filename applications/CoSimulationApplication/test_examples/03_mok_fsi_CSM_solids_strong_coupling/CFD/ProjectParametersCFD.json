@@ -50,11 +50,11 @@
             "compute_reactions"           : true,
             "dynamic_tau"                 : 1.0,
             "oss_switch"                  : 0,
-            "maximum_iterations"          : 10,
-            "relative_velocity_tolerance" : 1e-5,
-            "absolute_velocity_tolerance" : 1e-5,
-            "relative_pressure_tolerance" : 1e-5,
-            "absolute_pressure_tolerance" : 1e-5,
+            "maximum_iterations"          : 20,
+            "relative_velocity_tolerance" : 1e-8,
+            "absolute_velocity_tolerance" : 1e-10,
+            "relative_pressure_tolerance" : 1e-8,
+            "absolute_pressure_tolerance" : 1e-10,
             "linear_solver_settings"      : {
                 "solver_type"         : "BICGSTABSolver",
                 "max_iteration"       : 200,
@@ -67,7 +67,7 @@
             "no_skin_parts"               : [],
             "time_stepping"               : {
                 "automatic_time_step" : false,
-                "time_step"           : 0.01
+                "time_step"           : 0.1
             }
         }
     },
@@ -81,7 +81,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "AutomaticInlet2D_Inlet",
             "variable_name"   : "VELOCITY",
-            "modulus"         : "4*0.06067*y*(1-y)",
+            "modulus"         : "2*0.06067*(1-cos(pi*t/10))*y*(1-y)",
             "constrained"     : true,
             "direction"       : "automatic_inwards_normal",
             "interval"        : [0.0,10.0]
