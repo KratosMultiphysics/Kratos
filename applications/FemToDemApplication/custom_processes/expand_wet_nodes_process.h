@@ -42,6 +42,15 @@ class ExpandWetNodesProcess : public Process
 {
 
 public:
+
+    typedef Node <3> NodeType;
+    typedef Properties PropertiesType;
+    typedef Element ElementType;
+    typedef Condition ConditionType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef PointerVector<MeshType> MeshesContainerType;
+    typedef MeshType::ElementIterator ElementIterator;
+
     /// Pointer definition of ExpandWetNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(ExpandWetNodesProcess);
 
@@ -56,12 +65,12 @@ public:
     void Execute() override;
 
     bool ElementHasWetNodes(
-        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ElementIterator itElem,
         int& rPressureId,
         int& rNumberOfWetNodes);
 
     void ExpandWetNodes(
-        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ElementIterator itElem,
         const int PressureId);
 
     void ExpandWetNodesIfTheyAreSkin();

@@ -38,7 +38,7 @@ void ExpandWetNodesProcess::Execute()
             bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
             bool condition_is_active = true;
             if (it_elem->IsDefined(ACTIVE)) {
-                condition_is_active = (*it_elem)->Is(ACTIVE);
+                condition_is_active = it_elem->Is(ACTIVE);
             }
             int number_of_wet_nodes;
             bool has_wet_nodes = this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes);
@@ -63,14 +63,14 @@ void ExpandWetNodesProcess::Execute()
 /***********************************************************************************/
 
 bool ExpandWetNodesProcess::ElementHasWetNodes(
-    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    ElementIterator itElem,
     int& rPressureId,
     int& rNumberOfWetNodes
     )
 {
     rNumberOfWetNodes = 0;
     bool auxiliar = false;
-    auto& r_geometry = (*itElem)->GetGeometry();
+    auto& r_geometry = itElem->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
         if (pressure_id != 0) {
@@ -86,11 +86,11 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
 /***********************************************************************************/
 
 void ExpandWetNodesProcess::ExpandWetNodes(
-    ModelPart::ElementsContainerType::ptr_iterator itElem,
+	ElementIterator itElem,
     const int PressureId
     )
 {
-    auto& r_geometry = (*itElem)->GetGeometry();
+    auto& r_geometry = itElem->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         r_geometry[i].SetValue(PRESSURE_ID, PressureId);
     }
@@ -148,19 +148,19 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
             auto& r_process_info = mrModelPart.GetProcessInfo();
 
             if (this->ElementHasWetNodes(it_elem, node_pressure_id, number_of_wet_nodes) && !element_done) {
-                // Loop over the nodes
-                for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-                    auto& r_node = r_geometry[i];
-                    const int reference_pressure_id = node_pressure_id;
-                    node_pressure_id = r_node.GetValue(PRESSURE_ID);
+               // Loop over the nodes
+               for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                   auto& r_node = r_geometry[i];
+                   const int reference_pressure_id = node_pressure_id;
+                   node_pressure_id = r_node.GetValue(PRESSURE_ID);
 
-                    if (node_pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
-                        r_node.SetValue(PRESSURE_ID, reference_pressure_id);
-                        expanded_elements++;
-                        it_elem->SetValue(PRESSURE_EXPANDED, true);
-                        r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
-                    }
-                }
+                   if (node_pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
+                       r_node.SetValue(PRESSURE_ID, reference_pressure_id);
+                       expanded_elements++;
+                       it_elem->SetValue(PRESSURE_EXPANDED, true);
+                       r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
+                   }
+               }
             }
         }
     }
