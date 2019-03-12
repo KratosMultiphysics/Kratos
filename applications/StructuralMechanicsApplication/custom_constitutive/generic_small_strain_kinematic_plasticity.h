@@ -106,14 +106,9 @@ public:
         mPlasticDissipation(rOther.mPlasticDissipation),
         mThreshold(rOther.mThreshold),
         mPlasticStrain(rOther.mPlasticStrain),
-        mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
-        mNonConvThreshold(rOther.mNonConvThreshold),
-        mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
         mUniaxialStress(rOther.mUniaxialStress),
         mPreviousStressVector(rOther.mPreviousStressVector),
-        mBackStressVector(rOther.mBackStressVector),
-        mNonConvergedBackStressVector(rOther.mNonConvergedBackStressVector),
-        mNonConvergedPreviousStressVector(rOther.mNonConvergedPreviousStressVector)
+        mBackStressVector(rOther.mBackStressVector)
     {
     }
 
@@ -372,28 +367,15 @@ protected:
     double& GetPlasticDissipation() { return mPlasticDissipation; }
     Vector& GetPlasticStrain() { return mPlasticStrain; }
 
-    double& GetNonConvThreshold() { return mNonConvThreshold; }
-    double& GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
-    Vector& GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
-
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
-    void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
-    void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
-    void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
-
     void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
     Vector& GetBackStressVector() { return mBackStressVector; }
-    Vector& GetNonConvergedBackStressVector() { return mNonConvergedBackStressVector; }
-    void SetNonConvergedBackStressVector(const Vector& toBack) {mNonConvergedBackStressVector = toBack; }
-
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
-    void SetNonConvergedPreviousStressVector (const Vector& toBS) {mNonConvergedPreviousStressVector = toBS; }
-    Vector GetNonConvergedPreviousStressVector() { return mNonConvergedPreviousStressVector;}
 
     ///@}
     ///@name Protected Operations
@@ -425,19 +407,12 @@ protected:
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 
-    // Non Converged values
-    double mNonConvPlasticDissipation = 0.0;
-    double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
-
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
 
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
     Vector mBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedPreviousStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -475,13 +450,8 @@ protected:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
-        rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.save("NonConvThreshold", mNonConvThreshold);
-        rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
         rSerializer.save("PreviousStressVector", mPreviousStressVector);
         rSerializer.save("BackStressVector", mBackStressVector);
-        rSerializer.save("NonConvergedBackStressVector", mNonConvergedBackStressVector);
-        rSerializer.save("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -490,13 +460,8 @@ protected:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
-        rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.load("NonConvThreshold", mNonConvThreshold);
-        rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
         rSerializer.load("PreviousStressVector", mPreviousStressVector);
         rSerializer.load("BackStressVector", mBackStressVector);
-        rSerializer.load("NonConvergedBackStressVector", mNonConvergedBackStressVector);
-        rSerializer.load("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
     }
 
     ///@}

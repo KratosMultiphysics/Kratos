@@ -15,13 +15,13 @@
 
 // Project includes
 #include "utilities/variable_utils.h"
-#include "custom_utilities/simple_contact_search.h"
+#include "custom_processes/simple_contact_search_process.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-SimpleContactSearch<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearch(
+SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearchProcess(
     ModelPart & rMainModelPart,
     Parameters ThisParameters
     ) : BaseType(rMainModelPart, ThisParameters)
@@ -32,7 +32,7 @@ SimpleContactSearch<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearch(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void SimpleContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
+void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     typename NodesArrayType::iterator ItNode,
     const double CommonEpsilon,
     const double ScaleFactor
@@ -72,10 +72,10 @@ void SimpleContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SimpleContactSearch<2, 2>;
-template class SimpleContactSearch<3, 3>;
-template class SimpleContactSearch<3, 4>;
-template class SimpleContactSearch<3, 3, 4>;
-template class SimpleContactSearch<3, 4, 3>;
+template class SimpleContactSearchProcess<2, 2>;
+template class SimpleContactSearchProcess<3, 3>;
+template class SimpleContactSearchProcess<3, 4>;
+template class SimpleContactSearchProcess<3, 3, 4>;
+template class SimpleContactSearchProcess<3, 4, 3>;
 
 }  // namespace Kratos.
