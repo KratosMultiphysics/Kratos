@@ -28,7 +28,7 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         self.problem_dir_name = problem_dir_name
 
         with open(os.path.join(problem_dir_name, parameter_file_name + '_parameters.json'), 'r') as parameter_file:
-            self.cosim_parameters = json.load(parameter_file)
+            self.cosim_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         # # To avoid many prints
         # echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
