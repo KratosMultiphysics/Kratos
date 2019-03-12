@@ -347,6 +347,8 @@ bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const V
         return true;
     } else if (rThisVariable == BACK_STRESS_TENSOR) {
         return true;
+    } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -439,6 +441,8 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
         rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
     } else if (rThisVariable == BACK_STRESS_TENSOR) {
         rValue = MathUtils<double>::StressVectorToTensor(mBackStressVector);
+    } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+        rValue = MathUtils<double>::StressVectorToTensor(mPreviousStressVector);
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
