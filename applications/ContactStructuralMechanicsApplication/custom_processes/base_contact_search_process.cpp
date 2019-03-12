@@ -459,6 +459,10 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
     if (type_search != SearchTreeType::OtreeWithOBB) {
         SearchUsingKDTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
     } else { // Using octree
+        // We create the submodelparts for master and slave
+        SetOriginDestinationModelParts(r_sub_contact_model_part);
+
+        // We actually compute the search
         SearchUsingOcTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
     }
 
@@ -467,7 +471,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         NotPredefinedMasterSlave(r_sub_contact_model_part);
 
     // We create the submodelparts for master and slave
-    SetOriginDestinationModelParts(r_sub_contact_model_part);
+    if (type_search != SearchTreeType::OtreeWithOBB) {
+        SetOriginDestinationModelParts(r_sub_contact_model_part);
+    }
 
     // We map the Coordinates to the slave side from the master
     if (mCheckGap == CheckGap::MappingCheck) {
