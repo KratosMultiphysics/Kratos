@@ -2,6 +2,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
+# Import applications
+#import KratosMultiphysics.IgaApplication as IgaApplication
+#import KratosMultiphysics.IgaApplication.iga_static_solver
+
+
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
@@ -10,6 +15,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if (parallelism == "OpenMP"):
         if (solver_type == "static"):
             solver_module_name = "iga_static_solver"
+        elif (solver_type == "formfinding"):
+            solver_module_name = "iga_formfinding_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\""
@@ -23,8 +30,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     solver_settings.RemoveValue("solver_type")
     solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    #solver_module_name = 'iga_static_solver'
+    module_full = 'KratosMultiphysics.IgaApplication.' + solver_module_name
+    solver = __import__(module_full,fromlist=[solver_module_name]).CreateSolver(model, solver_settings)
 
     return solver
 

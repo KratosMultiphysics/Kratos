@@ -106,6 +106,7 @@ namespace Kratos
             mNodeSurfaceGeometry3D->DegreeV(),
             rShapeFunctionDerivativesOrder);
 
+
         for (int i = 0; i < spans_u.size(); ++i)
         {
             for (int j = 0; j < spans_v.size(); ++j)
@@ -197,6 +198,34 @@ namespace Kratos
         }
     }
 
+    TrimmedSurfaceClipping BrepFace::GetSurfaceClipper(
+        const double& rAccuracy,
+        const double& unit)
+    {
+        auto clipper = TrimmedSurfaceClipping(0.01, 0.0001);
+
+        clipper.Clear();
+
+        for (int l = 0; l < mTrimmingLoops.size(); ++l)
+        {
+            clipper.BeginLoop();
+
+            auto trimming_curves = mTrimmingLoops[l].GetTrimmingCurves();
+            for (int t = 0; t < trimming_curves.size(); ++t)
+            {
+                auto crv = (trimming_curves[t].GetCurve2D());
+                clipper.AddCurve(*crv);
+            }
+
+            clipper.EndLoop();
+        }
+
+        clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
+
+        std::cout << "asdas" << clipper.NbSpansU() << std::endl;
+        return clipper;
+    }
+
     void BrepFace::GetGeometryIntegrationTrimmed(
         ModelPart& rModelPart,
         const std::string& rType,
@@ -204,7 +233,7 @@ namespace Kratos
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables) const
     {
-        auto clipper = TrimmedSurfaceClipping(0.000001, 0.00000001);
+        auto clipper = TrimmedSurfaceClipping(0.01, 0.0001);
 
         clipper.Clear();
 
@@ -229,6 +258,8 @@ namespace Kratos
 
         int degree = std::max(degree_u, degree_v) + 1;
 
+        std::cout << "clipper.NbSpansU(): " << clipper.NbSpansU() << std::endl;
+        std::cout << "clipper.NbSpansV(): " << clipper.NbSpansV() << std::endl;
         for (int i = 0; i < clipper.NbSpansU(); ++i)
         {
             for (int j = 0; j < clipper.NbSpansU(); ++j)
@@ -245,13 +276,15 @@ namespace Kratos
                         clipper.SpanU(i),
                         clipper.SpanV(j));
 
-                    CreateIntegrationElementsConditions(integration_points, rModelPart, rType, rName,
+                    CreateIntegrationElementsConditions(
+                        integration_points, rModelPart, rType, rName,
                         rShapeFunctionDerivativesOrder, rVariables);
 
                     continue;
                 }
                 if (clipper.SpanTrimType(i, j) == ANurbs::Trimmed)
                 {
+                    std::cout << "timmed part" << std::endl;
                     auto polygons = clipper.SpanPolygons(i, j);
 
                     for (int p = 0; p < polygons.size(); ++p)
@@ -402,7 +435,7 @@ namespace Kratos
             shape.Compute(
                 mNodeSurfaceGeometry3D->KnotsU(),
                 mNodeSurfaceGeometry3D->KnotsV(),
-                //mNodeSurfaceGeometry3D->Weights(),
+                mNodeSurfaceGeometry3D->Weights(),
                 rIntegrationPoints[k].u,
                 rIntegrationPoints[k].v);
 

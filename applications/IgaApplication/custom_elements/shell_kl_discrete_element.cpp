@@ -66,7 +66,7 @@ namespace Kratos
 
         //KRATOS_WATCH(N)
         //KRATOS_WATCH(DN_De)
-        //    KRATOS_WATCH(DDN_DDe)
+        //KRATOS_WATCH(DDN_DDe)
 
 
         MetricVariables actual_metric(3);
@@ -91,7 +91,7 @@ namespace Kratos
             second_variations_curvature,
             actual_metric);
 
-        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA * GetProperties()[THICKNESS];
+        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA; // *GetProperties()[THICKNESS];
 
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
@@ -412,15 +412,29 @@ namespace Kratos
         //metric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
 
         metric.T = ZeroMatrix(3, 3);
-        metric.T(0, 0) = eG11*eG11;
-        metric.T(0, 1) = eG21*eG21;
-        metric.T(0, 2) = 2.0*eG11*eG21;
-        metric.T(1, 0) = eG12*eG12;
-        metric.T(1, 1) = eG22*eG22;
-        metric.T(1, 2) = 2.0*eG12*eG22;
-        metric.T(2, 0) = eG11*eG12;
-        metric.T(2, 1) = eG21*eG22;
-        metric.T(2, 2) = eG11*eG22 + eG12*eG21;
+        metric.T(0, 0) = eG11 * eG11;
+        metric.T(0, 1) = eG12 * eG12;
+        metric.T(0, 2) = 2.0*eG11*eG12;
+        metric.T(1, 0) = eG21 * eG21;
+        metric.T(1, 1) = eG22 * eG22;
+        metric.T(1, 2) = 2.0*eG21*eG22;
+        metric.T(2, 0) = 2.0*eG11*eG21;
+        metric.T(2, 1) = 2.0*eG12*eG22;
+        metric.T(2, 2) = 2.0*(eG11*eG22 + eG12 * eG21);
+
+        //metric.T = ZeroMatrix(3, 3);
+        //metric.T(0, 0) = eG11*eG11;
+        //metric.T(0, 1) = eG21*eG21;
+        //metric.T(0, 2) = 2.0*eG11*eG21;
+        //metric.T(1, 0) = eG12*eG12;
+        //metric.T(1, 1) = eG22*eG22;
+        //metric.T(1, 2) = 2.0*eG12*eG22;
+        //metric.T(2, 0) = eG11*eG12;
+        //metric.T(2, 1) = eG21*eG22;
+        //metric.T(2, 2) = eG11*eG22 + eG12*eG21;
+
+        //KRATOS_WATCH(metric.Q)
+        //KRATOS_WATCH(metric.T)
     }
     //************************************************************************************
     //************************************************************************************
@@ -436,18 +450,20 @@ namespace Kratos
         Vector curvature_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature, mInitialMetric.curvature);
-        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
+        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.T, curvature_vector);
 
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.S);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.D); //this is an ouput parameter
+
         //rValues.CheckAllParameters();
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-
         double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        rThisConstitutiveVariablesMembrane.D *= thickness;
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
 
         //Local Cartesian Forces and Moments

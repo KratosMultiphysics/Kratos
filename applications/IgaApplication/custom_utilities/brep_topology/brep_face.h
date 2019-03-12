@@ -136,6 +136,10 @@ namespace Kratos
             Matrix& rShapeFunctionSecondDerivative
             ) const;
 
+        TrimmedSurfaceClipping GetSurfaceClipper(
+            const double& rAccuracy,
+            const double& unit);
+
         const Kratos::shared_ptr<Curve<2>> GetTrimCurve(
             const int trim_index) const;
 
