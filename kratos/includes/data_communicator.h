@@ -1050,13 +1050,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int DestinationRank) const
     {
-        std::vector<std::vector<int>> output(0);
-        if (Rank() == DestinationRank)
-        {
-            output.resize(1);
-            output[0] = rSendValues;
-        }
-        return output;
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return std::vector<std::vector<int>>{rSendValues};
     }
 
     /// Wrapper for MPI_Gatherv calls (double version).
@@ -1075,13 +1071,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int DestinationRank) const
     {
-        std::vector<std::vector<double>> output(0);
-        if (Rank() == DestinationRank)
-        {
-            output.resize(1);
-            output[0] = rSendValues;
-        }
-        return output;
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return std::vector<std::vector<double>>{rSendValues};
     }
 
     /// Wrapper for MPI_Gatherv calls (int version).
@@ -1098,7 +1090,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
-    {}
+    {
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        DebugSizeCheck(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        DebugSizeCheck(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     /// Wrapper for MPI_Gatherv calls (int version).
     /** @param[in] rSendValues Values to be gathered from this rank.
@@ -1114,7 +1113,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
-    {}
+    {
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        DebugSizeCheck(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        DebugSizeCheck(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     // Allgather operations
 

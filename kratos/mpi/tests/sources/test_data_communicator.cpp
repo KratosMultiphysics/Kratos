@@ -1366,131 +1366,133 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
-    const int recv_rank = world_size-1;
 
-    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
-    auto make_message_distance = [](int rank, int padding) {
-        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
-    };
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<int> send_buffer = {1, 1};
 
-    const int send_size = make_message_size(world_rank);
-    std::vector<int> send_buffer(send_size, world_rank);
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<int> recv_buffer = {-1, -1};
+    int send_rank = 0;
 
     // two-buffer version
-    const int message_padding = 1;
-    const int recv_size = make_message_distance(world_size, message_padding);
-    std::vector<int> recv_buffer(0);
-    std::vector<int> recv_sizes(0);
-    std::vector<int> recv_offsets(0);
-
-    if (world_rank == recv_rank)
+    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank);
+    for (int i = 0; i < 2; i++)
     {
-        recv_buffer.resize(recv_size, -1);
-        recv_sizes.resize(world_size);
-        recv_offsets.resize(world_size);
-        for (int rank = 0; rank < world_size; rank++)
-        {
-            recv_sizes[rank] = make_message_size(rank);
-            recv_offsets[rank] = make_message_distance(rank, message_padding);
-        }
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
-    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, recv_offsets, recv_rank);
-
-    if (world_rank == recv_rank)
+    // return version
+    std::vector<std::vector<int>> return_buffer = serial_communicator.Gatherv(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
     {
-        for (int i = 0; i < recv_size; i++)
-        {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
-        }
-    }
-    else
-    {
-        KRATOS_CHECK_EQUAL(recv_buffer.size(), 0);
+        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
     }
 
-    // return buffer version
-    std::vector<std::vector<int>> return_buffer = serial_communicator.Gatherv(send_buffer, recv_rank);
+    // remote calls are not supported
+    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const int world_size = r_world.Size();
 
-    if (serial_communicator.Rank() == recv_rank)
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
-        unsigned int expected_size = make_message_size(world_rank);
-        KRATOS_CHECK_EQUAL(return_buffer[0].size(), expected_size);
-        for (unsigned int i = 0; i < expected_size; i++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
-        }
-        // no padding in return version
+    if (world_size > 1) {
+        send_rank = world_size - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.Gatherv(send_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1, -1, -1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
-    const int recv_rank = world_size-1;
 
-    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
-    auto make_message_distance = [](int rank, int padding) {
-        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
-    };
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<double> send_buffer = {2.0, 2.0};
 
-    const int send_size = make_message_size(world_rank);
-    std::vector<double> send_buffer(send_size, 2.0*world_rank);
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<double> recv_buffer = {-1.0, -1.0};
+    int send_rank = 0;
 
     // two-buffer version
-    const int message_padding = 1;
-    const int recv_size = make_message_distance(world_size, message_padding);
-    std::vector<double> recv_buffer(0);
-    std::vector<int> recv_sizes(0);
-    std::vector<int> recv_offsets(0);
-
-    if (world_rank == recv_rank)
+    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank);
+    for (int i = 0; i < 2; i++)
     {
-        recv_buffer.resize(recv_size, -1.0);
-        recv_sizes.resize(world_size);
-        recv_offsets.resize(world_size);
-        for (int rank = 0; rank < world_size; rank++)
-        {
-            recv_sizes[rank] = make_message_size(rank);
-            recv_offsets[rank] = make_message_distance(rank, message_padding);
-        }
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
-    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, recv_offsets, recv_rank);
-
-    if (world_rank == recv_rank)
+    // return version
+    std::vector<std::vector<double>> return_buffer = serial_communicator.Gatherv(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
     {
-        for (int i = 0; i < recv_size; i++)
-        {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
-        }
-    }
-    else
-    {
-        KRATOS_CHECK_EQUAL(recv_buffer.size(), 0);
+        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
     }
 
-    // return buffer version
-    std::vector<std::vector<double>> return_buffer = serial_communicator.Gatherv(send_buffer, recv_rank);
+    // remote calls are not supported
+    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const int world_size = r_world.Size();
 
-    if (serial_communicator.Rank() == recv_rank)
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
-        unsigned int expected_size = make_message_size(world_rank);
-        KRATOS_CHECK_EQUAL(return_buffer[0].size(), expected_size);
-        for (unsigned int i = 0; i < expected_size; i++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
-        }
-        // no padding in return version
+    if (world_size > 1) {
+        send_rank = world_size - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, recv_offsets, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.Gatherv(send_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets, send_rank),
+        "Input error in call to DataCommunicator::Gatherv"
+    );
+    #endif
 }
 
 // AllGather //////////////////////////////////////////////////////////////////
