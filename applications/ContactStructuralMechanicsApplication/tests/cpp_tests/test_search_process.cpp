@@ -27,23 +27,23 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
 
-        void GiDIOSearchDebug(ModelPart& ThisModelPart)
+        void GiDIOSearchDebug(ModelPart& rModelPart)
         {
             GidIO<> gid_io("TEST_SEARCH_PROCESS", GiD_PostAscii, SingleFile, WriteUndeformed,  WriteConditions);
-            const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
 
             gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(ThisModelPart.GetMesh());
+            gid_io.WriteMesh(rModelPart.GetMesh());
             gid_io.FinalizeMesh();
-            gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalFlags(SLAVE, "SLAVE", ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, ThisModelPart.Nodes(), label);
-            gid_io.WriteNodalResults(NORMAL, ThisModelPart.Nodes(), label, 0);
+            gid_io.InitializeResults(label, rModelPart.GetMesh());
+            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
+            gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
         }
 
         /**
@@ -143,7 +143,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(SearchProcessKDTree, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.CreateSubModelPart("ComputingContact");
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -270,7 +270,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(SearchProcessOctree, KratosContactStructuralMechanicsFastSuite2)
         {
             Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             r_model_part.CreateSubModelPart("ComputingContact");
 
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
