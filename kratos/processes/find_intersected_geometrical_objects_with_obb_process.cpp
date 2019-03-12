@@ -211,10 +211,10 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
 
     // The faces
     PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
-    const std::size_t number_of_faces_1 = (local_dimension_1 < 2) ? 1 : r_faces_1.size();
+    const std::size_t number_of_faces_1 = (local_dimension_1 < 3) ? 1 : r_faces_1.size();
 
     PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
-    const std::size_t number_of_faces_2 = (local_dimension_2 < 2) ? 1 : r_faces_2.size();
+    const std::size_t number_of_faces_2 = (local_dimension_2 < 3) ? 1 : r_faces_2.size();
 
     // First geometry
     for (std::size_t i_1 = 0; i_1 < number_of_faces_1; ++i_1) {
