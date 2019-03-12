@@ -638,7 +638,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     octree_parameters["first_model_part_name"].SetString(slave_model_part_name);
     octree_parameters["second_model_part_name"].SetString(master_model_part_name);
 
-    const double h_mean = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
+    double h_mean = std::max(ContactUtilities::CalculateMaxNodalH(r_slave_model_part), ContactUtilities::CalculateMaxNodalH(r_master_model_part));
+    h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
     const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble();
     octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
 
