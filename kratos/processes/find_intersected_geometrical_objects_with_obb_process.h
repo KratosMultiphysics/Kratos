@@ -162,6 +162,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    double mBoundingBoxFactor = -1.0; /// The factor to be consider when computing the bounding box (if negative not considered)
+    bool mDebugOBB = false;           /// If we debug the boxes
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -246,9 +249,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    double mBoundingBoxFactor = -1.0; /// The factor to be consider when computing the bounding box (if negative not considered)
-    bool mDebugOBB = false;           /// If we debug the boxes
 
     ///@}
     ///@name Private Operations
