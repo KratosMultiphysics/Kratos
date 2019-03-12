@@ -15,7 +15,6 @@ import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 
-import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
 import pfem_fluid_solver_analysis as pfem_solver
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -62,19 +61,19 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Model_part settings start ####
         super(PfemFluidDynamicsAnalysis,self).__init__(model,parameters)
         # Defining the model_part
-        self.main_model_part = self.model.GetModelPart(parameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part = self.model.GetModelPart(parameters["solver_settings"]["model_part_name"].GetString())
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["time_stepping"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["solver_settings"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, parameters["problem_data"]["start_time"].GetDouble())
         if( parameters["problem_data"].Has("gravity_vector") ):
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, parameters["problem_data"]["gravity_vector"][0].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
 
-        ###TODO replace this "model" for real one once available in kratos core
-        self.Model = {parameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+        #TODO: update this for new self.model
+        self.Model = {parameters["solver_settings"]["model_part_name"].GetString() : self.main_model_part}
 
 
         self.problem_path = os.getcwd()
@@ -83,7 +82,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
 
         solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        return solver_module.CreateSolver(self.model, self.project_parameters)
+        return solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
 
     def AddNodalVariablesToModelPart(self):
 
@@ -92,7 +91,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         # Add PfemSolidMechanicsApplication Variables
         import pfem_variables
-        pfem_variables.AddVariables(self.fluid_model_part)
+        pfem_variables.AddVariables(self.main_model_part)
 
 
     def Run(self):
@@ -121,6 +120,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
         ## Get the list of the submodel part in the object Model
+        #TODO: update this for new self.model
         for i in range(self.project_parameters["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = self.project_parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
             if( self.main_model_part.HasSubModelPart(part_name) ):
@@ -139,7 +139,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Processes settings start ####
 
         #obtain the list of the processes to be applied
-
+        #TODO: update this for new self.model
         import process_handler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
@@ -210,7 +210,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
-        self.delta_time = self.project_parameters["problem_data"]["time_step"].GetDouble()
+        self.delta_time = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
 
     def RunMainTemporalLoop(self):
@@ -389,5 +389,12 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
 
 if __name__ == "__main__":
+
+    parameter_file_name = "ProjectParameters.json"
+
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = Kratos.Parameters(parameter_file.read())
+
     model = KratosMultiphysics.Model()
-    Solution(model).Run()
+    simulation = PfemFluidDynamicsAnalysis(model,parameters)
+    simulation.Run()

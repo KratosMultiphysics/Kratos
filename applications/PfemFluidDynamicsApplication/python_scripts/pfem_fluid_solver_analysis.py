@@ -18,19 +18,29 @@ class PfemFluidSolver(PythonSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level": 1,
-            "buffer_size": 3,
             "solver_type": "pfem_fluid_solver_analysis",
+            "model_part_name": "PfemFluidModelPart",
+            "domain_size": 2,
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.001
+            },
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "buffer_size": 3,
+            "echo_level": 1,
+            "reform_dofs_at_each_step": false,
+            "clear_storage": false,
+            "compute_reactions": true,
+            "move_mesh_flag": true,
             "dofs"                : [],
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
             "line_search": false,
-            "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
-            "clear_storage": false,
             "component_wise": false,
-            "move_mesh_flag": true,
             "predictor_corrector": true,
             "time_order": 2,
             "maximum_velocity_iterations": 1,
@@ -38,7 +48,7 @@ class PfemFluidSolver(PythonSolver):
             "velocity_tolerance": 1e-5,
             "pressure_tolerance": 1e-5,
             "pressure_linear_solver_settings":  {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 5000,
                 "tolerance"                      : 1e-9,
                 "provide_coordinates"            : false,
@@ -49,10 +59,10 @@ class PfemFluidSolver(PythonSolver):
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "BICGSTABSolver",
+                "solver_type"                    : "bicgstab",
                 "max_iteration"                  : 5000,
                 "tolerance"                      : 1e-9,
-                "preconditioner_type"            : "None",
+                "preconditioner_type"            : "none",
                 "scaling"                        : false
             },
             "solving_strategy_settings":{
@@ -70,18 +80,10 @@ class PfemFluidSolver(PythonSolver):
         "loads_process_list"       : [],
         "output_process_list"      : [],
         "output_configuration"     : {},
-        "problem_data"             : {},
         "problem_process_list"     : [],
-        "solver_settings"          : {
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            }
-        },
-        "time_stepping"            : {},
         "processes"                : {},
-        "output_processes"         : {}
+        "output_processes"         : {},
+        "check_process_list": []
         }
         """)
 
@@ -91,14 +93,14 @@ class PfemFluidSolver(PythonSolver):
 
         #construct the linear solver
         import python_linear_solver_factory
-        self.pressure_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["solver_settings"]["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["solver_settings"]["velocity_linear_solver_settings"])
+        self.pressure_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
+        self.velocity_linear_solver = python_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
         print("Construction of 2-step Pfem Fluid Solver finished.")
         super(PfemFluidSolver, self).__init__(model, parameters)
 
-        model_part_name = self.settings["problem_data"]["model_part_name"].GetString()
+        model_part_name = self.settings["model_part_name"].GetString()
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
 
@@ -106,19 +108,6 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
-
-    def PrepareModelPart(self):
-
-        super(PfemFluidSolver, self).PrepareModelPart()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.parameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.ProjectParameters["problem_data"]["time_step"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.ProjectParameters["problem_data"]["start_time"].GetDouble())
-        if( self.parameters["problem_data"].Has("gravity_vector") ):
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, self.ProjectParameters["problem_data"]["gravity_vector"][0].GetDouble())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, self.ProjectParameters["problem_data"]["gravity_vector"][1].GetDouble())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, self.ProjectParameters["problem_data"]["gravity_vector"][2].GetDouble())
 
     def GetMinimumBufferSize(self):
         return 2;
@@ -235,11 +224,11 @@ class PfemFluidSolver(PythonSolver):
 
         self.computing_model_part_name = "fluid_computing_domain"
 
-        if(self.settings["solver_settings"]["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
 
             print("    Importing input model part...")
 
-            KratosMultiphysics.ModelPartIO(self.settings["solver_settings"]["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
 
 
