@@ -27,33 +27,33 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
 
-//         void GiDIOGapDebug(ModelPart& ThisModelPart)
+//         void GiDIOGapDebug(ModelPart& rModelPart)
 //         {
 //             GidIO<> gid_io("TEST_WEIGHTED_GAP", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
-//             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
 //             const double label = static_cast<double>(nl_iter);
 //
 //             gid_io.InitializeMesh(label);
-//             gid_io.WriteMesh(ThisModelPart.GetMesh());
+//             gid_io.WriteMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalFlags(SLAVE, "SLAVE", ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalFlags(ISOLATED, "ISOLATED", ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
-//             gid_io.WriteNodalResults(WEIGHTED_GAP, ThisModelPart.Nodes(), label, 0);
-//             gid_io.WriteNodalResults(WEIGHTED_SLIP, ThisModelPart.Nodes(), label, 0);
-//             gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, ThisModelPart.Nodes(), label);
-//             gid_io.WriteNodalResults(NORMAL, ThisModelPart.Nodes(), label, 0);
+//             gid_io.InitializeResults(label, rModelPart.GetMesh());
+//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
 //         }
 
         /**
          * This method can be used to create a plane/cylinder condition set
          */
         void CreatePlaneCilynderProblem(
-            ModelPart& ThisModelPart,
+            ModelPart& rModelPart,
             const std::size_t NumberOfDivisions,
             const double Lenght,
             const double Radius,
@@ -62,12 +62,12 @@ namespace Kratos
             const bool MoveMesh = false
             )
         {
-            ThisModelPart.CreateSubModelPart("SlaveModelPart");
-            ModelPart& slave_model_part = ThisModelPart.GetSubModelPart("SlaveModelPart");
-            ThisModelPart.CreateSubModelPart("MasterModelPart");
-            ModelPart& master_model_part = ThisModelPart.GetSubModelPart("MasterModelPart");
+            rModelPart.CreateSubModelPart("SlaveModelPart");
+            ModelPart& slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
+            rModelPart.CreateSubModelPart("MasterModelPart");
+            ModelPart& master_model_part = rModelPart.GetSubModelPart("MasterModelPart");
 
-            Properties::Pointer p_cond_prop = ThisModelPart.CreateNewProperties(0);
+            Properties::Pointer p_cond_prop = rModelPart.CreateNewProperties(0);
 
             double x, y;
 
@@ -78,13 +78,13 @@ namespace Kratos
                 x = dx * i;
                 y = Slope * dx * i;
                 id_node++;
-                NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x , y , 0.0);
+                NodeType::Pointer p_node_1 = rModelPart.CreateNewNode(id_node, x , y , 0.0);
                 slave_model_part.AddNode(p_node_1);
                 p_node_1->Set(SLAVE, true);
                 p_node_1->Set(MASTER, false);
                 p_node_1->Set(ACTIVE, true);
                 id_node++;
-                NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(id_node, x , y , 1.0);
+                NodeType::Pointer p_node_2 = rModelPart.CreateNewNode(id_node, x , y , 1.0);
                 slave_model_part.AddNode(p_node_2);
                 p_node_2->Set(SLAVE, true);
                 p_node_2->Set(MASTER, false);
@@ -95,14 +95,8 @@ namespace Kratos
             std::vector<Condition::Pointer> slave_conds;
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
                 id_cond++;
-                std::vector<NodeType::Pointer> condition_nodes (4);
-                condition_nodes[0] = ThisModelPart.pGetNode((2 * i)+1);
-                condition_nodes[1] = ThisModelPart.pGetNode((2 * i)+2);
-                condition_nodes[2] = ThisModelPart.pGetNode((2 * i)+4);
-                condition_nodes[3] = ThisModelPart.pGetNode((2 * i)+3);
-                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
-
-                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
+                const std::size_t ref_id = (2 * i)+1;
+                Condition::Pointer pcond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop);
                 slave_model_part.AddCondition(pcond);
                 pcond->Set(SLAVE, true);
                 pcond->Set(MASTER, false);
@@ -117,13 +111,13 @@ namespace Kratos
                 x = Radius * std::sin(count * dtheta);
                 y = Radius * (1.0 - std::cos(count * dtheta));
                 id_node++;
-                NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(id_node, x, y , 0.0);
+                NodeType::Pointer p_node_1 = rModelPart.CreateNewNode(id_node, x, y , 0.0);
                 master_model_part.AddNode(p_node_1);
                 p_node_1->Set(SLAVE, false);
                 p_node_1->Set(MASTER, true);
                 p_node_1->Set(ACTIVE, false);
                 id_node++;
-                NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(id_node, x, y , 1.0);
+                NodeType::Pointer p_node_2 = rModelPart.CreateNewNode(id_node, x, y , 1.0);
                 master_model_part.AddNode(p_node_2);
                 p_node_2->Set(SLAVE, false);
                 p_node_2->Set(MASTER, true);
@@ -137,14 +131,8 @@ namespace Kratos
             for (std::size_t i = 0; i < count - 1; i++) {
                 id_cond++;
                 this_set.AddId(id_cond);
-                std::vector<NodeType::Pointer> condition_nodes (4);
-                condition_nodes[3] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+1));
-                condition_nodes[2] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+2));
-                condition_nodes[1] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+4));
-                condition_nodes[0] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+3));
-                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
-
-                Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
+                const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
+                Condition::Pointer pcond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop);
                 master_model_part.AddCondition(pcond);
                 pcond->Set(SLAVE, false);
                 pcond->Set(MASTER, true);
@@ -152,17 +140,17 @@ namespace Kratos
             }
 
             // We compute the normals
-            MortarUtilities::ComputeNodesMeanNormalModelPart(ThisModelPart);
+            MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
-            for(auto& icond : ThisModelPart.Conditions()) {
+            for(auto& icond : rModelPart.Conditions()) {
                 if (icond.Is(SLAVE))
                     icond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             }
 
             // We set the auxiliar Coordinates
-            for(auto& inode : ThisModelPart.Nodes()) {
+            for(auto& inode : rModelPart.Nodes()) {
                 if (inode.Is(MASTER))
                     inode.SetValue(AUXILIAR_COORDINATES, inode.Coordinates());
                 else
@@ -172,13 +160,13 @@ namespace Kratos
             // We set the mapper parameters
             Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false,
         "destination_variable_historical" : false})" );
-            mapping_parameters["distance_threshold"].SetDouble(ThisModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
+            mapping_parameters["distance_threshold"].SetDouble(rModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
             typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
             MapperType mapper = MapperType(master_model_part, slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
             mapper.Execute();
 
             // We compute now the normal gap and set the nodes under certain threshold as active
-            for(auto& inode : ThisModelPart.Nodes()) {
+            for(auto& inode : rModelPart.Nodes()) {
                 if (inode.Is(SLAVE)) {
                     // We compute the gap
                     const array_1d<double, 3>& normal = inode.FastGetSolutionStepValue(NORMAL);
@@ -191,8 +179,8 @@ namespace Kratos
             }
 
             // We set the database
-            auto& process_info = ThisModelPart.GetProcessInfo();
-            ModelPart& computing_rcontact_model_part = ThisModelPart.GetSubModelPart("ComputingContact");
+            auto& process_info = rModelPart.GetProcessInfo();
+            ModelPart& computing_rcontact_model_part = rModelPart.GetSubModelPart("ComputingContact");
             for (auto& slave_cond : slave_conds) {
                 for (auto& master_cond : master_conds) {
                     id_cond++;
@@ -210,7 +198,7 @@ namespace Kratos
 
             // We move mesh in order to test the slip
             if (MoveMesh) {
-                for (auto& inode : ThisModelPart.Nodes()) {
+                for (auto& inode : rModelPart.Nodes()) {
                     if (inode.Is(MASTER)) {
                         inode.FastGetSolutionStepValue(DISPLACEMENT_X) = 0.1;
                         inode.Coordinates() += inode.FastGetSolutionStepValue(DISPLACEMENT);
@@ -218,7 +206,7 @@ namespace Kratos
                 }
 
                 // We set the auxiliar Coordinates
-                for(auto& inode : ThisModelPart.Nodes()) {
+                for(auto& inode : rModelPart.Nodes()) {
                     if (inode.Is(MASTER))
                         inode.SetValue(AUXILIAR_COORDINATES, inode.Coordinates());
                     else
@@ -228,7 +216,7 @@ namespace Kratos
                 mapper.Execute();
 
                 // We compute now the normal gap and set the nodes under certain threshold as active
-                for(auto& inode : ThisModelPart.Nodes()) {
+                for(auto& inode : rModelPart.Nodes()) {
                     if (inode.Is(SLAVE)) {
                         // We compute the gap
                         const array_1d<double, 3>& normal = inode.FastGetSolutionStepValue(NORMAL);
