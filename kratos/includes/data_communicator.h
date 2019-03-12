@@ -884,15 +884,11 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<std::vector<int>>& rSendValues,
         const int SourceRank) const
     {
-        int rank = Rank();
-        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
-        {
-            return rSendValues[rank];
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
+        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
+        return rSendValues[0];
     }
 
     /// Wrapper for MPI_Scatterv calls (double version).
@@ -911,15 +907,11 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<std::vector<double>>& rSendValues,
         const int SourceRank) const
     {
-        int rank = Rank();
-        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
-        {
-            return rSendValues[rank];
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
+        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
+        return rSendValues[0];
     }
 
     /// Wrapper for MPI_Scatterv calls (int version).
@@ -936,7 +928,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendOffsets,
         std::vector<int>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv");
+        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv");
+        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv");
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     /// Wrapper for MPI_Scatterv calls (double version).
     /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
@@ -952,7 +951,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendOffsets,
         std::vector<double>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv");
+        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv");
+        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv");
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     // Gather operations
 
