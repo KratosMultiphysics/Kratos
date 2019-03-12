@@ -1262,93 +1262,103 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
-    const int recv_rank = 0;
 
-    std::vector<int> send_buffer{world_rank, world_rank};
-    std::vector<int> recv_buffer;
-
-    if (world_rank == recv_rank)
-    {
-        recv_buffer = std::vector<int>(2*world_size, -1);
-    }
+    // the serial version of scatter only works for the trivial case (from 0 to 0)
+    std::vector<int> send_buffer = {1, 1};
+    std::vector<int> recv_buffer = {-1, -1};
+    int send_rank = 0;
 
     // two-buffer version
-    serial_communicator.Gather(send_buffer, recv_buffer, recv_rank);
-
-    if (world_rank == recv_rank)
+    serial_communicator.Gather(send_buffer, recv_buffer, send_rank);
+    for (int i = 0; i < 2; i++)
     {
-        for (int rank = 0; rank < world_size; rank++)
-        {
-            for (int j = 2*rank; j < 2*rank+2; j++)
-            {
-                KRATOS_CHECK_EQUAL(recv_buffer[j], -1);
-            }
-        }
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
-    // return buffer version
-    std::vector<int> return_buffer = serial_communicator.Gather(send_buffer, recv_rank);
-    if (serial_communicator.Rank() == recv_rank)
+    // return version
+    std::vector<int> return_buffer = serial_communicator.Gather(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
-        for (unsigned int j = 0; j < return_buffer.size(); j++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[j], send_buffer[j]);
-        }
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
-    else
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+
+    // remote calls are not supported
+    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const int world_size = r_world.Size();
+
+    if (world_size > 1) {
+        send_rank = world_size - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.Gather(send_buffer, recv_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.Gather(send_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1, -1, -1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gather(send_buffer, wrong_size_recv, send_rank),
+        "Input error in call to DataCommunicator::Gather"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
-    const int recv_rank = 0;
 
-    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
-    std::vector<double> recv_buffer;
-
-    if (world_rank == recv_rank)
-    {
-        recv_buffer = std::vector<double>(2*world_size, -1.0);
-    }
+    // the serial version of scatter only works for the trivial case (from 0 to 0)
+    std::vector<double> send_buffer = {2.0, 2.0};
+    std::vector<double> recv_buffer = {-1.0, -1.0};
+    int send_rank = 0;
 
     // two-buffer version
-    serial_communicator.Gather(send_buffer, recv_buffer, recv_rank);
-
-    if (world_rank == recv_rank)
+    serial_communicator.Gather(send_buffer, recv_buffer, send_rank);
+    for (int i = 0; i < 2; i++)
     {
-        for (int rank = 0; rank < world_size; rank++)
-        {
-            for (int j = 2*rank; j < 2*rank+2; j++)
-            {
-                KRATOS_CHECK_EQUAL(recv_buffer[j], -1.0);
-            }
-        }
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
-    // return buffer version
-    std::vector<double> return_buffer = serial_communicator.Gather(send_buffer, recv_rank);
-    if (serial_communicator.Rank() == recv_rank)
+    // return version
+    std::vector<double> return_buffer = serial_communicator.Gather(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
-        for (unsigned int j = 0; j < return_buffer.size(); j++)
-        {
-            KRATOS_CHECK_EQUAL(return_buffer[j], send_buffer[j]);
-        }
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
-    else
-    {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+
+    // remote calls are not supported
+    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const int world_size = r_world.Size();
+
+    if (world_size > 1) {
+        send_rank = world_size - 1;
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            serial_communicator.Gather(send_buffer, recv_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            return_buffer = serial_communicator.Gather(send_buffer, send_rank),
+            "Communication between different ranks is not possible with a serial DataCommunicator."
+        );
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.Gather(send_buffer, wrong_size_recv, send_rank),
+        "Input error in call to DataCommunicator::Gather"
+    );
+    #endif
 }
 
 // Gatherv ////////////////////////////////////////////////////////////////////

@@ -976,14 +976,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int DestinationRank) const
     {
-        if (Rank() == DestinationRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>();
-        }
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Gather calls (double version).
@@ -1000,14 +995,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int DestinationRank) const
     {
-        if (Rank() == DestinationRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>();
-        }
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Gather calls (int version).
@@ -1021,7 +1011,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int DestinationRank) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Gather");
+        rRecvValues = Gather(rSendValues, DestinationRank);
+    }
 
     /// Wrapper for MPI_Gather calls (double version).
     /** @param[in] rSendValues Values to be gathered from this rank.
@@ -1034,7 +1027,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const int DestinationRank) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Gather");
+        rRecvValues = Gather(rSendValues, DestinationRank);
+    }
 
     // Gatherv operations
 
