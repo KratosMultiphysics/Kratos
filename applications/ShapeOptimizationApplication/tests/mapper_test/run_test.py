@@ -55,9 +55,10 @@ def Norm2OfScalarVariable(model_part, nodal_varible):
 # Set and read input data
 # =======================================================================================================
 
+model = km.Model()
+
 # Import model parts
-tria_model = km.Model()
-plate_with_trias = tria_model.CreateModelPart("plate_with_trias")
+plate_with_trias = model.CreateModelPart("plate_with_trias")
 plate_with_trias.AddNodalSolutionStepVariable(kso.CONTROL_POINT_UPDATE)
 plate_with_trias.AddNodalSolutionStepVariable(kso.CONTROL_POINT_CHANGE)
 plate_with_trias.AddNodalSolutionStepVariable(kso.SHAPE_UPDATE)
@@ -67,8 +68,7 @@ plate_with_trias.AddNodalSolutionStepVariable(km.AIR_PRESSURE)
 model_part_io = km.ModelPartIO("plate_with_trias")
 model_part_io.ReadModelPart(plate_with_trias)
 
-quad_model = km.Model()
-plate_with_quads = quad_model.CreateModelPart("plate_with_quads")
+plate_with_quads = model.CreateModelPart("plate_with_quads")
 plate_with_quads.AddNodalSolutionStepVariable(kso.CONTROL_POINT_UPDATE)
 plate_with_quads.AddNodalSolutionStepVariable(kso.CONTROL_POINT_CHANGE)
 plate_with_quads.AddNodalSolutionStepVariable(kso.SHAPE_UPDATE)
