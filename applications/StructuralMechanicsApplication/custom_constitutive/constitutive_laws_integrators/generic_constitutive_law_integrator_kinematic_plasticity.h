@@ -203,16 +203,6 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
-            // std::cout << "*********************" << std::endl;
-            // KRATOS_WATCH(iteration)
-            // // KRATOS_WATCH(rPlasticDenominator)
-            // KRATOS_WATCH(rUniaxialStress)
-            // KRATOS_WATCH(rThreshold)
-            // KRATOS_WATCH(rBackStressVector)
-            // KRATOS_WATCH(rPlasticStrainIncrement)
-            // // KRATOS_WATCH(rPlasticStrain)
-            // std::cout << "*********************" << std::endl;
-
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
