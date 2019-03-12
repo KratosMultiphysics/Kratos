@@ -714,65 +714,39 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         negative_volume += rData.w_gauss_neg_side[igauss_neg];
     }
     const double Vol = positive_volume + negative_volume;
-
-    // Compute the maximum diagonal value in the enrichment stiffness matrix
-    double max_diag = 0.0;
-    for (unsigned int k = 0; k < NumNodes; ++k){
-        if (std::abs(rKeeTot(k, k)) > max_diag){
-            max_diag = std::abs(rKeeTot(k, k));
-        }
-    }
-    if (max_diag == 0){
-        max_diag = 1.0;
-    }
-
-    // Check that positive and negative volumes ratios are larger than the minimum
-    // If not, substitute the enrichment term by
-    if (positive_volume / Vol < min_area_ratio){
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            if (rData.Distance[i] >= 0.0){
-                rKeeTot(i, i) += 1000.0 * max_diag;
+    
+    //We only enrich elements which are not almost empty/full
+    if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {
+        // "weakly" impose continuity
+        for (unsigned int i = 0; i < Dim; ++i){
+            const double di = std::abs(rData.Distance[i]);
+            for (unsigned int j = i + 1; j < NumNodes; j++){
+                const double dj = std::abs(rData.Distance[j]);
+                // Check if the edge is cut, if it is, set the penalty constraint
+                if (rData.Distance[i] * rData.Distance[j] < 0.0){
+                    double sum_d = di + dj;
+                    double Ni = dj / sum_d;
+                    double Nj = di / sum_d;
+                    double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                    rKeeTot(i, i) += penalty_coeff * Ni * Ni;
+                    rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
+                    rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
+                    rKeeTot(j, j) += penalty_coeff * Nj * Nj;
+                }
             }
         }
+
+        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
+        double det;
+        MatrixType inverse_diag(NumNodes, NumNodes);
+        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+
+        const Matrix tmp = prod(inverse_diag, rHtot);
+        noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
+
+        const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
+        noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
     }
-
-    if (negative_volume / Vol < min_area_ratio){
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            if (rData.Distance[i] < 0.0){
-                rKeeTot(i, i) += 1000.0 * max_diag;
-            }
-        }
-    }
-
-    // "weakly" impose continuity
-    for (unsigned int i = 0; i < Dim; ++i){
-        const double di = std::abs(rData.Distance[i]);
-        for (unsigned int j = i + 1; j < NumNodes; j++){
-            const double dj = std::abs(rData.Distance[j]);
-            // Check if the edge is cut, if it is, set the penalty constraint
-            if (rData.Distance[i] * rData.Distance[j] < 0.0){
-                double sum_d = di + dj;
-                double Ni = dj / sum_d;
-                double Nj = di / sum_d;
-                double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
-                rKeeTot(i, i) += penalty_coeff * Ni * Ni;
-                rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
-                rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
-                rKeeTot(j, j) += penalty_coeff * Nj * Nj;
-            }
-        }
-    }
-
-    // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-    double det;
-    MatrixType inverse_diag(NumNodes, NumNodes);
-    MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
-
-    const Matrix tmp = prod(inverse_diag, rHtot);
-    noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
-
-    const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-    noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
 }
 
 template <class TElementData>
