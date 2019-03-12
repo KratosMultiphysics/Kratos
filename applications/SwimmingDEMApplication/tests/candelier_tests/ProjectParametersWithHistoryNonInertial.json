@@ -42,8 +42,6 @@
 "coupling_weighing_type_comment"         : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
 "fluid_model_type"                       : 1,
 "fluid_model_type_comment"               : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)",
-"coupling_scheme_type"                   : "UpdatedFluid",
-"coupling_scheme_type_comment"           : " UpdatedFluid, UpdatedDEM",
 "print_particles_results_option"         : false,
 "add_each_hydro_force_option"            : true,
 "add_each_hydro_force_option_comment"    : " add each of the hydrodynamic forces (drag, lift and virtual mass)",

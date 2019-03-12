@@ -389,15 +389,14 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.stationarity = False
 
         # setting up loop counters:
-        self.fluid_solve_counter          = self.GetFluidSolveCounter()
-        self.DEM_to_fluid_counter         = self.GetBackwardCouplingCounter()
-        self.derivative_recovery_counter  = self.GetRecoveryCounter()
-        self.stationarity_counter         = self.GetStationarityCounter()
-        self.print_counter_updated_DEM    = self.GetPrintCounterUpdatedDEM()
-        self.print_counter_updated_fluid  = self.GetPrintCounterUpdatedFluid()
-        self.debug_info_counter           = self.GetDebugInfo()
-        self.particles_results_counter    = self.GetParticlesResultsCounter()
-        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        self.fluid_solve_counter = self.GetFluidSolveCounter()
+        self.DEM_to_fluid_counter = self.GetBackwardCouplingCounter()
+        self.derivative_recovery_counter = self.GetRecoveryCounter()
+        self.stationarity_counter = self.GetStationarityCounter()
+        self.print_counter = self.GetPrintCounter()
+        self.debug_info_counter = self.GetDebugInfo()
+        self.particles_results_counter = self.GetParticlesResultsCounter()
+        self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
         # Phantom
         self.disperse_phase_solution.analytic_data_counter = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
@@ -555,7 +554,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def OutputSolutionStep(self):
         # printing if required
 
-        if self.print_counter_updated_fluid.Tick():
+        if self.print_counter.Tick():
             self.ComputePostProcessResults()
             self._Print()
 
@@ -696,23 +695,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
             beginning_step=1,
             is_active=self.project_parameters["stationary_problem_option"].GetBool())
 
-    def GetPrintCounterUpdatedDEM(self):
-        counter = SDP.Counter(
-            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
-            beginning_step=int(self.fluid_time_step / self.time_step))
-
-        if 'UpdatedDEM' != self.project_parameters["coupling_scheme_type"].GetString():
-            counter.Kill()
-        return counter
-
-    def GetPrintCounterUpdatedFluid(self):
-        counter = SDP.Counter(
-            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
-            beginning_step=int(self.output_time / self.time_step),
-            is_dead = not self.do_print_results)
-
-        if 'UpdatedFluid' != self.project_parameters["coupling_scheme_type"].GetString():
-            counter.Kill()
+    def GetPrintCounter(self):
+        counter = SDP.Counter(steps_in_cycle=int(self.output_time / self.time_step + 0.5),
+                              beginning_step=int(self.output_time / self.time_step),
+                              is_dead = not self.do_print_results)
         return counter
 
     def GetDebugInfo(self):

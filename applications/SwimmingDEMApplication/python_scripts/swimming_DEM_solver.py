@@ -65,7 +65,6 @@ class SwimmingDEMSolver(PythonSolver):
         self.project_parameters = self._ValidateSettings(project_parameters)
         self.next_time_to_solve_fluid = project_parameters['problem_data']['start_time'].GetDouble()
         self.coupling_level_type = project_parameters["coupling_level_type"].GetInt()
-        self.coupling_scheme_type = project_parameters["coupling_scheme_type"].GetString()
         self.interaction_start_time = project_parameters["interaction_start_time"].GetDouble()
         self.project_at_every_substep_option = project_parameters["project_at_every_substep_option"].GetBool()
         self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
@@ -240,13 +239,8 @@ class SwimmingDEMSolver(PythonSolver):
         )
 
         if it_is_time_to_forward_couple or self.first_DEM_iteration:
-
-            if self.coupling_scheme_type == "UpdatedDEM":
-                self.ApplyForwardCoupling()
-
-            else:
-                alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
-                self.ApplyForwardCoupling(alpha)
+            alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
+            self.ApplyForwardCoupling(alpha)
 
         if self.quadrature_counter.Tick():
             self.AppendValuesForTheHistoryForce()
