@@ -1,8 +1,13 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
 import math
-import candelier_scripts.candelier as candelier
-import candelier_scripts.candelier_parameters as candelier_pp
+import os
+import sys
+file_path = os.path.abspath(__file__)
+dir_path = os.path.dirname(file_path)
+sys.path.insert(0, dir_path)
+import candelier
+import candelier_parameters as candelier_pp
 
 def Cross(a, b):
     c0 = a[1]*b[2] - a[2]*b[1]
@@ -70,7 +75,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                 node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 2 * candelier_pp.omega)
 
     def _CreateSolver(self):
-        import candelier_scripts.candelier_dem_solver as sdem_solver
+        import candelier_dem_solver as sdem_solver
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),

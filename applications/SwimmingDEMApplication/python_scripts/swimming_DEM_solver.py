@@ -5,7 +5,7 @@ import KratosMultiphysics
 from python_solver import PythonSolver
 
 # Import applications
-import KratosMultiphysics.SwimmingDEMApplication as SwimmingDEMApplication
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
@@ -125,7 +125,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
-        self.basset_force_tool = SwimmingDEMApplication.BassetForceTools()
+        self.basset_force_tool = SDEM.BassetForceTools()
 
     def GetStationarityCounter(self):
         return SDP.Counter(
@@ -152,7 +152,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def AdvanceInTime(self, step, time):
         self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
-        self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid)
+        self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid - 0.5 * self.dem_solver.dt)
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1

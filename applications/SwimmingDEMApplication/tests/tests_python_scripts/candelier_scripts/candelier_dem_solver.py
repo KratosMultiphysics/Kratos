@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 import swimming_DEM_solver
-import candelier_scripts.candelier_parameters as candelier_pp
+import candelier_parameters as candelier_pp
 
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 

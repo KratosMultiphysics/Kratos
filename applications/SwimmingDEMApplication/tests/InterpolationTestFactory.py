@@ -5,8 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-from tests_python_scripts.candelier_scripts.candelier_analysis import CandelierBenchmarkAnalysis
+from tests_python_scripts.interpolation_scripts.interpolation_test_analysis import InterpolationTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -36,7 +35,7 @@ class TestFactory(KratosUnittest.TestCase):
             # To avoid too many prints
             KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-            self.test = CandelierBenchmarkAnalysis(model, parameters)
+            self.test = InterpolationTestAnalysis(model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
