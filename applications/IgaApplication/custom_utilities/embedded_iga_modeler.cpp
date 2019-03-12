@@ -289,8 +289,20 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintCurveTessellationPoint
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EmbeddedIgaModeler::EmbeddedIgaModeler(ModelPart &rModelPart)
+    : NurbsBrepModeler::NurbsBrepModeler(rModelPart)
+{
+    mTessellationTolerance = 1e-3; 
+    mTriangulationTolerance = 1; 
+    mInitialTriangulationArea = 10; 
+    mMaxTriangulationIterations = 10; 
+    m_model_part = rModelPart; 
+}
+EmbeddedIgaModeler::EmbeddedIgaModeler(ModelPart &rModelPart, const Parameters& rEmbeddedIgaSettings)
     : NurbsBrepModeler::NurbsBrepModeler(rModelPart),
     m_model_part(rModelPart)
 {
+    
+
 }
+
 } // namespace Kratos.
