@@ -291,13 +291,21 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 2)
-        {
-               rResult.resize( 2, false );
-        }
+	    rResult.resize( 2, false );
 
         rResult[0] = 0.5;
         rResult[1] = 0.5;
@@ -361,14 +369,7 @@ public:
     */
     double DomainSize() const override
     {
-        const TPointType& FirstPoint = BaseType::GetPoint(0);
-        const TPointType& SecondPoint = BaseType::GetPoint(1);
-        const double lx = FirstPoint.X() - SecondPoint.X();
-        const double ly = FirstPoint.Y() - SecondPoint.Y();
-
-        const double length = lx * lx + ly * ly;
-
-        return std::sqrt( length );
+        return Length();
     }
 
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const

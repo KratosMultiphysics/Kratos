@@ -865,7 +865,7 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @return The vector of body forces
      */
-    Vector GetBodyForce(
+    array_1d<double, 3> GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
         ) const;
@@ -911,7 +911,7 @@ protected:
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
+        const array_1d<double, 3>& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
         ) const;
@@ -927,7 +927,7 @@ protected:
     void CalculateAndAddExtForceContribution(
         const Vector& rN,
         const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
+        const array_1d<double, 3>& rBodyForce,
         VectorType& rRightHandSideVector,
         const double IntegrationWeight
         ) const;

@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 #include "anurbs.h"
 #include "iga_application_variables.h"
 

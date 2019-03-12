@@ -1,0 +1,11 @@
+version: 0.1.{build}
+image: Visual Studio 2017
+configuration: release
+platform: x64
+clone_folder: c:\ANurbs
+build_script:
+  - md build
+  - cmake . -Bbuild
+  - cmake --build build --target ALL_BUILD --config Release
+test_script:
+  - c:\ANurbs\build\test\Release\run_tests.exe

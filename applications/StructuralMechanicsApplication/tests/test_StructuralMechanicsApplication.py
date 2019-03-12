@@ -180,6 +180,8 @@ from structural_mechanics_test_factory import SprismPanTests              as TSp
 # Pendulus Tests with Solid Elements
 from structural_mechanics_test_factory import PendulusTLTest              as TPendulusTLTest
 from structural_mechanics_test_factory import PendulusULTest              as TPendulusULTest
+# Rayleigh Tests with Solid Elements
+from structural_mechanics_test_factory import RayleighProcessTest         as TRayleighProcessTest
 # Pendulus Tests with Shell Elements
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusTests as TShellT3AndQ4NonLinearDynamicStructPendulusTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests
@@ -375,6 +377,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+
+    # Rayleigh process test
+    nightSuite.addTest(TRayleighProcessTest('test_execution'))
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))

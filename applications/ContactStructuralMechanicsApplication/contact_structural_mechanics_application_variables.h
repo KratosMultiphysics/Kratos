@@ -39,6 +39,14 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    /**
+     * @brief We use this to differentiate between cases of friction
+     */
+    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2, FRICTIONLESS_PENALTY = 3, FRICTIONAL_PENALTY = 4  };
+
+    /**
+     * @brief This enum is used to define the different options for normal derivatives computation
+     */
     enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2, NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3};
 
 ///@}

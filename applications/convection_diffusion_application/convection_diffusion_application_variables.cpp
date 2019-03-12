@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License:         BSD License
@@ -25,6 +25,7 @@ KRATOS_CREATE_VARIABLE(double, MELT_TEMPERATURE_1)
 KRATOS_CREATE_VARIABLE(double, MELT_TEMPERATURE_2)
 KRATOS_CREATE_VARIABLE(double, PROJECTED_SCALAR1)
 KRATOS_CREATE_VARIABLE(double, THETA)
+KRATOS_CREATE_VARIABLE(double, TRANSFER_COEFFICIENT)
 
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 

@@ -15,28 +15,6 @@ namespace Kratos {
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_KDEMFabric::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                                          SphericContinuumParticle* neighbor,
-                                                          double equiv_young,
-                                                          double distance,
-                                                          double calculation_area,
-                                                          double LocalCoordSystem[3][3],
-                                                          double ElasticLocalRotationalMoment[3],
-                                                          double ViscoLocalRotationalMoment[3],
-                                                          double equiv_poisson,
-                                                          double indentation) {
-        KRATOS_TRY
-
-        double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
-
-        DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
-                                                   ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
-
-        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
-        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
-
-        KRATOS_CATCH("")
-    }
 
     void DEM_KDEMFabric::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,

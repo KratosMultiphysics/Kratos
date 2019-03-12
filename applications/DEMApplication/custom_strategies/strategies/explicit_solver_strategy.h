@@ -207,6 +207,7 @@ namespace Kratos {
         void UpdateMaxIdOfCreatorDestructor();
         void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         virtual void Initialize();
+        virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
         virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
@@ -251,7 +252,6 @@ namespace Kratos {
         void PrepareContactElementsForPrinting();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();
         virtual void SearchRigidFaceNeighbours();
-        void DoubleHierarchyMethod();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
         void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);

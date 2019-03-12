@@ -24,6 +24,7 @@
 /* Utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/mortar_explicit_contribution_utilities.h"
 
 namespace Kratos
 {
@@ -245,122 +246,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    // The slave geometry
-    GeometryType& slave_geometry = GetGeometry();
-    const array_1d<double, 3>& normal_slave = this->GetValue(NORMAL);
-
-    // Create and initialize condition variables
-    GeneralVariables rVariables;
-
-    // Create the current contact data
-    DerivativeDataType rDerivativeData;
-    rDerivativeData.Initialize(slave_geometry, rCurrentProcessInfo);
-
-    // Create the mortar operators
-    MortarConditionMatrices rThisMortarConditionMatrices;
-
-    // We call the exact integration utility
-    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, distance_threshold);
-
-    // If we consider the normal variation
-    const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
-
-    // The master geometry
-    GeometryType& master_geometry = this->GetPairedGeometry();
-
-    // The normal of the master condition
-    const array_1d<double, 3>& normal_master = this->GetValue(PAIRED_NORMAL);
-
-    // Reading integration points
-    ConditionArrayListType conditions_points_slave;
-    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, normal_slave, master_geometry, normal_master, conditions_points_slave);
-
-    double integration_area;
-    integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
-
-    const double geometry_area = slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-3 * geometry_area)) {
-        IntegrationMethod this_integration_method = GetIntegrationMethod();
-
-        // Initialize general variables for the current master element
-        rVariables.Initialize();
-
-        // Update slave element info
-        rDerivativeData.UpdateMasterPair(master_geometry, rCurrentProcessInfo);
-
-        // Initialize the mortar operators
-        rThisMortarConditionMatrices.Initialize();
-
-        const bool dual_LM = DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry, normal_slave, master_geometry, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(rVariables));
-
-        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-            array_1d<BelongType, TDim> belong_array;
-            for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                PointType global_point;
-                slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
-                belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
-            }
-
-            DecompositionType decomp_geom( points_array );
-
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
-
-            if (bad_shape == false) {
-                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
-
-                // Integrating the mortar operators
-                for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
-                    // We compute the local coordinates
-                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
-                    PointType local_point_parent;
-                    PointType gp_global;
-                    decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                    slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
-
-                    // Calculate the kinematic variables
-                    this->CalculateKinematics( rVariables, rDerivativeData, normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
-
-                    const double integration_weight = integration_points_slave[point_number].Weight() * GetAxisymmetricCoefficient(rVariables);
-
-                    rThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);
-                }
-            }
-        }
-
-        // Setting the weighted gap
-        // Mortar condition matrices - DOperator and MOperator
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-        const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rThisMortarConditionMatrices.MOperator;
-
-        // Current coordinates
-        const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
-        const BoundedMatrix<double, TNumNodesMaster, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(master_geometry);
-
-        const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2);
-
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-            array_1d<double, TDim> aux_normal;
-            for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                aux_normal[i_dim] = normal[i_dim];
-            }
-            const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
-
-            double& weighted_gap = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
-
-            #pragma omp atomic
-            weighted_gap += inner_prod(aux_array, - aux_normal);
-        }
-
-        // We reset the flag
-        this->Set(ISOLATED, false);
-    } else {
-        // We set the flag
-        this->Set(ISOLATED, true);
-    }
+    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>::AddExplicitContributionOfMortarCondition(this, rCurrentProcessInfo, mIntegrationOrder, IsAxisymmetric(), false);
 
     KRATOS_CATCH( "" );
 }
@@ -442,7 +328,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     integration_utility.GetTotalArea(slave_geometry, conditions_points_slave, integration_area);
 
     const double geometry_area = slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-3 * geometry_area)) {
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
         IntegrationMethod this_integration_method = GetIntegrationMethod();
 
         // Initialize general variables for the current master element
@@ -493,7 +379,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
                     slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
-                    this->CalculateKinematics( rVariables, rDerivativeData, normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+                    MortarExplicitContributionUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::CalculateKinematics(this, rVariables, rDerivativeData, normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
                     const double integration_weight = integration_points_slave[point_number].Weight() * GetAxisymmetricCoefficient(rVariables);
 
@@ -537,70 +423,6 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     }
 
     KRATOS_CATCH( "" );
-}
-
-/*********************************COMPUTE KINEMATICS*********************************/
-/************************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateKinematics(
-    GeneralVariables& rVariables,
-    const DerivativeDataType& rDerivativeData,
-    const array_1d<double, 3>& NormalMaster,
-    const PointType& LocalPointDecomp,
-    const PointType& LocalPointParent,
-    GeometryPointType& GeometryDecomp,
-    const bool DualLM
-    )
-{
-    /// SLAVE CONDITION ///
-    /* SHAPE FUNCTIONS */
-    GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
-    rVariables.PhiLagrangeMultipliers = (DualLM == true) ? prod(rDerivativeData.Ae, rVariables.NSlave) : rVariables.NSlave;
-
-    /* SHAPE FUNCTION DERIVATIVES */
-    GetGeometry().ShapeFunctionsLocalGradients( rVariables.DNDeSlave, LocalPointParent );
-
-    /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    rVariables.jSlave = GeometryDecomp.Jacobian( rVariables.jSlave, LocalPointDecomp.Coordinates());
-    rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
-
-    KRATOS_ERROR_IF(rVariables.DetjSlave < 0.0) << "ERROR:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
-
-    /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, NormalMaster, LocalPointParent);
-}
-
-/***********************************************************************************/
-/*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MasterShapeFunctionValue(
-    GeneralVariables& rVariables,
-    const array_1d<double, 3>& NormalMaster,
-    const PointType& LocalPoint
-    )
-{
-    GeometryType& master_geometry = this->GetPairedGeometry();
-
-    PointType projected_gp_global;
-    const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, GetGeometry());
-
-    GeometryType::CoordinatesArrayType slave_gp_global;
-    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    GeometricalProjectionUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
-
-    GeometryType::CoordinatesArrayType projected_gp_local;
-
-    master_geometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
-
-    // SHAPE FUNCTIONS
-    master_geometry.ShapeFunctionsValues(         rVariables.NMaster,    projected_gp_local );
-    master_geometry.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
-
-    // JACOBIAN
-    rVariables.jMaster = master_geometry.Jacobian( rVariables.jMaster, projected_gp_local);
 }
 
 /***********************************************************************************/
@@ -897,6 +719,15 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
     return ierr;
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
+bool MortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::IsAxisymmetric() const
+{
+    return false;
 }
 
 /***********************************************************************************/

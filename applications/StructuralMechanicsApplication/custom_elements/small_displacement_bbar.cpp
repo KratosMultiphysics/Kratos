@@ -137,10 +137,14 @@ void SmallDisplacementBbar::CalculateAll(
     // compute Hydrostatic B-Matrix
     this->SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(this_kinematic_variables);
 
-    for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ )
-    {
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+
+    // Computing in all integrations points
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
-        const Vector body_force = this->GetBodyForce(integration_points, point_number);
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariablesBbar(this_kinematic_variables, point_number, integration_points);
@@ -151,7 +155,7 @@ void SmallDisplacementBbar::CalculateAll(
                                        GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
-        double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number,
                                                               this_kinematic_variables.detJ0);
 
         if ( dimension == 2 && GetProperties().Has( THICKNESS ))
@@ -889,7 +893,7 @@ void SmallDisplacementBbar::CalculateAndAddResidualVector(
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
-        const Vector& rBodyForce,
+        const array_1d<double, 3>& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
     ) const

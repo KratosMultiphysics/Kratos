@@ -33,7 +33,7 @@
         "skin_parts"                   : ["NoSlip2D_cylinder"],
         "no_skin_parts"                : ["VelocityConstraints2D_inlet","VelocityConstraints2D_walls"],
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "verbosity"           : 0,
             "coarse_enough"       : 500,
             "tolerance"           : 1e-8

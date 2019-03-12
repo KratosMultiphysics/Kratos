@@ -47,11 +47,11 @@
         "nonlocal_damage":                    true,
         "characteristic_length":              0.01,
         "linear_solver_settings":             {
-            "solver_type":         "BICGSTABSolver",
+            "solver_type":         "bicgstab",
             "tolerance":           1.0e-6,
             "max_iteration":       100,
             "scaling":             false,
-            "preconditioner_type": "ILU0Preconditioner"
+            "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Face_Load-auto-1","Face_Load-auto-2"],

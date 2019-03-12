@@ -52,7 +52,7 @@
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "linear_solver_settings" : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "verbosity"           : 0
         },
         "model_import_settings" : {
