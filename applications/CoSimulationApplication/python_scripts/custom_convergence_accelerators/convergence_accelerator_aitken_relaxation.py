@@ -81,10 +81,6 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
             r_diff = self._Difference(self.ResidualStorage[0] , self.ResidualStorage[1])
             numerator = cs_tools.InnerProduct( self.ResidualStorage[1], r_diff )
             denominator = cs_tools.InnerProduct( r_diff, r_diff )
-            # print("#############################")
-            # print("Numerator :: ", numerator)
-            # print("Denominator :: ", denominator)
-            # print("#############################")
             if(abs(denominator)<1E-15):
                 denominator = 1.0
             self.current_alpha = -self.alpha_old * numerator/denominator
@@ -150,10 +146,6 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     #                       Numpy can be used in the variants of this class.
     #                       residual = output_data_current_iter - input_data_current_iter
     def _CalculateResidual(self):
-        if(self.iteration == 0):
-            self.ResidualStorage.appendleft( self.output_data_current_iter )
-            return
-
         self.ResidualStorage.appendleft( deepcopy(self._Difference(self.output_data_current_iter, self.input_data_current_iter ) ))
 
     ## _ApplyRelaxationToData : updates the data with the update calculated
