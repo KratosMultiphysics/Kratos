@@ -17,7 +17,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "contact_structural_mechanics_application.h"
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/contact_search_wrapper_process.h"
@@ -28,29 +28,29 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
 
-        void GiDIOSearchDebug(ModelPart& rModelPart)
-        {
-            // Activating
-            for (auto& r_cond : rModelPart.Conditions()) {
-                r_cond.Set(ACTIVE);
-            }
-
-            GidIO<> gid_io("TEST_SEARCH_PROCESS", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);
-            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
-
-            gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(rModelPart.GetMesh());
-            gid_io.FinalizeMesh();
-            gid_io.InitializeResults(label, rModelPart.GetMesh());
-            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
-            gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
-            gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
-            gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-        }
+//         void GiDIOSearchDebug(ModelPart& rModelPart)
+//         {
+//             // Activating
+//             for (auto& r_cond : rModelPart.Conditions()) {
+//                 r_cond.Set(ACTIVE);
+//             }
+//
+//             GidIO<> gid_io("TEST_SEARCH_PROCESS", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);
+//             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const double label = static_cast<double>(nl_iter);
+//
+//             gid_io.InitializeMesh(label);
+//             gid_io.WriteMesh(rModelPart.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(label, rModelPart.GetMesh());
+//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+//         }
 
         /**
          * This method can be used to create a plane/cylinder condition set
@@ -175,6 +175,10 @@ namespace Kratos
             // We create our problem
             CreatePlaneCilynderProblemForSearch(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
+            // Compute NodalH
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(r_model_part);
+            process.Execute();
+
 //             // DEBUG
 //             GiDIOSearchDebug(r_model_part);
 
@@ -195,6 +199,9 @@ namespace Kratos
 
             search_process.ExecuteInitialize();
             search_process.ExecuteInitializeSolutionStep();
+
+//             // DEBUG
+//             GiDIOSearchDebug(r_model_part);
 
 //             // DEBUG
 //             for (auto& r_cond : r_model_part.Conditions()) {
@@ -273,7 +280,7 @@ namespace Kratos
          * Checks the correct work of the search process
          * Test Octree
          */
-        KRATOS_TEST_CASE_IN_SUITE(SearchProcessOctree, KratosContactStructuralMechanicsFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(SearchProcessOctree, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -318,7 +325,7 @@ namespace Kratos
                 "check_gap"                            : "MappingCheck",
                 "octree_search_parameters" : {
                     "bounding_box_factor"    : 0.1,
-                    "debug_obb"              : true
+                    "debug_obb"              : false
                     }
             })" );
 
@@ -327,73 +334,59 @@ namespace Kratos
             search_process.ExecuteInitialize();
             search_process.ExecuteInitializeSolutionStep();
 
-            // DEBUG
-            KRATOS_WATCH(r_model_part)
-            GiDIOSearchDebug(r_model_part);
+//             // DEBUG
+//             GiDIOSearchDebug(r_model_part);
 
-            // DEBUG
-            for (auto& r_cond : r_model_part.Conditions()) {
-                if (r_cond.Is(SLAVE)) {
-                    auto p_indexes_pairs = r_cond.GetValue(INDEX_MAP);
-                    KRATOS_WATCH(r_cond.Id())
-                    KRATOS_WATCH(p_indexes_pairs->size())
-                    for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
-                        const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                        KRATOS_WATCH(master_id)
-                    }
-                }
-            }
+//             // DEBUG
+//             for (auto& r_cond : r_model_part.Conditions()) {
+//                 if (r_cond.Is(SLAVE)) {
+//                     auto p_indexes_pairs = r_cond.GetValue(INDEX_MAP);
+//                     KRATOS_WATCH(r_cond.Id())
+//                     KRATOS_WATCH(p_indexes_pairs->size())
+//                     for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+//                         const IndexType master_id = p_indexes_pairs->GetId(it_pair);
+//                         KRATOS_WATCH(master_id)
+//                     }
+//                 }
+//             }
 
             // Check results
             auto& r_cond_1 = r_model_part.GetCondition(1);
             auto p_indexes_pairs_1 = r_cond_1.GetValue(INDEX_MAP);
             KRATOS_CHECK_EQUAL(p_indexes_pairs_1->size(), 2);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin()), 9);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin()), 10);
             auto it_pair_check = p_indexes_pairs_1->begin();
             it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(it_pair_check), 10);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(it_pair_check), 9);
 
             auto& r_cond_2 = r_model_part.GetCondition(2);
             auto p_indexes_pairs_2 = r_cond_2.GetValue(INDEX_MAP);
             KRATOS_CHECK_EQUAL(p_indexes_pairs_2->size(), 2);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin()), 10);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin()), 11);
             it_pair_check = p_indexes_pairs_2->begin();
             it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(it_pair_check), 11);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(it_pair_check), 10);
 
             auto& r_cond_3 = r_model_part.GetCondition(3);
             auto p_indexes_pairs_3 = r_cond_3.GetValue(INDEX_MAP);
             KRATOS_CHECK_EQUAL(p_indexes_pairs_3->size(), 2);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin()), 12);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin()), 11);
             it_pair_check = p_indexes_pairs_3->begin();
             it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(it_pair_check), 11);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(it_pair_check), 12);
 
             auto& r_cond_4 = r_model_part.GetCondition(4);
             auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin()), 13);
-            it_pair_check = p_indexes_pairs_4->begin();
-            it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 12);
-            it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 14);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 0);
 
             auto& r_cond_5 = r_model_part.GetCondition(5);
             auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 2);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 1);
             KRATOS_CHECK_EQUAL(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
-            it_pair_check = p_indexes_pairs_5->begin();
-            it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_5->GetId(it_pair_check), 15);
 
             auto& r_cond_6 = r_model_part.GetCondition(6);
             auto p_indexes_pairs_6 = r_cond_6.GetValue(INDEX_MAP);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 2);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_6->GetId(p_indexes_pairs_6->begin()), 16);
-            it_pair_check = p_indexes_pairs_6->begin();
-            it_pair_check++;
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_6->GetId(it_pair_check), 15);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 0);
 
             auto& r_cond_7 = r_model_part.GetCondition(7);
             auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
