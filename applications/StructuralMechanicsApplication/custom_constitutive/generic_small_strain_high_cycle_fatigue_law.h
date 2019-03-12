@@ -45,8 +45,8 @@ typedef std::size_t SizeType;
 /**
  * @class GenericSmallStrainHighCycleFatigueLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for damage in small deformation
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
+ * @brief This class is the base class which defines the constitutive law used for high cycle fatigue (HCF) in small deformation
+ * @details This class uses the GenericSmallStrainIsotropicDamage class once the load is applied Nf cycles
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Sergio Jiménez/Alejandro Cornejo/Lucia Barbu
  */
@@ -114,81 +114,174 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues);
+    /**
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
+    /**
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues);
+    /**
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+    /**
+     * @brief To be called at the end of each solution step
+     * @details (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param rCurrentProcessInfo the current ProcessInfo instance
+     */
+    void FinalizeSolutionStep(
+        const Properties& rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
-void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues);
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
 
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<double>& rThisVariable, 
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    double& GetValue(
+        const Variable<double>& rThisVariable, 
+        double& rValue) override;
 
-void FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType &rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    );
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
 
-bool Has(const Variable<double>& rThisVariable);
+    /**
+     * @brief Returns the value of a specified variable (matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Matrix& GetValue(
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
 
-void SetValue(const Variable<double>& rThisVariable, const double& rValue,
-              const ProcessInfo& rCurrentProcessInfo);
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue
+        ) override;
 
-double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+    /**
+     * @brief Returns the value of a specified variable (vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+        
+    /**
+     * @brief Returns the value of a specified variable (matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
 
-Matrix& CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    );
+    /**
+     * Finalize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-Vector& CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    );
+    /**
+     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-double& CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    );
+    /**
+     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-Matrix& GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    );
+    /**
+     * @brief Finalize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    ///@}
+    ///@name Access
+    ///@{
 
-Vector& GetValue(
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    );
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
-void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues);
-void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues);
-void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues);
-///@}
-///@name Access
-///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-///@}
-///@name Inquiry
-///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
-///@}
-///@name Input and output
-///@{
-
-///@}
-///@name Friends
-///@{
-
-///@}
+    ///@}
 
 protected:
     ///@name Protected static Member Variables

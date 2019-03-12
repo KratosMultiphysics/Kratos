@@ -50,13 +50,10 @@ namespace Kratos
 /**
  * @class HighCycleFatigueLawIntegrator
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the isotropic damage theory by means of
- * linear/exponential softening.
+ * @brief: This object computes all the required information for the high cycle fatigue constitutive law.
  * @details The definitions of these classes is completely static, the derivation is done in a static way
- * The damage integrator requires the definition of the following properties:
- * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
- * @tparam TYieldSurfaceType The yield surface considered
- * @author Alejandro Cornejo & Lucia Barbu
+ * @tparam TVoigtSize Strain size
+ * @author Sergio Jimenez, Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
 class HighCycleFatigueLawIntegrator
@@ -98,6 +95,17 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method integrates checks if the uniaxial stress value of the previous step was a maximum or a minimum 
+     * @param CurrentStress The signed uniaxial stress in the current step.
+     * @param MaximumStress Identifies if the stress in the previous step was a maximum (signed uniaxial stress) in the calculation. Otherwise it is 0.
+     * @param MinimumStress Identifies if the stress in the previous step was a minimum (signed uniaxial stress) in the calculation. Otherwise it is 0.
+     * @param PreviousMaximumStress Latest identified maximum (signed uniaxial stress) in the calculation.
+     * @param PreviousMinimumStress Latest identified minimum (signed uniaxial stress) in the calculation.
+     * @param PreviousStresses Vector containing the stress value (signed uniaxial stresses) from the two previous steps.
+     * @param NumberOfCycles Number of cycles for the applied load.
+     * @param CycleCounter Boolean variable used on the update operation for the SetMaxStress.
+     */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
         double &rMaximumStress, 
@@ -132,6 +140,11 @@ public:
         }
     }
 
+    /**
+     * @brief This method checks if the global stress state is tension or compression 
+     * @param StressVector Current predictive stress tensor.
+     * @param Factor Method's output; -1 for a generalized compression state and 1 for a generalized tensile state.
+     */
     static void CalculateTensionCompressionFactor(const Vector& rStressVector, double& rFactor) 
     {
         array_1d<double,3> principal_stresses;
@@ -153,12 +166,27 @@ public:
         }
     }
 
+    /**
+     * @brief This method computes de reversion factor 
+     * @param MaxStress Signed maximum equivalent stress in the current cycle.
+     * @param MinStress Signed minimum equivalent stress in the current cycle. 
+     */
     static void CalculateReversionFactor(const double MaxStress, const double MinStress, double& rReversionFactor)
     {
         rReversionFactor = MinStress / MaxStress;
     }
 
-	static void CalculateFatigueReductionFactor(const double MaxStress,
+    /**
+     * @brief This method computes the reduction factor used in the high cycle fatigue model 
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param MinStress Signed minimum stress in the current cycle.
+     * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
+     * @param MaterialParameters Material properties.
+     * @param NumbreOfCycles Number of cycles at the current step.
+     * @param FatigueReductionFactor Reduction factor from the previous step to be reevaluated.
+     * @param B0 Internal variable of the fatigue model used for the calculation of the FatigueReductionFactor.
+     */
+    static void CalculateFatigueReductionFactor(const double MaxStress,
                                                 const double MinStress,
                                                 double& rReversionFactor,
                                                 const Properties& rMaterialParameters,
@@ -187,7 +215,6 @@ public:
             Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / rReversionFactor), STHR2);
 			alphat = ALFAF - (0.5 + 0.5 / rReversionFactor) * AUXR2;
         }
-
 
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > yield_stress) {
@@ -278,7 +305,7 @@ public:
 
     ///@}
 
-}; // Class GenericYieldSurface
+}; // Class HighCycleFatigueLawIntegrator
 
 ///@}
 
