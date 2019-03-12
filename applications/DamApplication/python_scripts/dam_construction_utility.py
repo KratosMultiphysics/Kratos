@@ -17,7 +17,7 @@ class DamConstructionUtility:
         self.construction_input_file_name = parameters["construction_input_file_name"].GetString()
 
         self.check_temperature_parameters = Parameters("{}")
-        self.activate_check_temperature = parameters["activate_check_temperature"]
+        self.activate_check_temperature = parameters["activate_check_temperature"].GetBool()
         if (self.activate_check_temperature):
             self.check_temperature_parameters.AddValue("maximum_temperature_increment",parameters["maximum_temperature_increment"])
             self.check_temperature_parameters.AddValue("maximum_temperature",parameters["maximum_temperature"])

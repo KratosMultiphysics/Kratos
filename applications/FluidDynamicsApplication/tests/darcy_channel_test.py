@@ -231,7 +231,7 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
-                "solver_type" : "AMGCL"
+                "solver_type" : "amgcl"
             }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50

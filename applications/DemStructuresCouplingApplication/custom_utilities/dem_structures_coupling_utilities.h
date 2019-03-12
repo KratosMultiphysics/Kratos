@@ -68,6 +68,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
         Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
+        cond->Set(DEMFlags::STICKY, true);
         r_destination_model_part.AddCondition(cond);
         id++;
     }

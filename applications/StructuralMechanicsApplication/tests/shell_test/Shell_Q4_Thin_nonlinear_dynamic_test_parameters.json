@@ -32,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
-            "solver_type" : "AMGCL",
+            "solver_type" : "amgcl",
             "provide_coordinates" : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_surface"],

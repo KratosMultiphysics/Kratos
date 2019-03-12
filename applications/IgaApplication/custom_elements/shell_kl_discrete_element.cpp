@@ -102,23 +102,23 @@ namespace Kratos
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
 
             // adding  non-linear-contribution to Stiffness-Matrix
-            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                second_variations_strain,
-                constitutive_variables_membrane.S,
-                integration_weight);
+            //CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+            //    second_variations_strain,
+            //    constitutive_variables_membrane.S,
+            //    integration_weight);
 
-            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                second_variations_curvature,
-                constitutive_variables_curvature.S,
-                integration_weight);
+            //CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+            //    second_variations_curvature,
+            //    constitutive_variables_curvature.S,
+            //    integration_weight);
         }
 
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             // operation performed: rRightHandSideVector -= Weight*IntForce
-            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
-            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
+            //noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
+            //noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
 
         //KRATOS_WATCH(rLeftHandSideMatrix)

@@ -69,3 +69,5 @@ kratos/includes/kratos_version.h
 *.bak
 
 applications/python_scripts/beam_profiles\.csv
+
+\.vs/slnx\.sqlite

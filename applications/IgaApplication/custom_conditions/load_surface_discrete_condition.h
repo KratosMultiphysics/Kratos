@@ -56,6 +56,22 @@ namespace Kratos
         virtual ~LoadSurfaceDiscreteCondition() override
         {};
 
+        /**
+        * @brief Creates a new element
+        * @param NewId The Id of the new created element
+        * @param pGeom The pointer to the geometry of the element
+        * @param pProperties The pointer to property
+        * @return The pointer to the created element
+        */
+        Condition::Pointer Create(
+            IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties
+        ) const override
+        {
+            return Kratos::make_shared<LoadSurfaceDiscreteCondition>(
+                NewId, pGeom, pProperties);
+        };
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
             return Kratos::make_shared< LoadSurfaceDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);

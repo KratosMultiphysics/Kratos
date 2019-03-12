@@ -69,7 +69,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "projection_variable"           : "PROJECTED_SCALAR1",
                 "convection_variable"           : "CONVECTION_VELOCITY",
                 "mesh_velocity_variable"        : "MESH_VELOCITY",
-                "transfer_coefficient_variable" : "",
+                "transfer_coefficient_variable" : "TRANSFER_COEFFICIENT",
                 "velocity_variable"             : "VELOCITY",
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
                 "reaction_variable"             : "REACTION_FLUX"
@@ -90,7 +90,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type":"gmres",
                 "coarsening_type":"aggregation",
