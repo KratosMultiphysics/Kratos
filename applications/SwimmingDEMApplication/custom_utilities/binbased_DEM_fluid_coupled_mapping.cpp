@@ -43,7 +43,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     KRATOS_TRY
 
     DerivativeRecovery<TDim> recoverer(r_fluid_model_part, parameters);
-    recoverer.RecoverGradientOfAScalar(PRESSURE, TORQUE);
+
     // setting interpolated variables to their default values
     ResetDEMVariables(r_dem_model_part);
 
@@ -53,7 +53,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
     #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
         Node<3>::Pointer p_particle = *(i_particle.base());
 
@@ -61,7 +61,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
             Element::Pointer p_element;
 
             // looking for the fluid element in which the DEM node falls
-            bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
+            const bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(),
+                                                                       N,
+                                                                       p_element,
+                                                                       results.begin(),
+                                                                       max_results);
             // interpolating the variables
 
             if (is_found){
@@ -921,7 +925,7 @@ double BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calcul
         }
     }
 
-    // norm of the symetric gradient (shear rate)
+    // norm of the symmetric gradient (shear rate)
     double norm_s = 0.0;
 
     for (unsigned int i = 0; i < TDim; ++i){
@@ -2026,7 +2030,9 @@ template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 double inline BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
     array_1d<double, 3> coor_a = a->Coordinates();
     array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
-    return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
+    return std::sqrt(std::pow((coor_a[0] - coor_b[0]), 2)
+                   + std::pow((coor_a[1] - coor_b[1]), 2)
+                   + std::pow((coor_a[2] - coor_b[2]), 2));
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
