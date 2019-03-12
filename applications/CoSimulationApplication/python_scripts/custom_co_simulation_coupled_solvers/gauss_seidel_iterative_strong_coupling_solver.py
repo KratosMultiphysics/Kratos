@@ -80,6 +80,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
+                for accelerator in self.convergence_accelerators_list:
+                    accelerator.FinalizeNonLinearIteration()
 
                 is_converged = True #Comment I think this would be suitable for list-comprehension
                 for conv_criteria in self.convergence_criteria_list:
@@ -91,9 +93,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
                 if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
                     cs_tools.PrintWarning("\t"+cs_tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + cs_tools.bcolors.ENDC)
-
-                for accelerator in self.convergence_accelerators_list:
-                    accelerator.FinalizeNonLinearIteration()
+                    break
         else:
             for solver_name, solver in self.participating_solvers.items():
                 cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + "SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
