@@ -812,14 +812,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int SourceRank) const
     {
-        if (Rank() == SourceRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Scatter calls (double version).
@@ -836,14 +831,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int SourceRank) const
     {
-        if (Rank() == SourceRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Scatter calls (int version).
@@ -856,7 +846,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Scatter");
+        rRecvValues = Scatter(rSendValues, SourceRank);
+    }
 
     /// Wrapper for MPI_Scatter calls (double version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
@@ -868,7 +861,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Scatter");
+        rRecvValues = Scatter(rSendValues, SourceRank);
+    }
 
     // Scatterv operations
 
