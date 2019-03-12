@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 import math
+from decimal import Decimal
 
 def Create(settings, solver):
     return CoSimulationConvergenceCriteria(settings, solver)
@@ -109,9 +110,9 @@ class CoSimulationConvergenceCriteria(object):
             info_msg += cs_tools.bcolors.ENDC
             cs_tools.PrintInfo(cs_tools.bcolors.HEADER + '\tConvergence for "' + cs_tools.bcolors.BOLD + self.data_name +'"', info_msg)
         if self.echo_level > 2:
-            info_msg  = cs_tools.bcolors.HEADER + "\tabs_norm" + " = " + cs_tools.bcolors.BOLD + str(abs_residual_norm) + " | "
+            info_msg  = cs_tools.bcolors.HEADER + "\tabs_norm" + " = " + cs_tools.bcolors.BOLD + str("{:.3E}".format(Decimal(abs_residual_norm))) + " | "
             info_msg += "abs_tol" + " = " + cs_tools.bcolors.BOLD + str(self.abs_tolerance)
-            info_msg += " || " + "rel_norm" + " = " + cs_tools.bcolors.BOLD + str(rel_residual_norm) + " | "
+            info_msg += " || " + "rel_norm" + " = " + cs_tools.bcolors.BOLD + str("{:.3E}".format(Decimal(rel_residual_norm))) + " | "
             info_msg += "rel_tol = " + cs_tools.bcolors.BOLD + str(self.rel_tolerance) + cs_tools.bcolors.ENDC
             cs_tools.PrintInfo(info_msg)
 
