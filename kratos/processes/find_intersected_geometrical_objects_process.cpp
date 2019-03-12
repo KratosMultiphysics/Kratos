@@ -317,18 +317,6 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
         high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
     }
 
-    // Adding offset and scale
-    const Vector& r_scale_factor = mThisParameters["scale_factor"].GetVector();
-    KRATOS_ERROR_IF_NOT(r_scale_factor.size() == 3) << "scale_factor is not correct size: " << r_scale_factor.size() << std::endl;
-    const Vector& r_offset = mThisParameters["offset"].GetVector();
-    KRATOS_ERROR_IF_NOT(r_offset.size() == 3) << "offset is not correct size: " << r_offset.size() << std::endl;
-
-    // Adding offset
-    for (IndexType i = 0; i < WorkingSpaceDimension(); ++i) {
-        low[i] -= r_offset[i];
-        high[i] += r_offset[i];
-    }
-
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     mOctree.SetBoundingBox(low.data(), high.data());
@@ -479,9 +467,7 @@ Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParamete
     Parameters default_parameters = Parameters(R"(
     {
         "first_model_part_name"  : "",
-        "second_model_part_name" : "",
-        "scale_factor"           : [1.0, 1.0, 1.0],
-        "offset"                 : [0.0, 0.0, 0.0]
+        "second_model_part_name" : ""
     })" );
 
     return default_parameters;
