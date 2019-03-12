@@ -354,8 +354,6 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::GetDefaultP
     {
         "first_model_part_name"  : "",
         "second_model_part_name" : "",
-        "scale_factor"           : [1.0, 1.0, 1.0],
-        "offset"                 : [0.0, 0.0, 0.0],
         "bounding_box_factor"    : -1.0,
         "debug_obb"              : false
     })" );
