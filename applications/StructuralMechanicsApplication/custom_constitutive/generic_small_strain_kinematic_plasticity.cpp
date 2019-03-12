@@ -101,7 +101,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         Vector back_stress_vector = this->GetBackStressVector();
         const Vector previous_stress_vector = this->GetPreviousStressVector();
 
-        array_1d<double, VoigtSize> predictive_stress_vector;
+        array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
         if (r_constitutive_law_options.Is(ConstitutiveLaw::U_P_LAW)) {
             predictive_stress_vector = rValues.GetStressVector();
         } else {
@@ -116,10 +116,10 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         array_1d<double, VoigtSize> plastic_strain_increment = ZeroVector(VoigtSize);
 
         // Kinematic back stress substracted
-        predictive_stress_vector -= back_stress_vector;
+        noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
 
 		const double threshold_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
             threshold, plastic_denominator, f_flux, g_flux,
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, rValues, characteristic_length,
@@ -260,7 +260,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Vector back_stress_vector = this->GetBackStressVector();
     const Vector previous_stress_vector = this->GetPreviousStressVector();
 
-    array_1d<double, VoigtSize> predictive_stress_vector;
+    array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
     if (r_constitutive_law_options.Is(ConstitutiveLaw::U_P_LAW)) {
         predictive_stress_vector = rValues.GetStressVector();
     } else {
@@ -275,10 +275,10 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     array_1d<double, VoigtSize> plastic_strain_increment = ZeroVector(VoigtSize);
 
     // Kinematic back stress substracted
-    predictive_stress_vector -= back_stress_vector;
+    noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
 
     const double threshold_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
-        predictive_stress_vector, r_strain_vector, uniaxial_stress,
+        kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
         threshold, plastic_denominator, f_flux, g_flux,
         plastic_dissipation, plastic_strain_increment,
         r_constitutive_matrix, rValues, characteristic_length,
@@ -296,8 +296,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
             previous_stress_vector);
     }
 
-    mUniaxialStress = uniaxial_stress;
-    mPlasticDissipation = plastic_dissipation;
+    TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+	mUniaxialStress = uniaxial_stress;
+	mPlasticDissipation = plastic_dissipation;
     mThreshold = threshold;
     mPlasticStrain = plastic_strain;
     mBackStressVector = back_stress_vector;
