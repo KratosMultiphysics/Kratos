@@ -929,9 +929,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv");
-        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv");
-        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv");
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv (counts check)");
+        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv (offsets check)");
         KRATOS_ERROR_IF( Rank() != SourceRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
@@ -952,9 +952,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv");
-        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv");
-        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv");
+        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv (counts check)");
+        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv (offsets check)");
         KRATOS_ERROR_IF( Rank() != SourceRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
