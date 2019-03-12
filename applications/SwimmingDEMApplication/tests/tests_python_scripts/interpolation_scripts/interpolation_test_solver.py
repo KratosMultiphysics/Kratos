@@ -33,6 +33,14 @@ class InterpolationTestSolver(BaseSolver):
             node.SetSolutionStepValue(VELOCITY, velocity)
 
     def SolveDEM(self):
+        import random
+        random.random()
+
+        for node in self.dem_solver.spheres_model_part.Nodes:
+            node.X = random.random()
+            node.Y = random.random()
+            node.Z = random.random()
+
         super(InterpolationTestSolver, self).SolveDEM()
 
     def SolveDEMSolutionStep(self):
