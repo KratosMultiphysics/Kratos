@@ -24,6 +24,7 @@
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 #include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
+#include "custom_strategies/strategies/two_step_v_p_DEM_coupling_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/first_order_forward_euler_scheme.hpp"

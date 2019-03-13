@@ -188,8 +188,10 @@
             "model_part_name"      : "SpheresPart",
             "time_frequency"       : 0.001
         }
-    }]
-},
+        }]
+
+    },
+
 "fluid_parameters"  : {
     "problem_data"             : {
         "problem_name"    : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
@@ -203,15 +205,15 @@
         "threads"         : 1,
         "gravity_vector"  : [0.0,0.0,-9.81]
     },
-     "bodies_list"                        : [{
-          "body_type"  : "Fluid",
-          "body_name"  : "Body1",
-          "parts_list" : ["Parts_Parts_Auto1"]
-      },{
-          "body_type"  : "Rigid",
-          "body_name"  : "Body2",
-          "parts_list" : ["Parts_Parts_Auto2"]
-      }],
+        "bodies_list"                        : [{
+            "body_type"  : "Fluid",
+            "body_name"  : "Body1",
+            "parts_list" : ["Parts_Parts_Auto1"]
+        },{
+            "body_type"  : "Rigid",
+            "body_name"  : "Body2",
+            "parts_list" : ["Parts_Parts_Auto2"]
+        }],
     "solver_settings"          : {
         "solver_type"                        : "pfem_fluid_solver_analysis",
         "domain_size"                        : 3,
@@ -299,7 +301,7 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement3D",
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidDEMcouplingElement3D",
                     "reference_condition_type"      : "CompositeCondition3D3N"
                 },
                 "spatial_bounding_box"            : {
@@ -363,7 +365,7 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement3D",
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidDEMcouplingElement3D",
                     "reference_condition_type"      : "CompositeCondition3D3N"
                 },
                 "spatial_bounding_box"            : {
