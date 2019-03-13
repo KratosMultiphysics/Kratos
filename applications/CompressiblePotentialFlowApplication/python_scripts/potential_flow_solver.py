@@ -114,7 +114,7 @@ class LaplacianSolver(PythonSolver):
 
 
         if self.settings["element_replace_settings"]["element_name"].GetString() == "CompressiblePotentialFlowElement2D3N":
-            conv_criteria = KratosMultiphysics.ResidualCriteria(
+            conv_criteria = KratosMultiphysics.DisplacementCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
             max_iterations = self.settings["maximum_iterations"].GetInt()

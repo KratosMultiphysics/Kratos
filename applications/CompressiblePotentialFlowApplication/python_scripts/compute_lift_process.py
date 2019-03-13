@@ -3,6 +3,9 @@ import KratosMultiphysics
 from numpy import *
 import itertools
 import matplotlib.pyplot as plt
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -20,7 +23,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
                 "reference_area": 1,
-                "create_output_file": false
+                "create_output_file": true,
+                "path": "cp_distribution.dat"
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -35,6 +39,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
+        self.path  = settings["path"].GetString()
 
     def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE LIFT')
@@ -56,13 +61,35 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         Cl = RY
         Cd = RX
-
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
+
         print('Cl = ', Cl)
         print('Cd = ', Cd)
         print('RZ = ', RZ)
         print('Mach = ', self.velocity_infinity[0]/340)
+        self.Output(self.path)
 
-        if self.create_output_file:
-            with open("cl.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(Cl))
+
+    @ExaquteTask(filepath=FILE_OUT)
+    def Output(self,filepath):
+            x_list=[]
+            cp_list=[]
+
+            for cond in self.upper_surface_model_part.Conditions:
+                cp = cond.GetValue(PRESSURE)
+                x = cond.GetGeometry().Center().X
+                x_list.append(x)
+                cp_list.append(cp)
+            for cond in self.lower_surface_model_part.Conditions:
+                cp = cond.GetValue(PRESSURE)
+                x = cond.GetGeometry().Center().X
+                x_list.append(x)
+                cp_list.append(cp)  
+            max_x=max(x_list)
+            min_x=min(x_list)
+            for i in range(0,len(x_list)):
+                x_list[i]=(x_list[i]-min_x)/abs(max_x-min_x)
+
+            with open(filepath, 'w') as cp_file:  
+                for i in range(len(x_list)):
+                    cp_file.write('%f %f\n' % (x_list[i], cp_list[i]))

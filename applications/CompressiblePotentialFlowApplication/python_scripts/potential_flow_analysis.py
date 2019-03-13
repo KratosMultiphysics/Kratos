@@ -21,10 +21,10 @@ class PotentialFlowAnalysis(AnalysisStage):
             warn_msg += 'the definition in the "solver_settings" will be employed'
             KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", warn_msg)
 
-        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
-            warn_msg  = '"model_part_name" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", warn_msg)
+        # if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
+        #     warn_msg  = '"model_part_name" defined both in "problem_data" and "solver_settings"!'
+        #     warn_msg += 'the definition in the "solver_settings" will be employed'
+        #     KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", warn_msg)
 
         if not solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
             KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", "Using the old way to pass the domain_size, this will be removed!")
