@@ -66,9 +66,19 @@ class FEMDEM_Solution:
             self.InitializeMMGvariables()
             self.RemeshingProcessMMG.ExecuteInitialize()
 
-        self.pressure_load = False #hard coded
-        if self.pressure_load:
+        if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+            self.PressureLoad = False
+        else:
+            self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+        if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+        
+        self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
+        {
+            "name_auxiliar_model_part" : "SkinDEMModelPart",
+            "name_auxiliar_condition"  : "Condition",
+            "echo_level"               : 0
+        }""")
 
         # for the dem contact forces coupling
         self.InitializeDummyNodalForces()
@@ -115,8 +125,7 @@ class FEMDEM_Solution:
             is_remeshing = self.CheckIfHasRemeshed()
 
             if is_remeshing:
-                # Extrapolate the VonMises normalized stress to nodes (remeshing)
-                # KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+                # Extrapolate the free energy as a remeshing criterion
                 KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
                 # we eliminate the nodal DEM forces
@@ -147,14 +156,22 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-        if self.pressure_load:
-            # we reconstruct the pressure load
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
-            while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
-                KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+        if self.PressureLoad:
+            # This must be called before Generating DEM
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
+            extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
+            extend_wet_nodes_process.Execute()
 
         # we create the new DEM of this time step
         self.GenerateDEM()
+
+        if self.PressureLoad:
+            # we reconstruct the pressure load if necessary
+            if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
+                self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] = 1
+                while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] > 0:
+                    KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+            
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
 
@@ -923,6 +940,9 @@ class FEMDEM_Solution:
         for elem in self.FEM_Solution.main_model_part.Elements:
             elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
             elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
+            elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
+            elem.SetValue(KratosFemDem.IS_SKIN, 0)
+            elem.SetValue(KratosFemDem.SMOOTHING, 0)
             elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
             elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
 
@@ -997,8 +1017,11 @@ class FEMDEM_Solution:
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
 
-        self.pressure_load = False #hard coded
-        if self.pressure_load:
+        if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+            self.PressureLoad = False
+        else:
+            self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+        if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
         # Remove DEMS from previous mesh
@@ -1014,13 +1037,7 @@ class FEMDEM_Solution:
         self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
 
         # Search the skin nodes for the remeshing
-        skin_detection_process_param = KratosMultiphysics.Parameters("""
-        {
-            "name_auxiliar_model_part" : "SkinDEMModelPart",
-            "name_auxiliar_condition"  : "Condition",
-            "echo_level"               : 0
-        }""")
         skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                            skin_detection_process_param)
+                                                                            self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()

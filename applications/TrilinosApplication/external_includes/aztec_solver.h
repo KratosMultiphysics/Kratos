@@ -74,133 +74,113 @@ public:
     /// Constructor with Parameters.
     AztecSolver(Parameters settings)
     {
-        Parameters default_settings( R"(
-        {
-        "solver_type": "aztec",
-        "tolerance" : 1.0e-6,
-        "max_iteration" : 200,
-        "preconditioner_type" : "None",
-        "overlap_level":1,
-        "gmres_krylov_space_dimension" : 100,
-        "scaling":false,
-        "verbosity":0,
-        "trilinos_aztec_parameter_list": {},
-        "trilinos_preconditioner_parameter_list": {}
-        }  )" );
+        Parameters default_settings( R"( {
+            "solver_type"                            : "aztec",
+            "tolerance"                              : 1.0e-6,
+            "max_iteration"                          : 200,
+            "preconditioner_type"                    : "none",
+            "overlap_level"                          : 1,
+            "gmres_krylov_space_dimension"           : 100,
+            "scaling"                                : false,
+            "verbosity"                              : 0,
+            "trilinos_aztec_parameter_list"          : {},
+            "trilinos_preconditioner_parameter_list" : {}
+        } )" );
 
         settings.ValidateAndAssignDefaults(default_settings);
 
         //settings for the AZTEC solver
-        mtol = settings["tolerance"].GetDouble();
-        mmax_iter = settings["max_iteration"].GetDouble();
+        mTolerance = settings["tolerance"].GetDouble();
+        mMaxIterations = settings["max_iteration"].GetDouble();
 
         //IFpack settings
-        moverlap_level = settings["overlap_level"].GetInt();
+        mOverlapLevel = settings["overlap_level"].GetInt();
 
         //scaling settings
-        if (settings["scaling"].GetBool() == false)
-            mscaling_type = NoScaling;
-        else
-            mscaling_type = LeftScaling;
+        if (!settings["scaling"].GetBool()) {
+            mScalingType = NoScaling;
+        }
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
-        maztec_parameter_list = Teuchos::ParameterList();
+        mAztecParameterList = Teuchos::ParameterList();
 
-        if(settings["verbosity"].GetInt() == 0)
-            maztec_parameter_list.set("AZ_output", "AZ_none");
-        else
-            maztec_parameter_list.set("AZ_output", settings["verbosity"].GetInt());
+        if (settings["verbosity"].GetInt() == 0) {
+            mAztecParameterList.set("AZ_output", "AZ_none");
+        } else {
+            mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
+        }
 
         //choose the solver type
-        if(settings["solver_type"].GetString() == "CGSolver" || settings["solver_type"].GetString() == "cg")
-        {
-            maztec_parameter_list.set("AZ_solver", "AZ_cg");
-        }
-        else if(settings["solver_type"].GetString() == "BICGSTABSolver" || settings["solver_type"].GetString() == "bicgstab")
-        {
-            maztec_parameter_list.set("AZ_solver", "AZ_bicgstab");
-        }
-        else if(settings["solver_type"].GetString() == "GMRESSolver" || settings["solver_type"].GetString() == "gmres")
-        {
-            maztec_parameter_list.set("AZ_solver", "AZ_gmres");
-            maztec_parameter_list.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
-        }
-        else if(settings["solver_type"].GetString() == "AztecSolver" || settings["solver_type"].GetString() == "aztec")
-        {
+        const std::string solver_type = settings["solver_type"].GetString();
+        if (solver_type == "CGSolver" || solver_type == "cg") {
+            mAztecParameterList.set("AZ_solver", "AZ_cg");
+        } else if (solver_type == "BICGSTABSolver" || solver_type == "bicgstab") {
+            mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
+        } else if (solver_type == "GMRESSolver" || solver_type == "gmres") {
+            mAztecParameterList.set("AZ_solver", "AZ_gmres");
+            mAztecParameterList.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
+        } else if (solver_type == "AztecSolver" || solver_type == "aztec") {
             //do nothing here. Leave full control to the user through the "trilinos_aztec_parameter_list"
         }
-        else
-        {
-            KRATOS_ERROR << " the solver type specified : " << settings["solver_type"].GetString()  << " is not supported";
+        else {
+            KRATOS_ERROR << "The \"solver_type\" specified: \"" << solver_type << "\" is not supported\n"
+                << " Available options are: \"cg\", \"bicgstab\", \"gmres\", \"aztec\"" << std::endl;
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
-        {
-            if(it->IsString()) maztec_parameter_list.set(it.name(), it->GetString());
-            else if(it->IsInt()) maztec_parameter_list.set(it.name(), it->GetInt());
-            else if(it->IsBool()) maztec_parameter_list.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) maztec_parameter_list.set(it.name(), it->GetDouble());
+        for (auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++) {
+            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
+            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
         }
 
-        mpreconditioner_parameter_list = Teuchos::ParameterList();
-        if(settings["preconditioner_type"].GetString() == "DiagonalPreconditioner")
-        {
+        mPreconditionerParameterList = Teuchos::ParameterList();
+        const std::string preconditioner_type = settings["preconditioner_type"].GetString();
+        if (preconditioner_type == "diagonal" || preconditioner_type == "DiagonalPreconditioner") {
             mIFPreconditionerType = "None";
-        }
-        else if(settings["preconditioner_type"].GetString() == "ILU0")
-        {
+        } else if (preconditioner_type == "ilu0" || preconditioner_type == "ILU0") {
             mIFPreconditionerType = "ILU";
-            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
-            mpreconditioner_parameter_list.set("fact: level-of-fill", 1);
-        }
-        else if(settings["preconditioner_type"].GetString() == "ILUT")
-        {
+            mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
+            mPreconditionerParameterList.set("fact: level-of-fill", 1);
+        } else if (preconditioner_type == "ilut" || preconditioner_type == "ILUT") {
             mIFPreconditionerType = "ILU";
-            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
-            mpreconditioner_parameter_list.set("fact: level-of-fill", 10);
-        }
-        else if(settings["preconditioner_type"].GetString() == "ICC")
-        {
+            mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
+            mPreconditionerParameterList.set("fact: level-of-fill", 10);
+        } else if (preconditioner_type == "icc" || preconditioner_type == "ICC") {
             mIFPreconditionerType = "ICC";
-            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
-            mpreconditioner_parameter_list.set("fact: level-of-fill", 10);
-        }
-        else if(settings["preconditioner_type"].GetString() == "AmesosPreconditioner")
-        {
+            mPreconditionerParameterList.set("fact: drop tolerance", 1e-9);
+            mPreconditionerParameterList.set("fact: level-of-fill", 10);
+        } else if (preconditioner_type == "amesos" || preconditioner_type == "AmesosPreconditioner") {
             mIFPreconditionerType = "Amesos";
-            mpreconditioner_parameter_list.set("amesos: solver type", "Amesos_Klu");
-        }
-        else if(settings["preconditioner_type"].GetString() == "None")
-        {
+            mPreconditionerParameterList.set("amesos: solver type", "Amesos_Klu");
+        } else if (preconditioner_type == "none" || preconditioner_type == "None") {
             mIFPreconditionerType = "AZ_none";
+        } else {
+            KRATOS_ERROR << "The \"preconditioner_type\" specified: \"" << preconditioner_type << "\" is not supported\n"
+                << " Available options are: \"diagonal\", \"ilu0\", \"ilut\", \"icc\", \"amesos\", \"none\"" << std::endl;
         }
-        else
-            KRATOS_ERROR << "wrong choice for preconditioner_type. Selction was :" << settings["preconditioner_type"].GetString() << " Available choices are: None,ILU0,ILUT,ICC,AmesosPreconditioner";
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++)
-        {
-            if(it->IsString()) mpreconditioner_parameter_list.set(it.name(), it->GetString());
-            else if(it->IsInt()) mpreconditioner_parameter_list.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mpreconditioner_parameter_list.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mpreconditioner_parameter_list.set(it.name(), it->GetDouble());
+        for (auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++) {
+            if(it->IsString()) mPreconditionerParameterList.set(it.name(), it->GetString());
+            else if(it->IsInt()) mPreconditionerParameterList.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mPreconditionerParameterList.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mPreconditionerParameterList.set(it.name(), it->GetDouble());
         }
     }
 
     AztecSolver(Teuchos::ParameterList& aztec_parameter_list, std::string IFPreconditionerType, Teuchos::ParameterList& preconditioner_parameter_list, double tol, int nit_max, int overlap_level)
     {
         //settings for the AZTEC solver
-        maztec_parameter_list = aztec_parameter_list;
-        mtol = tol;
-        mmax_iter = nit_max;
+        mAztecParameterList = aztec_parameter_list;
+        mTolerance = tol;
+        mMaxIterations = nit_max;
 
         //IFpack settings
         mIFPreconditionerType = IFPreconditionerType;
-        mpreconditioner_parameter_list = preconditioner_parameter_list;
-        moverlap_level = overlap_level;
-
-        mscaling_type = LeftScaling;
+        mPreconditionerParameterList = preconditioner_parameter_list;
+        mOverlapLevel = overlap_level;
     }
 
     /// Copy constructor.
@@ -223,7 +203,7 @@ public:
     //function to set the scaling typedef
     void SetScalingType(AztecScalingType scaling_type)
     {
-        mscaling_type = scaling_type;
+        mScalingType = scaling_type;
     }
 
     /**
@@ -239,57 +219,50 @@ public:
         KRATOS_TRY
         rA.Comm().Barrier();
 
-        Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
+        Epetra_LinearProblem aztec_problem(&rA,&rX,&rB);
 
         //perform GS1 scaling if required
-        if(mscaling_type == SymmetricScaling)
-        {
-            KRATOS_THROW_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
+        if (mScalingType == SymmetricScaling)  {
+            KRATOS_ERROR << "something wrong with the scaling, to be further teststed" << std::endl;
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
-            int MyLength = scaling_vect.MyLength();
-            for( int i=0 ; i<MyLength ; ++i ) scaling_vect[i] = sqrt(scaling_vect[i]);
+            for (int i=0; i<scaling_vect.MyLength(); ++i) scaling_vect[i] = std::sqrt(scaling_vect[i]);
 
-            AztecProblem.LeftScale(scaling_vect);
-            AztecProblem.RightScale(scaling_vect);
-        }
-        else if (mscaling_type == LeftScaling)
-        {
+            aztec_problem.LeftScale(scaling_vect);
+            aztec_problem.RightScale(scaling_vect);
+        } else if (mScalingType == LeftScaling) {
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 
-            AztecProblem.LeftScale(scaling_vect);
+            aztec_problem.LeftScale(scaling_vect);
         }
 
-        AztecOO aztec_solver(AztecProblem);
-        aztec_solver.SetParameters(maztec_parameter_list);
+        AztecOO aztec_solver(aztec_problem);
+        aztec_solver.SetParameters(mAztecParameterList);
 
         //here we verify if we want a preconditioner
-        if( mIFPreconditionerType!=std::string("AZ_none") )
-        {
+        if (mIFPreconditionerType != std::string("AZ_none")) {
             //ifpack preconditioner type
-            Ifpack Factory;
+            Ifpack preconditioner_factory;
 
-            std::string PrecType = mIFPreconditionerType;
-            Ifpack_Preconditioner* Prec = Factory.Create(PrecType, &rA, moverlap_level);
-            assert(Prec != 0);
+            std::string preconditioner_type = mIFPreconditionerType;
+            Ifpack_Preconditioner* p_preconditioner = preconditioner_factory.Create(preconditioner_type, &rA, mOverlapLevel);
+            KRATOS_ERROR_IF(p_preconditioner == 0) << "Preconditioner-initialization went wrong" << std::endl;
 
-            IFPACK_CHK_ERR(Prec->SetParameters(mpreconditioner_parameter_list));
-            IFPACK_CHK_ERR(Prec->Initialize());
-            IFPACK_CHK_ERR(Prec->Compute());
+            IFPACK_CHK_ERR(p_preconditioner->SetParameters(mPreconditionerParameterList));
+            IFPACK_CHK_ERR(p_preconditioner->Initialize());
+            IFPACK_CHK_ERR(p_preconditioner->Compute());
 
             // HERE WE SET THE IFPACK PRECONDITIONER
-            aztec_solver.SetPrecOperator(Prec);
+            aztec_solver.SetPrecOperator(p_preconditioner);
 
             //and ... here we solve
-            aztec_solver.Iterate(mmax_iter,mtol);
+            aztec_solver.Iterate(mMaxIterations,mTolerance);
 
-            delete Prec;
-        }
-        else
-        {
-            aztec_solver.Iterate(mmax_iter,mtol);
+            delete p_preconditioner;
+        } else {
+            aztec_solver.Iterate(mMaxIterations,mTolerance);
         }
 
         rA.Comm().Barrier();
@@ -322,15 +295,15 @@ private:
     ///@{
 
     //aztec solver settings
-    Teuchos::ParameterList maztec_parameter_list;
-    double mtol;
-    int mmax_iter;
-    AztecScalingType mscaling_type;
+    Teuchos::ParameterList mAztecParameterList;
+    double mTolerance;
+    int mMaxIterations;
+    AztecScalingType mScalingType = LeftScaling;
 
     std::string mIFPreconditionerType;
 
-    Teuchos::ParameterList mpreconditioner_parameter_list;
-    int moverlap_level;
+    Teuchos::ParameterList mPreconditionerParameterList;
+    int mOverlapLevel;
 
     ///@}
 
