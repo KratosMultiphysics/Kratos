@@ -606,15 +606,13 @@ namespace Kratos
             mat33(2,1) = mat33(1,2);
             mat33(2,2) = 0.972831;
 
-            bool converged = MathUtils<double>::EigenSystem<3>(mat33, vectormat33, eigenmat33);
+            bool converged = MathUtils<double>::GaussSeidelEigenSystem(mat33, vectormat33, eigenmat33);
 
-            BoundedMatrix<double, 3, 3> othermat33 = prod(trans(vectormat33), eigenmat33);
-            BoundedMatrix<double, 3, 3> auxmat33 = prod(othermat33, vectormat33);
+            BoundedMatrix<double, 3, 3> auxmat33;
+            MathUtils<double>::BDBtProductOperation(auxmat33, eigenmat33, vectormat33);
 
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                for (unsigned int j = i; j < 3; j++)
-                {
+            for (std::size_t i = 0; i < 3; i++) {
+                for (std::size_t j = i; j < 3; j++) {
                     KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), tolerance);
                 }
             }

@@ -17,6 +17,8 @@ namespace Kratos {
             {
                 "name":"BoussinesqBassetHistoryForceLaw",
                 "quadrature_order": 2,
+                "time_steps_per_quadrature_step": 1,
+                "n_init_basset_steps": 0,
                 "mae_parameters": {
                     "do_use_mae": false,
                     "m": 10,

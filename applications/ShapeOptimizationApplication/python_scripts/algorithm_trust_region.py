@@ -160,7 +160,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.model_part_controller.ComputeUnitSurfaceNormals()
         else:
             for itr in range(self.constraints.size()):
-                if self.constraints[itr]["project_gradient_on_surface_normals"]:
+                if self.constraints[itr]["project_gradient_on_surface_normals"].GetBool():
                     self.model_part_controller.ComputeUnitSurfaceNormals()
 
         # Process objective gradients
