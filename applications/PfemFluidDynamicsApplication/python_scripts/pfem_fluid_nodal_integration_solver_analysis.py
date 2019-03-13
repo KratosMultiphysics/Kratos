@@ -13,101 +13,11 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def __init__(self, model, parameters):
 
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "pfem_fluid_nodal_integration_solver_analysis",
-            "model_part_name": "PfemFluidModelPart",
-            "domain_size": 2,
-            "time_stepping"               : {
-                "automatic_time_step" : false,
-                "time_step"           : 0.001
-            },
-            "model_import_settings":{
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "buffer_size": 3,
-            "echo_level": 1,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": true,
-            "move_mesh_flag": true,
-            "dofs"                : [],
-            "stabilization_factor": 1.0,
-            "line_search": false,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "component_wise": false,
-            "predictor_corrector": true,
-            "time_order": 2,
-            "maximum_velocity_iterations": 1,
-            "maximum_pressure_iterations": 7,
-            "velocity_tolerance": 1e-5,
-            "pressure_tolerance": 1e-5,
-            "pressure_linear_solver_settings":  {
-                "solver_type"                    : "amgcl",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "provide_coordinates"            : false,
-                "scaling"                        : false,
-                "smoother_type"                  : "damped_jacobi",
-                "krylov_type"                    : "cg",
-                "coarsening_type"                : "aggregation",
-                "verbosity"                      : 0
-            },
-            "velocity_linear_solver_settings": {
-                "solver_type"                    : "bicgstab",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "preconditioner_type"            : "none",
-                "scaling"                        : false
-            },
-            "solving_strategy_settings":{
-               "time_step_prediction_level": 0,
-               "max_delta_time": 1.0e-5,
-               "fraction_delta_time": 0.9,
-               "rayleigh_damping": false,
-               "rayleigh_alpha": 0.0,
-               "rayleigh_beta" : 0.0
-            },
-        "bodies_list": [],
-        "problem_domain_sub_model_part_list": [],
-        "processes_sub_model_part_list": [],
-        "constraints_process_list": [],
-        "loads_process_list"       : [],
-        "output_process_list"      : [],
-        "output_configuration"     : {},
-        "problem_process_list"     : [],
-        "processes"                : {},
-        "output_processes"         : {},
-        "check_process_list": []
-        }
-        """)
-
-        ##overwrite the default settings with user-provided parameters
-        self.settings = parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        #construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
-
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
+        super(PfemFluidNodalIntegrationSolver, self).__init__(model, parameters)
 
         print("Construction of 2-step Pfem Fluid Nodal Integration Solver finished.")
 
-        super(PfemFluidNodalIntegrationSolver, self).__init__(model, parameters)
 
-        model_part_name = self.settings["model_part_name"].GetString()
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
 
     def Initialize(self):
 

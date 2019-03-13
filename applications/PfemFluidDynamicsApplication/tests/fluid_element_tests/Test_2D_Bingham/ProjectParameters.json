@@ -196,21 +196,32 @@
             }]
         }
     }],
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
-        "Parameters"    : {
-            "model_part_name"     : "VELOCITY_Velocity_Auto1",
-            "variable_name"       : "VELOCITY",
-            "value"               : [0.0,0.0,0.0],
-            "compound_assignment" : "direct",
-            "interval"            : [0.0,"End"]
-        }
-    }],
-    "loads_process_list"       : [],
-    "output_process_list"      : [],
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_components_to_nodes_process",
+            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorComponentsToNodesProcess",
+            "Parameters"    : {
+                "model_part_name"     : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"       : "VELOCITY",
+                "value"               : [0.0,0.0,0.0],
+                "compound_assignment" : "direct",
+                "interval"            : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "auxiliar_process_list": [{
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "check_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+                "input_file_name"     : "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham_results.json",
+                "model_part_name"      : "PfemFluidModelPart",
+                "time_frequency"       : 0.002
+            }
+        }]
+    },
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -220,8 +231,8 @@
                 "MultiFileFlag"         : "MultipleFiles"
             },
             "file_label"          : "time",
-            "output_control_type" : "time",
-            "output_frequency"    : 0.01,
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
             "body_output"         : true,
             "node_output"         : true,
             "skin_output"         : false,
@@ -230,5 +241,15 @@
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
-    }
+    },
+    "_json_output_process": [{
+        "python_module" : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
+            "output_file_name"     : "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham_results.json",
+            "model_part_name"      : "PfemFluidModelPart",
+            "time_frequency"       : 0.002
+        }
+    }]
 }
