@@ -19,7 +19,8 @@
         },
         "time_stepping" : {
             "time_step" : 0.1
-        }
+        },
+        "calculate_mesh_velocities" : false
     },
     "processes" : {
         "boundary_conditions_process_list" : [{
