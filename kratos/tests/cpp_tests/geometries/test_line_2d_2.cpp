@@ -90,6 +90,21 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
     }
 
+    /** Checks if the bounding box of the line is calculated correctly.
+    * Checks if the bounding box of the line is calculated correctly.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BoundingBoxLine2D2, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsDiagonalLine2D2();
+
+        Point low_point, high_point;
+        p_geom->BoundingBox(low_point, high_point);
+
+        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+    }
+
     /** Checks the inside test for a given point respect to the line
     * Checks the inside test for a given point respect to the line
     * It performs 4 tests:

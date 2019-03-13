@@ -1390,12 +1390,15 @@ private:
         const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
-        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        double det_j;
+        BoundedMatrix<double, 2, 2> invJ;
+        MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
+        const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
+        if (!good_condition_number) // Reset in case of bad condition number
+            noalias(invJ) = ZeroMatrix(2,2);
 
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < ZeroTolerance)
-            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+        KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING:: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
 
         const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
@@ -1408,14 +1411,17 @@ private:
 //             L(i, 2) = ThisNormal[i];
 //         }
 //
-//         double det_L = MathUtils<double>::DetMat<BoundedMatrix<double, 3, 3>>(L);
-//         const BoundedMatrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
+//         double det_L;
+//         BoundedMatrix<double, 3, 3> invL;
+//         MathUtils<double>::InvertMatrix(L, invL, det_L, -1.0);
+//         const bool good_condition_number = MathUtils<double>::CheckConditionNumber(L, invL, std::numeric_limits<double>::epsilon(), false);
+//         if (!good_condition_number) // Reset in case of bad condition number
+//             noalias(invL) = ZeroMatrix(3,3);
 //         array_1d<double, 3> aux = prod(invL, DeltaPoint);
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
 //         #ifdef KRATOS_DEBUG
-//             if (std::abs(det_L) < tolerance)
-//                 KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+//             KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
     }
 
@@ -1445,12 +1451,15 @@ private:
         const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
-        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        double det_j;
+        BoundedMatrix<double, 2, 2> invJ;
+        MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
+        const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
+        if (!good_condition_number) // Reset in case of bad condition number
+            noalias(invJ) = ZeroMatrix(2,2);
 
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < ZeroTolerance)
-            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+        KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING:: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
 
         const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);

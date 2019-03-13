@@ -117,7 +117,7 @@ Begin Conditions PointLoadCondition3D1N
     1 0 5
 End Conditions
 
-Begin Conditions ShapeOptimizationCondition3D4N
+Begin Conditions SurfaceCondition3D4N
     2 0 60 59 71 72
     3 0 48 47 59 60
     4 0 36 35 47 48

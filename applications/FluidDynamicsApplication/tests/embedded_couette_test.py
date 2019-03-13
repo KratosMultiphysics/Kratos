@@ -3,7 +3,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-have_external_solvers = KratosUtilities.IsApplicationAvailable("ExternalSolversApplication")
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedCouetteTest(UnitTest.TestCase):
@@ -199,12 +199,12 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             if (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
                 aux_vel = KratosMultiphysics.Vector([1.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
             else:
                 aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-            node.Fix(KratosMultiphysics.VELOCITY_X)
-            node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)
 
         # Set the SLIP elemental flag (only used in Winter's formulation)
         if (self.slip_flag):
@@ -224,12 +224,12 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             if (dist > 0.0):
                 aux_vel = KratosMultiphysics.Vector([dist,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
             else:
                 aux_vel = KratosMultiphysics.Vector([0.0,0.0,0.0])
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, aux_vel)
-            node.Fix(KratosMultiphysics.VELOCITY_X)
-            node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)
 
         # Set and fix the top boundary velocity
         for node in self.main_model_part.GetSubModelPart("Top").Nodes:
@@ -361,12 +361,12 @@ if __name__ == '__main__':
     test = EmbeddedCouetteTest()
     test.setUp()
     test.distance = 0.25
-    test.slip_flag = False
+    test.slip_flag = True
     test.print_output = True
     test.print_reference_values = True
-    test.work_folder = "EmbeddedCouette3DTest"
-    test.reference_file = "reference_couette_development_3D"
-    test.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
+    test.work_folder = "EmbeddedCouette2DTest"
+    test.reference_file = "reference_couette_embedded_slip_2D"
+    test.settings = "EmbeddedCouette2DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     if (test.slip_flag):
