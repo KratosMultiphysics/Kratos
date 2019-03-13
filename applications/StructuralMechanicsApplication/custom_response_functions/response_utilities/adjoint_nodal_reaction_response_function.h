@@ -57,6 +57,8 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+    typedef matrix_column< Matrix > MatrixColumnType;
+    typedef matrix_row< Matrix > MatrixRowType;
 
     ///@}
     ///@name Pointer Definitions
@@ -222,14 +224,9 @@ private:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo);
 
-    /*
-    The task of the filter vector is to deliver the row or column of a element quantity
-    like the stiffness matrix or the sensitivity matrix corresponding to the dof which is fixed by
-    the traced reaction. Since the filtered row/column is always needed negative, the filter
-    vector is multiplied with (-1).
-    */
+
     template <typename TObjectType>
-    void ConstructFilterVector(TObjectType& rAdjointObject, Vector& rFilterVector, ProcessInfo& rProcessInfo)
+    size_t GetDofIndex(TObjectType& rAdjointObject, ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
@@ -238,19 +235,25 @@ private:
 
         DofsVectorType dof_list;
         rAdjointObject.GetDofList(dof_list, rProcessInfo);
-        rFilterVector = ZeroVector(dof_list.size());
 
-        for(IndexType i = 0; i < dof_list.size(); ++i)
+        size_t dof_index = 0;
+        for(IndexType dof_it = 0; dof_it < dof_list.size(); ++dof_it)
         {
-            if (dof_list[i]->Id() == mpTracedNode->Id() &&
-                dof_list[i]->GetVariable() == r_corresponding_adjoint_dof)
+            if (dof_list[dof_it]->Id() == mpTracedNode->Id() &&
+                dof_list[dof_it]->GetVariable() == r_corresponding_adjoint_dof)
             {
-                rFilterVector[i] = -1.0;
+                dof_index = dof_it;
+                break;
             }
         }
+        return dof_index;
 
         KRATOS_CATCH("");
     }
+
+    Vector GetColumnCopy(Matrix m, size_t i);
+
+    Vector GetRowCopy(Matrix m, size_t i);
 
     std::string GetCorrespondingDisplacementLabel(std::string& rReactionLabel) const;
 

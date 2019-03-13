@@ -104,14 +104,11 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                Vector filter_vector;
                 ProcessInfo process_info = rProcessInfo;
-                this->ConstructFilterVector(ng_elem_i, filter_vector, process_info);
-
                 Matrix left_hand_side;
                 ng_elem_i.CalculateLeftHandSide(left_hand_side, process_info);
-
-                noalias(rResponseGradient) = prod(left_hand_side, filter_vector);
+                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                rResponseGradient = -1.0 * (this->GetColumnCopy(left_hand_side, dof_index));
             }
         }
 
@@ -255,10 +252,9 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                Vector filter_vector;
                 ProcessInfo process_info = rProcessInfo;
-                this->ConstructFilterVector(rAdjointElement, filter_vector, process_info);
-                noalias(rSensitivityGradient) = prod(rSensitivityMatrix, filter_vector) ;
+                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }
 
@@ -278,12 +274,37 @@ namespace Kratos
 
             if( rAdjointCondition.Id() == ng_cond_i.Id() )
             {
-                Vector filter_vector;
                 ProcessInfo process_info = rProcessInfo;
-                this->ConstructFilterVector(rAdjointCondition, filter_vector, process_info);
-                noalias(rSensitivityGradient) = prod(rSensitivityMatrix, filter_vector);
+                auto dof_index = this->GetDofIndex(ng_cond_i, process_info);
+                rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }
+
+        KRATOS_CATCH("");
+    }
+
+    Vector AdjointNodalReactionResponseFunction::GetColumnCopy(Matrix m, size_t i)
+    {
+        KRATOS_TRY;
+
+        MatrixColumnType requested_entries = column(m, i);
+        Vector column = ZeroVector(requested_entries.size());
+        for(IndexType i = 0; i < requested_entries.size(); ++i)
+            column[i] = requested_entries(i);
+        return column;
+
+        KRATOS_CATCH("");
+    }
+
+    Vector AdjointNodalReactionResponseFunction::GetRowCopy(Matrix m, size_t i)
+    {
+        KRATOS_TRY;
+
+        MatrixRowType requested_entries = row(m, i);
+        Vector row = ZeroVector(requested_entries.size());
+        for(IndexType i = 0; i < requested_entries.size(); ++i)
+            row[i] = requested_entries(i);
+        return row;
 
         KRATOS_CATCH("");
     }
