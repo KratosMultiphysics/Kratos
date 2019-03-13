@@ -511,24 +511,22 @@ private:
         double& un0 = itNode->FastGetSolutionStepValue(iVar);
 
         if (itNode->IsFixed(Derived2Variable)) {
-            dotun0 = (dot2un0 - BDFBaseType::mBDF[1] * dotun1)/BDFBaseType::mBDF[0];
-            un0 = (dotun0 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
+            dotun0 = dot2un0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dotun0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DerivedVariable, i_order);
+            dotun0 /= BDFBaseType::mBDF[0];
+
+            un0 = dotun0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(iVar, i_order);
+            un0 /= BDFBaseType::mBDF[0];
         } else if (itNode->IsFixed(DerivedVariable)) {
-            un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-        } else if (itNode->IsFixed(iVar) == false) {
+            un0 = dotun0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(iVar, i_order);
+            un0 /= BDFBaseType::mBDF[0];
+        } else if (!itNode->IsFixed(iVar)) {
             un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
-        }
-
-        for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
-            const double dotun = itNode->FastGetSolutionStepValue(DerivedVariable, i_order);
-            const double un = itNode->FastGetSolutionStepValue(iVar, i_order);
-
-            if (itNode->IsFixed(Derived2Variable)) {
-                dotun0 -= (BDFBaseType::mBDF[i_order] * dotun)/BDFBaseType::mBDF[0];
-                un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-            } else if (itNode->IsFixed(DerivedVariable)) {
-                un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-            }
         }
     }
 
