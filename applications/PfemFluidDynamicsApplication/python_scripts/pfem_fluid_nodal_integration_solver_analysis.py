@@ -4,39 +4,41 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-import pfem_fluid_solver as BaseSolver
+import pfem_fluid_solver_analysis as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return PfemFluidNodalIntegrationSolver(main_model_part, custom_settings)
+def CreateSolver(model, parameters):
+    return PfemFluidNodalIntegrationSolver(model, parameters)
 
 class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
+    def __init__(self, model, parameters):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level": 1,
-            "buffer_size": 3,
-            "solver_type": "pfem_fluid_nodal_integration_solver",
-             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
+            "solver_type": "pfem_fluid_nodal_integration_solver_analysis",
+            "model_part_name": "PfemFluidModelPart",
+            "domain_size": 2,
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.001
             },
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "buffer_size": 3,
+            "echo_level": 1,
+            "reform_dofs_at_each_step": false,
+            "clear_storage": false,
+            "compute_reactions": true,
+            "move_mesh_flag": true,
             "dofs"                : [],
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
             "line_search": false,
-            "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
-            "clear_storage": false,
             "component_wise": false,
-            "move_mesh_flag": true,
             "predictor_corrector": true,
             "time_order": 2,
             "maximum_velocity_iterations": 1,
@@ -69,21 +71,22 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
                "rayleigh_alpha": 0.0,
                "rayleigh_beta" : 0.0
             },
-            "bodies_list": [
-                {"body_name":"body1",
-                "parts_list":["Part1"]
-                },
-                {"body_name":"body2",
-                "parts_list":["Part2","Part3"]
-                }
-            ],
-            "problem_domain_sub_model_part_list": ["fluid_model_part"],
-            "processes_sub_model_part_list": [""]
+        "bodies_list": [],
+        "problem_domain_sub_model_part_list": [],
+        "processes_sub_model_part_list": [],
+        "constraints_process_list": [],
+        "loads_process_list"       : [],
+        "output_process_list"      : [],
+        "output_configuration"     : {},
+        "problem_process_list"     : [],
+        "processes"                : {},
+        "output_processes"         : {},
+        "check_process_list": []
         }
         """)
 
         ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
+        self.settings = parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
@@ -95,6 +98,16 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         print("Construction of 2-step Pfem Fluid Nodal Integration Solver finished.")
 
+        super(PfemFluidNodalIntegrationSolver, self).__init__(model, parameters)
+
+        model_part_name = self.settings["model_part_name"].GetString()
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
 
     def Initialize(self):
 
@@ -102,7 +115,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
-
 
         self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
                                                                    self.velocity_linear_solver,
@@ -201,6 +213,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            self.fluid_solver.InitializeSolutionStep()
 
         adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         adaptive_time_interval.Execute()
@@ -213,8 +227,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
-
-    # solve :: sequencial calls
 
 #   Extra methods:: custom AFranci...
 #
