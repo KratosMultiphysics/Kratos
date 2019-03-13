@@ -69,7 +69,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         result_file_name = os.path.join("test_results", self.__GetProblemName()+"_results.json")
         if self.print_reference_results:
             warn_msg  = 'The test "{}" is configured for writing reference results\n'.format(self.__GetProblemName())
-            warn_msg += 'This is on for setting up the test, the results are NOT checked!'
+            warn_msg += 'This is only for setting up the test, the results are NOT checked!'
             KM.Logger.PrintWarning("WARNING MeshMovingTestCase", warn_msg)
             processes.AddValue("json_output", KM.Parameters("""[{
                 "python_module" : "json_output_process",
@@ -96,9 +96,9 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                     "check_variables" : ["MESH_DISPLACEMENT_X",
                                          "MESH_DISPLACEMENT_Y",
                                          "MESH_DISPLACEMENT_Z",
-                                          "MESH_VELOCITY_X",
-                                          "MESH_VELOCITY_Y",
-                                          "MESH_VELOCITY_Z"],
+                                         "MESH_VELOCITY_X",
+                                         "MESH_VELOCITY_Y",
+                                         "MESH_VELOCITY_Z"],
                     "input_file_name"  : \""""+result_file_name+"""\",
                     "model_part_name"  : "Probe_1",
                     "time_frequency"   : 0.1
