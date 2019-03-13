@@ -28,6 +28,7 @@
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 
 namespace Kratos
 {
@@ -318,6 +319,19 @@ namespace Kratos
         {
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );
+
+            const double delta_time = 1.0e-4;
+
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
+        }
+
+        /**
+         * Checks if the custom BDF2 scheme performs correctly the integration
+         */
+        KRATOS_TEST_CASE_IN_SUITE(CustomBDF2SchemeTest, KratosCoreFastSuite)
+        {
+            typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFCustomSchemeType;
+            SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedBDFCustomSchemeType(2) );
 
             const double delta_time = 1.0e-4;
 
