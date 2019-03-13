@@ -654,26 +654,22 @@ private:
 	    	
 	/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
 	   // TODO data for bounding box will come from the interface
-		 bool boundingBox=false;
-		 if(boundingBox==true){
-	     double maxX=0.0;
-		   double minX=0.0;
-		   if(ie->GetGeometry()[i].X()<minX || ie->GetGeometry()[i].X()>maxX){
-	      ie->GetGeometry()[i].Set(TO_ERASE);
-	      any_node_removed = true;
+		 bool boundingBox=mrRemesh.UseBoundingBox;
+		 if(boundingBox==true && ie->GetGeometry()[i].IsNot(RIGID)){
+			 const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+       double currentTime = rCurrentProcessInfo[TIME];
+       double initialTime=mrRemesh.BoundingBoxInitialTime;
+       double finalTime=mrRemesh.BoundingBoxFinalTime;
+      if(currentTime>initialTime && currentTime<finalTime){
+	      array_1d<double, 3> BoundingBoxLowerPoint=mrRemesh.BoundingBoxLowerPoint;
+	      array_1d<double, 3> BoundingBoxUpperPoint=mrRemesh.BoundingBoxUpperPoint;
+		    if(ie->GetGeometry()[i].X()<BoundingBoxLowerPoint[0] || ie->GetGeometry()[i].Y()<BoundingBoxLowerPoint[1] || ie->GetGeometry()[i].Z()<BoundingBoxLowerPoint[2] ||
+			     ie->GetGeometry()[i].X()>BoundingBoxUpperPoint[0] || ie->GetGeometry()[i].Y()>BoundingBoxUpperPoint[1] || ie->GetGeometry()[i].Z()>BoundingBoxUpperPoint[2]){
+	       ie->GetGeometry()[i].Set(TO_ERASE);
+	       any_node_removed = true;
 	     }
-			 double maxY=0.0;
-	     double minY=0.0;
-		   if(ie->GetGeometry()[i].Y()<minY || ie->GetGeometry()[i].Y()>maxY){
-	      ie->GetGeometry()[i].Set(TO_ERASE);
-	      any_node_removed = true;
-	     }
-		   double maxZ=0.0;
-	     double minZ=0.0;
-		   if(ie->GetGeometry()[i].Z()<minZ || ie->GetGeometry()[i].Z()>maxZ){
-	      ie->GetGeometry()[i].Set(TO_ERASE);
-	      any_node_removed = true;
-	     }
+      }
+
 		 }
 
 	/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////

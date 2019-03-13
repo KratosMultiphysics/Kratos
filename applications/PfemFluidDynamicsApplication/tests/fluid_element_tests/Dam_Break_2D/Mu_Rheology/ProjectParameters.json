@@ -89,9 +89,11 @@
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
                 "spatial_bounding_box"            : {
-                    "upper_point" : [0.0,0.0,0.0],
-                    "lower_point" : [0.0,0.0,0.0],
-                    "velocity"    : [0.0,0.0,0.0]
+                    "use_bounding_box" : true,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [100,100,100],
+                    "lower_point"      : [-100,-100,-100]
                 },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
@@ -153,9 +155,11 @@
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
                 "spatial_bounding_box"            : {
-                    "upper_point" : [0.0,0.0,0.0],
-                    "lower_point" : [0.0,0.0,0.0],
-                    "velocity"    : [0.0,0.0,0.0]
+                    "use_bounding_box" : true,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1000.0,
+                    "upper_point"      : [100,100,100],
+                    "lower_point"      : [-100,-100,-100]
                 },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
