@@ -73,7 +73,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
 
         #TODO: update this for new self.model
-        self.Model = {parameters["solver_settings"]["model_part_name"].GetString() : self.main_model_part}
+        #self.Model = {parameters["solver_settings"]["model_part_name"].GetString() : self.main_model_part}
 
 
         self.problem_path = os.getcwd()
@@ -121,10 +121,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
         ## Get the list of the submodel part in the object Model
         #TODO: update this for new self.model
-        for i in range(self.project_parameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.project_parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        # for i in range(self.project_parameters["solver_settings"]["processes_sub_model_part_list"].size()):
+        #     part_name = self.project_parameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+        #     if( self.main_model_part.HasSubModelPart(part_name) ):
+        #         self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
         #### Model_part settings end ####
 
@@ -155,7 +155,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if( self.project_parameters.Has("check_process_list") ):
             process_parameters.AddValue("check_process_list", self.project_parameters["check_process_list"])
 
-        self.model_processes = process_handler.ProcessHandler(self.Model, process_parameters)
+        self.model_processes = process_handler.ProcessHandler(self.model, process_parameters)
 
         self.model_processes.ExecuteInitialize()
 

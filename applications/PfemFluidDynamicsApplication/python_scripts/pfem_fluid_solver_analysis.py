@@ -13,8 +13,6 @@ class PfemFluidSolver(PythonSolver):
 
     def __init__(self, model, parameters):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = model
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -29,7 +27,7 @@ class PfemFluidSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "buffer_size": 3,
+            "buffer_size": 2,
             "echo_level": 1,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
@@ -110,7 +108,7 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
     def Initialize(self):
 
