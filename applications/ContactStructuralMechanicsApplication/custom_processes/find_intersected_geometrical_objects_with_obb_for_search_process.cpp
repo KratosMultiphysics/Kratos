@@ -75,7 +75,8 @@ Parameters FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetDefaultP
         "first_model_part_name"  : "",
         "second_model_part_name" : "",
         "bounding_box_factor"    : -1.0,
-        "debug_obb"              : false
+        "debug_obb"              : false,
+        "OBB_intersection_type"  : "SeparatingAxisTheorem"
     })" );
 
     return default_parameters;
