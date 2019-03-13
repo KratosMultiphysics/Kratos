@@ -181,8 +181,14 @@ namespace Kratos
                 time = 0;
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 2) = std::cos(time - 2.0 * DeltaTime);
                 pnode->FastGetSolutionStepValue(VELOCITY_X) = -std::sin(time);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 1) = -std::sin(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 2) = -std::sin(time - 2.0 * DeltaTime);
                 pnode->FastGetSolutionStepValue(ACCELERATION_X) = -std::cos(time);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 1) = -std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 2) = -std::cos(time - 2.0 * DeltaTime);
 
                 for (std::size_t iter = 0; iter < number_iterations; ++iter) {
                     time += DeltaTime;
@@ -211,8 +217,14 @@ namespace Kratos
                 time = 0.0;
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 2) = std::cos(time - 2.0 * DeltaTime);
                 pnode->FastGetSolutionStepValue(VELOCITY_X) = -std::sin(time);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 1) = -std::sin(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 2) = -std::sin(time - 2.0 * DeltaTime);
                 pnode->FastGetSolutionStepValue(ACCELERATION_X) = -std::cos(time);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 1) = -std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 2) = -std::cos(time - 2.0 * DeltaTime);
 
                 for (std::size_t iter = 0; iter < number_iterations; ++iter) {
                     time += DeltaTime;
@@ -309,7 +321,7 @@ namespace Kratos
 
             const double delta_time = 1.0e-4;
 
-            TestScheme(p_scheme, delta_time, "DISPLACEMENT");
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
         }
 
     } // namespace Testing
