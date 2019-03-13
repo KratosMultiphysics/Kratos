@@ -27,6 +27,7 @@ namespace Kratos
 
 InitialPerturbationProcess::InitialPerturbationProcess(
     ModelPart& rThisModelPart,
+    NodePointerType pNode,
     Parameters& rThisParameters
 ) : Process(), mrModelPart(rThisModelPart)
 {
@@ -35,7 +36,6 @@ InitialPerturbationProcess::InitialPerturbationProcess(
     {
         "variable_name"              : "FREE_SURFACE_ELEVATION",
         "default_value"              : 0.0,
-        "source_point_coordinates"   : [0.0, 0.0, 0.0],
         "distance_of_influence"      : 1.0,
         "maximum_perturbation_value" : 1.0
     })");
@@ -45,9 +45,13 @@ InitialPerturbationProcess::InitialPerturbationProcess(
     mDefaultValue = rThisParameters["default_value"].GetDouble();
     mInfluenceDistance = rThisParameters["distance_of_influence"].GetDouble();
     mPerturbation = rThisParameters["maximum_perturbation_value"].GetDouble();
+    mHalfWaveNumber = std::acos(-1) / mInfluenceDistance;
+
+    mSourcePoints.push_back(pNode);
 
     Check();
 }
+
 
 int InitialPerturbationProcess::Check()
 {
@@ -61,21 +65,51 @@ int InitialPerturbationProcess::Check()
     KRATOS_CATCH("")
 }
 
+
 void InitialPerturbationProcess::Execute()
 {
     ExecuteBeforeSolutionLoop();
 }
+
 
 void InitialPerturbationProcess::ExecuteBeforeSolutionLoop()
 {
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
     {
         auto i_node = mrModelPart.NodesBegin() + i;
+        double distance = ComputeDistance(*i_node.base());
         double& r_value = i_node->FastGetSolutionStepValue(mVariable);
-        double value = 0;
-        // Do something with the value
-        r_value = value;
+        r_value = ComputeInitialValue(distance);
     }    
+}
+
+
+double InitialPerturbationProcess::ComputeDistance(NodePointerType pNode)
+{
+    array_1d<double, 3>& coord = pNode->Coordinates();
+    double sqr_distance = 0;
+    for (IndexType i = 0; i < mSourcePoints.size(); i++)
+    {
+        auto search_node = mSourcePoints.begin() + i;
+        array_1d<double, 3>& source_coord = search_node->Coordinates();
+        sqr_distance = std::max(sqr_distance, PointPointSquareDistance(coord, source_coord));
+    }
+    return std::sqrt(sqr_distance);
+}
+
+
+double InitialPerturbationProcess::PointPointSquareDistance(array_1d<double, 3>& rCoordA, array_1d<double, 3>& rCoordB)
+{
+    return std::pow(rCoordA[0] - rCoordB[0], 2) + std::pow(rCoordA[1] - rCoordB[1], 2) + std::pow(rCoordA[2] - rCoordB[2], 2);
+}
+
+
+double InitialPerturbationProcess::ComputeInitialValue(double& rDistance)
+{
+    double result = mDefaultValue;
+    if (rDistance < mInfluenceDistance)
+        result += 0.5 * mPerturbation * (1 + std::cos(mHalfWaveNumber * rDistance));
+    return result;
 }
 
 }  // namespace Kratos.

@@ -43,7 +43,7 @@ namespace Python
         ;
 
         py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>(m, "InitialPerturbationProcess")
-        .def(py::init<ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, Node<3>::Pointer, Parameters&>())
         ;
     }
 

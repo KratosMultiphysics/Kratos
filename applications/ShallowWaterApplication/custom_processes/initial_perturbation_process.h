@@ -63,6 +63,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef std::size_t                     IndexType;
+    typedef Node<3>                         NodeType;
+    typedef Node<3>::Pointer                NodePointerType;
+    typedef ModelPart::NodesContainerType   NodesArrayType;
+    typedef NodesArrayType::iterator        NodeIteratorType;
+
     /// Pointer definition of InitialPerturbationProcess
     KRATOS_CLASS_POINTER_DEFINITION(InitialPerturbationProcess);
 
@@ -73,6 +79,7 @@ public:
     /// Default constructor.
     InitialPerturbationProcess(
         ModelPart& rThisModelPart,
+        NodePointerType pNode,
         Parameters& rThisParameters);
 
     /// Destructor.
@@ -193,11 +200,12 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    NodesArrayType mSourcePoints;
     Variable<double> mVariable = FREE_SURFACE_ELEVATION;
     double mDefaultValue;
-    // Point mSourcePoint;
     double mInfluenceDistance;
     double mPerturbation;
+    double mHalfWaveNumber;
 
     ///@}
     ///@name Private Operators
@@ -208,6 +216,11 @@ private:
     ///@name Private Operations
     ///@{
 
+    double ComputeDistance(NodePointerType pNode);
+
+    double PointPointSquareDistance(array_1d<double, 3>& rCoordA, array_1d<double, 3>& rCoordB);
+
+    double ComputeInitialValue(double& rDistance);
 
     ///@}
     ///@name Private  Access
