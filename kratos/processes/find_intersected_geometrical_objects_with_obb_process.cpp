@@ -238,9 +238,9 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         MathUtils<double>::OrthonormalBasis(first_direction_vector[0], first_direction_vector[1], first_direction_vector[2]);
         const array_1d<double, 3> first_center_point = r_face_1.Center().Coordinates();// 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
         array_1d<double, 3> first_half_distances;
-        double distance_0 = 0;
-        double distance_1 = 0;
-        double distance_2 = 0;
+        double distance_0 = 0.0;
+        double distance_1 = 0.0;
+        double distance_2 = 0.0;
         for (auto& r_node : r_face_1) {
             const array_1d<double, 3> vector_points = r_node.Coordinates() - first_center_point;
             distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, first_direction_vector[0])));
@@ -274,9 +274,9 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
             MathUtils<double>::OrthonormalBasis(second_direction_vector[0], second_direction_vector[1], second_direction_vector[2]);
             const array_1d<double, 3> second_center_point = r_face_2.Center().Coordinates();// 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
             array_1d<double, 3> second_half_distances;
-            distance_0 = 0;
-            distance_1 = 0;
-            distance_2 = 0;
+            distance_0 = 0.0;
+            distance_1 = 0.0;
+            distance_2 = 0.0;
             for (auto& r_node : r_face_2) {
                 const array_1d<double, 3> vector_points = r_node.Coordinates() - second_center_point;
                 distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, second_direction_vector[0])));
@@ -318,10 +318,15 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB2D(
 
     const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
     const auto quad = rOrientedBoundingBox.GetEquivalentGeometry();
+    const array_1d<double, 3>& r_center = rOrientedBoundingBox.GetCenter();
+    const array_1d<array_1d<double, 3>, 2>& r_orientation_vectors = rOrientedBoundingBox.GetOrientationVectors();
     std::vector<NodeType::Pointer> element_nodes (4);
     for (int i = 0; i < 4; ++i) {
         element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, quad[i].X(), quad[i].Y(), quad[i].Z());
     }
+    auto p_node_center = r_sub_model_part.CreateNewNode(initial_node_id + 4 + 1, r_center[0], r_center[1], r_center[2]);
+    p_node_center->SetValue(NORMAL, r_orientation_vectors[0]);
+    p_node_center->SetValue(TANGENT_XI, r_orientation_vectors[1]);
 
     const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
     r_sub_model_part.CreateNewElement("Element2D4N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
@@ -341,10 +346,16 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB3D(
 
     const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
     const auto hexa = rOrientedBoundingBox.GetEquivalentGeometry();
+    const array_1d<double, 3>& r_center = rOrientedBoundingBox.GetCenter();
+    const array_1d<array_1d<double, 3>, 3>& r_orientation_vectors = rOrientedBoundingBox.GetOrientationVectors();
     std::vector<NodeType::Pointer> element_nodes (8);
     for (int i = 0; i < 8; ++i) {
         element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, hexa[i].X(), hexa[i].Y(), hexa[i].Z());
     }
+    auto p_node_center = r_sub_model_part.CreateNewNode(initial_node_id + 8 + 1, r_center[0], r_center[1], r_center[2]);
+    p_node_center->SetValue(NORMAL, r_orientation_vectors[0]);
+    p_node_center->SetValue(TANGENT_XI, r_orientation_vectors[1]);
+    p_node_center->SetValue(TANGENT_ETA, r_orientation_vectors[2]);
 
     const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
     r_sub_model_part.CreateNewElement("Element3D8N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
