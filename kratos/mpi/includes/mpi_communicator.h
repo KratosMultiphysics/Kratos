@@ -245,8 +245,7 @@ public:
 
     bool SynchronizeElementalIds() override
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int rank = mrDataCommunicator.Rank();
 
         int destination = 0;
 
@@ -268,8 +267,10 @@ public:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                int* send_buffer = new int[send_buffer_size];
-                int* receive_buffer = new int[receive_buffer_size];
+                std::vector<int> send_data(send_buffer_size);
+                std::vector<int> receive_data(receive_buffer_size);
+                int* send_buffer = send_data.data();
+                int* receive_buffer = receive_data.data();
 
                 // Filling the send buffer
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
@@ -283,8 +284,7 @@ public:
                 int send_tag = i_color;
                 int receive_tag = i_color;
 
-                MPI_Sendrecv(send_buffer, send_buffer_size, MPI_INT, destination, send_tag, receive_buffer, receive_buffer_size, MPI_INT, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
+                mrDataCommunicator.SendRecv(send_data, destination, send_tag, receive_data, destination, receive_tag);
 
                 position = 0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
@@ -295,9 +295,6 @@ public:
 
                 if (position > receive_buffer_size)
                     std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer;
-                delete [] receive_buffer;
             }
 
         return true;
