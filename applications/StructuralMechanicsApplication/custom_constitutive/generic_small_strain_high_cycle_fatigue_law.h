@@ -70,6 +70,9 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+    /// Definition of the base class
+    typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -269,35 +272,19 @@ public:
     ///@name Access
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+    /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues
+        ) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
     double GetFatigueReductionFactor() {return mFatigueReductionFactor;}
     void SetFatigueReductionFactor(const double toFred) {mFatigueReductionFactor = toFred;}
 
@@ -332,6 +319,36 @@ protected:
     void ResetCycleCounter(){mHasCountedCycle = false;}
     void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
     bool GetCycleCounter() {return mHasCountedCycle;}
+    
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
     ///@}
     ///@name Protected  Access
