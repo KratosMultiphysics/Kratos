@@ -196,7 +196,6 @@ void ImposeVelocityOnDEMFromFieldToSlipVelocity(FluidFieldUtility& r_flow, Model
 void InterpolateVelocityOnSlipVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
-void InterpolateFromNewestFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
 void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);

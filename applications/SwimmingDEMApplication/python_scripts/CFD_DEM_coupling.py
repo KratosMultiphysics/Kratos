@@ -105,9 +105,6 @@ class ProjectionModule:
                                                 self.bin_of_objects_fluid,
                                                 alpha)
 
-    def ProjectFromNewestFluid(self):
-        self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
-
     def InterpolateVelocityOnSlipVelocity(self):
         self.projector.InterpolateVelocityOnSlipVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
