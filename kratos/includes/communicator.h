@@ -196,7 +196,7 @@ public:
     {
     }
 
-    virtual Communicator::Pointer Create()
+    virtual Communicator::Pointer Create() const
     {
         KRATOS_TRY
 

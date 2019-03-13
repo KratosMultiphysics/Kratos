@@ -204,7 +204,7 @@ public:
     {
     }
 
-    Communicator::Pointer Create() override
+    Communicator::Pointer Create() const override
     {
         KRATOS_TRY
 
