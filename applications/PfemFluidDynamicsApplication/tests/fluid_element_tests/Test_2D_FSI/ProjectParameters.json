@@ -1,17 +1,20 @@
 {
     "problem_data"             : {
         "problem_name"    : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI",
-        "model_part_name" : "Main Domain",
-        "dimension"       : 2,
-        "time_step"       : 0.0005,
         "start_time"      : 0.0,
         "end_time"        : 0.005,
         "echo_level"      : 0,
+        "parallel_type"   : "OpenMP",
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings"          : {
         "solver_type"                        : "pfem_fluid_solver",
+        "domain_size": 2,
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.0005
+        },
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_FSI/Test_2D_FSI",

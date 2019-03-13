@@ -9,7 +9,7 @@
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings"          : {
-        "solver_type"         : "pfem_fluid_solver_analysis",
+        "solver_type"         : "pfem_fluid_solver",
         "model_part_name": "PfemFluidModelPart",
         "domain_size": 2,
         "time_stepping"               : {

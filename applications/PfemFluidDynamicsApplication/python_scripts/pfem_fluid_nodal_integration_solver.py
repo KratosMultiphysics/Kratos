@@ -6,94 +6,17 @@ import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 import pfem_fluid_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return PfemFluidNodalIntegrationSolver(main_model_part, custom_settings)
+def CreateSolver(model, parameters):
+    return PfemFluidNodalIntegrationSolver(model, parameters)
 
 class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, parameters):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "echo_level": 1,
-            "buffer_size": 3,
-            "solver_type": "pfem_fluid_nodal_integration_solver",
-             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
-            },
-            "dofs"                : [],
-            "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
-            "line_search": false,
-            "compute_reactions": true,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "clear_storage": false,
-            "component_wise": false,
-            "move_mesh_flag": true,
-            "predictor_corrector": true,
-            "time_order": 2,
-            "maximum_velocity_iterations": 1,
-            "maximum_pressure_iterations": 7,
-            "velocity_tolerance": 1e-5,
-            "pressure_tolerance": 1e-5,
-            "pressure_linear_solver_settings":  {
-                "solver_type"                    : "amgcl",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "provide_coordinates"            : false,
-                "scaling"                        : false,
-                "smoother_type"                  : "damped_jacobi",
-                "krylov_type"                    : "cg",
-                "coarsening_type"                : "aggregation",
-                "verbosity"                      : 0
-            },
-            "velocity_linear_solver_settings": {
-                "solver_type"                    : "bicgstab",
-                "max_iteration"                  : 5000,
-                "tolerance"                      : 1e-9,
-                "preconditioner_type"            : "none",
-                "scaling"                        : false
-            },
-            "solving_strategy_settings":{
-               "time_step_prediction_level": 0,
-               "max_delta_time": 1.0e-5,
-               "fraction_delta_time": 0.9,
-               "rayleigh_damping": false,
-               "rayleigh_alpha": 0.0,
-               "rayleigh_beta" : 0.0
-            },
-            "bodies_list": [
-                {"body_name":"body1",
-                "parts_list":["Part1"]
-                },
-                {"body_name":"body2",
-                "parts_list":["Part2","Part3"]
-                }
-            ],
-            "problem_domain_sub_model_part_list": ["fluid_model_part"],
-            "processes_sub_model_part_list": [""]
-        }
-        """)
-
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        #construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
-
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
+        super(PfemFluidNodalIntegrationSolver, self).__init__(model, parameters)
 
         print("Construction of 2-step Pfem Fluid Nodal Integration Solver finished.")
+
 
 
     def Initialize(self):
@@ -102,7 +25,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
-
 
         self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
                                                                    self.velocity_linear_solver,
@@ -201,6 +123,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            self.fluid_solver.InitializeSolutionStep()
 
         adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         adaptive_time_interval.Execute()
@@ -213,8 +137,6 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
-
-    # solve :: sequencial calls
 
 #   Extra methods:: custom AFranci...
 #
