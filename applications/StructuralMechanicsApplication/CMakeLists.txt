@@ -51,6 +51,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
   ## RESPONSE FUNCTIONS
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_with_serialized_elements_process.cpp
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp

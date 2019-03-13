@@ -384,6 +384,13 @@ public:
     {
         return mpPrimalElement;
     }
+    /**
+     * Sets the pointer to the primal element.
+     */
+    void SetPrimalElement(Element::Pointer pPrimalElement)
+    {
+        mpPrimalElement = pPrimalElement;
+    }
     ///@}
 
     ///@name Public specialized Access - Temporary

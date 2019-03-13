@@ -14,10 +14,6 @@
         },
         "compute_reactions"			         : false,
         "move_mesh_flag"                     : false,
-
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-        },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
             "nodal_sensitivity_variables"  : ["SHAPE"],
@@ -80,7 +76,21 @@
         "file_name": "rectangular_plate_structure_primal"
         }
      }],
-    "loads_process_list"       : []},
+     "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "100.0*t",
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }]},
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

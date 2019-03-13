@@ -202,6 +202,8 @@ namespace Kratos
             rName = "AdjointFiniteDifferenceCrBeamElement";
         else if(name_current_element == "ShellThinElement3D3N")
             rName = "AdjointFiniteDifferencingShellElement";
+        else if(name_current_element == "ShellThickElementCorotational3D3N")  // trial with corotational element
+            rName = "AdjointFiniteDifferencingShellElement";
         else if(name_current_element == "TrussElement3D2N")
             rName = "AdjointFiniteDifferenceTrussElement";
         else if(name_current_element == "TrussLinearElement3D2N")

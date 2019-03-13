@@ -74,10 +74,10 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
 
-        ## loading serialization files hard coded here
+## loading serialization files hard coded here
         import restart_utility
-        load_model = KratosMultiphysics.Model()
-        load_model_part = load_model.CreateModelPart("rectangular_plate_structure")
+        loaded_model = KratosMultiphysics.Model()
+        self.loaded_model_part = loaded_model.CreateModelPart("rectangular_plate_structure")
         restart_parameters_load = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "test_restart_file",
@@ -87,20 +87,23 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         }
         """)
         restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
-        rest_utility_load = restart_utility.RestartUtility(load_model_part, restart_parameters_load)
+        rest_utility_load = restart_utility.RestartUtility(self.loaded_model_part, restart_parameters_load)
         rest_utility_load.LoadRestart()
 
-        element = self.main_model_part.Elements[2]
-        LHS = KratosMultiphysics.Matrix(18,18)
-        RHS = KratosMultiphysics.Vector(18)
-        element.CalculateLocalSystem(LHS,RHS,self.main_model_part.ProcessInfo)
-        print("LHS", RHS)
+        StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
+        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
 
-        element_load = load_model_part.Elements[2]
-        LHS_load = KratosMultiphysics.Matrix(18,18)
-        RHS_load = KratosMultiphysics.Vector(18)
-        element_load.CalculateLocalSystem(LHS_load,RHS_load,load_model_part.ProcessInfo)
-        print("LHS_Load", RHS_load)
+        # element = self.main_model_part.Elements[3]
+        # LHS = KratosMultiphysics.Matrix(18,18)
+        # RHS = KratosMultiphysics.Vector(18)
+        # element.CalculateLocalSystem(LHS,RHS,self.main_model_part.ProcessInfo)
+        # print("main model LHS after serialization", LHS[0,0])
+
+        # element_load = self.loaded_model_part.Elements[3]
+        # LHS_load = KratosMultiphysics.Matrix(18,18)
+        # RHS_load = KratosMultiphysics.Vector(18)
+        # element_load.CalculateLocalSystem(LHS_load,RHS_load,self.loaded_model_part.ProcessInfo)
+        # print("LHS_Load", LHS_load[0,0])
 
         # TODO Armin: hdf5 is reading the displacement but not updating the coordinates
         # TODO Mahmoud: check why KratosMultiphysics.VariableUtils().UpdateInitialToCurrentConfiguration update the nodal position here?

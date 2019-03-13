@@ -17,7 +17,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElement3D3N// GUI group identifier: AREAS
+Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: AREAS
          1          0        1      2       4
          2          0        2      5       4
          3          0        2      6       5
