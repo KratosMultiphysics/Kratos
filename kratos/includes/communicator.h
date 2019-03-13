@@ -215,7 +215,7 @@ public:
     {
     }
 
-    virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator)
+    virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const
     {
         KRATOS_TRY;
 
@@ -224,29 +224,29 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual Communicator::Pointer Create()
+    virtual Communicator::Pointer Create() const
     {
         return Create(ParallelEnvironment::GetDataCommunicator("Serial"));
     }
 
     /// Destructor.
-
-    virtual ~Communicator()
-    {
-    }
-
+    virtual ~Communicator() = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-
     Communicator & operator=(Communicator const& rOther) = delete;
 
     ///@}
     ///@name Access
     ///@{
+
+    virtual bool IsDistributed() const
+    {
+        return false;
+    }
 
     virtual int MyPID() const
     {

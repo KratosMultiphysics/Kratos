@@ -205,18 +205,13 @@ public:
     {}
 
 
-    /// Destructor.
 
-    ~MPICommunicator() override
-    {
-    }
-
-    Communicator::Pointer Create() override
+    Communicator::Pointer Create() const override
     {
         return Create(DataCommunicator::GetDefault());
     }
 
-    Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) override
+    Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const override
     {
         KRATOS_TRY
 
@@ -225,19 +220,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// Destructor.
+    ~MPICommunicator() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-
     MPICommunicator & operator=(MPICommunicator const& rOther) = delete;
 
     ///@}
     ///@name Access
     ///@{
 
+    bool IsDistributed() const override
+    {
+        return true;
+    }
 
     ///@}
     ///@name Operations
