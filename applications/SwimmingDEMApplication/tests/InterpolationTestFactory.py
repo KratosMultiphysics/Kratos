@@ -33,7 +33,7 @@ class TestFactory(KratosUnittest.TestCase):
             model = KratosMultiphysics.Model()
 
             # To avoid too many prints
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.test = InterpolationTestAnalysis(model, parameters)
 
