@@ -21,22 +21,8 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_3d_3.h"
-#include "geometries/quadrilateral_3d_4.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "geometries/hexahedra_3d_8.h"
-#include "geometries/hexahedra_3d_20.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 #include "includes/variables.h"
-#include "includes/condition.h"
 #include "shape_optimization_application.h"
-
-// conditions
-#include "custom_conditions/shape_optimization_condition.h"
-
 
 // ==============================================================================
 
@@ -102,11 +88,7 @@ namespace Kratos
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
-        KratosApplication("ShapeOptimizationApplication"),
-        mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-        mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-        mShapeOptimizationCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
+        KratosApplication("ShapeOptimizationApplication")
     {}
 
  	void KratosShapeOptimizationApplication::Register()
@@ -177,12 +159,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE_MAPPED);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
-
-        // Register conditions
-        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
-        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D4N", mShapeOptimizationCondition3D4N );
-        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition2D2N", mShapeOptimizationCondition2D2N );
-        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D2N", mShapeOptimizationCondition3D2N );
  	}
 
 }  // namespace Kratos.
