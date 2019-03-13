@@ -289,7 +289,7 @@ public:
                 position = 0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
                 {
-                    i_element->SetId(receive_buffer + position);
+                    i_element->SetId(*(receive_buffer + position));
                     position += elemental_data_size;
                 }
 
