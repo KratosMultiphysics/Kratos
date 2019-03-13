@@ -31,11 +31,11 @@ namespace Testing {
 void TriangleModelPartForDistanceModification(
     const bool ContinuousDistance,
     ModelPart& rModelPart) {
-    
+
     rModelPart.SetBufferSize(3);
     rModelPart.AddNodalSolutionStepVariable(NODAL_H);
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);

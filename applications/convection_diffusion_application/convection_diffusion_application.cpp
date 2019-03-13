@@ -23,7 +23,6 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d.h"
 #include "convection_diffusion_application.h"
 #include "includes/variables.h"
 

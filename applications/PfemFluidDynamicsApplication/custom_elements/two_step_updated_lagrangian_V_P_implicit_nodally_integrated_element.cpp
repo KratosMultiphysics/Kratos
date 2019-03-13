@@ -285,15 +285,9 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+    MathUtils<double>::InvertMatrix2(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
-
-    // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
-    // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
-    // 				    rElementalVariables.InvFgradVel,
-    // 				    rElementalVariables.DetFgradVel);
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
@@ -363,16 +357,9 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+    MathUtils<double>::InvertMatrix3(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
-
-    // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
-    // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
-    // 				    rElementalVariables.InvFgradVel,
-    // 				    rElementalVariables.DetFgradVel);
-
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);

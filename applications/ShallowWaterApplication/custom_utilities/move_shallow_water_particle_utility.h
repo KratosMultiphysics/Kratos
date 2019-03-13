@@ -1481,7 +1481,7 @@ private:
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if (results_found>0)
         {
@@ -1583,7 +1583,7 @@ private:
 
         // If checking all the neighbour elements did not work, we have to use the bins
         // ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rPosition, ResultBegin, MaxNumberOfResults );
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(Point{rPosition}, ResultBegin, MaxNumberOfResults );
 
         if(results_found>0)
         {
