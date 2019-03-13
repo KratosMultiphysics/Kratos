@@ -51,9 +51,9 @@ if __name__ == '__main__':
         "tol0"                            : 0.25,
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
-        "number_samples_screening"        : 2,
-        "Lscreening"                      : 1,
-        "Lmax"                            : 4,
+        "number_samples_screening"        : 25,
+        "Lscreening"                      : 2,
+        "Lmax"                            : 5,
         "initial_mesh_size"               : 0.1,
         "mesh_refinement_coefficient"     : 100
     }
@@ -86,12 +86,4 @@ if __name__ == '__main__':
     """)
     # contruct MultilevelMonteCarlo class
     mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(settings_MLMC_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
-    # mlmc_manager.Run()
-
-    # start screening phase
-    mlmc_manager.LaunchEpoch()
-    # finalize screening phase
-    mlmc_manager.FinalizeScreeningPhase()
-    mlmc_manager.ScreeningInfoScreeningPhase()
-    mlmc_manager.InitializeMLMCPhase()
-    mlmc_manager.ScreeningInfoInitializeMLMCPhase()
+    mlmc_manager.Run()
