@@ -211,31 +211,6 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "check_process_list" : [
-        {
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "FromJsonCheckResultProcess",
-            "Parameters"      : {
-                "check_variables"      : ["VELOCITY_X","VELOCITY_Y"],
-                "input_file_name"      : "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham_results.json",
-                "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.002
-            }
-        }
-    ],
-    "_json_output_process"  : [
-    {
-        "python_module" : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
-        "Parameters"    : {
-            "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
-            "output_file_name"     : "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham_results.json",
-            "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.002
-        }
-    }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

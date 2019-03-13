@@ -27,7 +27,7 @@ class PfemFluidSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "buffer_size": 2,
+            "buffer_size": 3,
             "echo_level": 1,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
@@ -108,7 +108,7 @@ class PfemFluidSolver(PythonSolver):
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
     def GetMinimumBufferSize(self):
-        return 2
+        return 3
 
     def Initialize(self):
 
