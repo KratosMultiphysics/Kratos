@@ -1500,57 +1500,65 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
 
-    std::vector<int> send_buffer{world_rank, world_rank};
+    // the serial version of scatter only works for the trivial case (from 0 to 0)
+    const std::vector<int> send_buffer = {1, 1};
+    std::vector<int> recv_buffer = {-1, -1};
 
     // two-buffer version
-    std::vector<int> recv_buffer(2*world_size, -1);
     serial_communicator.AllGather(send_buffer, recv_buffer);
-
-    for (int i = 0; i < 2*world_size; i++)
+    for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
     // return buffer version
     std::vector<int> return_buffer = serial_communicator.AllGather(send_buffer);
-
     KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
-    for (unsigned int i = 0; i < return_buffer.size(); i++)
+    for (unsigned int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1, -1, -1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGather(send_buffer, wrong_size_recv),
+        "Input error in call to DataCommunicator::AllGather"
+    );
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
-    const int world_size = r_world.Size();
-    const int world_rank = r_world.Rank();
 
-    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+    // the serial version of scatter only works for the trivial case (from 0 to 0)
+    const std::vector<double> send_buffer = {2.0, 2.0};
+    std::vector<double> recv_buffer = {-1.0, -1.0};
 
     // two-buffer version
-    std::vector<double> recv_buffer(2*world_size, -1.0);
     serial_communicator.AllGather(send_buffer, recv_buffer);
-
-    for (int i = 0; i < 2*world_size; i++)
+    for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
 
     // return buffer version
     std::vector<double> return_buffer = serial_communicator.AllGather(send_buffer);
-
     KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
-    for (unsigned int i = 0; i < return_buffer.size(); i++)
+    for (unsigned int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGather(send_buffer, wrong_size_recv),
+        "Input error in call to DataCommunicator::AllGather"
+    );
+    #endif
 }
 
 // Error broadcasting methods /////////////////////////////////////////////////

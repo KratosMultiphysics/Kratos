@@ -1160,7 +1160,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void AllGather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"AllGather");
+        rRecvValues = AllGather(rSendValues);
+    }
 
     /// Wrapper for MPI_Allgather calls (double version).
     /** @param rSendValues[in] Values to be gathered from this rank.
@@ -1170,7 +1173,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void AllGather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues) const
-    {}
+    {
+        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"AllGather");
+        rRecvValues = AllGather(rSendValues);
+    }
 
     ///@}
     ///@name Inquiry
