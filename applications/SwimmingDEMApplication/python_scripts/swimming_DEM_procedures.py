@@ -78,7 +78,6 @@ def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_mod
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
-        SetModelPartSolutionStepValue(balls_model_part, BASSET_FORCE, Vector([0.]*3)) #TODO: investigate this
 
 def FixModelPart(model_part):
 
