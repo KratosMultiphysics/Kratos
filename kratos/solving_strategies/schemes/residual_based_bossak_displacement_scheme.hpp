@@ -389,7 +389,7 @@ public:
             << "AlphaBossak. Admissible values are between 0.0 and -0.5\nCurrent value is: "
             << mBossak.alpha << std::endl;
 
-        const double epsilon = std::numeric_limits<double>::epsilon();
+        static const double epsilon = 1e-12;
         KRATOS_ERROR_IF_NOT(std::abs(mNewmark.beta - 0.0)   < epsilon ||
                             std::abs(mNewmark.beta - 0.167) < epsilon ||
                             std::abs(mNewmark.beta - 0.25)  < epsilon)
