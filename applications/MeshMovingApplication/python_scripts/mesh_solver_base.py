@@ -62,9 +62,9 @@ class MeshSolverBase(PythonSolver):
 
         if custom_settings["calculate_mesh_velocities"].GetBool():
             from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-            warn_msg  = "The calculation of the Mesh-Velocities is set to ON for the Solver\n"
-            warn_msg += "This feature was moved to an external utility and will soon be removed\n"
-            warn_msg += "from the solver. Please update your code"
+            warn_msg  = '"calculate_mesh_velocities" is set to true for the Solver\n'
+            warn_msg += 'This feature was moved to MeshMovingApplication.MeshVelocitiesCalculation and will soon be removed\n'
+            warn_msg += 'from the solver. Please update your code'
             IssueDeprecationWarning("MeshSolverBase", warn_msg)
 
         # Either retrieve the model part from the model or create a new one
