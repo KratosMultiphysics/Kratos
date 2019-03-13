@@ -20,7 +20,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
                 "reference_area": 1,
-                "create_output_file": false
+                "create_output_file": true
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -56,13 +56,50 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         Cl = RY
         Cd = RX
-
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
+
         print('Cl = ', Cl)
         print('Cd = ', Cd)
         print('RZ = ', RZ)
         print('Mach = ', self.velocity_infinity[0]/340)
 
         if self.create_output_file:
+            x_upper=[]
+            cp_upper=[]
+            x_lower=[]
+            cp_lower=[]
+            for cond in self.upper_surface_model_part.Conditions:
+                x_average=0
+                cp = cond.GetValue(PRESSURE)
+                for node in cond.GetNodes():
+                    x_average += 0.5*node.X
+                x_upper.append(x_average)
+                cp_upper.append(cp)
+            for cond in self.lower_surface_model_part.Conditions:
+                x_average=0
+                cp = cond.GetValue(PRESSURE)
+                for node in cond.GetNodes():
+                    x_average += 0.5*node.X
+                x_lower.append(x_average)
+                cp_lower.append(cp)  
+            max_x=max(max(x_upper),max(x_lower))
+            min_x=min(min(x_upper),min(x_lower))
+            for i in range(0,len(x_upper)):
+                x_upper[i]=(x_upper[i]-min_x)/abs(max_x-min_x)
+            for i in range(0,len(x_lower)):
+                x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x) 
+            plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
+            title="Cl: %.5f, Cd: %.5f" % (Cl,Cd)
+            plt.title(title)
+            plt.gca().invert_yaxis()
+            plt.savefig('cp_distr.png', bbox_inches='tight')
+            plt.close('all')
+
+
+            with open('xcp.dat', 'w') as cp_file:  
+                for i in range(len(x_upper)):
+                    cp_file.write('%f %f\n' % (x_upper[i], cp_upper[i]))
+                for i in range(len(x_lower)):
+                    cp_file.write('%f %f\n' % (x_lower[i], cp_lower[i]))
             with open("cl.dat", 'w') as cl_file:
                 cl_file.write('{0:15.12f}'.format(Cl))
