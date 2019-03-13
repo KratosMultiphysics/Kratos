@@ -17,7 +17,7 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/non_associative_yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
-#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_matsuoka_utilities.hpp"
 
 // Variables
 // 0 Plastic Multiplier
@@ -144,7 +144,8 @@ namespace Kratos
 
       //calcualte third invariant effect
       double ThirdInvEffect = 1.0;
-      ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      //ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
 
       //evaluate yield function
       rYieldCondition = std::pow(-std::sqrt(3.0)*J2/(rShearM/ThirdInvEffect*(MeanStress)), rShapeN );
@@ -173,7 +174,7 @@ namespace Kratos
       const double& rShapeN   = rMaterialProperties[SHAPE_PARAMETER];
 
       //get internal variables
-      const double& rP0   = rVariables.Internal.Variables[5];
+      //const double& rP0   = rVariables.Internal.Variables[5];
 
       //calculate stress invariants and derivatives
       double MeanStress, J2, LodeAngle;
@@ -183,12 +184,33 @@ namespace Kratos
 
       //calculate third invariant effect on M
       double ThirdInvEffect = 1.0;
-      ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      //ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
 
       //evaluate yield surface derivative df/dp*dp/dsig + df/dJ2*dJ2/dsig
       rDeltaStressYieldCondition = ( 1.0/(MeanStress*std::log(rSpacingR)) + (rShapeN*std::pow(std::sqrt(3.0)*J2,rShapeN))/(std::pow(rShearM/ThirdInvEffect,rShapeN)*pow(-MeanStress,rShapeN+1.0)) )*V1;
       rDeltaStressYieldCondition += ( (rShapeN*std::pow(3.0, rShapeN/2.0)*std::pow(J2, rShapeN-1.0))/(std::pow(rShearM/ThirdInvEffect,rShapeN)*std::pow(-MeanStress,rShapeN)) )*V2;
 
+      //add contribution of third inv derivative
+      if (rFriction > 1.0E-3 && J2 > 1.0E-5)
+      {
+        //double Friction = rFriction * Globals::Pi / 180.0;
+        double EffLode, EffLodeDeriv, C2, C3;
+        ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDueToThirdInvariant( EffLode, LodeAngle, rFriction);
+        ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDerivative( EffLodeDeriv, LodeAngle, rFriction);
+
+        C2 = rShapeN*std::pow(3.0,rShapeN/2.0)*std::pow(J2,rShapeN-1.0)*std::tan(3.0*LodeAngle)*EffLodeDeriv;
+        C2 /= std::pow(-MeanStress,rShapeN)*std::pow(rShearM,rShapeN)*std::pow(EffLode,rShapeN+1.0);
+
+        C3 = rShapeN*std::pow(3.0,(rShapeN+1.0)/2.0)*std::pow(J2,rShapeN-3.0)*EffLodeDeriv;
+        C3 /= 2.0*std::cos(3.0*LodeAngle)*std::pow(-MeanStress,rShapeN)*std::pow(rShearM,rShapeN)*std::pow(EffLode,rShapeN+1.0);
+
+        //df/dLode*dLode/dsig = C2*V2 + C3*V3
+        rDeltaStressYieldCondition += C2*V2 + C3*V3;
+      }
+
+      return rDeltaStressYieldCondition;
+/*
       //add contribution of third inv derivative
       if (rFriction > 1.0E-3 && J2 > 1.0E-5)
       {
@@ -206,9 +228,7 @@ namespace Kratos
         //df/dLode*dLode/dsig = C2*V2 + C3*V3
         rDeltaStressYieldCondition += C2*V2 + C3*V3;
       }
-
-      return rDeltaStressYieldCondition;
-
+*/
       KRATOS_CATCH(" ")
     }
 

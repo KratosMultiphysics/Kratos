@@ -15,7 +15,8 @@
 #include "custom_models/plasticity_models/hardening_rules/casm_cemented_hardening_rule.hpp"
 #include "custom_utilities/constitutive_model_utilities.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
-#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_matsuoka_utilities.hpp"
+//#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
 
 namespace Kratos
 {
@@ -139,7 +140,8 @@ namespace Kratos
 
     //calcualte third invariant effect
     double ThirdInvEffect = 1.0;
-    ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+    //ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+    ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
 
   //TODO
     //process plastic potential derivatives d_g/d_inv

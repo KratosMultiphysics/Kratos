@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division
+
 import KratosMultiphysics
 
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterialModels
+import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -16,19 +18,21 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self.size_parametric_analysis = 0;
         self.InitialStateCase = False
-        self.plot = False
+        self.plot = True
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
 
-
+    # Oedometric loading
     def _test_OedometricLoading(self):
         import math
         import numpy as np
         
         NumberIncrements = 1000
+        F11max = 0.8
         IncrementalF = self._set_identity_matrix()
-        IncrementalF[1,1] = 0.9995
+        IncrementalF[1,1] = F11max**(1/NumberIncrements)
 
+        #initial state
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
             self.current_case = case  
@@ -44,7 +48,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             import matplotlib.pyplot as plt
             plt.show()
 
-    def test_IsotropicLoading(self):
+    # Isotropic loading
+    def _test_IsotropicLoading(self):
         import math
         import numpy as np
         
@@ -68,6 +73,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             import matplotlib.pyplot as plt
             plt.show()
 
+    # Undrained triaxial loading
     def test_TriaxialLoading_Undrained(self):
         import math
         import numpy as np
@@ -94,7 +100,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             plt.show()
 
     # Triaxial test at gauss point
-    def test_TriaxialLoading_Drained(self):
+    def _test_TriaxialLoading_Drained(self):
 
         import math
         import numpy as np
@@ -187,7 +193,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         
         self._OpenOutputFile('drained_triaxial.csv')
-        self._WriteThisToFile(0, stress, strain)
+        #self._WriteThisToFile(0, stress, strain)
+        self._WriteThisToFileExtended(0, 0, 0, 0, stress, strain)
 
         isotropicLoadingStrain = self.F[1,1]
 
@@ -270,7 +277,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.strain = self.parameters.GetStrainVector();
             strain = self.ComputeStrainFromF(self.F)
         
-            self._WriteThisToFile(t, stress, strain)
+            #self._WriteThisToFile(t, stress, strain)
+            self._WriteThisToFileExtended(t, 0, 0, 0, stress, strain)
 
             VolStrain[t] = strain[0] + strain[1] + strain[2]
             VolStrain[t] *= -1.0
@@ -305,8 +313,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             plt.ylabel('VolStrain')
             plt.show(block=False)
 
-
-    # Triaxial test at gauss point
+    # driver Triaxial test at gauss point
     def _test_BiaxialLoading_Drained(self):
 
         import math
@@ -519,6 +526,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             plt.xlabel('DevStrain')
             plt.ylabel('VolStrain')
             plt.show(block=False)
+    
     # driver for initial stress state
     def _setInitialStressState(self):
     
@@ -591,8 +599,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         strain = self.ComputeStrainFromF(self.F)
 
         
-        self._WriteThisToFile(0, stress, strain)
+        self._WriteThisToFileExtended(0, 0, 0, 0, stress, strain)
 
+    #
     def _compute_strain_driven_problem(self, IncrF, nIncr):
     
         self.parameters.SetDeformationGradientF(self.F)
@@ -607,7 +616,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         stress = self.parameters.GetStressVector()
         self.strain = self.parameters.GetStrainVector()
         strain = self.ComputeStrainFromF(self.F)
-        self._WriteThisToFile(0, stress, strain)
+        self._WriteThisToFileExtended(0, 0, 0, 0, stress, strain)
 
         for step in range(0, nIncr):
 
@@ -626,7 +635,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     
             stress = self.parameters.GetStressVector()
             strain = self.ComputeStrainFromF(self.F)
-            self._WriteThisToFile(step, stress, strain)
+            self._WriteThisToFileExtended(step, 0, 0, 0, stress, strain)
 
         if (nIncr > 2):
 
@@ -670,21 +679,25 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
     def _create_material_model_and_law(self):
 
+        #read parameter file
         parameter_file = open("ProjectParametersCasmCem.json", 'r')
         settings = KratosMultiphysics.Parameters(parameter_file.read() )
         parameter_file.close()
+
+        #create model_part
         model = KratosMultiphysics.Model()
         self.model_part = model.CreateModelPart(settings["model_part_name"].GetString())
         #self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
 
-        #read nodes
+        #add nodes to model_part
         self.number_of_nodes = settings["nodes"].size()
-        self.nodes = [] #self.model_part.GetNodes()
+        self.nodes = []
         for i in range(0, self.number_of_nodes):
             node = self.model_part.CreateNewNode(i,settings["nodes"][i][0].GetDouble(),settings["nodes"][i][1].GetDouble(),settings["nodes"][i][2].GetDouble())
             self.nodes.append(node)
 
+        #create element
         self.geometry  = KratosMultiphysics.Geometry()
         self.dimension = 3
         if( settings["element_type"].GetString() == "Tetrahedra3D4"):
@@ -692,7 +705,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 print(" number of nodes:",self.number_of_nodes," do not matches geometry :", settings["element_type"].GetString() )
             else:
                 self.geometry = KratosMultiphysics.Tetrahedra3D4(self.nodes[0],self.nodes[1],self.nodes[2],self.nodes[3])
-
                 
         if( settings["element_type"].GetString() == "Triangle2D3"):
             if( self.number_of_nodes != 4 ):
@@ -701,10 +713,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 self.geometry  = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
                 self.dimension = 2
                 
-        #material properties
+        #create and set material properties
         self.properties = self.model_part.Properties[settings["properties_id"].GetInt()]
-
-        #read variables
         self.variables = settings["variables"]
         for key, value in self.variables.items():
             variable = self._GetItemFromModule(key)
@@ -750,7 +760,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.strain_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
         self.constitutive_matrix = KratosMultiphysics.Matrix(self.material_law.GetStrainSize(),self.material_law.GetStrainSize())
 
-                
         self.parameters = KratosMultiphysics.ConstitutiveLawParameters()
         
         self.parameters.SetOptions( self.options )
@@ -765,6 +774,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetMaterialProperties( self.properties )
         self.parameters.SetElementGeometry( self.geometry )
 
+        #parametric analysis
         if ( self.size_parametric_analysis == 0):
             if ( settings["parametric_analysis_variable"].GetString() == 'PRESSURE'):
                 self.InitialStateCase = True;
@@ -886,8 +896,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         return strain
 
-
-
+    #
     def _WriteThisToFile(self, t, stress, strain):
 
         import numpy as np
@@ -907,6 +916,35 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         pm = self.material_law.GetValue( KratosMultiphysics.ConstitutiveModelsApplication.PM, pm)
 
         line = line + str(ps) + " , " + str(pt) + " , " + str(pm)
+
+        line = line + " \n"
+        csv_file = open(self.csv_path, "a")
+        csv_file.write(line)
+        csv_file.close()
+
+    #
+    def _WriteThisToFileExtended(self, t, epsVol, FF01, FF11, stress, strain): #CHECKED
+
+        #get computed variables
+        pp = 0;
+        pp = self.material_law.GetValue( KratosPfemSolid.STRESS_INV_P, pp)
+        qq = 0;
+        qq = self.material_law.GetValue( KratosPfemSolid.STRESS_INV_J2, qq)
+        th = 0;
+        th = self.material_law.GetValue( KratosPfemSolid.STRESS_INV_THETA, th)
+        p0 = 0;
+        p0 = self.material_law.GetValue( KratosMaterialModels.P0, p0)
+        bb = 0;
+        bb = self.material_law.GetValue( KratosMaterialModels.BONDING, bb)
+
+        line = str(t) + " " + str(pp) + " " + str(qq) + " " + str(th) + " " + str(p0) + " " + str(bb) + " " + str(epsVol) + " " + str(FF01) + " " + str(FF11) + " "
+        for st in stress:
+            line = line + str(st) + " "
+
+        for st in strain:
+            line = line + str(st) + " "
+
+        line = line[:-2]
 
         line = line + " \n"
         csv_file = open(self.csv_path, "a")

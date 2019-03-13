@@ -17,7 +17,8 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
-#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_matsuoka_utilities.hpp"
+//#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
 
 namespace Kratos
 {
@@ -154,14 +155,15 @@ namespace Kratos
 
       //calcualte third invariant effect on M
       double ThirdInvEffect = 1.0;
-      ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      //ShapeAtDeviatoricPlaneMCCUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
+      ShapeAtDeviatoricPlaneMatsuokaUtility::EvaluateEffectDueToThirdInvariant( ThirdInvEffect, LodeAngle, rFriction);
 
       //calculate preconsolidation pressure
-      double PreconStress = MeanStress + 3.0/MeanStress * pow( J2/rShearM/ThirdInvEffect, 2.0);
+      double PreconStress = MeanStress + 3.0/MeanStress * pow( J2*ThirdInvEffect/rShearM, 2.0);
 
       //
       dFdp = 2.0*MeanStress - PreconStress;
-      dFdJ2 = 2.0*3.0*pow(1.0/rShearM, 2.0) * J2;
+      dFdJ2 = 2.0*3.0*pow(ThirdInvEffect/rShearM, 2.0) * J2;
       VInv(0) = dFdp;
       VInv(1) = dFdJ2;
       rDeltaStressInvYieldCondition = VInv;

@@ -11,11 +11,18 @@
                 "KratosMultiphysics.SWELLING_SLOPE": 0.0078,
                 "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 5000.0,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
-                "KratosMultiphysics.CRITICAL_STATE_LINE": 0.90,
                 "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 80.0,
                 "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
+                "KratosMultiphysics.CRITICAL_STATE_LINE": 0.9,
+                "KratosMultiphysics.INTERNAL_FRICTION_ANGLE": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.SPACING_RATIO": 2.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.SHAPE_PARAMETER": 1.5,
-                "KratosMultiphysics.ConstitutiveModelsApplication.SPACING_RATIO": 2.0
+                "KratosMultiphysics.ConstitutiveModelsApplication.INITIAL_BONDING": 1.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.DEGRADATION_THRESHOLD": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.DEGRADATION_RATE_COMPRESSION": 10.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.DEGRADATION_RATE_SHEAR": 10.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.ALPHA_TENSILE": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PLASTIC_DEVIATORIC_STRAIN_HARDENING": 0.0
             },
             "element_type": "Tetrahedra3D4",
             "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
@@ -24,7 +31,7 @@
                 "jacobian": 1.0
             },
             "echo_level" : 0,
-	    "parametric_analysis_variable": "PRE_CONSOLIDATION_STRESS",
-	    "parametric_analysis_values": [ 80.0, 160, 240],
+	    "parametric_analysis_variable": "INITIAL_BONDING",
+	    "parametric_analysis_values": [ 1.0],
 	    "initial_stress_state": [-80.0, -80.0, -80.0]
 }
