@@ -213,8 +213,6 @@ namespace Kratos {
             {
                 "first_model_part_name"  : "Surface",
                 "second_model_part_name" : "Boundaries",
-                "scale_factor"           : [1.0, 1.0, 1.0],
-                "offset"                 : [0.0, 0.0, 0.0],
                 "bounding_box_factor"    : 0.2,
                 "debug_obb"              : false
             })" );
