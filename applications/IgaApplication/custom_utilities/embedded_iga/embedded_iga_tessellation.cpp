@@ -21,6 +21,7 @@ namespace Kratos
 {
 
 void EmbeddedIgaTessellation::CreateTessellation1D(
+    const double mTessellationTolerance,
     const BrepEdge& rCurveGeometry,
     std::vector<array_1d<double, 3>>& rPolygon)
 {
@@ -50,7 +51,7 @@ void EmbeddedIgaTessellation::CreateTessellation1D(
 
     // Perform the tessellation of the curve with flatness factor
     ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
-    tessellation->Compute(curve, 1e-4);
+    tessellation->Compute(curve, mTessellationTolerance);
 
     rPolygon.resize(tessellation->NbPoints()); 
 
@@ -65,6 +66,7 @@ void EmbeddedIgaTessellation::CreateTessellation1D(
 
 
 void EmbeddedIgaTessellation::CreateTessellation2D(
+    const double mTessellationTolerance,
     const BrepFace& rFaceGeometry, 
     std::vector<std::vector<array_1d<double, 2>>>& rOuterPolygon,
     std::vector<std::vector<array_1d<double, 2>>>& rInnerPolygon)
@@ -90,7 +92,7 @@ void EmbeddedIgaTessellation::CreateTessellation2D(
 
             const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
 
-            tessellation->Compute(curve_on_surface, 1e-3);
+            tessellation->Compute(curve_on_surface, mTessellationTolerance);
 
 
             // polygon vector needs to be resized to the current number of points + the new points

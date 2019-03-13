@@ -20,6 +20,9 @@
 namespace Kratos
 {
 void EmbeddedIgaTriangulation::CreateTriangulation(
+    const double mTriangulationTolerance,
+    const double mInitialTriangleArea,
+    const int mMaxTriangulationIterations,
     const BrepFace& rFaceGeometry,
     const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
     const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
@@ -149,18 +152,17 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     // in_data.holelist[2] = 6; 
     // in_data.holelist[3] = 3; 
     
-
     float max_area;
-    const auto ele_tolerance = 0.1; 
+    const auto ele_tolerance = mTriangulationTolerance; 
     std::vector<Matrix> triangulation_uv; 
-    for (int it = 1; it < 20; it++)
+    for (int it = 1; it < mMaxTriangulationIterations; it++)
     {
         std::cout << "Iteration " << it << std::endl; 
 
         InitTriangulationDataStructure(out_data); 
         InitTriangulationDataStructure(vor_out_data); 
 
-        max_area = 10.0/it;
+        max_area = mInitialTriangleArea/it;
         char buf[100];
         gcvt(max_area, 6, buf);    
         char trigenOpts[10] = "QDpza";

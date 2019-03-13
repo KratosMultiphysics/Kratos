@@ -51,6 +51,7 @@ namespace Kratos
         ///@{
         /// Constructor.
         EmbeddedIgaModeler(ModelPart& rModelPart);
+        EmbeddedIgaModeler(ModelPart &rModelPart,const Parameters& rEmbeddedIgaSettings);
 
         /// Destructor.
         virtual ~EmbeddedIgaModeler() override
@@ -64,8 +65,8 @@ namespace Kratos
         ///@{
         double              mTessellationTolerance;
         double              mTriangulationTolerance;
-        double              mInitialTriangulationArea; 
-        unsigned int        mMaxTriangulationIterations;
+        double              mInitialTriangleArea; 
+        int                 mMaxTriangulationIterations;
 
         ModelPart&          m_model_part;
 
