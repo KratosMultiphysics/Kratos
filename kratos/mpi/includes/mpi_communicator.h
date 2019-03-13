@@ -279,8 +279,6 @@ public:
                     position += elemental_data_size;
                 }
 
-                MPI_Status status;
-
                 int send_tag = i_color;
                 int receive_tag = i_color;
 
