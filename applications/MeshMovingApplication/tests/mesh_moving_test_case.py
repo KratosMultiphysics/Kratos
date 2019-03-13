@@ -94,7 +94,10 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                 "Parameters"    : {
                     "check_variables" : ["MESH_DISPLACEMENT_X",
                                          "MESH_DISPLACEMENT_Y",
-                                         "MESH_DISPLACEMENT_Z"],
+                                         "MESH_DISPLACEMENT_Z",
+                                          "MESH_VELOCITY_X",
+                                          "MESH_VELOCITY_Y",
+                                          "MESH_VELOCITY_Z"],
                     "input_file_name"  : \""""+result_file_name+"""\",
                     "model_part_name"  : "Probe_1",
                     "time_frequency"   : 0.1
