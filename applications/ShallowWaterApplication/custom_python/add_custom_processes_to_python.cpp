@@ -35,14 +35,15 @@ namespace Python
     {
         namespace py = pybind11;
 
-        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>(m, "ElementalRefiningCriteriaProcess")
+        py::class_<ElementalRefiningCriteriaProcess, ElementalRefiningCriteriaProcess::Pointer, Process>
+        (m, "ElementalRefiningCriteriaProcess")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<ModelPart&, Variable<double>, double, bool>())
-        .def("Execute",&ElementalRefiningCriteriaProcess::Execute)
         ;
 
-        py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>(m, "InitialPerturbationProcess")
+        py::class_<InitialPerturbationProcess, InitialPerturbationProcess::Pointer, Process>
+        (m, "InitialPerturbationProcess")
         .def(py::init<ModelPart&, Node<3>::Pointer, Parameters&>())
         ;
     }

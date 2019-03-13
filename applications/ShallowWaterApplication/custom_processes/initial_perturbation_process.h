@@ -25,7 +25,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "geometries/point.h"
 #include "includes/kratos_parameters.h"
 #include "shallow_water_application_variables.h"
 
