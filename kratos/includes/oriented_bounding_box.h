@@ -14,6 +14,7 @@
 #define  OBB_CLASS_H_DEFINED
 
 // System includes
+#include <iomanip>
 
 // External includes
 
@@ -197,6 +198,71 @@ public:
      */
     void GetEquivalentRotatedGeometry(OutpuType& rGeometry);
 
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream string_out_coordinates;
+        for (int i = 0; i < TDim; ++i) {
+            string_out_coordinates
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(3)
+            << std::uppercase
+            << "\t" << mPointCenter[i];
+        }
+
+        std::stringstream string_out_orientation_vectors;
+        for (int i = 0; i < TDim; ++i) {
+            string_out_orientation_vectors << "\nThe orientation axis " << i << " is: ";
+            for (int j = 0; j < TDim; ++j) {
+                string_out_orientation_vectors
+                << std::setiosflags(std::ios::scientific)
+                << std::setprecision(3)
+                << std::uppercase
+                << "\t" << mOrientationVectors[i][j];
+            }
+        }
+
+        std::stringstream string_out_half_length;
+        for (int i = 0; i < TDim; ++i) {
+            string_out_half_length
+            << std::setiosflags(std::ios::scientific)
+            << std::setprecision(3)
+            << std::uppercase
+            << "\t" << mHalfLength[i];
+        }
+
+        return "OrientedBoundingBox in " + std::to_string(TDim) + "D space" + "\nWhich center is:" + string_out_coordinates.str() + "\nThe orientation axis are: " + string_out_orientation_vectors.str() + "\nThe half lengths are: " + string_out_half_length.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 protected:
 
     ///@name Protected static Member Variables
