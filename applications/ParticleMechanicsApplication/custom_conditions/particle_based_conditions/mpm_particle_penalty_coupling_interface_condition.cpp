@@ -76,7 +76,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( Process
     // Estimating the contact forces at the boundary
     if (Is(INTERFACE))
     {
-        this->CalculateContactForce( rCurrentProcessInfo );
+        this->CalculateInterfaceContactForce( rCurrentProcessInfo );
     }
 
     KRATOS_CATCH( "" )
@@ -85,21 +85,95 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( Process
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateContactForce( ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    if (Is(INTERFACE))
+    {
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.PointsNumber();
+
+        // At the beginning of NonLinearIteration, CONTACT_FORCE has to be reset to zero
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            rGeom[i].SetLock();
+            rGeom[i].FastGetSolutionStepValue(REACTION).clear();
+            rGeom[i].UnSetLock();
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateAll(
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    bool CalculateStiffnessMatrixFlag,
+    bool CalculateResidualVectorFlag
+    )
+{
+    KRATOS_TRY
+
+    MPMParticlePenaltyDirichletCondition::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                                                        rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                                                        CalculateResidualVectorFlag);
+
+    // Append penalty force at the nodes
+    if (Is(INTERFACE))
+    {
+        this->CalculateNodalContactForce( rRightHandSideVector, rCurrentProcessInfo, CalculateResidualVectorFlag );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag )
+{
+    if ( CalculateResidualVectorFlag == true )
+    {
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        const unsigned int block_size = this->GetBlockSize();
+
+        // Calculate nodal forces
+        Vector nodal_force = ZeroVector(dimension);
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            for (unsigned int j = 0; j < dimension; j++)
+            {
+                nodal_force[j] = rRightHandSideVector[block_size * i + j];
+            }
+
+            // Check whether there is material point inside the node
+            const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            if (nodal_mass > std::numeric_limits<double>::epsilon())
+            {
+                rGeom[i].SetLock();
+                rGeom[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+                rGeom[i].UnSetLock();
+            }
+
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo )
 {
     GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int block_size = this->GetBlockSize();
 
     // Prepare variables
     GeneralVariables Variables;
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
-    // Compute nodal force: this has considered CONTACT condition
-    Vector nodal_force;
-    this->CalculateRightHandSide(nodal_force, rCurrentProcessInfo);
 
     // Interpolate the force to MPC_Force assuming linear shape function
     array_1d<double, 3 > MPC_Force = ZeroVector(3);
@@ -109,9 +183,10 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateContactForce( Proces
         const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
         if (nodal_mass > std::numeric_limits<double>::epsilon())
         {
+            const Vector nodal_force = rGeom[i].FastGetSolutionStepValue(REACTION);
             for ( unsigned int j = 0; j < dimension; j++)
             {
-                MPC_Force[j] += Variables.N[i] *  nodal_force[block_size * i + j];
+                MPC_Force[j] += Variables.N[i] * nodal_force[j];
             }
         }
     }

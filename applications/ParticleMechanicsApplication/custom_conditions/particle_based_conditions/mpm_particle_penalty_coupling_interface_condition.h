@@ -84,6 +84,12 @@ public:
     ///@{
 
     /**
+     * Called at the begining at each nonlinear iteration
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -140,12 +146,10 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-    virtual void CalculateContactForce( ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected Operators
@@ -155,6 +159,26 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix: The LHS
+     * @param rRightHandSideVector: The RHS
+     * @param rCurrentProcessInfo: The current process info instance
+     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag
+        ) override;
+
+    virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
+
+    virtual void CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Protected  Access
