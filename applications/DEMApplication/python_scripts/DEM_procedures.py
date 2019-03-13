@@ -862,6 +862,10 @@ class Procedures(object):
         Logger.PrintInfo(message, label="DEM")
         Logger.Flush()
 
+    def KratosPrintWarning(self, message):
+        Logger.PrintWarning(message, label="DEM")
+        Logger.Flush()
+
 
 class DEMFEMProcedures(object):
 
