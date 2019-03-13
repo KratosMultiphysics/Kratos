@@ -102,6 +102,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"          : "ResidualBasedBossakDisplacementScheme",
             "damp_factor_m" : -0.3,
             "newmark_beta"  : 0.25
         })" );

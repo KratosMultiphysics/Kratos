@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/openmp_utils.h"
 #include "processes/find_nodal_h_process.h"
@@ -46,15 +47,28 @@ DistanceModificationProcess::DistanceModificationProcess(
 DistanceModificationProcess::DistanceModificationProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
-    : Process(), mrModelPart(rModelPart) {
+    : Process(), mrModelPart(rModelPart)
+{
+    this->CheckDefaultsAndProcessSettings(rParameters);
+}
 
+DistanceModificationProcess::DistanceModificationProcess(
+    Model &rModel,
+    Parameters &rParameters)
+    : Process(), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+{
+    this->CheckDefaultsAndProcessSettings(rParameters);
+}
+
+void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+{
     Parameters default_parameters( R"(
     {
-        "model_part_name"                        : "default_model_part_name",
+        "model_part_name"                        : "",
         "distance_factor"                        : 2.0,
         "distance_threshold"                     : 0.001,
         "continuous_distance"                    : true,
-        "check_at_each_time_step"                : false,
+        "check_at_each_time_step"                : true,
         "avoid_almost_empty_elements"            : true,
         "deactivate_full_negative_elements"      : true,
         "recover_original_distance_at_each_step" : false
@@ -69,6 +83,12 @@ DistanceModificationProcess::DistanceModificationProcess(
     mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
+}
+
+void DistanceModificationProcess::Execute()
+{
+    this->ExecuteInitialize();
+    this->ExecuteInitializeSolutionStep();
 }
 
 void DistanceModificationProcess::ExecuteInitialize() {
@@ -304,7 +324,7 @@ void DistanceModificationProcess::RecoverDeactivationPreviousState(){
     for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
         auto it_node = mrModelPart.NodesBegin() + i_node;
         if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-            // Fix the nodal DOFs
+            // Free the nodal DOFs that were fixed
             it_node->Free(PRESSURE);
             it_node->Free(VELOCITY_X);
             it_node->Free(VELOCITY_Y);

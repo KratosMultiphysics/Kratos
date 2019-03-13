@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ShallowWaterApplication")
-
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
@@ -56,11 +53,13 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY_GRADIENT)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -130,14 +129,14 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
-        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
-                                                                                             domain_size+1) # BlockSize
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
+        #                                                                                      domain_size+1) # BlockSize
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                                             self.time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
@@ -250,7 +249,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             "time_stepping"            : {
                 "automatic_time_step"      : false,
                 "time_step"                : 0.01
-            }
+            },
+            "multigrid_settings"   : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)

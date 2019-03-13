@@ -17,6 +17,17 @@ namespace Kratos {
     void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM_Rankine::Check(Properties::Pointer pProp) const {
+        DEM_KDEM::Check(pProp);
+        if(!pProp->Has(CONTACT_SIGMA_MIN)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONTACT_SIGMA_MIN should be present in the properties when using DEM_KDEM_Rankine. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(CONTACT_SIGMA_MIN) = 0.0;
+        }
     }
 
     void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
@@ -26,7 +37,7 @@ namespace Kratos {
         if (failure_type == 0) {
             double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
 
-            Matrix average_stress_tensor = ZeroMatrix(3,3);
+            BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));

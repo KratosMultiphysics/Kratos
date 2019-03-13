@@ -34,6 +34,12 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,13 +71,13 @@ protected:
     {
         Vector  N;
         Matrix  B;
-        Vector Bh;
         double  detF;
         Matrix  F;
         double  detJ0;
         Matrix  J0;
         Matrix  InvJ0;
         Matrix  DN_DX;
+        Vector Displacements;
 
         /**
          * The default constructor
@@ -80,20 +86,20 @@ protected:
          * @param NumberOfNodes The number of nodes in the element
          */
         KinematicVariables(
-            const unsigned int& StrainSize,
-            const unsigned int& Dimension,
-            const unsigned int& NumberOfNodes
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
             )
         {
             detF = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            Bh = ZeroVector(Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
         }
     };
 
@@ -110,7 +116,7 @@ protected:
          * The default constructor
          * @param StrainSize The size of the strain vector in Voigt notation
          */
-        ConstitutiveVariables(const unsigned int& StrainSize)
+        ConstitutiveVariables(const SizeType StrainSize)
         {
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
@@ -139,12 +145,6 @@ public:
 
     /// The base element type
     typedef Element BaseType;
-
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
