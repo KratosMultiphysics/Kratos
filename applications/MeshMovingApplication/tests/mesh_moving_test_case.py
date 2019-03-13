@@ -9,6 +9,9 @@ class MeshMovingAnalysisForTesting(MeshMovingAnalysis):
     def __init__(self, model, project_parameters, mesh_vel_calc_helper):
         super(MeshMovingAnalysisForTesting, self).__init__(model, project_parameters)
         self.mesh_vel_calc_helper = mesh_vel_calc_helper
+        # Variables needed for the mesh-velocity-calculation
+        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
+        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
 
     def RunSolutionLoop(self):
         """custom to also compute the mesh-velocities"""
@@ -91,10 +94,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                 "Parameters"    : {
                     "check_variables" : ["MESH_DISPLACEMENT_X",
                                          "MESH_DISPLACEMENT_Y",
-                                         "MESH_DISPLACEMENT_Z",
-                                         "MESH_VELOCITY_X",
-                                         "MESH_VELOCITY_Y",
-                                         "MESH_VELOCITY_Z"],
+                                         "MESH_DISPLACEMENT_Z"],
                     "input_file_name"  : \""""+result_file_name+"""\",
                     "model_part_name"  : "Probe_1",
                     "time_frequency"   : 0.1
