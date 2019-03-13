@@ -34,9 +34,13 @@ class candelier_with_history_non_inertial_test(TF.TestFactory):
      file_name = "candelier_tests/candelier"
      file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
 
-class interpolation_test(InterpolationTF.TestFactory):
+class interpolation_test_linear(InterpolationTF.TestFactory):
      file_name = "interpolation_tests/cube"
-     file_parameters = "interpolation_tests/ProjectParametersCube.json"
+     file_parameters = "interpolation_tests/ProjectParametersCubeLinear.json"
+
+class interpolation_test_nonlinear_time_no_substepping(InterpolationTF.TestFactory):
+     file_name = "interpolation_tests/cube"
+     file_parameters = "interpolation_tests/ProjectParametersCubeNonlinearTimeNoSubstepping.json"
 
 class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
      file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
@@ -52,7 +56,8 @@ def SetTestSuite(suites):
           candelier_no_history_non_inertial_test,
           candelier_with_history_test,
           candelier_with_history_hinsberg_test,
-          interpolation_test,
+          interpolation_test_linear,
+          interpolation_test_nonlinear_time_no_substepping,
           sdem_pfem_coupling_one_way_test
           ])
     )
