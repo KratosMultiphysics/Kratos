@@ -37,7 +37,7 @@ class FemDemMechanicalSolver(object):
     settings -- Kratos parameters containing solver settings.
     main_model_part -- the model part used to construct the solver.
     """
-    def __init__(self, main_model_part, custom_settings):         
+    def __init__(self, main_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "solid_mechanics_solver",
@@ -91,45 +91,45 @@ class FemDemMechanicalSolver(object):
             if(custom_settings["stabilization_factor"].IsDouble()):
                 default_settings["stabilization_factor"].SetDouble(0.0)
 
-        
+
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         print("::[Solid_Mechanical_Solver]:: Constructed")
 
-        
+
     def GetMinimumBufferSize(self):
         return 2;
 
     def SetVariables(self):
-        
+
         self.nodal_variables = []
         self.dof_variables   = []
-        self.dof_reactions   = [] 
-        
+        self.dof_reactions   = []
+
         # Add displacements
         self.dof_variables = self.dof_variables + ['DISPLACEMENT']
-        self.dof_reactions = self.dof_reactions + ['REACTION'] 
-        
+        self.dof_reactions = self.dof_reactions + ['REACTION']
+
         # Add dynamic variables
         if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
             self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
-        
+
         # Add specific variables for the problem conditions
         self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
-        
+
         # Add nodal force variables for component wise calculation
         if( self.settings.Has("component_wise") ):
             if self.settings["component_wise"].GetBool():
                 self.nodal_variables = self.nodal_variables + ['INTERNAL_FORCE','EXTERNAL_FORCE']
- 
+
         # Add rotational variables
-        if self._check_input_dof("ROTATION"):                    
+        if self._check_input_dof("ROTATION"):
             # Add specific variables for the problem (rotation dofs)
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['TORQUE']
@@ -141,7 +141,7 @@ class FemDemMechanicalSolver(object):
             # Add large rotation variables
             self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
 
-            
+
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):
             # Add specific variables for the problem (pressure dofs)
@@ -155,37 +155,37 @@ class FemDemMechanicalSolver(object):
             # Add specific variables for the problem (contact dofs)
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
-        
-        
-        
+
+
+
     def AddVariables(self):
 
         self.SetVariables()
-        
-        self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions 
+
+        self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
 
-        for variable in self.nodal_variables:            
+        for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
-            
+
         print("::[Mechanical_Solver]:: General Variables ADDED")
-                                                              
-        
+
+
     def AddDofs(self):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
         AddDofsProcess.Execute()
-                
+
         print("::[Mechanical_Solver]:: DOF's ADDED")
-        
+
     def ImportModelPart(self):
 
         print("::[Mechanical_Solver]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-        
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):            
+
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
             print("   Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa ")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
@@ -193,7 +193,7 @@ class FemDemMechanicalSolver(object):
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
-            
+
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             # Import model part from restart file.
             restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
@@ -212,7 +212,7 @@ class FemDemMechanicalSolver(object):
             #I use it to rebuild the contact conditions.
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            # print("   Finished loading model part from restart file ")            
+            # print("   Finished loading model part from restart file ")
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -220,18 +220,18 @@ class FemDemMechanicalSolver(object):
 
         print(self.main_model_part)
         print ("::[Mechanical_Solver]:: Finished importing model part.")
-            
+
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
         # Model part writing
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
-    
+
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         print("::[Mechanical_Solver]:: -START-")
-        
+
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -245,37 +245,37 @@ class FemDemMechanicalSolver(object):
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
-        print("::[Mechanical_Solver]:: -END-")        
-        
+        print("::[Mechanical_Solver]:: -END-")
+
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
-        
+
     def GetOutputVariables(self):
         pass
-        
+
     def ComputeDeltaTime(self):
         pass
-        
+
     def SaveRestart(self):
         pass #one should write the restart file here
-        
+
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
         self._get_mechanical_solver().Solve()
-    
+
     def InitializeSolutionStep(self):
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def Predict(self):
-        self._get_mechanical_solver().Predict()                                            
+        self._get_mechanical_solver().Predict()
     def SolveSolutionStep(self):
         is_converged = self._get_mechanical_solver().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
         self._get_mechanical_solver().FinalizeSolutionStep()
-                                                    
+
     def SetEchoLevel(self, level):
         self._get_mechanical_solver().SetEchoLevel(level)
 
@@ -284,7 +284,7 @@ class FemDemMechanicalSolver(object):
 
     def Check(self):
         self._get_mechanical_solver().Check()
-                                                    
+
     #### Solver internal methods ####
 
     def _check_input_dof(self, variable):
@@ -293,7 +293,7 @@ class FemDemMechanicalSolver(object):
             if dofs_list[i].GetString() == variable:
                 return True
         return False
-            
+
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
@@ -318,17 +318,17 @@ class FemDemMechanicalSolver(object):
         if not hasattr(self, '_mechanical_solver'):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
-                                                    
+
     def _execute_after_reading(self):
         # The computing_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
-        self.computing_model_part_name = "computing_domain" 
+        self.computing_model_part_name = "computing_domain"
 
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-       
+
         if( self.settings.Has("bodies_list") ):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
@@ -344,17 +344,17 @@ class FemDemMechanicalSolver(object):
             print("   Constitutive law was not imported.")
 
     def _import_constitutive_laws(self):
-        
+
         if os.path.isfile("materials.py"):
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
-            
+
             return True
         else:
-            return False        
+            return False
 
     def _validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
         """Transfer matching settings from origin to destination.
@@ -414,7 +414,7 @@ class FemDemMechanicalSolver(object):
                 else:
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
-        
+
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
@@ -436,10 +436,10 @@ class FemDemMechanicalSolver(object):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-        
+
     def _create_solution_scheme(self):
         raise Exception("please implement the Custom Choice of your Scheme (_create_solution_scheme) in your solver")
-    
+
     def _create_convergence_criterion(self):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
         conv_params = KratosMultiphysics.Parameters("{}")
@@ -451,18 +451,18 @@ class FemDemMechanicalSolver(object):
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        
+
         # Construction of the class convergence_criterion
         import convergence_criteria_factory_fem_dem
         convergence_criteria_factory_fem_dem = convergence_criteria_factory_fem_dem.convergence_criterion(conv_params)
-        
+
         return convergence_criteria_factory_fem_dem.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
-    
+
     def _create_builder_and_solver(self):
         linear_solver = self._get_linear_solver()
         if(self.settings["component_wise"].GetBool() == True):
@@ -473,7 +473,7 @@ class FemDemMechanicalSolver(object):
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-                
+
         return builder_and_solver
 
     def _create_mechanical_solver(self):

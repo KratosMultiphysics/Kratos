@@ -172,27 +172,40 @@ public:
     void ExecuteCoarsening();
 
     /**
-     * @brief InitializeNewModelPart is an auxiliary function to
-     * copy properties, variables, tables and sub model parts
+     * @brief InitializeVisualizationModelPart adds all the nodes, elements
+     * and conditions to the visualization model part
      * @param rReferenceModelPart
      * @param rNewModelPart
      */
-    static void InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
+    static void InitializeVisualizationModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
+
+    /**
+     * @brief InitializeRefinedModelPart defines the refined model part
+     * @detail The method copy the model part hierarchy from the coarse to
+     * the refined model part
+     * @param rReferenceModelPart
+     * @param rNewModelPart
+     */
+    static void InitializeRefinedModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
 
     /**
      * @brief Copies all the last nodal step data from the refined
      * model part to the coarse one
      */
-    void TransferLastStepToCoarseModelPart();
-
-    /**
-     * @brief Copies the nodal step data with a linear interpolation
-     * between the last nodal steps of the given variable
-     * @param rSubstepFraction 0 means the previous time step,
-     * 1 means the last time step, an intermediate value means
-     * the interpolation factor
-     */
-    // void TransferSubstepToRefinedInterface(const double& rSubstepFraction);
+    template<class TVarType>
+    void TransferLastStepToCoarseModelPart(const TVarType& rVariable)
+    {
+        ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
+        for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+        {
+            auto refined_node = refined_begin + i;
+            if (refined_node->GetValue(FATHER_NODES).size() == 1)
+            {
+                auto& value = refined_node->GetValue(FATHER_NODES)[0].FastGetSolutionStepValue(rVariable);
+                value = refined_node->FastGetSolutionStepValue(rVariable); // we only copy the current step
+            }
+        }
+    }
 
     /**
      * @brief Copies the nodal step data with a linear interpolation
@@ -366,30 +379,27 @@ public:
     void UpdateSubLevel();
 
     /**
-     * @brief
+     * @brief It transfers the data from the refined level to the coarse one
      */
     void TransferDataToCoarseLevel();
 
     /**
-     * @brief InitializeCoarseModelPart
-     * @param rNames Is the vector containing the sub model part names
+     * @brief This method creates the interface sub model part
      */
-    void InitializeCoarseModelPart();
+    void InitializeCoarseModelPartInterface();
 
     /**
-     * @brief InitializeRefinedModelPart creates the refined sub model part
-     * @detail The method copy the model part hierarchy from the coarse to
-     * the refined model part
-     * @param rNames The vector containing the sub model part names
+     * @brief This method creates the interface sub model part
      */
-    void InitializeRefinedModelPart(const StringVectorType& rNames);
+    void InitializeRefinedModelPartInterface();
 
     /**
-     * @brief InitializeVisualizationModelPart adds all the nodes, elements
-     * and conditions to the visualization model part
-     * @param rNames The vector containing the sub model part names
+     * @brief InitializeNewModelPart is an auxiliary function to
+     * copy properties, variables, tables and sub model parts
+     * @param rReferenceModelPart
+     * @param rNewModelPart
      */
-    void InitializeVisualizationModelPart(const StringVectorType& rNames);
+    static void InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin
@@ -462,14 +472,14 @@ public:
      * model part and remove it from the unordered_maps
      * @see CloneNodesToRefine
      */
-    void IdentifyParentNodesToErase();
+    void IdentifyParentNodesToCoarsen();
 
     /**
      * @brief IdentifyElementsToErase looks for the elements which should
      * be removed from the refined model part
      * @detail Sets TO_ERASE flag in the refined model part when a node in
      * the coarse model part is OLD_ENTITY
-     * @see IdentifyParentNodesToErase
+     * @see IdentifyParentNodesToCoarsen
      */
     void IdentifyElementsToErase();
 
@@ -478,7 +488,7 @@ public:
      * be removed from the refined model part
      * @detail Sets TO_ERASE flag in the refined model part when a node
      * in the coarse model part is OLD_ENTITY
-     * @see IdentifyParentNodesToRefine
+     * @see IdentifyParentNodesToCoarsen
      */
     void IdentifyConditionsToErase();
 

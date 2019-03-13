@@ -15,14 +15,25 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/data_communicator.h"
 #include "input_output/logger.h"
-
 
 
 namespace Kratos {
 namespace Python {
 
-    namespace py = pybind11;
+namespace py = pybind11;
+
+const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
+    if (kwargs.contains("data_communicator")) {
+        DataCommunicator::Pointer p_data_communicator = py::cast<DataCommunicator::Pointer>(kwargs("data_communicator"));
+        return *p_data_communicator;
+    }
+    else {
+        return DataCommunicator::GetDefault();
+    }
+}
+
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Implementation
  * @args tuple  representing the arguments of the function The first argument is the label
@@ -30,8 +41,9 @@ namespace Python {
  * @severity Logger::Severity The message level of severity @see Logger::Severity
  * @useKwargLabel bool Indicates if the label must be gather from kwargs (true) or is the first argument of the call (false)
  * name arguments
+ * @printRank bool record the MPI rank in the output message.
  **/
-void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel) {
+void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel, LoggerMessage::DistributedFilter filterOption) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
 
@@ -79,8 +91,14 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     }
 
     // Send the message and options to the logger
-    Logger(label) << buffer.str() << severityOption << categoryOption << std::endl;
+    Logger logger(label);
+    logger << buffer.str() << severityOption << categoryOption << std::endl;
+    logger << filterOption << getDataCommunicator(kwargs);
+}
 
+bool isPrintingRank(pybind11::kwargs kwargs) {
+    const DataCommunicator& r_data_communicator = getDataCommunicator(kwargs);
+    return r_data_communicator.Rank() == 0;
 }
 
 /**
@@ -90,7 +108,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
  * name arguments
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, true);
+    if (isPrintingRank(kwargs)) {
+        printImpl(args, kwargs, Logger::Severity::INFO, true, LoggerMessage::DistributedFilter::FromRoot());
+    }
 }
 
 /**
@@ -100,7 +120,9 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, false);
+    if (isPrintingRank(kwargs)) {
+        printImpl(args, kwargs, Logger::Severity::INFO, false, LoggerMessage::DistributedFilter::FromRoot());
+    }
 }
 
 /**
@@ -110,7 +132,21 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::WARNING, false);
+    if (isPrintingRank(kwargs)) {
+        printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromRoot());
+    }
+}
+
+void printDefaultOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::INFO, true, LoggerMessage::DistributedFilter::FromAllRanks());
+}
+
+void printInfoOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::INFO, false, LoggerMessage::DistributedFilter::FromAllRanks());
+}
+
+void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromAllRanks());
 }
 
 void  AddLoggerToPython(pybind11::module& m) {
@@ -129,8 +165,12 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
+    logger_scope.def_static("PrintOnAllRanks", printDefaultOnAllRanks);
+    logger_scope.def_static("PrintInfoOnAllRanks",printInfoOnAllRanks);
+    logger_scope.def_static("PrintWarningOnAllRanks", printWarningOnAllRanks);
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
+    logger_scope.def_static("AddOutput", &Logger::AddOutput);
     ;
 
     // Enums for Severity

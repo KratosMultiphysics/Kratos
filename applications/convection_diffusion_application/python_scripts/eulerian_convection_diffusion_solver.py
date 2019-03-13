@@ -55,7 +55,7 @@ def AddDofs(model_part, settings=None):
 def CreateSolver(model_part, config):
     convection_solver = EulerianConvectionDiffusionSolver(model_part, config.domain_size)
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "convection_linear_solver_config")):
         self.linear_solver = linear_solver_factory.ConstructSolver(
             config.convection_linear_solver_config)
@@ -77,7 +77,7 @@ class EulerianConvectionDiffusionSolver:
         self.linear_solver = BICGSTABSolver(1e-9, 5000, pDiagPrecond)
 
         # linear solver settings
-        #import linear_solver_factory
+        #import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         #if(hasattr(config, "convection_linear_solver_config")):
         #    self.linear_solver = linear_solver_factory.ConstructSolver(
         #        config.convection_linear_solver_config)

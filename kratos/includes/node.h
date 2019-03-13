@@ -134,7 +134,7 @@ public:
 
     }
 
-    Node(IndexType NewId )
+    explicit Node(IndexType NewId )
         : BaseType()
         , Flags()
         , mNodalData(NewId)

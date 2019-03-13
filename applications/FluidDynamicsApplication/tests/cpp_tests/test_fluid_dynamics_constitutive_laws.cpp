@@ -48,7 +48,7 @@ namespace Kratos {
             ModelPart &rModelPart,
             const ConstitutiveLaw::Pointer pConstitutiveLaw)
         {
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
             p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-01);
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw);
             return p_elem_prop;
@@ -67,7 +67,7 @@ namespace Kratos {
             const ConstitutiveLaw::Pointer pConstitutiveLaw)
         {
             rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw);
             Table<double> temp_visc_table;
             temp_visc_table.insert(10, 1.3059e-3);
@@ -224,7 +224,8 @@ namespace Kratos {
             cons_law_values.SetStrainVector(strain_vector);  // Input strain values
             cons_law_values.SetStressVector(stress_vector);  // Output stress values
             cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
-            cons_law_values.SetShapeFunctionsValues(row((p_element->GetGeometry()).ShapeFunctionsValues(),0)); // Centered Gauss pt. shape functions
+            const Vector &r_N = row((p_element->GetGeometry()).ShapeFunctionsValues(),0);
+            cons_law_values.SetShapeFunctionsValues(r_N); // Centered Gauss pt. shape functions
 
             // Check first temperature field
             const double tolerance = 1e-8;
@@ -233,8 +234,8 @@ namespace Kratos {
             }
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-            std::vector<double> expected_stress_1 = {0,0.0081397,0.00135662};
-            std::vector<double> expected_c_1 = {0.00180882,-0.000904411,0,-0.000904411,0.00180882,0,0,0,0.00135662};
+            std::vector<double> expected_stress_1 = {0, 0.0078354, 0.0013059};
+            std::vector<double> expected_c_1 = {0.0017412, -0.0008706, 0, -0.0008706, 0.0017412, 0, 0, 0, 0.0013059};
             for (unsigned int i = 0; i < 3; ++i) {
                 KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
                 for (unsigned int j = 0; j < 3; ++j) {
@@ -248,8 +249,8 @@ namespace Kratos {
             }
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-            std::vector<double> expected_stress_2 = {0,0.00962405,0.00160401};
-            std::vector<double> expected_c_2 = {0.00213868,-0.00106934,0,-0.00106934,0.00213868,0,0,0,0.00160401};
+            std::vector<double> expected_stress_2 = {0, 0.0060096, 0.0010016};
+            std::vector<double> expected_c_2 = {0.00133547, -0.000667733, 0, -0.000667733, 0.00133547, 0, 0, 0, 0.0010016};
             for (unsigned int i = 0; i < 3; ++i) {
                 KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
                 for (unsigned int j = 0; j < 3; ++j) {
@@ -297,7 +298,8 @@ namespace Kratos {
             cons_law_values.SetStrainVector(strain_vector);  // Input strain values
             cons_law_values.SetStressVector(stress_vector);  // Output stress values
             cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
-            cons_law_values.SetShapeFunctionsValues(row((p_element->GetGeometry()).ShapeFunctionsValues(),0)); // Centered Gauss pt. shape functions
+            const Vector &r_N = row((p_element->GetGeometry()).ShapeFunctionsValues(),0);
+            cons_law_values.SetShapeFunctionsValues(r_N); // Centered Gauss pt. shape functions
 
             // Check first temperature field
             const double tolerance = 1e-8;
@@ -306,8 +308,8 @@ namespace Kratos {
             }
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-            std::vector<double> expected_c_1_diag = {0.00169048,0.00169048,0.00169048,0.00126786,0.00126786,0.00126786};
-            std::vector<double> expected_stress_1 = {-0.000845242,0.00676193,-0.00591669,-0.00126786,-0.00760717,-0.00380359};
+            std::vector<double> expected_c_1_diag = {0.00163977, 0.00163977, 0.00163977, 0.00122982, 0.00122982, 0.00122982};
+            std::vector<double> expected_stress_1 = {-0.000819883, 0.00655907, -0.00573918, -0.00122982, -0.00737895, -0.00368947};
             for (unsigned int i = 0; i < strain_size; ++i) {
                 KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_1_diag[i], tolerance);
                 KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
@@ -319,8 +321,8 @@ namespace Kratos {
             }
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-            std::vector<double> expected_c_2_diag = {0.00126734,0.00126734,0.00126734,0.000950505,0.000950505,0.000950505};
-            std::vector<double> expected_stress_2 = {-0.00063367,0.00506936,-0.00443569,-0.000950505,-0.00570303,-0.00285152};
+            std::vector<double> expected_c_2_diag = {0.00119921, 0.00119921, 0.00119921, 0.00089941, 0.00089941, 0.00089941};
+            std::vector<double> expected_stress_2 = {-0.000599607, 0.00479685, -0.00419725, -0.00089941, -0.00539646, -0.00269823};
             for (unsigned int i = 0; i < strain_size; ++i) {
                 KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_2_diag[i], tolerance);
                 KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_2[i], tolerance);

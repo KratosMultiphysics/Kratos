@@ -229,6 +229,7 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
             .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
@@ -236,6 +237,7 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
             .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
@@ -286,12 +288,12 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
-    
+
     m.attr("ComputeNodalGradientProcess2D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcess3D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcessComp2D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcess");
-    
+
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -319,12 +321,14 @@ void  AddProcessesToPython(pybind11::module& m)
     // Continuous distance computation methods
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;

@@ -32,7 +32,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_filename" : "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts"  : [""],
@@ -62,7 +62,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             self.condition_name = "SurfaceCondition"
 
         # construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicSolver finished.")
