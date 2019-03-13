@@ -40,10 +40,10 @@ class InitialPerturbationProcess(KratosMultiphysics.Process):
 
         if settings["source_type"].GetString() == "point":
             # retrieving the position of the point
-            point_position = self.settings["source_point_coordinates"].GetVector()
-            if point_position.Size() != 2 and point_position.Size != 3:
-                raise Exception('The source_point_coordinates has to be provided with 2 or 3 coordinates!')
-            node = KratosMultiphysics.Node(1, point_position[0], point_position[1])
+            point_position = settings["source_point_coordinates"].GetVector()
+            if (point_position.Size() != 3):
+                raise Exception('The source_point_coordinates has to be provided with 3 coordinates! It has ', point_position.Size())
+            node = KratosMultiphysics.Node(1, point_position[0], point_position[1], point_position[2])
             # Construction of the process with one node
             self.perturbation_process = Shallow.InitialPerturbationProcess(self.model_part, node, cpp_parameters)
 

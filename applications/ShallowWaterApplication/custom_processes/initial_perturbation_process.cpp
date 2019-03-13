@@ -56,7 +56,7 @@ int InitialPerturbationProcess::Check()
         const auto& r_node = *mrModelPart.NodesBegin();
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVariable, r_node);
     }
-    KRATOS_CHECK(mInfluenceDistance <= std::numeric_limits<double>::epsilon());
+    KRATOS_CHECK(mInfluenceDistance >= std::numeric_limits<double>::epsilon());
     return 0;
     KRATOS_CATCH("")
 }
@@ -70,6 +70,7 @@ void InitialPerturbationProcess::Execute()
 
 void InitialPerturbationProcess::ExecuteBeforeSolutionLoop()
 {
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++)
     {
         auto i_node = mrModelPart.NodesBegin() + i;
@@ -83,12 +84,12 @@ void InitialPerturbationProcess::ExecuteBeforeSolutionLoop()
 double InitialPerturbationProcess::ComputeDistance(NodePointerType pNode)
 {
     array_1d<double, 3>& coord = pNode->Coordinates();
-    double sqr_distance = 0;
+    double sqr_distance = std::pow(mInfluenceDistance, 2) + 1.0;
     for (IndexType i = 0; i < mSourcePoints.size(); i++)
     {
         auto search_node = mSourcePoints.begin() + i;
         array_1d<double, 3>& source_coord = search_node->Coordinates();
-        sqr_distance = std::max(sqr_distance, PointPointSquareDistance(coord, source_coord));
+        sqr_distance = std::min(sqr_distance, PointPointSquareDistance(coord, source_coord));
     }
     return std::sqrt(sqr_distance);
 }
@@ -122,7 +123,7 @@ void InitialPerturbationProcess::ValidateParameters(Parameters& rParameters)
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     // Initialization of member variables
-    mVariable = KratosComponents< Variable<double> >::Get(rParameters["error_variable"].GetString());
+    mVariable = KratosComponents< Variable<double> >::Get(rParameters["variable_name"].GetString());
     mDefaultValue = rParameters["default_value"].GetDouble();
     mInfluenceDistance = rParameters["distance_of_influence"].GetDouble();
     mPerturbation = rParameters["maximum_perturbation_value"].GetDouble();
