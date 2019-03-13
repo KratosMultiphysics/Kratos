@@ -75,10 +75,16 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with a node
     InitialPerturbationProcess(
         ModelPart& rThisModelPart,
         NodePointerType pNode,
+        Parameters& rThisParameters);
+
+    /// Constructor with an array of nodes
+    InitialPerturbationProcess(
+        ModelPart& rThisModelPart,
+        NodesArrayType& rSourcePoints,
         Parameters& rThisParameters);
 
     /// Destructor.
@@ -214,6 +220,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void ValidateParameters(Parameters& rParameters);
 
     double ComputeDistance(NodePointerType pNode);
 

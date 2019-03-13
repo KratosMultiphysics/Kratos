@@ -49,9 +49,9 @@ class InitialPerturbationProcess(KratosMultiphysics.Process):
 
         elif settings["source_type"].GetString() == "model_part":
             # Construction of the process with a sub model part
-            # source_model_part = Model[settings["source_model_part_name"].GetString()]
-            # self.perturbation_process = Shallow.InitialPerturbationProcess(self.model_part, source_model_part, cpp_parameters)
-            raise Exception("InitialPerturbationProcess: model_part source type not yet implemented")
+            source_model_part = Model[settings["source_model_part_name"].GetString()]
+            self.perturbation_process = Shallow.InitialPerturbationProcess(self.model_part, source_model_part.Nodes, cpp_parameters)
+
         else:
             raise Exception("InitialPerturbationProcess: unknown source type")
 

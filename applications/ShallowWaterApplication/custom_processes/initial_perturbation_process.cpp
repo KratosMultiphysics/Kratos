@@ -31,24 +31,20 @@ InitialPerturbationProcess::InitialPerturbationProcess(
     Parameters& rThisParameters
 ) : Process(), mrModelPart(rThisModelPart)
 {
-    // default parameters
-    Parameters default_parameters = Parameters(R"(
-    {
-        "variable_name"              : "FREE_SURFACE_ELEVATION",
-        "default_value"              : 0.0,
-        "distance_of_influence"      : 1.0,
-        "maximum_perturbation_value" : 1.0
-    })");
-    rThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mVariable = KratosComponents< Variable<double> >::Get(rThisParameters["error_variable"].GetString());
-    mDefaultValue = rThisParameters["default_value"].GetDouble();
-    mInfluenceDistance = rThisParameters["distance_of_influence"].GetDouble();
-    mPerturbation = rThisParameters["maximum_perturbation_value"].GetDouble();
-    mHalfWaveNumber = std::acos(-1) / mInfluenceDistance;
-
+    ValidateParameters(rThisParameters);
     mSourcePoints.push_back(pNode);
+    Check();
+}
 
+
+InitialPerturbationProcess::InitialPerturbationProcess(
+    ModelPart& rThisModelPart,
+    NodesArrayType& rSourcePoints,
+    Parameters& rThisParameters
+) : Process(), mrModelPart(rThisModelPart)
+{
+    ValidateParameters(rThisParameters);
+    mSourcePoints = rSourcePoints;
     Check();
 }
 
@@ -110,6 +106,27 @@ double InitialPerturbationProcess::ComputeInitialValue(double& rDistance)
     if (rDistance < mInfluenceDistance)
         result += 0.5 * mPerturbation * (1 + std::cos(mHalfWaveNumber * rDistance));
     return result;
+}
+
+
+void InitialPerturbationProcess::ValidateParameters(Parameters& rParameters)
+{
+    // default parameters
+    Parameters default_parameters = Parameters(R"(
+    {
+        "variable_name"              : "FREE_SURFACE_ELEVATION",
+        "default_value"              : 0.0,
+        "distance_of_influence"      : 1.0,
+        "maximum_perturbation_value" : 1.0
+    })");
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    // Initialization of member variables
+    mVariable = KratosComponents< Variable<double> >::Get(rParameters["error_variable"].GetString());
+    mDefaultValue = rParameters["default_value"].GetDouble();
+    mInfluenceDistance = rParameters["distance_of_influence"].GetDouble();
+    mPerturbation = rParameters["maximum_perturbation_value"].GetDouble();
+    mHalfWaveNumber = std::acos(-1) / mInfluenceDistance;
 }
 
 }  // namespace Kratos.
