@@ -19,7 +19,6 @@
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
 #include "contact_structural_mechanics_application.h"
-#include "processes/find_nodal_h_process.h"
 #include "custom_processes/contact_search_wrapper_process.h"
 
 namespace Kratos
@@ -175,9 +174,10 @@ namespace Kratos
             // We create our problem
             CreatePlaneCilynderProblemForSearch(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
-            // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(r_model_part);
-            process.Execute();
+            // Assign NodalH
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(NODAL_H) = 1.0;
+            }
 
 //             // DEBUG
 //             GiDIOSearchDebug(r_model_part);
@@ -309,9 +309,10 @@ namespace Kratos
             // We create our problem
             CreatePlaneCilynderProblemForSearch(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
-            // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(r_model_part);
-            process.Execute();
+            // Assign NodalH
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(NODAL_H) = 1.0;
+            }
 
 //             // DEBUG
 //             GiDIOSearchDebug(r_model_part);
