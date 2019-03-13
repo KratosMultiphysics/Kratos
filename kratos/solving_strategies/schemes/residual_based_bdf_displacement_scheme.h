@@ -356,10 +356,21 @@ protected:
      */
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
-        array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
-        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3> auxiliar_dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
+            noalias(auxiliar_dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
+
+        // We check if the dofs are fixed
+        array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
+        if (!itNode->IsFixed(VELOCITY_X)) {
+            dotun0[0] = auxiliar_dotun0[0];
+        }
+        if (!itNode->IsFixed(VELOCITY_Y)) {
+            dotun0[1] = auxiliar_dotun0[1];
+        }
+        if (!itNode->IsFixed(VELOCITY_Z)) {
+            dotun0[2] = auxiliar_dotun0[2];
+        }
     }
 
     /**
@@ -368,10 +379,21 @@ protected:
      */
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
-        array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> auxiliar_dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
+            noalias(auxiliar_dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
+
+        // We check if the dofs are fixed
+        array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
+        if (!itNode->IsFixed(ACCELERATION_X)) {
+            dot2un0[0] = auxiliar_dot2un0[0];
+        }
+        if (!itNode->IsFixed(ACCELERATION_Y)) {
+            dot2un0[1] = auxiliar_dot2un0[1];
+        }
+        if (!itNode->IsFixed(ACCELERATION_Z)) {
+            dot2un0[2] = auxiliar_dot2un0[2];
+        }
     }
 
     ///@}
