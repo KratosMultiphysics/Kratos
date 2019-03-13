@@ -515,9 +515,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.analytic_face_watcher.MakeMeasurements()
         self.analytic_particle_watcher.MakeMeasurements()
 
-    # def RunMainTemporalLoop(self):
-    #     self.RunSolutionLoop()
-
     def InitializeSolutionStep(self):
         self.TellTime()
         self.PerformInitialDEMStepOperations(self.time)

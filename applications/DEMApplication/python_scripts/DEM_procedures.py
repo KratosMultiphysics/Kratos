@@ -374,7 +374,7 @@ class Procedures(object):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -393,7 +393,7 @@ class Procedures(object):
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -859,7 +859,7 @@ class Procedures(object):
         a.flush()
 
     def KratosPrintInfo(self, message):
-        Logger.Print(message, label="DEM")
+        Logger.PrintInfo(message, label="DEM")
         Logger.Flush()
 
 
@@ -1464,7 +1464,7 @@ class DEMIo(object):
 
 
     def KratosPrintInfo(self, message):
-        Logger.Print(message,label="DEM")
+        Logger.PrintInfo(message,label="DEM")
         Logger.Flush()
 
     @classmethod
