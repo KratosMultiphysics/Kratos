@@ -23,6 +23,14 @@
 #include "containers/array_1d.h"
 #include "includes/define.h"
 
+// Using a macro instead of a function to get the correct line in the error message.
+#ifndef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
+#define KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(Size1, Size2, CheckedFunction) \
+    KRATOS_DEBUG_ERROR_IF(Size1 != Size2) \
+    << "Input error in call to DataCommunicator::" << CheckedFunction \
+    << ": The sizes of the local and distributed buffers do not match." << std::endl;
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos Core
@@ -139,7 +147,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
         rGlobalValues = Sum(rLocalValues, Root);
     }
 
@@ -154,7 +162,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
         rGlobalValues = Sum(rLocalValues, Root);
     }
 
@@ -224,7 +232,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Min");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
         rGlobalValues = Min(rLocalValues, Root);
     }
 
@@ -239,7 +247,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Min");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
         rGlobalValues = Min(rLocalValues, Root);
     }
 
@@ -309,7 +317,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Max");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
         rGlobalValues = Max(rLocalValues, Root);
     }
 
@@ -324,7 +332,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "Max");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
         rGlobalValues = Max(rLocalValues, Root);
     }
 
@@ -389,7 +397,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
         rGlobalValues = SumAll(rLocalValues);
     }
 
@@ -402,7 +410,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
         rGlobalValues = SumAll(rLocalValues);
     }
 
@@ -465,7 +473,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
         rGlobalValues = MinAll(rLocalValues);
     }
 
@@ -478,7 +486,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
         rGlobalValues = MinAll(rLocalValues);
     }
 
@@ -541,7 +549,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
         rGlobalValues = MaxAll(rLocalValues);
     }
 
@@ -554,7 +562,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {
-        DebugSizeCheck(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
         rGlobalValues = MaxAll(rLocalValues);
     }
 
@@ -614,7 +622,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rPartialSums) const
     {
-        DebugSizeCheck(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
         rPartialSums = ScanSum(rLocalValues);
     }
 
@@ -628,7 +636,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rPartialSums) const
     {
-        DebugSizeCheck(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
         rPartialSums = ScanSum(rLocalValues);
     }
 
@@ -716,7 +724,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
     {
-        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
     }
 
@@ -733,7 +741,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
     {
-        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
     }
 
@@ -750,7 +758,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::string& rSendValues, const int SendDestination, const int SendTag,
         std::string& rRecvValues, const int RecvSource, const int RecvTag) const
     {
-        DebugSizeCheck(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
         rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
     }
 
@@ -847,7 +855,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Scatter");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
         rRecvValues = Scatter(rSendValues, SourceRank);
     }
 
@@ -862,7 +870,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Scatter");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
         rRecvValues = Scatter(rSendValues, SourceRank);
     }
 
@@ -929,9 +937,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
-        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv (counts check)");
-        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv (offsets check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
         KRATOS_ERROR_IF( Rank() != SourceRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
@@ -952,9 +960,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
-        DebugSizeCheck(rSendCounts.size(), 1, "Scatterv (counts check)");
-        DebugSizeCheck(rSendOffsets.size(), 1, "Scatterv (offsets check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
         KRATOS_ERROR_IF( Rank() != SourceRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
@@ -1012,7 +1020,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<int>& rRecvValues,
         const int DestinationRank) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Gather");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
         rRecvValues = Gather(rSendValues, DestinationRank);
     }
 
@@ -1028,7 +1036,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         std::vector<double>& rRecvValues,
         const int DestinationRank) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"Gather");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
         rRecvValues = Gather(rSendValues, DestinationRank);
     }
 
@@ -1091,9 +1099,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
-        DebugSizeCheck(rRecvCounts.size(), 1, "Gatherv (counts check)");
-        DebugSizeCheck(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
         KRATOS_ERROR_IF( Rank() != DestinationRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
@@ -1114,9 +1122,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
     {
-        DebugSizeCheck(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
-        DebugSizeCheck(rRecvCounts.size(), 1, "Gatherv (counts check)");
-        DebugSizeCheck(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
         KRATOS_ERROR_IF( Rank() != DestinationRank )
         << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
         rRecvValues = rSendValues;
@@ -1161,7 +1169,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"AllGather");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
         rRecvValues = AllGather(rSendValues);
     }
 
@@ -1174,7 +1182,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues) const
     {
-        DebugSizeCheck(rSendValues.size(),rRecvValues.size(),"AllGather");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
         rRecvValues = AllGather(rSendValues);
     }
 
@@ -1343,17 +1351,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
 
   private:
 
-    ///@name Private operations
-    ///@{
-
-    void DebugSizeCheck(std::size_t Size1, std::size_t Size2, const std::string& CallName) const
-    {
-        KRATOS_DEBUG_ERROR_IF(Size1 != Size2)
-        << "Input error in call to DataCommunicator::" << CallName
-        << ": The sizes of the local and distributed buffers do not match." << std::endl;
-    }
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -1398,5 +1395,7 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@} addtogroup block
 
 } // namespace Kratos.
+
+#undef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
 
 #endif // KRATOS_DATA_COMMUNICATOR_H_INCLUDED  defined
