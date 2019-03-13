@@ -142,7 +142,10 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
         array_1d<array_1d<double, 3>, 2> first_direction_vector;
         noalias(first_direction_vector[0]) = first_geometry_high_node - first_geometry_low_node;
         const double norm_first_direction_vector = norm_2(first_direction_vector[0]);
-        first_direction_vector[0] /= norm_first_direction_vector;
+        if (norm_first_direction_vector > std::numeric_limits<double>::epsilon())
+            first_direction_vector[0] /= norm_first_direction_vector;
+        else
+            KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
         first_direction_vector[1][0] = first_direction_vector[0][1];
         first_direction_vector[1][1] = - first_direction_vector[0][0];
         first_direction_vector[1][2] = 0.0;
@@ -228,7 +231,10 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         array_1d<array_1d<double, 3>, 3> first_direction_vector;
         noalias(first_direction_vector[0]) = first_geometry_high_node - first_geometry_low_node;
         const double norm_first_direction_vector = norm_2(first_direction_vector[0]);
-        first_direction_vector[0] /= norm_first_direction_vector;
+        if (norm_first_direction_vector > std::numeric_limits<double>::epsilon())
+            first_direction_vector[0] /= norm_first_direction_vector;
+        else
+            KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
         MathUtils<double>::OrthonormalBasis(first_direction_vector[0], first_direction_vector[1], first_direction_vector[2]);
         const array_1d<double, 3> first_center_point = r_face_1.Center().Coordinates();// 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
         array_1d<double, 3> first_half_distances;
