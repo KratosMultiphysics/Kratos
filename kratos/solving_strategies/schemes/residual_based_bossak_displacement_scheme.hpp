@@ -74,6 +74,8 @@ public:
 
     typedef typename ImplicitBaseType::LocalSystemMatrixType     LocalSystemMatrixType;
 
+    typedef ModelPart::NodeIterator                                       NodeIterator;
+
     typedef ModelPart::NodesContainerType                               NodesArrayType;
 
     typedef ModelPart::ElementsContainerType                         ElementsArrayType;
@@ -215,8 +217,8 @@ public:
             array_1d<double, 3>& current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
             const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
-            UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateVelocity(it_node, current_velocity, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateAcceleration(it_node, current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -262,40 +264,42 @@ public:
             array_1d<double, 3 > & current_velocity            = (it_node)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & current_displacement        = (it_node)->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node -> IsFixed(ACCELERATION_X)) {
+            if (it_node->IsFixed(ACCELERATION_X)) {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
-            } else if (it_node -> IsFixed(VELOCITY_X)) {
-                current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
-            } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
+            } else if (it_node->IsFixed(VELOCITY_X)) {
+                delta_displacement[0] = (current_velocity[0] + mNewmark.c4 * previous_velocity[0] + mNewmark.c5 * previous_acceleration[0])/mNewmark.c1;
+                current_displacement[0] =  previous_displacement[0] + delta_displacement[0];
+            } else if (it_node->IsFixed(DISPLACEMENT_X) == false) {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             }
 
-            if (it_node -> IsFixed(ACCELERATION_Y)) {
+            if (it_node->IsFixed(ACCELERATION_Y)) {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
-            } else if (it_node -> IsFixed(VELOCITY_Y)) {
-                current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
-            } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
+            } else if (it_node->IsFixed(VELOCITY_Y)) {
+                delta_displacement[1] = (current_velocity[1] + mNewmark.c4 * previous_velocity[1] + mNewmark.c5 * previous_acceleration[1])/mNewmark.c1;
+                current_displacement[1] =  previous_displacement[1] + delta_displacement[1];
+            } else if (it_node->IsFixed(DISPLACEMENT_Y) == false) {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1];
             }
 
             // For 3D cases
-            if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node -> IsFixed(ACCELERATION_Z)) {
+            if (it_node->HasDofFor(DISPLACEMENT_Z)) {
+                if (it_node->IsFixed(ACCELERATION_Z)) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
-                } else if (it_node -> IsFixed(VELOCITY_Z)) {
-                    current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
-                } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
+                } else if (it_node->IsFixed(VELOCITY_Z)) {
+                    delta_displacement[1] = (current_velocity[1] + mNewmark.c4 * previous_velocity[1] + mNewmark.c5 * previous_acceleration[1])/mNewmark.c1;
+                    current_displacement[1] =  previous_displacement[1] + delta_displacement[1];
+                } else if (it_node->IsFixed(DISPLACEMENT_Z) == false) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
                 }
             }
 
-
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
             noalias(delta_displacement) = current_displacement - previous_displacement;
 
-            UpdateVelocity     (current_velocity,     delta_displacement, previous_velocity, previous_acceleration);
+            UpdateVelocity(it_node, current_velocity, delta_displacement, previous_velocity, previous_acceleration);
 
-            UpdateAcceleration (current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateAcceleration (it_node, current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -488,14 +492,25 @@ protected:
      * @param PreviousAcceleration The previous acceleration
      */
     inline void UpdateVelocity(
-        array_1d<double, 3>& CurrentVelocity,
-        const array_1d<double, 3>& DeltaDisplacement,
-        const array_1d<double, 3>& PreviousVelocity,
-        const array_1d<double, 3>& PreviousAcceleration
+        NodeIterator itNode,
+        array_1d<double, 3>& rCurrentVelocity,
+        const array_1d<double, 3>& rDeltaDisplacement,
+        const array_1d<double, 3>& rPreviousVelocity,
+        const array_1d<double, 3>& rPreviousAcceleration
         )
     {
-        noalias(CurrentVelocity) = (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration);
+        const array_1d<double, 3> auxiliar_updated_velocity = (mNewmark.c1 * rDeltaDisplacement - mNewmark.c4 * rPreviousVelocity - mNewmark.c5 * rPreviousAcceleration);
+
+        // We check if the dofs are fixed
+        if (!itNode->IsFixed(VELOCITY_X)) {
+            rCurrentVelocity[0] = auxiliar_updated_velocity[0];
+        }
+        if (!itNode->IsFixed(VELOCITY_Y)) {
+            rCurrentVelocity[1] = auxiliar_updated_velocity[1];
+        }
+        if (!itNode->IsFixed(VELOCITY_Z)) {
+            rCurrentVelocity[2] = auxiliar_updated_velocity[2];
+        }
     }
 
     /**
@@ -506,14 +521,25 @@ protected:
      * @param PreviousAcceleration The previous acceleration
      */
     inline void UpdateAcceleration(
-        array_1d<double, 3>& CurrentAcceleration,
-        const array_1d<double, 3>& DeltaDisplacement,
-        const array_1d<double, 3>& PreviousVelocity,
-        const array_1d<double, 3>& PreviousAcceleration
+        NodeIterator itNode,
+        array_1d<double, 3>& rCurrentAcceleration,
+        const array_1d<double, 3>& rDeltaDisplacement,
+        const array_1d<double, 3>& rPreviousVelocity,
+        const array_1d<double, 3>& rPreviousAcceleration
         )
     {
-        noalias(CurrentAcceleration) = (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration);
+        const array_1d<double, 3> auxiliar_updated_acceleration = (mNewmark.c0 * rDeltaDisplacement - mNewmark.c2 * rPreviousVelocity -  mNewmark.c3 * rPreviousAcceleration);
+
+        // We check if the dofs are fixed
+        if (!itNode->IsFixed(ACCELERATION_X)) {
+            rCurrentAcceleration[0] = auxiliar_updated_acceleration[0];
+        }
+        if (!itNode->IsFixed(ACCELERATION_Y)) {
+            rCurrentAcceleration[1] = auxiliar_updated_acceleration[1];
+        }
+        if (!itNode->IsFixed(ACCELERATION_Z)) {
+            rCurrentAcceleration[2] = auxiliar_updated_acceleration[2];
+        }
     }
 
     /**
