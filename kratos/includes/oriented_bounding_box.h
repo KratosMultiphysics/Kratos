@@ -214,7 +214,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream string_out_coordinates;
-        for (int i = 0; i < TDim; ++i) {
+        for (std::size_t i = 0; i < TDim; ++i) {
             string_out_coordinates
             << std::setiosflags(std::ios::scientific)
             << std::setprecision(3)
@@ -223,9 +223,9 @@ public:
         }
 
         std::stringstream string_out_orientation_vectors;
-        for (int i = 0; i < TDim; ++i) {
+        for (std::size_t i = 0; i < TDim; ++i) {
             string_out_orientation_vectors << "\nThe orientation axis " << i << " is: ";
-            for (int j = 0; j < TDim; ++j) {
+            for (std::size_t j = 0; j < TDim; ++j) {
                 string_out_orientation_vectors
                 << std::setiosflags(std::ios::scientific)
                 << std::setprecision(3)
@@ -235,7 +235,7 @@ public:
         }
 
         std::stringstream string_out_half_length;
-        for (int i = 0; i < TDim; ++i) {
+        for (std::size_t i = 0; i < TDim; ++i) {
             string_out_half_length
             << std::setiosflags(std::ios::scientific)
             << std::setprecision(3)
