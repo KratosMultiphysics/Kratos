@@ -23,8 +23,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.ComputeNodesMeanNormalModelPart(model_part)
+        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part)
 
         ## DEBUG
         #self._post_process(model_part)
@@ -52,9 +51,8 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.InvertNormal(model_part.Conditions)
-        normal_compute.ComputeNodesMeanNormalModelPart(model_part)
+        KratosMultiphysics.InvertNormal(model_part.Conditions)
+        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part)
 
         ## DEBUG
         #self._post_process(model_part)
