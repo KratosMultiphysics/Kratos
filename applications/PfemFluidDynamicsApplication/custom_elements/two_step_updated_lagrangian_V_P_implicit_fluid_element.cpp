@@ -1895,8 +1895,9 @@ namespace Kratos {
 	const ShapeFunctionsType& N = row(NContainer,g);
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-
+	
 	if(computeElement==true){
+	  
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	  // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
 	  // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
@@ -1913,30 +1914,17 @@ namespace Kratos {
 	  double BoundRHSCoeffDev=Tau*8.0*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
 	  // double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 	  // double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
-
 	  // this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
 	  this->ComputeBoundRHSVectorComplete(rRightHandSideVector,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev,rElementalVariables.SpatialDefRate);
 
 	  double StabLaplacianWeight=Tau*GaussWeight;
 	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
 
-    double FluidFraction = 0.0;
-    double FluidFractionRate = 0.0;
-    this->EvaluateInPoint(FluidFraction,FLUID_FRACTION,N);
-    this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,N);
-
-    if(std::abs(FluidFraction) < 1.0e-12)
-    {
-      FluidFraction = 1.0;
-      FluidFractionRate = 0.0;
-    }
-
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {
 	      // RHS contribution
 	      // Velocity divergence
 	      rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
-        rRightHandSideVector[i] += GaussWeight * N[i] * FluidFractionRate/FluidFraction;
 	      this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
 	    }
 	}
