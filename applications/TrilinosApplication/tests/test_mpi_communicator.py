@@ -14,16 +14,20 @@ def GetFilePath(fileName):
 
 class TestMPICommunicator(KratosUnittest.TestCase):
 
+    def setUp(self):
+        self.communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+
     def tearDown(self):
-        if KratosMPI.mpi.rank == 0:
+        rank = self.communicator.Rank()
+        if rank == 0:
             kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".time")
-        KratosMPI.mpi.world.barrier()
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
+        self.communicator.Barrier()
 
     def _read_model_part_mpi(self,main_model_part):
 
-        if(KratosMPI.mpi.size == 1):
+        if self.communicator.Size() == 1:
             self.skipTest("Test can be run only using more than one mpi process")
 
         ## Add variables to the model part
@@ -34,7 +38,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         ## Serial partition of the original .mdpa file
         input_filename = "test_mpi_communicator"
-        if KratosMPI.mpi.rank == 0 :
+        if self.communicator.Rank() == 0 :
 
             # Original .mdpa file reading
             model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
@@ -48,12 +52,12 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
             partitioner.Execute()
 
-            print("Metis divide finished.")
+            KratosMultiphysics.Logger.PrintInfo("TestMPICommunicator","Metis divide finished.")
 
-        KratosMPI.mpi.world.barrier()
+        self.communicator.Barrier()
 
         ## Read the partitioned .mdpa files
-        mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+        mpi_input_filename = input_filename + "_" + str(self.communicator.Rank())
         model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
         model_part_io.ReadModelPart(main_model_part)
 
@@ -125,7 +129,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         submodelpart = main_model_part.GetSubModelPart("Skin")
 
-        KratosMPI.mpi.world.barrier()
+        self.communicator.Barrier()
 
         # Check partitioning
         #~ for i in range(KratosMPI.mpi.size):
