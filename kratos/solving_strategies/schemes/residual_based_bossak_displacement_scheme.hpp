@@ -287,8 +287,8 @@ public:
                 if (it_node->IsFixed(ACCELERATION_Z)) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
                 } else if (it_node->IsFixed(VELOCITY_Z)) {
-                    delta_displacement[1] = (current_velocity[1] + mNewmark.c4 * previous_velocity[1] + mNewmark.c5 * previous_acceleration[1])/mNewmark.c1;
-                    current_displacement[1] =  previous_displacement[1] + delta_displacement[1];
+                    delta_displacement[2] = (current_velocity[2] + mNewmark.c4 * previous_velocity[2] + mNewmark.c5 * previous_acceleration[2])/mNewmark.c1;
+                    current_displacement[2] =  previous_displacement[2] + delta_displacement[2];
                 } else if (it_node->IsFixed(DISPLACEMENT_Z) == false) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
                 }
