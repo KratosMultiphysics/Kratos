@@ -1132,8 +1132,8 @@ protected:
         //for a normal element
         
         const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        //const double densityinfinity = rCurrentProcessInfo[DENSITY];
-        const double densityinfinity = GetProperties().GetValue(DENSITY);
+        const double densityinfinity = rCurrentProcessInfo[DENSITY];
+        // const double densityinfinity = GetProperties().GetValue(DENSITY);
         const double gamma = rCurrentProcessInfo[LAMBDA];
         const double a = rCurrentProcessInfo[SOUND_VELOCITY];
 
@@ -1168,10 +1168,10 @@ protected:
         velocity = prod(trans(data.DN_DX), data.phis);
 
         double v_norm2 = inner_prod(velocity,velocity);
-        if(v_norm2/a > 0.94)
+        if(v_norm2/a/a > 0.94)
         {
             //std::cout << "Local mach larger than 0.94. Using density correction" << std::endl;
-            v_norm2 = 0.94*a;
+            v_norm2 = 0.94*a*a;
         }
 
         const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
