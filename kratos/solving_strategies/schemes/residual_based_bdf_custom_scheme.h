@@ -366,26 +366,45 @@ protected:
      * @brief Updating first time derivative (velocity)
      * @param itNode the node interator
      */
-
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         // DOUBLES
         std::size_t counter = 0;
         for ( const auto& i_var : mDoubleVariable) {
-            double& dotun0 = itNode->FastGetSolutionStepValue(mFirtsDoubleDerivatives[counter]);
-            dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            if (!itNode->IsFixed(mFirtsDoubleDerivatives[counter])) {
+                double& dotun0 = itNode->FastGetSolutionStepValue(mFirtsDoubleDerivatives[counter]);
+                dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            }
             counter++;
         }
 
         // ARRAYS
         counter = 0;
         for ( const auto& i_var : mArrayVariable) {
-            array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
-            noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+
+            const std::string& dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
+            const VariableComponent<ComponentType>& dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_X");
+            const VariableComponent<ComponentType>& dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_Y");
+            const VariableComponent<ComponentType>& dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_Z");
+
+            array_1d<double, 3> auxiliar_dotun0 =  BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+                noalias(auxiliar_dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+
+            // We check if the dofs are fixed
+            array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
+            if (!itNode->IsFixed(dvar_x)) {
+                dotun0[0] = auxiliar_dotun0[0];
+            }
+            if (!itNode->IsFixed(dvar_y)) {
+                dotun0[1] = auxiliar_dotun0[1];
+            }
+            if (!itNode->IsFixed(dvar_z)) {
+                dotun0[2] = auxiliar_dotun0[2];
+            }
+
             counter++;
         }
     }
@@ -394,26 +413,45 @@ protected:
      * @brief Updating second time derivative (acceleration)
      * @param itNode the node interator
      */
-
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         // DOUBLES
         std::size_t counter = 0;
         for ( const auto& i_var : mFirtsDoubleDerivatives) {
-            double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondDoubleDerivatives[counter]);
-            dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            if (!itNode->IsFixed(mSecondDoubleDerivatives[counter])) {
+                double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondDoubleDerivatives[counter]);
+                dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            }
             counter++;
         }
 
         // ARRAYS
         counter = 0;
         for ( const auto& i_var : mFirtsArrayDerivatives) {
-            array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
-            noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+
+            const std::string& d2variable_name = (mSecondArrayDerivatives[counter]).Name();
+            const VariableComponent<ComponentType>& d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_X");
+            const VariableComponent<ComponentType>& d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_Y");
+            const VariableComponent<ComponentType>& d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_Z");
+
+            array_1d<double, 3> auxiliar_dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+                noalias(auxiliar_dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+
+            // We check if the dofs are fixed
+            array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
+            if (!itNode->IsFixed(d2var_x)) {
+                dot2un0[0] = auxiliar_dot2un0[0];
+            }
+            if (!itNode->IsFixed(d2var_y)) {
+                dot2un0[1] = auxiliar_dot2un0[1];
+            }
+            if (!itNode->IsFixed(d2var_z)) {
+                dot2un0[2] = auxiliar_dot2un0[2];
+            }
+
             counter++;
         }
     }
