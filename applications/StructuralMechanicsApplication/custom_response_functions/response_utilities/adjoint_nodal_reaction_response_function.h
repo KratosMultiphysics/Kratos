@@ -251,9 +251,9 @@ private:
         KRATOS_CATCH("");
     }
 
-    Vector GetColumnCopy(Matrix m, size_t i);
+    Vector GetColumnCopy(const Matrix& rMatrix, size_t ColumnIndex);
 
-    Vector GetRowCopy(Matrix m, size_t i);
+    Vector GetRowCopy(const Matrix& rMatrix, size_t RowIndex);
 
     std::string GetCorrespondingDisplacementLabel(std::string& rReactionLabel) const;
 

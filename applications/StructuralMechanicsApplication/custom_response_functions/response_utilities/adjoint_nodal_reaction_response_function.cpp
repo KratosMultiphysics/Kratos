@@ -283,27 +283,31 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    Vector AdjointNodalReactionResponseFunction::GetColumnCopy(Matrix m, size_t i)
+    Vector AdjointNodalReactionResponseFunction::GetColumnCopy(const Matrix& rMatrix, size_t ColumnIndex)
     {
         KRATOS_TRY;
 
-        MatrixColumnType requested_entries = column(m, i);
-        Vector column = ZeroVector(requested_entries.size());
-        for(IndexType i = 0; i < requested_entries.size(); ++i)
-            column[i] = requested_entries(i);
+        auto num_rows = rMatrix.size1();
+        auto num_columns = rMatrix.size2();
+        KRATOS_ERROR_IF(ColumnIndex > num_columns) << "The provided column index is not valid!" << std::endl;
+        Vector column = ZeroVector(num_rows);
+        for(IndexType i = 0; i < num_rows; ++i)
+            column[i] = rMatrix(i, ColumnIndex);
         return column;
 
         KRATOS_CATCH("");
     }
 
-    Vector AdjointNodalReactionResponseFunction::GetRowCopy(Matrix m, size_t i)
+    Vector AdjointNodalReactionResponseFunction::GetRowCopy(const Matrix& rMatrix, size_t RowIndex)
     {
         KRATOS_TRY;
 
-        MatrixRowType requested_entries = row(m, i);
-        Vector row = ZeroVector(requested_entries.size());
-        for(IndexType i = 0; i < requested_entries.size(); ++i)
-            row[i] = requested_entries(i);
+        auto num_rows = rMatrix.size1();
+        auto num_columns = rMatrix.size2();
+        KRATOS_ERROR_IF(RowIndex > num_rows) << "The provided row index is not valid!" << std::endl;
+        Vector row = ZeroVector(num_columns);
+        for(IndexType i = 0; i < num_columns; ++i)
+            row[i] = rMatrix(RowIndex, i);
         return row;
 
         KRATOS_CATCH("");
