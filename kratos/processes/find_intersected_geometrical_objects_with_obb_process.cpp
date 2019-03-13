@@ -24,10 +24,12 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
     ModelPart& rPart1,
     ModelPart& rPart2,
     const double BoundingBoxFactor,
-    const bool DebugOBB
+    const bool DebugOBB,
+    const OBBHasIntersectionType IntersectionType
     ) : BaseType(rPart1, rPart2),
         mBoundingBoxFactor(BoundingBoxFactor),
-        mDebugOBB(DebugOBB)
+        mDebugOBB(DebugOBB),
+        mIntersectionType(IntersectionType)
 {
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
@@ -76,6 +78,9 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 
     // If we debug OBB
     mDebugOBB = BaseType::mThisParameters["debug_obb"].GetBool();
+
+    // The intersection type
+    mIntersectionType = ConvertInter(BaseType::mThisParameters["OBB_intersection_type"].GetString());
 
     // We create new properties for debugging
     if (mDebugOBB) {
@@ -190,7 +195,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
             }
 
             // Computing intersection OBB
-            if (first_obb.HasIntersection(second_obb)){
+            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
                 return true;
             }
         }
@@ -295,7 +300,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
             }
 
             // Computing intersection OBB
-            if (first_obb.HasIntersection(second_obb)){
+            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
                 return true;
             }
         }
@@ -372,7 +377,8 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::GetDefaultP
         "first_model_part_name"  : "",
         "second_model_part_name" : "",
         "bounding_box_factor"    : -1.0,
-        "debug_obb"              : false
+        "debug_obb"              : false,
+        "OBB_intersection_type"  : "SeparatingAxisTheorem"
     })" );
 
     return default_parameters;
