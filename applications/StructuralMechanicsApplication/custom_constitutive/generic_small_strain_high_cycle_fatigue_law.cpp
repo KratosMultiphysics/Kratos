@@ -135,9 +135,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             if ((std::abs(min_stress) > tolerance && min_stress != this->GetMinStress()) && cycle_counted == true) {
                 this->SetMinStress(min_stress);
             }
-
         }
-
         
         if (std::abs(this->GetMinStress()) > tolerance && std::abs(this->GetMaxStress()) > tolerance) { // todo modify with N
             double reversion_factor = this->GetReversionFactor();
@@ -182,9 +180,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 threshold, 
                 rValues, 
                 characteristic_length);
-            KRATOS_WATCH(uniaxial_stress)
-            KRATOS_WATCH(damage)
-            KRATOS_WATCH(threshold)
 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
@@ -194,7 +189,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector,uniaxial_stress, rValues);
 				this->SetStressVector(r_integrated_stress_vector);
                 this->CalculateTangentTensor(rValues);
-                //std::cout << "damage starts \n";
             }
         }
     }
@@ -242,7 +236,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
         double fatigue_reduction_factor = this->GetFatigueReductionFactor();
-
 
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
         const double F = uniaxial_stress - threshold;
