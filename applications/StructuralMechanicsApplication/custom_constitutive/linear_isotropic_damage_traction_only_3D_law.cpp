@@ -51,31 +51,18 @@ void LinearIsotropicDamageTractionOnly3D::ComputePositiveStressVector(
         Vector& rStressVectorPos, Vector& rStressVector)
 {
     BoundedMatrix<double, 3, 3> stress_matrix;
-    BoundedMatrix<double, 3, 3> eigen_values(3, 3), eigen_vectors(3, 3), eigen_vectors_t(3, 3);
-    eigen_values.clear();
-    eigen_vectors.clear();
-    eigen_vectors_t.clear();
+    BoundedMatrix<double, 3, 3> eigen_values(3, 3), eigen_vectors(3, 3);
     stress_matrix = MathUtils<double>::StressVectorToTensor(rStressVector);
-    MathUtils<double>::EigenSystem<3> (stress_matrix, eigen_vectors_t, eigen_values);
-    eigen_vectors = trans(eigen_vectors_t); // workaround, eigensystem routine returning transposed vectors
-    //KRATOS_WATCH(stress_matrix)
-    //KRATOS_WATCH(eigen_vectors)
-    //KRATOS_WATCH(eigen_values)
+    MathUtils<double>::GaussSeidelEigenSystem(stress_matrix, eigen_vectors, eigen_values);
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (eigen_values(i, i) < 0.)
+        if(eigen_values(i, i) < 0.)
         {
             eigen_values(i, i) = 0.;
         }
     }
-
-    BoundedMatrix<double, 3, 3> aux(3, 3);
-    aux = prod(eigen_values, trans(eigen_vectors));
-    noalias(stress_matrix) = prod(eigen_vectors, aux);
+    MathUtils<double>::BDBtProductOperation(stress_matrix, eigen_values, eigen_vectors);
     rStressVectorPos = MathUtils<double>::StressTensorToVector(stress_matrix);
-    //KRATOS_WATCH(rStressVectorPos)
-    //KRATOS_WATCH(rStressVector)
-    return;
 }
 
 //************************************************************************************
