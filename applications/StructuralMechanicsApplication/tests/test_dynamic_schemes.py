@@ -20,21 +20,21 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-        #add bcs and initial values
+        # Add bcs and initial values
         init_velocity = 0.1
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         node.Fix(KratosMultiphysics.VELOCITY_Y)
         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,init_velocity)
 
-        #create element
+        # Create element
         element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
         mass = 1.0
         stiffness = 0.0
         element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
         element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
 
-        #time integration parameters
+        # Time integration parameters
         time = 0.0
         end_time = 0.05
         step = 0
@@ -46,7 +46,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         current_disp = 0.0
         current_vel = init_velocity
         # Solve the problem
-        while(time <= end_time):
+        while time <= end_time:
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
@@ -54,14 +54,17 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
 
             self.strategy.Solve()
 
-            current_analytical_displacement_y = current_disp + current_vel * dt - current_vel * beta * mass * dt/2.0
+            current_analytical_displacement_y = current_disp + current_vel * dt * (1.0 - 5.0 * beta * mass)
             current_disp = current_analytical_displacement_y
-            current_analytical_velocity_y = current_vel - current_vel * beta * mass
+            current_analytical_velocity_y = current_vel
             current_vel = current_analytical_velocity_y
 
-            ## ASSERT
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-3)
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-3)
+            computed_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
+            computed_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
+
+            ### ASSERT
+            self.assertAlmostEqual(computed_disp, current_analytical_displacement_y, delta=1e-3)
+            self.assertAlmostEqual(computed_vel, current_analytical_velocity_y, delta=1e-3)
 
     def _base_spring_test_dynamic_schemes(self, current_model, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
         mp = current_model.CreateModelPart("sdof")
@@ -73,13 +76,13 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
         node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-        #add bcs and initial values
+        # Add bcs and initial values
         init_displacement = 0.1
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,init_displacement)
 
-        #create element
+        # Create element
         element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
         mass = 1.0
         stiffness = 10.0
@@ -110,7 +113,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, - A * omega**2 * cos(omega*time))
 
         # Solve the problem
-        while(time <= end_time):
+        while time <= end_time:
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
@@ -132,7 +135,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
         add_variables(mp, scheme_name)
 
-        if (scheme_name == "explicit"):
+        if scheme_name == "explicit":
             # Create node
             node = mp.CreateNewNode(1,0.0,0.0,0.0)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
@@ -143,7 +146,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             second_node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
             second_node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-            #add bcs and initial values
+            # Add bcs and initial values
             node.Fix(KratosMultiphysics.DISPLACEMENT_X)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
@@ -151,7 +154,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             second_node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
             second_node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
 
-            #create element
+            # Create element
             prop = mp.GetProperties()[1]
             prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.TrussConstitutiveLaw())
             prop.SetValue(KratosMultiphysics.DENSITY, 1.0)
@@ -169,12 +172,12 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-            #add bcs and initial values
+            # Add bcs and initial values
             node.Fix(KratosMultiphysics.DISPLACEMENT_X)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
 
-            #create element
+            # Create element
             element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
             mass = 1.0
             stiffness = 0.0
@@ -213,7 +216,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, current_analytical_acceleration_y)
 
         # Solve the problem
-        while(time <= end_time):
+        while time <= end_time:
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
@@ -298,7 +301,7 @@ def add_variables(mp, scheme_name = "bossak"):
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-    if (scheme_name == "explicit"):
+    if scheme_name == "explicit":
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
@@ -309,15 +312,15 @@ def create_solver(mp, scheme_name):
     # Define a minimal newton raphson dynamic solver
     linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
     builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-    if (scheme_name == "newmark"):
+    if scheme_name == "newmark":
         scheme = KratosMultiphysics.ResidualBasedNewmarkDisplacementScheme()
-    elif (scheme_name == "pseudo_static"):
+    elif scheme_name == "pseudo_static":
         scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
-    elif (scheme_name == "backward_euler"):
+    elif scheme_name == "backward_euler":
         scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
-    elif (scheme_name == "bdf2"):
+    elif scheme_name == "bdf2":
         scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
-    elif (scheme_name == "explicit"):
+    elif scheme_name == "explicit":
         dynamic_settings = KratosMultiphysics.Parameters("""
         {
             "time_step_prediction_level": 0,
@@ -337,7 +340,7 @@ def create_solver(mp, scheme_name):
     move_mesh_flag = True
 
     # Explicit solver
-    if (scheme_name == "explicit"):
+    if scheme_name == "explicit":
         strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,
                                                                         scheme,
                                                                         compute_reactions,
