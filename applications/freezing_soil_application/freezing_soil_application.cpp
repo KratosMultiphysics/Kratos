@@ -25,7 +25,6 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
-#include "geometries/line_2d.h"
 #include "freezing_soil_application.h"
 #include "includes/variables.h"
 

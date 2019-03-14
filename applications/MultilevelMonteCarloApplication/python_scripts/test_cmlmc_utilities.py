@@ -10,14 +10,6 @@ import copy
 # Import the StatisticalVariable class
 from test_auxiliary_classes_utilities import StatisticalVariable
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
 
 '''
 This utility contains the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm
@@ -241,16 +233,6 @@ class MultilevelMonteCarlo(object):
         = FinalizePhase_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
         self.current_iteration,self.number_samples,*synchro_elements)
-        '''synchronization point needed to compute the other functions of MLMC algorithm
-        put as in the end as possible the synchronization point'''
-        self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
-        self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
-        self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
-        self.TErr = get_value_from_remote(self.TErr)
-        self.rates_error = get_value_from_remote(self.rates_error)
-        self.BayesianVariance = get_value_from_remote(self.BayesianVariance)
-        self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
-        self.number_samples = get_value_from_remote(self.number_samples)
         '''start first iteration, we enter in the MLMC algorithm'''
         self.current_iteration = 1
 
@@ -313,16 +295,7 @@ class MultilevelMonteCarlo(object):
         = FinalizePhase_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
         self.current_iteration,self.number_samples,*synchro_elements)
-        '''synchronization point needed to compute the other functions of MLMC algorithm
-        put as in the end as possible the synchronization point'''
-        self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
-        self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
-        self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
-        self.TErr = get_value_from_remote(self.TErr)
-        self.rates_error = get_value_from_remote(self.rates_error)
-        self.BayesianVariance = get_value_from_remote(self.BayesianVariance)
-        self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
-        self.number_samples = get_value_from_remote(self.number_samples)
+
         '''check convergence
         convergence reached if: i) current_iteration >= number_iterations_iE
                                ii) TErr < tolerance_i
