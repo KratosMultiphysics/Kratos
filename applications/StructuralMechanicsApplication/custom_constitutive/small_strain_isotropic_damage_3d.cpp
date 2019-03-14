@@ -225,12 +225,14 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(rMaterialProperties, r_constitutive_matrix);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-        // in this symmetric model, r_stress_vector_pos = r_stress_vector
-        // but it is different in other models
-        Vector r_stress_vector_pos(this->GetStrainSize());
-        ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
-        const double strain_norm = std::sqrt(inner_prod(r_stress_vector_pos, r_strain_vector));
 
+        // Auxiliary stress vector to allow derived models (e.g. traction-only damage) to set
+        // a different value of r_stress_vector_pos with ComputePositiveStressVector function
+        // In the symmetric model, ComputePositiveStressVector does not do anything.
+        Vector r_stress_vector_pos = r_stress_vector;
+        ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
+
+        const double strain_norm = std::sqrt(inner_prod(r_stress_vector_pos, r_strain_vector));
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
@@ -264,7 +266,6 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
             Vector& rStressVectorPos, Vector& rStressVector)
 {
-    rStressVectorPos = rStressVector;
 }
 
 //************************************************************************************
