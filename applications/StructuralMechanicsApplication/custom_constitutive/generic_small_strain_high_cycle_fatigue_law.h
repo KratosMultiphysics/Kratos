@@ -46,7 +46,7 @@ typedef std::size_t SizeType;
  * @class GenericSmallStrainHighCycleFatigueLaw
  * @ingroup StructuralMechanicsApplication
  * @brief This class is the base class which defines the constitutive law used for high cycle fatigue (HCF) in small deformation
- * @details This class uses the GenericSmallStrainIsotropicDamage class once the load is applied Nf cycles
+ * @details This class uses the GenericSmallStrainIsotropicDamage class once the load is applied Nf cycles. The code has been written following the approach proposed by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005)
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Sergio Jiménez/Alejandro Cornejo/Lucia Barbu
  */

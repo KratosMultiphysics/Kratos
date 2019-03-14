@@ -199,8 +199,9 @@ public:
         const Vector& r_fatigue_parameters = rMaterialParameters[HIGH_CYCLE_FATIGUE_PARAMETERS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
+        //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
         const double Se = r_fatigue_parameters[0] * yield_stress;
-        const double STHR1 = r_fatigue_parameters[1];
+        const double STHR1 = r_fatigue_parameters[1];  
         const double STHR2 = r_fatigue_parameters[2];
         const double ALFAF = r_fatigue_parameters[3];
         const double BETAF = r_fatigue_parameters[4];
