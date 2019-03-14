@@ -335,6 +335,10 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB2D(
 
     const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
     r_sub_model_part.CreateNewElement("Element2D4N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+
+//     // More debug
+//     const array_1d<double, 2>& r_half_lenghts = rOrientedBoundingBox.GetHalfLength();
+//     std::cout << "array_1d<double, 3> center;\ncenter[0] = " << r_center[0] << ";\ncenter[1] = " << r_center[1] << ";\ncenter[2] = " << r_center[2] << ";\n\narray_1d<array_1d<double, 3>, 2> directions;\ndirections[0][0] = " << r_orientation_vectors[0][0] << ";\ndirections[0][1] = " << r_orientation_vectors[0][1] << ";\ndirections[0][2] = " << r_orientation_vectors[0][2] << ";\ndirections[1][0] = " << r_orientation_vectors[1][0] << ";\ndirections[1][1] = " << r_orientation_vectors[1][1] << ";\ndirections[1][2] = " << r_orientation_vectors[1][2] << ";\n\narray_1d<double, 2> half_lenghts;\nhalf_lenghts[0] = " << r_half_lenghts[0] << ";\nhalf_lenghts[1] = " << r_half_lenghts[1] << ";\nOrientedBoundingBox<2> obb(center, directions, half_lenghts);" << std::endl;
 }
 
 /***********************************************************************************/
@@ -364,6 +368,10 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::CreateDebugOBB3D(
 
     const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
     r_sub_model_part.CreateNewElement("Element3D8N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+
+//     // More debug
+//     const array_1d<double, 3>& r_half_lenghts = rOrientedBoundingBox.GetHalfLength();
+//     std::cout << "array_1d<double, 3> center;\ncenter[0] = " << r_center[0] << ";\ncenter[1] = " << r_center[1] << ";\ncenter[2] = " << r_center[2] << ";\n\narray_1d<array_1d<double, 3>, 3> directions;\ndirections[0][0] = " << r_orientation_vectors[0][0] << ";\ndirections[0][1] = " << r_orientation_vectors[0][1] << ";\ndirections[0][2] = " << r_orientation_vectors[0][2] << ";\ndirections[1][0] = " << r_orientation_vectors[1][0] << ";\ndirections[1][1] = " << r_orientation_vectors[1][1] << ";\ndirections[1][2] = " << r_orientation_vectors[1][2] << ";\ndirections[2][0] = " << r_orientation_vectors[2][0] << ";\ndirections[2][1] = " << r_orientation_vectors[2][1] << ";\ndirections[2][2] = " << r_orientation_vectors[2][2] << ";\n\narray_1d<double, 3> half_lenghts;\nhalf_lenghts[0] = " << r_half_lenghts[0] << ";\nhalf_lenghts[1] = " << r_half_lenghts[1] << ";\nhalf_lenghts[2] = " << r_half_lenghts[2] <<  ";\nOrientedBoundingBox<3> obb(center, directions, half_lenghts);" << std::endl;
 }
 
 /***********************************************************************************/
