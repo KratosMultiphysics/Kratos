@@ -26,7 +26,7 @@ tool2.SetGeoModelPart( model_part )
 
 tool2.ComputeExtrusionHeight( 5.0, 4.0, 1.0, 10 )
 
-tool2.MeshConcaveHullWithTerrainPoints()
+tool2.MeshConcaveHullWithTerrainPoints( 1.0 )
 
 # 1st iteration
 tool2.ComputeDistanceFieldFromGround()
