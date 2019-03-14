@@ -188,8 +188,8 @@ class SwimmingDEMSolver(PythonSolver):
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self._GetProjectionModule().ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
+    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
+        self._GetProjectionModule().ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
     def _GetProjectionModule(self):
         if not hasattr(self, 'projection_module'):
@@ -249,7 +249,7 @@ class SwimmingDEMSolver(PythonSolver):
             # Advance in space only
             if self.do_solve_dem:
                 self.SolveDEMSolutionStep()
-            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
+            self.ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
         # Performing the time integration of the DEM part
 

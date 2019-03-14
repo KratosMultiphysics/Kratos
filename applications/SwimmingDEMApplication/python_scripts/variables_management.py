@@ -185,7 +185,7 @@ class VariablesManager:
             or parameters["basset_force_type"].GetInt() > 0):
             self.dem_vars += [VELOCITY_OLD]
             self.dem_vars += [ADDITIONAL_FORCE_OLD]
-            self.dem_vars += [SLIP_VELOCITY]
+            self.dem_vars += [AUX_VEL]
 
         if parameters["drag_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [DRAG_FORCE]

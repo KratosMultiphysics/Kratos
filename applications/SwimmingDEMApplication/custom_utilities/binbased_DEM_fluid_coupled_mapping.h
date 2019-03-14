@@ -192,6 +192,8 @@ void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const doub
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
+void ImposeVelocityOnDEMFromFieldToAuxVelocity(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
+void InterpolateVelocityOnAuxVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part

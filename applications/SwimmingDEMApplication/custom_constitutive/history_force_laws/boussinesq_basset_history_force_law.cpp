@@ -332,7 +332,7 @@ namespace Kratos {
             }
         }
         present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
-        noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY));
+        noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(AUX_VEL) - node.FastGetSolutionStepValue(VELOCITY));
         SWIMMING_ADD_SECOND_TO_FIRST(fractional_derivative, fast_fractional_derivative)
     }
     //**************************************************************************************************************************************************

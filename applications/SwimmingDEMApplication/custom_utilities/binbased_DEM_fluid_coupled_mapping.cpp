@@ -102,6 +102,63 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromFieldToAuxVelocity(
+    FluidFieldUtility& r_flow,
+    ModelPart& r_dem_model_part)
+{
+    KRATOS_TRY
+
+    r_flow.ImposeVelocityOnNodes(r_dem_model_part, AUX_VEL);
+
+    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocityOnAuxVelocity(
+    ModelPart& r_fluid_model_part,
+    ModelPart& r_dem_model_part,
+    BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
+    const double alpha)
+{
+    KRATOS_TRY
+
+    // setting interpolated variables to their default values
+
+    Vector shape_function_values_at_point;
+    const int max_results = 10000;
+    typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+    #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
+
+        if (p_particle->IsNot(BLOCKED)){
+            Element::Pointer p_element;
+            ClearVariable(i_particle, SLIP_VELOCITY);
+
+            // looking for the fluid element in which the DEM node falls
+            const bool element_located = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(),
+                                                                              shape_function_values_at_point,
+                                                                              p_element,
+                                                                              results.begin(),
+                                                                              max_results);
+
+            // interpolating the variables
+
+            if (element_located){
+                p_particle->Set(INSIDE, true);
+                Interpolate(p_element, shape_function_values_at_point, p_particle, VELOCITY, AUX_VEL, alpha);
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::UpdateOldVelocity(ModelPart& r_dem_model_part)
 {
     #pragma omp parallel for
