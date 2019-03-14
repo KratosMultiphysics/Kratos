@@ -21,6 +21,7 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "containers/flags.h"
 #include "includes/define.h"
 
 namespace Kratos
@@ -310,6 +311,22 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int Root) const
     {}
 
+    virtual Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
     // Allreduce operations
 
     /// Sum rLocalValue across all ranks in the Communicator (int version).
@@ -521,6 +538,16 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {}
+
+    virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
+    }
 
     // Scan operations
 
