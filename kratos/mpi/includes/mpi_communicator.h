@@ -995,12 +995,10 @@ private:
     {
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
 
-        int nproc;
-        MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int nproc = mrDataCommunicator.Size();
+        int rank = mrDataCommunicator.Rank();
 
-        MPI_Barrier(MPI_COMM_WORLD);
+        mrDataCommunicator.Barrier();
         for (int proc_id = 0; proc_id < nproc; proc_id++)
         {
             if (proc_id == rank)
@@ -1022,15 +1020,14 @@ private:
                     }
                 }
             }
-            MPI_Barrier(MPI_COMM_WORLD);
+            mrDataCommunicator.Barrier();
         }
     }
 
     template<class TNodesArrayType>
     void PrintNodesId(TNodesArrayType& rNodes, std::string Tag, int color)
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int rank = mrDataCommunicator.Rank();
         std::cout << Tag << rank << " with color " << color << ":";
         for (typename TNodesArrayType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++)
             std::cout << i_node->Id() << ", ";
