@@ -40,11 +40,15 @@ namespace Kratos
 //
 //             gid_io.InitializeMesh(label);
 //             gid_io.WriteMesh(rModelPart.GetMesh());
+//             gid_io.WriteNodeMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
 //             gid_io.InitializeResults(label, rModelPart.GetMesh());
 //             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
 //             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+//             gid_io.WriteNodalResultsNonHistorical(NORMAL, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(TANGENT_XI, rModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(TANGENT_ETA, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResultsNonHistorical(NORMAL_GAP, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, rModelPart.Nodes(), label);
 //             gid_io.WriteNodalResultsNonHistorical(AUXILIAR_COORDINATES, rModelPart.Nodes(), label);
@@ -326,7 +330,8 @@ namespace Kratos
                 "check_gap"                            : "MappingCheck",
                 "octree_search_parameters" : {
                     "bounding_box_factor"    : 0.1,
-                    "debug_obb"              : false
+                    "debug_obb"              : false,
+                    "OBB_intersection_type"  : "SeparatingAxisTheorem"
                     }
             })" );
 
@@ -378,7 +383,13 @@ namespace Kratos
 
             auto& r_cond_4 = r_model_part.GetCondition(4);
             auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
-            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 0);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin()), 14);
+            it_pair_check = p_indexes_pairs_4->begin();
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 12);
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 13);
 
             auto& r_cond_5 = r_model_part.GetCondition(5);
             auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
