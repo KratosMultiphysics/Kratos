@@ -160,7 +160,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
 
     py::class_< SmallStrainIsotropicDamageTractionOnly3D, typename SmallStrainIsotropicDamageTractionOnly3D::Pointer,  ConstitutiveLaw  >
-    (m,"LinearIsotropicDamageTractionOnly3DLaw").def(py::init<>())
+    (m,"SmallStrainIsotropicDamageTractionOnly3DLaw").def(py::init<>())
     ;
 
     py::class_< PlasticityIsotropicKinematicJ2, typename PlasticityIsotropicKinematicJ2::Pointer,  ConstitutiveLaw >
