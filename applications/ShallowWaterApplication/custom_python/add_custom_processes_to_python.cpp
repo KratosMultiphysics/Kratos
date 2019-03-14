@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/elemental_refining_criteria_process.h"
 #include "custom_processes/initial_perturbation_process.h"
+#include "custom_processes/apply_sinusoidal_function_process.h"
 
 
 namespace Kratos
@@ -47,6 +48,17 @@ namespace Python
         .def(py::init<ModelPart&, Node<3>::Pointer, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Parameters&>())
         ;
+
+        py::class_<ApplySinusoidalFunctionProcess<Variable<double>>, ApplySinusoidalFunctionProcess<Variable<double>>::Pointer, Process>
+        (m, "ApplySinusoidalFunctionToScalar")
+        .def(py::init<ModelPart&, Variable<double>&, Parameters&>())
+        ;
+
+        py::class_<ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>, ApplySinusoidalFunctionProcess<Variable<array_1d<double,3>>>::Pointer, Process>
+        (m, "ApplySinusoidalFunctionToVector")
+        .def(py::init<ModelPart&, Variable<array_1d<double,3>>&, Parameters&>())
+        ;
+
     }
 
 }  // namespace Python.
