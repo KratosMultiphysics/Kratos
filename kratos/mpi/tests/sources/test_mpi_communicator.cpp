@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
