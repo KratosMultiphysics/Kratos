@@ -132,7 +132,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             if ((std::abs(max_stress) > tolerance && max_stress != this->GetMaxStress()) && cycle_counted) {
                 this->SetMaxStress(max_stress);
             }
-            if ((std::abs(min_stress) > tolerance && min_stress != this->GetMinStress()) && cycle_counted == true) {
+            if ((std::abs(min_stress) > tolerance && min_stress != this->GetMinStress()) && cycle_counted) {
                 this->SetMinStress(min_stress);
             }
         }
