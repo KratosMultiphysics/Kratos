@@ -25,15 +25,14 @@ class GeoMesher( GeoProcessor ):
         tool.SmoothExtrusionHeight( radius/5.0, iterations, 0.8*free_board )
         self.HasExtrusionHeight = True
 
-    def SetUniformExtrusionHeight( self, radius, height ):
+    def SetUniformExtrusionHeight( self, height ):
 
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable( KratosGeo.EXTRUSION_HEIGHT, height, self.ModelPart.Nodes )
         self.HasExtrusionHeight = True
 
-
     ### --- functions to create a 3D domain mesh --- ###
 
-    def MeshConcaveHullWithTerrainPoints( self ):
+    def MeshConcaveHullWithTerrainPoints( self, average_point_dist ):
 
         if ( not self.HasExtrusionHeight ):
             KratosMultiphysics.Logger.PrintWarning("GeoMesher", "Extrusion height must be determined first.")
@@ -92,7 +91,7 @@ class GeoMesher( GeoProcessor ):
         node_erase_process = KratosMultiphysics.NodeEraseProcess(self.ModelPart)
         neigh_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.ModelPart, 9, 18)
         neigh_finder.Execute()
-        Mesher.ReGenerateMesh("Element2D3N", "Condition2D", self.ModelPart, node_erase_process, False, False, 1.4, 0.5)
+        Mesher.ReGenerateMesh("Element2D3N", "Condition2D", self.ModelPart, node_erase_process, False, False, 1.4*average_point_dist, 0.5)
 
 	    ### read back from "element + condition" to replace the old "facets"  ---
         all_bottom_facets = []
@@ -269,7 +268,7 @@ class GeoMesher( GeoProcessor ):
         level_set_param = KratosMultiphysics.Parameters("""
         	{
         		"minimal_size"                         : """ + str(min_size) + """,
-        		"enforce_current"                      : false,
+        		"enforce_current"                      : true,
         		"anisotropy_remeshing"                 : true,
         		"anisotropy_parameters": {
         			"hmin_over_hmax_anisotropic_ratio"      : 1.0,
