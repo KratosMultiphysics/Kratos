@@ -22,15 +22,19 @@ namespace Kratos
 
 namespace {
 
-template <class TEntity, class TEntityContainer>
+template <class TEntityContainer>
 void ReplaceEntities(TEntityContainer& rEntityContainer,
                      Parameters EntitySettings,
                      bool ThrowError)
 {
+    typedef typename TEntityContainer::data_type EntityType;
+
     // create map with reference entities
-    std::map<std::string, const TEntity*> entities_table;
+    std::map<std::string, const EntityType*> entities_table;
     for(Parameters::iterator it=EntitySettings.begin(); it!=EntitySettings.end(); ++it){
-        entities_table[it.name()] = &KratosComponents<TEntity>::Get(EntitySettings[it.name()].GetString());
+        entities_table[it.name()] = &KratosComponents<EntityType>::Get(
+            EntitySettings[it.name()].GetString()
+        );
     }
 
     #pragma omp parallel for
@@ -43,10 +47,12 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
         auto it_reference_entity = entities_table.find(current_name);
 
         if (it_reference_entity == entities_table.end()) {
-            // This error is thrown in a parallel region and can not get catched or even printed properly!
+            // This error is thrown in a parallel region and can not get catched
+            // or even printed properly!
             KRATOS_ERROR_IF(ThrowError) << current_name
                 << " was not defined in the replacement table!" << std::endl;
-            continue; // skip if no error should be thrown
+            // skip if no error should be thrown
+            continue;
         }
 
         auto p_entitiy = it_reference_entity->second->Create(it->Id(),
@@ -72,10 +78,10 @@ void ReplaceMultipleElementsAndConditionsProcess::Execute()
     bool throw_error = mSettings["throw_error"].GetBool();
 
     // replace elements
-    ReplaceEntities<Element, ModelPart::ElementsContainerType>(mrModelPart.Elements(), mSettings["element_name_table"], throw_error);
+    ReplaceEntities(mrModelPart.Elements(), mSettings["element_name_table"], throw_error);
 
     // replace conditions
-    ReplaceEntities<Condition, ModelPart::ConditionsContainerType>(mrModelPart.Conditions(), mSettings["condition_name_table"], throw_error);
+    ReplaceEntities(mrModelPart.Conditions(), mSettings["condition_name_table"], throw_error);
 
     // Change the submodelparts
     for (auto& i_sub_model_part : r_root_model_part.SubModelParts()) {
