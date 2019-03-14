@@ -3,7 +3,7 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-from pfem_fluid_solver_analysis import PfemFluidSolver
+from pfem_fluid_solver import PfemFluidSolver
 
 
 def CreateSolver(model, parameters):
@@ -24,7 +24,7 @@ class PfemFluidDEMcouplingSolver(PfemFluidSolver):
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        self.fluid_solver = KratosPfemFluid.TwoStepVPStrategyDEMcoupling(self.computing_model_part,
+        self.fluid_solver = KratosPfemFluid.TwoStepVPDEMcouplingStrategy(self.computing_model_part,
                                                               self.velocity_linear_solver,
                                                               self.pressure_linear_solver,
                                                               self.settings["reform_dofs_at_each_step"].GetBool(),

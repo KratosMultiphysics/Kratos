@@ -62,6 +62,7 @@ namespace Kratos
 
       //custom strategy types
       typedef TwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPStrategyType;
+      typedef TwoStepVPDEMcouplingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPDEMcouplingStrategyType;
       typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef NodalTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyType;
       typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelLinearStrategyType;
@@ -75,6 +76,10 @@ namespace Kratos
         .def("CalculateAccelerations",&TwoStepVPStrategyType::CalculateAccelerations)
         .def("CalculateDisplacements",&TwoStepVPStrategyType::CalculateDisplacementsAndPorosity)
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
+      	    ;
+
+      py::class_< TwoStepVPDEMcouplingStrategyType, TwoStepVPDEMcouplingStrategyType::Pointer, TwoStepVPStrategyType >(m,"TwoStepVPDEMcouplingStrategy")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
       	    ;
 
       py::class_< ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"ExplicitStrategyType")

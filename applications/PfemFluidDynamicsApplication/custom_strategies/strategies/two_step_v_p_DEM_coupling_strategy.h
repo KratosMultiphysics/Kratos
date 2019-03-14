@@ -81,7 +81,7 @@ public:
     /// Counted pointer of TwoStepVPDEMcouplingStrategy
     //typedef boost::shared_ptr< TwoStepVPDEMcouplingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
-    typedef TwoStepVPDEMcouplingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -129,8 +129,19 @@ public:
                int MaxPressureIterations = 1,// Only for predictor-corrector
                unsigned int TimeOrder = 2,
                unsigned int DomainSize = 2):
-        BaseType(rModelPart)
-    {}
+                          BaseType(rModelPart,
+                          pVelocityLinearSolver,
+                          pPressureLinearSolver,
+                          ReformDofSet,
+                          VelTol,
+                          PresTol,
+                          MaxPressureIterations,
+                          TimeOrder,
+                          DomainSize)
+    {
+
+
+    }
 
     /// Destructor.
     virtual ~TwoStepVPDEMcouplingStrategy(){}

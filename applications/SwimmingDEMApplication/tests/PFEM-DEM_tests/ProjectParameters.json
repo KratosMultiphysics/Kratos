@@ -111,8 +111,6 @@
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
 "basset_force_type"                      : 0,
-"frame_of_reference_type"                : 1,
-"angular_velocity_of_frame_Z"            : 0.5,
 
 "OutputTimeStep"                             : 0.001,
 "PostPressure"                               : false,
@@ -195,9 +193,7 @@
 "fluid_parameters"  : {
     "problem_data"             : {
         "problem_name"    : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
-        "model_part_name" : "Main Domain",
-        "dimension"       : 3,
-        "time_step"       : 0.001,
+        "model_part_name" : "PfemFluidModelPart",
         "start_time"      : 0.0,
         "end_time"        : 0.005,
         "echo_level"      : 0,
@@ -215,7 +211,7 @@
             "parts_list" : ["Parts_Parts_Auto2"]
         }],
     "solver_settings"          : {
-        "solver_type"                        : "pfem_fluid_solver_analysis",
+        "solver_type"                        : "pfem_fluid_DEM_coupling_solver",
         "domain_size"                        : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -266,7 +262,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.Parts_Fluid_Part",
+                "model_part_name" : "PfemFluidModelPart",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "modulus"         : 9.81,
                 "constrained"     : false,
@@ -280,7 +276,7 @@
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
-            "model_part_name"       : "Main Domain",
+            "model_part_name"       : "PfemFluidModelPart",
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -305,6 +301,7 @@
                     "reference_condition_type"      : "CompositeCondition3D3N"
                 },
                 "spatial_bounding_box"            : {
+                    "use_bounding_box" : false,
                     "upper_point" : [0.0,0.0,0.0],
                     "lower_point" : [0.0,0.0,0.0],
                     "velocity"    : [0.0,0.0,0.0]
@@ -422,7 +419,7 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
-            "model_part_name"     : "VELOCITY_Velocity_Auto1",
+            "model_part_name"     : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
             "variable_name"       : "VELOCITY",
             "value"               : [0.0,0.0,0.0],
             "compound_assignment" : "direct",
