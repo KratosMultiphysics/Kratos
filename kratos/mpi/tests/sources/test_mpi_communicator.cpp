@@ -34,7 +34,7 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
     constexpr double side_length = 1.0;
 
     rModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     const int rank = rComm.Rank();
     const int size = rComm.Size();
