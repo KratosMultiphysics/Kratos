@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
     model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
 
     // Set the element properties
-    Properties::Pointer property = model_part.pGetProperties(0);
+    Properties::Pointer property = model_part.CreateNewProperties(0);
     property->SetValue(MANNING, 0.004);
 
     // Geometry creation
