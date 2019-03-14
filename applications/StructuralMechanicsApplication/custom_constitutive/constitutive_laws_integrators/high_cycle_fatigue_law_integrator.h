@@ -119,21 +119,20 @@ public:
     {
         const double stress_1 = rPreviousStresses[1];
         const double stress_2 = rPreviousStresses[0];
-		
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
 
-        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0 && rCycleCounter == false) {
+        if (stress_increment_1 >= 0.001 && stress_increment_2 <= 0.0 && !rCycleCounter) {
             rMaximumStress = stress_1;
             rPreviousMaximumStress = rMaximumStress;
             rCycleCounter = true;
-        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && rCycleCounter == false) {
+        } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && !rCycleCounter) {
             rMinimumStress = stress_1;
             rPreviousMinimumStress = rMinimumStress;
             rCycleCounter = true;
         }
 
-        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && rCycleCounter == true) {
+        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && rCycleCounter) {
             rNumberOfCycles++;
             rPreviousMaximumStress = 0;
             rPreviousMinimumStress = 0;

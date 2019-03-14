@@ -57,7 +57,6 @@ typedef Node<3> NodeType;
     */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStructuralMechanicsFastSuite)
 {
- 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
     Vector stress_vector, strain_vector;
@@ -140,8 +139,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     Vector TestStress;
     Vector dummy;
     HCF_CL.InitializeMaterial(material_properties, Geom, dummy);
-	HCF_CL.CalculateMaterialResponseCauchy(cl_parameters);
-	HCF_CL.FinalizeMaterialResponseCauchy(cl_parameters);
+    HCF_CL.CalculateMaterialResponseCauchy(cl_parameters);
+    HCF_CL.FinalizeMaterialResponseCauchy(cl_parameters);
     HCF_CL.GetValue(DAMAGE, TestDamage);
     KRATOS_WARNING_IF("TestHCF", TestDamage < 1.0e-12) << "VonMises:: This test is not in damage range" << std::endl;
     TestStress = cl_parameters.GetStressVector();

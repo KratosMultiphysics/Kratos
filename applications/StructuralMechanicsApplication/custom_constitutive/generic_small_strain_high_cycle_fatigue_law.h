@@ -97,7 +97,7 @@ public:
     */
     GenericSmallStrainHighCycleFatigueLaw(const GenericSmallStrainHighCycleFatigueLaw &rOther)
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
-          mFatigueReductionFactor(rOther.mFatigueReductionFactor)
+            mFatigueReductionFactor(rOther.mFatigueReductionFactor)
     {
     }
 
@@ -370,7 +370,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-	double mFatigueReductionFactor = 1.0;
+    double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
