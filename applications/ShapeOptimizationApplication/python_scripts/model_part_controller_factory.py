@@ -39,9 +39,7 @@ class ModelPartController:
                 "damping_regions" : []
             },
             "mesh_motion" : {
-                "apply_mesh_solver" : false,
-                "solver_settings" : { },
-                "boundary_conditions_process_list" : []
+                "apply_mesh_solver" : false
             }
         }""")
 
