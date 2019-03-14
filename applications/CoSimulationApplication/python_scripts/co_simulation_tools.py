@@ -121,17 +121,40 @@ def PrintWarning(label, *args):
 
 
 
-## Class CoSimulationData: Class to hold different properties of the data field contributed in
+## Class CouplingInterfaceData: Class to hold different properties of the data field contributed in
 #                           CoSimulation.
 #
-class CoSimulationData(object):
-    def __init__(self):
-        self.name = None
+class CouplingInterfaceData(object):
+    def __init__(self, custom_config):
+
+        default_config = cs_data_structure.Parameters("""
+        {
+            "name" : "default",
+            "dimension" : 0,
+            "geometry_name" : "",
+            "location_on_mesh":"on_nodes"
+        }
+        """)
+        custom_config.ValidateAndAssignDefaults(default_config)
+
+        self.name = custom_config["name"].GetString()
         self.variable = None
         self.filters = []
-        self.dimension = 0
-        self.location_on_mesh = None
-        self.mesh_name = ""
+        self.dimension = custom_config["dimension"].GetInt()
+        self.location_on_mesh = custom_config["location_on_mesh"].GetString()
+        self.mesh_name = custom_config["geometry_name"].GetString()
+        self.destination_data = None
+        self.origin_data = None
+        self.mapper_settings = None
+
+    def ApplyFilters(self):
+        pass
+
+    def GetPythonList(self):
+        pass
+
+    def GetNumpyArray(self):
+        pass
 
 
 
