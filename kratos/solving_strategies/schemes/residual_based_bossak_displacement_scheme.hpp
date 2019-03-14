@@ -118,7 +118,7 @@ public:
      * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0)
-    : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
+        : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
     {
     }
 
@@ -336,11 +336,11 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info= rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info= rModelPart.GetProcessInfo();
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        const double delta_time = current_process_info[DELTA_TIME];
+        const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Initializing Bossak constants
         mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
