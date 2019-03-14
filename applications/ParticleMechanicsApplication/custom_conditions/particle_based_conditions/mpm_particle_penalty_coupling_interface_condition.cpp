@@ -195,8 +195,12 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
     ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
     const double normal_force = MathUtils<double>::Dot(MPC_Force,unit_normal_vector);
-    MPC_Force  = normal_force * unit_normal_vector;
-    MPC_Force *= -1.0;
+
+    // This check is done to avoid sticking forces
+    if (normal_force > 0.0)
+        MPC_Force = -1.0 * normal_force * unit_normal_vector;
+    else
+        MPC_Force = ZeroVector(3);
 
     // Set Contact Force
     this->SetValue(MPC_CONTACT_FORCE, MPC_Force);
