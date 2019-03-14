@@ -5,36 +5,27 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_procedures as SDP
-import variables_management as vars_man
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 sys.path.insert(0,'')
 
-class DEMPFEMAnalysis(BaseAnalysis):
+class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetFluidAlgorithm(self):
-        import pfem_fluid_ready_for_dem_coupling as fluid_solution
-        self.fluid_solution = fluid_solution.Solution(self.model)
+        import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
+        self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
         self.fluid_solution.main_path = self.main_path
 
     def SetCouplingParameters(self, parameters):
-        super(Algorithm,self).SetCouplingParameters(varying_parameters)
+
+        super(SDEMPFEMAnalysis,self).SetCouplingParameters(parameters)
+        #self.pp.domain_size = self.pp.fluid_parameters["problem_data"]["dimension"].GetInt()
 
     def SetBetaParameters(self):
 
-        self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
-        super(Algorithm,self).SetBetaParameters()
+        super(SDEMPFEMAnalysis,self).SetBetaParameters()
         self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
-
-    #def SetCouplingParameters(self, varying_parameters):
-        #parameters_file = open("ProjectParametersDEM.json",'r')
-        #self.project_parameters = Parameters(parameters_file.read())
-        #self.SetDoSolveDEMVariable()
-        #self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
-        #self.SetBetaParameters()
-        #self.SetCustomBetaParameters(varying_parameters)
-        #self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["domain_size"].GetInt()
-        #super(Algorithm,self).SetCouplingParameters(varying_parameters)
+        self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
 
     def SetAllModelParts(self):
         self.all_model_parts = self.disperse_phase_solution.all_model_parts
@@ -48,12 +39,12 @@ class DEMPFEMAnalysis(BaseAnalysis):
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
     def Initialize(self):
-        super(Algorithm,self).Initialize()
+        super(SDEMPFEMAnalysis,self).Initialize()
         self.TransferWallsFromPfemToDem()
 
     def TransferWallsFromPfemToDem(self):
         destination_model_part = self.disperse_phase_solution.rigid_face_model_part
-        bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
+        bodies_parts_list = self.fluid_solution.project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Rigid":
@@ -77,9 +68,9 @@ class DEMPFEMAnalysis(BaseAnalysis):
 
     def FluidInitialize(self):
 
-        self.fluid_solution.vars_man=vars_man
+        self.fluid_solution.vars_man=self.vars_man
         self.fluid_solution.Initialize()
-        bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
+        bodies_parts_list = self.fluid_solution.project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Fluid":
@@ -136,7 +127,8 @@ class DEMPFEMAnalysis(BaseAnalysis):
     def SetPostUtils(self):
         general_model_part = self.fluid_solution.main_model_part
         self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
-                                        self.pp,
+                                        self.project_parameters,
+                                        self.vars_man,
                                         general_model_part,
                                         self.disperse_phase_solution.spheres_model_part,
                                         self.disperse_phase_solution.cluster_model_part,
