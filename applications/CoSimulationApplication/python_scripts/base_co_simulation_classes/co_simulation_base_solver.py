@@ -32,7 +32,7 @@ class CoSimulationBaseSolver(object):
         self.cosim_solver_settings = cosim_solver_settings
         self.cosim_solver_settings.ValidateAndAssignDefaults(default_setting)
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
-        self.data_list = self._GetDataMap()
+        self.data_map = self._GetDataMap()
         self.geo_names = self._GetGeometryNames()
         self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
         # This is the map of all the geometries that a solver can have
@@ -111,9 +111,9 @@ class CoSimulationBaseSolver(object):
     ## GetDataConfig : This function gets the definition of data in this solver
     #
     #  @param self            The object pointer.
-    def GetDataConfig(self, data_name):
-        if data_name in self.data_list.keys():
-            return self.data_list[data_name]
+    def GetInterfaceData(self, data_name):
+        if data_name in self.data_map.keys():
+            return self.data_map[data_name]
         else:
             raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.name+tools.bcolors.ENDC)
 
@@ -125,10 +125,12 @@ class CoSimulationBaseSolver(object):
     #  @param from_client     python obj : The client from which data_name has to be imported
     #                         Default is None that means, the solver imports the mesh from itself,
     #                         that is the actual solver for which this acts as an alias
-    def ImportCouplingInterfaceData(self, data_conf, from_client=None):
+    def ImportCouplingInterfaceData(self, data_object, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportCouplingInterfaceData(data_conf, from_client)
+        self.io.ImportCouplingInterfaceData(data_conf, from_client) ## Mapping happens inside here
+        ## Once the mapping is done here, we apply all the filters before making the data usable
+        data_object.ApplyFilters()
 
     ## ImportCouplingInterface : This function imports the requested surface/volume
     #               mesh from from_client
@@ -150,7 +152,9 @@ class CoSimulationBaseSolver(object):
     #  @param to_client       The client to which the data is to be exported
     #                         Default is None that means, the solver imports the mesh from itself,
     #                         that is the actual solver for which this acts as an alias
-    def ExportCouplingInterfaceData(self, data_name, to_client=None):
+    def ExportCouplingInterfaceData(self, data_object, to_client=None):
+        ## Before we export the data, we apply all the filters so the solver importing can readily use it.
+        data_object.ApplyFilters()
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
@@ -166,13 +170,6 @@ class CoSimulationBaseSolver(object):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportCouplingInterface(mesh_name, to_client)
-
-    ## GetDataDefinition : Function to get the data configuration belonging
-    #                      requested data field
-    #
-    #  @param self            The object pointer.
-    def GetDataDefinition(self, data_name):
-        return self.cosim_solver_settings["data"][data_name]
 
     ## GetDeltaTime : Function to obtain the time step of this solver
     #
@@ -214,27 +211,14 @@ class CoSimulationBaseSolver(object):
         num_data = self.cosim_solver_settings["data"].size()
         for data_conf in self.cosim_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
-            data_conf = self._MakeDataConfig(data_conf)
-            data_map[data_name] = data_conf
+            data_obj = tools.CouplingInterfaceData(data_conf)
+            data_map[data_name] = data_obj
 
         return data_map
 
-    def _MakeDataConfig(self,custom_config):
-        default_config = cs_data_structure.Parameters("""
-        {
-            "name" : "default",
-            "dimension" : 0,
-            "geometry_name" : "",
-            "location_on_mesh":"on_nodes"
-        }
-        """)
-        custom_config.ValidateAndAssignDefaults(default_config)
-
-        return custom_config.Clone()
-
     def _GetGeometryNames(self):
         geo_name_list = []
-        for name, data in self.data_list.items():
+        for name, data in self.data_map.items():
             mesh_name = data["geometry_name"].GetString()
             if(mesh_name not in geo_name_list):
                 geo_name_list.append( mesh_name )
