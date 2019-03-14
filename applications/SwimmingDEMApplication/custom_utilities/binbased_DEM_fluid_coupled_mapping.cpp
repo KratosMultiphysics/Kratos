@@ -136,7 +136,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
         if (p_particle->IsNot(BLOCKED)){
             Element::Pointer p_element;
-            ClearVariable(i_particle, SLIP_VELOCITY);
+            ClearVariable(i_particle, AUX_VEL);
 
             // looking for the fluid element in which the DEM node falls
             const bool element_located = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(),
