@@ -97,9 +97,6 @@ public:
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
 
-    /// Definition of the compressed matrix
-    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
-
     /// Node definition
     typedef Node<3> NodeType;
 
@@ -206,7 +203,7 @@ public:
                 if (element_is_active) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it_elem.base()), LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
-                  
+
                     // Assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
@@ -622,7 +619,7 @@ public:
         SizeType nthreads = OpenMPUtils::GetNumThreads();
 
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-      
+
         std::vector<set_type> dofs_aux_list(nthreads);
 
         for (int i = 0; i < static_cast<int>(nthreads); ++i) {
@@ -1082,7 +1079,7 @@ protected:
         for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
 
-        rA = CompressedMatrixType(indices.size(), indices.size(), nnz);
+        rA = TSystemMatrixType(indices.size(), indices.size(), nnz);
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1143,10 +1140,10 @@ protected:
     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
     */
     inline void AssembleRowContributionFreeDofs(
-        TSystemMatrixType& A, 
-        const Matrix& Alocal, 
-        const IndexType i, 
-        const IndexType i_local, 
+        TSystemMatrixType& A,
+        const Matrix& Alocal,
+        const IndexType i,
+        const IndexType i_local,
         const Element::EquationIdVectorType& EquationId
         )
     {
