@@ -41,12 +41,13 @@ class ModelPartController:
             "mesh_motion" : {
                 "apply_mesh_solver" : false,
                 "solver_settings" : { },
-                "boundary_conditions_process_list" : []
+                "processes" : {}
             }
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
+        self.model_settings["mesh_motion"].ValidateAndAssignDefaults(default_settings["mesh_motion"])
 
         self.model = model
 
