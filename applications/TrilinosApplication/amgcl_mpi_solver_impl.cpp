@@ -1,6 +1,3 @@
-#ifndef KRATOS_AMGCL_MPI_SOLVE_FUNCTIONS_H
-#define KRATOS_AMGCL_MPI_SOLVE_FUNCTIONS_H
-
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/ptree.hpp>
 
