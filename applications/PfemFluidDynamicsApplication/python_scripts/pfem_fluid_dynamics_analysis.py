@@ -15,8 +15,6 @@ import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 
-import pfem_fluid_solver_analysis as pfem_solver
-
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class PfemFluidDynamicsAnalysis(AnalysisStage):
