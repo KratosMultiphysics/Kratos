@@ -20,7 +20,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearIsotropicDamageTractionOnly3D::LinearIsotropicDamageTractionOnly3D()
+SmallStrainIsotropicDamageTractionOnly3D::SmallStrainIsotropicDamageTractionOnly3D()
         : SmallStrainIsotropicDamage3D()
 {
 }
@@ -28,26 +28,26 @@ LinearIsotropicDamageTractionOnly3D::LinearIsotropicDamageTractionOnly3D()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-LinearIsotropicDamageTractionOnly3D::LinearIsotropicDamageTractionOnly3D(
-        const LinearIsotropicDamageTractionOnly3D &rOther) = default;
+SmallStrainIsotropicDamageTractionOnly3D::SmallStrainIsotropicDamageTractionOnly3D(
+        const SmallStrainIsotropicDamageTractionOnly3D &rOther) = default;
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearIsotropicDamageTractionOnly3D::Clone() const
+ConstitutiveLaw::Pointer SmallStrainIsotropicDamageTractionOnly3D::Clone() const
 {
-    return Kratos::make_shared<LinearIsotropicDamageTractionOnly3D>(LinearIsotropicDamageTractionOnly3D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamageTractionOnly3D>(SmallStrainIsotropicDamageTractionOnly3D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-LinearIsotropicDamageTractionOnly3D::~LinearIsotropicDamageTractionOnly3D() = default;
+SmallStrainIsotropicDamageTractionOnly3D::~SmallStrainIsotropicDamageTractionOnly3D() = default;
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamageTractionOnly3D::ComputePositiveStressVector(
+void SmallStrainIsotropicDamageTractionOnly3D::ComputePositiveStressVector(
         Vector& rStressVectorPos, Vector& rStressVector)
 {
     BoundedMatrix<double, 3, 3> stress_matrix;
@@ -68,7 +68,7 @@ void LinearIsotropicDamageTractionOnly3D::ComputePositiveStressVector(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamageTractionOnly3D::save(Serializer& rSerializer) const
+void SmallStrainIsotropicDamageTractionOnly3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainIsotropicDamage3D);
 }
@@ -76,7 +76,7 @@ void LinearIsotropicDamageTractionOnly3D::save(Serializer& rSerializer) const
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamageTractionOnly3D::load(Serializer& rSerializer)
+void SmallStrainIsotropicDamageTractionOnly3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainIsotropicDamage3D);
 }

@@ -54,7 +54,7 @@ namespace Kratos
  * @note
  * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearIsotropicDamageTractionOnly3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageTractionOnly3D
     : public SmallStrainIsotropicDamage3D
 
 {
@@ -67,7 +67,7 @@ public:
     typedef std::size_t SizeType;
 
     // Counted pointer of LinearIsotropicDamageTractionOnly3DLaw
-    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicDamageTractionOnly3D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamageTractionOnly3D);
 
     ///@}
     ///@name Lyfe Cycle
@@ -76,17 +76,17 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamageTractionOnly3D();
+    SmallStrainIsotropicDamageTractionOnly3D();
 
     /**
      * @brief Default constructor.
      */
-    LinearIsotropicDamageTractionOnly3D(const LinearIsotropicDamageTractionOnly3D& rOther);
+    SmallStrainIsotropicDamageTractionOnly3D(const SmallStrainIsotropicDamageTractionOnly3D& rOther);
 
     /**
      * @brief Default constructor.
      */
-    ~LinearIsotropicDamageTractionOnly3D() override;
+    ~SmallStrainIsotropicDamageTractionOnly3D() override;
 
     /**
      * @brief Clone function
