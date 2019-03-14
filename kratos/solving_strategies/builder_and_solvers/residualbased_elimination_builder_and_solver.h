@@ -170,14 +170,20 @@ public:
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
 
         // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -186,14 +192,14 @@ public:
         // Vector containing the localization in the system of the different terms
         EquationIdVectorType equation_id;
 
-        // assemble all elements
+        // Assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, equation_id )
+        #pragma omp parallel firstprivate(LHS_Contribution, RHS_Contribution, equation_id )
         {
             #pragma omp  for schedule(guided, 512) nowait
             for (int k = 0; k < nelements; ++k) {
-                auto it_elem = el_begin + k;
+                auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool element_is_active = true;
@@ -217,7 +223,7 @@ public:
 
             #pragma omp  for schedule(guided, 512)
             for (int k = 0; k < nconditions; ++k) {
-                auto it_cond = cond_begin + k;
+                auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool condition_is_active = true;
@@ -262,11 +268,23 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
         // Getting the elements from the model
         ElementsArrayType& r_elements_array = rModelPart.Elements();
 
         // Getting the array of the conditions
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
 
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
@@ -277,29 +295,49 @@ public:
         // Vector containing the localization in the system of the different terms
         EquationIdVectorType equation_id;
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        #pragma omp parallel firstprivate(LHS_Contribution, equation_id )
+        {
+            #pragma omp  for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
 
-        // Assemble all elements
-        for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            // Calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
-            // Assemble the elemental contribution
-            AssembleLHS(rA, LHS_Contribution, equation_id);
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Calculate_LHS_Contribution(*(it_elem.base()), LHS_Contribution, equation_id, r_current_process_info);
 
-            // Clean local elemental memory
-            pScheme->CleanMemory(*it_elem);
-        }
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, LHS_Contribution, equation_id);
 
-        LHS_Contribution.resize(0, 0, false);
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_elem.base()));
+                }
+            }
 
-        // Assemble all conditions
-        for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            // Calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
+            #pragma omp  for schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
 
-            // Assemble the elemental contribution
-            AssembleLHS(rA, LHS_Contribution, equation_id);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Condition_Calculate_LHS_Contribution(*(it_cond.base()), LHS_Contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHS(rA, LHS_Contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_cond.base()));
+                }
+            }
         }
 
         KRATOS_CATCH("")
@@ -322,43 +360,76 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
         // Getting the elements from the model
         ElementsArrayType& r_elements_array = rModelPart.Elements();
 
         // Getting the array of the conditions
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(r_elements_array.size());
 
-        //resetting to zero the vector of reactions
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(r_conditions_array.size());
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto it_elem_begin = r_elements_array.begin();
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-        //contributions to the system
+        // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
         // Vector containing the localization in the system of the different terms
         EquationIdVectorType equation_id;
 
-        // Assemble all elements
-        for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
+        #pragma omp parallel firstprivate(LHS_Contribution, equation_id )
+        {
+            #pragma omp  for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; ++k) {
+                auto it_elem = it_elem_begin + k;
 
-            //assemble the elemental contribution
-            AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(*it_elem);
-        }
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Calculate_LHS_Contribution(*(it_elem.base()), LHS_Contribution, equation_id, r_current_process_info);
 
-        LHS_Contribution.resize(0, 0, false);
-        // Assemble all conditions
-        for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
+                    // Assemble the elemental contribution
+                    AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
 
-            //assemble the elemental contribution
-            AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_elem.base()));
+                }
+            }
+
+            #pragma omp  for schedule(guided, 512)
+            for (int k = 0; k < nconditions; ++k) {
+                auto it_cond = it_cond_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Condition_Calculate_LHS_Contribution(*(it_cond.base()), LHS_Contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_cond.base()));
+                }
+            }
         }
 
         KRATOS_CATCH("")
@@ -1026,12 +1097,12 @@ protected:
             const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
             // Element initial iterator
-            const auto el_begin = rModelPart.ElementsBegin();
+            const auto it_elem_begin = rModelPart.ElementsBegin();
 
             // We iterate over the elements
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
-                auto it_elem = el_begin + i_elem;
+                auto it_elem = it_elem_begin + i_elem;
                 pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
@@ -1048,12 +1119,12 @@ protected:
             const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
             // Condition initial iterator
-            const auto cond_begin = rModelPart.ConditionsBegin();
+            const auto it_cond_begin = rModelPart.ConditionsBegin();
 
             // We iterate over the conditions
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
-                auto it_cond = cond_begin + i_cond;
+                auto it_cond = it_cond_begin + i_cond;
                 pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
