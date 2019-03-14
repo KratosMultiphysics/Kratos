@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructu
                 -(response_value1 - response_value0) / delta;
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivity(i_node, dir);
-            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, 1e-9);
+            KRATOS_CHECK_NEAR(adjoint_sensitivity, finite_diff_sensitivity, 1e-3);
         }
     }
 }
