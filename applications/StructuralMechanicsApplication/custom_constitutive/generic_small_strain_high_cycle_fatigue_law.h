@@ -99,7 +99,6 @@ public:
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
           mFatigueReductionFactor(rOther.mFatigueReductionFactor)
     {
-		//GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GenericSmallStrainIsotropicDamage(rOther);
     }
 
     /**
