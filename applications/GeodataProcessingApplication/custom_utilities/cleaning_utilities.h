@@ -90,7 +90,13 @@ namespace Kratos
      * @brief Hard copy the content between model parts
      *
      */
-    ModelPart& HardCopyContent( ModelPart& OriginalModelPart, ModelPart& NewModelPart, bool deleteOrig );
+    ModelPart& HardCopyBeforeSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart );
+
+    /**
+     * @brief Hard copy the content between model parts
+     *
+     */
+    ModelPart& HardCopyAfterSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart );
 
     ///@}
     ///@name Access

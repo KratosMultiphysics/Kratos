@@ -57,21 +57,101 @@ namespace Kratos
     }
 
 
-    ModelPart& CleaningUtilities::HardCopyContent( ModelPart& OriginalModelPart, ModelPart& NewModelPart, bool deleteOrig ){
+    ModelPart& CleaningUtilities::HardCopyBeforeSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart ){
 
-        Model& r_owner_model = OriginalModelPart.GetModel();
+        auto& r_sub_model_part = NewModelPart.GetSubModelPart("AuxSubModelPart");
         Properties::Pointer p_prop = NewModelPart.pGetProperties(0);
 
-        // copying everything to the auxiliary model part
+        // copying every node to the auxiliary model part
+        // #pragma omp parallel for
         for( int i_node = 0; i_node < static_cast<int>( OriginalModelPart.NumberOfNodes() ); ++i_node ){
-            auto p_node = OriginalModelPart.NodesBegin() + i_node;
 
-            auto node = NewModelPart.CreateNewNode(   p_node->Id(),
-                                                        p_node->Coordinates()[0],
-                                                        p_node->Coordinates()[1],
-                                                        p_node->Coordinates()[2] );
+            auto p_node = OriginalModelPart.NodesBegin() + i_node;
+            auto node = NewModelPart.CreateNewNode( p_node->Id(),
+                                                    p_node->Coordinates()[0],
+                                                    p_node->Coordinates()[1],
+                                                    p_node->Coordinates()[2] );
+            // #pragma omp critical
+            r_sub_model_part.AddNode( node );
         }
 
+        // copying all the elements into the auxiliary part
+        // #pragma omp parallel for
+        for( int i_elem = 0; i_elem < static_cast<int>( OriginalModelPart.NumberOfElements() ); ++i_elem ){
+
+            auto p_elem= OriginalModelPart.ElementsBegin() + i_elem;
+            auto& r_geom = p_elem->GetGeometry();
+
+            std::vector<ModelPart::IndexType> elem_nodes{ r_geom[0].Id() , r_geom[1].Id(), r_geom[2].Id(), r_geom[3].Id() };
+            auto elem = NewModelPart.CreateNewElement(  "Element3D4N",
+                                                        p_elem->Id(),
+                                                        elem_nodes,
+                                                        p_prop );
+            // #pragma omp critical
+            r_sub_model_part.AddElement( elem );
+        }
+
+        // transferring the distance field
+        #pragma omp parallel for
+        for( int i_node = 0; i_node < static_cast<int>( OriginalModelPart.NumberOfNodes() ); ++i_node ){
+
+            auto p_node_recv = NewModelPart.NodesBegin() + i_node;
+            auto p_node_send = OriginalModelPart.NodesBegin() + i_node;
+
+            p_node_recv->FastGetSolutionStepValue( DISTANCE ) = p_node_send->FastGetSolutionStepValue( DISTANCE );
+        }
+
+        return NewModelPart;
+    }
+
+
+    ModelPart& CleaningUtilities::HardCopyAfterSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart ){
+
+        auto& r_sub_model_part_bound = NewModelPart.GetSubModelPart("Complete_Boundary");
+        auto& r_sub_model_part_fluid = NewModelPart.GetSubModelPart("Parts_Fluid");
+        Properties::Pointer p_prop = NewModelPart.pGetProperties(0);
+
+        std::vector<std::size_t> index_node;
+        std::vector<std::size_t> index_element;
+        std::vector<std::size_t> index_condition;
+
+        // copying every node to the auxiliary model part
+        // #pragma omp parallel for
+        for( int i_node = 0; i_node < static_cast<int>( OriginalModelPart.NumberOfNodes() ); ++i_node ){
+
+            auto p_node = OriginalModelPart.NodesBegin() + i_node;
+            auto node = NewModelPart.CreateNewNode( p_node->Id(),
+                                                    p_node->Coordinates()[0],
+                                                    p_node->Coordinates()[1],
+                                                    p_node->Coordinates()[2] );
+            // #pragma omp critical
+            index_node.push_back( p_node->Id() );
+        }
+        r_sub_model_part_fluid.AddNodes( index_node );
+
+
+        // copying all the elements into the auxiliary part
+        // #pragma omp parallel for
+        for( int i_elem = 0; i_elem < static_cast<int>( OriginalModelPart.NumberOfElements() ); ++i_elem ){
+
+            auto p_elem= OriginalModelPart.ElementsBegin() + i_elem;
+            auto& r_geom = p_elem->GetGeometry();
+
+            std::vector<ModelPart::IndexType> elem_nodes{ r_geom[0].Id() , r_geom[1].Id(), r_geom[2].Id(), r_geom[3].Id() };
+            auto elem = NewModelPart.CreateNewElement(   "Element3D4N",
+                                                            p_elem->Id(),
+                                                            elem_nodes,
+                                                            p_prop );
+            // #pragma omp critical
+            index_element.push_back( p_elem->Id() );
+        }
+        r_sub_model_part_fluid.AddElements( index_element );
+
+        // clearing the nodes vector
+        index_node.clear();
+
+        // copying all conditions
+        // #pragma omp parallel for
         for( int i_cond = 0; i_cond < static_cast<int>( OriginalModelPart.NumberOfConditions() ); ++i_cond ){
             auto p_cond = OriginalModelPart.ConditionsBegin() + i_cond;
             auto& r_geom = p_cond->GetGeometry();
@@ -81,24 +161,14 @@ namespace Kratos
                                                             p_cond->Id(),
                                                             cond_nodes,
                                                             p_prop );
+            // #pragma omp critical
+            index_condition.push_back( p_cond->Id() );
+            // #pragma omp critical
+            index_node.insert(index_node.end(), cond_nodes.begin(), cond_nodes.end());
         }
 
-        for( int i_elem = 0; i_elem < static_cast<int>( OriginalModelPart.NumberOfElements() ); ++i_elem ){
-            auto p_elem= OriginalModelPart.ElementsBegin() + i_elem;
-            auto& r_geom = p_elem->GetGeometry();
-
-            std::vector<ModelPart::IndexType> elem_nodes{ r_geom[0].Id() , r_geom[1].Id(), r_geom[2].Id(), r_geom[3].Id() };
-            auto elem = NewModelPart.CreateNewElement(   "Element3D4N",
-                                                            p_elem->Id(),
-                                                            elem_nodes,
-                                                            p_prop );
-        }
-
-        // delete and re-create
-        std::string model_part_name = mrModelPart.Name();
-        if ( deleteOrig ){
-            r_owner_model.DeleteModelPart( model_part_name );
-        }
+        r_sub_model_part_bound.AddNodes( index_node );
+        r_sub_model_part_bound.AddConditions( index_condition );
 
         return NewModelPart;
     }

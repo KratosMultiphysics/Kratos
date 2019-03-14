@@ -59,7 +59,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<CleaningUtilities>(m,"CleaningUtilities")
         .def(py::init< ModelPart& >())
         .def("CleanIsolatedNodes", &CleaningUtilities::CleanIsolatedNodes)
-        .def("HardCopyContent", &CleaningUtilities::HardCopyContent)
+        .def("HardCopyBeforeSurfaceDiscretization", &CleaningUtilities::HardCopyBeforeSurfaceDiscretization)
+        .def("HardCopyAfterSurfaceDiscretization", &CleaningUtilities::HardCopyAfterSurfaceDiscretization)
         ;
 
 }
