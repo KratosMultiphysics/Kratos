@@ -23,7 +23,6 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d.h"
 #include "convection_diffusion_application.h"
 #include "includes/variables.h"
 
@@ -75,6 +74,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
 
     KRATOS_REGISTER_VARIABLE(THETA)
+    KRATOS_REGISTER_VARIABLE(TRANSFER_COEFFICIENT)
+
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 

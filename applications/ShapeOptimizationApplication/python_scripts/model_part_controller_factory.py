@@ -39,9 +39,7 @@ class ModelPartController:
                 "damping_regions" : []
             },
             "mesh_motion" : {
-                "apply_mesh_solver" : false,
-                "solver_settings" : { },
-                "boundary_conditions_process_list" : []
+                "apply_mesh_solver" : false
             }
         }""")
 
@@ -146,7 +144,7 @@ class ModelPartController:
             self.design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
             print("\n> The following design surface was defined:\n\n",self.design_surface)
         else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
+            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesignSurface)
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):

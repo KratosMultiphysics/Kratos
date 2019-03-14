@@ -32,7 +32,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_filename" : "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts"  : [""],

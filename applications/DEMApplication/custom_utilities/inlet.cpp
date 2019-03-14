@@ -39,12 +39,12 @@ namespace Kratos {
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
-        mPartialParticleToInsert.resize(number_of_submodelparts, false);
-        mLastInjectionTimes.resize(number_of_submodelparts, false);
+        mPartialParticleToInsert.resize(number_of_submodelparts);
+        mLastInjectionTimes.resize(number_of_submodelparts);
         //mTotalNumberOfDetachedParticles.resize(number_of_submodelparts, false);
-        mLayerRemoved.resize(number_of_submodelparts, false);
-        mNumberOfParticlesInjected.resize(number_of_submodelparts, false);
-        mMassInjected.resize(number_of_submodelparts, false);
+        mLayerRemoved.resize(number_of_submodelparts);
+        mNumberOfParticlesInjected.resize(number_of_submodelparts);
+        mMassInjected.resize(number_of_submodelparts);
 
         int smp_iterator_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {
@@ -187,7 +187,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
 
-        DenseVector<unsigned int> ElementPartition;
+        std::vector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
@@ -296,7 +296,7 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-            DenseVector<unsigned int> ElementPartition;
+            std::vector<unsigned int> ElementPartition;
             OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
@@ -365,7 +365,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {
 
-        DenseVector<unsigned int> ElementPartition;
+        std::vector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 

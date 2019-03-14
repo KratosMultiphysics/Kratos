@@ -8,18 +8,18 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class MarineRainAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
-        self.pp.CFD_DEM.do_search_neighbours = False
-        self.pp.CFD_DEM.vorticity_calculation_type = 0
-        self.pp.CFD_DEM.do_impose_flow_from_field = True
-        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = False
+        self.project_parameters.do_search_neighbours = False
+        self.project_parameters.vorticity_calculation_type = 0
+        self.project_parameters.do_impose_flow_from_field = True
+        self.project_parameters.print_MATERIAL_ACCELERATION_option = False
 
-        self.pp.CFD_DEM.L = 0.1
-        self.pp.CFD_DEM.U = 0.3
-        self.pp.CFD_DEM.k = 2.72
-        self.pp.CFD_DEM.omega = math.pi
+        self.project_parameters.L = 0.1
+        self.project_parameters.U = 0.3
+        self.project_parameters.k = 2.72
+        self.project_parameters.omega = math.pi
 
     def GetFieldUtility(self):
-        self.flow_field = CellularFlowField(self.pp.CFD_DEM.L, self.pp.CFD_DEM.U, self.pp.CFD_DEM.k, self.pp.CFD_DEM.omega)
+        self.flow_field = CellularFlowField(self.project_parameters.L, self.project_parameters.U, self.project_parameters.k, self.project_parameters.omega)
         space_time_set = SpaceTimeSet()
         self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility
@@ -27,10 +27,10 @@ class MarineRainAnalysis(BaseAnalysis):
     def PerformZeroStepInitializations(self):
         import random
         #from random import randint
-        L = self.pp.CFD_DEM.L
-        #U = self.pp.CFD_DEM.U
-        #k = self.pp.CFD_DEM.k
-        #omega = self.pp.CFD_DEM.omega
+        L = self.project_parameters.L
+        #U = self.project_parameters.U
+        #k = self.project_parameters.k
+        #omega = self.project_parameters.omega
         N_positions = 100
         L *= math.pi
         possible_xs = [2 * L * (i + 1) / N_positions for i in range(N_positions)]
@@ -38,7 +38,7 @@ class MarineRainAnalysis(BaseAnalysis):
 
         for node in self.spheres_model_part.Nodes:
             rand_x = 2 * L * random.random()
-            rand_y = self.pp.CFD_DEM.BoundingBoxMinY + (self.pp.CFD_DEM.BoundingBoxMaxY - self.pp.CFD_DEM.BoundingBoxMinY) * random.random()
+            rand_y = self.project_parameters.BoundingBoxMinY + (self.project_parameters.BoundingBoxMaxY - self.project_parameters.BoundingBoxMinY) * random.random()
             init_x = node.X
             init_y = node.Y
             #rand_x = possible_xs[randint(0, N_positions - 1)]

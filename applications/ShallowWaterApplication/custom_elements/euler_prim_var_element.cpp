@@ -141,10 +141,17 @@ namespace Kratos
         // Get nodal values for current step and previous step (this function inlcudes the units conversion)
         this-> GetNodalValues(variables);
 
-        // Get element values (this function inlcudes the units conversion)
+        // Get element values (this function includes the units conversion)
         this-> GetElementValues(DN_DX, variables );
-        double abs_vel = norm_2(variables.velocity );
-        double height43 = std::pow(variables.height, 1.33333 );
+        const double epsilon = 1e-5;
+        const double abs_vel = norm_2(variables.velocity );
+        const double aux_height = std::abs(variables.height) + epsilon;
+        const double height43 = std::pow(aux_height, 1.3333333333333);
+        int sign;
+        if (variables.height > 0.0)
+            sign = 1;
+        else
+            sign = -1;
 
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
@@ -172,7 +179,7 @@ namespace Kratos
         // Build LHS
         // Cross terms
         noalias(rLeftHandSideMatrix)  = variables.height * aux_q_div_u;     // Add <q*h*div(u)> to Mass Eq.
-        noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;   // Add <w*g*grad(h)> to Momentum Eq.
+        noalias(rLeftHandSideMatrix) += sign * variables.gravity * aux_w_grad_h;   // Add <w*g*grad(h)> to Momentum Eq.
 
         // Convective term
         noalias(rLeftHandSideMatrix) += aux_convect;                    // Add <q*u*grad(h)> and <w*u*grad(u)> to both Eq.'s
@@ -189,7 +196,7 @@ namespace Kratos
 
         // Build RHS
         // Source term (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -variables.gravity * prod(aux_w_grad_h, variables.depth);  // Add <w,-g*grad(H)> to RHS (Momentum Eq.)
+        noalias(rRightHandSideVector)  = -sign * variables.gravity * prod(aux_w_grad_h, variables.depth);  // Add <w,-g*grad(H)> to RHS (Momentum Eq.)
 
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
@@ -197,11 +204,17 @@ namespace Kratos
         // Inertia terms
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
+        // Substracting the bottom diffusion
+        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+
         // Substracting the Dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
 
         rRightHandSideVector *= Area * variables.lumping_factor;
         rLeftHandSideMatrix *= Area * variables.lumping_factor;
+
+        double residual = norm_1 (rRightHandSideVector);
+        this->SetValue(RESIDUAL_NORM, residual);
 
         KRATOS_CATCH("")
     }

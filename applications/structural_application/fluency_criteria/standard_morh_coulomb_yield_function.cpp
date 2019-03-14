@@ -50,6 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
+#include "utilities/math_utils.h"
 #include "fluency_criteria/standard_morh_coulomb_yield_function.h"
 
 namespace Kratos
@@ -332,6 +333,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
 
     Matrix d                    = ZeroMatrix(2,2);
     Matrix d_inv                = ZeroMatrix(2,2);
+    double detd;
     array_1d<double,2> dgama    = ZeroVector(2);
     array_1d<double,2> ddgama   = ZeroVector(2);
     array_1d<double,2> residual = ZeroVector(2);
@@ -404,7 +406,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
         d(1,0) = -b - 4.00 * cosphi * cosphi *  Partial_Cohesion;
         d(1,1) = -a - 4.00 * cosphi * cosphi *  Partial_Cohesion;
 
-//        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama   = -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB

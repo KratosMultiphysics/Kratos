@@ -36,7 +36,6 @@
 "ElementType"                      : "SwimmingDEMElement",
 
 "IntegrationScheme"               : "Symplectic_Euler",
-"AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 5e-5,
 "FinalTime"                        : 0.5,
@@ -51,8 +50,6 @@
 "include_faxen_terms_option_comment"     : "(relevant if the Maxey Riley equation is used)",
 "gradient_calculation_type"              : 1,
 "gradient_calculation_type_comment"      : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-"laplacian_calculation_type"             : 2,
-"laplacian_calculation_type_comment"     : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
 "buoyancy_force_type"                    : 0,
 "buoyancy_force_type_comment"            : "null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity",
 "drag_force_type"                        : 2,
