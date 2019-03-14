@@ -28,6 +28,12 @@ class CoSimulationBaseConvergenceAccelerator(object):
     def Finalize(self):
         pass
 
+    ## Apply : Apply function for the accelerator class. Necessary
+    #               Calculation of the update and applying update to the data field will happen here.
+    #  @param self                      The object pointer.
+    def Apply(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseConvergenceAccelerator : Calling Apply function from base accelerator !" + tools.bcolors.ENDC)
+
     ## InitializeSolutionStep : Called once in the beginning of the solution step
     #
 
