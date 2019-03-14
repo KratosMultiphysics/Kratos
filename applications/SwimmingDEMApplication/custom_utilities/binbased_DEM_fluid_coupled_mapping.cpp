@@ -84,34 +84,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         }
     }
 
-    const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
-
-//    if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
-//        MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
-//    }
-
-    if (IsDEMVariable(FLUID_VEL_PROJECTED_RATE)){
-        #pragma omp parallel for
-            for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
-                NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-                Node<3>::Pointer p_particle = *(i_particle.base());
-
-                if (p_particle->IsNot(BLOCKED)){
-                    CalculateVelocityProjectedRate(p_particle);
-                }
-            }
-
-        MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
-    }
-
-//    if (IsDEMVariable(VELOCITY_OLD)){
-//        UpdateOldVelocity(r_dem_model_part);
-//    }
-
-//    if (IsDEMVariable(ADDITIONAL_FORCE_OLD)){
-//        UpdateOldAdditionalForce(r_dem_model_part);
-//    }
-
     KRATOS_CATCH("")
 }
 //***************************************************************************************************************

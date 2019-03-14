@@ -774,9 +774,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetSolver().projection_module.ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self._GetSolver().projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
-
     def PerformFinalOperations(self, time=None):
         os.chdir(self.main_path)
 

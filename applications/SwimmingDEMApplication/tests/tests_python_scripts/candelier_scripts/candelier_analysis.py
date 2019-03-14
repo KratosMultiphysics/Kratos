@@ -23,12 +23,12 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
         self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
-        #Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
+        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
 
     def GetEmbeddedCounter(self):
-        return SDP.Counter(1, 3, self.project_parameters["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        return SDP.Counter(is_dead=True)
 
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 4, 0)
@@ -65,14 +65,11 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
             node.Fix(VELOCITY_Z)
             node.SetSolutionStepValue(VELOCITY_OLD, v0)
             node.Fix(VELOCITY_OLD_Z)
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v0)
 
             if candelier_pp.include_lift:
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, 0.0)
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, 0.0)
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 2 * candelier_pp.omega)
+                vorticity = Vector([0.0, 0.0, 2.0 * candelier_pp.omega])
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED, vorticity)
 
     def _CreateSolver(self):
         import candelier_dem_solver as sdem_solver
