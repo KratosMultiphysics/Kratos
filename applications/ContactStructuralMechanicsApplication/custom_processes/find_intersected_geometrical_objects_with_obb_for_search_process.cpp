@@ -56,10 +56,19 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected
 
             // We iterate again and check intersection
             for (auto p_condition_2 : *(p_leaf->pGetObjects())) {
-                if (HasIntersection(rCondition1.GetGeometry(), p_condition_2->GetGeometry())) {
-                    rCondition1.Set(SELECTED);
-                    p_condition_2->Set(SELECTED);
+                if (p_condition_2->IsNot(VISITED)) {
+                    if (HasIntersection(rCondition1.GetGeometry(), p_condition_2->GetGeometry())) {
+                        rCondition1.Set(SELECTED);
+                        p_condition_2->Set(SELECTED);
+                    }
+                    p_condition_2->Set(VISITED);
                 }
+            }
+        }
+        // Reset VISITED flag
+        for (auto p_leaf : rLeaves) {
+            for (auto p_condition_2 : *(p_leaf->pGetObjects())) {
+                p_condition_2->Reset(VISITED);
             }
         }
     }
