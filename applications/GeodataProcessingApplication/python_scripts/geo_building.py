@@ -88,6 +88,18 @@ class GeoBuilding( GeoProcessor ):
 
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(aux_model_part, self.building_hull_model_part ).Execute()
 
+        # check the distance field
+        pos = 0; neg = 0
+        for node in aux_model_part.Nodes:
+            if node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) > 0.0:
+                pos = 1
+            if node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) < 0.0:
+                neg = 1
+
+        if ( pos == 0 or neg == 0):
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "The distance field from the building hull does not have its zero-level inside the domain.")
+            return False
+
         # inversion of the distance field
         if invert_distance_field:
             for node in aux_model_part.Nodes:
@@ -96,9 +108,9 @@ class GeoBuilding( GeoProcessor ):
         # getting rid of the +/- inf values around the zero level
         for node in aux_model_part.Nodes:
             if ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) > 1000.0 ):
-        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1.0 )
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 20.0 )
             elif ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) < -1000.0 ):
-        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0 )
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -20.0 )
 
         if (size_reduction != 0.0):
             variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
@@ -110,6 +122,7 @@ class GeoBuilding( GeoProcessor ):
             destination.SetSolutionStepValue( KratosMultiphysics.DISTANCE, source.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) + size_reduction )
 
         self.HasDistanceField = True
+        return True
 
 
     def AddDistanceFieldFromHull( self, invert_distance_field = False, size_reduction = 0.0 ):
@@ -148,6 +161,17 @@ class GeoBuilding( GeoProcessor ):
 
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(aux_model_part, self.building_hull_model_part ).Execute()
 
+        # check the distance field
+        pos = 0; neg = 0
+        for node in aux_model_part.Nodes:
+            if node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) > 0.0:
+                pos = 1
+            if node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) < 0.0:
+                neg = 1
+
+        if ( pos == 0 or neg == 0):
+            return
+
         # inversion of the distance field
         if invert_distance_field:
             for node in aux_model_part.Nodes:
@@ -156,11 +180,11 @@ class GeoBuilding( GeoProcessor ):
         # getting rid of the +/- inf values around the zero level
         for node in aux_model_part.Nodes:
             if ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) > 1000.0 ):
-        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 1.0 )
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 100.0 )
             elif ( node.GetSolutionStepValue( KratosMultiphysics.DISTANCE) < -1000.0 ):
-        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0 )
+        	    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -100.0 )
 
-        # full distance field only needed if shifts ae necessary
+        # full distance field only needed if shifts are necessary
         if (size_reduction != 0):
             variational_distance_process = self._set_variational_distance_process_serial( aux_model_part, "DistanceFromSkin" )
             variational_distance_process.Execute()
@@ -173,6 +197,25 @@ class GeoBuilding( GeoProcessor ):
             destination.SetSolutionStepValue( KratosMultiphysics.DISTANCE, distance )
 
         self.HasDistanceField = True
+
+
+    def SetInitialDistanceField( self, distance_value = 1.0 ):
+
+        for node in self.ModelPart.Nodes:
+            node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, distance_value )
+
+        self.HasDistanceField = True
+
+
+    def ShiftGlobalBuildingDistanceField( self, distance_shift_value = 0.0 ):
+
+        if not self.HasDistanceField:
+            KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Refinement around the building not possible. Please compute the distance field from the hull.")
+            return
+
+        for node in self.ModelPart.Nodes:
+            distance_value = node.GetSolutionStepValue( KratosMultiphysics.DISTANCE ) + distance_shift_value
+            node.SetSolutionStepValue( KratosMultiphysics.DISTANCE, distance_value )
 
 
     def RefineMeshNearBuilding( self, single_parameter ):
@@ -246,18 +289,20 @@ class GeoBuilding( GeoProcessor ):
         properties_1 = main_model_part.GetProperties()[1]
         main_model_part.CreateSubModelPart("AuxSubModelPart")
 
-        # Copying the content of the model
-        for node in self.ModelPart.Nodes:
-            n = main_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
-            main_model_part.GetSubModelPart("AuxSubModelPart").AddNode( n, 0 )
-        for elem in self.ModelPart.Elements:
-            nodes = elem.GetNodes()
-            e = main_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
-            main_model_part.GetSubModelPart("AuxSubModelPart").AddElement( e, 0 )
-        # coping (only!) the distance field
-        for node in self.ModelPart.Nodes:
-            receiver = main_model_part.GetNode( node.Id )
-            receiver.SetSolutionStepValue( KratosMultiphysics.DISTANCE, node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) )
+        # # Copying the content of the model --- VERY SLOW --- NOW IN C++!
+        # for node in self.ModelPart.Nodes:
+        #     n = main_model_part.CreateNewNode( node.Id, node.X, node.Y, node.Z )
+        #     main_model_part.GetSubModelPart("AuxSubModelPart").AddNode( n, 0 )
+        # for elem in self.ModelPart.Elements:
+        #     nodes = elem.GetNodes()
+        #     e = main_model_part.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
+        #     main_model_part.GetSubModelPart("AuxSubModelPart").AddElement( e, 0 )
+        # # coping (only!) the distance field
+        # for node in self.ModelPart.Nodes:
+        #     receiver = main_model_part.GetNode( node.Id )
+        #     receiver.SetSolutionStepValue( KratosMultiphysics.DISTANCE, node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) )
+
+        main_model_part = KratosGeo.CleaningUtilities( self.ModelPart ).HardCopyBeforeSurfaceDiscretization( self.ModelPart, main_model_part )
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(main_model_part)
         find_nodal_h.Execute()
@@ -360,23 +405,25 @@ class GeoBuilding( GeoProcessor ):
         self.ModelPart.RemoveSubModelPart("Complete_Boundary")
         self.ModelPart.CreateSubModelPart("Complete_Boundary")
 
-        # Copying the content of the model
-        for node in main_model_part.Nodes:
-            n = self.ModelPart.CreateNewNode( node.Id, node.X, node.Y, node.Z )
-            self.ModelPart.GetSubModelPart("Parts_Fluid").AddNode( n, 0 )
-            print( "Node " + str(node.Id) )
-        for elem in main_model_part.Elements:
-            nodes = elem.GetNodes()
-            e = self.ModelPart.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
-            self.ModelPart.GetSubModelPart("Parts_Fluid").AddElement( e, 0 )
-            print( "Element " + str(elem.Id) )
-        for cond in main_model_part.Conditions:
-            nodes = cond.GetNodes()
-            c = self.ModelPart.CreateNewCondition("Condition3D3N", cond.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id], properties_0)
-            self.ModelPart.GetSubModelPart("Complete_Boundary").AddCondition( c, 0 )
-            for node in c.GetNodes():
-                self.ModelPart.GetSubModelPart("Complete_Boundary").AddNode( node, 0 )
-            print( "Condition " + str(cond.Id) )
+        self.ModelPart = KratosGeo.CleaningUtilities( self.ModelPart ).HardCopyAfterSurfaceDiscretization( main_model_part, self.ModelPart )
+
+        # # Copying the content of the model --- VERY SLOW!
+        # for node in main_model_part.Nodes:
+        #     n = self.ModelPart.CreateNewNode( node.Id, node.X, node.Y, node.Z )
+        #     self.ModelPart.GetSubModelPart("Parts_Fluid").AddNode( n, 0 )
+        #     print( "Node " + str(node.Id) )
+        # for elem in main_model_part.Elements:
+        #     nodes = elem.GetNodes()
+        #     e = self.ModelPart.CreateNewElement("Element3D4N", elem.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], properties_1)
+        #     self.ModelPart.GetSubModelPart("Parts_Fluid").AddElement( e, 0 )
+        #     print( "Element " + str(elem.Id) )
+        # for cond in main_model_part.Conditions:
+        #     nodes = cond.GetNodes()
+        #     c = self.ModelPart.CreateNewCondition("Condition3D3N", cond.Id,  [nodes[0].Id, nodes[1].Id, nodes[2].Id], properties_0)
+        #     self.ModelPart.GetSubModelPart("Complete_Boundary").AddCondition( c, 0 )
+        #     for node in c.GetNodes():
+        #         self.ModelPart.GetSubModelPart("Complete_Boundary").AddNode( node, 0 )
+        #     print( "Condition " + str(cond.Id) )
 
 
 
@@ -406,20 +453,20 @@ class GeoBuilding( GeoProcessor ):
         """)
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
-        maximum_iterations = 5
+        maximum_iterations = 3
         if complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
                 complete_model,
                 linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
         		aux_name )
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 complete_model,
                 linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
         		aux_name )
 
         return variational_distance_process
