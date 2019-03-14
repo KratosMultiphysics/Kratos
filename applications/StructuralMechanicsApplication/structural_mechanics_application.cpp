@@ -787,7 +787,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage2DRankineMohrCoulomb", mSmallStrainIsotropicDamage2DRankineMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage2DSimoJuMohrCoulomb", mSmallStrainIsotropicDamage2DSimoJuMohrCoulomb);
 
-    // HCF
+    // HCF (High Cycle Fatigue)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawVonMisesVonMises", mSmallStrainHighCycleFatigue3DLawVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawVonMisesModifiedMohrCoulomb", mSmallStrainHighCycleFatigue3DLawVonMisesModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawVonMisesDruckerPrager", mSmallStrainHighCycleFatigue3DLawVonMisesDruckerPrager);
