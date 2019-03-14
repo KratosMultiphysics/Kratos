@@ -57,7 +57,12 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"              : false,
                 "database_step_update"        : 999999999,
                 "debug_mode"                  : false,
-                "check_gap"                   : "check_mapping"
+                "check_gap"                   : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"    : 0.1,
+                    "debug_obb"              : false,
+                    "OBB_intersection_type"  : "SeparatingAxisTheorem"
+                }
             },
             "integration_order"           : 2
         }

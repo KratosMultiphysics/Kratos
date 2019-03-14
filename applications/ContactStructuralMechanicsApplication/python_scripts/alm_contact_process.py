@@ -81,7 +81,12 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"    : 0.1,
+                    "debug_obb"              : false,
+                    "OBB_intersection_type"  : "SeparatingAxisTheorem"
+                }
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,

@@ -1497,8 +1497,9 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
         "debug_mode"                           : false,
         "octree_search_parameters" : {
             "bounding_box_factor"    : 0.1,
-            "debug_obb"              : false
-            }
+            "debug_obb"              : false,
+            "OBB_intersection_type"  : "SeparatingAxisTheorem"
+        }
     })" );
 
     return default_parameters;
