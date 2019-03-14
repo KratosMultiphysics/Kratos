@@ -300,8 +300,7 @@ public:
 
     bool SynchronizeNodalSolutionStepsData() override
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int rank = mrDataCommunicator.Rank();
 
         int destination = 0;
 
@@ -340,8 +339,10 @@ public:
                 }
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                double* receive_buffer = new double[receive_buffer_size];
+                std::vector<double> send_data(send_buffer_size);
+                std::vector<double> receive_data(receive_buffer_size);
+                double* send_buffer = send_data.data();
+                double* receive_buffer = receive_data.data();
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -350,8 +351,6 @@ public:
                     position += nodal_data_size;
                 }
 
-                MPI_Status status;
-
                 if (position > send_buffer_size)
                     std::cout << rank << " Error in estimating send buffer size...." << std::endl;
 
@@ -359,9 +358,7 @@ public:
                 int send_tag = i_color;
                 int receive_tag = i_color;
 
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
+                mrDataCommunicator.SendRecv(send_data, destination, send_tag, receive_data, destination, receive_tag);
 
                 // Updating nodes
                 position = 0;
@@ -374,9 +371,6 @@ public:
 
                 if (position > receive_buffer_size)
                     std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer;
-                delete [] receive_buffer;
             }
 
         return true;
