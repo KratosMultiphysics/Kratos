@@ -100,7 +100,7 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
-#include "custom_constitutive/linear_isotropic_damage_traction_only_3D_law.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 

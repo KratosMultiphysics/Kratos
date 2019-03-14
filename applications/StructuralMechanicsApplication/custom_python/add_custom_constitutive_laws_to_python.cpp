@@ -36,7 +36,7 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
-#include "custom_constitutive/linear_isotropic_damage_traction_only_3D_law.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 
 // Plastic, damage laws and viscosities
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
