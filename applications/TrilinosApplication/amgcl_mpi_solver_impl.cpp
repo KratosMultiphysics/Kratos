@@ -209,5 +209,3 @@ void AMGCLSolve(
 }
 
 } // namespace Kratos
-
-#endif
