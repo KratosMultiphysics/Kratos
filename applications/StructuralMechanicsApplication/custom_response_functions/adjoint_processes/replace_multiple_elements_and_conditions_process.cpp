@@ -25,6 +25,7 @@ namespace {
 template <class TEntityContainer>
 void ReplaceEntities(TEntityContainer& rEntityContainer,
                      Parameters EntitySettings,
+                     Parameters IgnoreEntities,
                      bool ThrowError)
 {
     typedef typename TEntityContainer::data_type EntityType;
@@ -37,6 +38,12 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
         );
     }
 
+    // create set with entities that should be ignored
+    std::set<std::string> ignore_entities;
+    for(auto it : IgnoreEntities){
+        ignore_entities.insert( it.GetString() );
+    }
+
     #pragma omp parallel for
     for(int i=0; i< static_cast<int>(rEntityContainer.size()); i++) {
         auto it = rEntityContainer.begin() + i;
@@ -47,12 +54,21 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
         auto it_reference_entity = entities_table.find(current_name);
 
         if (it_reference_entity == entities_table.end()) {
-            // This error is thrown in a parallel region and can not get catched
-            // or even printed properly!
-            KRATOS_ERROR_IF(ThrowError) << current_name
-                << " was not defined in the replacement table!" << std::endl;
-            // skip if no error should be thrown
-            continue;
+            if (ignore_entities.find(current_name) != ignore_entities.end()){
+                continue;
+            }
+            else if (ThrowError){
+                // This error is thrown in a parallel region and can not get catched
+                // or even printed properly!
+                KRATOS_ERROR << current_name
+                    << " was not defined in the replacement table!" << std::endl;
+            }
+            else{
+                KRATOS_WARNING_ONCE("ReplaceEntities") << "ignoring undefined entity '"
+                    << current_name  << "'!" << std::endl;
+                continue;
+            }
+
         }
 
         auto p_entitiy = it_reference_entity->second->Create(it->Id(),
@@ -78,10 +94,18 @@ void ReplaceMultipleElementsAndConditionsProcess::Execute()
     bool throw_error = mSettings["throw_error"].GetBool();
 
     // replace elements
-    ReplaceEntities(mrModelPart.Elements(), mSettings["element_name_table"], throw_error);
+    ReplaceEntities(mrModelPart.Elements(),
+        mSettings["element_name_table"],
+        mSettings["ignore_elements"],
+        throw_error
+    );
 
     // replace conditions
-    ReplaceEntities(mrModelPart.Conditions(), mSettings["condition_name_table"], throw_error);
+    ReplaceEntities(mrModelPart.Conditions(),
+        mSettings["condition_name_table"],
+        mSettings["ignore_conditions"],
+        throw_error
+    );
 
     // Change the submodelparts
     for (auto& i_sub_model_part : r_root_model_part.SubModelParts()) {

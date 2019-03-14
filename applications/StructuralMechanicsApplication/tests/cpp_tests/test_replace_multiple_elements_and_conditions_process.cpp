@@ -57,6 +57,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(ReplaceMultipleElementsAndConditionsProcess1, KratosStructuralMechanicsFastSuite)
         {
+            // all types are explicitly defined in the replacement table
             Model current_model;
             ModelPart& this_model_part =  current_model.CreateModelPart("Main");
 
@@ -118,6 +119,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(ReplaceMultipleElementsAndConditionsProcess3, KratosStructuralMechanicsFastSuite)
         {
+            // undefiend types are ignored by the replacement process
             Model current_model;
             ModelPart& this_model_part =  current_model.CreateModelPart("Main");
 
@@ -126,10 +128,10 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "element_name_table"    : {
-                    "ShellThinElement3D3N" : "ShellThinElement3D3N"
+                    "Element3D3N" : "ShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
-                    "SurfaceLoadCondition3D3N" : "SurfaceLoadCondition3D3N"
+                    "Condition3D" : "SurfaceLoadCondition3D3N"
                 },
                 "throw_error" : false
             })" );
@@ -140,13 +142,56 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "Element3D3N");
+            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
             KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
-            KRATOS_CHECK_EQUAL(component_name, "Condition3D");
+            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+
+            CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(2), component_name);
+            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
+        }
+
+
+        KRATOS_TEST_CASE_IN_SUITE(ReplaceMultipleElementsAndConditionsProcess4, KratosStructuralMechanicsFastSuite)
+        {
+            // ignored types are explicitly defined in a list
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
+
+            ReplaceMultipleProcessCreateModelPart(this_model_part);
+
+            Parameters parameters = Parameters(R"(
+            {
+                "element_name_table"    : {
+                    "Element3D3N" : "ShellThinElement3D3N"
+                },
+                "condition_name_table"    : {
+                    "Condition3D" : "SurfaceLoadCondition3D3N"
+                },
+                "ignore_elements" : [
+                    "ShellThinElement3D3N"
+                ],
+                "ignore_conditions" : [
+                    "SurfaceLoadCondition3D3N"
+                ]
+            })" );
+
+            ReplaceMultipleElementsAndConditionsProcess replacement_process(this_model_part, parameters);
+            replacement_process.Execute();
+
+            std::string component_name;
+
+            CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
+            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+
+            CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
+            KRATOS_CHECK_EQUAL(component_name, "ShellThinElement3D3N");
+
+            CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
+            KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(2), component_name);
             KRATOS_CHECK_EQUAL(component_name, "SurfaceLoadCondition3D3N");

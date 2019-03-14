@@ -65,6 +65,8 @@ public:
         {
             "element_name_table": {},
             "condition_name_table": {},
+            "ignore_elements" : [],
+            "ignore_conditions" : [],
             "throw_error" : true
         }  )" );
 
