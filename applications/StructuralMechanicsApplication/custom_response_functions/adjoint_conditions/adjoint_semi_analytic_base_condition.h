@@ -198,6 +198,15 @@ public:
 					rCurrentProcessInfo);
     }
 
+    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+					const std::vector< Variable< VectorType > >& rRHSVariables,
+					ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalCondition->CalculateRightHandSide(rRightHandSideVectors,
+					rRHSVariables,
+					rCurrentProcessInfo);
+    }
+
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
 							ProcessInfo& rCurrentProcessInfo) override
