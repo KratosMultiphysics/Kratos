@@ -69,7 +69,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddFluencyCriteriaToPython();
+void  AddFluencyCriteriaToPython(pybind11::module& m);
 
 }  // namespace Python.
 

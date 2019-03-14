@@ -89,11 +89,13 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-      :DerivedBaseType(0.0)
+      :DerivedBaseType(0.0),
+       mRayleighBeta(NODAL_MAUX)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"                   : "ResidualBasedPseudoStaticDisplacementScheme",
             "rayleigh_beta_variable" : "RAYLEIGH_BETA"
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -268,10 +270,10 @@ protected:
     {
         // Adding  damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
-            noalias(rLHSContribution) += rD * DerivedBaseType::mNewmark.c1;
+            noalias(rLHSContribution) += rD * DerivedBaseType::mBossak.c1;
         else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
-            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mNewmark.c1;
+            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mBossak.c1;
         }
     }
 
@@ -353,7 +355,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
+    Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
 
     ///@}
     ///@name Private Operators

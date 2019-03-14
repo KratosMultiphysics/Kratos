@@ -73,7 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
@@ -87,7 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos {
 //Example
 typedef Matrix fix_matrix_33;
-//typedef boost::numeric::ublas::bounded_matrix<double,3,3> fix_matrix_33;
+//typedef BoundedMatrix<double,3,3> fix_matrix_33;
 typedef Vector array3;
 //typedef array_1d<double,3> array3;
 KRATOS_CREATE_VARIABLE(fix_matrix_33, MATRIX_A)
@@ -133,13 +132,13 @@ KRATOS_CREATE_VARIABLE(Condition::Pointer, CONTACT_LINK_MASTER)
 //CONTACT_LINK_SLAVE is defined in condition.h
 KRATOS_CREATE_VARIABLE(Condition::Pointer, CONTACT_LINK_SLAVE)
 KRATOS_CREATE_VARIABLE(Node<3>::Pointer, NEAR_NODE)
-KRATOS_CREATE_VARIABLE(Point, MASTER_CONTACT_LOCAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, MASTER_CONTACT_CURRENT_LOCAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, SLAVE_CONTACT_LOCAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, MASTER_CONTACT_GLOBAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, MASTER_CONTACT_CURRENT_GLOBAL_POINT)
-KRATOS_CREATE_VARIABLE(Point, SLAVE_CONTACT_GLOBAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MASTER_CONTACT_LOCAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MASTER_CONTACT_CURRENT_LOCAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SLAVE_CONTACT_LOCAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MASTER_CONTACT_GLOBAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MASTER_CONTACT_CURRENT_GLOBAL_POINT)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SLAVE_CONTACT_GLOBAL_POINT)
 KRATOS_CREATE_VARIABLE(double, INSITU_STRESS_SCALE)
 KRATOS_CREATE_VARIABLE(double, REFERENCE_WATER_PRESSURE)
 KRATOS_CREATE_VARIABLE(double, OVERCONSOLIDATION_RATIO)
@@ -1107,7 +1106,7 @@ void KratosStructuralApplication::Register() {
 
  const MembraneElement  KratosStructuralApplication::msMembraneElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))));
 
- const Face2D  KratosStructuralApplication::msFace2D(0, Element::GeometryType::Pointer(new Line2D<Node<3> >(Element::GeometryType::PointsArrayType(2))));
+ const Face2D  KratosStructuralApplication::msFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))));
 
  const Face3D  KratosStructuralApplication::msFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))));
 */

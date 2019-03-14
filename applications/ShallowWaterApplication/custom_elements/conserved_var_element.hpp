@@ -11,9 +11,9 @@
 //
 
 #if !defined(KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED 
+#define  KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED
 
-// System includes 
+// System includes
 
 
 // External includes
@@ -117,23 +117,38 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new Primitive variables element and return a pointer to it
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< ConservedVarElement < TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< ConservedVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("")
     }
 
     Element::Pointer Create(IndexType NewId, GeometryPointerType pGeom, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< ConservedVarElement < TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< ConservedVarElement <TNumNodes> >(NewId, pGeom, pProperties);
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * It clones the selected element variables, creating a new one
+     * @param NewId the ID of the new element
+     * @param rThisNodes the nodes of the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    {
+        KRATOS_TRY
+        Element::Pointer p_new_elem = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("")
     }
 
     /// Check that all required data containers are properly initialized and registered in Kratos
-    /** 
+    /**
      * @return 0 if no errors are detected.
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
@@ -201,11 +216,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void GetNodalValues(ElementVariables& rVariables);
+    void GetNodalValues(ElementVariables& rVariables) override;
 
-    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
-
-    void CalculateLumpedMassMatrix(BoundedMatrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
+    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables) override;
 
     ///@}
     ///@name Protected  Access

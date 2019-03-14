@@ -971,7 +971,16 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                              ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
+
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+  this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+
+  KRATOS_CATCH("")
+}
+
+void CrBeamElement3D2N::CalculateRightHandSide(
+    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       ZeroMatrix(msElementSize);
@@ -986,7 +995,6 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
       ZeroVector(msElementSize);
   nodal_forces_global_q = prod(transformation_matrix, this->mNodalForces);
 
-  this->mNodalForces = nodal_forces_global_q;
   // create+compute RHS
   // update Residual
   rRightHandSideVector = ZeroVector(msElementSize);
@@ -995,18 +1003,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // add bodyforces
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
   this->mIterationCount++;
-  KRATOS_CATCH("")
-}
 
-void CrBeamElement3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  rRightHandSideVector = ZeroVector(msElementSize);
-  // this is why mNodalForces is saved -> correct reaction forces
-
-  noalias(rRightHandSideVector) -= this->mNodalForces;
-  // add bodyforces
-  noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -1149,36 +1146,33 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
                                    transformation_matrix);
 
-  Vector stress = this->mNodalForces;
-  stress = prod(trans(transformation_matrix), stress);
-
   // rOutput[GP 1,2,3][x,y,z]
 
   if (rVariable == MOMENT) {
-    rOutput[0][0] = -1.0 * stress[3] * 0.75 + stress[9] * 0.25;
-    rOutput[1][0] = -1.0 * stress[3] * 0.50 + stress[9] * 0.50;
-    rOutput[2][0] = -1.0 * stress[3] * 0.25 + stress[9] * 0.75;
+    rOutput[0][0] = -1.0 * this->mNodalForces[3] * 0.75 + this->mNodalForces[9] * 0.25;
+    rOutput[1][0] = -1.0 * this->mNodalForces[3] * 0.50 + this->mNodalForces[9] * 0.50;
+    rOutput[2][0] = -1.0 * this->mNodalForces[3] * 0.25 + this->mNodalForces[9] * 0.75;
 
-    rOutput[0][1] = -1.0 * stress[4] * 0.75 + stress[10] * 0.25;
-    rOutput[1][1] = -1.0 * stress[4] * 0.50 + stress[10] * 0.50;
-    rOutput[2][1] = -1.0 * stress[4] * 0.25 + stress[10] * 0.75;
+    rOutput[0][1] = -1.0 * this->mNodalForces[4] * 0.75 + this->mNodalForces[10] * 0.25;
+    rOutput[1][1] = -1.0 * this->mNodalForces[4] * 0.50 + this->mNodalForces[10] * 0.50;
+    rOutput[2][1] = -1.0 * this->mNodalForces[4] * 0.25 + this->mNodalForces[10] * 0.75;
 
-    rOutput[0][2] = 1.0 * stress[5] * 0.75 - stress[11] * 0.25;
-    rOutput[1][2] = 1.0 * stress[5] * 0.50 - stress[11] * 0.50;
-    rOutput[2][2] = 1.0 * stress[5] * 0.25 - stress[11] * 0.75;
+    rOutput[0][2] = 1.0 * this->mNodalForces[5] * 0.75 - this->mNodalForces[11] * 0.25;
+    rOutput[1][2] = 1.0 * this->mNodalForces[5] * 0.50 - this->mNodalForces[11] * 0.50;
+    rOutput[2][2] = 1.0 * this->mNodalForces[5] * 0.25 - this->mNodalForces[11] * 0.75;
   }
   else if (rVariable == FORCE) {
-    rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[6] * 0.25;
-    rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[6] * 0.50;
-    rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[6] * 0.75;
+    rOutput[0][0] = -1.0 * this->mNodalForces[0] * 0.75 + this->mNodalForces[6] * 0.25;
+    rOutput[1][0] = -1.0 * this->mNodalForces[0] * 0.50 + this->mNodalForces[6] * 0.50;
+    rOutput[2][0] = -1.0 * this->mNodalForces[0] * 0.25 + this->mNodalForces[6] * 0.75;
 
-    rOutput[0][1] = -1.0 * stress[1] * 0.75 + stress[7] * 0.25;
-    rOutput[1][1] = -1.0 * stress[1] * 0.50 + stress[7] * 0.50;
-    rOutput[2][1] = -1.0 * stress[1] * 0.25 + stress[7] * 0.75;
+    rOutput[0][1] = -1.0 * this->mNodalForces[1] * 0.75 + this->mNodalForces[7] * 0.25;
+    rOutput[1][1] = -1.0 * this->mNodalForces[1] * 0.50 + this->mNodalForces[7] * 0.50;
+    rOutput[2][1] = -1.0 * this->mNodalForces[1] * 0.25 + this->mNodalForces[7] * 0.75;
 
-    rOutput[0][2] = -1.0 * stress[2] * 0.75 + stress[8] * 0.25;
-    rOutput[1][2] = -1.0 * stress[2] * 0.50 + stress[8] * 0.50;
-    rOutput[2][2] = -1.0 * stress[2] * 0.25 + stress[8] * 0.75;
+    rOutput[0][2] = -1.0 * this->mNodalForces[2] * 0.75 + this->mNodalForces[8] * 0.25;
+    rOutput[1][2] = -1.0 * this->mNodalForces[2] * 0.50 + this->mNodalForces[8] * 0.50;
+    rOutput[2][2] = -1.0 * this->mNodalForces[2] * 0.25 + this->mNodalForces[8] * 0.75;
   }
 
 
