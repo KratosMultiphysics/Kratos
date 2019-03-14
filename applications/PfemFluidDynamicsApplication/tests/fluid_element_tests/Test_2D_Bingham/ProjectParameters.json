@@ -222,26 +222,6 @@
             }
         }]
     },
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "MultipleFiles"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : true,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","ACCELERATION","PRESSURE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
     "_json_output_process": [{
         "python_module" : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
