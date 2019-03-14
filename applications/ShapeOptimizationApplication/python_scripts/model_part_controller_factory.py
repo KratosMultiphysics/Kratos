@@ -35,8 +35,9 @@ class ModelPartController:
             },
             "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
             "damping" : {
-                "apply_damping"   : false,
-                "damping_regions" : []
+                "apply_damping"      : false,
+                "max_neighbor_nodes" : 10000,
+                "damping_regions"    : []
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false,
@@ -47,6 +48,7 @@ class ModelPartController:
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
+        self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
 
         self.model = model
 
