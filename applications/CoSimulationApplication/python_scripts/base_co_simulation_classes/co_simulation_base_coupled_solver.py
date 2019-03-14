@@ -119,7 +119,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                      functions of its participating solvers in a specific
     #                      order.
     #
-
     def SolveSolutionStep(self):
         err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
@@ -165,14 +164,14 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 input_data = input_data_list[i]
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
-                from_solver_data_conf = from_solver.GetDataConfig(data_name)
-                solver_data_conf = (solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())).Clone()
+                from_solver_data = from_solver.GetInterfaceData(data_name)
+                solver_data = solver.GetInterfaceData(input_data["settings"]["destination_data"].GetString())
 
                 if(input_data["settings"].Has("mapper_settings")):
-                    solver_data_conf.AddValue("origin_data_config",from_solver_data_conf)
-                    solver_data_conf.AddValue("mapper_settings", input_data["settings"]["mapper_settings"])
+                    solver_data.origin_data = from_solver_data
+                    solver_data.mapper_settings = input_data["settings"]["mapper_settings"]
 
-                solver.ImportCouplingInterfaceData(solver_data_conf, from_solver)
+                solver.ImportCouplingInterfaceData(solver_data, from_solver)
 
     ## _SynchronizeOutputData : Protected Function to synchronize the out put data between the solver
     #                           interface and the remote solver. This assumes that the remote solver
@@ -183,18 +182,19 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             solver = self.participating_solvers[solver_name]
             output_data_list = self.solver_settings[solver_name]["output_data_list"]
             num_output_data = output_data_list.size()
+
             for i in range(num_output_data):
                 output_data = output_data_list[i]
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
-                to_solver_data_conf = to_solver.GetDataConfig(data_name)
-                solver_data_conf = (solver.GetDataConfig(output_data["settings"]["origin_data"].GetString())).Clone()
+                to_solver_data = to_solver.GetInterfaceData(data_name)
+                solver_data = solver.GetInterfaceData(output_data["settings"]["origin_data"].GetString())
 
                 if(output_data["settings"].Has("mapper_settings")):
-                    solver_data_conf.AddValue("destination_data_config",to_solver_data_conf)
-                    solver_data_conf.AddValue("mapper_settings", output_data["settings"]["mapper_settings"])
+                    solver_data.destination_data = to_solver_data
+                    solver_data.mapper_settings = output_data["settings"]["mapper_settings"]
 
-                solver.ExportCouplingInterfaceData(solver_data_conf, to_solver)
+                solver.ExportCouplingInterfaceData(solver_data, to_solver)
 
     ## _CreateSolvers : Private Function to make the participating solver objects
     #
@@ -228,18 +228,36 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     ## _CreateConvergenceAccelerators : Protected Function to make convergence accelerator objects list
     #
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
-    def _CreateConvergenceAccelerators(self, conv_acc_settings): # probably better in some utils file
-        conv_accelerators = []
-        num_acceleratos = conv_acc_settings.size()
+    def _CreateConvergenceAccelerators(self, co_simulation_solver_settings): # probably better in some utils file
         import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
-        for i in range(num_acceleratos):
-            accelerator_settings = conv_acc_settings[i]
-            solver_name = accelerator_settings["data"]["solver"].GetString()
+        num_solvers = co_simulation_solver_settings.size()
+        solver_cosim_details = {}
+        for i_solver in range(num_solvers):
+            solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
             solver = self.participating_solvers[solver_name]
-            accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver)
-            conv_accelerators.append(accelerator)
 
-        return conv_accelerators
+            ## for all the input data
+            input_data_list = self.solver_settings[solver_name]["input_data_list"]
+            num_input_data = input_data_list.size()
+            for i in range(num_input_data):
+                input_data = input_data_list[i]
+                filters_list = input_data["filters"]
+                destination_data = solver.GetInterfaceData(input_data["settings"]["destination_data"].GetString())
+                for filter in filters_list:
+                    accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver) ## TODO: should change to filter
+                    destination_data.filters.append(accelerator)
+
+
+            ## for all the output data
+            output_data_list = self.solver_settings[solver_name]["output_data_list"]
+            num_output_data = output_data_list.size()
+            for i in range(num_output_data):
+                output_data = output_data_list[i]
+                filters_list = input_data["filters"]
+                origin_data = solver.GetInterfaceData(input_data["settings"]["origin_data"].GetString())
+                for filter in filters_list:
+                    accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver) ## TODO: should change to filter
+                    origin_data.filters.append(accelerator)
 
     ## _CreateConvergenceCriteria : Private Function to make convergence criteria objects list #Comment protected
     #
