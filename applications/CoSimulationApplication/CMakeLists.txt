@@ -84,8 +84,4 @@ python_path = os.path.join(application_path, 'custom_data_structure')
 sys.path.append(python_path)
 ")
 
-    file(GLOB PY_KRATOS  "${CMAKE_CURRENT_SOURCE_DIR}/custom_data_structure/pyKratos/*.py")
-    #configure_file("${PY_KRATOS}" "${KRATOS_DIR}/KratosMultiphysics/" COPYONLY)
-    file(COPY ${PY_KRATOS} DESTINATION "${KRATOS_DIR}/KratosMultiphysics/CoSimulationApplication/pyKratos")
-
-endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
+endif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
