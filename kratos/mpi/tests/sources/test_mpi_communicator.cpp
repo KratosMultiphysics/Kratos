@@ -71,17 +71,31 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorCreation, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
 
-    /*const MPICommunicator constructed_communicator = MPICommunicator(r_world);
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Test regular construction
+    const MPICommunicator constructed_communicator = MPICommunicator(&r_model_part.GetNodalSolutionStepVariablesList(), r_world);
 
     KRATOS_CHECK_EQUAL(constructed_communicator.IsDistributed(), true);
     KRATOS_CHECK_EQUAL(constructed_communicator.MyPID(), r_world.Rank());
     KRATOS_CHECK_EQUAL(constructed_communicator.TotalProcesses(), r_world.Size());
 
+    // Test creation with given DataCommunicator
     Communicator::Pointer p_created_communicator = constructed_communicator.Create(r_world);
 
     KRATOS_CHECK_EQUAL(p_created_communicator->IsDistributed(), true);
     KRATOS_CHECK_EQUAL(p_created_communicator->MyPID(), r_world.Rank());
-    KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());*/
+    KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());
+
+    // Test creation using reference's DataCommunicator
+    p_created_communicator.reset();
+    p_created_communicator = constructed_communicator.Create();
+
+    KRATOS_CHECK_EQUAL(p_created_communicator->IsDistributed(), true);
+    KRATOS_CHECK_EQUAL(p_created_communicator->MyPID(), r_world.Rank());
+    KRATOS_CHECK_EQUAL(p_created_communicator->TotalProcesses(), r_world.Size());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
