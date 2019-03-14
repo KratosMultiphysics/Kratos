@@ -130,7 +130,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
                     reference_vel_x = values[1]
                     reference_vel_y = values[2]
 
-                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                    velocity = node.GetSolutionStepValue(km.VELOCITY)
                     self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
                     self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
 

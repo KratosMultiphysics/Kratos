@@ -26,10 +26,6 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-#include "custom_elements/sksy_fluid_element.h"
-#include "custom_conditions/sksy_fluid_condition.h"
-#include "custom_conditions/chimera_fluid_coupling_condition.h"
-#include "custom_conditions/chimera_thermal_coupling_condition.h"
 
 
 namespace Kratos {
@@ -183,20 +179,6 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-
-	// Skew-symmetric fluid element
-	const SkSyFluidElement<2> mSkSyFluidElement2D3N;
-	const SkSyFluidElement<3> mSkSyFluidElement3D4N;
-
-	const SkSyFluidCondition<2> mSkSyFluidCondition2D2N;
-	const SkSyFluidCondition<3> mSkSyFluidCondition3D3N;
-
-	// Old Chimera Neumann conditions
-    const ChimeraFluidCouplingCondition<2> mChimeraFluidCouplingCondition2D;
-    const ChimeraFluidCouplingCondition<3> mChimeraFluidCouplingCondition3D;
-    const ChimeraThermalCouplingCondition<2> mChimeraThermalCouplingCondition2D;
-    const ChimeraThermalCouplingCondition<3> mChimeraThermalCouplingCondition3D;
-
 
 	///@}
 	///@name Private Operators

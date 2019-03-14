@@ -28,7 +28,6 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Construction of NavierStokesSolverMonolithic finished.")
 
-
     def AddVariables(self):
         super(NavierStokesSolverMonolithicChimera,self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
@@ -83,8 +82,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
                                                                                 KratosCFD.PATCH_INDEX)
         else:
             if (self.implementation == "MPC"):
-                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
-                #builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithMpcChimera(self.linear_solver)
+                #builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
+                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithMpcChimera(self.linear_solver)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 

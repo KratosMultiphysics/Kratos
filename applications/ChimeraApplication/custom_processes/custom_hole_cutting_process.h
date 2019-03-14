@@ -230,16 +230,16 @@ class CustomHoleCuttingProcess
 				//Adding node all the node Ids of the elements satisfying the condition
 				for (j = 0; j <numNodesPerElem; j++)
 				{
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0) = 0.0;
 					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
+						pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,1) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,1) = 0.0;
 					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
+						pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z,1) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1) = 0.0;
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 				}
 			}
@@ -310,16 +310,16 @@ class CustomHoleCuttingProcess
 				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
 				for (j = 0; j <numNodesPerElem; j++)
 				{
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,0) = 0.0;
 					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
+						pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X,1) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y,1) = 0.0;
 					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
+						pElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z,1) = 0.0;
+					pElem->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1) = 0.0;
 				}
 			}
 			 else

@@ -75,11 +75,11 @@ namespace Python
       .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcessChimera::AddMasterSlaveRelation)
       .def("PrintData", &ApplyMultipointConstraintsProcessChimera::PrintData);*/
 
-      class_<VtkOutput>(m, "VtkOutput")
+        /*class_<VtkOutput>(m, "VtkOutput")
         .def(init< ModelPart&, std::string, Parameters >())
         .def("PrintOutput", &VtkOutput::PrintOutput)
         .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart)
-        ;
+        ; */
 
       class_ < InterpolationUtility<2>>(m, "InterpolationUtility2D")
         .def( init<>() )
