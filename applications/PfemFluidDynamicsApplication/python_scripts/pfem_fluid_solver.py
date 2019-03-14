@@ -262,12 +262,15 @@ class PfemFluidSolver(PythonSolver):
         print ("::[Pfem Fluid Solver]:: Model reading finished.")
 
     def _ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
-        else:
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        ## Automatic time step computation according to user defined CFL number
+        #if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+            #adaptive_time_interval.Execute()
+        ## User-defined delta time
+        #else:
+        #   delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        
+	delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
 
@@ -305,8 +308,9 @@ class PfemFluidSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             self.fluid_solver.InitializeSolutionStep()
 
-        adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
-        adaptive_time_interval.Execute()
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+            adaptive_time_interval.Execute()
 
         #pass
         #unactive_peak_elements = False
