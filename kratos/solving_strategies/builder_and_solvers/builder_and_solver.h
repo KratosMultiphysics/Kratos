@@ -116,7 +116,7 @@ public:
 
     /// Pointer definition of BuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
-  
+
     /**
      * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise builder and solver
      * @details Private pointers can only be accessed by means of set and get functions this allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
@@ -214,8 +214,8 @@ public:
         mpLinearSystemSolver = pNewLinearSystemSolver;
     }
 
-    /** 
-     * @brief Default constructor. 
+    /**
+     * @brief Default constructor.
      * @param pNewLinearSystemSolver The linear solver for the system of equations
      */
     explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
@@ -314,7 +314,7 @@ public:
         return mpLinearSystemSolver;
     }
 
-        /**
+    /**
      * @brief This method sets the linear solver to be used
      * @param pLinearSystemSolver The linear solver to be used
      */
@@ -619,8 +619,7 @@ public:
         this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
-            << "Clear Function called" << std::endl;
+        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
     }
 
     /**
@@ -646,6 +645,7 @@ public:
      * - 1: Printing time and basic informations
      * - 2: Printing linear solver data
      * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 4: Print of stiffness matrix, b to Matrix Market
      */
     void SetEchoLevel(int Level)
     {
