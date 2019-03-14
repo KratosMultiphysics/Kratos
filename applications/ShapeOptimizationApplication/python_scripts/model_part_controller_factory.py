@@ -39,15 +39,12 @@ class ModelPartController:
                 "damping_regions" : []
             },
             "mesh_motion" : {
-                "apply_mesh_solver" : false,
-                "solver_settings" : { },
-                "processes" : {}
+                "apply_mesh_solver" : false
             }
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
-        self.model_settings["mesh_motion"].ValidateAndAssignDefaults(default_settings["mesh_motion"])
 
         self.model = model
 
