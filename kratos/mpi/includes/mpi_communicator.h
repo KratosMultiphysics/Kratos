@@ -735,9 +735,6 @@ public:
      */
     bool SynchronizeOrNodalFlags(const Flags& TheFlags) override
     {
-        //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
-        MPIDataCommunicator world_comm(MPI_COMM_WORLD);
-
         constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
 
         const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
@@ -769,7 +766,7 @@ public:
                     isend += flag_size;
                 }
 
-                world_comm.SendRecv(
+                mrDataCommunicator.SendRecv(
                     send_buffer, r_neighbour_indices[step], step,
                     *(receive_buffers[step]), r_neighbour_indices[step], step);
             }
@@ -803,9 +800,6 @@ public:
      */
     bool SynchronizeAndNodalFlags(const Flags& TheFlags) override
     {
-        //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
-        MPIDataCommunicator world_comm(MPI_COMM_WORLD);
-
         constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
 
         const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
@@ -837,7 +831,7 @@ public:
                     isend += flag_size;
                 }
 
-                world_comm.SendRecv(
+                mrDataCommunicator.SendRecv(
                     send_buffer, r_neighbour_indices[step], step,
                     *(receive_buffers[step]), r_neighbour_indices[step], step);
             }
@@ -1300,9 +1294,6 @@ private:
 
     bool SynchronizeNodalFlags(const Flags TheFlags)
     {
-        //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
-        MPIDataCommunicator world_comm(MPI_COMM_WORLD);
-
         constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
 
         const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
@@ -1334,7 +1325,7 @@ private:
                     isend += flag_size;
                 }
 
-                world_comm.SendRecv(
+                mrDataCommunicator.SendRecv(
                     send_buffer, r_neighbour_indices[step], step,
                     recv_buffer, r_neighbour_indices[step], step);
 
