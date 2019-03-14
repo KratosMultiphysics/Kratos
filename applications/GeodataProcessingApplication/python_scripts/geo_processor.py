@@ -85,3 +85,19 @@ class GeoProcessor:
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
+
+    def WriteMdpaOutput( self, mdpa_file_name):
+
+        if self.HasModelPart:
+            model_part = self.ModelPart
+            model_part_io = Kratos.ModelPartIO("WithBridge", Kratos.IO.WRITE)
+            model_part_io.WriteModelPart( model_part )
+        else:
+            Kratos.Logger.PrintWarning("WriteMdpaOutput", "No model part is present. \n")
+
+    def ReadMdpaInput( self, mdpa_file_name):
+
+        if self.HasModelPart:
+            Kratos.Logger.PrintWarning("ReadMdpaInput", "Reading an MDPA input file replaced the ModelPart  \n")
+        else:
+            Kratos.Logger.PrintWarning("ReadMdpaInput", "No model part is present. \n")
