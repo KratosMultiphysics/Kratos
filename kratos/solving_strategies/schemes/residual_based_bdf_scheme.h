@@ -417,9 +417,12 @@ protected:
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
 
+        // Getting first node iterator
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);

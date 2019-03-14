@@ -94,12 +94,15 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             order = self._bdf_integration_order()
             # In case of rotation dof we declare the dynamic variables
             if self.settings["rotation_dofs"].GetBool():
-                dynamic_variables = KratosMultiphysics.Parameters(""" {
+                bdf_parameters = KratosMultiphysics.Parameters(""" {
+                    "domain_size"           : 3,
+                    "integration_order"     : 2,
                     "variable"              : ["DISPLACEMENT","ROTATION"],
                     "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
                     "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
-                    } """)
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, dynamic_variables)
+                } """)
+                bdf_parameters["domain_size"],SetInt(proces_info[KratosMultiphysics.DOMAIN_SIZE])
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, bdf_parameters)
             else:
                 mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):

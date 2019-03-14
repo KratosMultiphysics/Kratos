@@ -186,48 +186,40 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-        const double delta_time = current_process_info[DELTA_TIME];
+        // Getting process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Getting delta time
+        const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
 
+        // Getting first node iterator
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
             //ATTENTION::: the prediction is performed only on free nodes
             std::size_t counter = 0;
-            for ( const auto& i_var : mDoubleVariable) {
+            for ( const auto& var : mDoubleVariable) {
                 // Derivatives
-                const Variable<double> dvar = mFirtsDoubleDerivatives[counter];
-                const Variable<double> d2var = mSecondDoubleDerivatives[counter];
+                const auto& dvar = mFirtsDoubleDerivatives[counter];
+                const auto& d2var = mSecondDoubleDerivatives[counter];
 
-                ComputePredictComponent(it_node, i_var, dvar, d2var, delta_time);
+                ComputePredictComponent(it_node, var, dvar, d2var, delta_time);
 
                 counter++;
             }
             counter = 0;
-            for ( const auto& i_var : mArrayVariable) {
-                // Components
-                const std::string& variable_name = (i_var).Name();
-                const VariableComponent<ComponentType>& var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
-                const VariableComponent<ComponentType>& var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
-                const VariableComponent<ComponentType>& var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z");
-                const std::string& dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
-                const VariableComponent<ComponentType>& dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_X");
-                const VariableComponent<ComponentType>& dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Y");
-                const std::string& d2variable_name = (mSecondArrayDerivatives[counter]).Name();
-                const VariableComponent<ComponentType>& d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_X");
-                const VariableComponent<ComponentType>& d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Y");
+            for ( const auto& var : mArrayVariable) {
+                // Derivatives
+                const auto& dvar = mFirtsArrayDerivatives[counter];
+                const auto& d2var = mSecondArrayDerivatives[counter];
 
-                ComputePredictComponent(it_node, var_x, dvar_x, d2var_x, delta_time);
-                ComputePredictComponent(it_node, var_y, dvar_y, d2var_y, delta_time);
-                if (it_node -> HasDofFor(var_z)) {
-                    const VariableComponent<ComponentType>& dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Z");
-                    const VariableComponent<ComponentType>& d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Z");
-                    ComputePredictComponent(it_node, var_z, dvar_z, d2var_z, delta_time);
-                }
+                ComputePredictComponent(it_node, var, dvar, d2var, delta_time);
                 counter++;
             }
 
@@ -271,31 +263,25 @@ public:
             KRATOS_CHECK_VARIABLE_KEY(i_var)
 
         // Check that variables are correctly allocated
-        for(auto& rnode : rModelPart.Nodes()) {
+        for(auto& r_node : rModelPart.Nodes()) {
             for ( const auto& i_var : mDoubleVariable)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
             for ( const auto& i_var : mFirtsDoubleDerivatives)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
             for ( const auto& i_var : mSecondDoubleDerivatives)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
             for ( const auto& i_var : mArrayVariable)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
             for ( const auto& i_var : mFirtsArrayDerivatives)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
             for ( const auto& i_var : mSecondArrayDerivatives)
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, r_node)
 
             for ( const auto& i_var : mDoubleVariable)
-                KRATOS_CHECK_DOF_IN_NODE(i_var, rnode)
+                KRATOS_CHECK_DOF_IN_NODE(i_var, r_node)
 
             for ( const auto& i_var : mArrayVariable) {
-                const std::string& variable_name = (i_var).Name();
-                const VariableComponent<ComponentType>& var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
-                const VariableComponent<ComponentType>& var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
-                const VariableComponent<ComponentType>& var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z");
-                KRATOS_CHECK_DOF_IN_NODE(var_x, rnode)
-                KRATOS_CHECK_DOF_IN_NODE(var_y, rnode)
-                KRATOS_CHECK_DOF_IN_NODE(var_z, rnode)
+                KRATOS_CHECK_DOF_IN_NODE(i_var, r_node)
             }
         }
 
@@ -347,12 +333,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::vector<Variable< double>> mDoubleVariable;                     /// The double variables
-    std::vector<Variable< double>> mFirtsDoubleDerivatives;             /// The first derivative double variable to compute
-    std::vector<Variable< double>> mSecondDoubleDerivatives;            /// The second derivative double variable to compute
-    std::vector<Variable<array_1d<double, 3>>> mArrayVariable;          /// The array variables to compute
-    std::vector<Variable<array_1d<double, 3>>> mFirtsArrayDerivatives;  /// The first derivative array variable to compute
-    std::vector<Variable<array_1d<double, 3>>> mSecondArrayDerivatives; /// The second derivative array variable to compute
+    std::vector<Variable<double>> mDoubleVariable;                         /// The double variables
+    std::vector<Variable<double>> mFirtsDoubleDerivatives;                 /// The first derivative double variable to compute
+    std::vector<Variable<double>> mSecondDoubleDerivatives;                /// The second derivative double variable to compute
+    std::vector<VariableComponent<ComponentType>> mArrayVariable;          /// The array variables to compute
+    std::vector<VariableComponent<ComponentType>> mFirtsArrayDerivatives;  /// The first derivative array variable to compute
+    std::vector<VariableComponent<ComponentType>> mSecondArrayDerivatives; /// The second derivative array variable to compute
 
     ///@}
     ///@name Protected Operators
@@ -383,28 +369,12 @@ protected:
         // ARRAYS
         counter = 0;
         for ( const auto& i_var : mArrayVariable) {
-
-            const std::string& dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
-            const VariableComponent<ComponentType>& dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_X");
-            const VariableComponent<ComponentType>& dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_Y");
-            const VariableComponent<ComponentType>& dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name + "_Z");
-
-            array_1d<double, 3> auxiliar_dotun0 =  BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(auxiliar_dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
-
-            // We check if the dofs are fixed
-            array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
-            if (!itNode->IsFixed(dvar_x)) {
-                dotun0[0] = auxiliar_dotun0[0];
+            if (!itNode->IsFixed(mFirtsArrayDerivatives[counter])) {
+                double& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
+                dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
             }
-            if (!itNode->IsFixed(dvar_y)) {
-                dotun0[1] = auxiliar_dotun0[1];
-            }
-            if (!itNode->IsFixed(dvar_z)) {
-                dotun0[2] = auxiliar_dotun0[2];
-            }
-
             counter++;
         }
     }
@@ -430,28 +400,12 @@ protected:
         // ARRAYS
         counter = 0;
         for ( const auto& i_var : mFirtsArrayDerivatives) {
-
-            const std::string& d2variable_name = (mSecondArrayDerivatives[counter]).Name();
-            const VariableComponent<ComponentType>& d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_X");
-            const VariableComponent<ComponentType>& d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_Y");
-            const VariableComponent<ComponentType>& d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name + "_Z");
-
-            array_1d<double, 3> auxiliar_dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(auxiliar_dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
-
-            // We check if the dofs are fixed
-            array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
-            if (!itNode->IsFixed(d2var_x)) {
-                dot2un0[0] = auxiliar_dot2un0[0];
+            if (!itNode->IsFixed(mSecondArrayDerivatives[counter])) {
+                double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
+                dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
             }
-            if (!itNode->IsFixed(d2var_y)) {
-                dot2un0[1] = auxiliar_dot2un0[1];
-            }
-            if (!itNode->IsFixed(d2var_z)) {
-                dot2un0[2] = auxiliar_dot2un0[2];
-            }
-
             counter++;
         }
     }
@@ -544,7 +498,10 @@ private:
         KRATOS_ERROR_IF(n_variables != n_first_derivative) << "Your list of variables is not the same size as the list of first derivatives variables" << std::endl;
         KRATOS_ERROR_IF(n_variables != n_second_derivative) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
 
-        for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
+        // The current dimension
+        const std::size_t domain_size = ThisParameters["domain_size"].GetInt();
+
+        for (std::size_t i_var = 0; i_var < n_variables; ++i_var){
             const std::string& variable_name = ThisParameters["variable"].GetArrayItem(i_var).GetString();
             const std::string& first_derivative_name = ThisParameters["first_derivative"].GetArrayItem(i_var).GetString();
             const std::string& second_derivative_name = ThisParameters["second_derivative"].GetArrayItem(i_var).GetString();
@@ -560,9 +517,22 @@ private:
                 Variable<array_1d< double, 3>> variable = KratosComponents< Variable<array_1d< double, 3>> >::Get(variable_name);
                 Variable<array_1d< double, 3>> first_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(first_derivative_name);
                 Variable<array_1d< double, 3>> second_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(second_derivative_name);
-                mArrayVariable.push_back(variable);
-                mFirtsArrayDerivatives.push_back(first_derivative);
-                mSecondArrayDerivatives.push_back(second_derivative);
+
+                // Components
+                mArrayVariable.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X"));
+                mArrayVariable.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y"));
+                if (domain_size == 3)
+                    mArrayVariable.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z"));
+
+                mFirtsArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
+                mFirtsArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
+                if (domain_size == 3)
+                    mFirtsArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
+
+                mSecondArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
+                mSecondArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
+                if (domain_size == 3)
+                    mSecondArrayDerivatives.push_back(KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
             } else {
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
@@ -578,6 +548,7 @@ private:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                  : "ResidualBasedBDFCustomScheme",
+            "domain_size"           : 3,
             "integration_order"     : 2,
             "variable"              : ["DISPLACEMENT"],
             "first_derivative"      : ["VELOCITY"],
