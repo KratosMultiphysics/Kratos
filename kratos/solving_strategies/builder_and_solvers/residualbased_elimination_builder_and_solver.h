@@ -1030,7 +1030,7 @@ protected:
 #endif
         )
     {
-        SizeType local_size = rLHSContribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];
@@ -1196,31 +1196,29 @@ protected:
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];
+
             if (i_global < BaseType::mEquationSystemSize) {
-                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    const IndexType j_global = rEquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
-                        rA(i_global, j_global) += rLHSContribution(i_local, j_local);
-                }
+                AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
             }
+            //note that computation of reactions is not performed here!
         }
     }
 
     /**
-    * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
-    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
-    */
+     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
+     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+     */
     inline void AssembleRowContributionFreeDofs(
-        TSystemMatrixType& A,
-        const Matrix& Alocal,
+        TSystemMatrixType& rA,
+        const Matrix& rALocal,
         const IndexType i,
         const IndexType i_local,
         const Element::EquationIdVectorType& EquationId
         )
     {
-        double* values_vector = A.value_data().begin();
-        IndexType* index1_vector = A.index1_data().begin();
-        IndexType* index2_vector = A.index2_data().begin();
+        double* values_vector = rA.value_data().begin();
+        IndexType* index1_vector = rA.index1_data().begin();
+        IndexType* index2_vector = rA.index2_data().begin();
 
         const IndexType left_limit = index1_vector[i];
 
@@ -1244,11 +1242,11 @@ protected:
         if (counter <= EquationId.size()) {
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
-            const double& v_a = Alocal(i_local,counter - 1);
+            const double& v_a = rALocal(i_local,counter - 1);
             #pragma omp atomic
             r_a +=  v_a;
 #else
-            values_vector[last_pos] += Alocal(i_local,counter - 1);
+            values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
             // Now find all of the other entries
             IndexType pos = 0;
@@ -1264,11 +1262,11 @@ protected:
 
 #ifndef USE_LOCKS_IN_ASSEMBLY
                     double& r = values_vector[pos];
-                    const double& v = Alocal(i_local,j);
+                    const double& v = rALocal(i_local,j);
                     #pragma omp atomic
                     r +=  v;
 #else
-                    values_vector[pos] += Alocal(i_local,j);
+                    values_vector[pos] += rALocal(i_local,j);
 #endif
                     last_found = id_to_find;
                     last_pos = pos;
@@ -1369,7 +1367,7 @@ private:
                 }
             }
         } else {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+            TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
             for (IndexType i_local = 0; i_local < local_size; ++i_local) {
                 const IndexType i_global = rEquationId[i_local];
 
@@ -1381,7 +1379,7 @@ private:
                     #pragma omp atomic
                     b_value += rhs_value;
                 } else { // Fixed dof
-                    double& b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
+                    double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
                     const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
@@ -1404,12 +1402,68 @@ private:
         )
     {
         const SizeType local_size = rLHSContribution.size1();
+
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];
+
             if (i_global < BaseType::mEquationSystemSize) {
-                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    const IndexType j_global = rEquationId[j_local];
-                    rA(i_global, j_global) += rLHSContribution(i_local, j_local);
+                AssembleRowContributionCompleteOnFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
+            }
+            //note that computation of reactions is not performed here!
+        }
+    }
+
+    /**
+     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver (designed for the AssembleLHSCompleteOnFreeRows)
+     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+     */
+    inline void AssembleRowContributionCompleteOnFreeDofs(
+        TSystemMatrixType& rA,
+        const Matrix& rALocal,
+        const IndexType i,
+        const IndexType i_local,
+        const Element::EquationIdVectorType& EquationId
+        )
+    {
+        double* values_vector = rA.value_data().begin();
+        IndexType* index1_vector = rA.index1_data().begin();
+        IndexType* index2_vector = rA.index2_data().begin();
+
+        const IndexType left_limit = index1_vector[i];
+
+        // Find the first entry
+        // We iterate over the equation ids until we find the first equation id to be considered
+        // We count in which component we find an ID
+        IndexType last_pos = 0;
+        IndexType last_found = 0;
+        IndexType counter = 0;
+        for(IndexType j=0; j < EquationId.size(); ++j) {
+            ++counter;
+            const IndexType j_global = EquationId[j];
+            last_pos = ForwardFind(j_global,left_limit,index2_vector);
+            last_found = j_global;
+            break;
+        }
+
+        // If the counter is equal to the size of the EquationID vector that means that only one dof will be considered, if the number is greater means that all the dofs are fixed. If the number is below means that at we have several dofs free to be considered
+        if (counter <= EquationId.size()) {
+            values_vector[last_pos] += rALocal(i_local,counter - 1);
+            // Now find all of the other entries
+            IndexType pos = 0;
+            for(IndexType j = counter; j < EquationId.size(); ++j) {
+                IndexType id_to_find = EquationId[j];
+                if (id_to_find < BaseType::mEquationSystemSize) {
+                    if(id_to_find > last_found)
+                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+                    else if(id_to_find < last_found)
+                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+                    else
+                        pos = last_pos;
+
+                    values_vector[pos] += rALocal(i_local,j);
+
+                    last_found = id_to_find;
+                    last_pos = pos;
                 }
             }
         }
