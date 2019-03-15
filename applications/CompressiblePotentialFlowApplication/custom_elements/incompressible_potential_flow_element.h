@@ -62,6 +62,8 @@ public:
     ///@{
 
     typedef Element BaseType;
+    static constexpr int TNumNodes = NumNodes;
+    static constexpr int TDim = Dim;
 
     ///@}
     ///@name Pointer Definitions
