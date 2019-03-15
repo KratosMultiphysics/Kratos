@@ -108,6 +108,7 @@ public:
           mAbsoluteTolerance(AbsoluteTolerance)
     {
         mInitialResidualIsSet = false;
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Copy constructor.
@@ -125,6 +126,8 @@ public:
       ,mReferenceResidualDispNorm(rOther.mReferenceResidualDispNorm)
       ,mReferenceResidualOtherDoFNorm(rOther.mReferenceResidualOtherDoFNorm)
     {
+        mInitialResidualIsSet = false;
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Destructor.
@@ -157,12 +160,6 @@ public:
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
-
-            if (mInitialResidualIsSet == false)
-            {
-                CalculateResidualNorm(rDofSet, b, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm);
-                mInitialResidualIsSet = true;
-            }
 
             TDataType RatioDisplacement = 0.0;
             TDataType RatioOtherDoF     = 0.0;
@@ -248,7 +245,11 @@ public:
         const TSystemVectorType& b
     ) override
     {
-        mInitialResidualIsSet = false;
+        if (TSparseSpace::Size(b) != 0) //if we are solving for something
+        {
+            CalculateResidualNorm(rDofSet, b, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm);
+            mInitialResidualIsSet = true;
+        }
     }
 
     /**
