@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import packages
 import numpy as np
+from scipy.stats import norm
 import copy
 import time
 
@@ -240,6 +241,7 @@ class MultilevelMonteCarlo(object):
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
         # confidence: confidence on tolerance
+        # cphi_confidence: CDF**-1 (confidence) where CDF**-1 is the inverse of the CDF of the standard normal distribution, the default value is computed for confidence = 0.9
         # number_samples_screening: number of samples for screening phase
         # number_levels_screening: number of levels for screening phase
         # maximum_number_levels: maximum number of levels
@@ -258,7 +260,8 @@ class MultilevelMonteCarlo(object):
             "r2" : 1.15,
             "initial_tolerance" : 0.25,
             "tolerance" : 0.1,
-            "confidence" : 1.0,
+            "confidence" : 0.9,
+            "cphi_confidence" : 1.28155156554,
             "number_samples_screening" : 25,
             "levels_screening" : 2,
             "maximum_number_levels" : 4,
@@ -273,6 +276,11 @@ class MultilevelMonteCarlo(object):
         # warning if initial_mesh_size parameter not set by the user
         if not (self.settings.Has("initial_mesh_size")):
             print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
+        # compute cphi = CDF**-1 (confidence)
+        self.settings.AddEmptyValue("cphi_confidence")
+        if (self.settings["confidence"].GetDouble()<1.0):
+            self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
+        self.settings["cphi_confidence"].SetDouble(norm.ppf(self.settings["confidence"].GetDouble()))
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # current_number_levels: number of levels of current iteration
@@ -828,7 +836,7 @@ class MultilevelMonteCarlo(object):
         gamma  = self.rates_error["gamma"]
         calpha = self.rates_error["calpha"]
         alpha = self.rates_error["alpha"]
-        cphi = self.settings["confidence"].GetDouble()
+        cphi = self.settings["cphi_confidence"].GetDouble()
         mesh_parameters_all_levels = self.mesh_parameters
         Lmax = self.settings["maximum_number_levels"].GetInt()
         Lmin = self.current_number_levels
@@ -891,7 +899,7 @@ class MultilevelMonteCarlo(object):
         min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_samples_add_level"].GetDouble())
         cgamma = self.rates_error["cgamma"]
         gamma  = self.rates_error["gamma"]
-        cphi = self.settings["confidence"].GetDouble()
+        cphi = self.settings["cphi_confidence"].GetDouble()
         mesh_parameters_current_levels = self.mesh_parameters[0:current_number_levels+1]
         theta = self.theta_i
         tol = self.tolerance_i
@@ -956,7 +964,7 @@ class MultilevelMonteCarlo(object):
         variance_from_bayesian = np.zeros(np.size(self.number_samples))
         for lev in range(self.current_number_levels+1):
             variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]
-        self.difference_QoI.statistical_error = self.settings["confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
+        self.difference_QoI.statistical_error = self.settings["cphi_confidence"].GetDouble() * np.sqrt(np.sum(variance_from_bayesian))
         total_error = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
         self.total_error = total_error
 
