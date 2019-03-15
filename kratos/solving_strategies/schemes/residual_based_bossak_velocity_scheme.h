@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "utilities/derivatives_extension.h"
+#include "utilities/scheme_extension.h"
 #include "utilities/indirect_scalar.h"
 #include "utilities/time_discretization.h"
 
@@ -36,7 +36,7 @@ namespace Kratos
 /// A scheme for steady and dynamic equations, using Bossak time integration.
 /**
  * It can be used for either first- or second-order time derivatives. Elements
- * and conditions must provide a specialization of DerivativesExtension via
+ * and conditions must provide a specialization of SchemeExtension via
  * their data value container, which allows the scheme to operate independently
  * of the variable arrangements in the element or condition.
  */
@@ -553,7 +553,7 @@ private:
 
         auto acceleration_vars = GatherVariables(
             rModelPart.Elements(),
-            [](const DerivativesExtension& rExtensions,
+            [](const SchemeExtension& rExtensions,
                std::vector<const VariableData*>& rVec, ProcessInfo& rCurrentProcessInfo) {
                 rExtensions.GetSecondDerivativesVariables(rVec, rCurrentProcessInfo);
             },
@@ -563,7 +563,7 @@ private:
         {
             Element& r_element = *(rModelPart.ElementsBegin() + i);
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            DerivativesExtension& r_extensions = *r_element.GetValue(DERIVATIVES_EXTENSION);
+            SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
 
             const int k = OpenMPUtils::ThisThread();
 
@@ -601,7 +601,7 @@ private:
 
         auto displacement_vars = GatherVariables(
             rModelPart.Elements(),
-            [](const DerivativesExtension& rExtensions,
+            [](const SchemeExtension& rExtensions,
                std::vector<const VariableData*>& rVec, ProcessInfo& rCurrentProcessInfo) {
                 rExtensions.GetZeroDerivativesVariables(rVec, rCurrentProcessInfo);
             },
@@ -612,7 +612,7 @@ private:
         {
             Element& r_element = *(rModelPart.ElementsBegin() + i);
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            DerivativesExtension& r_extensions = *r_element.GetValue(DERIVATIVES_EXTENSION);
+            SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
 
             const int k = OpenMPUtils::ThisThread();
 
@@ -662,7 +662,7 @@ private:
     // Gathers variables needed for assembly.
     static std::vector<const VariableData*> GatherVariables(
         const ModelPart::ElementsContainerType& rElements,
-        std::function<void(const DerivativesExtension&, std::vector<const VariableData*>&, ProcessInfo&)> GetLocalVars,
+        std::function<void(const SchemeExtension&, std::vector<const VariableData*>&, ProcessInfo&)> GetLocalVars,
         ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
@@ -673,7 +673,7 @@ private:
         for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
         {
             auto& r_element = *(rElements.begin() + i);
-            GetLocalVars(*r_element.GetValue(DERIVATIVES_EXTENSION), local_vars,
+            GetLocalVars(*r_element.GetValue(SCHEME_EXTENSION), local_vars,
                          rCurrentProcessInfo);
             const int k = OpenMPUtils::ThisThread();
             thread_vars[k].insert(local_vars.begin(), local_vars.end());

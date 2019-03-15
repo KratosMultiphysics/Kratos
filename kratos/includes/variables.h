@@ -34,7 +34,7 @@
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/adjoint_extensions.h"
-#include "utilities/derivatives_extension.h"
+#include "utilities/scheme_extension.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -449,7 +449,7 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
     KRATOS_DEFINE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
-    KRATOS_DEFINE_VARIABLE( DerivativesExtension::Pointer, DERIVATIVES_EXTENSION)
+    KRATOS_DEFINE_VARIABLE( SchemeExtension::Pointer, SCHEME_EXTENSION)
 
 }  // namespace Kratos.
 

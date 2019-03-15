@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DERIVATIVES_EXTENSION_INCLUDED)
-#define KRATOS_DERIVATIVES_EXTENSION_INCLUDED
+#if !defined(KRATOS_SCHEME_EXTENSION_INCLUDED)
+#define KRATOS_SCHEME_EXTENSION_INCLUDED
 
 // System includes
 #include <vector>
@@ -35,16 +35,16 @@ namespace Kratos
  * which can be used in schemes, therefore scheme can work without knowing the variables
  * used in the element, treating them in a generic way.
  *
- * @class DerivativesExtension
+ * @class SchemeExtension
  * @ingroup KratosCore
  * @see ResidualBasedBossakVelocityScheme
  */
-class DerivativesExtension
+class SchemeExtension
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(DerivativesExtension);
+    KRATOS_CLASS_POINTER_DEFINITION(SchemeExtension);
 
-    virtual ~DerivativesExtension()
+    virtual ~SchemeExtension()
     {
     }
 
@@ -65,7 +65,7 @@ public:
                                           std::size_t Step,
                                           ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetZeroDerivativesVector method. Please implement it "
                         "in derrived class.";
     }
@@ -87,7 +87,7 @@ public:
                                            std::size_t Step,
                                            ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetFirstDerivativesVector method. Please implement it "
                         "in derrived class.";
     }
@@ -109,7 +109,7 @@ public:
                                             std::size_t Step,
                                             ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetSecondDerivativesVector method. Please implement "
                         "it in derrived class.";
     }
@@ -125,7 +125,7 @@ public:
                                               std::vector<Dof<double>::Pointer>& rVector,
                                               ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetZeroDerivativesDofsVector method. Please implement "
                         "it in derrived class.";
     }
@@ -141,7 +141,7 @@ public:
                                                std::vector<Dof<double>::Pointer>& rVector,
                                                ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetFirstDerivativesDofsVector method. Please "
                         "implement it in derrived class.";
     }
@@ -157,7 +157,7 @@ public:
                                                 std::vector<Dof<double>::Pointer>& rVector,
                                                 ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetSecondDerivativesDofsVector method. Please "
                         "implement it in derrived class.";
     }
@@ -171,7 +171,7 @@ public:
     virtual void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                              ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetZeroDerivativesVariables method. Please implement "
                         "it in derrived class.";
     }
@@ -185,7 +185,7 @@ public:
     virtual void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                               ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetFirstDerivativesVariables method. Please implement "
                         "it in derrived class.";
     }
@@ -199,7 +199,7 @@ public:
     virtual void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                                ProcessInfo& rCurrentProcessInfo) const
     {
-        KRATOS_ERROR << "Calling DerivativesExtension base class "
+        KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetSecondDerivativesVariables method. Please "
                         "implement it in derrived class.";
     }
@@ -225,4 +225,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_DERIVATIVES_EXTENSION_INCLUDED  defined
+#endif // KRATOS_SCHEME_EXTENSION_INCLUDED  defined

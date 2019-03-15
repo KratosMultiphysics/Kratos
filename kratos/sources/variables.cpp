@@ -484,7 +484,7 @@ KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
-KRATOS_CREATE_VARIABLE(DerivativesExtension::Pointer, DERIVATIVES_EXTENSION)
+KRATOS_CREATE_VARIABLE(SchemeExtension::Pointer, SCHEME_EXTENSION)
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -1000,7 +1000,7 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
 
-    KRATOS_REGISTER_VARIABLE(DERIVATIVES_EXTENSION)
+    KRATOS_REGISTER_VARIABLE(SCHEME_EXTENSION)
 
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();

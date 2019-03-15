@@ -34,7 +34,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/residual_based_bossak_velocity_scheme.h"
-#include "utilities/derivatives_extension.h"
+#include "utilities/scheme_extension.h"
 
 namespace Kratos {
 
@@ -80,7 +80,7 @@ namespace Kratos {
     class TDenseSpace //= DenseSpace<double>
     >
     class ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent : public ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace> {
-        class ElementDerivativesExtension : public DerivativesExtension
+        class ElementDerivativesExtension : public SchemeExtension
         {
             Element* mpElement;
         public:
@@ -284,7 +284,7 @@ namespace Kratos {
             for (int i = 0; i < number_of_elements; i++)
             {
                 Element& r_element = *(rModelPart.ElementsBegin() + i);
-                r_element.SetValue(DERIVATIVES_EXTENSION,
+                r_element.SetValue(SCHEME_EXTENSION,
                                         Kratos::make_unique<ElementDerivativesExtension>(&r_element));
             }
 
