@@ -152,6 +152,41 @@ class GeoPreprocessor( GeoProcessor ):
 
 
     ########################################################################
+    # for obj files
+    #########################################################################
+
+    def ExtractBuildingsOBJ (self, obj_file_in, obj_file_out):
+        with open (obj_file_in) as read_file:
+            string = ""
+            building = True
+            for row in read_file.readlines():
+                if row[0] == "g":
+                    if "Building" in row:
+                        building = True
+                    else:
+                        building = False
+                if building:
+                    string += row
+                elif (row[0] == "v"):
+                    string += row
+        
+        with open(obj_file_out, mode = "w") as fout:
+            fout.write(string)
+    
+    """ CHECK THIS FUNCTION! IT IS JUST A TEST NOW """
+    def WriteOBJ(self, obj_file_out):
+        string = ""
+        for node in self.ModelPart.Nodes:
+            string += "v {} {} {}\n".format(node.X, node.Y, node.Z)
+        for elem in self.ModelPart.Elements:
+            string += "f {} {} {}\n".format(elem.GetNodes()[0].Id, elem.GetNodes()[1].Id, elem.GetNodes()[2].Id)
+            print(elem.GetNodes()[0].Id, elem.GetNodes()[1].Id, elem.GetNodes()[2].Id)
+        
+        with open(obj_file_out, mode = "w") as fout:
+            fout.write(string)
+
+
+    ########################################################################
     # general functions
     #########################################################################
 
@@ -190,9 +225,6 @@ class GeoPreprocessor( GeoProcessor ):
             if not ((x_min <= coord[0] <= x_max) and (y_min <= coord[1] <= y_max)):
                 # if coord it isn't in the bounding_box
                 self.point_list.remove(coord)
-
-        # for coord in del_list:
-        #     self.point_list.remove(coord)
 
         if not self.point_list:
             # if self.point_list is empty
@@ -430,13 +462,6 @@ class GeoPreprocessor( GeoProcessor ):
 
                 print( content )
                 write_file.write( content )
-
-
-
-
-
-
-
 
 
     ########################################################################
