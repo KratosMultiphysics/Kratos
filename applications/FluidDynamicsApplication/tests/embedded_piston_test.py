@@ -1,5 +1,6 @@
 import math
 import KratosMultiphysics
+import KratosMultiphysics.MeshMovingApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
