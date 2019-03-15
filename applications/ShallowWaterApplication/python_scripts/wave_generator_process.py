@@ -16,6 +16,7 @@ class WaveGeneratorProcess(KratosMultiphysics.Process):
         {
             "model_part_name"   : "model_part",
             "formulation"       : "reduced_variables or conserved_variables",
+            "interval"          : [0.0, 1e30],
             "wave_length"       : 10.0,
             "wave_period"       : 10.0,
             "wave_height"       : 1.0
@@ -26,6 +27,7 @@ class WaveGeneratorProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = model[settings["model_part_name"].GetString()]
+        self.interval = KratosMultiphysics.IntervalUtility(settings)
 
         # Creation of the parameters for the c++ process
         free_surface_parameters = KratosMultiphysics.Parameters("""{}""")
@@ -38,7 +40,12 @@ class WaveGeneratorProcess(KratosMultiphysics.Process):
         self.variables_utility = Shallow.ShallowWaterVariablesUtility(self.model_part)
 
     def ExecuteInitializeSolutionStep(self):
+        if self._IsInInterval():
+            self.free_surface_process.ExecuteInitializeSolutionStep()
+            self.variables_utility.ComputeHeightFromFreeSurface()
+            KratosMultiphysics.VariableUtils().ApplyFixity(Shallow.HEIGHT, True, self.model_part.Nodes)
 
-        self.free_surface_process.ExecuteInitializeSolutionStep()
-        self.variables_utility.ComputeHeightFromFreeSurface()
-        KratosMultiphysics.VariableUtils().ApplyFixity(Shallow.HEIGHT, True, self.model_part.Nodes)
+    def _IsInInterval(self):
+        """ Returns if we are inside the time interval or not """
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        return self.interval.IsInInterval(current_time)
