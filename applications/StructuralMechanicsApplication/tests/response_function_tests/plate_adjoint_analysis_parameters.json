@@ -1,15 +1,15 @@
 {
     "problem_data"             : {
-        "problem_name"    : "rectangular_plate_structure",
+        "problem_name"    : "Plate",
         "start_time"      : 0.0,
-        "end_time"        : 0.99,
+        "end_time"        : 19.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "adjoint_static",
         "analysis_type"                      : "linear",
-        "model_part_name" : "rectangular_plate_structure",
+        "model_part_name" : "plate",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "automatic_time_step" : false,
@@ -18,7 +18,7 @@
         "compute_reactions"			         : false,
         "move_mesh_flag"                     : false,
         "sensitivity_settings" : {
-            "sensitivity_model_part_name" :"sensitivity_mp",
+            "sensitivity_model_part_name" :"structure",
             "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : [],
             "condition_sensitivity_variables"  : [],
@@ -27,11 +27,11 @@
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate_structure_rigid_body_rotation",
+            "input_filename"   : "plate",
             "input_file_label" : 0
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "2D_material.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -40,8 +40,8 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC", "PointLoad3D_BC_NEUMANN", "PointLoad3D_BC_NEUMANN_1", "PointLoad3D_BC_NEUMANN_2"],
+        "problem_domain_sub_model_part_list" : ["structure"],
+        "processes_sub_model_part_list"      : ["corner_points","load_point"],
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
@@ -55,26 +55,40 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
+            "model_part_name" : "plate.corner_points",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
-    }],
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "plate.corner_points",
+            "variable_name"   : "ADJOINT_ROTATION",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-	        "model_part_name" : "rectangular_plate_structure",
+	        "model_part_name" : "plate",
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
             "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+                "list_of_variables": ["DISPLACEMENT", "REACTION","ROTATION", "POINT_LOAD"]
             },
-        "file_name": "rectangular_plate_structure_primal"
+        "file_name": "primal_output"
         }
      }],
      "loads_process_list"       : [{
@@ -84,38 +98,10 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN",
+            "model_part_name" : "plate.load_point",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "1.0*t",
-            "direction"       : [0.0,0.0,1.0],
-            "interval"        : [0.0,"End"]
-        }
-    },
-    {
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
-        "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN_1",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : "1.0*t",
-            "direction"       : [0.0,0.0,1.0],
-            "interval"        : [0.0,"End"]
-        }
-    },
-    {
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
-        "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN_2",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : "1.0*t",
-            "direction"       : [0.0,0.0,1.0],
+            "modulus"         : "500000.0*t",
+            "direction"       : [0.0,0.0,-1.0],
             "interval"        : [0.0,"End"]
         }
     }

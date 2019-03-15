@@ -5,8 +5,10 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
 import structural_mechanics_solver
+
+# Import Kratos Utility
+import restart_utility
 
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
@@ -74,43 +76,17 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
 
-## loading serialization files hard coded here
-        import restart_utility
-        loaded_model = KratosMultiphysics.Model()
-        self.loaded_model_part = loaded_model.CreateModelPart("rectangular_plate_structure")
-        restart_parameters_load = KratosMultiphysics.Parameters("""
-        {
-            "input_filename"                 : "test_restart_file",
-            "restart_load_file_label"        : "",
-            "serializer_trace"               : "no_trace",
-            "load_restart_files_from_folder" : false
-        }
-        """)
-        restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
-        rest_utility_load = restart_utility.RestartUtility(self.loaded_model_part, restart_parameters_load)
-        rest_utility_load.LoadRestart()
-
-        StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
-
-        # element = self.main_model_part.Elements[3]
-        # LHS = KratosMultiphysics.Matrix(18,18)
-        # RHS = KratosMultiphysics.Vector(18)
-        # element.CalculateLocalSystem(LHS,RHS,self.main_model_part.ProcessInfo)
-        # print("main model LHS after serialization", LHS[0,0])
-
-        # element_load = self.loaded_model_part.Elements[3]
-        # LHS_load = KratosMultiphysics.Matrix(18,18)
-        # RHS_load = KratosMultiphysics.Vector(18)
-        # element_load.CalculateLocalSystem(LHS_load,RHS_load,self.loaded_model_part.ProcessInfo)
-        # print("LHS_Load", LHS_load[0,0])
-
         # TODO Armin: hdf5 is reading the displacement but not updating the coordinates
         # TODO Mahmoud: check why KratosMultiphysics.VariableUtils().UpdateInitialToCurrentConfiguration update the nodal position here?
         for node in self.main_model_part.Nodes:
             node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[0]
             node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
             node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
+
+        # Replacing pointers to primal elements with pointers to the serialized elements
+        self._load_serialized_model()
+        StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
+        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
 
         self.response_function.InitializeSolutionStep()
 
@@ -149,3 +125,20 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
+
+    #TODO Mahmoud: check if this could be done directly from json file instead of doing it here
+    def _load_serialized_model(self):
+        loaded_model = KratosMultiphysics.Model()
+        model_part_name = self.settings["model_part_name"].GetString()
+        self.loaded_model_part = loaded_model.CreateModelPart(model_part_name)
+        restart_parameters_load = KratosMultiphysics.Parameters("""
+        {
+            "input_filename"                 : "test_restart_file",
+            "restart_load_file_label"        : "",
+            "serializer_trace"               : "no_trace",
+            "load_restart_files_from_folder" : false
+        }
+        """)
+        restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
+        rest_utility_load = restart_utility.RestartUtility(self.loaded_model_part, restart_parameters_load)
+        rest_utility_load.LoadRestart()

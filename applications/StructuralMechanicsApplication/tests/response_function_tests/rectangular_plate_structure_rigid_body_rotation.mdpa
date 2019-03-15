@@ -29,7 +29,9 @@ Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: AREAS
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: AREAS
-    1   0  5
+    1   0  8
+    2   0  7
+    3   0  9
 End Conditions
 
 Begin SubModelPart Parts_AREAS // Group AREAS // Subtree Parts
@@ -65,9 +67,6 @@ Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
         3
         4
         6
-        7
-        8
-        9
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -76,12 +75,34 @@ Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
 End SubModelPart
 Begin SubModelPart PointLoad3D_BC_NEUMANN // Group AREAS // Subtree SurfaceLoad3D
     Begin SubModelPartNodes
-         5
+         8
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
          1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart PointLoad3D_BC_NEUMANN_1 // Group AREAS // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+         7
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         2
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart PointLoad3D_BC_NEUMANN_2 // Group AREAS // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         3
     End SubModelPartConditions
 End SubModelPart
 
@@ -109,5 +130,7 @@ Begin SubModelPart sensitivity_mp // Group AREAS // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
         1
+        2
+        3
     End SubModelPartConditions
 End SubModelPart

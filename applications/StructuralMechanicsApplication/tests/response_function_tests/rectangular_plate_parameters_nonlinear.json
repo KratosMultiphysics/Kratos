@@ -17,7 +17,7 @@
         "domain_size"     : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate_structure",
+            "input_filename"   : "rectangular_plate_structure_rigid_body_rotation",
             "input_file_label" : 0
         },
         "material_import_settings"           : {
@@ -31,7 +31,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_NODES"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_BC_NEUMANN", "PointLoad3D_BC_NEUMANN_1", "PointLoad3D_BC_NEUMANN_2"],
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
@@ -80,14 +80,42 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
+            "model_part_name" : "PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "100.0*t",
+            "modulus"         : "1.0*t",
             "direction"       : [0.0,0.0,1.0],
             "interval"        : [0.0,"End"]
         }
-    }]},
+    },
+    {
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "PointLoad3D_BC_NEUMANN_1",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "1.0*t",
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "PointLoad3D_BC_NEUMANN_2",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "1.0*t",
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

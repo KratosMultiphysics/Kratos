@@ -51,12 +51,7 @@ namespace Kratos
         KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
         << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
-        // sum all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
-
-
-        //const int num_elem = static_cast<int> (rModelPart.NumberOfElements());
-
-        // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
+        // Sums all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
         #pragma omp parallel
         {
         Matrix LHS;

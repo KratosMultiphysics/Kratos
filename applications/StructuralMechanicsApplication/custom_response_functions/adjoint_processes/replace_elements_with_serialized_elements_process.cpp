@@ -29,6 +29,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        // TODO Mahmoud: use OpenMP
         for(int i=0; i<static_cast<int>(mrMainModelPart.NumberOfElements()); ++i)
         {
             auto it = mrMainModelPart.ElementsBegin() + i;
