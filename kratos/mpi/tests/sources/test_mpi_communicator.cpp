@@ -243,6 +243,22 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorHistoricalAssembly, KratosMPICoreFastSu
     KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
     KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
     KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+
+    /*r_comm.AssembleCurrentData(CAUCHY_STRESS_VECTOR);
+    const auto& r_assembled_center_vector = r_center.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
+    KRATOS_CHECK_EQUAL(r_assembled_center_vector.size(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_center_vector[0], 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_center_vector[1], 1.0*size);
+
+    const auto& r_assembled_local_vector = r_local.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
+    KRATOS_CHECK_EQUAL(r_assembled_local_vector.size(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_local_vector[0], 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_local_vector[1], 1.0*expected_int);
+
+    const auto& r_assembled_ghost_vector = r_ghost.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector.size(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[0], 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[1], 1.0*expected_int);*/
 }
 
 }
