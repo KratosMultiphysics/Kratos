@@ -75,6 +75,8 @@ namespace Kratos {
 
                 ModelPart::ConditionsContainerType& source_conditions = r_structural_skin_model_part.Conditions();
 
+                const double one_third = 1.0/3.0;
+
                 for (unsigned int i = 0; i < source_conditions.size(); i++) {
                     ModelPart::ConditionsContainerType::iterator it = r_structural_skin_model_part.ConditionsBegin() + i;
                     Condition::GeometryType& geometry =  it->GetGeometry();
@@ -82,7 +84,7 @@ namespace Kratos {
 
                     for (unsigned int i = 0; i < geometry.size(); i++) { //talking about each of the three nodes of the condition
                         double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
-                        node_area += 0.333333333333333 * condition_area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
+                        node_area += one_third * condition_area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
                     }
                 }
 

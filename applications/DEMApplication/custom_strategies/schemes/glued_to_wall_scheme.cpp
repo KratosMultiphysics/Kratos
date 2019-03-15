@@ -28,7 +28,7 @@ namespace Kratos {
     }
 
     GluedToWallScheme::GluedToWallScheme(Condition* p_wall, SphericParticle* p_sphere, bool& is_inside) : GluedToWallScheme(p_wall, p_sphere) {
-        if(mShapeFunctionsValues[0]>=0.0 && mShapeFunctionsValues[0]<=1.0 && mShapeFunctionsValues[1]>=0.0 && mShapeFunctionsValues[1]<=1.0 && mShapeFunctionsValues[2]>=0.0 && mShapeFunctionsValues[2]<=1.0) {
+        if(ShapeFunctionsValuesAreBetween0and1()) {
             is_inside = true;
         }
         else is_inside = false;
@@ -115,6 +115,10 @@ namespace Kratos {
         array_1d<double, 3>& particle_rotation_angle =  i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
         noalias(i.FastGetSolutionStepValue(DELTA_ROTATION)) = rotation_vector - particle_rotation_angle;
         noalias(particle_rotation_angle) = rotation_vector;
+    }
+
+    bool GluedToWallScheme::ShapeFunctionsValuesAreBetween0and1() {
+        return (mShapeFunctionsValues[0]>=0.0 && mShapeFunctionsValues[0]<=1.0 && mShapeFunctionsValues[1]>=0.0 && mShapeFunctionsValues[1]<=1.0 && mShapeFunctionsValues[2]>=0.0 && mShapeFunctionsValues[2]<=1.0);
     }
 
 } //namespace Kratos

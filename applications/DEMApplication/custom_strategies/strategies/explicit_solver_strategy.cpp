@@ -241,7 +241,7 @@ namespace Kratos {
             std::vector<DEMWall*>& neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
             for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
                 if( neighbour_walls_vector[j]->Is(DEMFlags::STICKY) ) {
-                    bool is_inside = mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
+                    const bool is_inside = mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
                     if(is_inside) {
                         #pragma omp critical
                         {

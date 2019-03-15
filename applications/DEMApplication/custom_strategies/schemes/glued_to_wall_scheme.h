@@ -103,6 +103,7 @@ namespace Kratos {
             *this = rOther;
         }
 
+        bool ShapeFunctionsValuesAreBetween0and1();
         ///@}
 
     }; // Class GluedToWallScheme
