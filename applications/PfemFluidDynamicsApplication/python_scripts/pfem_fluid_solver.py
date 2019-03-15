@@ -359,49 +359,6 @@ class PfemFluidSolver(PythonSolver):
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-#   Extra methods:: custom AFranci...
-#
-    def SetProperties(self):
-        for el in self.main_model_part.Elements:
-            density = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            bulk_modulus = el.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
-            young_modulus = el.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
-            poisson_ratio = el.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
-            flow_index = el.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
-            yield_shear = el.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
-            adaptive_exponent = el.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
-            static_friction = elem.Properties.GetValue(KratosPfemFluid.STATIC_FRICTION)
-            dynamic_friction = elem.Properties.GetValue(KratosPfemFluid.DYNAMIC_FRICTION)
-            inertial_number_zero = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
-            grain_diameter = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DIAMETER)
-            grain_density = elem.Properties.GetValue(KratosPfemFluid.GRAIN_DENSITY)
-            regularization_coefficient = elem.Properties.GetValue(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
-            inertial_number_one = elem.Properties.GetValue(KratosPfemFluid.INERTIAL_NUMBER_ONE)
-            infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
-            alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
-            break
-
-        print ("density: ",density)
-        print ("viscosity: ",viscosity)
-        print ("bulk_modulus: ",bulk_modulus)
-        print ("young_modulus: ",young_modulus)
-        print ("poisson_ratio: ",poisson_ratio)
-        print ("flow_index: ",flow_index)
-        print ("yield_shear: ",yield_shear)
-        print ("adaptive_exponent: ",adaptive_exponent)
-        print ("static_friction: ",static_friction)
-        print ("dynamic_friction: ",dynamic_friction)
-        print ("inertial_number_zero: ",inertial_number_zero)
-        print ("grain_diameter: ",grain_diameter)
-        print ("grain_density: ",grain_density)
-        print ("regularization_coefficient: ",regularization_coefficient)
-        print ("inertial_number_one: ",inertial_number_one)
-        print ("infinite_friction: ",infinite_friction)
-        print ("alpha_parameter: ",alpha_parameter)
-
-#
-
 
 #
 
