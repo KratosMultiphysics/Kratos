@@ -153,14 +153,14 @@ KRATOS_WATCH(rLeftHandSideMatrix)
         KRATOS_WATCH(rSecondVariationStrain.B12)
 */
         // Define Prestress
-//        //double thickness = this->GetProperties().GetValue(THICKNESS);
+        double thickness = this->GetProperties().GetValue(THICKNESS);
         
         Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
         //Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
-        //Vector S_prestress = prod(mInitialMetric.Q, S_prestress_nichttransformiert); //* thickness;
+        //Vector S_prestress = prod(mInitialMetric.Q, S_prestress_nichttransformiert); //* thickness; 
+        constitutive_variables_membrane.S = ZeroVector(3);
         Vector S_total = constitutive_variables_membrane.S + S_prestress;
         //Vector S_total = S_prestress;
-        //constitutive_variables_membrane.S = ZeroVector(3);
 
         //KRATOS_WATCH(thickness)
         /*KRATOS_WATCH(S_prestress)
@@ -206,6 +206,8 @@ KRATOS_WATCH(rLeftHandSideMatrix)
 
    /* KRATOS_WATCH(rLeftHandSideMatrix)
     KRATOS_WATCH(rRightHandSideVector)*/
+    if(this->Id() == 0){KRATOS_WATCH(S_total)}
+    
 
         KRATOS_CATCH("");
     }
@@ -349,11 +351,16 @@ void IgaMembraneElement::CalculateMetric(
     )
     {
         Vector strain_vector = ZeroVector(3);
-        Vector curvature_vector = ZeroVector(3);
 
+       /* if (this->Id() == 0) {
+            const rThisConstitutiveVariablesMembrane.E == [0, 0, 0 ]; }
+        else {
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector); //geändert Q->T
-      
+        }*/
+        CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector);
+
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.S);    //this is an ouput parameter

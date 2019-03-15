@@ -85,6 +85,8 @@ public:
 private:
     Vector3 mReferenceBaseVector;
 
+    //Vector3 GetReferenceBaseVector() const;
+
     Vector3 GetActualBaseVector() const;
 };
 

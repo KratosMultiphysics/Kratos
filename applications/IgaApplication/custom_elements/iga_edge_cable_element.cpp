@@ -67,10 +67,56 @@ void IgaEdgeCableElement::EquationIdVector(
 }
 
 void IgaEdgeCableElement::Initialize()
-{
-    mReferenceBaseVector = GetActualBaseVector();
-}
+{/*
+    if(this->Id() == 0)
+        {
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Vector& t = GetValue(TANGENTS);
+        Vector actual_base_vector_update;
+        IgaCurveOnSurfaceUtilities::CalculateTangent(
+        GetGeometry(),
+        DN_De,
+        t,
+        actual_base_vector_update);
 
+        return actual_base_vector_update;
+
+        mReferenceBaseVector = actual_base_vector_update;
+        }
+    //rTangentVector = g1 * rTangents[0] + g2 * rTangents[1];
+    else
+        {
+        mReferenceBaseVector = GetActualBaseVector();
+        }*/
+    std::cout << "initialize Cable" << std::endl;
+    mReferenceBaseVector = GetActualBaseVector();
+    
+}
+/*
+IgaEdgeCableElement::Vector3 IgaEdgeCableElement::GetReferenceBaseVector() const
+{
+    Vector reference_base_vector;
+//if (this->Id() == 0) {
+if (mode == "UPDATED") {
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Vector& t = GetValue(TANGENTS);
+        array_1d<double, 3> actual_base_vector_update = ZeroVector(3);
+        IgaCurveOnSurfaceUtilities::CalculateTangent(
+        GetGeometry(),
+        DN_De,
+        t,
+        actual_base_vector_update);
+
+        return actual_base_vector_update;
+
+        reference_base_vector = actual_base_vector_update;
+        }
+    else {
+        reference_base_vector = mReferenceBaseVector;
+    }
+    return reference_base_vector;
+}*/
+//KRATOS_WATCH(mReferenceBaseVector)
 //Definition von Base Vector 
 
 IgaEdgeCableElement::Vector3 IgaEdgeCableElement::GetActualBaseVector() const
@@ -96,8 +142,8 @@ IgaEdgeCableElement::Vector3 IgaEdgeCableElement::GetActualBaseVector() const
         t,
         actual_base_vector
     );
-
-KRATOS_WATCH(actual_base_vector)
+//if(this->Id() == 0)
+//KRATOS_WATCH(actual_base_vector)
 
     //for (std::size_t k = 0; k < NumberOfNodes(); k++) // k = Number of Nodes Cable
     //{
@@ -143,16 +189,24 @@ void IgaEdgeCableElement::CalculateAll(
     // compute base vectors
 
     const Vector3 actual_base_vector = GetActualBaseVector();
+    //const Vector3 reference_base_vector = GetReferenceBaseVector();
 
     const double reference_a = norm_2(mReferenceBaseVector);
+   // const double reference_a = norm_2(reference_base_vector);
     const double actual_a = norm_2(actual_base_vector);
 
     const double actual_aa = actual_a * actual_a;
     const double reference_aa = reference_a * reference_a;
+/*
+KRATOS_WATCH(actual_base_vector)
 
+KRATOS_WATCH(mReferenceBaseVector)
+KRATOS_WATCH(actual_aa)
+KRATOS_WATCH(reference_aa)
+*/
     // green-lagrange strain
 
-    const double e11_membrane = 0.5 * (actual_aa - reference_aa);
+    const double e11_membrane = 0; // 0.5 * (actual_aa - reference_aa);
 
     // normal force
 
@@ -160,6 +214,7 @@ void IgaEdgeCableElement::CalculateAll(
 
 //KRATOS_WATCH(prestress)
 //KRATOS_WATCH(s11_membrane)
+//if(this->Id() == 0){KRATOS_WATCH(s11_membrane)}
 
     //for (std::size_t k = 0; k < NumberOfDofs(); k++){
     //    const double dof_type_m[NumberOfDofs()];
@@ -242,6 +297,7 @@ void IgaEdgeCableElement::CalculateAll(
 
 //KRATOS_WATCH(rLeftHandSideMatrix)
 //KRATOS_WATCH(rRightHandSideVector)
+    //if(this->Id() == 0){KRATOS_WATCH(s11_membrane)}
 
     KRATOS_CATCH("")
 }
