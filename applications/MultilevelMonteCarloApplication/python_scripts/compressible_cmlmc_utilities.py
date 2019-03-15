@@ -357,7 +357,6 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def Run(self):
-        print(self.settings)
         if (self.settings["run_multilevel_monte_carlo"].GetString() == "True"):
             # start screening phase
             self.LaunchEpoch()
