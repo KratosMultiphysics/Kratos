@@ -1643,6 +1643,7 @@ class DEMIo(object):
             mfilelist.index = 1
 
     def PrintMultifileLists(self, time, post_path):
+
         for mfilelist in self.multifilelists:
 
             if mfilelist.index == mfilelist.step:
@@ -1689,6 +1690,7 @@ class DEMIo(object):
         self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, self.cluster_model_part)
 
     def InitializeMesh(self, all_model_parts):
+
         if self.filesystem == MultiFileFlag.SingleFile:
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(0.0)

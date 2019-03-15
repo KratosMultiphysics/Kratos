@@ -7,6 +7,6 @@ import KratosMultiphysics.DEMApplication as Dem
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolvers
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
-import dem_fem_coupling_algorithm_hidrostatic_pressure
+import dem_fem_coupling_algorithm_hydrostatic_pressure
 
-dem_fem_coupling_algorithm_hidrostatic_pressure.Algorithm().Run()
+dem_fem_coupling_algorithm_hydrostatic_pressure.Algorithm().Run()

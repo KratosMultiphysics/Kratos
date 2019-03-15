@@ -223,8 +223,6 @@ namespace Kratos {
 
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
 
-
-
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
@@ -250,7 +248,7 @@ namespace Kratos {
 
                 CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] // Must be called before the bounding box or it uses non-existent elements
 
-	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
+	            if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
 
                     BoundingBoxUtility();
                 } else {
@@ -288,12 +286,11 @@ namespace Kratos {
             }
 
             //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            if (true) {//is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
                 CreateContactElements();
                 BaseType::InitializeContactElements();
             }
             //}
-
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
