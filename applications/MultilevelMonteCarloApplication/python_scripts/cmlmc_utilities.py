@@ -102,6 +102,7 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     aux_custom_metric_refinement_parameters = "auxiliary_custom_settings_metric_refinement"
     aux_custom_remesh_refinement_parameters = "auxiliary_custom_settings_remesh_refinement"
     auxiliary_MLMC_object = ConstructorCallback(aux_settings,aux_project_parameters_path,aux_custom_metric_refinement_parameters,aux_custom_remesh_refinement_parameters,aux_analysis)
+    print(auxiliary_MLMC_object.settings)
     auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
     auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
     auxiliary_MLMC_object.time_ML.mean = time_ML_mean
@@ -278,7 +279,7 @@ class MultilevelMonteCarlo(object):
             print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
         # compute cphi = CDF**-1 (confidence)
         self.settings.AddEmptyValue("cphi_confidence")
-        if (self.settings["confidence"].GetDouble()<1.0):
+        if (self.settings["confidence"].GetDouble()==1.0):
             self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
         self.settings["cphi_confidence"].SetDouble(norm.ppf(self.settings["confidence"].GetDouble()))
         # validate and assign default parameters
