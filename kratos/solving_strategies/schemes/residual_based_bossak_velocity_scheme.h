@@ -120,16 +120,12 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
-        const double delta_time = r_current_process_info[DELTA_TIME];
-
-        if (delta_time == 0)
-            KRATOS_THROW_ERROR(
-                std::logic_error,
-                "detected delta_time = 0 in the Bossak Scheme ... check if the "
-                "time step is created correctly for the current model part",
-                "");
+        if (delta_time < std::numeric_limits<double>::epsilon())
+            KRATOS_ERROR << "detected delta_time = 0 in the Bossak Scheme ... "
+                            "check if the time step is created correctly for "
+                            "the current model part.";
 
         ResidualBasedBossakVelocityScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
@@ -476,8 +472,8 @@ protected:
         rBossakConstants.C6 = DeltaTime;
     }
 
-    static void AssembleVariables(const std::vector<const VariableData*>& rVariables,
-                                  Communicator& rComm)
+    static void SynchronizeVariables(const std::vector<const VariableData*>& rVariables,
+                                     Communicator& rComm)
     {
         KRATOS_TRY;
         for (auto p_variable_data : rVariables)
@@ -488,13 +484,13 @@ protected:
                 const auto& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(
                         p_variable_data->Name());
-                rComm.AssembleCurrentData(r_variable);
+                rComm.SynchronizeVariable(r_variable);
             }
             else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
             {
                 const auto& r_variable =
                     KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                rComm.AssembleCurrentData(r_variable);
+                rComm.SynchronizeVariable(r_variable);
             }
             else
             {
@@ -592,7 +588,7 @@ private:
                 r_geometry[i_node].UnSetLock();
             }
         }
-        AssembleVariables(acceleration_vars, rModelPart.GetCommunicator());
+        SynchronizeVariables(acceleration_vars, rModelPart.GetCommunicator());
     }
 
     void UpdateDisplacement(ModelPart& rModelPart)
@@ -644,7 +640,7 @@ private:
                 r_geometry[i_node].UnSetLock();
             }
         }
-        AssembleVariables(displacement_vars, rModelPart.GetCommunicator());
+        SynchronizeVariables(displacement_vars, rModelPart.GetCommunicator());
     }
 
     struct Hash
