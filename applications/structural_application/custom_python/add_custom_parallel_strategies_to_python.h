@@ -73,7 +73,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomParallelStrategiesToPython();
+void  AddCustomParallelStrategiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

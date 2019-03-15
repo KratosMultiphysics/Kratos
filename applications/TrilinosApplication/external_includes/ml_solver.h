@@ -64,57 +64,51 @@ public:
 
     typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
 
-    typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
+    typedef typename Kratos::unique_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with Parameters.
-    MultiLevelSolver(Parameters settings)
+    MultiLevelSolver(Parameters Settings)
     {
-        Parameters default_settings( R"(
-        {
-        "solver_type": "MultiLevelSolver",
-        "tolerance" : 1.0e-6,
-        "max_iteration" : 200,
-        "max_levels" : 3,
-        "scaling":false,
-        "reform_preconditioner_at_each_step":true,
-        "symmetric":false,
-        "verbosity":0,
-        "trilinos_aztec_parameter_list": {},
-        "trilinos_ml_parameter_list": {}
+        const Parameters default_settings( R"( {
+            "solver_type"                        : "multi_level",
+            "tolerance"                          : 1.0e-6,
+            "max_iteration"                      : 200,
+            "max_levels"                         : 3,
+            "scaling"                            : false,
+            "reform_preconditioner_at_each_step" : true,
+            "symmetric"                          : false,
+            "verbosity"                          : 0,
+            "trilinos_aztec_parameter_list"      : {},
+            "trilinos_ml_parameter_list"         : {}
         }  )" );
 
-        settings.ValidateAndAssignDefaults(default_settings);
+        Settings.ValidateAndAssignDefaults(default_settings);
 
         //settings for the MultiLevel solver
-        mtol = settings["tolerance"].GetDouble();
-        mmax_iter = settings["max_iteration"].GetInt();
-        mMLPrecIsInitialized = false;
-        mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterations = Settings["max_iteration"].GetInt();
+        mReformPrecAtEachStep = Settings["reform_preconditioner_at_each_step"].GetBool();
 
         //scaling settings
-        if (settings["scaling"].GetBool() == false)
+        if (!Settings["scaling"].GetBool()) {
             mScalingType = NoScaling;
-        else
-            mScalingType = LeftScaling;
+        }
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
-        if(settings["verbosity"].GetInt() == 0)
-        {
+        const int verbosity = Settings["verbosity"].GetInt();
+        if (verbosity == 0) {
             mAztecParameterList.set("AZ_output", "AZ_none");
-        }
-        else
-        {
-            mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
+        } else {
+            mAztecParameterList.set("AZ_output", verbosity);
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
-        {
+        for (auto it = Settings["trilinos_aztec_parameter_list"].begin(); it != Settings["trilinos_aztec_parameter_list"].end(); it++) {
             if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
@@ -123,19 +117,14 @@ public:
 
         mMLParameterList = Teuchos::ParameterList();
 
-        if(settings["symmetric"].GetBool() == false)
-        {
+        mMLParameterList.set("ML output", verbosity);
+        mMLParameterList.set("max levels", Settings["max_levels"].GetInt());
+        if (!Settings["symmetric"].GetBool()) {
             ML_Epetra::SetDefaults("NSSA",mMLParameterList);
-            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
-        }
-        else
-        {
+        } else {
             ML_Epetra::SetDefaults("SA",mMLParameterList);
-            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
-            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("increasing or decreasing", "increasing");
             mMLParameterList.set("aggregation: type", "MIS");
             mMLParameterList.set("smoother: type", "Chebyshev");
@@ -145,8 +134,7 @@ public:
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for(auto it = settings["trilinos_ml_parameter_list"].begin(); it != settings["trilinos_ml_parameter_list"].end(); it++)
-        {
+        for (auto it = Settings["trilinos_ml_parameter_list"].begin(); it != Settings["trilinos_ml_parameter_list"].end(); it++) {
             if(it->IsString()) mMLParameterList.set(it.name(), it->GetString());
             else if(it->IsInt()) mMLParameterList.set(it.name(), it->GetInt());
             else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
@@ -154,16 +142,12 @@ public:
         }
     }
 
-    MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
+    MultiLevelSolver(Teuchos::ParameterList& rAztecParameterList, Teuchos::ParameterList& rMLParameterList, double Tolerance, int MaxIterations)
     {
-        mAztecParameterList = aztec_parameter_list;
-        mMLParameterList = ml_parameter_list;
-        mtol = tol;
-        mmax_iter = nit_max;
-        mScalingType = LeftScaling;
-
-        mMLPrecIsInitialized = false;
-        mReformPrecAtEachStep = true;
+        mAztecParameterList = rAztecParameterList;
+        mMLParameterList = rMLParameterList;
+        mTolerance = Tolerance;
+        mMaxIterations = MaxIterations;
     }
 
     /// Copy constructor.
@@ -186,9 +170,9 @@ public:
     ///@name Operations
     ///@{
 
-    void SetScalingType(ScalingType val)
+    void SetScalingType(ScalingType Value)
     {
-        mScalingType = val;
+        mScalingType = Value;
     }
 
     ScalingType GetScalingType()
@@ -196,18 +180,14 @@ public:
         return mScalingType;
     }
 
-    void SetReformPrecAtEachStep(bool val)
+    void SetReformPrecAtEachStep(bool Value)
     {
-        mReformPrecAtEachStep = val;
+        mReformPrecAtEachStep = Value;
     }
 
     void ResetPreconditioner()
     {
-        if(mMLPrecIsInitialized == true)
-        {
-            mpMLPrec.reset();
-            mMLPrecIsInitialized = false;
-        }
+        mpMLPrec.reset();
     }
 
     void Clear() override
@@ -226,18 +206,17 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         KRATOS_TRY
-        Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
+        Epetra_LinearProblem aztec_problem(&rA,&rX,&rB);
 
-        if (this->GetScalingType() == LeftScaling)
-        {
+        if (this->GetScalingType() == LeftScaling) {
             // don't use this with conjugate gradient
             // it destroys the symmetry
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
-            AztecProblem.LeftScale(scaling_vect);
+            aztec_problem.LeftScale(scaling_vect);
         }
 
-        mMLParameterList.set("PDE equations", mndof);
+        mMLParameterList.set("PDE equations", mNumDof);
 
         // create the preconditioner now. this is expensive.
         // the preconditioner stores a pointer to the system
@@ -246,23 +225,20 @@ public:
         // when the preconditioner is freed. the strategy
         // should take care to Clear() the linear solver
         // before the system matrix.
-        if (mReformPrecAtEachStep == true ||
-            mMLPrecIsInitialized == false)
-        {
+        if (mReformPrecAtEachStep || !mpMLPrec) {
             this->ResetPreconditioner();
-            MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
+            MLPreconditionerPointerType tmp(Kratos::make_unique<ML_Epetra::MultiLevelPreconditioner>(rA, mMLParameterList, true));
             mpMLPrec.swap(tmp);
-            mMLPrecIsInitialized = true;
         }
 
         // create an AztecOO solver
-        AztecOO aztec_solver(AztecProblem);
+        AztecOO aztec_solver(aztec_problem);
         aztec_solver.SetParameters(mAztecParameterList);
 
         // set preconditioner and solve
         aztec_solver.SetPrecOperator(&(*mpMLPrec));
 
-        aztec_solver.Iterate(mmax_iter, mtol);
+        aztec_solver.Iterate(mMaxIterations, mTolerance);
 
         return true;
         KRATOS_CATCH("");
@@ -308,33 +284,30 @@ public:
     {
         int old_ndof = -1;
         unsigned int old_node_id = rdof_set.begin()->Id();
-        int ndof=0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-        {
+        int ndof = 0;
+        for (auto it = rdof_set.begin(); it!=rdof_set.end(); it++) {
             unsigned int id = it->Id();
-            if(id != old_node_id)
-            {
+            if (id != old_node_id) {
                 old_node_id = id;
-                if(old_ndof == -1) old_ndof = ndof;
-                else if(old_ndof != ndof) //if it is different than the block size is 1
-                {
+                if (old_ndof == -1) {
+                    old_ndof = ndof;
+                } else if (old_ndof != ndof) { //if it is different than the block size is 1
                     old_ndof = -1;
                     break;
                 }
-                ndof=1;
-            }
-            else
-            {
+                ndof = 1;
+            } else {
                 ndof++;
             }
         }
 
         r_model_part.GetCommunicator().MinAll(old_ndof);
 
-        if(old_ndof == -1)
-            mndof = 1;
-        else
-            mndof = ndof;
+        if (old_ndof == -1) {
+            mNumDof = 1;
+        } else {
+            mNumDof = ndof;
+        }
     }
 
     /// Print information about this object.
@@ -349,14 +322,12 @@ private:
 
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
-    SparseMatrixPointerType mpA;
-    MLPreconditionerPointerType mpMLPrec;
-    ScalingType mScalingType;
-    bool mMLPrecIsInitialized;
-    bool mReformPrecAtEachStep;
-    double mtol;
-    int mmax_iter;
-    int mndof  = 1;
+    MLPreconditionerPointerType mpMLPrec = nullptr;
+    ScalingType mScalingType = LeftScaling;
+    bool mReformPrecAtEachStep = true;
+    double mTolerance;
+    int mMaxIterations;
+    int mNumDof = 1;
 
     ///@}
 
