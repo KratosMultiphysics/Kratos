@@ -98,9 +98,8 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     # construct the class with the aux_settings settings passed from outside
     aux_analysis = "auxiliary_analysis"
     aux_project_parameters_path = "auxiliary_project_parameters_path"
-    aux_custom_metric_refinement_parameters = "auxiliary_custom_settings_metric_refinement"
-    aux_custom_remesh_refinement_parameters = "auxiliary_custom_settings_remesh_refinement"
-    auxiliary_MLMC_object = ConstructorCallback(aux_settings,aux_project_parameters_path,aux_custom_metric_refinement_parameters,aux_custom_remesh_refinement_parameters,aux_analysis)
+    aux_parameters_refinement_path = "auxiliary_parameters_refinement_path"
+    auxiliary_MLMC_object = ConstructorCallback(aux_settings,aux_project_parameters_path,aux_parameters_refinement_path,aux_analysis)
     auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
     auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
     auxiliary_MLMC_object.time_ML.mean = time_ML_mean
@@ -198,15 +197,14 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
 
 class MultilevelMonteCarlo(object):
     """The base class for the MultilevelMonteCarlo-classes"""
-    def __init__(self,custom_settings,project_parameters_path,custom_settings_metric_refinement,custom_settings_remesh_refinement,custom_analysis):
+    def __init__(self,custom_parameters_path,project_parameters_path,refinement_parameters_path,custom_analysis):
         """constructor of the MultilevelMonteCarlo-Object
         Keyword arguments:
         self:                              an instance of the class
-        custom_settings:                   settings of the Monte Carlo simulation
+        custom_parameters_path:            settings of the Monte Carlo simulation
         project_parameters_path:           path of the project parameters file
         custom_analysis:                   analysis stage of the problem
-        custom_settings_metric_refinement: settings of the metric for the refinement
-        custom_settings_remesh_refinement: settings of the remeshing
+        refinement_parameters_path:        settings of the metric for the refinement and settings of the remeshing
         """
 
         # analysis: analysis stage of the current problem
@@ -225,17 +223,15 @@ class MultilevelMonteCarlo(object):
         else:
             raise Exception ("Please provide the path of the project parameters json file")
         # custom_settings_metric_refinement: custom settings of the metric refinement
-        if (custom_settings_metric_refinement is "auxiliary_custom_settings_metric_refinement"): # needed in FinalizePhaseAux_Task to build an auxiliary MultilevelMonteCarlo class
-            self.to_pickle_custom_metric_remesh_refinement_parameters = False
-        else: # standard constructor
-            self.to_pickle_custom_metric_remesh_refinement_parameters = True
-            self.custom_metric_refinement_parameters = custom_settings_metric_refinement
         # custom_settings_remesh_refinement: custom settings of the remeshing
-        if (custom_settings_remesh_refinement is "auxiliary_custom_settings_remesh_refinement"): # needed in FinalizePhaseAux_Task to build an auxiliary MultilevelMonteCarlo class
+        if (refinement_parameters_path is "auxiliary_parameters_refinement_path"): # needed in FinalizePhaseAux_Task to build an auxiliary MultilevelMonteCarlo class
             self.to_pickle_custom_metric_remesh_refinement_parameters = False
-        else: # standard constructor
+            self.to_pickle_custom_metric_remesh_refinement_parameters = False
+        else:
             self.to_pickle_custom_metric_remesh_refinement_parameters = True
-            self.custom_remesh_refinement_parameters = custom_settings_remesh_refinement
+            self.to_pickle_custom_metric_remesh_refinement_parameters = True
+            self.refinement_parameters_path = refinement_parameters_path
+            self.SetRefinementParameters()
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # tol0: tolerance iter 0
         # tolF: tolerance final
@@ -252,6 +248,7 @@ class MultilevelMonteCarlo(object):
         # r2: cost increase final iterations CMLMC
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "run_multilevel_monte_carlo" : "True",
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
@@ -269,7 +266,8 @@ class MultilevelMonteCarlo(object):
             "splitting_parameter_min" : 0.1
         }
         """)
-        self.settings = custom_settings
+        self.custom_parameters_path = custom_parameters_path
+        self.SetXMCParameters()
         # warning if initial_mesh_size parameter not set by the user
         if not (self.settings.Has("initial_mesh_size")):
             print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
@@ -359,21 +357,26 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def Run(self):
-        # start screening phase
-        self.LaunchEpoch()
-        # finalize screening phase
-        self.FinalizeScreeningPhase()
-        self.ScreeningInfoScreeningPhase()
-        # start MLMC phase
-        while self.convergence is not True:
-            # initialize MLMC phase
-            self.InitializeMLMCPhase()
-            self.ScreeningInfoInitializeMLMCPhase()
-            # MLMC execution phase
+        print(self.settings)
+        if (self.settings["run_multilevel_monte_carlo"].GetString() == "True"):
+            # start screening phase
             self.LaunchEpoch()
-            # finalize MLMC phase
-            self.FinalizeMLMCPhase()
-            self.ScreeningInfoFinalizeMLMCPhase()
+            # finalize screening phase
+            self.FinalizeScreeningPhase()
+            self.ScreeningInfoScreeningPhase()
+            # start MLMC phase
+            while self.convergence is not True:
+                # initialize MLMC phase
+                self.InitializeMLMCPhase()
+                self.ScreeningInfoInitializeMLMCPhase()
+                # MLMC execution phase
+                self.LaunchEpoch()
+                # finalize MLMC phase
+                self.FinalizeMLMCPhase()
+                self.ScreeningInfoFinalizeMLMCPhase()
+        else:
+            print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
+            pass
 
     """
     function running one Monte Carlo epoch
@@ -448,6 +451,21 @@ class MultilevelMonteCarlo(object):
             self.is_project_parameters_pickled = True
             self.is_model_pickled = True
             print("\n","#"*50," SERIALIZATION MODEL AND PROJECT PARAMETERS COMPLETED ","#"*50,"\n")
+
+    """
+    function reading the XMC parameters passed from json file
+    input:  self: an instance of the class
+    """
+    def SetXMCParameters(self):
+        with open(self.custom_parameters_path,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.settings = parameters["multilevel_monte_carlo"]
+
+    def SetRefinementParameters(self):
+        with open(self.refinement_parameters_path,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.custom_metric_refinement_parameters = parameters["hessian_metric"]
+        self.custom_remesh_refinement_parameters = parameters["refinement_mmg"]
 
     """
     function serializing and pickling the custom setting metric and remeshing for the refinement

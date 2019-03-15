@@ -138,11 +138,11 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
 
 class MonteCarlo(object):
     """The base class for the MonteCarlo-classes"""
-    def __init__(self,custom_settings,project_parameters_path,custom_analysis):
+    def __init__(self,custom_parameters_path,project_parameters_path,custom_analysis):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
         self:                    an instance of the class
-        custom_settings:         settings of the Monte Carlo simulation
+        custom_parameters_path:  settings of the Monte Carlo simulation
         project_parameters_path: path of the project parameters file
         custom_analysis:         analysis stage of the problem
         """
@@ -164,13 +164,15 @@ class MonteCarlo(object):
         # convergence_criteria: convergence criteria to get if convergence is achieved
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "run_monte_carlo" : "True",
             "tolerance" : 1e-1,
             "cphi" : 1e-1,
             "batch_size" : 50,
             "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
         }
         """)
-        self.settings = custom_settings
+        self.custom_parameters_path = custom_parameters_path
+        self.SetXMCParameters()
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # convergence: boolean variable defining if MC algorithm has converged
@@ -216,12 +218,16 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def Run(self):
-        while self.convergence is not True:
-            self.InitializeMCPhase()
-            self.ScreeningInfoInitializeMCPhase()
-            self.LaunchEpoch()
-            self.FinalizeMCPhase()
-            self.ScreeningInfoFinalizeMCPhase()
+        if (self.settings["run_monte_carlo"].GetString() == "True"):
+            while self.convergence is not True:
+                self.InitializeMCPhase()
+                self.ScreeningInfoInitializeMCPhase()
+                self.LaunchEpoch()
+                self.FinalizeMCPhase()
+                self.ScreeningInfoFinalizeMCPhase()
+        else:
+            print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
+            pass
 
     """
     function running one Monte Carlo epoch
@@ -278,6 +284,15 @@ class MonteCarlo(object):
         self.is_project_parameters_pickled = True
         self.is_model_pickled = True
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
+
+    """
+    function reading the XMC parameters passed from json file
+    input:  self: an instance of the class
+    """
+    def SetXMCParameters(self):
+        with open(self.custom_parameters_path,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.settings = parameters["monte_carlo"]
 
     """
     function defining the Kratos specific application analysis stage of the problem
@@ -375,8 +390,7 @@ class MonteCarlo(object):
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
         self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level) # consider also to give as input the number of samples computed up to this point,
-                                                                       # i.e. self.number_samples[current_level], instead of using self.StatisticalVariable.number_samples[current_level] inside the function
+        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level])
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)
         self.CheckConvergence(current_level)
