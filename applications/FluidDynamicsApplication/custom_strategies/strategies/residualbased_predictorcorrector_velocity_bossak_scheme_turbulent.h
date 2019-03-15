@@ -127,19 +127,6 @@ namespace Kratos {
                 rVector[index] = MakeIndirectScalar(r_node, ACCELERATION_Z, Step);
             }
 
-            void GetFirstDerivativesDofsVector(std::size_t NodeId,
-                                               std::vector<Dof<double>::Pointer>& rVector,
-                                               ProcessInfo& rCurrentProcessInfo) override
-            {
-                rVector.resize(4);
-                std::size_t index = 0;
-                Node<3>& r_node = mpElement->GetGeometry()[NodeId];
-                rVector[index++] = r_node.pGetDof(VELOCITY_X);
-                rVector[index++] = r_node.pGetDof(VELOCITY_Y);
-                rVector[index++] = r_node.pGetDof(VELOCITY_Z);
-                rVector[index] = r_node.pGetDof(PRESSURE);
-            }
-
             void GetZeroDerivativesVariables(std::vector<VariableData const*>& rVariables,
                                              ProcessInfo& rCurrentProcessInfo) const override
             {

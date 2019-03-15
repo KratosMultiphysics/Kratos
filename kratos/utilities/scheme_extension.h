@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/dof.h"
 #include "includes/process_info.h"
 #include "utilities/indirect_scalar_fwd.h"
 
@@ -112,54 +111,6 @@ public:
         KRATOS_ERROR << "Calling SchemeExtension base class "
                         "GetSecondDerivativesVector method. Please implement "
                         "it in derrived class.";
-    }
-
-    /**
-     * @brief Get degrees of freedoms of non-derivatives
-     *
-     * @param[in]  NodeId                Id of the node which $\underline{x}$'s dofs are retrieved
-     * @param[in]  rCurrentProcessInfo   Current process info of the model part
-     * @param[out] rVector               Vector containing all the $\underline{x}$'s dofs.
-     */
-    virtual void GetZeroDerivativesDofsVector(std::size_t NodeId,
-                                              std::vector<Dof<double>::Pointer>& rVector,
-                                              ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_ERROR << "Calling SchemeExtension base class "
-                        "GetZeroDerivativesDofsVector method. Please implement "
-                        "it in derrived class.";
-    }
-
-    /**
-     * @brief Get degrees of freedoms of first derivatives
-     *
-     * @param[in]  NodeId                Id of the node which $\underline{\dot{x}}$'s dofs are retrieved
-     * @param[in]  rCurrentProcessInfo   Current process info of the model part
-     * @param[out] rVector               Vector containing all the $\underline{\dot{x}}$'s dofs.
-     */
-    virtual void GetFirstDerivativesDofsVector(std::size_t NodeId,
-                                               std::vector<Dof<double>::Pointer>& rVector,
-                                               ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_ERROR << "Calling SchemeExtension base class "
-                        "GetFirstDerivativesDofsVector method. Please "
-                        "implement it in derrived class.";
-    }
-
-    /**
-     * @brief Get degrees of freedoms of second derivatives
-     *
-     * @param[in]  NodeId                Id of the node which $\underline{\ddot{x}}$'s dofs are retrieved
-     * @param[in]  rCurrentProcessInfo   Current process info of the model part
-     * @param[out] rVector               Vector containing all the $\underline{\ddot{x}}$'s dofs.
-     */
-    virtual void GetSecondDerivativesDofsVector(std::size_t NodeId,
-                                                std::vector<Dof<double>::Pointer>& rVector,
-                                                ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_ERROR << "Calling SchemeExtension base class "
-                        "GetSecondDerivativesDofsVector method. Please "
-                        "implement it in derrived class.";
     }
 
     /**
