@@ -1606,15 +1606,18 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
                  << std::endl;
   }
 
-  if (this->GetProperties().Has(TORSIONAL_INERTIA) == false) {
+  if (this->GetProperties().Has(TORSIONAL_INERTIA) == false ||
+      this->GetProperties()[TORSIONAL_INERTIA] <= numerical_limit) {
     KRATOS_ERROR << "TORSIONAL_INERTIA not provided for this element"
                  << this->Id() << std::endl;
   }
-  if (this->GetProperties().Has(I22) == false) {
+  if (this->GetProperties().Has(I22) == false ||
+      this->GetProperties()[I22] <= numerical_limit) {
     KRATOS_ERROR << "I22 not provided for this element" << this->Id()
                  << std::endl;
   }
-  if (this->GetProperties().Has(I33) == false) {
+  if (this->GetProperties().Has(I33) == false ||
+      this->GetProperties()[I33] <= numerical_limit) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }

@@ -958,7 +958,8 @@ int CrBeamElement2D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
                  << std::endl;
   }
 
-  if (this->GetProperties().Has(I33) == false) {
+  if (this->GetProperties().Has(I33) == false ||
+      this->GetProperties()[I33] <= numerical_limit) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
