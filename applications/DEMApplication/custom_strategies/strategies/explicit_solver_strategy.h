@@ -225,11 +225,17 @@ namespace Kratos {
             return 0.00;
             KRATOS_CATCH("")
         };
-        virtual double PerformTimeIntegrationOfMotion_StrategyCustom(){
-            KRATOS_TRY
+        virtual double SearchOperations_StrategyCustom()
+        {
+            KRATOS_TRY;
             ModelPart& r_model_part = GetModelPart();
             SearchDEMOperations(r_model_part);
             SearchFEMOperations(r_model_part);
+            return 0.00;
+            KRATOS_CATCH("");
+        }
+        virtual double PerformTimeIntegrationOfMotion_StrategyCustom(){
+            KRATOS_TRY
             PerformTimeIntegrationOfMotion();
             return 0.00;
             KRATOS_CATCH("")

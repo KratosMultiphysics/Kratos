@@ -332,13 +332,15 @@ class ExplicitStrategy(object):
             self.FixExternalForcesManually(time)
             (self.cplusplus_strategy).InitializeSolutionStep_StrategyCustom()
         elif step ==1:
-            (self.cplusplus_strategy).PerformTimeIntegrationOfMotion_StrategyCustom()
+            (self.cplusplus_strategy).SearchOperations_StrategyCustom()
         elif step ==2:
             (self.cplusplus_strategy).ForceOperations_StrategyCustom()
         elif step ==3:
+            (self.cplusplus_strategy).PerformTimeIntegrationOfMotion_StrategyCustom()
+        elif step ==4:
             (self.cplusplus_strategy).FinalizeSolutionStep_StrategyCustom()
         else:
-            print('only step 0->3')
+            print('only step 0->4')
             quit()
 
 

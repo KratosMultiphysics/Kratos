@@ -704,7 +704,7 @@ class Solution(object):
     def SolveSingleTemporalLoopCustom(self,step):
         if step==0: self._BeforeSolveOperations(self.time)
         self.SolverSolveCustom(step)
-        if step==3:self.AfterSolveOperations()
+        if step==4:self.AfterSolveOperations()
 
 
 
