@@ -4,6 +4,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
+have_mesh_moving = KratosUtilities.CheckIfApplicationsAvailable("MeshMovingApplication")
 have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
@@ -105,7 +106,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             super(CustomFluidDynamicsAnalysis,self).OutputSolutionStep()
 
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+@UnitTest.skipUnless(have_external_solvers or have_mesh_moving,"Missing required application: ExternalSolversApplication or MeshMovingApplication")
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests
