@@ -26,6 +26,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/derivatives_extension.h"
 #include "utilities/indirect_scalar.h"
+#include "utilities/time_discretization.h"
 
 namespace Kratos
 {
@@ -110,17 +111,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY;
-
-        BaseType::Initialize(rModelPart);
-
-        InitializeNodeNeighbourCount(rModelPart.Nodes());
-
-        KRATOS_CATCH("");
-    }
-
     void InitializeSolutionStep(ModelPart& rModelPart,
                                 SystemMatrixType& rA,
                                 SystemVectorType& rDx,
@@ -143,8 +133,6 @@ public:
 
         ResidualBasedBossakVelocityScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
-
-        this->CalculateNodeNeighbourCount(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -310,12 +298,23 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    struct BossakConstants
+    {
+        double Alpha;
+        double Gamma;
+        double Beta;
+        double C0;
+        double C1;
+        double C2;
+        double C3;
+        double C4;
+        double C5;
+        double C6;
+    };
+
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
 
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVectorOld;
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVector;
@@ -456,104 +455,15 @@ protected:
                                mBossak.C4 * OldAcceleration + mBossak.C5 * CurrentAcceleration;
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    struct BossakConstants
-    {
-        double Alpha;
-        double Gamma;
-        double Beta;
-        double C0;
-        double C1;
-        double C2;
-        double C3;
-        double C4;
-        double C5;
-        double C6;
-    };
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    BossakConstants mBossak;
-
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentVelocityVector;
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentAccelerationVector;
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentDisplacementVector;
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldVelocityVector;
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldAccelerationVector;
-    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldDisplacementVector;
-    std::vector<std::vector<Dof<double>::Pointer>> mVelocityDofVector;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
-    {
-        // This loop should not be omp parallel
-        // The operation is not threadsafe if the value is uninitialized
-        for (auto& r_node : rNodes)
-            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
-    }
-
-    void CalculateNodeNeighbourCount(ModelPart& rModelPart)
-    {
-        // Calculate number of neighbour elements for each node.
-        const int num_nodes = rModelPart.NumberOfNodes();
-#pragma omp parallel for
-        for (int i = 0; i < num_nodes; ++i)
-        {
-            Node<3>& r_node = *(rModelPart.Nodes().begin() + i);
-            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
-        }
-
-        const int num_elements = rModelPart.NumberOfElements();
-#pragma omp parallel for
-        for (int i = 0; i < num_elements; ++i)
-        {
-            Element& r_element = *(rModelPart.Elements().begin() + i);
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j)
-            {
-                double& r_num_neighbour =
-                    r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-#pragma omp atomic
-                r_num_neighbour += 1.0;
-            }
-        }
-
-        rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-    }
-
     static void CalculateBossakConstants(BossakConstants& rBossakConstants,
                                          const double Alpha,
                                          const double DeltaTime)
     {
-        rBossakConstants.Alpha = Alpha;
-        rBossakConstants.Gamma = 0.5 - rBossakConstants.Alpha;
-        rBossakConstants.Beta = 0.25 * pow((1.00 - rBossakConstants.Alpha), 2);
+        TimeDiscretization::Bossak bossak(Alpha, 0.25, 0.5);
+        rBossakConstants.Alpha = bossak.GetAlphaM();
+        rBossakConstants.Gamma = bossak.GetGamma();
+        rBossakConstants.Beta = bossak.GetBeta();
+
         rBossakConstants.C0 =
             (1.0 - rBossakConstants.Alpha) / (rBossakConstants.Gamma * DeltaTime);
         rBossakConstants.C1 =
@@ -593,6 +503,49 @@ private:
         }
         KRATOS_CATCH("");
     }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
+        TSparseSpace::CreateDofUpdater();
+
+    BossakConstants mBossak;
+
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentVelocityVector;
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentAccelerationVector;
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectCurrentDisplacementVector;
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldVelocityVector;
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldAccelerationVector;
+    std::vector<std::vector<IndirectScalar<double>>> mIndirectOldDisplacementVector;
+    std::vector<std::vector<Dof<double>::Pointer>> mVelocityDofVector;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     void UpdateAcceleration(ModelPart& rModelPart)
     {
