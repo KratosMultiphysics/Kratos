@@ -7,11 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Riccardo Rossi
+//
+//  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
-#ifndef KRATOS_POTENTIAL_WALL_CONDITION_H
-#define KRATOS_POTENTIAL_WALL_CONDITION_H
+#ifndef KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
+#define KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
 
 
 #include "includes/kratos_flags.h"
@@ -23,6 +24,7 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "potential_wall_condition.h"
 
 // Application includes
 #include "compressible_potential_flow_application_variables.h"
@@ -31,113 +33,47 @@ namespace Kratos
 {
 
 
-template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class IncompressibleAdjointPotentialWallCondition : public Condition
+template <class TPrimalCondition>
+class AdjointIncompressiblePotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of IncompressibleAdjointPotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressibleAdjointPotentialWallCondition);
+    static constexpr int TNumNodes = TPrimalCondition::NumNodes;
+    static constexpr int TDim = TPrimalCondition::Dim;
 
-    typedef Node < 3 > NodeType;
-
-    typedef Properties PropertiesType;
-
-    typedef Geometry<NodeType> GeometryType;
-
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    /// Pointer definition of AdjointIncompressiblePotentialWallCondition
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointIncompressiblePotentialWallCondition);
 
     typedef Element::WeakPointer ElementWeakPointerType;
     
     typedef Element::Pointer ElementPointerType;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    /** Admits an Id as a parameter.
-      @param NewId Index for the new condition
-      */
-    IncompressibleAdjointPotentialWallCondition(IndexType NewId = 0):
-        Condition(NewId)
+    AdjointIncompressiblePotentialWallCondition(IndexType NewId = 0)
+    : Condition(NewId),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
-    IncompressibleAdjointPotentialWallCondition(Condition::Pointer pPrimalCondition)
-                    : Condition(pPrimalCondition->Id(), pPrimalCondition->pGetGeometry(), pPrimalCondition->pGetProperties())
-                    , mpPrimalCondition(pPrimalCondition)
-    {
-    };
-
-
-    /// Constructor using an array of nodes
-    /**
-     @param NewId Index of the new condition
-     @param ThisNodes An array containing the nodes of the new condition
-     */
-    IncompressibleAdjointPotentialWallCondition(IndexType NewId,
-                           const NodesArrayType& ThisNodes):
-        Condition(NewId,ThisNodes)
+    AdjointIncompressiblePotentialWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
-    /// Constructor using Geometry
-    /**
-     @param NewId Index of the new condition
-     @param pGeometry Pointer to a geometry object
-     */
-    IncompressibleAdjointPotentialWallCondition(IndexType NewId,
-                           GeometryType::Pointer pGeometry):
-        Condition(NewId,pGeometry)
-    {
-    }
-
-    /// Constructor using Properties
-    /**
-     @param NewId Index of the new element
-     @param pGeometry Pointer to a geometry object
-     @param pProperties Pointer to the element's properties
-     */
-    IncompressibleAdjointPotentialWallCondition(IndexType NewId,
-                           GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties):
-        Condition(NewId,pGeometry,pProperties)
-    {
-    }
-
-    /// Copy constructor.
-    IncompressibleAdjointPotentialWallCondition(IncompressibleAdjointPotentialWallCondition const& rOther):
-        Condition(rOther)
+    AdjointIncompressiblePotentialWallCondition(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 
     /// Destructor.
-    ~IncompressibleAdjointPotentialWallCondition() override {}
+    ~AdjointIncompressiblePotentialWallCondition() override {}
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    /// Copy constructor
-    IncompressibleAdjointPotentialWallCondition & operator=(IncompressibleAdjointPotentialWallCondition const& rOther)
+    AdjointIncompressiblePotentialWallCondition & operator=(AdjointIncompressiblePotentialWallCondition const& rOther)
     {
         Condition::operator=(rOther);
         return *this;
@@ -182,11 +118,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
     std::string Info() const override;
 
     /// Print information about this object.
@@ -195,11 +126,6 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override;
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
 
@@ -246,22 +172,22 @@ private:
                            WeakPointerVector<Element> ElementCandidates);
 
 
-}; // Class IncompressibleAdjointPotentialWallCondition
+}; // Class AdjointIncompressiblePotentialWallCondition
 
 ///@}
 
 /// input stream function
-template <unsigned int TDim, unsigned int TNumNodes>
+template <class TPrimalCondition>
 inline std::istream& operator>>(std::istream& rIStream,
-                                IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>& rThis)
+                                AdjointIncompressiblePotentialWallCondition<TPrimalCondition>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template <unsigned int TDim, unsigned int TNumNodes>
+template <class TPrimalCondition>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>& rThis)
+                                const AdjointIncompressiblePotentialWallCondition<TPrimalCondition>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

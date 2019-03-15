@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//
+//  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
 #if !defined(KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
@@ -18,16 +19,13 @@
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
-#include "utilities/geometry_utilities.h"
-#include "utilities/divide_triangle_2d_3.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "utilities/enrichment_utilities.h"
+#include "incompressible_potential_flow_element.h"
+
 namespace Kratos
 {
 
-
-template< int Dim, int NumNodes >
-class IncompressibleAdjointPotentialFlowElement : public Element
+template <class TPrimalElement>
+class AdjointIncompressiblePotentialFlowElement : public Element
 {
 public:
 
@@ -35,11 +33,13 @@ public:
     ///@{
 
     typedef Element BaseType;
+    static constexpr int NumNodes = TPrimalElement::TNumNodes;
+    static constexpr int Dim = TPrimalElement::TDim;
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressibleAdjointPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressibleAdjointPotentialFlowElement);
+    /// Pointer definition of AdjointIncompressiblePotentialFlowElement
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointIncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -48,45 +48,41 @@ public:
     /**
      * Constructor.
      */
-    IncompressibleAdjointPotentialFlowElement(IndexType NewId = 0) {};
+    AdjointIncompressiblePotentialFlowElement(IndexType NewId = 0) 
+     : Element(NewId),
+     mpPrimalElement(std::make_shared<TPrimalElement>(NewId))
+    {};
 
-    IncompressibleAdjointPotentialFlowElement(Element::Pointer pPrimalElement)
-                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties())
-                    , mpPrimalElement(pPrimalElement)
+    AdjointIncompressiblePotentialFlowElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry)
+     : Element(NewId, pGeometry),
+      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry))
     {
-    };
+    }
 
-    /**
-     * Constructor using an array of nodes
-     */
-    IncompressibleAdjointPotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
-
-    /**
-     * Constructor using Geometry
-     */
-    IncompressibleAdjointPotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
-
-    /**
-     * Constructor using Properties
-     */
-    IncompressibleAdjointPotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
-
+    AdjointIncompressiblePotentialFlowElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties)
+     : Element(NewId, pGeometry, pProperties),
+      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties))
+    {
+    }
     /**
      * Copy Constructor
      */
-    IncompressibleAdjointPotentialFlowElement(IncompressibleAdjointPotentialFlowElement const& rOther) {};
+    AdjointIncompressiblePotentialFlowElement(AdjointIncompressiblePotentialFlowElement const& rOther) {};
 
     /**
      * Destructor
      */
-    ~IncompressibleAdjointPotentialFlowElement() override {};
+    ~AdjointIncompressiblePotentialFlowElement() override {};
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressibleAdjointPotentialFlowElement & operator=(IncompressibleAdjointPotentialFlowElement const& rOther)
+    AdjointIncompressiblePotentialFlowElement & operator=(AdjointIncompressiblePotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
@@ -170,7 +166,7 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class IncompressibleAdjointPotentialFlowElement
+}; // Class AdjointIncompressiblePotentialFlowElement
 
 
 } // namespace Kratos.
