@@ -306,7 +306,7 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            this->mpDofUpdater->UpdateDofs(rDofSet,Dv);
+            mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
@@ -686,6 +686,12 @@ namespace Kratos {
         //************************************************************************************************
         //************************************************************************************************
 
+        /// Free memory allocated by this object.
+        void Clear() override
+        {
+            this->mpDofUpdater->Clear();
+        }
+
         /*@} */
         /**@name Operations */
         /*@{ */
@@ -843,6 +849,8 @@ namespace Kratos {
         const Variable<int>& mrPeriodicIdVar;
 
         Process::Pointer mpTurbulenceModel;
+
+        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
         /*@} */
         /**@name Private Operators*/
