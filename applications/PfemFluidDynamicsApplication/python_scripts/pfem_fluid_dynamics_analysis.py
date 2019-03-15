@@ -217,7 +217,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
     def InitializeSolutionStep(self):
 
-        self.clock_time = self.StartTimeMeasuring();
+        self.clock_time = self.StartTimeMeasuring()
 
         # current time parameters
         # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
@@ -242,11 +242,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # solve time step
         self._solver.InitializeSolutionStep()
 
-        self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
+        self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report)
 
     def SolveSolutionStep(self):
 
-        self.clock_time = self.StartTimeMeasuring();
+        self.clock_time = self.StartTimeMeasuring()
 
         self._solver.Predict()
 
@@ -254,11 +254,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self._solver.FinalizeSolutionStep()
 
-        self.StopTimeMeasuring(self.clock_time,"Solve Step" , self.report);
+        self.StopTimeMeasuring(self.clock_time,"Solve Step" , self.report)
 
     def FinalizeSolutionStep(self):
 
-        self.clock_time = self.StartTimeMeasuring();
+        self.clock_time = self.StartTimeMeasuring()
 
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
