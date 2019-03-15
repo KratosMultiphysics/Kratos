@@ -33,7 +33,6 @@ InitialPerturbationProcess::InitialPerturbationProcess(
 {
     ValidateParameters(rThisParameters);
     mSourcePoints.push_back(pNode);
-    Check();
 }
 
 
@@ -45,20 +44,17 @@ InitialPerturbationProcess::InitialPerturbationProcess(
 {
     ValidateParameters(rThisParameters);
     mSourcePoints = rSourcePoints;
-    Check();
 }
 
 
 int InitialPerturbationProcess::Check()
 {
-    KRATOS_TRY
     if (mrModelPart.Nodes().size() != 0) {
         const auto& r_node = *mrModelPart.NodesBegin();
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVariable, r_node);
     }
     KRATOS_CHECK(mInfluenceDistance >= std::numeric_limits<double>::epsilon());
     return 0;
-    KRATOS_CATCH("")
 }
 
 

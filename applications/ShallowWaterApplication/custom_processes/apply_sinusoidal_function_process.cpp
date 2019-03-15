@@ -33,28 +33,24 @@ ApplySinusoidalFunctionProcess<TVarType>::ApplySinusoidalFunctionProcess(
      , mrVariable(rThisVariable)
 {
     ValidateParameters(rThisParameters);
-    Check();
 }
 
 
 template<>
 int ApplySinusoidalFunctionProcess< Variable<double> >::Check()
 {
-    KRATOS_TRY
     if (mrModelPart.Nodes().size() != 0) {
         const auto& r_node = *mrModelPart.NodesBegin();
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrVariable, r_node);
     }
     KRATOS_CHECK(mPeriod >= std::numeric_limits<double>::epsilon());
     return 0;
-    KRATOS_CATCH("")
 }
 
 
 template<>
 int ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >::Check()
 {
-    KRATOS_TRY
     if (mrModelPart.Nodes().size() != 0) {
         const auto& r_node = *mrModelPart.NodesBegin();
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mrVariable, r_node);
@@ -62,7 +58,6 @@ int ApplySinusoidalFunctionProcess< Variable< array_1d<double, 3> > >::Check()
     }
     KRATOS_CHECK(mPeriod >= std::numeric_limits<double>::epsilon());
     return 0;
-    KRATOS_CATCH("")
 }
 
 
