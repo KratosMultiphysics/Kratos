@@ -160,17 +160,10 @@ namespace Kratos
 
         if (rOutput.size1() != NumNodes)
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
-        bool kutta_node_spotted=false;
-        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            if(GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
-                kutta_node_spotted=true;
-                break;
-            }
-        }
 
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                if (GetGeometry()[i_node].Is(SOLID)){
+                if ((GetGeometry()[i_node].Is(SOLID)) && (!GetGeometry()[i_node].GetValue(TRAILING_EDGE))){
                     pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
                     pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
@@ -190,16 +183,7 @@ namespace Kratos
                 }
             }
         }
-        if (kutta_node_spotted){ //remove kutta node lines
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-                if(GetGeometry()[i_node].GetValue(TRAILING_EDGE)){
-                    for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                        for(unsigned int i = 0; i < RHS.size(); ++i)
-                                rOutput( (i_dim + i_node*Dim), i) = 0.0;
-                    }
-                }
-            }  
-        }
+
         KRATOS_CATCH("")
     }
 
