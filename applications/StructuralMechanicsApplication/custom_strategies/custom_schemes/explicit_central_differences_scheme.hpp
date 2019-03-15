@@ -451,6 +451,114 @@ public:
         const SizeType DomainSize = 3
         )
     {
+
+        if (itCurrentNode->Is(SLAVE))
+        {
+            const VariableComponentType check_dof_z = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
+            const VariableComponentType check_dof_y = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
+            const VariableComponentType check_dof_x = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const)
+            {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                for (auto& r_dof_j: it_const->GetSlaveDofsVector())
+                {
+                    if (r_dof_j->Id() == itCurrentNode->Id())
+                    {
+                        Matrix coupling_weights;
+                        Vector coupling_constants;
+
+                        it_const->CalculateLocalSystem(coupling_weights,coupling_constants,r_current_process_info);
+
+
+                        if (r_dof_j->GetVariable() == check_dof_x)
+                        {
+                            const double& r_current_force_residual_x = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL_X);
+
+                            for (auto& r_master_dof: it_const->GetMasterDofsVector())
+                            {
+                                if (r_master_dof->GetVariable() == check_dof_x)
+                                {
+                                    double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_X);
+                                    current_master_force_residual_x += r_current_force_residual_x * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_y)
+                                {
+                                    double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Y);
+                                    current_master_force_residual_y += r_current_force_residual_x * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_z)
+                                {
+                                    double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Z);
+                                    current_master_force_residual_z += r_current_force_residual_x * std::abs(coupling_weights(0,0));
+                                }
+                                else continue;
+                            }
+                        }
+
+
+                        else if (r_dof_j->GetVariable() == check_dof_y)
+                        {
+                            const double& r_current_force_residual_y = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL_Y);
+
+                            for (auto& r_master_dof: it_const->GetMasterDofsVector())
+                            {
+                                if (r_master_dof->GetVariable() == check_dof_x)
+                                {
+                                    double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_X);
+                                    current_master_force_residual_x += r_current_force_residual_y * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_y)
+                                {
+                                    double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Y);
+                                    current_master_force_residual_y += r_current_force_residual_y * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_z)
+                                {
+                                    double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Z);
+                                    current_master_force_residual_z += r_current_force_residual_y * std::abs(coupling_weights(0,0));
+                                }
+                                else continue;
+                            }
+                        }
+
+                        else if (r_dof_j->GetVariable() == check_dof_z)
+                        {
+                            const double& r_current_force_residual_z = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL_Z);
+
+                            for (auto& r_master_dof: it_const->GetMasterDofsVector())
+                            {
+                                if (r_master_dof->GetVariable() == check_dof_x)
+                                {
+                                    double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_X);
+                                    current_master_force_residual_x += r_current_force_residual_z * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_y)
+                                {
+                                    double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Y);
+                                    current_master_force_residual_y += r_current_force_residual_z * std::abs(coupling_weights(0,0));
+                                }
+                                else if (r_master_dof->GetVariable() == check_dof_z)
+                                {
+                                    double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(FORCE_RESIDUAL_Z);
+                                    current_master_force_residual_z += r_current_force_residual_z * std::abs(coupling_weights(0,0));
+                                }
+                                else continue;
+                            }
+                        }
+
+                        else continue;
+                    }
+                }
+            }
+        }
+
+
+
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
         const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
