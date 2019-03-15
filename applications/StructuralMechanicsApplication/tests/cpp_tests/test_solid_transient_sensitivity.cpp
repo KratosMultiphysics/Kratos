@@ -68,7 +68,7 @@ struct AdjointTestSolver
 
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_DISABLED_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
     auto model_part_factory = [&this_model]() -> ModelPart& {
