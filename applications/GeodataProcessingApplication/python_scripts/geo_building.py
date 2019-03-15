@@ -426,6 +426,114 @@ class GeoBuilding( GeoProcessor ):
         #     print( "Condition " + str(cond.Id) )
 
 
+    def ShiftBuildingOnTerrain(self, buildings_model_part, terrain_model_part):
+        # function to shift Buildings on terrain
+        import numpy as np      # TODO: REMOVE NUMPY
+
+        N = KratosMultiphysics.Vector(3)
+        coords =  KratosMultiphysics.Array3()
+
+        locate_on_background = KratosMultiphysics.BinBasedFastPointLocator2D(terrain_model_part)
+        locate_on_background.UpdateSearchDatabase()
+
+        already_moved = []            # list with all nodes already moved
+        height = []
+
+        self.ModelPart = buildings_model_part
+        # KratosMultiphysics.ModelPartIO("data/building_model_part_ORG", KratosMultiphysics.IO.WRITE).WriteModelPart(self.ModelPart)
+        ID_vertex = self.ModelPart.NumberOfNodes() + 1
+
+        for num_building in range(self.ModelPart.NumberOfSubModelParts()):
+            current_sub_model = self.ModelPart.GetSubModelPart("Building_{}".format(num_building+1))
+            
+            displacement = []        # the vector where we save the Z coordinate to evaluate the minimum
+            for node_building in current_sub_model.Nodes:
+                # take only nodes with z = 0.0 which are the nodes at the base of the Building
+                if node_building.Z != 0.0:
+                    continue
+
+                # fill coords array
+                coords[0] = node_building.X
+                coords[1] = node_building.Y
+                coords[2] = node_building.Z
+                
+                # "found" is a boolean variable (True if "node" is inside the mesh element)
+                # "pelem" is a pointer to element that contain the node of the Building
+                [found, N, pelem] = locate_on_background.FindPointOnMesh(coords)        # here we have the terrain element (but it is on xy plane)
+
+                if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
+                    continue
+                
+                # calculation of the intersection point between Building and terrain
+                Norm = self._normal_triangle(pelem)
+
+                # define plane
+                planeNormal = np.array(Norm)
+                planePoint = np.array(pelem.GetNode(0))
+
+                # define ray
+                rayDirection = np.array([0, 0, 1])
+                rayPoint = np.array(coords)
+
+                ndotu = planeNormal.dot(rayDirection)
+
+                w = rayPoint - planePoint
+                si = -planeNormal.dot(w) / ndotu
+                Psi = w + si *rayDirection + planePoint
+                
+                displacement.append(Psi[2])                # append just coordinate Z
+            
+            # check if "displacement" is empty
+            if displacement:
+                height.append(min(displacement))                # quantity to move the n-th Building
+            else:
+                height.append(0)
+            
+            # check on the nodes shared by multiple elements
+            node_mod = {}    # dictionary where the key is the old node Id and the "value" is the new node Id
+            for node in current_sub_model.Nodes:
+                if node.Id in already_moved:                    # if it is one of the already moved nodes
+                    self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + height[num_building]))    # a new node with different Id and Z coordinate moved
+                    node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
+                    node.Id = ID_vertex                            # update the node of the element
+                    ID_vertex += 1
+                else:
+                    already_moved.append(node.Id)                # fill "already_moved" with current Id node
+                    node.Z = node.Z + height[num_building]            # move current node of the quantity in list "height"
+            
+            for old_node, new_node in node_mod.items():
+                current_sub_model.AddNodes([new_node])            # add the new nodes in the current sub model part
+                current_sub_model.RemoveNode(old_node)            # remove the old nodes that are now replaced
+
+        for node in self.ModelPart.Nodes:
+            node.Set(KratosMultiphysics.TO_ERASE,True)
+
+        for sub_model in self.ModelPart.SubModelParts:
+            for node in sub_model.Nodes:
+                node.Set(KratosMultiphysics.TO_ERASE,False)
+
+        # to erase unused nodes
+        self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        # KratosMultiphysics.ModelPartIO("data/building_model_part_MOD", KratosMultiphysics.IO.WRITE).WriteModelPart(self.ModelPart)
+
+
+    # FUNCTION UNDER CONSTRUCTION
+    def DeleteBuildingsUnderValue(self, z_value):
+        # this function delete the buildings that are under a certain Z value
+
+        del_buildings = []
+        for sub_model in self.ModelPart.SubModelParts:
+            for elem in sub_model.Elements:
+                for node in elem.GetNodes():
+                    if (node.Z <= z_value):
+                        del_buildings.append(sub_model.Name)
+                        # print("save the information to will delete the element")
+        
+        del_buildings = list(set(del_buildings))
+        
+        for sub_model_to_del in del_buildings:
+            self.ModelPart.RemoveSubModelPart(sub_model_to_del)
 
 
 ### --- auxiliary functions --- ### -------------------------------------
@@ -470,3 +578,15 @@ class GeoBuilding( GeoProcessor ):
         		aux_name )
 
         return variational_distance_process
+
+
+    def _normal_triangle(self, elem):
+        P1 = elem.GetNode(0)
+        P2 = elem.GetNode(1)
+        P3 = elem.GetNode(2)
+
+        Nx = (P2.Y-P1.Y)*(P3.Z-P1.Z) - (P3.Y-P1.Y)*(P2.Z-P1.Z)
+        Ny = (P2.Z-P1.Z)*(P3.X-P1.X) - (P2.X-P1.X)*(P3.Z-P1.Z)
+        Nz = (P2.X-P1.X)*(P3.Y-P1.Y) - (P3.X-P1.X)*(P2.Y-P1.Y)
+
+        return [Nx, Ny, Nz]
