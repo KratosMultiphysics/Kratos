@@ -73,8 +73,21 @@ class PotentialAdjointSolver(LaplacianSolver):
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Finished initialization.")
     def PrepareModelPart(self):
         super(PotentialAdjointSolver, self).PrepareModelPart()
-        # TODO Why does replacement need to happen after reading materials?
-        KratosMultiphysics.CompressiblePotentialFlowApplication.ReplaceElementsAndConditionsAdjointProcess(self.main_model_part).Execute()
+       # defines how the primal elements should be replaced with their adjoint counterparts
+        replacement_settings = KratosMultiphysics.Parameters("""
+            {
+                "element_name_table" :
+                {
+                    "IncompressiblePotentialFlowElement2D3N" : "AdjointIncompressiblePotentialFlowElement2D3N"
+                },
+                "condition_name_table" :
+                {
+                    "PotentialWallCondition2D2N"             : "AdjointIncompressiblePotentialWallCondition2D2N"
+                }
+            }
+        """)
+
+        KratosMultiphysics.StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
