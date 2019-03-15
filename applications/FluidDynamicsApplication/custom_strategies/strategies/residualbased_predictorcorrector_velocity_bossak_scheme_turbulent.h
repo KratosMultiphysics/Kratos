@@ -374,30 +374,64 @@ namespace Kratos {
                      TSystemVectorType& Dv,
                      TSystemVectorType& b) override
         {
-            BaseType::mUpdateDisplacement = (mMeshVelocity == 2);
-
-            BaseType::Predict(rModelPart, rDofSet, A, Dv, b);
+            // if (rModelPart.GetCommunicator().MyPID() == 0)
+            //     std::cout << "prediction" << std::endl;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+
 #pragma omp parallel
             {
+                //array_1d<double, 3 > DeltaDisp;
+
                 int k = OpenMPUtils::ThisThread();
 
-                ModelPart::NodeIterator NodesBegin =
-                    rModelPart.NodesBegin() + NodePartition[k];
-                ModelPart::NodeIterator NodesEnd =
-                    rModelPart.NodesBegin() + NodePartition[k + 1];
+                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
+                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k + 1];
 
-                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++)
-                {
-                    if (mMeshVelocity == 2) // Lagrangian
+                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
+                    array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
+                    double& OldPressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
+
+                    //predicting velocity
+                    //ATTENTION::: the prediction is performed only on free nodes
+                    array_1d<double, 3 > & CurrentVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY);
+                    double& CurrentPressure = (itNode)->FastGetSolutionStepValue(PRESSURE);
+
+                    if ((itNode->pGetDof(VELOCITY_X))->IsFree())
+                        (CurrentVelocity[0]) = OldVelocity[0];
+                    if (itNode->pGetDof(VELOCITY_Y)->IsFree())
+                        (CurrentVelocity[1]) = OldVelocity[1];
+                    if (itNode->HasDofFor(VELOCITY_Z))
+                        if (itNode->pGetDof(VELOCITY_Z)->IsFree())
+                            (CurrentVelocity[2]) = OldVelocity[2];
+
+                    if (itNode->pGetDof(PRESSURE)->IsFree())
+                        CurrentPressure = OldPressure;
+
+                    // updating time derivatives ::: please note that displacements and
+                    // their time derivatives can not be consistently fixed separately
+                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
+
+                    for (unsigned int i_dim = 0; i_dim < 3; ++i_dim)
+                        this->UpdateAcceleration(
+                            CurrentAcceleration[i_dim], CurrentVelocity[i_dim],
+                            OldVelocity[i_dim], OldAcceleration[i_dim]);
+
+                    if (mMeshVelocity == 2) //Lagrangian
                     {
-                        if ((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
+                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+
+                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
                         {
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) =
-                                itNode->FastGetSolutionStepValue(VELOCITY);
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+                            for (unsigned int i_dim; i_dim < 3; ++i_dim)
+                                this->UpdateDisplacement(CurrentDisplacement[i_dim], OldDisplacement[i_dim],
+                                               OldVelocity[i_dim], OldAcceleration[i_dim],
+                                               CurrentAcceleration[i_dim]);
                         }
                         else
                         {
@@ -409,6 +443,9 @@ namespace Kratos {
                     }
                 }
             }
+
+            //              if (rModelPart.GetCommunicator().MyPID() == 0)
+            //                  std::cout << "end of prediction" << std::endl;
 
         }
 

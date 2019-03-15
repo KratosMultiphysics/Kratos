@@ -164,65 +164,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    // predicts the solution at the current step as
-    // v = vold
-    void Predict(ModelPart& rModelPart,
-                 DofsArrayType& rDofSet,
-                 SystemMatrixType& A,
-                 SystemVectorType& Dv,
-                 SystemVectorType& b) override
-    {
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const int number_of_elements = rModelPart.NumberOfElements();
-
-        auto dof_vars = GatherVariables(
-            rModelPart.Elements(),
-            [](const DerivativesExtension& rExtensions,
-               std::vector<const VariableData*>& rVec, ProcessInfo& rCurrentProcessInfo) {
-                rExtensions.GetFirstDerivativesVariables(rVec, rCurrentProcessInfo);
-            },
-            r_current_process_info);
-
-#pragma omp parallel for
-        for (int i = 0; i < number_of_elements; ++i)
-        {
-            const int k = OpenMPUtils::ThisThread();
-
-            Element& r_element = *(rModelPart.ElementsBegin() + i);
-            DerivativesExtension& r_extensions = *r_element.GetValue(DERIVATIVES_EXTENSION);
-
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                Node<3>& r_node = r_geometry[i_node];
-
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mIndirectCurrentVelocityVector[k], 0, r_current_process_info);
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mIndirectOldVelocityVector[k], 1, r_current_process_info);
-                r_extensions.GetFirstDerivativesDofsVector(
-                    i_node, mVelocityDofVector[k], r_current_process_info);
-
-                r_node.SetLock();
-                for (unsigned int i_dof = 0; i_dof < mVelocityDofVector[k].size(); ++i_dof)
-                {
-                    if (r_node.HasDofFor(mVelocityDofVector[k][i_dof]->GetVariable()))
-                    {
-                        if (mVelocityDofVector[k][i_dof]->IsFree())
-                        {
-                            mIndirectCurrentVelocityVector[k] =
-                                mIndirectOldVelocityVector[k];
-                        }
-                    }
-                }
-                r_node.UnSetLock();
-            }
-        }
-
-        AssembleVariables(dof_vars, rModelPart.GetCommunicator());
-        this->UpdateTimeSchemeVariables(rModelPart);
-    }
-
     void CalculateSystemContributions(Element::Pointer pCurrentElement,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
@@ -494,6 +435,25 @@ protected:
         UpdateDisplacement(rModelPart);
 
         KRATOS_CATCH("");
+    }
+
+    void UpdateAcceleration(double& rCurrentAcceleration,
+                            const double CurrentVelocity,
+                            const double OldVelocity,
+                            const double OldAcceleration)
+    {
+        rCurrentAcceleration = mBossak.C2 * (CurrentVelocity - OldVelocity) -
+                               mBossak.C3 * OldAcceleration;
+    }
+
+    void UpdateDisplacement(double& rCurrentDisplacement,
+                            const double OldDisplacement,
+                            const double OldVelocity,
+                            const double CurrentAcceleration,
+                            const double OldAcceleration)
+    {
+        rCurrentDisplacement = OldDisplacement + mBossak.C6 * OldVelocity +
+                               mBossak.C4 * OldAcceleration + mBossak.C5 * CurrentAcceleration;
     }
 
     ///@}
