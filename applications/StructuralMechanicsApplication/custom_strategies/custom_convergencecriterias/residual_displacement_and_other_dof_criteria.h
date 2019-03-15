@@ -246,7 +246,7 @@ public:
     ) override
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
-        {
+        { 
             CalculateResidualNorm(rDofSet, b, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm);
             mInitialResidualIsSet = true;
         }
