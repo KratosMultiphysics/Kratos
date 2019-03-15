@@ -71,16 +71,16 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
 
         }
 
-        auto p_entitiy = it_reference_entity->second->Create(it->Id(),
+        auto p_entity = it_reference_entity->second->Create(it->Id(),
             it->pGetGeometry(),
             it->pGetProperties()
         );
 
         // Deep copy data and flags
-        p_entitiy->Data() = it->Data();
-        p_entitiy->Set(Flags(*it));
+        p_entity->Data() = it->Data();
+        p_entity->Set(Flags(*it));
 
-        (*it.base()) = p_entitiy;
+        (*it.base()) = p_entity;
     }
 }
 
