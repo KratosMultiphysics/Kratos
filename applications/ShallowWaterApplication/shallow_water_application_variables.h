@@ -26,6 +26,10 @@
 
 namespace Kratos
 {
+    enum Framework {EULERIAN_FRAMEWORK = 0, PFEM2_FRAMEWORK = 1};
+    enum Formulation {REDUCED_VARIABLES = 0, CONSERVED_VARIABLES = 1};
+    enum Variables {FREE_SURFACE_VARIABLE = 0, VELOCITY_VARIABLE = 1, FREE_SURFACE_AND_VELOCITY = 2};
+
     // Shallow water variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, HEIGHT)                               // Main variable
     KRATOS_DEFINE_APPLICATION_VARIABLE( SHALLOW_WATER_APPLICATION, double, BATHYMETRY)                           // Topographic definition of the marine domain
