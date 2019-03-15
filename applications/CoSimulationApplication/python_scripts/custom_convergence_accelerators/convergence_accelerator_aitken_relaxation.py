@@ -4,7 +4,7 @@
 # Updated : Aditya Ghantasala
 # Date: Feb. 20, 2017
 
-from base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from base_co_simulation_classes.co_simulation_base_filter import CoSimulationBaseFilter
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
@@ -27,7 +27,7 @@ def Create(settings, solver):
 ## Class AitkenAccelerator.
 # This class contains the implementation of Aitken relaxation.
 # Reference: Ulrich Küttler et al., "Fixed-point fluid–structurce interaction solvers with dynamic relaxation"
-class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
+class AitkenAccelerator(CoSimulationBaseFilter):
     ## The constructor.
     # @param settings Settings for the relaxation
     # @param solver The solver which the relaxation should work with

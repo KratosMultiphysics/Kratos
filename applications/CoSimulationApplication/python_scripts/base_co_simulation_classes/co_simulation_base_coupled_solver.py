@@ -225,10 +225,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # - check if data format has been specified
         return solver_cosim_details
 
-    ## _CreateConvergenceAccelerators : Protected Function to make convergence accelerator objects list
+    ## _CreateFilters : Protected Function to make filter objects list and store in the datafield
     #
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
-    def _CreateConvergenceAccelerators(self, co_simulation_solver_settings): # probably better in some utils file
+    def _CreateFilters(self, co_simulation_solver_settings): # probably better in some utils file
         import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
         num_solvers = co_simulation_solver_settings.size()
         solver_cosim_details = {}
@@ -270,7 +270,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             criteria_setting = conv_criteria_settings[i]
             solver_name = criteria_setting["solver"].GetString()
             solver = self.participating_solvers[solver_name]
-            criteria = criteria.Create(criteria_setting, solver)
+            criteria = criteria.Create(criteria_setting, solver) # Change to use interface data
             conv_criteria.append(criteria)
 
         return conv_criteria

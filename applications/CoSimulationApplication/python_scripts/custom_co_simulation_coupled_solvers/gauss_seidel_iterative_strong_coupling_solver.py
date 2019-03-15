@@ -25,37 +25,29 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
         #Comment how the settings are specified has to be consistent!
         ### Making the convergence accelerator for this strategy
-        self.convergence_accelerators_list = self._CreateConvergenceAccelerators(self.settings["convergence_accelerators"])
+        self._CreateFilters(self.participants_setting_dict)
 
         ### Creating the convergence criterion
         self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
 
     def Initialize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
-        for conv_acceleraror in self.convergence_accelerators_list:
-            conv_acceleraror.Initialize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Initialize()
 
     def Finalize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Finalize()
-        for conv_acceleraror in self.convergence_accelerators_list:
-            conv_acceleraror.Finalize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Finalize()
 
 
     def InitializeSolutionStep(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
-        for accelerator in self.convergence_accelerators_list:
-            accelerator.InitializeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).FinalizeSolutionStep()
-        for accelerator in self.convergence_accelerators_list:
-            accelerator.FinalizeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.FinalizeSolutionStep()
 
@@ -67,8 +59,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                                         cs_tools.bcolors.MEGENTA + "Coupling iteration: ", cs_tools.bcolors.BOLD + str(iteration+1) +
                                         " / " + cs_tools.bcolors.BLUE + str(self.num_coupling_iterations) + cs_tools.bcolors.ENDC)
 
-                for accelerator in self.convergence_accelerators_list:
-                    accelerator.InitializeNonLinearIteration()
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.InitializeNonLinearIteration()
 
@@ -80,8 +70,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
-                for accelerator in self.convergence_accelerators_list:
-                    accelerator.FinalizeNonLinearIteration()
 
                 is_converged = True #Comment I think this would be suitable for list-comprehension
                 for conv_criteria in self.convergence_criteria_list:
@@ -105,7 +93,3 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
     def PrintInfo(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).PrintInfo()
-        for accelerator in self.convergence_accelerators_list:
-            accelerator.PrintInfo()
-        for accelerator in self.convergence_accelerators:
-            accelerator.PrintInfo()

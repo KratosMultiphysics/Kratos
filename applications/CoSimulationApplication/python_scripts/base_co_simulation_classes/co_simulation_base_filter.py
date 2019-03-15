@@ -1,67 +1,92 @@
-# co simulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_data_structure as data_str
-cs_data_structure = data_str.__DATA_STRUCTURE__
-import collections
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 
 
 ##
 #  IMPORTANT : This is a BASE CLASS
 #               Please do not change any thing in this class.
 #
-#  This class is intended to serve as the base class for all the filters (predictors, accelerators, etc) applied on the data field.
-class CoSimulationBaseDataFilter(object):
-    ## Constructor :  The base class for the base filter class
-    #  @param cosim_solver_settings     parameter object with the filter settings
-    def __init__(self, filter_settings):
-        default_setting = cs_data_structure.Parameters("""
-        {
-            "type" : "",
-            "settings":{}
-        }
-        """)
-        self.name = solver_name
-        self.filter_settings = filter_settings
-        self.filter_settings.ValidateAndAssignDefaults(default_setting)
+# This Class servers as a base class for all the filters which are to be applied on the co simulation data
+# used in co simulation.
+class CoSimulationBaseFilter(object):
+    def __init__(self, settings, data):
+        self.solver = data
+        self.settings = settings
+        self.echo_level = 0
 
-    ## Initialize : Initialize function. Called only once
-    #               all member variables are initialized here.
+    ## Initialize : Initialize function for the accelerator class. Necessary
+    #               initialization of the variables and objects to be done here.
+    #  @param self                      The object pointer.
     def Initialize(self):
         pass
 
-    ## Finalize : Finalize function. Called only once
-    #               all member variables are finalized here.
+    ## Finalize :  Initialize function for the accelerator class.
+    #               finalization of the variables and objects to be done here.
+    #  @param self                      The object pointer.
     def Finalize(self):
         pass
-
-    ## InitializeSolutionStep : Called once in the beginning of the solution step
-    #
-    #  @param self            The object pointer.
-    def InitializeSolutionStep(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseDataFilter : Calling InitializeSolutionStep function !" + tools.bcolors.ENDC)
-
-    ## FinalizeSolutionStep : Called once at the end of the solution step
-    #
-    #  @param self            The object pointer.
-    def InitializeSolutionStep(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseDataFilter : Calling InitializeSolutionStep function !" + tools.bcolors.ENDC)
-
-    ## FinalizeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
-    #                               Called at the beginning of the nonlinear iteration (coupling iteration)
-    #
-    def InitializeNonLinearIteration(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseDataFilter : Calling InitializeNonLinearIteration function !" + tools.bcolors.ENDC)
-
-    ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
-    #                               Called at the end of the nonlinear iteration (coupling iteration)
-    #
-    def FinalizeNonLinearIteration(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseDataFilter : Calling FinalizeNonLinearIteration function !" + tools.bcolors.ENDC)
 
     ## Apply : Apply function for the accelerator class. Necessary
     #               Calculation of the update and applying update to the data field will happen here.
     #  @param self                      The object pointer.
     def Apply(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseDataFilter : Calling Apply function from base accelerator !" + tools.bcolors.ENDC)
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling Apply function from base accelerator !" + tools.bcolors.ENDC)
+
+    ## InitializeSolutionStep : Called once in the beginning of the solution step
+    #
+
+    def InitializeSolutionStep(self):
+        pass
+
+    ## FinalizeSolutionStep : Called once at the end of the solution step
+    #
+
+    def FinalizeSolutionStep(self):
+        pass
+
+    ## FinalizeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
+    #                               Called at the beginning of the nonlinear iteration (coupling iteration)
+    #
+
+    def InitializeNonLinearIteration(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling InitializeNonLinearIteration function !" + tools.bcolors.ENDC)
+
+    ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
+    #                               Called at the end of the nonlinear iteration (coupling iteration)
+    #
+
+    def FinalizeNonLinearIteration(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling FinalizeNonLinearIteration function !" + tools.bcolors.ENDC)
+
+    ## ComputeUpdate : Function to compute the update for the fields. Should be called during the nonlinear (coupling iteration).
+    #
+
+    def ComputeUpdate(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling ComputeUpdate function !" + tools.bcolors.ENDC)
+
+    ## PrintInfo : Function to print the information of the convergence accelerator
+    #
+
+    def PrintInfo(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling PrintInfo function !" + tools.bcolors.ENDC)
+
+    ## SetEchoLevel : Function to set the echo_level of the convergence accelerator
+    #
+
+    #  @param level           int : echo level to be set
+    def SetEchoLevel(self, level):
+        self.echo_level = level
+
+    ## Check : Function to Check the setup of the convergence accelerator
+    #
+
+    def Check(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling Check function !" + tools.bcolors.ENDC)
+
+    ## _Name : Function to get the name of the convergence accelerator
+    #
+
+    def _Name(self):
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseFilter : Calling _Name function !" + tools.bcolors.ENDC)

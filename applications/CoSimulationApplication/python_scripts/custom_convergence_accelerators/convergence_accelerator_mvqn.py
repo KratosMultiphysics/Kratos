@@ -4,7 +4,7 @@
 # Date: Feb. 20, 2017
 
 
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_filter import CoSimulationBaseFilter
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
@@ -24,7 +24,7 @@ def Create(settings, solver):
 ## Class MVQN.
 # This class contains the implementation of the MVQN method and helper functions.
 # Reference: A.E.J. Bogaers et al. "Quasi-Newton methods for implicit black-box FSI coupling", Computational methods in applied mechanics and engineering. 279(2014) 113-132.
-class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
+class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.

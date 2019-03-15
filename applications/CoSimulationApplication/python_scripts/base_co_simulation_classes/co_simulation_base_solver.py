@@ -128,7 +128,7 @@ class CoSimulationBaseSolver(object):
     def ImportCouplingInterfaceData(self, data_object, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportCouplingInterfaceData(data_conf, from_client) ## Mapping happens inside here
+        self.io.ImportCouplingInterfaceData(data_object, from_client) ## Mapping happens inside here
         ## Once the mapping is done here, we apply all the filters before making the data usable
         data_object.ApplyFilters()
 
@@ -157,7 +157,7 @@ class CoSimulationBaseSolver(object):
         data_object.ApplyFilters()
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ExportCouplingInterfaceData(data_name, to_client)
+        self.io.ExportCouplingInterfaceData(data_object, to_client)
 
     ## ExportCouplingInterface : This function exports the requested surface/volume
     #               to to_client
@@ -219,7 +219,7 @@ class CoSimulationBaseSolver(object):
     def _GetGeometryNames(self):
         geo_name_list = []
         for name, data in self.data_map.items():
-            mesh_name = data["geometry_name"].GetString()
+            mesh_name = data.mesh_name
             if(mesh_name not in geo_name_list):
                 geo_name_list.append( mesh_name )
         return geo_name_list
