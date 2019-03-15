@@ -109,7 +109,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests
-    def testEmbeddedPistonTest2D(self):
+    def testEmbeddedPiston2D(self):
         self.A = 1.5
         self.w = 2.0 * math.pi
         self.work_folder = "EmbeddedPiston2DTest"
