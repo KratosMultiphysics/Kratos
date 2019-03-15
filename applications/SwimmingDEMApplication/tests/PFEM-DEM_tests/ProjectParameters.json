@@ -9,12 +9,15 @@
     "parallel_type" : "OpenMP",
     "echo_level"    : 0,
     "start_time"    : 0.0,
-    "end_time"      : 0.005
+    "end_time"      : 0.007
 },
+
+"OutputFileType"                   : "Binary",
+"Multifile"                        : "multiple_files",
 
 "TranslationalIntegrationScheme"   : "Symplectic_Euler",
 "MaxTimeStep"                      : 2.5e-6,
-"FinalTime"                        : 0.005,
+"FinalTime"                        : 0.007,
 "ControlTime"                      : 5.0,
 "NeighbourSearchFrequency"         : 50,
 "TestType" : "None",
@@ -70,7 +73,7 @@
 "add_each_hydro_force_option_comment"    : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
 "project_at_every_substep_option"        : true,
 "velocity_trap_option"                   : false,
-"inlet_option"                           : true,
+"inlet_option"                           : false,
 "manually_imposed_drag_law_option"       : false,
 "stationary_problem_option"              : false,
 "stationary_problem_option_comment"      : " stationary, stop calculating the fluid after it reaches the stationary state",
@@ -111,18 +114,16 @@
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
 "basset_force_type"                      : 0,
-"frame_of_reference_type"                : 1,
-"angular_velocity_of_frame_Z"            : 0.5,
 
-"OutputTimeStep"                             : 0.001,
+"OutputTimeStep"                             : 1.0,
 "PostPressure"                               : false,
 "PostFluidPressure"                          : false,
 "print_REYNOLDS_NUMBER_option"               : false,
 "print_PRESSURE_GRAD_PROJECTED_option"       : false,
-"print_FLUID_VEL_PROJECTED_option"           : false,
+"print_FLUID_VEL_PROJECTED_option"           : true,
 "print_FLUID_ACCEL_PROJECTED_option"         : false,
 "print_BUOYANCY_option"                      : false,
-"print_DRAG_FORCE_option"                    : false,
+"print_DRAG_FORCE_option"                    : true,
 "print_VIRTUAL_MASS_FORCE_option"            : false,
 "print_BASSET_FORCE_option"                  : false,
 "print_LIFT_FORCE_option"                    : false,
@@ -181,44 +182,33 @@
     "auxiliar_process_list" : [{
         "python_module"   : "from_json_check_result_process",
         "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "FromJsonCheckResultProcess",
         "Parameters"      : {
             "check_variables"      : ["DISPLACEMENT_Z","VELOCITY_Z"],
             "input_file_name"      : "PFEM-DEM_tests/errors_one_way.json",
-            "model_part_name"      : "SpheresPart",
-            "time_frequency"       : 0.001
+            "model_part_name"       : "SpheresPart",
+            "time_frequency"        : 0.001
         }
-    }]
-},
+        }]
+
+    },
+
 "fluid_parameters"  : {
     "problem_data"             : {
         "problem_name"    : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
-        "model_part_name" : "Main Domain",
-        "dimension"       : 3,
-        "time_step"       : 0.001,
         "start_time"      : 0.0,
-        "end_time"        : 0.005,
+        "end_time"        : 0.007,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP",
         "threads"         : 1,
         "gravity_vector"  : [0.0,0.0,-9.81]
     },
-     "bodies_list"                        : [{
-          "body_type"  : "Fluid",
-          "body_name"  : "Body1",
-          "parts_list" : ["Parts_Parts_Auto1"]
-      },{
-          "body_type"  : "Rigid",
-          "body_name"  : "Body2",
-          "parts_list" : ["Parts_Parts_Auto2"]
-      }],
     "solver_settings"          : {
-        "solver_type"                        : "pfem_fluid_solver_analysis",
+        "solver_type"                        : "pfem_fluid_DEM_coupling_solver",
+        "model_part_name"                    : "PfemFluidModelPart",
         "domain_size"                        : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
-            "input_file_label" : 0
+            "input_filename"   : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
         },
         "maximum_pressure_iterations"        : 7,
         "velocity_tolerance"                 : 1e-5,
@@ -248,15 +238,11 @@
             "parts_list" : ["Parts_Parts_Auto2"]
         }],
         "time_stepping"               : {
-            "automatic_time_step" : false,
+            "automatic_time_step" : true,
             "time_step"           : 0.001
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"]
-    },
-    "time_stepping"                 : {
-        "automatic_time_step" : false,
-        "time_step"           : 0.001
     },
     "processes"             : {
         "gravity"           : [{
@@ -264,13 +250,27 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.Parts_Fluid_Part",
+                "model_part_name" : "PfemFluidModelPart",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "modulus"         : 9.81,
                 "constrained"     : false,
                 "direction"       : [0.0,0.0,-1.0]
             }
-        }]
+        }],
+    "loads_process_list"       : [],
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
+            "model_part_name"     : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+            "variable_name"       : "VELOCITY",
+            "value"               : [0.0,0.0,0.0],
+            "compound_assignment" : "direct",
+            "interval"            : [0.0,"End"]
+        }
+    }]
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
@@ -278,7 +278,7 @@
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
-            "model_part_name"       : "Main Domain",
+            "model_part_name"       : "PfemFluidModelPart",
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -286,7 +286,7 @@
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
                 "python_module"                   : "fluid_meshing_domain",
-                "alpha_shape"                     : 1.3,
+                "alpha_shape"                     : 1.1,
                 "offset_factor"                   : 0.0,
                 "meshing_strategy"                : {
                     "python_module"                 : "fluid_meshing_strategy",
@@ -299,12 +299,15 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement3D",
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidDEMcouplingElement3D",
                     "reference_condition_type"      : "CompositeCondition3D3N"
                 },
                 "spatial_bounding_box"            : {
-                    "upper_point" : [0.0,0.0,0.0],
-                    "lower_point" : [0.0,0.0,0.0],
+                    "use_bounding_box" : true,
+                    "initial_time" : 0.001,
+                    "final_time"  : 0.005,
+                    "upper_point" : [100.0,100.0,100.0],
+                    "lower_point" : [-100.0,-100.0,-100.0],
                     "velocity"    : [0.0,0.0,0.0]
                 },
                 "refining_parameters"             : {
@@ -363,12 +366,13 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement3D",
+                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidDEMcouplingElement3D",
                     "reference_condition_type"      : "CompositeCondition3D3N"
                 },
                 "spatial_bounding_box"            : {
-                    "upper_point" : [0.0,0.0,0.0],
-                    "lower_point" : [0.0,0.0,0.0],
+                    "use_bounding_box" : true,
+                    "upper_point" : [100.0,100.0,100.0],
+                    "lower_point" : [-100.0,-100.0,-100.0],
                     "velocity"    : [0.0,0.0,0.0]
                 },
                 "refining_parameters"             : {
@@ -413,31 +417,7 @@
                 "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
             }]
         }
-    }],
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_components_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorComponentsToNodesProcess",
-        "Parameters"    : {
-            "model_part_name"     : "VELOCITY_Velocity_Auto1",
-            "variable_name"       : "VELOCITY",
-            "value"               : [0.0,0.0,0.0],
-            "compound_assignment" : "direct",
-            "interval"            : [0.0,"End"]
-        }
-    }],
-    "loads_process_list"       : [],
-    "output_process_list"      : [],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {},
-            "plane_output"        : [],
-            "nodal_results"       : [],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    }
+    }]
 
 },
 
@@ -482,7 +462,7 @@
         "RotationalIntegrationScheme"      : "Direct_Integration",
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 2.5e-6,
-        "FinalTime"                        : 0.005,
+        "FinalTime"                        : 1.0,
         "ControlTime"                      : 4.0,
         "NeighbourSearchFrequency"         : 1,
         "TestType"                         : "None",
@@ -490,7 +470,7 @@
         "problem_name"                     : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
         "GraphExportFreq"                  : 1e-3,
         "VelTrapGraphExportFreq"           : 1e-3,
-        "OutputTimeStep"                   : 1,
+        "OutputTimeStep"                   : 0.001,
         "PostDisplacement"                 : false,
         "PostVelocity"                     : false,
         "PostElasticForces"                : false,
