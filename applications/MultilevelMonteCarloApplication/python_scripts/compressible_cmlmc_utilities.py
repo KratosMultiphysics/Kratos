@@ -269,16 +269,19 @@ class MultilevelMonteCarlo(object):
             "splitting_parameter_min" : 0.1
         }
         """)
-        self.custom_parameters_path = custom_parameters_path
-        self.SetXMCParameters()
-        # warning if initial_mesh_size parameter not set by the user
-        if not (self.settings.Has("initial_mesh_size")):
-            print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
-        # compute cphi = CDF**-1 (confidence)
-        self.settings.AddEmptyValue("cphi_confidence")
-        if (self.settings["confidence"].GetDouble()<1.0):
-            self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
-        self.settings["cphi_confidence"].SetDouble(norm.ppf(self.settings["confidence"].GetDouble()))
+        if (type(custom_parameters_path) == KratosMultiphysics.Parameters):
+            self.settings = custom_parameters_path # needed in FinalizePhaseAux_Task to build an auxiliary MultilevelMonteCarlo class, then in FinalizePhaseAux_Task we set the true problem parameters
+        else:
+            self.custom_parameters_path = custom_parameters_path
+            self.SetXMCParameters()
+            # warning if initial_mesh_size parameter not set by the user
+            if not (self.settings.Has("initial_mesh_size")):
+                print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
+            # compute cphi = CDF**-1 (confidence)
+            self.settings.AddEmptyValue("cphi_confidence")
+            if (self.settings["confidence"].GetDouble()==1.0):
+                self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
+            self.settings["cphi_confidence"].SetDouble(norm.ppf(self.settings["confidence"].GetDouble()))
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # current_number_levels: number of levels of current iteration
@@ -913,7 +916,7 @@ class MultilevelMonteCarlo(object):
     def ComputeNumberSamples(self):
         current_number_levels = self.current_number_levels
         bayesian_variance = self.bayesian_variance
-        min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_add_level"].GetDouble())
+        min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_samples_add_level"].GetDouble())
         cgamma = self.rates_error["cgamma"]
         gamma  = self.rates_error["gamma"]
         cphi = self.settings["cphi_confidence"].GetDouble()
