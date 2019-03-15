@@ -24,8 +24,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "utilities/scheme_extension.h"
 #include "utilities/indirect_scalar.h"
+#include "utilities/scheme_extension.h"
 #include "utilities/time_discretization.h"
 
 namespace Kratos
@@ -581,10 +581,18 @@ private:
                 r_geometry[i_node].SetLock();
                 for (unsigned int i_var = 0;
                      i_var < mIndirectCurrentAccelerationVector[k].size(); ++i_var)
-                    mIndirectCurrentAccelerationVector[k][i_var] =
-                        mBossak.C2 * (mIndirectCurrentVelocityVector[k][i_var] -
-                                      mIndirectOldVelocityVector[k][i_var]) -
-                        mBossak.C3 * mIndirectOldAccelerationVector[k][i_var];
+                {
+                    double& current_acceleration =
+                        *(mIndirectCurrentAccelerationVector[k][i_var].pGetValue());
+                    const double current_velocity =
+                        *(mIndirectCurrentVelocityVector[k][i_var].pGetValue());
+                    const double old_velocity =
+                        *(mIndirectOldVelocityVector[k][i_var].pGetValue());
+                    const double old_acceleration =
+                        *(mIndirectOldAccelerationVector[k][i_var].pGetValue());
+                    UpdateAcceleration(current_acceleration, current_velocity,
+                                       old_velocity, old_acceleration);
+                }
                 r_geometry[i_node].UnSetLock();
             }
         }
@@ -632,11 +640,20 @@ private:
                 r_geometry[i_node].SetLock();
                 for (unsigned int i_var = 0;
                      i_var < mIndirectCurrentDisplacementVector[k].size(); ++i_var)
-                    mIndirectCurrentDisplacementVector[k][i_var] =
-                        mIndirectOldDisplacementVector[k][i_var] +
-                        mBossak.C6 * mIndirectOldVelocityVector[k][i_var] +
-                        mBossak.C4 * mIndirectOldAccelerationVector[k][i_var] +
-                        mBossak.C5 * mIndirectCurrentAccelerationVector[k][i_var];
+                {
+                    double& current_displacement = *(mIndirectCurrentDisplacementVector[k][i_var].pGetValue());
+                    const double old_displacement = *(mIndirectOldDisplacementVector[k][i_var].pGetValue());
+                    const double old_velocity = *(mIndirectOldVelocityVector[k][i_var].pGetValue());
+                    const double old_acceleration = *(mIndirectOldAccelerationVector[k][i_var].pGetValue());
+                    const double current_acceleration = *(mIndirectCurrentAccelerationVector[k][i_var].pGetValue());
+                    UpdateDisplacement(current_displacement, old_displacement, old_velocity, current_acceleration, old_acceleration);
+
+                    // mIndirectCurrentDisplacementVector[k][i_var] =
+                    //     mIndirectOldDisplacementVector[k][i_var] +
+                    //     mBossak.C6 * mIndirectOldVelocityVector[k][i_var] +
+                    //     mBossak.C4 * mIndirectOldAccelerationVector[k][i_var] +
+                    //     mBossak.C5 * mIndirectCurrentAccelerationVector[k][i_var];
+                }
                 r_geometry[i_node].UnSetLock();
             }
         }
@@ -673,8 +690,7 @@ private:
         for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
         {
             auto& r_element = *(rElements.begin() + i);
-            GetLocalVars(*r_element.GetValue(SCHEME_EXTENSION), local_vars,
-                         rCurrentProcessInfo);
+            GetLocalVars(*r_element.GetValue(SCHEME_EXTENSION), local_vars, rCurrentProcessInfo);
             const int k = OpenMPUtils::ThisThread();
             thread_vars[k].insert(local_vars.begin(), local_vars.end());
         }
