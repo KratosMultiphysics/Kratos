@@ -26,7 +26,7 @@ template <class TEntityContainer>
 void ReplaceEntities(TEntityContainer& rEntityContainer,
                      Parameters EntitySettings,
                      Parameters IgnoreEntities,
-                     bool ThrowError)
+                     bool IgnoreUndefinedTypes)
 {
     typedef typename TEntityContainer::data_type EntityType;
 
@@ -57,7 +57,7 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
             if (ignore_entities.find(current_name) != ignore_entities.end()){
                 continue;
             }
-            else if (ThrowError){
+            else if (!IgnoreUndefinedTypes){
                 // This error is thrown in a parallel region and can not get catched
                 // or even printed properly!
                 KRATOS_ERROR << current_name
@@ -91,20 +91,20 @@ void ReplaceMultipleElementsAndConditionsProcess::Execute()
 {
     ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
 
-    bool throw_error = mSettings["throw_error"].GetBool();
+    bool ignore_undefined_types = mSettings["ignore_undefined_types"].GetBool();
 
     // replace elements
     ReplaceEntities(mrModelPart.Elements(),
         mSettings["element_name_table"],
         mSettings["ignore_elements"],
-        throw_error
+        ignore_undefined_types
     );
 
     // replace conditions
     ReplaceEntities(mrModelPart.Conditions(),
         mSettings["condition_name_table"],
         mSettings["ignore_conditions"],
-        throw_error
+        ignore_undefined_types
     );
 
     // Change the submodelparts

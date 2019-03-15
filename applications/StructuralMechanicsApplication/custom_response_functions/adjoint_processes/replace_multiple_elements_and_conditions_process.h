@@ -67,7 +67,7 @@ public:
             "condition_name_table": {},
             "ignore_elements" : [],
             "ignore_conditions" : [],
-            "throw_error" : true
+            "ignore_undefined_types" : false
         }  )" );
 
         Settings.ValidateAndAssignDefaults(default_parameters);
