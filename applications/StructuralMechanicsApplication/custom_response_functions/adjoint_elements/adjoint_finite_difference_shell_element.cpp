@@ -161,7 +161,7 @@ double AdjointFiniteDifferencingShellElement::GetPerturbationSizeModificationFac
 {
     KRATOS_TRY;
 
-    if(rDesignVariable == SHAPE)
+    if(rDesignVariable == SHAPE_SENSITIVITY)
     {
         double dx, dy, dz, L = 0.0;
 

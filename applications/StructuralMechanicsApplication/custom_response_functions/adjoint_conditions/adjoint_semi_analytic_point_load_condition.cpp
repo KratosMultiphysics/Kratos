@@ -133,12 +133,11 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
         if( rDesignVariable == POINT_LOAD )
         {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-            const SizeType mat_size = number_of_nodes * dimension;
-
             if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
                 rOutput.resize(mat_size, mat_size, false);
 
@@ -147,8 +146,9 @@ namespace Kratos
                 rOutput(i,i) = 1.0;
         }
         else
-            if ((rOutput.size1() != 0) || (rOutput.size2() != 0))
-                rOutput.resize(0, 0, false);
+        {
+            rOutput = ZeroMatrix(mat_size, mat_size);
+        }
 
         KRATOS_CATCH( "" )
     }

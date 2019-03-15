@@ -77,11 +77,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
-
             #pragma omp critical
             {
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
@@ -127,7 +124,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -178,7 +175,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -220,15 +217,15 @@ namespace Kratos
 
     std::size_t ElementFiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
-        if( rDesignVariable == SHAPE_X )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X )
             return 0;
-        else if( rDesignVariable == SHAPE_Y )
+        else if( rDesignVariable == SHAPE_SENSITIVITY_Y )
             return 1;
-        else if( rDesignVariable == SHAPE_Z )
+        else if( rDesignVariable == SHAPE_SENSITIVITY_Z )
             return 2;
         else
             KRATOS_ERROR << "Invalid valiable component: " << rDesignVariable.Name() <<
-                "Available is only 'SHAPE_X','SHAPE_Y' and 'SHAPE_Z' " << std::endl;
+                "Available is only 'SHAPE_SENSITIVITY_X','SHAPE_SENSITIVITY_Y' and 'SHAPE_SENSITIVITY_Z' " << std::endl;
     }
 
 }  // namespace Kratos.
