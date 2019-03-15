@@ -27,6 +27,13 @@ namespace Kratos {
         mCondition->GetGeometry().ShapeFunctionsValues(mShapeFunctionsValues, point_local_coordinates);
     }
 
+    GluedToWallScheme::GluedToWallScheme(Condition* p_wall, SphericParticle* p_sphere, bool& is_inside) : GluedToWallScheme(p_wall, p_sphere) {
+        if(mShapeFunctionsValues[0]>=0.0 && mShapeFunctionsValues[0]<=1.0 && mShapeFunctionsValues[1]>=0.0 && mShapeFunctionsValues[1]<=1.0 && mShapeFunctionsValues[2]>=0.0 && mShapeFunctionsValues[2]<=1.0) {
+            is_inside = true;
+        }
+        else is_inside = false;
+    }
+
     void GluedToWallScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
