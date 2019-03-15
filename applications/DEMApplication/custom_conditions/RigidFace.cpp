@@ -85,7 +85,7 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
         }
         #endif
         array_1d<double, 3> force = ZeroVector(3);
-        array_1d<double, 4> weights_vector= ZeroVector(4);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
         noalias(force) = p_particle->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
         Vector& r_shape_functions_values = p_glued_scheme->GetShapeFunctionsValues();
         for(size_t j=0; j<r_shape_functions_values.size(); j++) {
@@ -102,7 +102,7 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
     for (unsigned int i=0; i<rNeighbours.size(); i++) {
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
         array_1d<double, 3> force = ZeroVector(3);
-        array_1d<double, 4> weights_vector= ZeroVector(4);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
         ComputeForceAndWeightsOfSphereOnThisFace(rNeighbours[i], force, weights_vector);
 
         for (unsigned int k=0; k< number_of_nodes; k++) {
@@ -113,7 +113,7 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
     }
 }
 
-void RigidFace3D::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, array_1d<double, 4>& weights_vector) {
+void RigidFace3D::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector) {
     if(p_particle->Is(DEMFlags::STICKY)) return;
 
     std::vector<DEMWall*>& rRFnei = p_particle->mNeighbourRigidFaces;
@@ -122,7 +122,7 @@ void RigidFace3D::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_pa
         int Contact_Type = p_particle->mContactConditionContactTypes[i_nei];
 
         if ( (rRFnei[i_nei] == this) && (Contact_Type > 0 ) ) {
-            noalias(weights_vector) = p_particle->mContactConditionWeights[i_nei];
+            for(size_t i=0; i<weights_vector.size(); i++) weights_vector[i] = p_particle->mContactConditionWeights[i_nei][i];
             const array_1d<double, 3>& neighbour_rigid_faces_contact_force = p_particle->mNeighbourRigidFacesTotalContactForce[i_nei];
             noalias(force) = neighbour_rigid_faces_contact_force;
         }//if the condition neighbour of my sphere neighbour is myself.
