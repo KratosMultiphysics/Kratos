@@ -26,7 +26,7 @@ if __name__ == '__main__':
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
         "tolerance"  : 0.1,
-        "confidence" : 5e-1,
+        "confidence" : 0.9,
         "batch_size" : 20,
         "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
     }
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     {
         "initial_tolerance"             : 0.25,
         "tolerance"                     : 0.1,
-        "confidence"                    : 1.0,
+        "confidence"                    : 0.9,
         "number_samples_screening"      : 25,
         "levels_screening"              : 2,
         "initial_mesh_size"             : 0.5
