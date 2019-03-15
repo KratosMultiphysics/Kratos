@@ -320,7 +320,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         self.gid_output.ExecuteFinalize()
 
 
-class StaticPatchTestMembrane(KratosUnittest.TestCase):
+class StaticPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_static(self):
         displacement_results = [-4.628753e-12 , -0.04937043 , -6.483677e-12]
@@ -348,7 +348,7 @@ class StaticPatchTestMembrane(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
-class DynamicPatchTestMembrane(KratosUnittest.TestCase):
+class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_dynamic(self):
 
