@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//
+//  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
 #include "incompressible_adjoint_potential_wall_condition.h"
@@ -16,23 +17,25 @@
 namespace Kratos
 {
 
-template <unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Create(
+template <class TPrimalCondition>
+Condition::Pointer AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new IncompressibleAdjointPotentialWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<AdjointIncompressiblePotentialWallCondition<TPrimalCondition>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Create(
+template <class TPrimalCondition>
+Condition::Pointer AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Create(
     IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const 
 {
-    return Condition::Pointer(new IncompressibleAdjointPotentialWallCondition(NewId, pGeom, pProperties));
+    return Kratos::make_shared<AdjointIncompressiblePotentialWallCondition<TPrimalCondition>>(
+            NewId, pGeom, pProperties);
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <class TPrimalCondition>
 
-Condition::Pointer IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Clone(IndexType NewId, NodesArrayType const& rThisNodes) const 
+Condition::Pointer AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Clone(IndexType NewId, NodesArrayType const& rThisNodes) const 
 {
     Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -42,21 +45,21 @@ Condition::Pointer IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>:
     return pNewCondition;
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Initialize() 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Initialize() 
 {   
     mpPrimalCondition->Initialize();
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
 {
     mpPrimalCondition->Data() = this->Data();
     mpPrimalCondition->Set(Flags(*this));
     mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
 }
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) 
 {
 
     KRATOS_TRY
@@ -86,8 +89,8 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::GetValuesVect
 
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                             ProcessInfo &rCurrentProcessInfo) 
 {
     VectorType RHS;
@@ -95,8 +98,8 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateLeft
     rLeftHandSideMatrix.clear();
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                         Matrix& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo) 
 {
@@ -105,8 +108,8 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateSens
     rOutput.clear();
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
                             ProcessInfo &rCurrentProcessInfo) 
 {               
@@ -118,8 +121,8 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::CalculateLoca
 }
 
 /// Check that all data required by this condition is available and reasonable
-template< unsigned int TDim, unsigned int TNumNodes >
-int IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) 
+template <class TPrimalCondition>
+int AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Check(const ProcessInfo& rCurrentProcessInfo) 
 {
     KRATOS_TRY;
 
@@ -157,8 +160,8 @@ int IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Check(const Pr
         KRATOS_CATCH("");
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult,
                                 ProcessInfo& rCurrentProcessInfo) 
 {   
     if (rResult.size() != TNumNodes)
@@ -183,8 +186,8 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::EquationIdVec
     }
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& ConditionDofList,
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType& ConditionDofList,
                         ProcessInfo& CurrentProcessInfo) 
 {
     if (ConditionDofList.size() != TNumNodes)
@@ -209,15 +212,15 @@ void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::GetDofList(Do
     }
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
 {
     mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
 /// Turn back information as a string.
-template< unsigned int TDim, unsigned int TNumNodes >
-std::string IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Info() const 
+template <class TPrimalCondition>
+std::string AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Info() const 
 {
     std::stringstream buffer;
     this->PrintInfo(buffer);
@@ -225,34 +228,33 @@ std::string IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::Info()
 }
 
 /// Print information about this object.
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::PrintInfo(std::ostream& rOStream) const 
 {
-    rOStream << "IncompressibleAdjointPotentialWallCondition" << TDim << "D #" << this->Id();
+    rOStream << "AdjointIncompressiblePotentialWallCondition" << TDim << "D #" << this->Id();
 }
 
 /// Print object's data.
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::PrintData(std::ostream& rOStream) const 
 {
     this->pGetGeometry()->PrintData(rOStream);
 }
 
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::save(Serializer& rSerializer) const 
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 }
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void IncompressibleAdjointPotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer) 
+template <class TPrimalCondition>
+void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::load(Serializer& rSerializer) 
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
 }
 
-template class IncompressibleAdjointPotentialWallCondition<2, 2>;
-template class IncompressibleAdjointPotentialWallCondition<3, 3>;
+template class AdjointIncompressiblePotentialWallCondition<PotentialWallCondition<2,2>>;
 
 
 }  // namespace Kratos.
