@@ -259,25 +259,6 @@ namespace Kratos {
          */
         /*@{ */
 
-        void Initialize(ModelPart& rModelPart) override
-        {
-            KRATOS_TRY;
-
-            BaseType::Initialize(rModelPart);
-
-            const int number_of_elements = rModelPart.NumberOfElements();
-
-#pragma omp parallel for
-            for (int i = 0; i < number_of_elements; i++)
-            {
-                Element& r_element = *(rModelPart.ElementsBegin() + i);
-                r_element.SetValue(SCHEME_EXTENSION,
-                                        Kratos::make_unique<ElementDerivativesExtension>(&r_element));
-            }
-
-            KRATOS_CATCH("");
-        }
-
         /**
                 Performing the update of the solution.
          */
@@ -716,6 +697,11 @@ namespace Kratos {
         /*@} */
         /**@name Protected Operators*/
         /*@{ */
+
+        SchemeExtension::Pointer GetSchemeExtension(Element& rElement) override
+        {
+            return Kratos::make_shared<ElementDerivativesExtension>(&rElement);
+        }        
 
         /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
          * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n

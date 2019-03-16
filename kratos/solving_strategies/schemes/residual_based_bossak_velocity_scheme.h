@@ -433,7 +433,7 @@ protected:
     void UpdateAcceleration(double& rCurrentAcceleration,
                             const double CurrentVelocity,
                             const double OldVelocity,
-                            const double OldAcceleration)
+                            const double OldAcceleration) const
     {
         rCurrentAcceleration = mBossak.C2 * (CurrentVelocity - OldVelocity) -
                                mBossak.C3 * OldAcceleration;
@@ -443,10 +443,15 @@ protected:
                             const double OldDisplacement,
                             const double OldVelocity,
                             const double CurrentAcceleration,
-                            const double OldAcceleration)
+                            const double OldAcceleration) const
     {
         rCurrentDisplacement = OldDisplacement + mBossak.C6 * OldVelocity +
                                mBossak.C4 * OldAcceleration + mBossak.C5 * CurrentAcceleration;
+    }
+
+    virtual SchemeExtension::Pointer GetSchemeExtension(Element& rElement)
+    {
+        KRATOS_ERROR<<"Calling base class GetSchemeExtension method. Please implement this in derrived class.";
     }
 
     static void CalculateBossakConstants(BossakConstants& rBossakConstants,
@@ -561,7 +566,7 @@ private:
             {
                 Element& r_element = *(rModelPart.ElementsBegin() + i);
                 Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-                SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
+                SchemeExtension& r_extensions = *(this->GetSchemeExtension(r_element));
 
                 const int k = OpenMPUtils::ThisThread();
 
@@ -645,7 +650,7 @@ private:
             {
                 Element& r_element = *(rModelPart.ElementsBegin() + i);
                 Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-                SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
+                SchemeExtension& r_extensions = *(this->GetSchemeExtension(r_element));
 
                 const int k = OpenMPUtils::ThisThread();
 
