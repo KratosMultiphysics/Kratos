@@ -15,14 +15,13 @@
 #define KRATOS_RESIDUAL_BASED_BOSSAK_VELOCITY_SCHEME_H_INCLUDED
 
 // System includes
+#include <unordered_set>
 #include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/indirect_scalar.h"
 #include "utilities/scheme_extension.h"
@@ -95,7 +94,6 @@ public:
         mIndirectOldVelocityVector.resize(num_threads);
         mIndirectOldAccelerationVector.resize(num_threads);
         mIndirectOldDisplacementVector.resize(num_threads);
-        mVelocityDofVector.resize(num_threads);
     }
 
     /// Destructor.
@@ -122,10 +120,10 @@ public:
 
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
-        if (delta_time < std::numeric_limits<double>::epsilon())
-            KRATOS_ERROR << "detected delta_time = 0 in the Bossak Scheme ... "
-                            "check if the time step is created correctly for "
-                            "the current model part.";
+        KRATOS_ERROR_IF(delta_time < std::numeric_limits<double>::epsilon())
+            << "detected delta_time = 0 in the Bossak Scheme ... "
+               "check if the time step is created correctly for "
+               "the current model part.";
 
         ResidualBasedBossakVelocityScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
@@ -472,34 +470,6 @@ protected:
         rBossakConstants.C6 = DeltaTime;
     }
 
-    static void SynchronizeVariables(const std::vector<const VariableData*>& rVariables,
-                                     Communicator& rComm)
-    {
-        KRATOS_TRY;
-        for (auto p_variable_data : rVariables)
-        {
-            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(
-                    p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
-                        p_variable_data->Name());
-                rComm.SynchronizeVariable(r_variable);
-            }
-            else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                rComm.SynchronizeVariable(r_variable);
-            }
-            else
-            {
-                KRATOS_ERROR << "Variable \"" << p_variable_data->Name() << "\" not found!\n";
-            }
-        }
-        KRATOS_CATCH("");
-    }
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -533,7 +503,6 @@ private:
     std::vector<std::vector<IndirectScalar<double>>> mIndirectOldVelocityVector;
     std::vector<std::vector<IndirectScalar<double>>> mIndirectOldAccelerationVector;
     std::vector<std::vector<IndirectScalar<double>>> mIndirectOldDisplacementVector;
-    std::vector<std::vector<Dof<double>::Pointer>> mVelocityDofVector;
 
     ///@}
     ///@name Private Operators
@@ -543,6 +512,31 @@ private:
     ///@name Private Operations
     ///@{
 
+    // class to hold all the derivatives for updated target variable
+    template <int TNumberOfVariables>
+    struct DerivativesHolder
+    {
+        double* mpTargetDerivative;
+        double mRequiredDerivatives[TNumberOfVariables];
+
+        bool operator==(const DerivativesHolder& value) const
+        {
+            return (this->mpTargetDerivative == value.mpTargetDerivative);
+        }
+    };
+
+    // class for hash function
+    template <int TNumberOfVariables>
+    class DerivativesHasher
+    {
+    public:
+        // id is returned as hash function
+        std::size_t operator()(const DerivativesHolder<TNumberOfVariables>& value) const
+        {
+            return (std::size_t)value.mpTargetDerivative;
+        }
+    };
+
     void UpdateAcceleration(ModelPart& rModelPart)
     {
         if (!mUpdateAcceleration)
@@ -551,52 +545,80 @@ private:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const int number_of_elements = rModelPart.NumberOfElements();
 
-        auto acceleration_vars = GatherVariables(
-            rModelPart.Elements(),
-            [](const SchemeExtension& rExtensions,
-               std::vector<const VariableData*>& rVec, ProcessInfo& rCurrentProcessInfo) {
-                rExtensions.GetSecondDerivativesVariables(rVec, rCurrentProcessInfo);
-            },
-            r_current_process_info);
-#pragma omp parallel for
-        for (int i = 0; i < number_of_elements; ++i)
+        typedef DerivativesHolder<3> derivatives_holder;
+        typedef std::unordered_set<derivatives_holder, DerivativesHasher<3>> derivatives_set;
+
+        derivatives_set global_derivatives_list;
+        global_derivatives_list.reserve(number_of_elements * 20);
+
+#pragma omp parallel
         {
-            Element& r_element = *(rModelPart.ElementsBegin() + i);
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
+            derivatives_set derivatives_tmp_set;
+            derivatives_tmp_set.reserve(20000);
 
-            const int k = OpenMPUtils::ThisThread();
-
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+#pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_elements; ++i)
             {
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mIndirectCurrentVelocityVector[k], 0, r_current_process_info);
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mIndirectOldVelocityVector[k], 1, r_current_process_info);
-                r_extensions.GetSecondDerivativesVector(
-                    i_node, mIndirectCurrentAccelerationVector[k], 0, r_current_process_info);
-                r_extensions.GetSecondDerivativesVector(
-                    i_node, mIndirectOldAccelerationVector[k], 1, r_current_process_info);
+                Element& r_element = *(rModelPart.ElementsBegin() + i);
+                Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
+                SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
 
-                r_geometry[i_node].SetLock();
-                for (unsigned int i_var = 0;
-                     i_var < mIndirectCurrentAccelerationVector[k].size(); ++i_var)
+                const int k = OpenMPUtils::ThisThread();
+
+                for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
                 {
-                    double& current_acceleration =
-                        *(mIndirectCurrentAccelerationVector[k][i_var].pGetValue());
-                    const double current_velocity =
-                        *(mIndirectCurrentVelocityVector[k][i_var].pGetValue());
-                    const double old_velocity =
-                        *(mIndirectOldVelocityVector[k][i_var].pGetValue());
-                    const double old_acceleration =
-                        *(mIndirectOldAccelerationVector[k][i_var].pGetValue());
-                    UpdateAcceleration(current_acceleration, current_velocity,
-                                       old_velocity, old_acceleration);
+                    r_extensions.GetFirstDerivativesVector(
+                        i_node, mIndirectCurrentVelocityVector[k], 0, r_current_process_info);
+                    r_extensions.GetFirstDerivativesVector(
+                        i_node, mIndirectOldVelocityVector[k], 1, r_current_process_info);
+                    r_extensions.GetSecondDerivativesVector(
+                        i_node, mIndirectCurrentAccelerationVector[k], 0, r_current_process_info);
+                    r_extensions.GetSecondDerivativesVector(
+                        i_node, mIndirectOldAccelerationVector[k], 1, r_current_process_info);
+
+                    for (unsigned int i_var = 0;
+                         i_var < mIndirectCurrentAccelerationVector[k].size(); ++i_var)
+                    {
+                        derivatives_holder current_derivative;
+                        current_derivative.mpTargetDerivative =
+                            mIndirectCurrentAccelerationVector[k][i_var].pGetValue();
+                        current_derivative.mRequiredDerivatives[0] =
+                            mIndirectCurrentVelocityVector[k][i_var];
+                        current_derivative.mRequiredDerivatives[1] =
+                            mIndirectOldVelocityVector[k][i_var];
+                        current_derivative.mRequiredDerivatives[2] =
+                            mIndirectOldAccelerationVector[k][i_var];
+
+                        derivatives_tmp_set.insert(current_derivative);
+                    }
                 }
-                r_geometry[i_node].UnSetLock();
+            }
+
+#pragma omp critical
+            {
+                global_derivatives_list.insert(derivatives_tmp_set.begin(),
+                                               derivatives_tmp_set.end());
             }
         }
-        SynchronizeVariables(acceleration_vars, rModelPart.GetCommunicator());
+
+        const int number_of_update_variables = global_derivatives_list.size();
+        std::vector<derivatives_holder> derivatives_holder_list(number_of_update_variables);
+
+        int local_index = 0;
+        for (auto r_derivatives : global_derivatives_list)
+        {
+            derivatives_holder_list[local_index++] = r_derivatives;
+        }
+
+#pragma omp parallel for
+        for (int i = 0; i < number_of_update_variables; ++i)
+        {
+            derivatives_holder& r_derivatives = derivatives_holder_list[i];
+            UpdateAcceleration(*r_derivatives.mpTargetDerivative,
+                               r_derivatives.mRequiredDerivatives[0],
+                               r_derivatives.mRequiredDerivatives[1],
+                               r_derivatives.mRequiredDerivatives[2]);
+        }
     }
 
     void UpdateDisplacement(ModelPart& rModelPart)
@@ -607,101 +629,87 @@ private:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const int number_of_elements = rModelPart.NumberOfElements();
 
-        auto displacement_vars = GatherVariables(
-            rModelPart.Elements(),
-            [](const SchemeExtension& rExtensions,
-               std::vector<const VariableData*>& rVec, ProcessInfo& rCurrentProcessInfo) {
-                rExtensions.GetZeroDerivativesVariables(rVec, rCurrentProcessInfo);
-            },
-            r_current_process_info);
+        typedef DerivativesHolder<4> derivatives_holder;
+        typedef std::unordered_set<derivatives_holder, DerivativesHasher<4>> derivatives_set;
 
-#pragma omp parallel for
-        for (int i = 0; i < number_of_elements; ++i)
+        derivatives_set global_derivatives_list;
+        global_derivatives_list.reserve(number_of_elements * 20);
+
+#pragma omp parallel
         {
-            Element& r_element = *(rModelPart.ElementsBegin() + i);
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
+            derivatives_set derivatives_tmp_set;
+            derivatives_tmp_set.reserve(20000);
 
-            const int k = OpenMPUtils::ThisThread();
-
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+#pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_elements; ++i)
             {
-                r_extensions.GetZeroDerivativesVector(
-                    i_node, mIndirectCurrentDisplacementVector[k], 0, r_current_process_info);
-                r_extensions.GetZeroDerivativesVector(
-                    i_node, mIndirectOldDisplacementVector[k], 1, r_current_process_info);
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mIndirectOldVelocityVector[k], 1, r_current_process_info);
-                r_extensions.GetSecondDerivativesVector(
-                    i_node, mIndirectCurrentAccelerationVector[k], 0, r_current_process_info);
-                r_extensions.GetSecondDerivativesVector(
-                    i_node, mIndirectOldAccelerationVector[k], 1, r_current_process_info);
+                Element& r_element = *(rModelPart.ElementsBegin() + i);
+                Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
+                SchemeExtension& r_extensions = *r_element.GetValue(SCHEME_EXTENSION);
 
-                r_geometry[i_node].SetLock();
-                for (unsigned int i_var = 0;
-                     i_var < mIndirectCurrentDisplacementVector[k].size(); ++i_var)
+                const int k = OpenMPUtils::ThisThread();
+
+                for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
                 {
-                    double& current_displacement = *(mIndirectCurrentDisplacementVector[k][i_var].pGetValue());
-                    const double old_displacement = *(mIndirectOldDisplacementVector[k][i_var].pGetValue());
-                    const double old_velocity = *(mIndirectOldVelocityVector[k][i_var].pGetValue());
-                    const double old_acceleration = *(mIndirectOldAccelerationVector[k][i_var].pGetValue());
-                    const double current_acceleration = *(mIndirectCurrentAccelerationVector[k][i_var].pGetValue());
-                    UpdateDisplacement(current_displacement, old_displacement, old_velocity, current_acceleration, old_acceleration);
+                    r_extensions.GetZeroDerivativesVector(
+                        i_node, mIndirectCurrentDisplacementVector[k], 0, r_current_process_info);
+                    r_extensions.GetZeroDerivativesVector(
+                        i_node, mIndirectOldDisplacementVector[k], 1, r_current_process_info);
+                    r_extensions.GetFirstDerivativesVector(
+                        i_node, mIndirectOldVelocityVector[k], 1, r_current_process_info);
+                    r_extensions.GetSecondDerivativesVector(
+                        i_node, mIndirectCurrentAccelerationVector[k], 0, r_current_process_info);
+                    r_extensions.GetSecondDerivativesVector(
+                        i_node, mIndirectOldAccelerationVector[k], 1, r_current_process_info);
 
-                    // mIndirectCurrentDisplacementVector[k][i_var] =
-                    //     mIndirectOldDisplacementVector[k][i_var] +
-                    //     mBossak.C6 * mIndirectOldVelocityVector[k][i_var] +
-                    //     mBossak.C4 * mIndirectOldAccelerationVector[k][i_var] +
-                    //     mBossak.C5 * mIndirectCurrentAccelerationVector[k][i_var];
+                    for (unsigned int i_var = 0;
+                         i_var < mIndirectCurrentDisplacementVector[k].size(); ++i_var)
+                    {
+                        derivatives_holder current_derivative;
+                        current_derivative.mpTargetDerivative =
+                            mIndirectCurrentDisplacementVector[k][i_var].pGetValue();
+                        current_derivative.mRequiredDerivatives[0] =
+                            mIndirectOldDisplacementVector[k][i_var];
+                        current_derivative.mRequiredDerivatives[1] =
+                            mIndirectOldVelocityVector[k][i_var];
+                        current_derivative.mRequiredDerivatives[2] =
+                            mIndirectCurrentAccelerationVector[k][i_var];
+                        current_derivative.mRequiredDerivatives[3] =
+                            mIndirectOldAccelerationVector[k][i_var];
+
+                        derivatives_tmp_set.insert(current_derivative);
+                    }
                 }
-                r_geometry[i_node].UnSetLock();
+            }
+
+#pragma omp critical
+            {
+                global_derivatives_list.insert(derivatives_tmp_set.begin(),
+                                               derivatives_tmp_set.end());
             }
         }
-        SynchronizeVariables(displacement_vars, rModelPart.GetCommunicator());
+
+        const int number_of_update_variables = global_derivatives_list.size();
+        std::vector<derivatives_holder> derivatives_holder_list(number_of_update_variables);
+
+        int local_index = 0;
+        for (auto r_derivatives : global_derivatives_list)
+        {
+            derivatives_holder_list[local_index++] = r_derivatives;
+        }
+
+#pragma omp parallel for
+        for (int i = 0; i < number_of_update_variables; ++i)
+        {
+            derivatives_holder& r_derivatives = derivatives_holder_list[i];
+            UpdateDisplacement(*r_derivatives.mpTargetDerivative,
+                               r_derivatives.mRequiredDerivatives[0],
+                               r_derivatives.mRequiredDerivatives[1],
+                               r_derivatives.mRequiredDerivatives[2],
+                               r_derivatives.mRequiredDerivatives[3]);
+        }
     }
 
-    struct Hash
-    {
-        std::size_t operator()(const VariableData* const& p) const
-        {
-            return p->Key();
-        }
-    };
-
-    struct Pred
-    {
-        bool operator()(const VariableData* const l, const VariableData* const r) const
-        {
-            return *l == *r;
-        }
-    };
-
-    // Gathers variables needed for assembly.
-    static std::vector<const VariableData*> GatherVariables(
-        const ModelPart::ElementsContainerType& rElements,
-        std::function<void(const SchemeExtension&, std::vector<const VariableData*>&, ProcessInfo&)> GetLocalVars,
-        ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<const VariableData*> local_vars;
-        std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
-#pragma omp parallel for private(local_vars)
-        for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
-        {
-            auto& r_element = *(rElements.begin() + i);
-            GetLocalVars(*r_element.GetValue(SCHEME_EXTENSION), local_vars, rCurrentProcessInfo);
-            const int k = OpenMPUtils::ThisThread();
-            thread_vars[k].insert(local_vars.begin(), local_vars.end());
-        }
-        std::unordered_set<const VariableData*, Hash, Pred> all_vars;
-        for (int i = 0; i < num_threads; ++i)
-        {
-            all_vars.insert(thread_vars[i].begin(), thread_vars[i].end());
-        }
-        return std::vector<const VariableData*>{all_vars.begin(), all_vars.end()};
-        KRATOS_CATCH("");
-    }
     ///@}
     ///@name Private  Access
     ///@{
