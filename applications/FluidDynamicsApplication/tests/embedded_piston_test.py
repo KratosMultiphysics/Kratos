@@ -129,16 +129,13 @@ class EmbeddedPistonTest(UnitTest.TestCase):
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
-            try:
-                filename_fluid = self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-                filename_structure = filename_fluid + '_structure'
-                KratosUtilities.DeleteFileIfExisting(filename_fluid + '.time')
-                KratosUtilities.DeleteFileIfExisting(filename_structure + '.time')
-                if not self.print_output:
-                    KratosUtilities.DeleteFileIfExisting(filename_fluid + '.post.bin')
-                    KratosUtilities.DeleteFileIfExisting(self.work_folder + '.post.lst')
-            except FileNotFoundError as e:
-                pass
+            filename_fluid = self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+            filename_structure = filename_fluid + '_structure'
+            KratosUtilities.DeleteFileIfExisting(filename_fluid + '.time')
+            KratosUtilities.DeleteFileIfExisting(filename_structure + '.time')
+            if not self.print_output:
+                KratosUtilities.DeleteFileIfExisting(filename_fluid + '.post.bin')
+                KratosUtilities.DeleteFileIfExisting(self.work_folder + '.post.lst')
 
     def setUpProblem(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
