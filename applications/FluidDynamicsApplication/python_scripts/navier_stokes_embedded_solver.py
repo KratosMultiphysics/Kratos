@@ -309,12 +309,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Perform the FM-ALE operations
             self._do_fm_ale_operations()
 
-            # Solve the embedded CFD problem
-            is_converged = self.solver.SolveSolutionStep()
-            if not is_converged and self._IsPrintingRank():
-                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-                msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-                KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+            # Call the base SolveSolutionStep to solve the embedded CFD problem
+            super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
