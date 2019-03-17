@@ -384,8 +384,8 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
     array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
     array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
-    array_1d<double,3> nodal_momentum;
-    array_1d<double,3> nodal_inertia;
+    array_1d<double,3> nodal_momentum = ZeroVector(3);
+    array_1d<double,3> nodal_inertia = ZeroVector(3);
     double AUX_MP_Pressure = 0.0;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
