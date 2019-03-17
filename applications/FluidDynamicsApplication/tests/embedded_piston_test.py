@@ -1,12 +1,10 @@
 import math
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 have_mesh_moving = KratosUtilities.CheckIfApplicationsAvailable("MeshMovingApplication")
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
@@ -15,7 +13,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         self.A = A # Piston amplitude
         self.w = w # Piston angular frequency
         self.print_output = print_output # Print output flag
-        super(FluidDynamicsAnalysis, self).__init__(model,project_parameters)
+        super(CustomFluidDynamicsAnalysis, self).__init__(model,project_parameters)
 
     def ModifyInitialGeometry(self):
         # Call the parent ModifyInitialGeometry()
@@ -32,7 +30,6 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
 
         # Initialize the level-set function and VELOCITY field
         A = 1.5
-        x_0 = 2.5
         w = 2.0 * math.pi
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             dis = node.X0 - 2.5
@@ -79,7 +76,6 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         # Recompute the level-set function
         x_0 = 2.5
         for node in self._GetSolver().GetComputingModelPart().Nodes:
-            new_dist = node.X0 - x_0 - dis
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X0 - x_0 - dis)
 
         # Apply base BCs
@@ -107,7 +103,7 @@ class CustomFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             super(CustomFluidDynamicsAnalysis,self).OutputSolutionStep()
 
 
-@UnitTest.skipUnless(have_external_solvers or have_mesh_moving,"Missing required application: ExternalSolversApplication or MeshMovingApplication")
+@UnitTest.skipUnless(have_mesh_moving,"Missing required application: MeshMovingApplication")
 class EmbeddedPistonTest(UnitTest.TestCase):
 
     # Embedded element tests
@@ -174,7 +170,6 @@ class EmbeddedPistonTest(UnitTest.TestCase):
 
                         for node in results_model_part.Nodes:
                             values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                            node_id = values[0]
                             reference_vel_x = values[1]
                             reference_vel_y = values[2]
 
@@ -200,7 +195,6 @@ class EmbeddedPistonTest(UnitTest.TestCase):
 
                         for node in results_model_part.Nodes:
                             values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                            node_id = values[0]
                             reference_vel_x = values[1]
                             reference_vel_y = values[2]
                             reference_vel_z = values[3]
