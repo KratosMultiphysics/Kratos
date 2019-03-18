@@ -112,7 +112,7 @@ void PreComputeExplicitConstraintConstribution(
 
         if (KratosComponents<Variable<double>>::Has(r_dof_variable_name)) {
             double_variable_map.insert(std::pair<std::size_t, Variable<double>>(KratosComponents<Variable<double>>::Get(r_dof_variable_name).Key(), KratosComponents<Variable<double>>::Get(r_reaction_variable_name)));
-        } else if (KratosComponents<VariableComponentType>::Has(r_dof_variable_name)) {
+        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_dof_variable_name)) {
             // Getting the dof to check
             const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_X");
             const VariableComponentType& r_check_dof_y = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_Y");
@@ -127,7 +127,7 @@ void PreComputeExplicitConstraintConstribution(
             components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_y.Key(), r_residual_dof_y));
             components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_z.Key(), r_residual_dof_z));
         } else {
-            KRATOS_ERROR << "Variable is not a component or a double" << std::endl;
+            KRATOS_ERROR << "Variable is not an array or a double" << std::endl;
         }
 
         ++counter;
