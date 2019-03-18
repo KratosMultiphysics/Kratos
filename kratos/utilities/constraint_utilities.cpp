@@ -183,14 +183,14 @@ void PreComputeExplicitConstraintConstribution(
 
                 if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
                     const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = slave_solution_vector[counter];
+                    double& aux_value = rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
-                    aux_value += rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                    aux_value += slave_solution_vector[counter];
                 } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
                     const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = slave_solution_vector[counter];
+                    double& aux_value = rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
-                    aux_value += rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                    aux_value += slave_solution_vector[counter];
                 } else {
                     KRATOS_ERROR << "Dof variable is defined" << std::endl;
                 }
