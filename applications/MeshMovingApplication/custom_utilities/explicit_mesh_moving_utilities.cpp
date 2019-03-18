@@ -275,18 +275,20 @@ namespace Kratos
                 }
 
                 // Current step structure pt. DISPLACEMENT values
-                const double weight = this->ComputeKernelValue(min_distance);
-                const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
-                const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
-                const auto str_disp = weight * (r_str_disp_0 - r_str_disp_1);
-                if (!it_node->IsFixed(MESH_DISPLACEMENT_X)) {
-                    r_mesh_disp[0] = str_disp[0];
-                }
-                if (!it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
-                    r_mesh_disp[1] = str_disp[1];
-                }
-                if (!it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
-                    r_mesh_disp[2] = str_disp[2];
+                if (str_node_ptr != nullptr) {
+                    const double weight = this->ComputeKernelValue(min_distance);
+                    const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
+                    const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
+                    const auto str_disp = weight * (r_str_disp_0 - r_str_disp_1);
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                        r_mesh_disp[0] = str_disp[0];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                        r_mesh_disp[1] = str_disp[1];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                        r_mesh_disp[2] = str_disp[2];
+                    }
                 }
             }
         }
