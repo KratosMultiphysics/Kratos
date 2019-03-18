@@ -122,7 +122,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "There is no scalar design variable available!" << std::endl;
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = number_of_nodes * dimension;
+        rOutput = ZeroMatrix(number_of_nodes, num_dofs);
 
         KRATOS_CATCH( "" )
     }
