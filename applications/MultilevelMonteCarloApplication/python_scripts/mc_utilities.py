@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import packages
 import numpy as np
+from scipy.stats import norm
 from math import *
 import copy
 
@@ -102,6 +103,14 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
             np.exp(- current_number_samples * (current_tol**2) / (current_moment_2_coefficient**2)) * np.abs(current_moment_3_coefficient) / \
             (3 * np.sqrt(2 * np.pi * current_number_samples))
         if (main_contribute + penalty_contribute < current_delta):
+            convergence_boolean = True
+    # TODO: check if this convergence criteria coincides with the first
+    elif(convergence_criteria == "total_error_stopping_rule"):
+        cphi_confidence = norm.ppf(current_delta)
+        statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+        bias = 0.0 # hypothesis bias = 0 since we can't compute
+        total_error = bias + statistical_error
+        if (total_error<current_tol):
             convergence_boolean = True
     else:
         convergence_boolean = False
@@ -407,7 +416,7 @@ class MonteCarlo(object):
     """
     def SetConvergenceCriteria(self):
         convergence_criteria = self.settings["convergence_criteria"].GetString()
-        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule"):
+        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule" and convergence_criteria != "total_error_stopping_rule"):
             raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
         self.convergence_criteria = convergence_criteria
 
