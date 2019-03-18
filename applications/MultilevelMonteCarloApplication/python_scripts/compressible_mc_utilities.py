@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import packages
 import numpy as np
+from scipy.stats import norm
 from math import *
 import copy
 
