@@ -160,30 +160,6 @@ void PreComputeExplicitConstraintConstribution(
                 master_solution_vector.resize(transformation_matrix.size2());
 
             std::size_t counter = 0;
-            for (auto& r_dof_master: it_const->GetMasterDofsVector()) {
-                const std::size_t master_variable_key = r_dof_master->GetVariable().Key();
-
-                // Updating pointer
-                if (r_dof_master->Id() != p_master_node->Id())
-                    p_master_node = rModelPart.pGetNode(r_dof_master->Id());
-
-                if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
-                    const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
-                    master_solution_vector[counter] = p_master_node->FastGetSolutionStepValue(r_aux_var);
-                } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
-                    const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
-                    master_solution_vector[counter] = p_master_node->FastGetSolutionStepValue(r_aux_var);
-                } else {
-                    master_solution_vector[counter] = 0.0;
-                }
-
-                ++counter;
-            }
-
-            // Computing transfered solution
-            noalias(slave_solution_vector) = prod(transformation_matrix, master_solution_vector);
-
-            counter = 0;
             for (auto& r_dof_slave: it_const->GetSlaveDofsVector()) {
                 const std::size_t slave_variable_key = r_dof_slave->GetVariable().Key();
 
@@ -193,14 +169,38 @@ void PreComputeExplicitConstraintConstribution(
 
                 if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
                     const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = p_slave_node->FastGetSolutionStepValue(r_aux_var);
-                    #pragma omp atomic
-                    aux_value += slave_solution_vector[counter];
+                    slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                 } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
                     const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = p_slave_node->FastGetSolutionStepValue(r_aux_var);
+                    slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
+                } else {
+                    slave_solution_vector[counter] = 0.0;
+                }
+
+                ++counter;
+            }
+
+            // Computing transfered solution
+            noalias(master_solution_vector) = prod(transformation_matrix, slave_solution_vector);
+
+            counter = 0;
+            for (auto& r_dof_master: it_const->GetMasterDofsVector()) {
+                const std::size_t master_variable_key = r_dof_master->GetVariable().Key();
+
+                // Updating pointer
+                if (r_dof_master->Id() != p_master_node->Id())
+                    p_master_node = rModelPart.pGetNode(r_dof_master->Id());
+
+                if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
+                    const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
+                    double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
-                    aux_value += slave_solution_vector[counter];
+                    aux_value += master_solution_vector[counter];
+                } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
+                    const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
+                    double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
+                    #pragma omp atomic
+                    aux_value += master_solution_vector[counter];
                 }
 
                 ++counter;
