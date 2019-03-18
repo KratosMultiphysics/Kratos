@@ -79,30 +79,28 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
-            #pragma omp critical
-            {
-                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+            const IndexType coord_dir =
+                ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
-                // define working variables
-                Vector RHS_perturbed;
+            // define working variables
+            Vector RHS_perturbed;
 
-                if ( rOutput.size() != rRHS.size() )
-                    rOutput.resize(rRHS.size(), false);
+            if (rOutput.size() != rRHS.size())
+                rOutput.resize(rRHS.size(), false);
 
-                // perturb the design variable
-                rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-                rNode.Coordinates()[coord_dir] += rPertubationSize;
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-                // compute LHS after perturbation
-                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
 
-                 // unperturb the design variable
-                rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-                rNode.Coordinates()[coord_dir] -= rPertubationSize;
-            }
+            // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
         }
         else
         {
