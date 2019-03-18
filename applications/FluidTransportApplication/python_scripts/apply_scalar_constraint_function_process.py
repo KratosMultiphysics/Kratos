@@ -29,16 +29,16 @@ class ApplyScalarConstraintFunctionProcess(KratosMultiphysics.Process):
             #if((node.X >= 0.1 and node.X <= 0.2 and node.Y >= 0.4 and node.Y <= 0.6) or (node.X >= 0.3 and node.X <= 0.4 and node.Y >= 0.4 and node.Y <= 0.6)):
 
             if((node.X >= 0.1 and node.X <= 0.2) or (node.X >= 0.3 and node.X <= 0.4)):
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1.0)
+        #        node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1.0)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,1.0)
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1,1.0)
+        #        node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1,1.0)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,1,1.0)
                 # node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,2,1.0)
                 # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,2,1.0)
             else:
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,0.0)
+        #        node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0.0)
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1,0.0)
+        #        node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1,0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,1,0.0)
                 # node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,2,0.0)
                 # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,2,0.0)

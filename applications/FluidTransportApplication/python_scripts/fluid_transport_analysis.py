@@ -46,7 +46,11 @@ class FluidTransportAnalysis(AnalysisStage):
         return solver
 
     def _GetOrderOfProcessesInitialization(self):
-        return ["constraints_process_list",
+        return ["fluid_gravity",
+                "fluid_initial_conditions_process_list",
+                "fluid_boundary_conditions_process_list",
+                "fluid_auxiliar_process_list",
+                "constraints_process_list",
                 "loads_process_list",
                 "auxiliar_process_list"]
 

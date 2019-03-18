@@ -229,6 +229,11 @@ void TransientConvectionDiffusionFICExplicitElement<TDim,TNumNodes>::InitializeE
     {
         rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar, 1);
 
+        for (unsigned int j = 0; j < TDim; j++)
+        {
+            rVariables.NodalPhiGradient [j][i] =Geom[i].FastGetSolutionStepValue(NODAL_PHI_GRADIENT)[j];
+        }
+
         rVariables.NodalVel[i] = ZeroVector(3);
         const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 		const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();

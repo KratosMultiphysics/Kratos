@@ -25,7 +25,7 @@
         "block_builder":                      true,
         "solution_type":                      "Steady",
         "scheme_type":                        "Implicit",
-        "newmark_theta":                      0.8,
+        "newmark_theta":                      1.0,
         "strategy_type":                      "Newton-Raphson",
         "convergence_criterion":              "And_criterion",
         "displacement_relative_tolerance":    1.0E-4,

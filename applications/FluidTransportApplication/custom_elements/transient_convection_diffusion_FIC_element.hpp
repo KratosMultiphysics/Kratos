@@ -74,6 +74,10 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 

@@ -79,7 +79,11 @@ QUESTION: Write_Courant#CB#(true,false)
 VALUE: true
 QUESTION: Write_FIC_Beta#CB#(true,false)
 VALUE: true
+QUESTION: Write_Analytic_Solution#CB#(true,false)
+VALUE: true
 QUESTION: Write_Phi_Gradient#CB#(true,false)
+VALUE: true
+QUESTION: Write_Nodal_Phi_Gradient#CB#(true,false)
 VALUE: true
 QUESTION: Write_Normals_Value#CB#(true,false)
 VALUE: true

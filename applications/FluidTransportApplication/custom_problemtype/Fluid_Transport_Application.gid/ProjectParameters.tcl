@@ -140,6 +140,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
+    AppendOutputVariables PutStrings iGroup Write_Nodal_Phi_Gradient NODAL_PHI_GRADIENT
+    AppendOutputVariables PutStrings iGroup Write_Analytic_Solution NODAL_ANALYTIC_SOLUTION
 
     set SolutionType [GiD_AccessValue get gendata Solution_Type]
     set SchemeType [GiD_AccessValue get gendata Scheme]
