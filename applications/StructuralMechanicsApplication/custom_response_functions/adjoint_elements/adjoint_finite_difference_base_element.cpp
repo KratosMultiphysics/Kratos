@@ -298,7 +298,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        rOutput = ZeroMatrix(dimension * number_of_nodes, local_size);
+        rOutput = ZeroMatrix(number_of_nodes, local_size);
     }
 
     KRATOS_CATCH("")
