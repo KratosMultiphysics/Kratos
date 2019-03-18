@@ -181,7 +181,7 @@ void PreComputeExplicitConstraintConstribution(
             }
 
             // Computing transfered solution
-            noalias(master_solution_vector) = prod(transformation_matrix, slave_solution_vector);
+            noalias(master_solution_vector) = prod(trans(transformation_matrix), slave_solution_vector);
 
             counter = 0;
             for (auto& r_dof_master: it_const->GetMasterDofsVector()) {
