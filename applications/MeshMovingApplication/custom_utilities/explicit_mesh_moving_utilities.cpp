@@ -275,7 +275,7 @@ namespace Kratos
                 }
 
                 // Current step structure pt. DISPLACEMENT values
-                if (str_node_ptr != nullptr) {
+                if (str_node_ptr) {
                     const double weight = this->ComputeKernelValue(min_distance);
                     const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
                     const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
