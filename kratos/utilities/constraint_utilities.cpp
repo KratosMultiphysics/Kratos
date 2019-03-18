@@ -93,97 +93,109 @@ void ApplyConstraints(ModelPart& rModelPart)
 
 void PreComputeExplicitConstraintConstribution(
     ModelPart& rModelPart,
-    const std::string DofVariableName,
-    const std::string ResidualDofVariableName
+    const std::vector<std::string>& rDofVariableNames,
+    const std::vector<std::string>& rResidualDofVariableNames
     )
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(rDofVariableNames.size() == rResidualDofVariableNames.size()) << "PreComputeExplicitConstraintConstribution not properly defined variables" << std::endl;
+
+    // Defining variable maps
+    std::unordered_map<std::size_t, Variable<double>> double_variable_map;
     typedef ModelPart::VariableComponentType VariableComponentType;
+    std::unordered_map<std::size_t, VariableComponentType> components_variable_map;
 
-    // Getting the dof to check
-    const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(DofVariableName + "_X");
-    const VariableComponentType& r_check_dof_y = KratosComponents<VariableComponentType>::Get(DofVariableName + "_Y");
-    const VariableComponentType& r_check_dof_z = KratosComponents<VariableComponentType>::Get(DofVariableName + "_Z");
+    std::size_t counter = 0;
+    for (auto& r_dof_variable_name : rDofVariableNames) {
+        const std::string& r_reaction_variable_name = rResidualDofVariableNames[counter];
 
-    // Getting the residual dofs
-    const VariableComponentType& r_residual_dof_x = KratosComponents<VariableComponentType>::Get(ResidualDofVariableName + "_X");
-    const VariableComponentType& r_residual_dof_y = KratosComponents<VariableComponentType>::Get(ResidualDofVariableName + "_Y");
-    const VariableComponentType& r_residual_dof_z = KratosComponents<VariableComponentType>::Get(ResidualDofVariableName + "_Z");
+        if (KratosComponents<Variable<double>>::Has(r_dof_variable_name)) {
+            double_variable_map.insert(std::pair<std::size_t, Variable<double>>(KratosComponents<Variable<double>>::Get(r_dof_variable_name).Key(), KratosComponents<Variable<double>>::Get(r_reaction_variable_name)));
+        } else if (KratosComponents<VariableComponentType>::Has(r_dof_variable_name)) {
+            // Getting the dof to check
+            const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_X");
+            const VariableComponentType& r_check_dof_y = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_Y");
+            const VariableComponentType& r_check_dof_z = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_Z");
+
+            // Getting the residual dofs
+            const VariableComponentType& r_residual_dof_x = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_X");
+            const VariableComponentType& r_residual_dof_y = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Y");
+            const VariableComponentType& r_residual_dof_z = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Z");
+
+            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_x.Key(), r_residual_dof_x));
+            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_y.Key(), r_residual_dof_y));
+            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_z.Key(), r_residual_dof_z));
+        } else {
+            KRATOS_ERROR << "Variable is not a component or a double" << std::endl;
+        }
+
+        ++counter;
+    }
 
     // Getting auxiliar variables
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
     const auto it_cont_begin = rModelPart.MasterSlaveConstraints().begin();
 
     // Auxiliar values
     Matrix transformation_matrix;
-    Vector constant_vector;
+    Vector constant_vector, slave_solution_vector, master_solution_vector;
 
-    #pragma omp parallel firstprivate(transformation_matrix, constant_vector)
+    #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_solution_vector, master_solution_vector)
     {
         #pragma omp for schedule(guided, 512)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = it_cont_begin + i_const;
 
-            for (auto& r_dof_j: it_const->GetSlaveDofsVector()) {
-                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+            // Getting the transformation matrix and constant vector
+            it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                if (r_dof_j->GetVariable() == r_check_dof_x) {
-                    const double r_current_force_residual_x = rModelPart.pGetNode(r_dof_j->Id())->FastGetSolutionStepValue(r_residual_dof_x);
+            // Resizing vectors
+            if (slave_solution_vector.size() != transformation_matrix.size1())
+                slave_solution_vector.resize(transformation_matrix.size1());
+            if (master_solution_vector.size() != transformation_matrix.size2())
+                master_solution_vector.resize(transformation_matrix.size2());
 
-                    for (auto& r_master_dof: it_const->GetMasterDofsVector()) {
-                        if (r_master_dof->GetVariable() == r_check_dof_x) {
-                            double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_x);
-                            #pragma omp atomic
-                            current_master_force_residual_x += r_current_force_residual_x * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_y) {
-                            double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_y);
-                            #pragma omp atomic
-                            current_master_force_residual_y += r_current_force_residual_x * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_z) {
-                            double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_z);
-                            #pragma omp atomic
-                            current_master_force_residual_z += r_current_force_residual_x * std::abs(transformation_matrix(0,0));
-                        } else continue;
-                    }
-                } else if (r_dof_j->GetVariable() == r_check_dof_y) {
-                    const double r_current_force_residual_y = rModelPart.pGetNode(r_dof_j->Id())->FastGetSolutionStepValue(r_residual_dof_y);
+            std::size_t counter = 0;
+            for (auto& r_dof_master: it_const->GetMasterDofsVector()) {
+                const std::size_t master_variable_key = r_dof_master->GetVariable().Key();
 
-                    for (auto& r_master_dof: it_const->GetMasterDofsVector()) {
-                        if (r_master_dof->GetVariable() == r_check_dof_x) {
-                            double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_x);
-                            #pragma omp atomic
-                            current_master_force_residual_x += r_current_force_residual_y * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_y) {
-                            double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_y);
-                            #pragma omp atomic
-                            current_master_force_residual_y +=  r_current_force_residual_y * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_z) {
-                            double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_z);
-                            #pragma omp atomic
-                            current_master_force_residual_z += r_current_force_residual_y * std::abs(transformation_matrix(0,0));
-                        } else continue;
-                    }
-                } else if (r_dof_j->GetVariable() == r_check_dof_z) {
-                    const double r_current_force_residual_z = rModelPart.pGetNode(r_dof_j->Id())->FastGetSolutionStepValue(r_residual_dof_z);
+                if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
+                    const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
+                    master_solution_vector[counter] = rModelPart.pGetNode(r_dof_master->Id())->FastGetSolutionStepValue(r_aux_var);
+                } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
+                    const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
+                    master_solution_vector[counter] = rModelPart.pGetNode(r_dof_master->Id())->FastGetSolutionStepValue(r_aux_var);
+                } else {
+                    KRATOS_ERROR << "Dof variable is defined" << std::endl;
+                }
 
-                    for (auto& r_master_dof: it_const->GetMasterDofsVector()) {
-                        if (r_master_dof->GetVariable() == r_check_dof_x) {
-                            double& current_master_force_residual_x = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_x);
-                            #pragma omp atomic
-                            current_master_force_residual_x += r_current_force_residual_z * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_y) {
-                            double& current_master_force_residual_y = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_y);
-                            #pragma omp atomic
-                            current_master_force_residual_y += r_current_force_residual_z * std::abs(transformation_matrix(0,0));
-                        } else if (r_master_dof->GetVariable() == r_check_dof_z) {
-                            double& current_master_force_residual_z = rModelPart.pGetNode(r_master_dof->Id())->FastGetSolutionStepValue(r_residual_dof_z);
-                            #pragma omp atomic
-                            current_master_force_residual_z += r_current_force_residual_z * std::abs(transformation_matrix(0,0));
-                        } else continue;
-                    }
-                } else continue;
+                ++counter;
+            }
+
+            // Computing transfered solution
+            noalias(slave_solution_vector) = prod(transformation_matrix, master_solution_vector);
+
+            counter = 0;
+            for (auto& r_dof_slave: it_const->GetSlaveDofsVector()) {
+                const std::size_t slave_variable_key = r_dof_slave->GetVariable().Key();
+
+                if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
+                    const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
+                    double& aux_value = slave_solution_vector[counter];
+                    #pragma omp atomic
+                    aux_value += rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
+                    const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
+                    double& aux_value = slave_solution_vector[counter];
+                    #pragma omp atomic
+                    aux_value += rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                } else {
+                    KRATOS_ERROR << "Dof variable is defined" << std::endl;
+                }
+
+                ++counter;
             }
         }
     }

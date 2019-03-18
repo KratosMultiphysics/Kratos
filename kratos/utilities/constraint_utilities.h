@@ -64,13 +64,13 @@ namespace ConstraintUtilities
     /**
      * @brief This method precomputes the contribution of the explicit MPC over nodal residual forces
      * @param rModelPart The model of the problem to solve
-     * @param DofVariableName The name of the Dof variable to check
-     * @param ResidualDofVariableName The name name of the corresponding residual variable
+     * @param rDofVariableNames The name of the Dof variables to check
+     * @param rResidualDofVariableNames The name name of the corresponding residual variables
      */
     void KRATOS_API(KRATOS_CORE) PreComputeExplicitConstraintConstribution(
         ModelPart& rModelPart,
-        const std::string DofVariableName = "DISPLACEMENT",
-        const std::string ResidualDofVariableName = "FORCE_RESIDUAL"
+        const std::vector<std::string>& rDofVariableNames,
+        const std::vector<std::string>& rResidualDofVariableNames
         );
 
 }; // namespace ConstraintUtilities

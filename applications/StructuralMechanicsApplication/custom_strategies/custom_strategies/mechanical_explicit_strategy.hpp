@@ -379,8 +379,13 @@ public:
 
         // Pre-compute MPC contributions
         if(r_model_part.MasterSlaveConstraints().size() > 0) {
-            ConstraintUtilities::PreComputeExplicitConstraintConstribution(r_model_part, "DISPLACEMENT", "FORCE_RESIDUAL");
-            ConstraintUtilities::PreComputeExplicitConstraintConstribution(r_model_part, "ROTATION", "MOMENT_RESIDUAL");
+            std::vector<std::string> dof_variable_names(2);
+            dof_variable_names[0] = "DISPLACEMENT";
+            dof_variable_names[1] = "ROTATION";
+            std::vector<std::string> residual_variable_names(2);
+            residual_variable_names[0] = "FORCE_RESIDUAL";
+            residual_variable_names[1] = "MOMENT_RESIDUAL";
+            ConstraintUtilities::PreComputeExplicitConstraintConstribution(r_model_part, dof_variable_names, residual_variable_names);
         }
 
         // Explicitly integrates the equation of motion.
