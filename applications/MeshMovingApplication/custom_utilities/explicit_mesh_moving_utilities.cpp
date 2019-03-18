@@ -161,7 +161,7 @@ namespace Kratos
                     }
                 }
 
-                // Interpolate the origin model part node value
+                // Interpolate the origin model part nodal values
                 auto &r_geom = p_elem->GetGeometry();
                 for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
                     r_mesh_vel += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(MESH_VELOCITY);
@@ -244,12 +244,15 @@ namespace Kratos
 
             // Check origin model part mesh displacementfixity
             const auto it_orig_node = mpOriginModelPart->NodesBegin() + i_fl;
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X))
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X)) {
                 it_node->Fix(MESH_DISPLACEMENT_X);
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y))
+            }
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y)) {
                 it_node->Fix(MESH_DISPLACEMENT_Y);
-            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z))
+            }
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z)) {
                 it_node->Fix(MESH_DISPLACEMENT_Z);
+            }
 
             // Initialize the current virtual model part node MESH_DISPLACEMENT
             auto &r_mesh_disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
@@ -257,28 +260,34 @@ namespace Kratos
 
             // Check if any structure node is found
             if (n_str_nodes != 0){
-                // Compute the average MESH_DISPLACEMENT
+                // Compute the closest structure node MESH_DISPLACEMENT
                 double min_distance = 1.01;
-                for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
+                Node<3>::Pointer str_node_ptr = nullptr;
+                for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str) {
                     // Compute the structure point weight according to the kernel function
                     const double normalised_distance = std::sqrt(i_fl_str_dists[i_str]) / mSearchRadius;
 
                     // Check if the point is closer than the current one
                     if (normalised_distance < min_distance) {
                         min_distance = normalised_distance;
-                        const double weight = this->ComputeKernelValue(normalised_distance);
+                        str_node_ptr = i_fl_str_nodes[i_str];
+                    }
+                }
 
-                        // TODO: OPTIMIZE THIS! DO IT ONCE
-                        // Accumulate the current step structure pt. DISPLACEMENT values
-                        const auto &r_str_disp_0 = (*(i_fl_str_nodes[i_str])).FastGetSolutionStepValue(DISPLACEMENT,0);
-                        const auto &r_str_disp_1 = (*(i_fl_str_nodes[i_str])).FastGetSolutionStepValue(DISPLACEMENT,1);
-                        const auto str_disp = weight * (r_str_disp_0 - r_str_disp_1);
-                        if (!it_node->IsFixed(MESH_DISPLACEMENT_X))
-                            r_mesh_disp[0] = str_disp[0];
-                        if (!it_node->IsFixed(MESH_DISPLACEMENT_Y))
-                            r_mesh_disp[1] = str_disp[1];
-                        if (!it_node->IsFixed(MESH_DISPLACEMENT_Z))
-                            r_mesh_disp[2] = str_disp[2];
+                // Current step structure pt. DISPLACEMENT values
+                if (str_node_ptr) {
+                    const double weight = this->ComputeKernelValue(min_distance);
+                    const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
+                    const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
+                    const auto str_disp = weight * (r_str_disp_0 - r_str_disp_1);
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                        r_mesh_disp[0] = str_disp[0];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                        r_mesh_disp[1] = str_disp[1];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                        r_mesh_disp[2] = str_disp[2];
                     }
                 }
             }
