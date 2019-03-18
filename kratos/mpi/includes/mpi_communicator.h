@@ -1228,6 +1228,29 @@ private:
             }
         }
 
+        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
+        {
+            if ( (destination = neighbour_indices[color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
+                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
+
+                // first we need to check that the sizes match
+                unsigned int num_local_nodes = r_local_nodes.size();
+                unsigned int num_ghost_nodes = r_ghost_nodes.size();
+
+                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
+                    continue; // nothing to transfer!
+
+                unsigned int send_data_size = 0;
+                // dynamically compute send size :(
+                // allocate buffer
+                // do send
+                // do recv
+            }
+        }
+
+        // synchronize
 /*
         std::vector<TSendType*> receive_buffer(neighbours_indices.size());
         std::vector<int> receive_buffer_size(neighbours_indices.size());
