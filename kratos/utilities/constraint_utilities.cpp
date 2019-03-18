@@ -168,7 +168,7 @@ void PreComputeExplicitConstraintConstribution(
                     const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
                     master_solution_vector[counter] = rModelPart.pGetNode(r_dof_master->Id())->FastGetSolutionStepValue(r_aux_var);
                 } else {
-                    KRATOS_ERROR << "Dof variable is defined" << std::endl;
+                    KRATOS_ERROR << "Dof variable is not defined" << std::endl;
                 }
 
                 ++counter;
@@ -192,7 +192,7 @@ void PreComputeExplicitConstraintConstribution(
                     #pragma omp atomic
                     aux_value += slave_solution_vector[counter];
                 } else {
-                    KRATOS_ERROR << "Dof variable is defined" << std::endl;
+                    KRATOS_ERROR << "Dof variable is not defined" << std::endl;
                 }
 
                 ++counter;
