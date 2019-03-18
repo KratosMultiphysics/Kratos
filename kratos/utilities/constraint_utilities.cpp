@@ -141,8 +141,10 @@ void PreComputeExplicitConstraintConstribution(
     // Auxiliar values
     Matrix transformation_matrix;
     Vector constant_vector, slave_solution_vector, master_solution_vector;
+    ModelPart::NodeType::Pointer p_master_node = *(rModelPart.Nodes().begin()).base();
+    ModelPart::NodeType::Pointer p_slave_node = *(rModelPart.Nodes().begin()).base();
 
-    #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_solution_vector, master_solution_vector)
+    #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_solution_vector, master_solution_vector, p_master_node, p_slave_node)
     {
         #pragma omp for schedule(guided, 512)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
@@ -161,14 +163,18 @@ void PreComputeExplicitConstraintConstribution(
             for (auto& r_dof_master: it_const->GetMasterDofsVector()) {
                 const std::size_t master_variable_key = r_dof_master->GetVariable().Key();
 
+                // Updating pointer
+                if (r_dof_master->Id() != p_master_node->Id())
+                    p_master_node = rModelPart.pGetNode(r_dof_master->Id());
+
                 if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
                     const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
-                    master_solution_vector[counter] = rModelPart.pGetNode(r_dof_master->Id())->FastGetSolutionStepValue(r_aux_var);
+                    master_solution_vector[counter] = p_master_node->FastGetSolutionStepValue(r_aux_var);
                 } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
                     const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
-                    master_solution_vector[counter] = rModelPart.pGetNode(r_dof_master->Id())->FastGetSolutionStepValue(r_aux_var);
+                    master_solution_vector[counter] = p_master_node->FastGetSolutionStepValue(r_aux_var);
                 } else {
-                    KRATOS_ERROR << "Dof variable is not defined" << std::endl;
+                    master_solution_vector[counter] = 0.0;
                 }
 
                 ++counter;
@@ -181,18 +187,20 @@ void PreComputeExplicitConstraintConstribution(
             for (auto& r_dof_slave: it_const->GetSlaveDofsVector()) {
                 const std::size_t slave_variable_key = r_dof_slave->GetVariable().Key();
 
+                // Updating pointer
+                if (r_dof_slave->Id() != p_slave_node->Id())
+                    p_slave_node = rModelPart.pGetNode(r_dof_slave->Id());
+
                 if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
                     const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                    double& aux_value = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
                     aux_value += slave_solution_vector[counter];
                 } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
                     const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
-                    double& aux_value = rModelPart.pGetNode(r_dof_slave->Id())->FastGetSolutionStepValue(r_aux_var);
+                    double& aux_value = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                     #pragma omp atomic
                     aux_value += slave_solution_vector[counter];
-                } else {
-                    KRATOS_ERROR << "Dof variable is not defined" << std::endl;
                 }
 
                 ++counter;
