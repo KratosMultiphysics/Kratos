@@ -59,7 +59,7 @@ public:
     AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-     ~AdjointStructuralResponseFunction() override
+    virtual ~AdjointStructuralResponseFunction() override
     {
     }
 
@@ -71,14 +71,16 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override;
+    virtual void Initialize() override;
 
-    void CalculateGradient(const Condition& rAdjointCondition,
+    using AdjointResponseFunction::CalculateGradient;
+
+    virtual void CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo) override;
 
-    double CalculateValue(ModelPart& rModelPart) override;
+    virtual double CalculateValue(ModelPart& rModelPart) override;
 
     ///@}
 

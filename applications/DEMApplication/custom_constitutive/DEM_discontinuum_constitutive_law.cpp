@@ -25,6 +25,40 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         //if (verbose) KRATOS_INFO("DEM") << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEMDiscontinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
+        if(!pProp->Has(FRICTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION) = 0.0;
+        }
+        if(!pProp->Has(YOUNG_MODULUS)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(YOUNG_MODULUS) = 0.0;
+        }
+        if(!pProp->Has(POISSON_RATIO)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(POISSON_RATIO) = 0.0;
+        }
+        if(!pProp->Has(DAMPING_GAMMA)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(DAMPING_GAMMA) = 0.0;
+        }
+        if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
+        }
     }
 
     std::string DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw() {
@@ -71,7 +105,6 @@ namespace Kratos {
     double DEMDiscontinuumConstitutiveLaw::LocalPeriod(const int i, SphericParticle* element1,
                                                SphericParticle* element2) {
 
-        // calculation of equivalent young modulus
         double myYoung = element1->GetYoung();
         double other_young = element2->GetYoung();
         double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
@@ -84,19 +117,9 @@ namespace Kratos {
         double radius_sum = my_radius + other_radius;
         const double radius_sum_inv  = 1.0 / radius_sum;
         const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
-        //double initial_delta = element1->GetInitialDelta(i);
-        //double initial_dist = radius_sum - initial_delta;
-
-        // calculation of elastic constants for discontinuum - Linear model
-        //double kn_el = equiv_young * calculation_area / initial_dist;
 
         const double modified_radius = equiv_radius * 0.31225; // sqrt(alpha * (2.0 - alpha)) = 0.31225
         double kn = equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
-
-        //mDensity = element1_props[PARTICLE_DENSITY];
-        //other_density = element2_props[PARTICLE_DENSITY];
-        //double m1 = 4/3 * Globals::Pi * my_radius * my_radius * my_radius * mDensity;
-        //double m2 = 4/3 * Globals::Pi * other_radius * other_radius * other_radius * other_density;
 
         const double mRealMass = element1->GetMass();
         const double other_real_mass = element2->GetMass();
@@ -105,11 +128,10 @@ namespace Kratos {
         // calculation of damping gamma
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double friction_coeff = element1->GetProperties()[CONTACT_INTERNAL_FRICC];
+        const double friction_coeff = element1->GetProperties()[FRICTION];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
-        //double sqr_period = kn / equiv_mass - rescaled_damping*rescaled_damping;
         double sqr_period = sqrt(1+friction_coeff*friction_coeff) * kn / equiv_mass - rescaled_damping*rescaled_damping;
         return sqr_period;
     }
@@ -117,7 +139,7 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
-    
+
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
@@ -181,7 +203,7 @@ namespace Kratos {
         double LocalCoordSystem[3][3]) {
         return CalculateNormalForce(indentation);
     }
-        
+
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(SphericParticle* const element, Condition* const wall, const double indentation){
         return CalculateNormalForce(indentation);
     }
@@ -190,7 +212,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called.","")
         return 0.0;
     }
-    
+
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called.","")
         return 0.0;
@@ -230,7 +252,6 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double my_mass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        //     const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
         equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )

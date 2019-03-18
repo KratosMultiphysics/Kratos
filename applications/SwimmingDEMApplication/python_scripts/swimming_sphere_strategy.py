@@ -7,6 +7,9 @@ import sphere_strategy
 BaseStrategy = sphere_strategy.ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
+        self.project_parameters = parameters
+        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -35,7 +38,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
-        do_search_neighbours =  self.DEM_parameters["do_search_neighbours"].GetBool()
+        do_search_neighbours =  self.project_parameters["do_search_neighbours"].GetBool()
         strategy_parameters = self.DEM_parameters["strategy_parameters"]
 
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
@@ -65,9 +68,77 @@ class SwimmingStrategy(BaseStrategy):
          else:
              return globals().get(class_name)(0.5,0.25)
 
+    def GetHydrodynamicLawParametersIfItExists(self, properties):
+        if self.project_parameters.Has('properties'):
+            for p in self.project_parameters["properties"]:
+                if p['properties_id'].GetInt() == int(properties.Id) and p.Has('hydrodynamic_law_parameters'):
+                    return p['hydrodynamic_law_parameters']
+        return None
+
+    @staticmethod
+    def CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters):
+
+        hydrodynamic_name = hydrodynamic_law_parameters['name'].GetString()
+        HydrodynamicInteractionLaw = globals().get(hydrodynamic_name)(properties, hydrodynamic_law_parameters)
+
+        if hydrodynamic_law_parameters.Has('buoyancy_parameters'):
+            buoyancy_parameters = hydrodynamic_law_parameters['buoyancy_parameters']
+            buoyancy_name = buoyancy_parameters['name'].GetString()
+            if not buoyancy_name == 'default':
+                buoyancy_law = globals().get(buoyancy_name)(buoyancy_parameters)
+                HydrodynamicInteractionLaw.SetBuoyancyLaw(buoyancy_law)
+
+        if hydrodynamic_law_parameters.Has('inviscid_force_parameters'):
+            inviscid_force_parameters = hydrodynamic_law_parameters['inviscid_force_parameters']
+            inviscid_force_name = inviscid_force_parameters['name'].GetString()
+            if not inviscid_force_name == 'default':
+                inviscid_force_law = globals().get(inviscid_force_name)(inviscid_force_parameters)
+                HydrodynamicInteractionLaw.SetInviscidForceLaw(inviscid_force_law)
+
+        if hydrodynamic_law_parameters.Has('drag_parameters'):
+            drag_parameters = hydrodynamic_law_parameters['drag_parameters']
+            drag_name = drag_parameters['name'].GetString()
+            if not drag_name == 'default':
+                drag_law = globals().get(drag_name)(drag_parameters)
+                HydrodynamicInteractionLaw.SetDragLaw(drag_law)
+
+        if hydrodynamic_law_parameters.Has('history_force_parameters'):
+            history_force_parameters = hydrodynamic_law_parameters['history_force_parameters']
+            history_force_name = history_force_parameters['name'].GetString()
+            if not history_force_name == 'default':
+                history_force_law = globals().get(history_force_name)(history_force_parameters)
+                HydrodynamicInteractionLaw.SetHistoryForceLaw(history_force_law)
+
+        if hydrodynamic_law_parameters.Has('vorticity_induced_lift_parameters'):
+            vorticity_induced_lift_parameters = hydrodynamic_law_parameters['vorticity_induced_lift_parameters']
+            vorticity_induced_lift_name = vorticity_induced_lift_parameters['name'].GetString()
+            if not vorticity_induced_lift_name == 'default':
+                vorticity_induced_lift_law = globals().get(vorticity_induced_lift_name)(vorticity_induced_lift_parameters)
+                HydrodynamicInteractionLaw.SetVorticityInducedLiftLaw(vorticity_induced_lift_law)
+
+        if hydrodynamic_law_parameters.Has('rotation_induced_lift_parameters'):
+            rotation_induced_lift_parameters = hydrodynamic_law_parameters['rotation_induced_lift_parameters']
+            rotation_induced_lift_name = rotation_induced_lift_parameters['name'].GetString()
+            if not rotation_induced_lift_name == 'default':
+                rotation_induced_lift_law = globals().get(rotation_induced_lift_name)(rotation_induced_lift_parameters)
+                HydrodynamicInteractionLaw.SetRotationInducedLiftLaw(rotation_induced_lift_law)
+
+        if hydrodynamic_law_parameters.Has('steady_viscous_torque_parameters'):
+            steady_viscous_torque_parameters = hydrodynamic_law_parameters['steady_viscous_torque_parameters']
+            steady_viscous_torque_name = steady_viscous_torque_parameters['name'].GetString()
+            if not steady_viscous_torque_name == 'default':
+                steady_viscous_torque_law = globals().get(steady_viscous_torque_name)(steady_viscous_torque_parameters)
+                HydrodynamicInteractionLaw.SetSteadyViscousTorqueLaw(steady_viscous_torque_law)
+
+        HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)
+
     def ModifyProperties(self, properties, param = 0):
 
         super(SwimmingStrategy,self).ModifyProperties(properties, param)
+
+        hydrodynamic_law_parameters = self.GetHydrodynamicLawParametersIfItExists(properties)
+        if hydrodynamic_law_parameters:
+            SwimmingStrategy.CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters)
 
         if not param:
             if not properties.Has(PARTICLE_SPHERICITY):
