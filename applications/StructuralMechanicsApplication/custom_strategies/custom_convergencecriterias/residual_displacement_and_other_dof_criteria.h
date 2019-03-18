@@ -189,7 +189,7 @@ public:
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNormDisp;
 
             if ((RatioDisplacement <= mRatioTolerance || AbsoluteNormDisp < mAbsoluteTolerance) && (RatioOtherDoF <= mRatioTolerance || AbsoluteNormOtherDoF < mAbsoluteTolerance)) {
-                KRATOS_ERROR_IF(this->GetEchoLevel() > 0) << "Convergence is achieved" << std::endl;
+                if (this->GetEchoLevel() > 0)  std::cout << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;
