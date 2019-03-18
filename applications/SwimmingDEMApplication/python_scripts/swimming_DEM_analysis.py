@@ -213,8 +213,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.project_parameters["coupling_level_type"].GetInt() == 0:
             self.project_parameters["project_at_every_substep_option"].SetBool(False)
 
-        # the fluid fraction is not projected from DEM (there may not
-        # be a DEM part) but is externally imposed:
+        # The fluid fraction is not projected from DEM (there may not
+        # be a DEM part) but is externally imposed instead:
         if self.project_parameters["flow_in_porous_medium_option"].GetBool():
             self.project_parameters["coupling_weighing_type"].SetInt(- 1)
 

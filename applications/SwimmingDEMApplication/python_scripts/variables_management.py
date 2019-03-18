@@ -1,10 +1,14 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import ast
+import parameters_tools as PT
+def Say(*args):
+    Logger.PrintInfo("SwimmingDEM", *args)
+    Logger.Flush()
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
 class VariablesManager:
     @staticmethod
@@ -88,15 +92,10 @@ class VariablesManager:
 
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
         dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling_level_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, parameters["buoyancy_force_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, parameters["drag_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, parameters["virtual_mass_force_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, parameters["basset_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, parameters["lift_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, parameters["magnus_force_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, parameters["hydro_torque_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["fluid_model_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, parameters["manually_imposed_drag_law_option"].GetBool())
         dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, parameters["initial_drag_force"].GetDouble())
         dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, parameters["drag_law_slope"].GetDouble())
@@ -115,7 +114,7 @@ class VariablesManager:
                     dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, history_force_parameters["quadrature_order"].GetInt())
                     break
 
-        if parameters["drag_force_type"].GetInt() in {13} or parameters["lift_force_type"].GetInt() == 1:
+        if parameters["non_newtonian_option"].GetBool():
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
 
@@ -157,14 +156,15 @@ class VariablesManager:
                     self.fluid_vars += [VELOCITY_Y_GRADIENT]
                     self.fluid_vars += [VELOCITY_Z_GRADIENT]
 
-        if parameters["vorticity_calculation_type"].GetInt() == 1 or parameters["lift_force_type"].GetInt() == 1:
+        if (parameters["vorticity_calculation_type"].GetInt() > 0
+            or PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')):
             self.fluid_vars += [VORTICITY]
 
         if parameters["laplacian_calculation_type"].GetInt():
             self.fluid_vars += [VELOCITY_LAPLACIAN]
 
-            if parameters["include_faxen_terms_option"].GetBool():
-                self.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
+        if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
+            self.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
 
         if parameters["calculate_diffusivity_option"].GetBool():
             self.fluid_vars += [CONDUCTIVITY]
@@ -193,10 +193,11 @@ class VariablesManager:
         if parameters["drag_force_type"].GetInt() > 1:
             self.dem_vars += [PARTICLE_SPHERICITY]
 
-        if parameters["lift_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if (PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')
+            and parameters["add_each_hydro_force_option"].GetBool()):
             self.dem_vars += [LIFT_FORCE]
 
-        if parameters["virtual_mass_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
 
         will_need_basset_force_variable = False
@@ -409,7 +410,7 @@ class VariablesManager:
         if parameters["coupling_level_type"].GetInt() >= 1 and parameters["time_averaging_type"].GetInt() > 0:
             self.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
 
-        if parameters["drag_force_type"].GetInt() in {2} or parameters["lift_force_type"].GetInt() == 1:
+        if parameters["non_newtonian_option"].GetBool():
             self.coupling_fluid_vars += [POWER_LAW_N]
             self.coupling_fluid_vars += [POWER_LAW_K]
             self.coupling_fluid_vars += [YIELD_STRESS]
@@ -428,6 +429,7 @@ class VariablesManager:
 
         if parameters["coupling_level_type"].GetInt() > 0:
             self.coupling_dem_vars += [FLUID_VEL_PROJECTED]
+            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
             self.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
             self.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
             self.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
@@ -437,10 +439,7 @@ class VariablesManager:
             self.coupling_dem_vars += [FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
             self.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
 
-            if parameters["buoyancy_force_type"].GetInt() != 2 and parameters["drag_force_type"].GetInt() != 2:
-                self.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
-
-            if parameters["include_faxen_terms_option"].GetBool():
+            if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
 
@@ -454,17 +453,14 @@ class VariablesManager:
             and parameters["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool()):
             self.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
 
-        if parameters["drag_force_type"].GetInt() in {2} or parameters["lift_force_type"].GetInt() == 1:
+        if parameters["non_newtonian_option"].GetBool():
             self.coupling_dem_vars += [POWER_LAW_N]
             self.coupling_dem_vars += [POWER_LAW_K]
             self.coupling_dem_vars += [YIELD_STRESS]
 
-        if parameters["lift_force_type"].GetInt() == 1:
+        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters'):
             self.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
             self.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
-
-        if parameters["virtual_mass_force_type"].GetInt() or parameters["basset_force_type"].GetInt() >= 1:
-            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
         if parameters["embedded_option"].GetBool():
             self.coupling_dem_vars += [DISTANCE]

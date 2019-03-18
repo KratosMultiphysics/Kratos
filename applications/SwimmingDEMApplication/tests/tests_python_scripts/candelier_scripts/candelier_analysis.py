@@ -17,6 +17,7 @@ def Cross(a, b):
 
 from swimming_DEM_analysis import SwimmingDEMAnalysis
 from swimming_DEM_analysis import Say
+import parameters_tools as PT
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
@@ -39,7 +40,9 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
         super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
         candelier_pp.include_history_force = bool(self.project_parameters["basset_force_type"].GetInt())
-        candelier_pp.include_lift = bool(self.project_parameters["lift_force_type"].GetInt())
+        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(custom_parameters["properties"],
+                                                                            'vorticity_induced_lift_parameters',
+                                                                            condition=lambda value: not (value['name']=='default'))
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.project_parameters["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
