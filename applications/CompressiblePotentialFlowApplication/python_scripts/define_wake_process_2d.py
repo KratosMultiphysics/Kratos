@@ -56,6 +56,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
 
+        self.wake_model_part = self.fluid_model_part.CreateSubModelPart(
+            "wake_model_part")
+
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
@@ -110,6 +113,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
+                    self.wake_model_part.AddElement(elem,0)
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -221,3 +225,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
+
+    def ExecuteFinalizeSolutionStep(self):
+        for elem in self.wake_model_part.Elements:
+            print(elem.Id)
+

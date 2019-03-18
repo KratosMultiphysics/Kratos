@@ -26,7 +26,7 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = False
+        self.print_output = True
 
     def test_execution(self):
 
