@@ -568,7 +568,7 @@ public:
 
     bool AssembleCurrentData(Variable<Vector> const& ThisVariable) override
     {
-        AssembleThisVariable<Vector,double>(ThisVariable);
+        AssembleDynamicallyAllocatedVariable(ThisVariable);
         return true;
     }
 
@@ -1125,6 +1125,181 @@ private:
 
 
 
+
+        return true;
+    }
+
+    template<class TDataType, class TSendType = typename TDataType::value_type >
+    bool AssembleDynamicallyAllocatedVariable(Variable<TDataType> const& rThisVariable)
+    {
+        const int rank = mrDataCommunicator.Rank();
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
+        bool resize_error = false;
+
+        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
+        {
+            if ( (destination = neighbour_indices[color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
+                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
+
+                // first we need to check that the sizes match
+                unsigned int num_local_nodes = r_local_nodes.size();
+                unsigned int num_ghost_nodes = r_ghost_nodes.size();
+
+                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
+                    continue; // nothing to transfer!
+
+                std::vector<int> local_sizes(num_local_nodes);
+                std::vector<int> ghost_sizes(num_ghost_nodes);
+
+                unsigned int i = 0;
+                for (auto i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                {
+                    ghost_sizes[i++] = (i_node->FastGetSolutionStepValue(rThisVariable)).data().size();
+                }
+
+                mrDataCommunicator.SendRecv(ghost_sizes, destination, color, local_sizes, destination, color);
+
+                i = 0;
+                for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                {
+                    unsigned int source_size = local_sizes[i++];
+                    if (source_size != 0)
+                    {
+                        auto& local_value = i_node->FastGetSolutionStepValue(rThisVariable);
+                        if (local_value.size() == source_size)
+                        {
+                            continue; // everything ok!
+                        }
+                        else if (local_value.size() == 0)
+                        {
+                            local_value.resize(source_size, false);
+                        }
+                        else
+                        {
+                            resize_error = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
+        << "Size mismatch in Variable<Vector> synchronization." << std::endl;
+
+        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
+        {
+            if ( (destination = neighbour_indices[color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
+                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
+
+                // first we need to check that the sizes match
+                unsigned int num_local_nodes = r_local_nodes.size();
+                unsigned int num_ghost_nodes = r_ghost_nodes.size();
+
+                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
+                    continue; // nothing to transfer!
+
+                std::vector<int> local_sizes(num_local_nodes);
+                std::vector<int> ghost_sizes(num_ghost_nodes);
+
+                unsigned int i = 0;
+                for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                {
+                    local_sizes[i++] = (i_node->FastGetSolutionStepValue(rThisVariable)).data().size();
+                }
+
+                mrDataCommunicator.SendRecv(local_sizes, destination, color, ghost_sizes, destination, color);
+
+                i = 0;
+                for (auto i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                {
+                    unsigned int source_size = ghost_sizes[i++];
+                    auto& local_value = i_node->FastGetSolutionStepValue(rThisVariable);
+                    if (source_size != local_value.size())
+                    {
+                        local_value.resize(source_size, false);
+                    }
+                }
+            }
+        }
+
+/*
+        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
+        std::vector<int> receive_buffer_size(neighbours_indices.size());
+
+        TSendType Value = TSendType();
+        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
+        //first of all gather everything to the owner node
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = InterfaceMesh(i_color).Nodes();
+                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                // Calculating send and received buffer size
+                // NOTE: This part can be optimized getting the offset from variables list and using pointers.
+                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                unsigned int local_nodes_size = r_local_nodes.size();
+                unsigned int ghost_nodes_size = r_ghost_nodes.size();
+                unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
+                receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
+
+                if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
+                    continue; // nothing to transfer!
+
+                unsigned int position = 0;
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
+
+                // Filling the buffer
+                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                {
+                    *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
+                    position += nodal_data_size;
+                }
+
+                MPI_Status status;
+
+                if (position > send_buffer_size)
+                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
+
+                int send_tag = i_color;
+                int receive_tag = i_color;
+
+                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
+                             receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
+                             MPI_COMM_WORLD, &status);
+
+                delete [] send_buffer;
+            }
+
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                // Updating nodes
+                int position = 0;
+                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                {
+                    i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
+                    position += nodal_data_size;
+                }
+
+                if (position > receive_buffer_size[i_color])
+                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                delete [] receive_buffer[i_color];
+            }
+
+        SynchronizeVariable<TDataType,TSendType>(ThisVariable);*/
 
         return true;
     }
