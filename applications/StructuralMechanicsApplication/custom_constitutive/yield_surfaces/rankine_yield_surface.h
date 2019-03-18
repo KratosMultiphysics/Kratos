@@ -119,7 +119,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, Dimension> principal_stress_vector(3, 0.0);
+        array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
         // The rEquivalentStress is the maximum principal stress
         rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
@@ -157,7 +157,7 @@ public:
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerPlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * E * Gf / CharacteristicLength);
         }
@@ -236,24 +236,22 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
-	/**
-     * @brief This method returns true if the yield
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns true if the yield surfacecompares with the tension tield stress
      */
     static bool IsWorkingWithTensionThreshold()
     {
         return true;
     }
 
-	/**
-     * @brief This method returns the scaling factor of the
-     * yield surface
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns the scaling factor of the yield surface surfacecompares with the tension tield stress
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
         return 1.0;
-    }		
+    }
+
     ///@}
     ///@name Access
     ///@{

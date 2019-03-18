@@ -40,6 +40,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -186,53 +188,53 @@ namespace Kratos
 
 
 
-     
-    bool UniqueSkinSearch( ModelPart& rModelPart ) 
-    { 
- 
-      KRATOS_TRY 
- 
-  if( mEchoLevel > 0 ){ 
-    std::cout<<" [ Initial Conditions : "<<rModelPart.Conditions().size()<<std::endl; 
-  } 
- 
-      if( !rModelPart.Elements().size() || (rModelPart.Is(ACTIVE)) ){ 
-  if( mEchoLevel > 0 ){ 
-    std::cout<<" [ Final Conditions   : "<<rModelPart.Conditions().size()<<std::endl; 
-  } 
-  return true; 
-      } 
-       
-      //reset the boundary flag in all nodes and check if a remesh process has been performed 
-      bool any_node_to_erase = false; 
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++) 
-  { 
-    in->Reset(BOUNDARY); 
-    in->Reset(FREE_SURFACE); 
- 
-    if( any_node_to_erase == false ) 
-      if( in->Is(TO_ERASE) ) 
-        any_node_to_erase = true; 
-       
-  } 
+
+    bool UniqueSkinSearch( ModelPart& rModelPart )
+    {
+
+      KRATOS_TRY
+
+  if( mEchoLevel > 0 ){
+    std::cout<<" [ Initial Conditions : "<<rModelPart.Conditions().size()<<std::endl;
+  }
+
+      if( !rModelPart.Elements().size() || (rModelPart.Is(ACTIVE)) ){
+  if( mEchoLevel > 0 ){
+    std::cout<<" [ Final Conditions   : "<<rModelPart.Conditions().size()<<std::endl;
+  }
+  return true;
+      }
+
+      //reset the boundary flag in all nodes and check if a remesh process has been performed
+      bool any_node_to_erase = false;
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
+  {
+    in->Reset(BOUNDARY);
+    in->Reset(FREE_SURFACE);
+
+    if( any_node_to_erase == false )
+      if( in->Is(TO_ERASE) )
+        any_node_to_erase = true;
+
+  }
       SetBoundaryAndFreeSurface(rModelPart);
 
-      return true; 
- 
-      KRATOS_CATCH( "" ) 
-	} 
-     
+      return true;
+
+      KRATOS_CATCH( "" )
+	}
 
 
 
-      
+
+
     // bool SetBoundaryAndFreeSurface( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId )
     bool SetBoundaryAndFreeSurface( ModelPart& rModelPart)
     {
 
       KRATOS_TRY
 
-	
+
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
       Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
@@ -267,7 +269,7 @@ namespace Kratos
 	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
 	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
 
-	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementWeakPtrVectorType& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 	    //get matrix nodes in faces
 	    rElementGeometry.NodesInFaces(lpofa);
@@ -275,12 +277,12 @@ namespace Kratos
 
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
-	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
+	    for(ElementWeakPtrVectorType::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
 
-		if (ne->Id() == ie->Id())
+		if ((ne)->Id() == ie->Id())
 		  {
 
 		    //if no neighbour is present => the face is free surface

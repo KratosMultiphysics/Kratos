@@ -15,7 +15,6 @@ from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
 
 from test_ale_fluid_solver import ALEFluidSolverTest
 
-
 ## NIGTHLY TESTS
 
 ## VALIDATION TESTS

@@ -142,7 +142,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_< DamGroutingReferenceTemperatureProcess, DamGroutingReferenceTemperatureProcess::Pointer, Process >
     (m, "DamGroutingReferenceTemperatureProcess")
     .def(py::init < ModelPart&, Parameters&>());
-    }
+}
 
 }  // namespace Python.
 } // Namespace Kratos

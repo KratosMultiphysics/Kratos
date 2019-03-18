@@ -3,9 +3,6 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 #Base class to develop other solvers
 class InputManager(object):
     """The base class for solid mechanic input parameters and materials.

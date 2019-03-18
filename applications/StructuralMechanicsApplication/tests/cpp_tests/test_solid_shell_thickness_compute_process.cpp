@@ -31,7 +31,7 @@ namespace Kratos
 
         void SolidShellProcessCreateModelPart(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);

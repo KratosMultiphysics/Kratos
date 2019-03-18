@@ -1,0 +1,79 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "plate",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "plate"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false,
+                "damping_regions" : [{
+                    "sub_model_part_name"   : "constraint_points",
+                    "damp_X"                : true,
+                    "damp_Y"                : true,
+                    "damp_Z"                : true,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.15
+                }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "strain_energy",
+            "type"       : "minimization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "strain_energy",
+                "primal_settings"        : "analysis_parameters.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-7
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                           : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.075,
+                "max_nodes_in_filter_radius" : 1000
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                          : "bead_optimization",
+            "bead_height"                   : 0.025,
+            "bead_direction"                : [],
+            "bead_side"                     : "both",
+            "filter_penalty_term"           : false,
+            "estimated_lagrange_multiplier" : 7e-4,
+            "max_total_iterations"          : 300,
+            "max_inner_iterations"          : 30,
+            "min_inner_iterations"          : 3,
+            "inner_iteration_tolerance"     : 1e-3,
+            "line_search" : {
+                "step_size"                  : 0.3
+            }
+        },
+        "output" : {
+            "design_output_mode" : "WriteDesignSurface",
+            "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
+                                     "DF1DX",
+                                     "DF1DALPHA",
+                                     "DF1DALPHA_MAPPED",
+                                     "DPDALPHA",
+                                     "ALPHA",
+                                     "ALPHA_MAPPED",
+                                     "CONTROL_POINT_CHANGE",
+                                     "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name" : "gid"
+            }
+        }
+    }
+}

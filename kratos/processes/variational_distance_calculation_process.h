@@ -71,6 +71,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     ///@name Type Definitions
     ///@{
@@ -121,12 +122,14 @@ public:
     VariationalDistanceCalculationProcess(
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
-        unsigned int max_iterations = 10)
-        :mr_base_model_part(base_model_part)
+        unsigned int max_iterations = 10,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        std::string AuxPartName = "RedistanceCalculationPart" )
+        : mr_base_model_part( base_model_part ),
+        mOptions( Options ),
+        mAuxModelPartName( AuxPartName )
     {
         KRATOS_TRY
-
-
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -159,7 +162,7 @@ public:
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
 
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
@@ -181,8 +184,8 @@ public:
     {
 
         Model& current_model = mr_base_model_part.GetModel();
-        if(current_model.HasModelPart("RedistanceCalculationPart"))
-            current_model.DeleteModelPart("RedistanceCalculationPart");
+        if(current_model.HasModelPart( mAuxModelPartName ))
+            current_model.DeleteModelPart( mAuxModelPartName );
     };
 
     ///@}
@@ -207,7 +210,7 @@ public:
         }
 
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
 
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
@@ -258,10 +261,16 @@ public:
             // The element is cut by the interface
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
-                if(TDim==3){
-                    GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                } else {
-                    GeometryUtils::CalculateTriangleDistances(geom, distances);
+                if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
+                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
+                }
+                else {
+                    if(TDim==3){
+                        GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                    }
+                    else {
+                        GeometryUtils::CalculateTriangleDistances(geom, distances);
+                    }
                 }
 
                 // Assign the sign using the original distance values
@@ -346,7 +355,7 @@ public:
     virtual void Clear()
     {
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
@@ -398,8 +407,10 @@ protected:
     /// Minimal constructor for derived classes
     VariationalDistanceCalculationProcess(
         ModelPart &base_model_part,
-        unsigned int max_iterations)
-        : mr_base_model_part(base_model_part)
+        unsigned int max_iterations,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        std::string AuxPartName = "RedistanceCalculationPart")
+        : mr_base_model_part(base_model_part), mOptions(Options), mAuxModelPartName(AuxPartName)
     {
         mdistance_part_is_initialized = false;
         mmax_iterations = max_iterations;
@@ -413,6 +424,8 @@ protected:
     unsigned int mmax_iterations;
 
     ModelPart& mr_base_model_part;
+    Flags mOptions;
+    std::string mAuxModelPartName;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -429,16 +442,16 @@ protected:
         KRATOS_TRY
 
         Model& current_model = mr_base_model_part.GetModel();
-        if(current_model.HasModelPart("RedistanceCalculationPart"))
-            current_model.DeleteModelPart("RedistanceCalculationPart");
+        if(current_model.HasModelPart( mAuxModelPartName ))
+            current_model.DeleteModelPart( mAuxModelPartName );
 
         // Generate
-        ModelPart& r_distance_model_part = current_model.CreateModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
 
-        r_distance_model_part.SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        r_distance_model_part.SetProcessInfo( base_model_part.pGetProcessInfo() );
         r_distance_model_part.SetBufferSize(base_model_part.GetBufferSize());
         r_distance_model_part.SetProperties(base_model_part.pProperties());
         r_distance_model_part.Tables() = base_model_part.Tables();
@@ -530,7 +543,7 @@ private:
 
     void SynchronizeDistance(){
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
         auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
@@ -560,7 +573,7 @@ private:
 
     void SynchronizeFixity(){
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
                 auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
@@ -611,7 +624,11 @@ const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDen
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2, false));
 
 ///@}
 
@@ -646,5 +663,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
-
-

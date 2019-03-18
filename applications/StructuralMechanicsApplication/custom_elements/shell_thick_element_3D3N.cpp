@@ -163,14 +163,14 @@ void ShellThickElement3D3N::Initialize()
 void ShellThickElement3D3N::InitializeNonLinearIteration
 (ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -179,14 +179,14 @@ void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessI
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 void ShellThickElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -1750,7 +1750,7 @@ void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRi
 
 void ShellThickElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -2140,7 +2140,7 @@ bool ShellThickElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOr
     return true;
 }
 
-ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
 }
@@ -2154,13 +2154,22 @@ ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior
 void ShellThickElement3D3N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
-    rSerializer.save("CTr", mpCoordinateTransformation);
+    bool is_corotational = (nullptr != dynamic_cast<ShellT3_CorotationalCoordinateTransformation*>(mpCoordinateTransformation.get()));
+    rSerializer.save("is_corotational", is_corotational);
+    rSerializer.save("CTr", *mpCoordinateTransformation);
 }
 
 void ShellThickElement3D3N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
-    rSerializer.load("CTr", mpCoordinateTransformation);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseShellElement);
+    bool is_corotational;
+    rSerializer.load("is_corotational", is_corotational);
+    if (is_corotational) {
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CorotationalCoordinateTransformation>(pGetGeometry());
+    } else {
+        mpCoordinateTransformation = Kratos::make_shared<ShellT3_CoordinateTransformation>(pGetGeometry());
+    }
+    rSerializer.load("CTr", *mpCoordinateTransformation);
 }
 
 } // namespace Kratos

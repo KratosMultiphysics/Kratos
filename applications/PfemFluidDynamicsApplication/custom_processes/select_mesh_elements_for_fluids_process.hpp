@@ -28,12 +28,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
+//Data:
 //StepData: NODAL_H, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
-//          (set)     
-//          (modified)  
-//          (reset)   
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -45,7 +45,7 @@ namespace Kratos
 /// Refine Mesh Elements Process 2D and 3D
 /** The process labels the elements to be refined in the mesher
     it applies a size constraint to elements that must be refined.
-    
+
 */
 class SelectMeshElementsForFluidsProcess
   : public MesherProcess
@@ -61,6 +61,7 @@ public:
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
 
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -68,7 +69,7 @@ public:
     /// Default constructor.
     SelectMeshElementsForFluidsProcess(ModelPart& rModelPart,
 			      MesherUtilities::MeshingParameters& rRemeshingParameters,
-			      int EchoLevel) 
+			      int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -114,9 +115,9 @@ public:
       std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
       mrRemesh.MeshElementsSelectedFlag = true;
 
-      
+
       mrRemesh.Info->NumberOfElements=0;
-    
+
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -124,7 +125,7 @@ public:
       if(currentTime<2*timeInterval){
 	firstMesh=true;
       }
-  
+
       bool box_side_element = false;
       bool wrong_added_node = false;
 
@@ -143,12 +144,12 @@ public:
 	  if( mEchoLevel > 1 )
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 	  const unsigned int nds = element_begin->GetGeometry().size();
 	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
-	 
+
 	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	  int el = 0;
@@ -162,18 +163,18 @@ public:
 	      Geometry<Node<3> > vertices;
 
 	      unsigned int  numfreesurf =0;
-	      unsigned int  numboundary =0;	      
-	      unsigned int  numrigid =0;	      
-	      unsigned int  numinternalsolid =0;	      
-	      unsigned int  numsolid =0;	      
-	      unsigned int  numinlet =0;	      
-	      unsigned int  numisolated =0;	      
-	      // unsigned int  numinsertednodes =0;	      
+	      unsigned int  numboundary =0;
+	      unsigned int  numrigid =0;
+	      unsigned int  numinternalsolid =0;
+	      unsigned int  numsolid =0;
+	      unsigned int  numinlet =0;
+	      unsigned int  numisolated =0;
+	      // unsigned int  numinsertednodes =0;
 	      std::vector<double > normVelocityP;
 	      normVelocityP.resize(nds);
 	      unsigned int  checkedNodes =0;
 	      box_side_element = false;
-	      unsigned int countIsolatedWallNodes=0; 
+	      unsigned int countIsolatedWallNodes=0;
 	      // bool isolatedWallElement=true;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
@@ -184,7 +185,7 @@ public:
 		    box_side_element = true;
 		    break;
 		  }
-		  
+
 		  if(OutElementList[el*nds+pn]<=0)
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
 
@@ -194,7 +195,7 @@ public:
 		    std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
 		    break;
 		  }
-		
+
 		  //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
@@ -211,7 +212,7 @@ public:
 		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
 
-		    WeakPointerVector<Node<3> >& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
+		    NodeWeakPtrVectorType& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
 		    bool localIsolatedWallNode=true;
 		    for(unsigned int i = 0; i < rN.size(); i++)
 		      {
@@ -223,7 +224,7 @@ public:
 		    if(localIsolatedWallNode==true){
 		      countIsolatedWallNodes++;
 		    }
-		    
+
        		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
 		  if(vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY)){
@@ -250,13 +251,13 @@ public:
 		    numinlet++;
 		  }
 		}
-	      
-	      
+
+
 	      if(box_side_element || wrong_added_node){
 		std::cout<<" ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element "<<std::endl;
 		continue;
 	      }
-	      
+
 
 	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
@@ -300,7 +301,7 @@ public:
 		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
 		    Alpha*=0;
 		  }
-	
+
 		}
 
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
@@ -308,7 +309,7 @@ public:
 		}else{
 		  Alpha*=1.125;
 		}
-		
+
 		if(numrigid==nds){
 		  Alpha*=0.95;
 		}
@@ -321,9 +322,9 @@ public:
 	      // Alpha*=1.175;
 
 	      bool accepted=false;
-	      
+
 	      MesherUtilities MesherUtils;
-	      
+
 	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
 		{
 		  accepted=MesherUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
@@ -341,7 +342,7 @@ public:
 	      bool self_contact = false;
 	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
 		self_contact = MesherUtils.CheckSubdomain(vertices);
-	    	    
+
 	      //4.- to control that the element is inside of the domain boundaries
 	      if(accepted)
 		{
@@ -357,7 +358,7 @@ public:
 	      	//   accepted=false;
 	      	// }
 	      }
-	      
+
 	      //5.- to control that the element has a good shape
 	      if(accepted && (numfreesurf>0 || numrigid==nds))
 	      	{
@@ -433,7 +434,7 @@ public:
 	      // 	    number_of_slivers--;
 	      // 	  }
 	      // 	}
-		
+
 	      // }
 
 	      if(accepted)
@@ -456,11 +457,11 @@ public:
       if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)){
 
 
-	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
+	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 	const unsigned int nds = (*element_begin).GetGeometry().size();
-      
+
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
-      
+
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	//check engaged nodes
@@ -475,7 +476,7 @@ public:
 		}
 
 	    }
-	    
+
 	  }
 
 	int count_release = 0;
@@ -497,17 +498,17 @@ public:
 
 	    i_node->Reset(BLOCKED);
 	  }
-	  
+
 	if( mEchoLevel > 0 )
 	  std::cout<<"   fluid NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
       }
       else{
-	
+
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
-	  { 
+	  {
 	    i_node->Reset(BLOCKED);
 	  }
 
@@ -577,10 +578,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
-    MesherUtilities mMesherUtilities;  
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -653,5 +654,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SELECT_MESH_ELEMENTS_FOR_FLUIDS_PROCESS_H_INCLUDED defined 
-
+#endif // KRATOS_SELECT_MESH_ELEMENTS_FOR_FLUIDS_PROCESS_H_INCLUDED defined

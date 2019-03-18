@@ -29,9 +29,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-//conditions
-#include "custom_conditions/shape_optimization_condition.h"
-
 // Variables
 #include "includes/variables.h"
 
@@ -84,6 +81,23 @@ namespace Kratos
 
     // For mapping
     KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
+
+	// For bead optimization
+    KRATOS_DEFINE_VARIABLE(double,ALPHA);
+    KRATOS_DEFINE_VARIABLE(double,ALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DF1DALPHA);
+    KRATOS_DEFINE_VARIABLE(double,DF1DALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DPDALPHA);
+    KRATOS_DEFINE_VARIABLE(double,DPDALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DLDALPHA);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BEAD_DIRECTION);
+
+    // For auxiliary operations
+    KRATOS_DEFINE_VARIABLE(double,SCALAR_VARIABLE);
+    KRATOS_DEFINE_VARIABLE(double,SCALAR_VARIABLE_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
+
 
 	///@}
 	///@name Type Definitions
@@ -236,13 +250,6 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-
-        //conditions
-        const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
-        const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N;
-
 
 		///@}
 		///@name Private Operators

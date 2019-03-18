@@ -560,7 +560,7 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
 	    // consistent=1;
 	    // if(i==j)
@@ -645,7 +645,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
 	    if( dimension == 2 ){ //consistent 2D
 

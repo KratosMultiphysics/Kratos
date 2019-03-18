@@ -31,11 +31,12 @@ void AALMAdaptPenaltyValueProcess::Execute()
     const bool initialize = (r_process_info[STEP] == 1 && r_process_info[NL_ITERATION_NUMBER] == 1);
     
     // We iterate over the node
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for 
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
         
         // Initial value
         const double penalty_parameter = initialize ? initial_penalty_parameter : it_node->GetValue(INITIAL_PENALTY);

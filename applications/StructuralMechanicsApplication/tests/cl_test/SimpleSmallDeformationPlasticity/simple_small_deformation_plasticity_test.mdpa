@@ -16,7 +16,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements SmallDisplacementElement3D8N// GUI group identifier: Parts Auto1
+Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Parts Auto1
         1          0          4          1          3          6          5          2          7          8 
 End Elements
 

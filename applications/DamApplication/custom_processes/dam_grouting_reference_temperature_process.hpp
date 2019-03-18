@@ -103,7 +103,6 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = mInitialValue;
-
             }
         }
 
@@ -113,7 +112,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
