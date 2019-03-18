@@ -39,8 +39,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
-        self.path  = settings["path"].GetString()
-
+        # self.path  = settings["path"].GetString()
+#
     def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE LIFT')
         # self.process.Execute()
@@ -67,10 +67,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         print('Cd = ', Cd)
         print('RZ = ', RZ)
         print('Mach = ', self.velocity_infinity[0]/340)
-        self.Output(self.path)
+        # self.Output(self.path)
 
 
-    @ExaquteTask(filepath=FILE_OUT)
+    # @ExaquteTask(filepath=FILE_OUT)
     def Output(self,filepath):
             x_list=[]
             cp_list=[]
@@ -84,12 +84,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 cp = cond.GetValue(PRESSURE)
                 x = cond.GetGeometry().Center().X
                 x_list.append(x)
-                cp_list.append(cp)  
+                cp_list.append(cp)
             max_x=max(x_list)
             min_x=min(x_list)
             for i in range(0,len(x_list)):
                 x_list[i]=(x_list[i]-min_x)/abs(max_x-min_x)
 
-            with open(filepath, 'w') as cp_file:  
+            with open(filepath, 'w') as cp_file:
                 for i in range(len(x_list)):
                     cp_file.write('%f %f\n' % (x_list[i], cp_list[i]))
