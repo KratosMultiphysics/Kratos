@@ -201,11 +201,18 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
 
         // Calculate LHS Matrix and RHS Vector
-        noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
-        noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+        if ( CalculateStiffnessMatrixFlag == true )
+        {
+            noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
+            rLeftHandSideMatrix  *= penalty_factor * this->GetIntegrationWeight();
+        }
 
-        rLeftHandSideMatrix  *= penalty_factor * this->GetIntegrationWeight();
-        rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
+        if ( CalculateResidualVectorFlag == true )
+        {
+            noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+            rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
+        }
+
     }
 
     KRATOS_CATCH( "" )

@@ -114,8 +114,9 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
-set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "LEGACY_STRUCTURAL_APPLICATION=EXPORT,API")
+#add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
+pybind11_add_module(KratosStructuralApplication MODULE ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
+#set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "LEGACY_STRUCTURAL_APPLICATION=EXPORT,API")
 target_link_libraries(KratosStructuralApplication KratosCore )
 set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
 
