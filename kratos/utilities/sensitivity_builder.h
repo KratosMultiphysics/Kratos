@@ -68,7 +68,7 @@ public:
                                                     double ScalingFactor);
 
     static void CalculateNonHistoricalSensitivities(const std::vector<std::string>& rVariables,
-                                                    ModelPart::ConditionsContainerType& rElements,
+                                                    ModelPart::ConditionsContainerType& rConditions,
                                                     AdjointResponseFunction& rResponseFunction,
                                                     const ProcessInfo& rProcessInfo,
                                                     double ScalingFactor);

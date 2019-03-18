@@ -217,10 +217,7 @@ void AssembleNodalSolutionStepContainerContributions(const SensitivityVariables<
             return;
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
-        for (auto& r_value : builder.LocalSensitivity)
-        {
-            r_value *= ScalingFactor;
-        }
+        builder.LocalSensitivity *= ScalingFactor;
         AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
                                         builder.LocalSensitivity, r_geom);
     });
@@ -294,10 +291,7 @@ void CalculateNonHistoricalSensitivities(const SensitivityVariables<TDataType>& 
             return;
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
-        for (auto& r_value : builder.LocalSensitivity)
-        {
-            r_value *= ScalingFactor;
-        }
+        builder.LocalSensitivity *= ScalingFactor;
         AssembleOnDataValueContainer(*rVariables.pOutputVariable,
                                      builder.LocalSensitivity, rElement.Data());
     });
@@ -437,7 +431,6 @@ void ReplaceDeprecatedNameIfExists(Parameters& rSettings,
 
 std::vector<std::string> ArrayOfStringToVector(Parameters Settings)
 {
-    KRATOS_TRY;
     KRATOS_DEBUG_ERROR_IF_NOT(Settings.IsArray())
         << "Settings must be an array." << std::endl;
     std::vector<std::string> result(Settings.size());
@@ -446,7 +439,6 @@ std::vector<std::string> ArrayOfStringToVector(Parameters Settings)
         result[i] = Settings.GetArrayItem(i).GetString();
     }
     return result;
-    KRATOS_CATCH("");
 }
 
 } // namespace sensitivity_builder_cpp
@@ -536,14 +528,14 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
 
 void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     const std::vector<std::string>& rVariables,
-    ModelPart::ConditionsContainerType& rElements,
+    ModelPart::ConditionsContainerType& rConditions,
     AdjointResponseFunction& rResponseFunction,
     const ProcessInfo& rProcessInfo,
     double ScalingFactor)
 {
     using sensitivity_builder_cpp::CalculateNonHistoricalSensitivities;
     CalculateNonHistoricalSensitivities(
-        rVariables, rElements, rResponseFunction, rProcessInfo, ScalingFactor);
+        rVariables, rConditions, rResponseFunction, rProcessInfo, ScalingFactor);
 }
 
 void SensitivityBuilder::Initialize()
