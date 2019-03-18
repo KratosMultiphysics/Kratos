@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Klaus B Sautter
 //
 
 #if !defined(KRATOS_CONSTRAINT_UTILITIES)
@@ -59,6 +60,18 @@ namespace ConstraintUtilities
      * @param rModelPart The model of the problem to solve
      */
     void KRATOS_API(KRATOS_CORE) ApplyConstraints(ModelPart& rModelPart);
+
+    /**
+     * @brief This method precomputes the contribution of the explicit MPC over nodal residual forces
+     * @param rModelPart The model of the problem to solve
+     * @param DofVariableName The name of the Dof variable to check
+     * @param ResidualDofVariableName The name name of the corresponding residual variable
+     */
+    void KRATOS_API(KRATOS_CORE) PreComputeExplicitConstraintConstribution(
+        ModelPart& rModelPart,
+        const std::string DofVariableName = "DISPLACEMENT",
+        const std::string ResidualDofVariableName = "FORCE_RESIDUAL"
+        );
 
 }; // namespace ConstraintUtilities
 }  // namespace Kratos
