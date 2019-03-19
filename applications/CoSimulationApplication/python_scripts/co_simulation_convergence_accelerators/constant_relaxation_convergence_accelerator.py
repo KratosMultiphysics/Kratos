@@ -7,7 +7,7 @@ from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergen
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from co_simulation_tools import classprint
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
 def Create(settings, solvers, cosim_solver_details, level):
     return ConstantRelaxation(settings, solvers, cosim_solver_details, level)

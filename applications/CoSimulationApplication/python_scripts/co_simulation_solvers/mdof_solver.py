@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Importing the base class
-from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
-from co_simulation_tools import RecursivelyValidateAndAssignDefaults
+from KratosMultiphysics.CoSimulationApplication.co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import RecursivelyValidateAndAssignDefaults
 
 # Importing models and schemes
-from co_simulation_solvers.mdof.solver_models import *
-from co_simulation_solvers.mdof.schemes import *
+from KratosMultiphysics.CoSimulationApplication.co_simulation_solvers.mdof.solver_models import *
+from KratosMultiphysics.CoSimulationApplication.co_simulation_solvers.mdof.schemes import *
 
 # Other imports
 import numpy as np

@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-from co_simulation_predictors.co_simulation_predictor_factory import CreatePredictor
-import co_simulation_tools as cosim_tools
-from co_simulation_tools import couplingsolverprint, bold
+from KratosMultiphysics.CoSimulationApplication.co_simulation_predictors.co_simulation_predictor_factory import CreatePredictor
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cosim_tools
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
 class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):

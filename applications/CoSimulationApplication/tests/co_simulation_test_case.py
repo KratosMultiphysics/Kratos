@@ -5,7 +5,7 @@ import KratosMultiphysics.CoSimulationApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-from co_simulation_analysis import CoSimulationAnalysis
+from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
 import os, json
 

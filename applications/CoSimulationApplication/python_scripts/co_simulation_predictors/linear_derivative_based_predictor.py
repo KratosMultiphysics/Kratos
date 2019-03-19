@@ -5,7 +5,7 @@ from co_simulation_base_predictor import CosimulationBasePredictor
 
 # Other imports
 import numpy as np
-import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(predictor_settings, solvers, level):
     return LinearDerivativeBasedPredictor(predictor_settings, solvers, level)

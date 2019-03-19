@@ -5,7 +5,7 @@ from co_simulation_base_predictor import CosimulationBasePredictor
 
 # Other imports
 import numpy as np
-import co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Predictor implemented according to:
 # "A new staggered scheme for fluid-structure interaction"; W.G. Dettmer and D. Peric
@@ -35,8 +35,8 @@ class AverageValuePredictor(CosimulationBasePredictor):
         for i, data_entry in enumerate(self.settings["data_list"]):
             solver = self.solvers[data_entry["solver"]]
             data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_prediction[i], 0) 
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_aux[i], 1) 
+            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_prediction[i], 0)
+            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_aux[i], 1)
 
             self.data_arrays_prediction[i] = 2*self.data_arrays_prediction[i] - self.data_arrays_aux[i]
 

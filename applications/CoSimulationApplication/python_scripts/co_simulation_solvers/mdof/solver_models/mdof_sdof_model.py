@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Importing the base class
 from mdof_base_model import MDoFBaseModel
-from co_simulation_tools import RecursivelyValidateAndAssignDefaults
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import RecursivelyValidateAndAssignDefaults
 
 # Other imports
 import numpy as np

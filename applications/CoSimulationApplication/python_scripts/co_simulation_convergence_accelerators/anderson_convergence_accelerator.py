@@ -10,7 +10,7 @@ from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergen
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from co_simulation_tools import classprint, bold, green, red, magenta, blue
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red, magenta, blue
 
 def Create(settings, solvers, cosim_solver_details, level):
     return Anderson(settings, solvers, cosim_solver_details, level)
@@ -21,7 +21,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
     # @param alpha Relaxation factor for computing the update.
     # @param beta weighting factor of constant relaxation
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
-    # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation 
+    # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
     def __init__( self, settings, solvers, cosim_solver_details, level ):
         super(Anderson, self).__init__(settings, solvers, cosim_solver_details, level)
         if "iteration_horizon" in self.settings:
@@ -40,7 +40,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
             self.p = self.settings["p"]
         else:
             self.p = 2
-        
+
         self.V = deque( maxlen = iteration_horizon )
         self.W = deque( maxlen = iteration_horizon )
 
@@ -57,7 +57,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
     def _ComputeUpdate(self, r, x):
 
         self.V.appendleft( deepcopy(r) )
-        self.W.appendleft( deepcopy(x) )   
+        self.W.appendleft( deepcopy(x) )
         row = len(r)
         col = len( self.V ) - 1
         k = col
@@ -79,7 +79,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
             #compute Moore-Penrose inverse of F^T F
             A = np.linalg.pinv(self.F.T @ self.F)
 
-            switch = (self.iteration_counter + 1)/self.p 
+            switch = (self.iteration_counter + 1)/self.p
 
             classprint(self.lvl, magenta(self.iteration_counter))
 
@@ -91,7 +91,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
                 B = self.alpha * np.identity(row)
                 if self.echo_level > 3:
                     classprint(self.lvl, self._Name(), red("Constant underrelaxtion"))
-            
+
             delta_x = B @ r
 
             self.iteration_counter += 1

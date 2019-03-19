@@ -5,7 +5,7 @@ from co_simulation_base_predictor import CosimulationBasePredictor
 
 # Other imports
 import numpy as np
-from co_simulation_tools import classprint
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
 def Create(predictor_settings, solvers, level):
     return StandardLinearPredictor(predictor_settings, solvers, level)
@@ -24,8 +24,8 @@ class StandardLinearPredictor(CosimulationBasePredictor):
         for i, data_entry in enumerate(self.settings["data_list"]):
             solver = self.solvers[data_entry["solver"]]
             data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_t0[i], 0) 
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_t1[i], 1) 
+            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_t0[i], 0)
+            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_t1[i], 1)
 
             self.data_arrays_t0[i] = 2*self.data_arrays_t0[i] - data_arrays_t1[i]
 
