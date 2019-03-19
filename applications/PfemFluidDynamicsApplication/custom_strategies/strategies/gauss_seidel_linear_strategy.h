@@ -298,6 +298,7 @@ public:
             // passing smart pointers instead of references here
             // to prevent dangling pointer to system matrix when
             // reusing ml preconditioners in the trilinos tpl
+            std::cout<<"BuildAndSolve "<<std::endl;
             pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
@@ -305,6 +306,7 @@ public:
         {
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
+            std::cout<<"BuildRHSAndSolve "<<std::endl;
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 

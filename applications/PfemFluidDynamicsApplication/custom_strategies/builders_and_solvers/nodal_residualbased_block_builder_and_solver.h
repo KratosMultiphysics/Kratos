@@ -305,24 +305,13 @@ namespace Kratos
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
 
-		
-		double deviatoricCoeff=1.0;
-		double volumetricCoeff=1.0;
-		if(itNode->Is(SOLID)){
-		
-		  deviatoricCoeff = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
-		}
-		else if(itNode->Is(FLUID)){
-		  deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-		}
+	  double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+	  double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
 
 		const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
 
 		double deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 		double volumetricDefRate= itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
-		/* std::cout<<"totalVolume "<<nodalVolume<<"  VolumetricCoeff "<<volumetricCoeff<<std::endl; */
 
 		LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
 		RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  volumetricDefRate)*nodalVolume;

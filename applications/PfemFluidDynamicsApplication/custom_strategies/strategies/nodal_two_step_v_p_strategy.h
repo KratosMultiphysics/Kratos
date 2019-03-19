@@ -497,7 +497,8 @@ void FillNodalSFDVector()
       {
 
 	ModelPart& rModelPart = BaseType::GetModelPart();
-
+  ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 #pragma omp parallel
 	{
 	  ModelPart::NodeIterator NodesBegin;
@@ -511,6 +512,26 @@ void FillNodalSFDVector()
 	      	/* unsigned int idNode=itNode->Id(); */
 	      	InitializeNodalVariablesForRemeshedDomain(itNode);
 	      // }
+
+	      double deviatoricCoeff=0;
+	      double volumetricCoeff=0;
+
+	      if(itNode->Is(SOLID))
+        {
+		      double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+	      	double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+		      deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
+		      volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
+	      }else if(itNode->Is(FLUID))
+        {
+	      	deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+		      volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+	      }
+
+	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
+
+        itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)=currFirstLame;
+        itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT)=deviatoricCoeff;
 
 	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
@@ -826,8 +847,7 @@ void CalcNodalStrainsAndStresses()
    ModelPart& rModelPart = BaseType::GetModelPart();
 
   const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-  ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+
 #pragma omp parallel
   {
   ModelPart::NodeIterator NodesBegin;
@@ -844,22 +864,12 @@ void CalcNodalStrainsAndStresses()
        {
    	    Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 	      Vector& rNodalSFDneigh      = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-	      double deviatoricCoeff=0;
-	      double volumetricCoeff=0;
 	      double theta=0.5;
-	      if(itNode->Is(SOLID))
-        {
-		      double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-	      	double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
-		      deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
-		      volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
-	      }else if(itNode->Is(FLUID))
-        {
-	      	deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-		      volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-	      }
-	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
-	      this->ComputeAndStoreNodalDeformationGradient(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta);
+
+	      double currFirstLame=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT);
+	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+	      
+        this->ComputeAndStoreNodalDeformationGradient(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta);
 	      Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 	      Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
 	      double detFgrad=1.0;
@@ -1018,18 +1028,9 @@ void CalcNodalStrainsAndStresses()
 	  if(itNode->Is(SOLID) || itNode->Is(FLUID)){
    	    double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 	    if(nodalVolume>0){
-	      double deviatoricCoeff=0;
-	      double volumetricCoeff=0;
-	      if(itNode->Is(SOLID)){
-		double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
-		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
-		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
-	      }else if(itNode->Is(FLUID)){
-		deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-		volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-	      }
-	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
+        
+	      double currFirstLame=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT);
+	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
 
 	      if(dimension==2){
 

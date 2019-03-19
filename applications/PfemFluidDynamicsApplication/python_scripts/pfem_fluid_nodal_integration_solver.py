@@ -117,6 +117,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUMETRIC_DEF_RATE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_MEAN_MESH_SIZE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_FREESURFACE_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FIRST_LAME_TYPE_COEFFICIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SECOND_LAME_TYPE_COEFFICIENT)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
 
