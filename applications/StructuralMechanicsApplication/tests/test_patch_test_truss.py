@@ -718,7 +718,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             time_step += 1
 
 
-    def test_truss3D2N_linear_plasticity(self):
+    def _test_truss3D2N_linear_plasticity(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
