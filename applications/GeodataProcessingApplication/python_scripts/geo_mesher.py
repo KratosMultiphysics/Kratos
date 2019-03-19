@@ -284,7 +284,7 @@ class GeoMesher( GeoProcessor ):
 
 
 
-    def MeshCircleWithTerrainPoints( self, h_value=0.0, extract_center=False ):
+    def MeshCircleWithTerrainPoints( self, h_value=0.0, circ_division=60, extract_center=False ):
 
         ### reading points from model part
         X = []; Y = []; Z = []      # lists are generated to use predefined operations
@@ -340,7 +340,12 @@ class GeoMesher( GeoProcessor ):
         
         self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
 
-        z_min = min(Z)
+        # JUST FOR THE TESTS
+        if Z:
+            z_min = min(Z)
+        else:
+            z_min = 0
+
         for node in self.ModelPart.Nodes:
             x_curr = node.X
             y_curr = node.Y
@@ -351,7 +356,7 @@ class GeoMesher( GeoProcessor ):
 
         # a list with 360 degree (from 0 to 360)
         # theta = self._custom_range(0.0, 2*math.pi, math.pi/90)
-        theta = self._custom_range(0.0, 2*math.pi, math.pi/30)  ###########################################################################################################################
+        theta = self._custom_range(0.0, 2*math.pi, 2*math.pi/circ_division)  # circ_division is the number of division of the 2*pi
 
         # lists with nodes on circle boundary
         x_circle = []; y_circle = []
