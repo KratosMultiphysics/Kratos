@@ -76,18 +76,6 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         solverprint("KratosSolver", bold(self._Name()))
         ## TODO print additional stuff with higher echo-level
 
-    def Check(self):
-        is_distributed = co_simulation_tools.COSIM_SPACE.IsDistributed()
-        solver_parallel_type = self._GetParallelType()
-        if is_distributed and not solver_parallel_type == "MPI":
-            warning_msg  = 'WARNING: Global "parallel_type" (MPI) is different '
-            warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self._Name(), ": " + red(warning_msg))
-        elif not is_distributed and not solver_parallel_type == "OpenMP":
-            warning_msg  = 'WARNING: Global "parallel_type" (OpenMP) is different '
-            warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self._Name(), ": " + red(warning_msg))
-
     def IsDistributed(self):
         return (self._GetParallelType() == "MPI")
 
