@@ -54,7 +54,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ## DIRECT SENSITIVITY VARIABLE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_variable.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_point_load_variable.cpp  
 
   ## DIRECT SENSITIVITY POSTPROCESS
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_postprocess.cpp  
