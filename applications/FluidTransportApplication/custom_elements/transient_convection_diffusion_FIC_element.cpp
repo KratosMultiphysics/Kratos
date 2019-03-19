@@ -779,7 +779,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::GetValueOnIntegrati
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
-    if ( rVariable == FIC_BETA || rVariable == PECLET || rVariable == COURANT)
+    if ( rVariable == FIC_BETA || rVariable == PECLET || rVariable == CFL_NUMBER)
     {
         if ( rValues.size() != NumGPoints )
             rValues.resize(NumGPoints);
@@ -918,7 +918,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrat
             rOutput[GPoint] = Variables.Beta;
         }
     }
-    else if(rVariable == COURANT)
+    else if(rVariable == CFL_NUMBER)
     {
         //Previous definitions
         const PropertiesType& Prop = this->GetProperties();
