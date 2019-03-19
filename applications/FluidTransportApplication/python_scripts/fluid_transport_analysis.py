@@ -54,6 +54,10 @@ class FluidTransportAnalysis(AnalysisStage):
                 "loads_process_list",
                 "auxiliar_process_list"]
 
+    def ApplyBoundaryConditions(self):
+
+        super(FluidTransportAnalysis,self).ApplyBoundaryConditions()
+
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
