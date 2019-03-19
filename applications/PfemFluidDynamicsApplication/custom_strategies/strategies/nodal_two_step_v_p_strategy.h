@@ -234,8 +234,8 @@ namespace Kratos {
         KRATOS_CATCH("");
       }
 
-      double Solve() override
-      {
+double Solve() override
+{
 	// Initialize BDF2 coefficients
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	this->SetTimeCoefficients(rModelPart.GetProcessInfo());
@@ -246,12 +246,7 @@ namespace Kratos {
 	bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
 
 	unsigned int maxNonLinearIterations=mMaxPressureIter;
-	/* if ( BaseType::GetEchoLevel() > 1) */
-	/* 	std::cout << "Solve with two_step_vp strategy "  << std::endl; */
-
-
 	std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
-
 
 	if(timeIntervalChanged==true && currentTime>10*timeInterval ){
 		maxNonLinearIterations*=2;
@@ -275,8 +270,6 @@ namespace Kratos {
 	this->InitializeSolutionStep();
 	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
 	  {
-
-
 	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	      std::cout << "----- > iteration: " << it << std::endl;
 
@@ -303,29 +296,25 @@ namespace Kratos {
 	      this->CalculateAccelerations();
 	    }
 	    if ( (continuityConverged && momentumConverged) && it>2)
-	      {
-		rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
-		rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
-		/* if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) */
-		std::cout << "nodal V-P strategy converged in " << it+1 << " iterations." << std::endl;
-		break;
-	      }
+	    {
+		    rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+	     	rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
+		    std::cout << "nodal V-P strategy converged in " << it+1 << " iterations." << std::endl;
+		    break;
+	    }
 
 	  }
-
-
-	/* } */
 
 	if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	  std::cout << "Convergence tolerance not reached." << std::endl;
 
-	/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
-
 	if (mReformDofSet)
 	  this->Clear();
 
+	/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
+
 	return NormDp;
-      }
+}
 
       void FinalizeSolutionStep() override
       {
@@ -1140,70 +1129,70 @@ void CalcNodalStrainsAndStresses()
       OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
 
       for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-	{
+      {
 
-	  if(itNode->Is(SOLID) || itNode->Is(FLUID)){
+        if(itNode->Is(SOLID) || itNode->Is(FLUID)){
 
-	    Vector nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+          Vector nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 
-	    Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
+          Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 
-	    double theta=1.0;
+          double theta=1.0;
 
-	    this->ComputeAndStoreNodalDeformationGradient(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta);
+          this->ComputeAndStoreNodalDeformationGradient(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta);
 
-	    Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
-	    Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
-	    double detFgrad=1.0;
-	    Matrix InvFgrad=ZeroMatrix(dimension,dimension);
-	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
-	    //Inverse
+          Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+          Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
+          double detFgrad=1.0;
+          Matrix InvFgrad=ZeroMatrix(dimension,dimension);
+          Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
+          //Inverse
 
-      if(dimension==2){
-         MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
-      }else if(dimension==3){
-         MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+          if(dimension==2){
+            MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
+          }else if(dimension==3){
+            MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+          }
+
+          //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+          SpatialVelocityGrad=prod(FgradVel,InvFgrad);
+
+          if(dimension==2){
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+
+            double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+            double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+
+            double DefVol=DefX+DefY;
+
+            itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+
+
+          }else if (dimension==3){
+
+
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
+
+            double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+            double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+            double DefZ=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+
+            double DefVol=DefX+DefY+DefZ;
+
+            itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+
+          }
+
+        }
+
       }
-
-	    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
-
-	    if(dimension==2){
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
-
-	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
-	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
-
-	      double DefVol=DefX+DefY;
-
-	      itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
-
-
-	    }else if (dimension==3){
-
-
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
-
-	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
-	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
-	      double DefZ=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
-
-	      double DefVol=DefX+DefY+DefZ;
-
-	      itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
-
-	    }
-
-	  }
-
-	}
     }
 
     /* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
@@ -1500,8 +1489,8 @@ void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, Vec
     }
 
 
-    void CalculateDisplacementsAndResetNodalVariables()
-    {
+void CalculateDisplacementsAndResetNodalVariables()
+  {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -1510,54 +1499,45 @@ void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, Vec
 
 #pragma omp parallel
       {
-	ModelPart::NodeIterator NodesBegin;
-	ModelPart::NodeIterator NodesEnd;
-	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+        ModelPart::NodeIterator NodesBegin;
+        ModelPart::NodeIterator NodesEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
 
-	for (ModelPart::NodeIterator i = NodesBegin; i != NodesEnd; ++i)
-	  {
-	    array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
-	    array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+        for (ModelPart::NodeIterator i = NodesBegin; i != NodesEnd; ++i)
+          {
+            array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+            array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
-	    array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-	    array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+            array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-	    /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
+            CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
+            CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+            if(dimension==3){
+              CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
+            }
 
-	    /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+            ///// reset Nodal variables //////
+            unsigned int neighbourNodes=i->GetValue(NEIGHBOUR_NODES).size()+1;
+            unsigned int sizeSDFNeigh=neighbourNodes*dimension;
+            i->FastGetSolutionStepValue(NODAL_VOLUME)=0;
+            i->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
+            i->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA)=0;
+            i->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
 
-	    /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-	    if(dimension==3){
-	      CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
-	    }
+            Vector& rNodalSFDneighbours=i->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
+            noalias(rNodalSFDneighbours)=ZeroVector(sizeSDFNeigh);
 
-	    ///// reset Nodal variables //////
-	    unsigned int neighbourNodes=i->GetValue(NEIGHBOUR_NODES).size()+1;
-	    unsigned int sizeSDFNeigh=neighbourNodes*dimension;
-	    i->FastGetSolutionStepValue(NODAL_VOLUME)=0;
+            Vector& rSpatialDefRate=i->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+            noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
 
-	    i->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
+            Matrix& rFgrad=i->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+            noalias(rFgrad)=ZeroMatrix(dimension,dimension);
 
-	    i->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA)=0;
+            Matrix& rFgradVel=i->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
+            noalias(rFgradVel)=ZeroMatrix(dimension,dimension);
 
-	    i->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
-
-	    Vector& rNodalSFDneighbours=i->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-	    noalias(rNodalSFDneighbours)=ZeroVector(sizeSDFNeigh);
-
-	    Vector& rSpatialDefRate=i->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
-	    noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
-
-	    Matrix& rFgrad=i->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
-	    noalias(rFgrad)=ZeroMatrix(dimension,dimension);
-
-	    Matrix& rFgradVel=i->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
-	    noalias(rFgradVel)=ZeroMatrix(dimension,dimension);
-
-
-	  }
+          }
       }
     }
 
@@ -1731,44 +1711,40 @@ protected:
     }
 
 
-    bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
-    {
+bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
+{
       ModelPart& rModelPart = BaseType::GetModelPart();
       int Rank = rModelPart.GetCommunicator().MyPID();
       bool ConvergedContinuity = false;
       double NormDp = 0;
-
+      // std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl;
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
-
-      // std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl;
-
       if(it==0){
-	mpPressureStrategy->InitializeSolutionStep();
-	/* this->SetNeighboursPressureId(); */
+        mpPressureStrategy->InitializeSolutionStep();
       }
 
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "The norm of pressure is: " << NormDp << std::endl;
+      	std::cout << "The norm of pressure is: " << NormDp << std::endl;
 
       double DpErrorNorm = 0;
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
 
       // Check convergence
       if(it==maxIt-1){
-	std::cout<<"                  iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+	      std::cout<<"                  iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }else{
-	std::cout<<"iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+      	std::cout<<"iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       }
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
+      	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
       return ConvergedContinuity;
-    }
+}
 
 
     bool CheckVelocityConvergence(const double NormDv, double& errorNormDv)

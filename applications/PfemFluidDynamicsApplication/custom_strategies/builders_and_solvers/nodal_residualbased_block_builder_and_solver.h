@@ -268,7 +268,7 @@ namespace Kratos
 
 	  KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-	/* std::cout<<"Build Nodally Continuity Equation"<<std::endl; */
+	 std::cout<<"Build Nodally Continuity Equation"<<std::endl; 
 
 	//contributions to the system
 	LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -627,44 +627,46 @@ namespace Kratos
        * @param Dx The Unknowns vector
        * @param b The RHS vector
        */
-      void BuildAndSolve(
-			 typename TSchemeType::Pointer pScheme,
-			 ModelPart& rModelPart,
-			 TSystemMatrixType& A,
-			 TSystemVectorType& Dx,
-			 TSystemVectorType& b) override
-      {
-        KRATOS_TRY
+void BuildAndSolve(
+ typename TSchemeType::Pointer pScheme,
+ ModelPart& rModelPart,
+ TSystemMatrixType& A,
+ TSystemVectorType& Dx,
+ TSystemVectorType& b) override
+  {
+    KRATOS_TRY
+
+	  std::cout << "CONTINUITY EQ: buildAndSolve " << std::endl;
 
 	  Timer::Start("Build");
 
-        /* Build(pScheme, rModelPart, A, b); */
+    /* Build(pScheme, rModelPart, A, b); */
 
-	boost::timer build_time;
-	BuildNodally(pScheme, rModelPart, A, b);
-	std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
+  	boost::timer build_time;
+	  BuildNodally(pScheme, rModelPart, A, b);
+	  std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
 
-	Timer::Stop("Build");
+	  Timer::Stop("Build");
 
-        ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+    ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
-        Timer::Start("Solve");
+    const double start_solve = OpenMPUtils::GetCurrentTime();
+    Timer::Start("Solve");
 	
-	boost::timer solve_time;
-        SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
+	  boost::timer solve_time;
+    SystemSolveWithPhysics(A, Dx, b, rModelPart);
+	  std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
 
-        Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+    Timer::Stop("Solve");
+    const double stop_solve = OpenMPUtils::GetCurrentTime();
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        KRATOS_CATCH("")
-	  }
+    KRATOS_CATCH("")
+	}
 
       /**
        * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
@@ -683,7 +685,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  BuildRHS(pScheme, rModelPart, b);
+	      BuildRHS(pScheme, rModelPart, b);
         SystemSolve(A, Dx, b);
 
         KRATOS_CATCH("")

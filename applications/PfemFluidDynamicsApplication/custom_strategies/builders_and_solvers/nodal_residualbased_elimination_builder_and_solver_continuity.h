@@ -166,8 +166,6 @@ namespace Kratos
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	const double timeInterval = CurrentProcessInfo[DELTA_TIME];
 
-	double deviatoricCoeff=1.0;
-	double volumetricCoeff=1.0;
 	double pressure=0;
 	double deltaPressure=0;
 	double meanMeshSize=0;
@@ -207,18 +205,21 @@ namespace Kratos
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
 
-		if(itNode->Is(SOLID)){
+	  double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+	  double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
 
-		  deviatoricCoeff = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
-		}
-		else if(itNode->Is(FLUID)){
-		  deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-		  if(deviatoricCoeff>1.0){
-		    deviatoricCoeff=1.0;
-		  }
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-		}
+		// if(itNode->Is(SOLID)){
+
+		//   deviatoricCoeff = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
+		//   volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
+		// }
+		// else if(itNode->Is(FLUID)){
+		//   deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+		//   if(deviatoricCoeff>1.0){
+		//     deviatoricCoeff=1.0;
+		//   }
+		//   volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+		// }
 
 		deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 
@@ -481,45 +482,44 @@ namespace Kratos
        * @param Dx The Unknowns vector
        * @param b The RHS vector
        */
-      void BuildAndSolve(
-			 typename TSchemeType::Pointer pScheme,
-			 ModelPart& rModelPart,
-			 TSystemMatrixType& A,
-			 TSystemVectorType& Dx,
-			 TSystemVectorType& b) override
-      {
-        KRATOS_TRY
+  void BuildAndSolve(
+	 typename TSchemeType::Pointer pScheme,
+	 ModelPart& rModelPart,
+	 TSystemMatrixType& A,
+	 TSystemVectorType& Dx,
+	TSystemVectorType& b) override
+{
+    KRATOS_TRY
 
 	  Timer::Start("Build");
 
-	/* boost::timer c_build_time; */
-	BuildNodally(pScheme, rModelPart, A, b);
-	/* std::cout << "CONTINUITY EQ: build_time : " << c_build_time.elapsed() << std::endl; */
+   	/* boost::timer c_build_time; */
+	  BuildNodally(pScheme, rModelPart, A, b);
+	  /* std::cout << "CONTINUITY EQ: build_time : " << c_build_time.elapsed() << std::endl; */
 
+    Timer::Stop("Build");
 
-        Timer::Stop("Build");
+   	//         ApplyPointLoads(pScheme,rModelPart,b);
 
-	//         ApplyPointLoads(pScheme,rModelPart,b);
+    // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
+    ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-        // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
-        ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+    KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    /* const double start_solve = OpenMPUtils::GetCurrentTime(); */
+    Timer::Start("Solve");
 
-        /* const double start_solve = OpenMPUtils::GetCurrentTime(); */
-        Timer::Start("Solve");
+	  /* boost::timer c_solve_time; */
+	  SystemSolveWithPhysics(A, Dx, b, rModelPart);
+	  /* std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl; */
 
-	/* boost::timer c_solve_time; */
-	SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	/* std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl; */
-
-        Timer::Stop("Solve");
+    Timer::Stop("Solve");
         /* const double stop_solve = OpenMPUtils::GetCurrentTime(); */
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        KRATOS_CATCH("")
-	  }
+    KRATOS_CATCH("")
+}
 
 
       /**
