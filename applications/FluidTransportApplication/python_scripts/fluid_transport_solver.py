@@ -25,7 +25,7 @@ class FluidTransportSolver(PythonSolver):
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
-        self.min_buffer_size = 2
+        self.min_buffer_size = 3
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -241,7 +241,7 @@ class FluidTransportSolver(PythonSolver):
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "buffer_size":                        2,
+            "buffer_size":                        3,
             "echo_level":                         0,
             "clear_storage":                      false,
             "compute_reactions":                  false,
