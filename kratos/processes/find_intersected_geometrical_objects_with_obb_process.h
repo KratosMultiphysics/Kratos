@@ -176,6 +176,11 @@ protected:
     ///@{
 
     /**
+     * @brief This method sets the Octree bounding box
+     */
+    void SetOctreeBoundingBox() override;
+
+    /**
      * @brief This method check if there is an intersection between two geometries
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry

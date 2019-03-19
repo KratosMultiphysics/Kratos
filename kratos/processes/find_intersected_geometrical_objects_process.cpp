@@ -348,7 +348,8 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
     )
 {
     for (auto p_leaf : rLeaves) {
-        for (auto p_entity_2 : *(p_leaf->pGetObjects())) {
+        auto& r_leaf = *(p_leaf->pGetObjects());
+        for (auto p_entity_2 : r_leaf) {
             if (HasIntersection(rEntity1.GetGeometry(),p_entity_2->GetGeometry())) {
                 rEntity1.Set(SELECTED);
                 return;
