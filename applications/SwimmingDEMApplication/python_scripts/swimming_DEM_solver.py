@@ -66,7 +66,6 @@ class SwimmingDEMSolver(PythonSolver):
         self.next_time_to_solve_fluid = project_parameters['problem_data']['start_time'].GetDouble()
         self.coupling_level_type = project_parameters["coupling_level_type"].GetInt()
         self.interaction_start_time = project_parameters["interaction_start_time"].GetDouble()
-        self.project_at_every_substep_option = project_parameters["project_at_every_substep_option"].GetBool()
         self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
@@ -232,14 +231,12 @@ class SwimmingDEMSolver(PythonSolver):
     def SolveDEM(self):
         #self.PerformEmbeddedOperations() TO-DO: it's crashing
 
-        it_is_time_to_forward_couple = (
-            self.time >= self.interaction_start_time and
-            self.coupling_level_type and
-            (self.project_at_every_substep_option or self.calculating_fluid_in_current_step)
-        )
+        it_is_time_to_forward_couple = (self.time >= self.interaction_start_time
+                                        and self.coupling_level_type)
+
+        alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
 
         if it_is_time_to_forward_couple or self.first_DEM_iteration:
-            alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
             self.ApplyForwardCoupling(alpha)
 
         if self.quadrature_counter.Tick():
@@ -249,7 +246,8 @@ class SwimmingDEMSolver(PythonSolver):
             # Advance in space only
             if self.do_solve_dem:
                 self.SolveDEMSolutionStep()
-            self.ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
+            if it_is_time_to_forward_couple or self.first_DEM_iteration:
+                self.ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
         # Performing the time integration of the DEM part
 
