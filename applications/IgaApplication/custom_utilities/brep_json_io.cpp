@@ -341,17 +341,6 @@ namespace Kratos
         std::cout << model_para << std::endl;
 
     }
-            
-            
-            
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ENDE
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 
     std::vector<BrepModel> BrepJsonIO::ImportNurbsBrepGeometry(
         ModelPart& rModelPart,
@@ -360,7 +349,6 @@ namespace Kratos
         KRATOS_INFO("IGA") << "Start import CAD geometries" << std::endl;
 
         const double model_tolerance = rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].GetDouble();
-
         std::vector<BrepModel> brep_model_vector;
 
         for (int brep_i = 0; brep_i < rNurbsBrepGeometryJson["breps"].size(); brep_i++)
@@ -540,6 +528,7 @@ namespace Kratos
                     vertices_vector,
                     rModelPart);
             }
+            std::cout << "here" << std::endl;   
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // 3. Step: Create BrepModel
@@ -550,7 +539,6 @@ namespace Kratos
                 faces_vector,
                 edges_vector,
                 vertices_vector);
-
             brep_model_vector.push_back(brep);// [brep_i] = &brep;
         }
         KRATOS_INFO("IGA") << "Finished import CAD geometries" << std::endl;

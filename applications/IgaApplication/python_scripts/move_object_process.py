@@ -64,7 +64,6 @@ class MoveMeshProcess(KratosMultiphysics.Process):
         
     
     def ExecuteInitializeSolutionStep(self):
-        print("ExecuteInitializeSolutionStep")
         
         translation_origin = [-i for i in self.current_location]
         translation_reference = self.reference_location
