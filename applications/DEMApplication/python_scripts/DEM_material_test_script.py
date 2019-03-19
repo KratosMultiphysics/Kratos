@@ -10,12 +10,12 @@ from KratosMultiphysics.DEMApplication import *
 
 class MaterialTest(object):
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part):
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
       self.parameters = DEM_parameters
       self.graphs_path = graphs_path
       self.post_path = post_path
       self.spheres_model_part = spheres_model_part
-      self.RigidFace_model_part = RigidFace_model_part
+      self.rigid_face_model_part = rigid_face_model_part
       self.Procedures = weakref.proxy(procedures)
       self.solver = weakref.proxy(solver)
 
@@ -329,7 +329,7 @@ class MaterialTest(object):
     prepare_check = [0,0,0,0]
     self.total_check = 0
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.top_mesh_nodes = smp.Nodes
             prepare_check[0] = 1
@@ -417,7 +417,7 @@ class MaterialTest(object):
 
   def PrintGraph(self, time):
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.mesh_nodes = smp.Nodes
 

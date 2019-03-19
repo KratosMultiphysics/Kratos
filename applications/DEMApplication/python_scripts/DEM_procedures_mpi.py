@@ -92,9 +92,9 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).PrintGraph(time)
 
-    def FinalizeGraphs(self,RigidFace_model_part):
+    def FinalizeGraphs(self,rigid_face_model_part):
         if (mpi.rank == 0):
-            super(DEMFEMProcedures,self).FinalizeGraphs(RigidFace_model_part)
+            super(DEMFEMProcedures,self).FinalizeGraphs(rigid_face_model_part)
 
     def FinalizeBallsGraphs(self,spheres_model_part):
         if (mpi.rank == 0):

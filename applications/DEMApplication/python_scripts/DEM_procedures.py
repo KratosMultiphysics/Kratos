@@ -837,7 +837,7 @@ class Procedures(object):
     def PreProcessModel(self, DEM_parameters):
         pass
 
-    def CheckVariableType(self, var, expected_type, msg):
+    def CheckVariableType(self, var, expected_type, msg):   # TODO is this actually being used
         actual_type = type(var)
         if actual_type is int and expected_type is float:
             return
@@ -869,7 +869,7 @@ class Procedures(object):
 
 class DEMFEMProcedures(object):
 
-    def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
+    def __init__(self, DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
@@ -892,7 +892,7 @@ class DEMFEMProcedures(object):
 
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
-        self.RigidFace_model_part = RigidFace_model_part
+        self.rigid_face_model_part = rigid_face_model_part
         #self.solver = solver
         self.aux = AuxiliaryUtilities()
 
@@ -911,8 +911,8 @@ class DEMFEMProcedures(object):
         def Flush(self, a):
             a.flush()
 
-        def open_graph_files(self, RigidFace_model_part):
-            for smp in self.RigidFace_model_part.SubModelParts:
+        def open_graph_files(self, rigid_face_model_part):
+            for smp in self.rigid_face_model_part.SubModelParts:
                 if smp[FORCE_INTEGRATION_GROUP]:
                     identifier = smp[IDENTIFIER]
                     absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_force_graph.grf")
@@ -953,8 +953,8 @@ class DEMFEMProcedures(object):
 
             integration_groups = False
 
-            if self.RigidFace_model_part.NumberOfSubModelParts() > 0:
-                for smp in self.RigidFace_model_part.SubModelParts:
+            if self.rigid_face_model_part.NumberOfSubModelParts() > 0:
+                for smp in self.rigid_face_model_part.SubModelParts:
                     if smp[FORCE_INTEGRATION_GROUP]:
                         integration_groups = True
                         break
@@ -964,7 +964,7 @@ class DEMFEMProcedures(object):
         self.particle_graph_forces = {}
 
         if self.TestType == "None":
-            open_graph_files(self, RigidFace_model_part)
+            open_graph_files(self, rigid_face_model_part)
             open_balls_graph_files(self, spheres_model_part)
 
         # SIMULATION SETTINGS
@@ -1042,9 +1042,9 @@ class DEMFEMProcedures(object):
         model_part.ProcessInfo[TIME_STEPS] = step
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
-    def close_graph_files(self, RigidFace_model_part):
+    def close_graph_files(self, rigid_face_model_part):
 
-        for smp in self.RigidFace_model_part.SubModelParts:
+        for smp in self.rigid_face_model_part.SubModelParts:
             if smp[FORCE_INTEGRATION_GROUP]:
                 identifier = smp[IDENTIFIER]
                 self.graph_forces[identifier].close()
@@ -1075,7 +1075,7 @@ class DEMFEMProcedures(object):
             if self.graph_counter == self.graph_frequency:
                 self.graph_counter = 0
 
-                for smp in self.RigidFace_model_part.SubModelParts:
+                for smp in self.rigid_face_model_part.SubModelParts:
                     if smp[FORCE_INTEGRATION_GROUP]:
                         mesh_nodes = smp.Nodes
 
@@ -1103,10 +1103,10 @@ class DEMFEMProcedures(object):
 
             self.graph_counter += 1
 
-    def FinalizeGraphs(self, RigidFace_model_part):
+    def FinalizeGraphs(self, rigid_face_model_part):
 
         if self.TestType == "None":
-            self.close_graph_files(RigidFace_model_part)
+            self.close_graph_files(rigid_face_model_part)
 
     def PrintBallsGraph(self, time):
 
