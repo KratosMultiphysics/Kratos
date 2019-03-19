@@ -68,7 +68,7 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
+    typedef ModelPart::VariableComponentType VariableComponentType;
     /// DoF types definition
     typedef typename Node<3>::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
@@ -376,6 +376,17 @@ public:
 
         // Compute residual forces on the model part
         this->CalculateAndAddRHS(pScheme, r_model_part);
+
+        // Pre-compute MPC contributions
+        if(r_model_part.MasterSlaveConstraints().size() > 0) {
+            std::vector<std::string> dof_variable_names(2);
+            dof_variable_names[0] = "DISPLACEMENT";
+            dof_variable_names[1] = "ROTATION";
+            std::vector<std::string> residual_variable_names(2);
+            residual_variable_names[0] = "FORCE_RESIDUAL";
+            residual_variable_names[1] = "MOMENT_RESIDUAL";
+            ConstraintUtilities::PreComputeExplicitConstraintConstribution(r_model_part, dof_variable_names, residual_variable_names);
+        }
 
         // Explicitly integrates the equation of motion.
         pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb);

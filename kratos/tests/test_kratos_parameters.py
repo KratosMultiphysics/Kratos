@@ -656,6 +656,22 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
         kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+    
+    def test_get_string_array_valid(self):
+        tmp = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        v = tmp["parameter"].GetStringArray()
+        self.assertEqual(len(v), 2)
+        self.assertEqual(v[0], "foo")
+        self.assertEqual(v[1], "bar")
+    
+    def test_get_string_array_invalid(self):
+        tmp = Parameters("""{
+            "parameter": ["foo", true]
+        } """)
+        with self.assertRaisesRegex(RuntimeError, r'Error: Argument must be a string'):
+            tmp["parameter"].GetStringArray()
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
