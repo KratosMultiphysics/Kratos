@@ -134,7 +134,7 @@ SolvingStrategyType::Pointer CreatePrimalSolvingStrategy(ModelPart* pModelPart)
     SchemeType::Pointer p_scheme =
         Kratos::make_shared<ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>>(0.0);
     ConvergenceCriteriaType::Pointer p_conv_criteria =
-        Kratos::make_shared<ResidualCriteria<SparseSpaceType, LocalSpaceType>>(1e-24, 1e-25);
+        Kratos::make_shared<ResidualCriteria<SparseSpaceType, LocalSpaceType>>(1e-12, 1e-14);
     return Kratos::make_shared<ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
         *pModelPart, p_scheme, p_linear_solver, p_conv_criteria, 30, true, false, true);
 }
