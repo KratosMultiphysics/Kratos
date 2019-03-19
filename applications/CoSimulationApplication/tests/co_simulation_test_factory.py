@@ -31,6 +31,13 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         with open("fsi_mok/ProjectParametersCFD_ref.json",'r') as parameter_file:
             self.cfd_parameters = KM.Parameters(parameter_file.read())
 
+        aux_processes = self.cfd_parameters["processes"]["auxiliar_process_list"]
+        ref_name = aux_processes[1]["Parameters"]["reference_file_name"].GetString()
+        aux_processes[1]["Parameters"]["reference_file_name"].SetString(ref_name[:-4]+"_"+self.name+".dat")
+        ref_name = aux_processes[3]["Parameters"]["reference_file_name"].GetString()
+        aux_processes[3]["Parameters"]["reference_file_name"].SetString(ref_name[:-4]+"_"+self.name+".dat")
+
+
     def __DumpUpdatedCFDSettings(self):
         with open("fsi_mok/ProjectParametersCFD.json", 'w') as parameter_output_file:
             parameter_output_file.write(self.cfd_parameters.PrettyPrintJsonString())
