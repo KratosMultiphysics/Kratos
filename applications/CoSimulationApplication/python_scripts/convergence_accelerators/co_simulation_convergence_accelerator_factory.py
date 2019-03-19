@@ -9,7 +9,7 @@ def CreateConvergenceAccelerator(convergence_accelerator_settings, solvers, leve
         raise Exception("Input is expected to be provided as a python dictionary")
 
     module_name = convergence_accelerator_settings["type"]
-    module_full = "KratosMultiphysics.CoSimulationApplication.co_simulation_convergence_accelerators."+module_name
+    module_full = "KratosMultiphysics.CoSimulationApplication.convergence_accelerators."+module_name
     module_full += "_convergence_accelerator"
 
     accelerator_module = __import__(module_full,fromlist=[module_name])

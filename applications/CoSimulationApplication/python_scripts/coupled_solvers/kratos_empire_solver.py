@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.CoSimulationApplication
 
 # Importing the base class
-from co_simulation_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from coupled_solvers.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
 from co_simulation_tools import csprint, yellow

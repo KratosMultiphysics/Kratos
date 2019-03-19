@@ -9,7 +9,7 @@ def CreatePredictor(predictor_settings, solvers, level):
         raise Exception("Input is expected to be provided as a python dictionary")
 
     module_name = predictor_settings["predictor_type"]
-    module_full = "KratosMultiphysics.CoSimulationApplication.co_simulation_predictors."+module_name
+    module_full = "KratosMultiphysics.CoSimulationApplication.predictors."+module_name
     module_full += "_predictor"
 
     predictor_module = __import__(module_full,fromlist=[module_name])
