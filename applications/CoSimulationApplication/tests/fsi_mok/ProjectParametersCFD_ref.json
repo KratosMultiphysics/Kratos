@@ -246,5 +246,6 @@
                 "tolerance"      : 1e-6
             }
         }]
-    }
+    },
+    "output_processes" : { }
 }

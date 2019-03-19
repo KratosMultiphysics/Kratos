@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
-import KratosMultiphysics.CoSimulationApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -20,10 +19,12 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         with open(os.path.join(problem_dir_name, parameter_file_name + '_parameters.json'), 'r') as parameter_file:
             self.cosim_parameters = json.load(parameter_file)
 
-        # # To avoid many prints
-        # echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
-        # if (echo_level == 0):
-        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        # To avoid many prints
+        echo_level = self.cosim_parameters["problem_data"]["echo_level"]
+        if (echo_level == 0):
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+        else:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def runTest(self):
         CoSimulationAnalysis(self.cosim_parameters).Run()
