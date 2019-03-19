@@ -162,6 +162,8 @@ public:
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
+        mpResponseFunction->FinalizeSolutionStep();
+
         KRATOS_CATCH("");
     }
 
