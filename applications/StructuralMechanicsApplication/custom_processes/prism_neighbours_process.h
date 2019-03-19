@@ -145,6 +145,11 @@ public:
     void Execute() override;
 
     /**
+     * @brief This function is designed for being execute once before the solution loop but after all of the solvers where built
+     */
+    void ExecuteInitialize() override;
+
+    /**
      * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
      */
     void ExecuteFinalize() override;
