@@ -9,8 +9,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cosim_t
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
 class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseSolver):
-    def __init__(self, cosim_solver_settings):
-        super(CoSimulationBaseCouplingSolver, self).__init__(cosim_solver_settings)
+    def __init__(self, model, cosim_solver_settings):
+        super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
 
         self.solver_names = []
         self.solvers = {}
@@ -25,7 +25,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.solver_names.append(solver_name)
             self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
             self.solvers[solver_name] = solver_factory.CreateSolverInterface(
-                self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
+                model, self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
         self.cosim_solver_details = cosim_tools.GetSolverCoSimulationDetails(
             self.cosim_solver_settings["coupling_loop"])

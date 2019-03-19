@@ -8,15 +8,15 @@ from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.co_simu
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, red, green, cyan, bold
 
-def Create(cosim_solver_settings):
-    return GaussSeidelStrongCouplingSolver(cosim_solver_settings)
+def Create(model, cosim_solver_settings):
+    return GaussSeidelStrongCouplingSolver(model, cosim_solver_settings)
 
 class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
-    def __init__(self, cosim_solver_settings):
+    def __init__(self, model, cosim_solver_settings):
         if not len(cosim_solver_settings["solvers"]) == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        super(GaussSeidelStrongCouplingSolver, self).__init__(cosim_solver_settings)
+        super(GaussSeidelStrongCouplingSolver, self).__init__(model, cosim_solver_settings)
 
         self.convergence_accelerator = CreateConvergenceAccelerator(
             self.cosim_solver_settings["convergence_accelerator_settings"],

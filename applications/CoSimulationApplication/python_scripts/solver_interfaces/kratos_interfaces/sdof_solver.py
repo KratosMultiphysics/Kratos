@@ -9,12 +9,12 @@ import numpy as np
 import json
 import os
 
-def CreateSolver(cosim_solver_settings):
-    return SDoFSolver(cosim_solver_settings)
+def CreateSolver(model, cosim_solver_settings):
+    return SDoFSolver(model, cosim_solver_settings)
 
 class SDoFSolver(CoSimulationBaseSolver):
-    def __init__(self, cosim_solver_settings):
-        super(SDoFSolver, self).__init__(cosim_solver_settings)
+    def __init__(self, model, cosim_solver_settings):
+        super(SDoFSolver, self).__init__(model, cosim_solver_settings)
 
         input_file_name = self.cosim_solver_settings["input_file"]
         if not input_file_name.endswith(".json"):
