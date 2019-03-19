@@ -402,8 +402,7 @@ namespace Kratos
 
 		void DamageCriterion(
 			const double& rEquEffStressCompression,
-			const double& rEquEffStressTension,
-			const double& rtolerance);
+			const double& rEquEffStressTension);
 
 		/** @brief method computes the negative damage variable m_damage_compression
 		 * @param rd_n...dummy for damage variable

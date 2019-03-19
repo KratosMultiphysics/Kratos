@@ -80,8 +80,11 @@ namespace Kratos
 		m_elastic_biaxial_compressive_strength = rMaterialProperties[ELASTIC_BIAXIAL_STRENGTH_COMPRESSION];
 		if ((m_elastic_uniaxial_compressive_strength > 0) || (m_elastic_biaxial_compressive_strength > 0))
 			{
-				std::cout << "Check compressive strengths! They have to be negative." << std::endl;
-				std::terminate();
+				KRATOS_TRY
+
+				KRATOS_ERROR << "Check compressive strengths! They have to be negative." << std::endl;
+			
+				KRATOS_CATCH("");
 			}
 		m_E = rMaterialProperties[YOUNG_MODULUS];
 		m_nu = rMaterialProperties[POISSON_RATIO];
@@ -302,7 +305,6 @@ namespace Kratos
 			rStressVector.resize(6, false);
 		}
 
-		const double tolerance = (1.0e-14) * m_elastic_uniaxial_compressive_strength;		//move to function "DamageCriterion" if only used once (ML)
 		// 1.step: elastic stress tensor
 		noalias(rStressVector) = prod(trans(m_D0), (rStrainVector - m_plastic_strain));
 
@@ -330,8 +332,7 @@ namespace Kratos
 
 		// 4.step: check damage criterion and update damage threshold
 		DamageCriterion(equ_eff_stress_compression,
-			equ_eff_stress_tension,
-			tolerance);
+			equ_eff_stress_tension);
 
 		// 5.step: compute damage variables
 		ComputeDamageCompression();
@@ -501,15 +502,16 @@ namespace Kratos
 
 	void TCPlasticDamage3DLaw::DamageCriterion(
 		const double& rEquEffStressCompression,
-		const double& rEquEffStressTension,
-		const double& rtolerance)
+		const double& rEquEffStressTension)
 	{
+		const double tolerance = (1.0e-14) * m_elastic_uniaxial_compressive_strength;
+
 		double g = (rEquEffStressTension/m_damage_threshold_tension)*(rEquEffStressTension/m_damage_threshold_tension)+(rEquEffStressCompression/m_damage_threshold_compression)*(rEquEffStressCompression/m_damage_threshold_compression)-1;
 		// diagnostics
 		if (m_diagnose==elem2)
 			KRATOS_WATCH(g);
 
-		if (g > rtolerance)
+		if (g > tolerance)
 			{
 			double rhoQ = sqrt(rEquEffStressTension*rEquEffStressTension+rEquEffStressCompression*rEquEffStressCompression);
 			double thetaQ;

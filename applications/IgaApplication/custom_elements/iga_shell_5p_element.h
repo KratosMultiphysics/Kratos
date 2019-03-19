@@ -3,17 +3,14 @@
 
 
 // System includes
-#include "utilities/math_utils.h"
 
 // External includes
 
 // Project includes
+#include "custom_elements/base_discrete_element.h"
 
 // Application includes
 #include "iga_application_variables.h"
-
-#include "custom_elements/base_discrete_element.h"
-#include "custom_utilities/geometry_utilities/iga_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -47,7 +44,8 @@ public:
     {};
 
     // default constructor necessary for serialization
-    IgaShell5pElement() : BaseDiscreteElement() {};
+    IgaShell5pElement() : BaseDiscreteElement() 
+    {};
 
     /// Destructor.
     virtual ~IgaShell5pElement() override
@@ -144,14 +142,14 @@ public:
         KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES));
         KRATOS_WATCH(GetValue(INTEGRATION_WEIGHT));
         return buffer.str();
-    }
+    };
 
     /// Print information about this object.
 
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "IgaShell5pElement #" << Id();
-    }
+    };
 
     ///@}
 
@@ -160,10 +158,102 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    ///@}
+	///@name Member Variables
+	///@{
+    /**
+        * Internal variables used for metric transformation
+        */
+    struct MetricVariables
+    {
+        Vector gab; // covariant metric (only in-plane, g_11, g_22, g_12)       // not used for sure (ML)
+        Vector gab_con; // contravariant metric (only in-plane)     // not used for sure (ML)
+        Vector curvature; //
+        Matrix J; //Jacobian
+        double  detJ;     // not used for sure (ML)
+        Vector g1; //base vector 1
+        Vector g2; //base vector 2
+        Vector g3; //base vector 3
+        double dA; //differential area
+        Matrix H; //Hessian
+        Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
+        Matrix T; //Transformation matrix T from contravariant to local cartesian basis
+    };
+
+    MetricVariables m_initial_metric;
+
+    // rotation vector
+    Vector m_Phi;
+    // rotation angle
+    double m_phi1, m_phi2;
+
+    /**
+    * Internal variables used in the constitutive equations
+    */
+    struct ConstitutiveVariables        // should be checked before usage (ML)
+    {
+        Vector E; //strain
+        Vector S; //stress
+        Matrix D; //constitutive matrix
+
+        /**
+        * @brief The default constructor
+        * @param StrainSize: The size of the strain vector in Voigt notation
+        */
+        ConstitutiveVariables(const unsigned int& StrainSize)
+        {
+            E = ZeroVector(StrainSize);
+            S = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    /**
+    * Internal variables used in the constitutive equations
+    */
+    struct SecondVariations
+    {
+        Matrix B11;
+        Matrix B22;
+        Matrix B12;
+
+        /**
+        * The default constructor
+        * @param StrainSize: The size of the strain vector in Voigt notation
+        */
+        SecondVariations(const int& mat_size)
+        {
+            B11 = ZeroMatrix(mat_size, mat_size);
+            B22 = ZeroMatrix(mat_size, mat_size);
+            B12 = ZeroMatrix(mat_size, mat_size);
+        }
+    };
+
+
+    ///@{        
     ///@name Operations
     ///@{
-    void CalculateMetric( MetricVariables& metric ) override;
+    /**
+     * @brief Initialization of the structure MetricVariables with zero values
+     * @param Dimension: The size of working space dimension
+     */
+    void InitializeMetricVariables(
+        MetricVariables& rMetric,
+        const unsigned int& Dimension);
+    
+    /**
+         * @brief This function calculates all metric variables
+         */
+    void CalculateMetric(MetricVariables& rMetric);
 
+    /**
+     * @brief This function calculates the rotation vector
+     * @details The rotation vector is needed to compute the difference
+     * between the director in the undeformed and deformed configuration
+     * @param rActualMetric: The actual metric
+     */
+    void CalculateRotationVector(MetricVariables& rAcutalMetric);
 
     /**
     * This functions updates the constitutive variables
@@ -177,8 +267,13 @@ private:
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    );
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+    
+    // still open (ML)
+    void CalculateStrain(
+        Vector& rStrainVector,
+        Vector& rActualMetric_gab);
+    
     ///@}
 
     ///@}
@@ -190,12 +285,12 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
+    };
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    };
 
     ///@}
 
