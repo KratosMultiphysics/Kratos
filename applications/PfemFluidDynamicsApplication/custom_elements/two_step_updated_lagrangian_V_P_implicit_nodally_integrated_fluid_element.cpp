@@ -122,45 +122,28 @@ namespace Kratos {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
       {
-	voigtsize  = 6;
+	      voigtsize  = 6;
       }
     rElementalVariables.voigtsize=voigtsize;
 
-
     rElementalVariables.DetFgrad=1.0;
-
     rElementalVariables.DetFgradVel=1.0;
-
     rElementalVariables.DeviatoricInvariant=1.0;
-
     rElementalVariables.EquivalentStrainRate=1.0;
-
     rElementalVariables.VolumetricDefRate=1.0;
-
     rElementalVariables.SpatialDefRate= ZeroVector(voigtsize);
-
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize,false);
-
-    noalias(rElementalVariables.MDGreenLagrangeMaterial) = ZeroVector(voigtsize);
-  
+    noalias(rElementalVariables.MDGreenLagrangeMaterial) = ZeroVector(voigtsize); 
     rElementalVariables.Fgrad = ZeroMatrix(TDim,TDim);
-
     rElementalVariables.InvFgrad= ZeroMatrix(TDim,TDim);
-
     rElementalVariables.FgradVel= ZeroMatrix(TDim,TDim);
-
     rElementalVariables.InvFgradVel= ZeroMatrix(TDim,TDim);
-
     rElementalVariables.SpatialVelocityGrad= ZeroMatrix(TDim,TDim);
 
     rElementalVariables.MeanPressure=0;
-
     rElementalVariables.CurrentTotalCauchyStress= ZeroVector(voigtsize);
-
     rElementalVariables.UpdatedTotalCauchyStress=  ZeroVector(voigtsize);
-
     rElementalVariables.CurrentDeviatoricCauchyStress=  ZeroVector(voigtsize);
-
     rElementalVariables.UpdatedDeviatoricCauchyStress= ZeroVector(voigtsize);
 
     KRATOS_CATCH("");

@@ -723,6 +723,8 @@ namespace Kratos
 
 	  /* boost::timer c_contruct_matrix; */
 
+    std::cout<<" ResizeAndInitializeVectors 1"<<std::endl;
+
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
 	      TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
@@ -744,6 +746,7 @@ namespace Kratos
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
 	  }
 
+    std::cout<<" ResizeAndInitializeVectors 2"<<std::endl;
         TSystemMatrixType& A = *pA;
         TSystemVectorType& Dx = *pDx;
         TSystemVectorType& b = *pb;
@@ -751,14 +754,16 @@ namespace Kratos
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 	  {
+  			    std::cout<<" A.resize"<<std::endl;
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+  			    std::cout<<" ConstructMatrixStructure"<<std::endl;
             ConstructMatrixStructure(pScheme, A, rModelPart);
 	  }
         else
 	  {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
 	      {
-                /* KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW"); */
+                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(pScheme, A, rModelPart);

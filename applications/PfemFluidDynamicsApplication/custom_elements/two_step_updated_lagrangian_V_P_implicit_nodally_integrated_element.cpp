@@ -56,68 +56,64 @@ namespace Kratos {
       // 	std::cout<<"a different structure is required for more gauss points"<<std::endl;
       // }
 
+      double meanElementEdgesLength=this->ElementSize();
       double elementVolume=0;
       if(TDim==3){
-	elementVolume=rGeom.Volume()*0.25;
+       	elementVolume=rGeom.Volume()*0.25;
       }else if(TDim==2){
-	elementVolume=rGeom.Area()/3.0;
+	      elementVolume=rGeom.Area()/3.0;
       }
-
       for (unsigned int i = 0; i < NumNodes; i++)
-	{
+    	{
+	      VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+	      unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
 
-	  VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-	  unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
+	      if(nodalSFDneighboursSize>1)
+        {
+	        double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+	        ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	        double numberOfNeighElems=double(neighb_elems.size());
+	        meshSize+=meanElementEdgesLength/numberOfNeighElems;
 
-	  if(nodalSFDneighboursSize>1){
-	    double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-	    ElementWeakPtrVectorType& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-	    double numberOfNeighElems=double(neighb_elems.size());
-	    meshSize+=this->ElementSize()/numberOfNeighElems;
+	        if(rGeom[i].Is(FREE_SURFACE)){
+	          this->NodalFreeSurfaceLength(i);
+	        }
 
-	    if(rGeom[i].Is(FREE_SURFACE)){
-	      this->NodalFreeSurfaceLength(i);
-	    }
+	        const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
 
-	    const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+	        // the nodal strain measure could be also be computed as follows (now they are computed in the strategy)
+	        // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
+	        // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
+	        // rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
 
-	    // the nodal strain measure could be also be computed as follows (now they are computed in the strategy)
-	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
-	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
-	    // rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
-
-	      for (unsigned int j = 0; j< NumNodes; j++)
-		{
-		  unsigned int position=rGeom[j].Id();
-
-		  unsigned int SFDposition=0;
-		  for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
-		    {
-		      if(position==nodalSFDneighbours[k]){
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
-			if(TDim==3){
-			  rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
-			}
-			break;
-		      }
-		      SFDposition+=TDim;
-		    }
-
-		}
-
-	  }
-	  else{
-	    std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
-	    for (unsigned int k = 0; k< TDim; k++)
-	      {
-		rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+	       for (unsigned int j = 0; j< NumNodes; j++)
+	       {
+	 	        unsigned int idNodeOfConsideredElement=rGeom[j].Id();
+		        unsigned int SFDposition=0;
+		        for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+		        {
+		          if(idNodeOfConsideredElement==nodalSFDneighbours[k])
+              {
+		          	rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
+			          rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
+			          if(TDim==3){
+			            rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
+			          }
+		            break;
+		          }
+		          SFDposition+=TDim;
+		        }
+      		}
 	      }
-	  }
-	}
-
-
-
+	      else
+        {
+	        std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
+	        for (unsigned int k = 0; k< TDim; k++)
+	        {
+	        	rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+	        }
+	      }
+    	}
 
       KRATOS_CATCH( "" );
 
@@ -135,10 +131,11 @@ namespace Kratos {
     // unsigned int countFreeSurface=1;
     for (SizeType i = 0; i < NumNodes; i++){
 
-      if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex){
-	noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
-	rGeom[nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
-	// countFreeSurface+=1;
+      if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex)
+      {
+	       noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
+	       rGeom[nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
+	     // countFreeSurface+=1;
       }
     }
     // if(countFreeSurface==NumNodes){

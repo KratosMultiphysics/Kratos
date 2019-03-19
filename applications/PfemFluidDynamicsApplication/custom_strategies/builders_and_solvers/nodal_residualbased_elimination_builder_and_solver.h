@@ -202,10 +202,14 @@ namespace Kratos
 
 	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      const unsigned int neighSize = neighb_nodes.size()+1;
+			std::cout<<"neighSize "<<neighSize<<std::endl;
 
 	      if(neighSize>1){
 		const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+					std::cout<<"nodalVolume "<<nodalVolume<<std::endl;
+
 		const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
+			std::cout<<"localSize "<<localSize<<std::endl;
 
 		LHS_Contribution= ZeroMatrix(localSize,localSize);
 		RHS_Contribution= ZeroVector(localSize);
@@ -216,11 +220,13 @@ namespace Kratos
 		density=itNode->FastGetSolutionStepValue(DENSITY);
 
 		if(itNode->Is(SOLID)){
+			std::cout<<"solid density "<<density<<std::endl;
 		  secondLame = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/
 		    ((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*secondLame/3.0;
 		}
 		else if(itNode->Is(FLUID)){
+		   std::cout<<"fluid density "<<density<<std::endl;
 		  secondLame = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		  /* volumetricCoeff*=0.000025;//dam break fine */
@@ -524,9 +530,9 @@ namespace Kratos
 
 	  Timer::Start("Build");
 
-	/* boost::timer m_build_time; */
+	boost::timer m_build_time;
 	BuildNodally(pScheme, rModelPart, A, b);
-	/* std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; */
+	 std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; 
 
 
         Timer::Stop("Build");
@@ -754,7 +760,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  /* boost::timer m_contruct_matrix; */
+	 boost::timer m_contruct_matrix;
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -781,6 +787,7 @@ namespace Kratos
         TSystemVectorType& Dx = *pDx;
         TSystemVectorType& b = *pb;
 
+        std::cout<<" mom ResizeAndInitializeVectors 2"<<std::endl;
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 	  {
@@ -791,7 +798,7 @@ namespace Kratos
 	  {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
 	      {
-                /* KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW"); */
+                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -802,6 +809,8 @@ namespace Kratos
         if (b.size() != BaseType::mEquationSystemSize)
 	  b.resize(BaseType::mEquationSystemSize, false);
 
+		std::cout<<" A.size="<<A.size1()<<" Dx.size="<<Dx.size()<<" b.size "<<b.size()<<std::endl;
+
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
 	  {
@@ -809,7 +818,7 @@ namespace Kratos
             if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
-	/* std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; */
+	std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; 
 
         KRATOS_CATCH("")
 
@@ -948,7 +957,7 @@ namespace Kratos
 					    TSystemMatrixType& A,
 					    ModelPart& rModelPart)
       {
-	/* std::cout<<" ConstructMatrixStructure for Momentum equation"<<std::endl; */
+	std::cout<<" ConstructMatrixStructure for Momentum equation"<<std::endl;
 	//filling with zero the matrix (creating the structure)
 	Timer::Start("MatrixStructure");
 
@@ -963,17 +972,22 @@ namespace Kratos
 #ifdef USE_GOOGLE_HASH
 	std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
 	const std::size_t empty_key = 2 * equation_size + 10;
+	// std::cout<<"      1"<<std::endl;
 #else
 	std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+  // std::cout<<"      2"<<std::endl;
 #endif
+
 
 #pragma omp parallel for firstprivate(equation_size)
 	for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
 	  {
 #ifdef USE_GOOGLE_HASH
+      // std::cout<<"      3"<<std::endl;
 	    indices[iii].set_empty_key(empty_key);
 #else
 	    indices[iii].reserve(40);
+      // std::cout<<"      4"<<std::endl;
 #endif
 	  }
 
@@ -983,7 +997,7 @@ namespace Kratos
 	ModelPart::NodeIterator NodesBegin;
 	ModelPart::NodeIterator NodesEnd;
 	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
+      // std::cout<<"      5"<<std::endl;
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
 	    const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
@@ -1017,13 +1031,21 @@ namespace Kratos
 		  {
 #ifdef _OPENMP
 		    omp_set_lock(&mlock_array[EquationId[i]]);
+      // std::cout<<"      8"<<std::endl;
 #endif
+
 		    auto& row_indices = indices[EquationId[i]];
 		    for (auto it = EquationId.begin(); it != EquationId.end(); it++)
 		      {
+						      // std::cout<<"      8a"<<std::endl;
+
 			if (*it < BaseType::mEquationSystemSize)
+									      // std::cout<<"      8b"<<std::endl;
+
 			  row_indices.insert(*it);
 		      }
+      // std::cout<<"      9"<<std::endl;
+
 #ifdef _OPENMP
 		    omp_unset_lock(&mlock_array[EquationId[i]]);
 #endif

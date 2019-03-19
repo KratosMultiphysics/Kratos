@@ -1020,6 +1020,8 @@ namespace Kratos
 				  TSystemVectorType& b) override
       {
         KRATOS_TRY
+       	std::cout << "Initialize Solution Step in nodal res based " << std::endl;
+    
 	  KRATOS_CATCH("")
 	  }
 
