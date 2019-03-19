@@ -57,7 +57,6 @@ void KratosFluidTransportApplication::Register()
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
 
     KRATOS_REGISTER_VARIABLE(PECLET);
-    KRATOS_REGISTER_VARIABLE(COURANT);
     KRATOS_REGISTER_VARIABLE(THETA);
     KRATOS_REGISTER_VARIABLE(PHI_THETA);
     KRATOS_REGISTER_VARIABLE(NODAL_ANALYTIC_SOLUTION);

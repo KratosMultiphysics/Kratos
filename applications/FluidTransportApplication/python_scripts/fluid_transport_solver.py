@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","FluidTransportApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
@@ -262,12 +259,12 @@ class FluidTransportSolver(PythonSolver):
             "residual_absolute_tolerance":        1.0E-9,
             "max_iteration":                      15,
             "linear_solver_settings":             {
-                "solver_type":   "SuperLUSolver",
+                "solver_type":   "ExternalSolversApplication.super_lu",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "ilu0",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
