@@ -1,16 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
+from KratosMultiphysics.analysis_stage import AnalysisStage
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
 
 import sys
 
-class CoSimulationAnalysis(object):
-    """The base class for the CoSimulation-AnalysisStage
-    It mimicks the AnalysisStage of Kratos but does NOT derive from it
-    The reason is that it also needs to work without Kratos
-    """
+class CoSimulationAnalysis(AnalysisStage):
     def __init__(self, model, cosim_settings):
+        # Note: deliberately NOT calling the base-class constructor, since this would
+        # break the python-only version due to the type-checks
         if (type(cosim_settings) != dict):
             raise Exception("Input is expected to be provided as a python dictionary")
 
@@ -25,26 +24,6 @@ class CoSimulationAnalysis(object):
 
         self.flush_stdout = problem_data["flush_stdout"]
         self.echo_level = problem_data["echo_level"]
-
-    def Run(self):
-        self.Initialize()
-        self.RunSolutionLoop()
-        self.Finalize()
-
-    def RunSolutionLoop(self):
-        print("")
-        while self.time < self.end_time:
-            print("")
-            self.step += 1
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-            if self.flush_stdout:
-                sys.stdout.flush()
 
     def Initialize(self):
         self._GetSolver().Initialize()
@@ -65,6 +44,7 @@ class CoSimulationAnalysis(object):
         self._GetSolver().Finalize()
 
     def InitializeSolutionStep(self):
+        self.step += 1
         csprint(0, bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
 
         self._GetSolver().InitializeSolutionStep()
@@ -74,11 +54,6 @@ class CoSimulationAnalysis(object):
 
     def OutputSolutionStep(self):
         self._GetSolver().OutputSolutionStep()
-
-    def _GetSolver(self):
-        if not hasattr(self, '_solver'):
-            self._solver = self._CreateSolver()
-        return self._solver
 
     def _CreateSolver(self):
         """Create the solver
