@@ -298,7 +298,6 @@ public:
             // passing smart pointers instead of references here
             // to prevent dangling pointer to system matrix when
             // reusing ml preconditioners in the trilinos tpl
-            std::cout<<"BuildAndSolve "<<std::endl;
             pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
@@ -306,7 +305,6 @@ public:
         {
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-            std::cout<<"BuildRHSAndSolve "<<std::endl;
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 
@@ -547,8 +545,6 @@ private:
     {
         KRATOS_TRY
 
-        std::cout<<" InitializeSolutionStep() in gauss seidel"<<std::endl;
-
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         typename TSchemeType::Pointer pScheme = GetScheme();
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
@@ -559,7 +555,6 @@ private:
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
     	  {
-            std::cout<<" Initialize()"<<std::endl;
             Initialize();
             mInitializeWasPerformed = true;
     	  }
@@ -569,15 +564,12 @@ private:
         //loop to reform the dofset
         boost::timer system_construction_time;
 
-        std::cout<<" SetUpDofSet"<<std::endl;
     	//setting up the list of the DOFs to be solved
     	pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
 
-        std::cout<<" SetUpSystem"<<std::endl;
     	//shaping correctly the system
     	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
 
-        std::cout<<" ResizeAndInitializeVectors"<<std::endl;
     	//setting up the Vectors involved to the correct size
     	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
         if (BaseType::GetEchoLevel() > 1 && rank == 0)
@@ -588,15 +580,12 @@ private:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-        std::cout<<" InitializeSolutionStep"<<std::endl;
        //initial operations ... things that are constant over the Solution Step
     	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         //initial operations ... things that are constant over the Solution Step
     	/* boost::timer scheme_initialize_solution_step; */
     	/* pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb); */
-
-        std::cout<<" InitializeSolutionStep() in gauss seidel DONE!"<<std::endl;
 
         KRATOS_CATCH("")
     }

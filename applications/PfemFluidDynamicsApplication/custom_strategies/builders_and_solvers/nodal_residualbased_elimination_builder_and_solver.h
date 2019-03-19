@@ -166,9 +166,6 @@ void BuildNodally(
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
 
-    // double secondLame=0;
-    // double volumetricCoeff=0;
-    double density=0;
     double theta=0.5;
     double accX=0;
     double accY=0;
@@ -200,15 +197,12 @@ void BuildNodally(
 
         NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
         const unsigned int neighSize = neighb_nodes.size()+1;
-        std::cout<<"neighSize "<<neighSize<<std::endl;
 
         if(neighSize>1)
 				{
           const double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-          std::cout<<"nodalVolume "<<nodalVolume<<std::endl;
 
           const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
-          std::cout<<"localSize "<<localSize<<std::endl;
 
           LHS_Contribution= ZeroMatrix(localSize,localSize);
           RHS_Contribution= ZeroVector(localSize);
@@ -216,21 +210,20 @@ void BuildNodally(
           if (EquationId.size() != localSize)
             EquationId.resize(localSize, false);
 
-          density=itNode->FastGetSolutionStepValue(DENSITY);
-				
-	        double secondLame=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+				  double density=itNode->FastGetSolutionStepValue(DENSITY);
+				  double secondLame=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
 	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
-          if(itNode->Is(FLUID))
+         
+				  if(itNode->Is(FLUID))
 					{
             double bulkReduction=density*nodalVolume/(timeInterval*volumetricCoeff);
             volumetricCoeff*=bulkReduction;
 				  }
 
-
           firstRow=0;
           firstCol=0;
 
-           /* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
+           /* const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X); */
           if(dimension==2)
           {
             //////////////////////////// LHS TERMS //////////////////////////////
@@ -267,9 +260,9 @@ void BuildNodally(
               sigmaYY=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1] + pressure;
             }
 
-            const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
-            EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
-            EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
+            const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
+            EquationId[0]=itNode->GetDof(VELOCITY_X,xDofPos).EquationId();
+            EquationId[1]=itNode->GetDof(VELOCITY_Y,xDofPos+1).EquationId();
 
             for (unsigned int i = 0; i< neighSize; i++)
             {
@@ -299,8 +292,8 @@ void BuildNodally(
 
               if(i<neighb_nodes.size())
               {
-                EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
-                EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+                EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
+                EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
               }
 
             }
@@ -352,10 +345,10 @@ void BuildNodally(
               sigmaZZ=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[2] + pressure;
             }
 
-            const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
-            EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
-            EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
-            EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
+            const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
+            EquationId[0]=itNode->GetDof(VELOCITY_X,xDofPos).EquationId();
+            EquationId[1]=itNode->GetDof(VELOCITY_Y,xDofPos+1).EquationId();
+            EquationId[2]=itNode->GetDof(VELOCITY_Z,xDofPos+2).EquationId();
 
             for (unsigned int i = 0; i< neighSize; i++)
               {
@@ -395,9 +388,9 @@ void BuildNodally(
 
                 if(i<neighb_nodes.size())
 								{
-                  EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
-                  EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
-                  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+                  EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
+                  EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
+                  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xDofPos+2).EquationId();
                 }
 
               }
@@ -522,11 +515,11 @@ void BuildNodally(
 
 	      Timer::Start("Build");
 
-	      boost::timer m_build_time;
+	      // boost::timer m_build_time;
 	      
 				BuildNodally(pScheme, rModelPart, A, b);
 	
-	      std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; 
+	      // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; 
 
         Timer::Stop("Build");
 
@@ -753,7 +746,7 @@ void BuildNodally(
       {
         KRATOS_TRY
 
-	 boost::timer m_contruct_matrix;
+	//  boost::timer m_contruct_matrix;
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -780,7 +773,6 @@ void BuildNodally(
         TSystemVectorType& Dx = *pDx;
         TSystemVectorType& b = *pb;
 
-        std::cout<<" mom ResizeAndInitializeVectors 2"<<std::endl;
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 	  {
@@ -802,8 +794,6 @@ void BuildNodally(
         if (b.size() != BaseType::mEquationSystemSize)
 	  b.resize(BaseType::mEquationSystemSize, false);
 
-		std::cout<<" A.size="<<A.size1()<<" Dx.size="<<Dx.size()<<" b.size "<<b.size()<<std::endl;
-
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
 	  {
@@ -811,7 +801,7 @@ void BuildNodally(
             if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
-	std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; 
+	// std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; 
 
         KRATOS_CATCH("")
 
@@ -950,7 +940,6 @@ void BuildNodally(
 					    TSystemMatrixType& A,
 					    ModelPart& rModelPart)
       {
-	std::cout<<" ConstructMatrixStructure for Momentum equation"<<std::endl;
 	//filling with zero the matrix (creating the structure)
 	Timer::Start("MatrixStructure");
 
@@ -965,10 +954,8 @@ void BuildNodally(
 #ifdef USE_GOOGLE_HASH
 	std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
 	const std::size_t empty_key = 2 * equation_size + 10;
-	// std::cout<<"      1"<<std::endl;
 #else
 	std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-  // std::cout<<"      2"<<std::endl;
 #endif
 
 
@@ -976,11 +963,9 @@ void BuildNodally(
 	for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
 	  {
 #ifdef USE_GOOGLE_HASH
-      // std::cout<<"      3"<<std::endl;
 	    indices[iii].set_empty_key(empty_key);
 #else
 	    indices[iii].reserve(40);
-      // std::cout<<"      4"<<std::endl;
 #endif
 	  }
 
@@ -990,7 +975,6 @@ void BuildNodally(
 	ModelPart::NodeIterator NodesBegin;
 	ModelPart::NodeIterator NodesEnd;
 	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-      // std::cout<<"      5"<<std::endl;
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
 	    const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
@@ -1001,20 +985,20 @@ void BuildNodally(
 
 	    unsigned int firstCol=0;
 
-	    const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
-	    EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
-	    EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
+	    const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
+	    EquationId[0]=itNode->GetDof(VELOCITY_X,xDofPos).EquationId();
+	    EquationId[1]=itNode->GetDof(VELOCITY_Y,xDofPos+1).EquationId();
 	    if(dimension==3)
-	      EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
+	      EquationId[2]=itNode->GetDof(VELOCITY_Z,xDofPos+2).EquationId();
 
 	    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
 	    	firstCol+=dimension;
-	    	EquationId[firstCol]    =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
-	    	EquationId[firstCol+1]  =neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+	    	EquationId[firstCol]    =neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
+	    	EquationId[firstCol+1]  =neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
 	    	if(dimension==3){
-		  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+		  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xDofPos+2).EquationId();
 	    	}
 	      }
 
@@ -1024,20 +1008,16 @@ void BuildNodally(
 		  {
 #ifdef _OPENMP
 		    omp_set_lock(&mlock_array[EquationId[i]]);
-      // std::cout<<"      8"<<std::endl;
 #endif
 
 		    auto& row_indices = indices[EquationId[i]];
 		    for (auto it = EquationId.begin(); it != EquationId.end(); it++)
 		      {
-						      // std::cout<<"      8a"<<std::endl;
 
 			if (*it < BaseType::mEquationSystemSize)
-									      // std::cout<<"      8b"<<std::endl;
 
 			  row_indices.insert(*it);
 		      }
-      // std::cout<<"      9"<<std::endl;
 
 #ifdef _OPENMP
 		    omp_unset_lock(&mlock_array[EquationId[i]]);

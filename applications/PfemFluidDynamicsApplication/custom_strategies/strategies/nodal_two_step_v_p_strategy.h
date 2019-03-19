@@ -276,41 +276,30 @@ namespace Kratos {
 	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
 	  {
 
-	    std::cout << "----- > iteration: " << it << std::endl;
 
 	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	      std::cout << "----- > iteration: " << it << std::endl;
 
 	    if(it==0){
-				std::cout << "----- > ComputeNodalVolume(): " << std::endl;
 	      this->ComputeNodalVolume();
-				std::cout << "----- > InitializeNonLinearIterations(): "<< std::endl;
 	      this->InitializeNonLinearIterations();
 			}
 			
-			std::cout << "----- > CalcNodalStrainsAndStresses(): " << std::endl;
 	    this->CalcNodalStrainsAndStresses();
 
-			std::cout << "----- > SolveMomentumIteration(): " << std::endl;
 	    momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
-			std::cout << "----- > UpdateTopology(): " << std::endl;
 	    this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-			std::cout << "----- > ComputeNodalVolume(): " << std::endl;
 	    this->ComputeNodalVolume();
-			std::cout << "----- > InitializeNonLinearIterations(): " << std::endl;
 	    this->InitializeNonLinearIterations();
-			std::cout << "----- > CalcNodalStrains(): " << std::endl;
 	    this->CalcNodalStrains();
 
 	    if( fixedTimeStep==false){
-			  std::cout << "----- > SolveContinuityIteration: " << std::endl;
 	      continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
 	    }
 
 	    if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
-		  	std::cout << "----- > CalculateAccelerations(): " << std::endl;
 	      this->CalculateAccelerations();
 	    }
 	    if ( (continuityConverged && momentumConverged) && it>2)
@@ -345,7 +334,6 @@ namespace Kratos {
 
       void Initialize() override
       {
-	std::cout << "                 Initialize!!! " << std::endl;
 
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -489,7 +477,6 @@ void ComputeNodalVolume()
 
 void InitializeSolutionStep() override
       {
-        std::cout<<"         FillNodalSFDVector() "<< std::endl;
 	      this->FillNodalSFDVector();
       }
 
@@ -604,7 +591,6 @@ void FillNodalSFDVector()
 
 	    }
 	}
-	       std::cout<<"         FillNodalSFDVector()     DONE!"<< std::endl;
 
       }
 
@@ -1028,7 +1014,7 @@ void CalcNodalStrainsAndStresses()
 	  if(itNode->Is(SOLID) || itNode->Is(FLUID)){
    	    double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 	    if(nodalVolume>0){
-        
+
 	      double currFirstLame=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT);
 	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
 
@@ -1717,24 +1703,20 @@ protected:
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-      std::cout<<"---- m o m e n t u m   e q u a t i o n s ----"<<std::endl; 
+      // std::cout<<"---- m o m e n t u m   e q u a t i o n s ----"<<std::endl; 
       if(it==0){
-        std::cout<<"---- m o m e n t u m   e q u a t i o n s ----   InitializeSolutionStep()"<<std::endl; 
 	      mpMomentumStrategy->InitializeSolutionStep();
       	/* this->SetNeighboursVelocityId(); */
       }
-      std::cout<<"---- m o m e n t u m   e q u a t i o n s ----   solve()"<<std::endl; 
       NormDv = mpMomentumStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
 	std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
 
-      std::cout<<"---- m o m e n t u m   e q u a t i o n s ----   CheckVelocityConvergence()"<<std::endl; 
       double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
 
       // Check convergence
-   		std::cout<<"         iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
       if(it==maxIt-1){
 	      std::cout<<"         iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 	      fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
@@ -1759,7 +1741,7 @@ protected:
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-      /* std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl; */
+      // std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl;
 
       if(it==0){
 	mpPressureStrategy->InitializeSolutionStep();
