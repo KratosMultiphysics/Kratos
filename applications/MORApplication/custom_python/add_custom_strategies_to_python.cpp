@@ -30,6 +30,7 @@
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
+#include "custom_strategies/custom_strategies/frequency_response_analysis.hpp"
 
 // Builders and solvers
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
@@ -58,8 +59,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
-    typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
-    typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
+    typedef MorOnlineStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
+	typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
+    //typedef FrequencyResponseAnalysis < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -80,6 +82,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOfflineStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
+    
+    //py::class_< FrequencyResponseAnalysisType, typename FrequencyResponseAnalysisType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponse")
+       // .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
+       // ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

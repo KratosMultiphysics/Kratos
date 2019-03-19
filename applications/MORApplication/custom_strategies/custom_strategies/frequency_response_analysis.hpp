@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(MOR_OFFLINE_STRATEGY)
-#define MOR_OFFLINE_STRATEGY
+#if !defined(FREQUENCY_RESPONSE_ANALYSIS)
+#define FREQUENCY_RESPONSE_ANALYSIS
 
 // System includes
 
@@ -27,7 +27,7 @@
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
-//#include "custom_utilities/MOR_QR.h"
+
 
 namespace Kratos
 {
@@ -63,14 +63,15 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class MorOfflineStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+
+class FrequencyResponseAnalysis 
+            : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of ClassName
-    KRATOS_CLASS_POINTER_DEFINITION(MorOfflineStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(FrequencyResponseAnalysis);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -104,6 +105,8 @@ class MorOfflineStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    //typedef DenseMatrix<ComplexType> ComplexMatrixType
+
     ///@}
     ///@name Life Cycle
 
@@ -115,11 +118,10 @@ class MorOfflineStrategy
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    MorOfflineStrategy(
+    FrequencyResponseAnalysis(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
@@ -158,14 +160,14 @@ class MorOfflineStrategy
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = TSparseSpace::CreateEmptyVectorPointer();
 
-        mpAr = TSparseSpace::CreateEmptyMatrixPointer();
+        /*mpAr = TSparseSpace::CreateEmptyMatrixPointer();
         mpMr = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
         // mpBasis = TDenseSpace::CreateEmptyMatrixPointer();
         mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
         mpSr = TSparseSpace::CreateEmptyMatrixPointer();
 
-        mSamplingPoints = samplingPoints;
+        mSamplingPoints = samplingPoints;*/
 
         KRATOS_CATCH("");
     }
@@ -174,7 +176,7 @@ class MorOfflineStrategy
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~MorOfflineStrategy() override
+    ~FrequencyResponseAnalysis() override
     {
         Clear();
     }
@@ -421,18 +423,15 @@ class MorOfflineStrategy
 
             TSystemMatrixType& rA  = *mpA;
             TSystemMatrixType& rM = *mpM;
-            TSystemMatrixType& rS  = *mpS;
             TSystemVectorType& rRHS  = *mpRHS;
 
             //initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
 
             //initial operations ... things that are constant over the Solution Step
             p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
             p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
 
             mSolutionStepIsInitialized = true;
             // std::cout << "system matrices after initialize solution step" << std::endl;
@@ -495,10 +494,10 @@ class MorOfflineStrategy
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
-    bool SolveSolutionStep() override
+    bool SolveSolutionStep(double exfreq) override
     {
         KRATOS_TRY;
-        std::cout << "hello! this is where the MOR magic happens" << std::endl;
+        std::cout << "...Frequency Response calculation..." << std::endl;
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         TSystemMatrixType& rA  = *mpA;
@@ -542,40 +541,40 @@ class MorOfflineStrategy
         // EchoInfo(0);
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
         //sampling points
-        KRATOS_WATCH(mSamplingPoints)
-        const std::size_t n_sampling_points = mSamplingPoints.size();
-        const std::size_t reduced_system_size = 3 * n_sampling_points;
+        //KRATOS_WATCH(mSamplingPoints)
+        //const std::size_t n_sampling_points = mSamplingPoints.size();
+        //const std::size_t reduced_system_size = 3 * n_sampling_points;
         
         //initialize sb, As, AAs vectors
         auto s = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rs = *s;
         SparseSpaceType::Resize(rs,system_size);
         SparseSpaceType::Set(rs,0.0);
-        auto As = SparseSpaceType::CreateEmptyVectorPointer();
+        /*auto As = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rAs = *As;
         SparseSpaceType::Resize(rAs,system_size);
         SparseSpaceType::Set(rAs,0.0);
         auto AAs = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rAAs = *AAs;
         SparseSpaceType::Resize(rAAs,system_size);
-        SparseSpaceType::Set(rAAs,0.0);
+        SparseSpaceType::Set(rAAs,0.0);*/
 
         auto kdyn = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_kdyn = *kdyn;
         SparseSpaceType::Resize(r_kdyn, system_size, system_size);
 
-        auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
+        /*auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
         auto& r_tmp_basis = *tmp_basis;
-        DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
+        DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);*/
         // mpBasis = SparseSpaceType::CreateEmptyMatrixPointer();
         // auto r_basis = *mpBasis;
         // SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
         // DenseSpaceType::Resize(r_basis, system_size, reduced_system_size);
 
-        vector< double > aux;
+        //vector< double > aux;
         //vector <double > Q_vector;
         
-        for( size_t i = 0; i < n_sampling_points; ++i )
+        /*for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
             // KRATOS_WATCH( std::pow( mSamplingPoints(i), 2.0) )
@@ -605,19 +604,28 @@ class MorOfflineStrategy
 
 
             // KRATOS_WATCH(r_tmp_basis)
-        }
+        }*/
 
+        r_kdyn = rA - ( std::pow(exfreq, 2.0 ) * rM );
+        p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, rRHS );
+        
+        TSystemVectorType displacement;
+        displacement.resize( system_size, false );
+        displacement = ZeroVector( system_size );
+
+        //displacement = prod( r_basis, displacement_reduced );
+        AssignVariables(displacement);
         //orthogonalize the basis -> basis_r
         // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
-        mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
+        //mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
         // std::cout << "yo2" << std::endl;
         // KRATOS_WATCH(r_basis)
-        mQR_decomposition.compute_q();
+        //mQR_decomposition.compute_q();
 
         // auto basis_r = SparseSpaceType::CreateEmptyMatrixPointer();
         // auto& r_basis_r = *mpReducedBasis;
         // SparseSpaceType::Resize(r_basis_r, system_size, 3*n_sampling_points);        
-        auto& r_basis = *mpBasis;
+        /*auto& r_basis = *mpBasis;
         SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
         
         for( size_t i = 0; i < system_size; ++i )
@@ -627,11 +635,11 @@ class MorOfflineStrategy
                 r_basis(i,j) = mQR_decomposition.Q(i,j);
                 
             }
-        }
+        }*/
 
         //std::cout<<Q_vector.size()<<std::endl;
         // auto r_basis_r = r_basis;
-        auto& r_force_vector_reduced = *mpRHSr;
+        /*auto& r_force_vector_reduced = *mpRHSr;
         // mpForceVectorReduced = ZeroMatrix( 3*n_sampling_points );
         r_force_vector_reduced = (prod( rRHS, r_basis ));
         auto& r_stiffness_matrix_reduced = *mpAr;
@@ -652,7 +660,7 @@ class MorOfflineStrategy
         std::cout << "MOR offline solve finished" << std::endl;
 		//std::cout << "Compiled succesfully finally after long time"<<std::endl;
 		return true;
-        KRATOS_CATCH("");
+        KRATOS_CATCH("");*/
         
     }
 
@@ -819,15 +827,15 @@ class MorOfflineStrategy
 
 
     // reduced matrices
-    TSystemVectorPointerType mpRHSr; //reduced RHS
+    /*TSystemVectorPointerType mpRHSr; //reduced RHS
     TSystemMatrixPointerType mpAr;
     TSystemMatrixPointerType mpMr;
     // TDenseMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpSr;
+    TSystemMatrixPointerType mpSr;*/
 
-    vector< double > mSamplingPoints;
-    QR<double, row_major> mQR_decomposition;
+    //vector< double > mSamplingPoints;
+    //QR<double, row_major> mQR_decomposition;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
@@ -920,11 +928,11 @@ class MorOfflineStrategy
      * Copy constructor.
      */
 
-    MorOfflineStrategy(const MorOfflineStrategy &Other){};
+    FrequencyResponseAnalysis(const FrequencyResponse &Other){};
 
     ///@}
 
-}; /* Class MorOfflineStrategy */
+}; /* Class FREQUENCY_RESPONSE */
 
 ///@}
 
@@ -935,4 +943,4 @@ class MorOfflineStrategy
 
 } /* namespace Kratos. */
 
-#endif /* MOR_OFFLINE_STRATEGY  defined */
+#endif /* FREQUENCY_RESPONSE  defined */
