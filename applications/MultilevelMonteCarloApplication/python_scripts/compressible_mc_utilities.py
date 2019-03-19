@@ -8,6 +8,7 @@ import numpy as np
 from scipy.stats import norm
 from math import *
 import copy
+import time
 
 # Importing the analysis stage classes of the different problems
 from simulation_definition import SimulationScenario
@@ -122,8 +123,10 @@ input:  model:      serialization of the model
         parameters: serialization of the Project Parameters
 output: QoI: Quantity of Interest
 """
+# @constraint(ComputingUnits="${computing_units}")
 @ExaquteTask(returns=1)
 def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
+    time_0 = time.time()
     # overwrite the old model serializer with the unpickled one
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -134,13 +137,31 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
+    time_1 = time.time()
     # initialize the MonteCarloResults class
     mc_results_class = MonteCarloResults(current_level)
     sample = generator.GenerateSample()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
+    time_2 = time.time()
     mc_results_class.QoI[current_level].append(QoI) # saving results in the corresponding list, for MC only list of level 0
+
+    # post process times of the task
+    print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
+    deserialization_time = time_1 - time_0
+    Kratos_run_time = time_2 - time_1
+    total_task_time = time_2 - time_0
+    print("current level:",current_level)
+    print("[TIMER] total task time:", total_task_time)
+    print("[TIMER] Kratos Run time:",Kratos_run_time)
+    print("[TIMER] Deserialization time:",deserialization_time)
+    print("RATIOs: time of interest / total task time")
+    print("Relative deserialization times:",(deserialization_time)/total_task_time)
+    print("Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+
+
     return mc_results_class
 
 
