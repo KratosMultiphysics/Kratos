@@ -54,7 +54,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
 
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
@@ -74,7 +73,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorOnlineStrategyType, typename MorOnlineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOnlineStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, BuilderAndSolverPointer, BaseSolvingStrategyType::Pointer, vector<double>, bool >())
+        .def(py::init < ModelPart&, LinearSolverPointer, MorOfflineStrategyType::Pointer >())
         ;
 
     py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOfflineStrategy")
