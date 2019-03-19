@@ -44,6 +44,11 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     mInvertedSearch = mThisParameters["inverted_search"].GetBool();
     mPredefinedMasterSlave = mThisParameters["predefined_master_slave"].GetBool();
 
+    // The search tree considered
+    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
+    if (!mPredefinedMasterSlave && type_search == SearchTreeType::OtreeWithOBB)
+        mThisParameters["type_search"].SetString("KdtreeInRadius");
+
     // If we are going to consider multple searchs
     const std::string& id_name = mThisParameters["id_name"].GetString();
     mMultipleSearchs = id_name == "" ? false : true;
