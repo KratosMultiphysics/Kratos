@@ -49,7 +49,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "interval"                    : [0.0,"End"],
             "variable_name"               : "DISPLACEMENT",
             "search_parameters" : {
-                "type_search"                 : "in_radius",
+                "type_search"                 : "octree_with_obb",
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
                 "max_number_results"          : 1000,
