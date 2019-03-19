@@ -68,6 +68,9 @@ public:
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 
     enum ContactElementType //(contact domain definition)
     {
@@ -695,6 +698,11 @@ public:
       bool MeshingBoxSetFlag;
       SpatialBoundingBox::Pointer  MeshingBox;
 
+      bool UseBoundingBox;
+      double BoundingBoxInitialTime;
+      double BoundingBoxFinalTime;
+      array_1d<double, 3> BoundingBoxLowerPoint ;
+      array_1d<double, 3> BoundingBoxUpperPoint ;
 
       void Set(Flags ThisFlag)
       {
@@ -876,6 +884,32 @@ public:
 	PreservedElements.resize(0);
       };
 
+
+      void SetUseBoundingBox(bool rUseBoundingBox)
+      {
+      UseBoundingBox= rUseBoundingBox;
+      };
+      
+      void SetBoundingBoxLowerPoint(double rBoundingBoxLowerPointX, double rBoundingBoxLowerPointY, double rBoundingBoxLowerPointZ)
+      {
+      BoundingBoxLowerPoint[0]= rBoundingBoxLowerPointX;
+      BoundingBoxLowerPoint[1]= rBoundingBoxLowerPointY;
+      BoundingBoxLowerPoint[2]= rBoundingBoxLowerPointZ;
+      };  
+
+      void SetBoundingBoxUpperPoint(double rBoundingBoxUpperPointX, double rBoundingBoxUpperPointY, double rBoundingBoxUpperPointZ)
+      {
+      BoundingBoxUpperPoint[0]= rBoundingBoxUpperPointX;
+      BoundingBoxUpperPoint[1]= rBoundingBoxUpperPointY;
+      BoundingBoxUpperPoint[2]= rBoundingBoxUpperPointZ;
+      };
+
+      void SetBoundingBoxTimeInterval(double rBoundingBoxInitialTime, double rBoundingBoxFinalTime)
+      {
+      BoundingBoxInitialTime= rBoundingBoxInitialTime;
+      BoundingBoxFinalTime= rBoundingBoxFinalTime;
+      };
+
     };
 
 
@@ -900,9 +934,13 @@ public:
     ///@name Operations
     ///@{
 
+    void SetModelPartNameToElements (ModelPart& rModelPart);
+
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
+
+    void SetFlagsToNodes (ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags);
 
     double ComputeModelPartVolume (ModelPart& rModelPart);
 
@@ -910,6 +948,8 @@ public:
     //*******************************************************************************************
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
+
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 

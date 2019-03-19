@@ -43,11 +43,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-//#include "utilities/math_utils.h"
-//#include "custom_utilities/sd_math_utils.h"
+#include <cmath>
+#include "utilities/math_utils.h"
 #include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/isotropic_rankine_yield_function.h"
-#include <cmath>
 
 
 
@@ -377,7 +376,6 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
 
     unsigned int iter    = 0;
     unsigned int max     = 1000;
-//    int singular         = 0;
     const double E       = (*mprops)[YOUNG_MODULUS];
     const double NU      = (*mprops)[POISSON_RATIO];
     const double G       = 0.5*E / (1.00 + NU);
@@ -398,10 +396,11 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
     Matrix d_inv;
     d_inv.resize(2,2,false);
     noalias(d_inv)= ZeroMatrix(2,2);
+    double detd;
     Vector residual      = ZeroVector(2);
     delta_lamda          = ZeroVector(2);
-    d.resize(2,2);
-    d_inv.resize(2,2);
+    d.resize(2,2, false );
+    d_inv.resize(2,2, false );
     Vector Imput_Parameters(4);
     Imput_Parameters    =  ZeroVector(4);
     Imput_Parameters[0] =  mhe;
@@ -429,7 +428,7 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
         d(1,0) =  2.00 * G / 3.00 - K  - H*Partial_Ep_gama_a;
         d(1,1)   = -4.00 * G / 3.00 - K  - H*Partial_Ep_gama_b;
 
-//        singular      =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         delta_lamda   =  delta_lamda - Vector(prod(d_inv, residual));
         delta_lamda_a =  delta_lamda[0];
         delta_lamda_b =  delta_lamda[1];
@@ -547,7 +546,6 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
 
     unsigned int iter    = 0;
     unsigned int max     = 10;
-//    int singular         = 0;
     double norma         = 1.00;
     double delta_lamda_a = 0.00;
     double delta_lamda_b = 0.00;
@@ -564,6 +562,7 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
     Matrix d_inv;
     d_inv.resize(3,3,false);
     noalias(d_inv)= ZeroMatrix(3,3);
+    double detd;
     Vector residual      = ZeroVector(3);
     delta_lamda          = ZeroVector(3);
 
@@ -590,8 +589,8 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
 
 
 
-    d.resize(3,3);
-    d_inv.resize(3,3);
+    d.resize(3,3, false );
+    d_inv.resize(3,3, false );
     const double raiz2d3    = 0.8164958092773;
     const double d3         = 0.3333333333333333;
     double Ppvs = 0.00;                            /// principal plastic volumetric strain
@@ -620,7 +619,7 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
         d(2,1)  =  2.00 * G / 3.00 - K - prod_H_b;
         d(2,2)   =  -4.00 * G / 3.00 - K  - prod_H_c;
 
-//        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual));
 
 
@@ -800,12 +799,12 @@ void Isotropic_Rankine_Yield_Function::GetValue(const Variable<Vector>& rVariabl
     const int size = mplastic_strain.size();
     if(rVariable==ALMANSI_PLASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false );
         noalias(Result) = mplastic_strain;
     }
     if(rVariable==ALMANSI_ELASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false );
         noalias(Result) = mElastic_strain ;
     }
 }

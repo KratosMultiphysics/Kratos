@@ -20,10 +20,11 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-//Utilities
-#include "custom_utilities/tree_contact_search.h"
+// Utilities
 #include "custom_utilities/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/active_set_utilities.h"
+#include "custom_utilities/interface_preprocess.h"
 
 namespace Kratos
 {
@@ -33,73 +34,6 @@ namespace py = pybind11;
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    // Tree contact search
-    py::class_<TreeContactSearch<2, 2>, typename TreeContactSearch<2, 2>::Pointer>(m, "TreeContactSearch2D2N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def("InitializeMortarConditions",&TreeContactSearch<2, 2>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&TreeContactSearch<2, 2>::ClearMortarConditions)
-    .def("CheckContactModelParts",&TreeContactSearch<2, 2>::CheckContactModelParts)
-    .def("CreatePointListMortar",&TreeContactSearch<2, 2>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch<2, 2>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&TreeContactSearch<2, 2>::UpdateMortarConditions)
-    .def("ResetContactOperators",&TreeContactSearch<2, 2>::ResetContactOperators)
-    .def("CheckMortarConditions",&TreeContactSearch<2, 2>::CheckMortarConditions)
-    .def("InvertSearch",&TreeContactSearch<2, 2>::InvertSearch)
-    ;
-    py::class_<TreeContactSearch<3, 3>, typename TreeContactSearch<3, 3>::Pointer>(m, "TreeContactSearch3D3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def("InitializeMortarConditions",&TreeContactSearch<3, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&TreeContactSearch<3, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&TreeContactSearch<3, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&TreeContactSearch<3, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch<3, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&TreeContactSearch<3, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&TreeContactSearch<3, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&TreeContactSearch<3, 3>::CheckMortarConditions)
-    .def("InvertSearch",&TreeContactSearch<3, 3>::InvertSearch)
-    ;
-    py::class_<TreeContactSearch<3, 4>, typename TreeContactSearch<3, 4>::Pointer>(m, "TreeContactSearch3D4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def("InitializeMortarConditions",&TreeContactSearch<3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&TreeContactSearch<3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&TreeContactSearch<3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&TreeContactSearch<3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch<3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&TreeContactSearch<3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&TreeContactSearch<3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
-    ;
-    py::class_<TreeContactSearch<3, 3, 4>, typename TreeContactSearch<3, 3, 4>::Pointer>(m, "TreeContactSearch3D3N4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def("InitializeMortarConditions",&TreeContactSearch<3, 3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&TreeContactSearch<3, 3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&TreeContactSearch<3, 3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&TreeContactSearch<3, 3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch<3, 3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&TreeContactSearch<3, 3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&TreeContactSearch<3, 3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&TreeContactSearch<3, 3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&TreeContactSearch<3, 3, 4>::InvertSearch)
-    ;
-    py::class_<TreeContactSearch<3, 4, 3>, typename TreeContactSearch<3, 4, 3>::Pointer>(m, "TreeContactSearch3D4N3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def("InitializeMortarConditions",&TreeContactSearch<3, 4, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&TreeContactSearch<3, 4, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&TreeContactSearch<3, 4, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&TreeContactSearch<3, 4, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch<3, 4, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&TreeContactSearch<3, 4, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&TreeContactSearch<3, 4, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&TreeContactSearch<3, 4, 3>::CheckMortarConditions)
-    .def("InvertSearch",&TreeContactSearch<3, 4, 3>::InvertSearch)
-    ;
-
     // Process Factory utility
     py::class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
     .def(py::init<>())
@@ -127,6 +61,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CalculateMaxNodalH",&ContactUtilities::CalculateMaxNodalH)
     .def("CalculateMeanNodalH",&ContactUtilities::CalculateMeanNodalH)
     .def("CalculateMinimalNodalH",&ContactUtilities::CalculateMinimalNodalH)
+    .def("CheckActivity",&ContactUtilities::CheckActivity)
+    .def("ComputeExplicitContributionConditions",&ContactUtilities::ComputeExplicitContributionConditions)
+    .def("ActivateConditionWithActiveNodes",&ContactUtilities::ActivateConditionWithActiveNodes)
+    ;
+
+    // Active set utilities
+    py::class_<ActiveSetUtilities, typename ActiveSetUtilities::Pointer>(m, "ActiveSetUtilities")
+    .def(py::init<>())
+    .def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet)
+    .def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet)
+    ;
+
+    // Interface preprocess
+    py::class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")
+    .def(py::init<ModelPart&>())
+    .def("GenerateInterfacePart",&InterfacePreprocessCondition::GenerateInterfacePart)
     ;
 }
 

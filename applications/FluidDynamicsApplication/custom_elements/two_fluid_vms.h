@@ -105,7 +105,6 @@ public:
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -430,7 +429,7 @@ KRATOS_WATCH(Ngauss);  */
                         for (unsigned int k = 0; k < TDim; k++)
                         {
                             double convection_stab = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
-                            double darcy_stab = wGauss * TauOne * enriched_grad(enriched_id,k) * DarcyTerm * N[enriched_id];
+                            double darcy_stab = wGauss * TauOne * enriched_grad(enriched_id,k) * DarcyTerm * N[inode];
 
                             //                      enrichment_terms_vertical[base_index + k] += velocity_stab + wGauss*N[inode]*enriched_grad(0, k);
                             enrichment_terms_vertical(base_index + k,enriched_id) += convection_stab - darcy_stab - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);

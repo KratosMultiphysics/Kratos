@@ -35,4 +35,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ConstitutiveLawsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ConstitutiveLawsApplication.py" DESTINATION "KratosMultiphysics/ConstitutiveLawsApplication" RENAME "__init__.py")

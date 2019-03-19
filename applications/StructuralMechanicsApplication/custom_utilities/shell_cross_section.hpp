@@ -341,6 +341,8 @@ public:
             , mConstitutiveLaw(pMaterial)
         {}
 
+        virtual ~IntegrationPoint() {};
+
         IntegrationPoint(const IntegrationPoint& other)
             : mWeight(other.mWeight)
             , mLocation(other.mLocation)
@@ -441,6 +443,8 @@ public:
             : mPlyIndex(other.mPlyIndex)
             , mIntegrationPoints(other.mIntegrationPoints)
         {}
+
+        virtual ~Ply() {}
 
         Ply & operator = (const Ply & other)
         {

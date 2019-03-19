@@ -27,6 +27,10 @@
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
 
+// Outputs
+#include "input_output/vtk_output.h"
+#include "input_output/unv_output.h"
+
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
 #endif
@@ -74,13 +78,19 @@ void FlagsPrintOnGaussPoints( GidIO<>& dummy, Kratos::Flags rFlag, std::string r
     dummy.PrintFlagsOnGaussPoints( rFlag, rFlagName, rModelPart, SolutionTag );
 }
 
-void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+void BoolPrintOnGaussPoints( GidIO<>& dummy, const Variable<bool>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void IntPrintOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
+}
+
+void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
@@ -136,6 +146,8 @@ void (GidIO<>::*pointer_to_flags_write_nodal_results_NH)( Kratos::Flags rFlag, s
 void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag)
 	= &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
+        = &GidIO<>::WriteNodalResultsNonHistorical;
+void (GidIO<>::*pointer_to_int_write_nodal_results_NH)( Variable<int> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag)
         = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_vector_write_nodal_results_NH)(Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag)
@@ -245,6 +257,7 @@ void  AddIOToPython(pybind11::module& m)
     .def("WriteNodalFlags",pointer_to_flags_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_double_write_nodal_results_NH)
+    .def("WriteNodalResultsNonHistorical",pointer_to_int_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_array1d_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_vector_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_matrix_write_nodal_results_NH)
@@ -252,8 +265,9 @@ void  AddIOToPython(pybind11::module& m)
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
     .def("PrintFlagsOnGaussPoints", FlagsPrintOnGaussPoints)
-    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
+    .def("PrintOnGaussPoints", BoolPrintOnGaussPoints)
     .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
+    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
@@ -292,6 +306,22 @@ void  AddIOToPython(pybind11::module& m)
     .value("SingleFile",SingleFile)
     .value("MultipleFiles",MultipleFiles)
     ;
+
+
+    py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
+        .def(py::init< ModelPart&, Parameters >())
+        .def("PrintOutput", &VtkOutput::PrintOutput)
+        ;
+
+    py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
+        .def(py::init<ModelPart&, const std::string &>())
+        .def("InitializeMesh", &UnvOutput::InitializeOutputFile)
+        .def("WriteMesh", &UnvOutput::WriteMesh)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<bool>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<int>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
+        .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
+        ;
 }
 }  // namespace Python.
 

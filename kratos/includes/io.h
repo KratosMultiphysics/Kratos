@@ -48,6 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+
 /**
  * @class IO
  * @ingroup KratosCore
@@ -212,10 +213,15 @@ public:
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
-    
+
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void WriteNodeMesh( MeshType& rThisMesh )
+    {
+        KRATOS_ERROR <<  "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)

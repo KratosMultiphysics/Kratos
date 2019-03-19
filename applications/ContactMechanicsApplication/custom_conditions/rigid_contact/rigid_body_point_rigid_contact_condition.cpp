@@ -296,7 +296,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
 
     KRATOS_TRY
 
-    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+    NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
@@ -304,19 +304,17 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
     double distance = 0;
     double counter = 0;
 
-    for(unsigned int i = 0; i < rN.size(); i++)
-      {
-	if(rN[i].Is(BOUNDARY)){
+    for(auto& i_nnode : nNodes)
+    {
+      if(i_nnode.Is(BOUNDARY)){
 
-	  Neighb_Point[0] = rN[i].X();
-	  Neighb_Point[1] = rN[i].Y();
-	  Neighb_Point[2] = rN[i].Z();
+        Neighb_Point = i_nnode.Coordinates();
 
-	  distance += norm_2(Contact_Point-Neighb_Point);
+        distance += norm_2(Contact_Point-Neighb_Point);
 
-	  counter ++;
-	}
+        counter ++;
       }
+    }
 
     if( counter != 0 )
       distance /= counter;

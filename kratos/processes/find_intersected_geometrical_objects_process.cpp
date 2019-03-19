@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Davand
 //
@@ -25,228 +25,231 @@
 namespace Kratos
 {
 
-	FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2)
-		: mrModelPart1(rPart1), mrModelPart2(rPart2)
-	{
-	}
+    FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2)
+        : mrModelPart1(rPart1), mrModelPart2(rPart2)
+    {
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::Initialize()
-	{
-		GenerateOctree();
-	}
+    void FindIntersectedGeometricalObjectsProcess::Initialize()
+    {
+        GenerateOctree();
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
-	{
-		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
-		auto& r_elements = mrModelPart1.ElementsArray();
-		std::vector<OctreeType::cell_type*> leaves;
+    void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+    {
+        const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
+        auto& r_elements = mrModelPart1.ElementsArray();
+        std::vector<OctreeType::cell_type*> leaves;
 
-		rResults.resize(number_of_elements);
-		for (std::size_t i = 0; i < number_of_elements; i++) {
-			auto p_element_1 = r_elements[i];
-			leaves.clear();
-			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
-		}
-	}
+        rResults.resize(number_of_elements);
+        for (std::size_t i = 0; i < number_of_elements; i++) {
+            auto p_element_1 = r_elements[i];
+            leaves.clear();
+            mOctree.GetIntersectedLeaves(p_element_1, leaves);
+            FindIntersectedSkinObjects(*p_element_1, leaves, rResults[i]);
+        }
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::FindIntersections()
-	{
-		this->FindIntersectedSkinObjects(mIntersectedObjects);
-	}
+    void FindIntersectedGeometricalObjectsProcess::FindIntersections()
+    {
+        this->FindIntersectedSkinObjects(mIntersectedObjects);
+    }
 
-	std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess::GetIntersections()
-	{
-		return mIntersectedObjects;
-	}
+    std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess::GetIntersections()
+    {
+        return mIntersectedObjects;
+    }
 
-	ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1()
-	{
-		return mrModelPart1;
-	}
+    ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart1()
+    {
+        return mrModelPart1;
+    }
 
-	OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
-	{
-		return &mOctree;
-	}
+    OctreeBinary<OctreeBinaryCell<Internals::DistanceSpatialContainersConfigure>>* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
+    {
+        return &mOctree;
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::Clear()
-	{
-		mIntersectedObjects.clear();
-	}
+    void FindIntersectedGeometricalObjectsProcess::Clear()
+    {
+        mIntersectedObjects.clear();
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::Execute()
-	{
-		GenerateOctree();
+    void FindIntersectedGeometricalObjectsProcess::Execute()
+    {
+        GenerateOctree();
 
-		std::vector<OctreeType::cell_type*> leaves;
-		const int number_of_elements = mrModelPart1.NumberOfElements();
+        std::vector<OctreeType::cell_type*> leaves;
+        const int number_of_elements = mrModelPart1.NumberOfElements();
 
-		#pragma omp parallel for private(leaves)
-		for (int i = 0; i < number_of_elements; i++)
-		{
-			auto p_element_1 = mrModelPart1.ElementsBegin() + i;
-			leaves.clear();
-			mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
-			MarkIfIntersected(**(p_element_1.base()), leaves);
-		}
-	}
+        #pragma omp parallel for private(leaves)
+        for (int i = 0; i < number_of_elements; i++)
+        {
+            auto p_element_1 = mrModelPart1.ElementsBegin() + i;
+            leaves.clear();
+            mOctree.GetIntersectedLeaves(*(p_element_1.base()), leaves);
+            MarkIfIntersected(**(p_element_1.base()), leaves);
+        }
+    }
 
-	/// Turn back information as a string.
-	std::string FindIntersectedGeometricalObjectsProcess::Info() const {
-		return "FindIntersectedGeometricalObjectsProcess";
-	}
+    /// Turn back information as a string.
+    std::string FindIntersectedGeometricalObjectsProcess::Info() const {
+        return "FindIntersectedGeometricalObjectsProcess";
+    }
 
-	/// Print information about this object.
-	void FindIntersectedGeometricalObjectsProcess::PrintInfo(std::ostream& rOStream) const {
-		rOStream << Info();
-	}
+    /// Print information about this object.
+    void FindIntersectedGeometricalObjectsProcess::PrintInfo(std::ostream& rOStream) const {
+        rOStream << Info();
+    }
 
-	/// Print object's data.
-	void FindIntersectedGeometricalObjectsProcess::PrintData(std::ostream& rOStream) const {
+    /// Print object's data.
+    void FindIntersectedGeometricalObjectsProcess::PrintData(std::ostream& rOStream) const {
 
-	}
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
-		this->SetOctreeBoundingBox();
+    void FindIntersectedGeometricalObjectsProcess::GenerateOctree() {
+        this->SetOctreeBoundingBox();
 
-		// Adding mrModelPart2 to the octree
-		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+        // Adding mrModelPart2 to the octree
+        for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
-			mOctree.Insert(i_node->Coordinates().data());
+            mOctree.Insert(i_node->Coordinates().data());
 
 #else
-			mOctree.Insert(i_node->Coordinates().data().data());
+            mOctree.Insert(i_node->Coordinates().data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
-		}
+        }
 
-		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
-			mOctree.Insert(*(i_element).base());
-		}
-	}
+        for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
+            mOctree.Insert(*(i_element).base());
+        }
+    }
 
-	void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox() {
-		Point low(mrModelPart1.NodesBegin()->Coordinates());
-		Point high(mrModelPart1.NodesBegin()->Coordinates());
+    void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox() {
+        Point low(mrModelPart1.NodesBegin()->Coordinates());
+        Point high(mrModelPart1.NodesBegin()->Coordinates());
 
-		// loop over all nodes in first modelpart
-		for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
-			const array_1d<double,3> &r_coordinates = i_node->Coordinates();
-			for (int i = 0; i < 3; i++) {
-				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
-				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
-			}
-		}
+        // loop over all nodes in first modelpart
+        for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
+            const array_1d<double,3> &r_coordinates = i_node->Coordinates();
+            for (int i = 0; i < 3; i++) {
+                low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
+            }
+        }
 
-		// loop over all skin nodes
-		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
-			const array_1d<double,3>& r_coordinates = i_node->Coordinates();
-			for (int i = 0; i < 3; i++) {
-				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
-				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
-			}
-		}
+        // loop over all skin nodes
+        for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
+            for (int i = 0; i < 3; i++) {
+                low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
+            }
+        }
 
-    for(int i = 0 ; i < 3; i++){
-			low[i] -= std::numeric_limits<double>::epsilon();
-			high[i] += std::numeric_limits<double>::epsilon();
-		}
+        // Slightly increase the bounding box size to avoid problems with geometries in the borders
+        // Note that std::numeric_limits<double>::double() is added for the 2D cases. Otherwise, the
+        // third component will be 0, breaking the octree behaviour.
+            for(int i = 0 ; i < 3; i++) {
+            low[i] -= std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
+            high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
+        }
 
 
-		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
+        // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
-	mOctree.SetBoundingBox(low.data(), high.data());
+    mOctree.SetBoundingBox(low.data(), high.data());
 #else
-	mOctree.SetBoundingBox(low.data().data(), high.data().data());
+    mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
-	
-	}
 
-	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
-		for (auto p_leaf : leaves) {
-			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-				if (HasIntersection(rElement1.GetGeometry(),p_element_2->GetGeometry())) {
-					rElement1.Set(SELECTED);
-					return;
-				}
-			}
-		}
-	}
+    }
 
-	bool FindIntersectedGeometricalObjectsProcess::HasIntersection2D(
-		Element::GeometryType& rFirstGeometry,
-		Element::GeometryType& rSecondGeometry)
-	{
-		// Check the intersection of each edge against the intersecting object
-		auto edges = rFirstGeometry.Edges();
-		Point int_pt(0.0,0.0,0.0);
-		for (auto& edge : edges) {
-        	const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Node<3>>>(
-				edge, 
-				rSecondGeometry[0].Coordinates(), 
-				rSecondGeometry[1].Coordinates(), 
-				int_pt.Coordinates());
+    void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
+        for (auto p_leaf : leaves) {
+            for (auto p_element_2 : *(p_leaf->pGetObjects())) {
+                if (HasIntersection(rElement1.GetGeometry(),p_element_2->GetGeometry())) {
+                    rElement1.Set(SELECTED);
+                    return;
+                }
+            }
+        }
+    }
 
-			if (int_id != 0){
-				return true;
-			}
-		}
+    bool FindIntersectedGeometricalObjectsProcess::HasIntersection2D(
+        Element::GeometryType& rFirstGeometry,
+        Element::GeometryType& rSecondGeometry)
+    {
+        // Check the intersection of each edge against the intersecting object
+        auto edges = rFirstGeometry.Edges();
+        Point int_pt(0.0,0.0,0.0);
+        for (auto& edge : edges) {
+            const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Node<3>>>(
+                Line2D2<Node<3>>{edge},
+                rSecondGeometry[0].Coordinates(),
+                rSecondGeometry[1].Coordinates(),
+                int_pt.Coordinates());
 
-		// Let check second geometry is inside the first one.
-		// Considering that there are no intersection, if one point is inside all of it is inside.
-		array_1d<double, 3> local_point;
-		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-			return true;
-		}
+            if (int_id != 0){
+                return true;
+            }
+        }
 
-		return false;
-	}
+        // Let check second geometry is inside the first one.
+        // Considering that there are no intersection, if one point is inside all of it is inside.
+        array_1d<double, 3> local_point;
+        if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+            return true;
+        }
 
-	bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
-		Element::GeometryType& rFirstGeometry,
-		Element::GeometryType& rSecondGeometry)
-	{
-		// Check the intersection of each face against the intersecting object
-		auto faces = rFirstGeometry.Faces();
-		for (auto& face : faces) {
-			if (face.HasIntersection(rSecondGeometry)){
-				return true;
-			}
-		}
+        return false;
+    }
 
-		// Let check second geometry is inside the first one.
-		// Considering that there are no intersection, if one point is inside all of it is inside.
-		array_1d<double, 3> local_point;
-		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
-			return true;
-		}
+    bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
+        Element::GeometryType& rFirstGeometry,
+        Element::GeometryType& rSecondGeometry)
+    {
+        // Check the intersection of each face against the intersecting object
+        auto faces = rFirstGeometry.Faces();
+        for (auto& face : faces) {
+            if (face.HasIntersection(rSecondGeometry)){
+                return true;
+            }
+        }
 
-		return false;
-	}
+        // Let check second geometry is inside the first one.
+        // Considering that there are no intersection, if one point is inside all of it is inside.
+        array_1d<double, 3> local_point;
+        if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+            return true;
+        }
 
-	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
-		Element::GeometryType &rFirstGeometry,
-		Element::GeometryType &rSecondGeometry)
-	{
-		const auto work_dim = rFirstGeometry.WorkingSpaceDimension();
-		if (work_dim == 2){
-			return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
-		} else {
-			return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
-		}
-	}
+        return false;
+    }
 
-	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults) {
-		for (auto p_leaf : leaves) {
-			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
-					rElement1.Set(SELECTED);
-					if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_element_2) == rResults.ptr_end())
-						rResults.push_back(p_element_2);
-				}
-			}
-		}
+    bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
+        Element::GeometryType &rFirstGeometry,
+        Element::GeometryType &rSecondGeometry)
+    {
+        const auto work_dim = rFirstGeometry.WorkingSpaceDimension();
+        if (work_dim == 2){
+            return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
+        } else {
+            return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
+        }
+    }
 
-	}
+    void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults) {
+        for (auto p_leaf : leaves) {
+            for (auto p_element_2 : *(p_leaf->pGetObjects())) {
+                if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
+                    rElement1.Set(SELECTED);
+                    if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_element_2) == rResults.ptr_end())
+                        rResults.push_back(p_element_2);
+                }
+            }
+        }
+
+    }
 
 }  // namespace Kratos.

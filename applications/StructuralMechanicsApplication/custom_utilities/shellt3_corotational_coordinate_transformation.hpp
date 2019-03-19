@@ -110,7 +110,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    void InitializeSolutionStep() override
     {
         for(int i = 0; i < 3; i++)
         {
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    void FinalizeSolutionStep() override
     {
         for(int i = 0; i < 3; i++)
         {
@@ -128,11 +128,7 @@ public:
         }
     }
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
-    {
-    }
-
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+    void FinalizeNonLinearIteration() override
     {
         const GeometryType & geom = GetGeometry();
         Vector3Type incrementalRotation;
@@ -341,7 +337,7 @@ public:
             const Vector& globalDisplacements,
             size_t nodeid) override
     {
-        if(nodeid>2) return IdentityMatrix(3,3);
+        if(nodeid>2) return IdentityMatrix(3);
 
         QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -590,7 +586,7 @@ private:
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
         rSerializer.load("init", mInitialized);
         rSerializer.load("Q0", mQ0);
         rSerializer.load("C0", mC0);

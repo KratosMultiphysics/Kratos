@@ -68,7 +68,7 @@ namespace Kratos {
 
             // Set the element properties
             Newtonian2DLaw::Pointer p_cons_law(new Newtonian2DLaw());
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
             p_elem_prop->SetValue(DENSITY, 1.0e+00);
             p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 3.0e-02);
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
@@ -153,10 +153,10 @@ namespace Kratos {
             // Set the reaction values manually. Note that the body fitted drag utilities assume
             // that the REACTION has been already computed. Since this is assumed to be done by
             // the builder and solver, which is out of the scope of this test, we do it manually.
-            model_part.GetNode(1).GetDof(VELOCITY_X).GetSolutionStepReactionValue() = 5.0;
-            model_part.GetNode(1).GetDof(VELOCITY_Y).GetSolutionStepReactionValue() = 10.0;
-            model_part.GetNode(2).GetDof(VELOCITY_X).GetSolutionStepReactionValue() = -20.0;
-            model_part.GetNode(2).GetDof(VELOCITY_Y).GetSolutionStepReactionValue() = -40.0;
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_X) = 5.0;
+            model_part.GetNode(1).FastGetSolutionStepValue(REACTION_Y) = 10.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_X) = -20.0;
+            model_part.GetNode(2).FastGetSolutionStepValue(REACTION_Y) = -40.0;
 
             // Call the body fitted drag utility
             DragUtilities drag_utilities;

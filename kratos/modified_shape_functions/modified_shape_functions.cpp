@@ -335,7 +335,7 @@ namespace Kratos
 
             // Compute the ouwards area normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                array_1d<double,3> aux_area_normal = r_interface_geom.AreaNormal(interface_gauss_pts[i_gauss].Coordinates());
+                array_1d<double,3> aux_area_normal = r_interface_geom.Normal(interface_gauss_pts[i_gauss].Coordinates());
                 rInterfaceAreaNormalValues.push_back(aux_area_normal);
             }
         }

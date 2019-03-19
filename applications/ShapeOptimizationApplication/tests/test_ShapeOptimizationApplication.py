@@ -5,29 +5,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# Import Kratos core and apps
-from KratosMultiphysics import *
-from KratosMultiphysics import ShapeOptimizationApplication
-from KratosMultiphysics import StructuralMechanicsApplication
-from KratosMultiphysics import ExternalSolversApplication
-
 # Import Kratos "wrapper" for unittests
+import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-# Import necessary external applications
-try:
-    from KratosMultiphysics import EigenSolversApplication
-    is_eigen_app_missing = False
-except ImportError as e:
-    print("WARNING: EigenSolversApplication is not available, skip related tests!")
-    is_eigen_app_missing = True
-
-try:
-    from KratosMultiphysics import MeshMovingApplication
-    is_mesh_moving_app_missing = False
-except ImportError as e:
-    print("WARNING: MeshMovingApplication is not available, skip related tests!")
-    is_mesh_moving_app_missing = True
 
 # ==============================================================================
 # Import the tests or test_classes to create the suits
@@ -43,6 +23,8 @@ from shape_optimization_test_factory import algorithm_steepest_descent_test as a
 from shape_optimization_test_factory import algorithm_penalized_projection_test as algorithm_penalized_projection_test
 from shape_optimization_test_factory import algorithm_trust_region_test as algorithm_trust_region_test
 from shape_optimization_test_factory import trust_region_projector_test as trust_region_projector_test
+from shape_optimization_test_factory import algorithm_bead_optimization_test as algorithm_bead_optimization_test
+from shape_optimization_test_factory import opt_process_step_adaption_test as opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test as mapper_test
 
 # Niglty tests
@@ -68,18 +50,18 @@ def AssembleTestSuites():
 
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
+    smallSuite.addTest(mapper_test('test_execution'))
     smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     smallSuite.addTest(opt_process_shell_test('test_execution'))
-    if not is_mesh_moving_app_missing:
-        smallSuite.addTest(opt_process_solid_test('test_execution'))
-    if not is_eigen_app_missing:
-        smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
-        smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
+    smallSuite.addTest(opt_process_solid_test('test_execution'))
+    smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+    smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
     smallSuite.addTest(algorithm_trust_region_test('test_execution'))
     smallSuite.addTest(trust_region_projector_test('test_execution'))
-    smallSuite.addTest(mapper_test('test_execution'))
+    smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
+    smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

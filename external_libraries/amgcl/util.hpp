@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <array>
 #include <string>
 #include <set>
 #include <complex>
@@ -58,10 +60,12 @@ THE SOFTWARE.
  * If AMGCL_PROFILING is undefined, then AMGCL_TIC and AMGCL_TOC are noop macros.
  */
 #ifdef AMGCL_PROFILING
-#  include <amgcl/profiler.hpp>
-#  define AMGCL_TIC(name) amgcl::prof.tic(name);
-#  define AMGCL_TOC(name) amgcl::prof.toc(name);
+#  if !defined(AMGCL_TIC) || !defined(AMGCL_TOC)
+#    include <amgcl/profiler.hpp>
+#    define AMGCL_TIC(name) amgcl::prof.tic(name);
+#    define AMGCL_TOC(name) amgcl::prof.toc(name);
 namespace amgcl { extern profiler<> prof; }
+#  endif
 #else
 #  ifndef AMGCL_TIC
 #    define AMGCL_TIC(name)
@@ -311,13 +315,26 @@ inline std::string human_readable_memory(size_t bytes) {
     static const char *suffix[] = {"B", "K", "M", "G", "T"};
 
     int i = 0;
-    double m = bytes;
-    for(; i < 4 && m >= 1024; ++i, m /= 1024);
+    double m = static_cast<double>(bytes);
+    for(; i < 4 && m >= 1024.0; ++i, m /= 1024.0);
 
     std::ostringstream s;
     s << std::fixed << std::setprecision(2) << m << " " << suffix[i];
     return s.str();
 }
+
+namespace detail {
+
+class non_copyable {
+    protected:
+        non_copyable() = default;
+        ~non_copyable() = default;
+
+        non_copyable(non_copyable const &) = delete;
+        void operator=(non_copyable const &x) = delete;
+};
+
+} // namespace detail
 
 } // namespace amgcl
 
