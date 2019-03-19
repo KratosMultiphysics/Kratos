@@ -1,21 +1,22 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from KratosMultiphysics.CoSimulationApplication.coupled_solvers.co_simulation_base_solver import CoSimulationBaseSolver
+from  . import co_simulation_base_solver
 
 # Other imports
 from KratosMultiphysics.CoSimulationApplication.predictors.co_simulation_predictor_factory import CreatePredictor
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cosim_tools
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
-class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
+class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):
         super(CoSimulationBaseCouplingSolver, self).__init__(cosim_solver_settings, level)
 
         self.solver_names = []
         self.solvers = {}
 
-        from . import python_solvers_wrapper_co_simulation as solvers_wrapper
+        ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
+        import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
 
         for solver_settings in self.cosim_solver_settings["coupling_loop"]:
             solver_name = solver_settings["name"]
@@ -23,7 +24,7 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
                 raise NameError('Solver name "' + solver_name + '" defined twice!')
             self.solver_names.append(solver_name)
             self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
-            self.solvers[solver_name] = solvers_wrapper.CreateSolver(
+            self.solvers[solver_name] = solver_factory.CreateSolverInterface(
                 self.cosim_solver_settings["solvers"][solver_name], self.lvl-1) # -1 to have solver prints on same lvl
 
         self.cosim_solver_details = cosim_tools.GetSolverCoSimulationDetails(

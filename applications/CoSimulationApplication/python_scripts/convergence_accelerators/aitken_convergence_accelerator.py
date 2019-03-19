@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division
 # Date: Feb. 20, 2017
 
 # Importing the base class
-from . import co_simulation_base_convergence_accelerator
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 
 # Other imports
 import numpy as np
@@ -19,7 +19,7 @@ def Create(settings, solvers, level):
 ## Class Aitken.
 # This class contains the implementation of Aitken relaxation and helper functions.
 # Reference: Ulrich Küttler et al., "Fixed-point fluid–structure interaction solvers with dynamic relaxation"
-class Aitken(co_simulation_base_convergence_accelerator.CoSimulationBaseConvergenceAccelerator):
+class Aitken(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step

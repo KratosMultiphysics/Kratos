@@ -33,10 +33,10 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosSolver]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSDoFSolver]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMDoFSolver]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEmpireSolver]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosSolver]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSDoFSolver]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMDoFSolver]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEmpireSolver]))
 
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))

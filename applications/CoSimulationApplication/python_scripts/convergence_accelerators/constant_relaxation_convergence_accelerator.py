@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the base class
-from . import co_simulation_base_convergence_accelerator
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 
 # Other imports
 import numpy as np
@@ -12,7 +12,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import class
 def Create(settings, solvers, cosim_solver_details, level):
     return ConstantRelaxation(settings, solvers, cosim_solver_details, level)
 
-class ConstantRelaxation(co_simulation_base_convergence_accelerator.CoSimulationBaseConvergenceAccelerator):
+class ConstantRelaxation(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param alpha relaxation factor.
     def __init__( self, settings, solvers, cosim_solver_details, level ):

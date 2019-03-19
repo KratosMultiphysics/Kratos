@@ -92,8 +92,8 @@ class CoSimulationAnalysis(object):
     def _CreateSolver(self):
         """Create the solver
         """
-        import KratosMultiphysics.CoSimulationApplication.coupled_solvers.python_solvers_wrapper_co_simulation as solvers_wrapper
-        return solvers_wrapper.CreateSolver(self.cosim_settings["solver_settings"], level=0)
+        import KratosMultiphysics.CoSimulationApplication.coupled_solvers.co_simulation_coupled_solver_factory as solvers_wrapper
+        return solvers_wrapper.CreateCoupledSolver(self.cosim_settings["solver_settings"], level=0)
 
 if __name__ == '__main__':
     from sys import argv

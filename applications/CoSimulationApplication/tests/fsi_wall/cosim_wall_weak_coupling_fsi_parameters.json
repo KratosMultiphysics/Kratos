@@ -8,7 +8,7 @@
     },
     "solver_settings" :
     {
-        "solver_type" : "gauss_seidel_weak_coupling",
+        "solver_type" : "gauss_seidel_weak",
         "echo_level" : 0,
         "start_coupling_time" : 0.0,
         "predictor_settings" :
