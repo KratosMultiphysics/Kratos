@@ -539,6 +539,12 @@ public:
     std::string GetString() const;
 
     /**
+     * @brief This method returns the array of strings in the current Parameter
+     * @return The array of strings
+     */
+    std::vector<std::string> GetStringArray() const;
+
+    /**
      * @brief This method returns the vector contained in the current Parameter
      * @return The vector value
      */

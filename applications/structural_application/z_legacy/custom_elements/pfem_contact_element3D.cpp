@@ -117,7 +117,7 @@ KRATOS_CATCH("");
                                            bool CalculateResidualVectorFlag)
         {
 		KRATOS_TRY
-		boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+		BoundedMatrix<double, 4, 3 > DN_DX;
 		array_1d<double,4> N;
 
 		const unsigned int number_of_nodes = GetGeometry().size();
@@ -254,7 +254,7 @@ KRATOS_WATCH(n);*/
 				    
 				    if (numb_other_ext_faces == 1) //in this case i have a reference face
 				    {
-					    boost::numeric::ublas::bounded_matrix<double, 4, 3 > otherDN_DX;
+					    BoundedMatrix<double, 4, 3 > otherDN_DX;
 					    array_1d<double,4> otherN;
 					    double othervol;
 					    GeometryUtils::CalculateGeometryData(other_geom,otherDN_DX,otherN,othervol);
@@ -304,7 +304,7 @@ KRATOS_WATCH(n);*/
 // 	      int green = 0;
 // 	      int red = 0;
 // 
-// 		boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points;
+// 		BoundedMatrix<double, 4, 3 > ordered_points;
 //               double flag;
 // 		  for(int ii = 0; ii<4; ++ii){
 // 			flag = geom[ii].FastGetSolutionStepValue(FLAG_VARIABLE);
@@ -429,9 +429,9 @@ KRATOS_WATCH(n);*/
 				const double c2 = c1 * (1.0-NU);
 				const double c3 = c1 * NU;
 				const double c4 = c1 * 0.5 * (1.0 - 2.0*NU);
-				boost::numeric::ublas::bounded_matrix<double, 6, 6 > C;
-				boost::numeric::ublas::bounded_matrix<double, 6, 12 > B;
-				boost::numeric::ublas::bounded_matrix<double, 6, 12 > aux;
+				BoundedMatrix<double, 6, 6 > C;
+				BoundedMatrix<double, 6, 12 > B;
+				BoundedMatrix<double, 6, 12 > aux;
 
 				//filling material matrix
 				C(0,0) = c2;    C(0,1) = c3;    C(0,2) = c3;    C(0,3) = 0.0;   C(0,4) = 0.0;   C(0,5) = 0.0;
@@ -627,7 +627,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-		boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+		BoundedMatrix<double, 4, 3 > DN_DX;
 		array_1d<double,4> N;
 
 		
@@ -755,7 +755,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 							    bool image_inside)
 	{
 	    
-	    boost::numeric::ublas::bounded_matrix<double, 3, 3 > triangle = ZeroMatrix(3, 3);
+	    BoundedMatrix<double, 3, 3 > triangle = ZeroMatrix(3, 3);
 	    array_1d<double,3> check_point, edge;
 	    check_point(0) = geom[reference_face].X();
 	    check_point(1) = geom[reference_face].Y();
@@ -844,7 +844,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
       	  void PfemContactElement3D::CalculateOldIterationContactHeight(double& H_zero, const int reference_face)
 	  {
 	    Geometry< Node<3> >& geom = GetGeometry();
-	    boost::numeric::ublas::bounded_matrix<double, 3, 3 > triangle = ZeroMatrix(3, 3);
+	    BoundedMatrix<double, 3, 3 > triangle = ZeroMatrix(3, 3);
 	    array_1d<double,3> check_point;
 	    check_point(0) = geom[reference_face].X0();
 	    check_point(1) = geom[reference_face].Y0();
@@ -897,7 +897,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 	//***********************************************************************************
          void PfemContactElement3D::CalculateMinDistanceAndNormal(double& h,
 								  array_1d<double,3>& n,
-								  const boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points)
+								  const BoundedMatrix<double, 4, 3 > ordered_points)
 	{
 
 	    array_1d<double,3> u,v,w;
@@ -993,7 +993,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 	//************************************************************************************
 	//***********************************************************************************
          void PfemContactElement3D::DetectContact(Geometry< Node<3> >& geom, 
-		  boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+		  BoundedMatrix<double, 4, 3 > DN_DX, 
 		  const unsigned int single_node_index,
 		  array_1d<double,3>& n,
 		  double& h)
@@ -1107,7 +1107,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
       void PfemContactElement3D::CheckIsContactMaster(int& flag)
 	  {
 		    KRATOS_TRY
-		boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+		BoundedMatrix<double, 4, 3 > DN_DX;
 		array_1d<double,4> N;
 
 // 		const unsigned int number_of_nodes = GetGeometry().size();
@@ -1216,7 +1216,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 
 				    if (numb_other_ext_faces == 1) //in this case i have a reference face
 				    {
-					    boost::numeric::ublas::bounded_matrix<double, 4, 3 > otherDN_DX;
+					    BoundedMatrix<double, 4, 3 > otherDN_DX;
 					    array_1d<double,4> otherN;
 					    double othervol;
 					    GeometryUtils::CalculateGeometryData(other_geom,otherDN_DX,otherN,othervol);

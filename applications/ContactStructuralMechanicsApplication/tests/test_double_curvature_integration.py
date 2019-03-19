@@ -34,7 +34,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(ContactStructuralMechanicsApplication.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, ContactStructuralMechanicsApplication.WEIGHTED_GAP, self.main_model_part)
 
-        if (self.main_model_part.HasSubModelPart("Contact")):
+        if self.main_model_part.HasSubModelPart("Contact"):
             interface_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             interface_model_part = self.main_model_part.CreateSubModelPart("Contact")
@@ -43,11 +43,9 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
 
         for node in self.contact_model_part.Nodes:
             node.Set(KratosMultiphysics.SLAVE, False)
-        del(node)
         model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
         for node in model_part_slave.Nodes:
             node.Set(KratosMultiphysics.SLAVE, True)
-        del(node)
 
         for prop in self.main_model_part.GetProperties():
             prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = 3
@@ -60,15 +58,13 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
 
         interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.contact_model_part, interface_parameters)
+        Preprocess.GenerateInterfacePart(self.contact_model_part, interface_parameters)
 
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:
             interface_model_part.AddCondition(cond)
-        del(cond)
         for node in self.contact_model_part.Nodes:
             interface_model_part.AddNode(node, 0)
-        del(node)
 
         # We initialize the conditions
         alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.contact_model_part)
@@ -79,27 +75,22 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
             "search_factor"               : 3.5,
             "allocation_size"             : 1000,
             "check_gap"                   : "NoCheck",
-            "type_search"                 : "InRadius"
+            "type_search"                 : "InRadius",
+            "simple_search"               : false
         }
         """)
-        if (num_nodes == 3):
-            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D3N(self.main_model_part, search_parameters)
-        else:
-            contact_search = ContactStructuralMechanicsApplication.AdvancedContactSearch3D4N(self.main_model_part, search_parameters)
+        contact_search = ContactStructuralMechanicsApplication.ContactSearchProcess(self.main_model_part, search_parameters)
 
         # We initialize the search utility
-        contact_search.CreatePointListMortar()
-        contact_search.InitializeMortarConditions()
-        contact_search.UpdateMortarConditions()
+        contact_search.ExecuteInitialize()
+        contact_search.ExecuteInitializeSolutionStep()
 
         if (num_nodes == 3):
             ## DEBUG
-            #print(self.main_model_part)
             #self.__post_process()
             self.exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D3N(3)
         else:
             ## DEBUG
-            #print(self.main_model_part)
             #self.__post_process()
             self.exact_integration = KratosMultiphysics.ExactMortarIntegrationUtility3D4N(3)
 
@@ -107,12 +98,11 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
 
         self.__base_test_integration(input_filename, num_nodes)
 
-        #print("Solution obtained")
         tolerance = 5.0e-3
         for cond in self.contact_model_part.Conditions:
             if cond.Is(KratosMultiphysics.SLAVE):
                 to_test = (cond.Id in list_of_border_cond)
-                if (to_test == False):
+                if not to_test:
                     area = self.exact_integration.TestGetExactAreaIntegration(self.main_model_part, cond)
                     condition_area = cond.GetGeometry().Area()
                     check_value = abs((area - condition_area)/condition_area)
@@ -129,16 +119,12 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
             delta_disp = 1.0e-6
             for node in self.main_model_part.GetSubModelPart("GroupPositiveX").Nodes:
                 node.X += delta_disp
-            del(node)
             for node in self.main_model_part.GetSubModelPart("GroupPositiveY").Nodes:
                 node.Y += delta_disp
-            del(node)
             for node in self.main_model_part.GetSubModelPart("GroupNegativeX").Nodes:
                 node.X -= delta_disp
-            del(node)
             for node in self.main_model_part.GetSubModelPart("GroupNegativeY").Nodes:
                 node.Y -= delta_disp
-            del(node)
 
             #print("Solution obtained")
             tolerance = 5.0e-5
@@ -147,7 +133,7 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
                     area = self.exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
                     condition_area = cond.GetGeometry().Area()
                     check_value = abs((area - condition_area)/condition_area)
-                    if (check_value >  tolerance):
+                    if check_value >  tolerance:
                         print(cond.Id,"\t",area,"\t", condition_area,"\t", self.__sci_str(check_value))
                     else:
                         self.assertLess(check_value, tolerance)

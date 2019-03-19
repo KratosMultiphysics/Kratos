@@ -50,6 +50,7 @@ namespace Kratos
  * finite differencing  (adjoint semi analytic approach). It is designed to be used in adjoint
  * sensitivity analysis
  */
+template <typename TPrimalElement>
 class AdjointFiniteDifferencingBaseElement : public Element
 {
 public:
@@ -66,14 +67,33 @@ public:
 
     ///@name Life Cycle
     ///@{
-    AdjointFiniteDifferencingBaseElement() : Element()
-    {}
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
+                        bool HasRotationDofs = false)
+    : Element(NewId),
+      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGetGeometry())),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry),
+      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    ~AdjointFiniteDifferencingBaseElement() override;
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry, pProperties),
+      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
     ///@}
 
@@ -84,7 +104,21 @@ public:
     ///@name Operations
     ///@{
 
-    // Basic
+    Element::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, pGeometry, pProperties);
+    }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
@@ -298,7 +332,7 @@ public:
 					      std::vector<bool>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -309,28 +343,28 @@ public:
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,

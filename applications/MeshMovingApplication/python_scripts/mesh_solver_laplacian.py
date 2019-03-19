@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -23,7 +23,7 @@ class MeshSolverLaplacian(MeshSolverBase):
         else: # overwritting baseclass-default
             custom_settings.AddEmptyValue("buffer_size").SetInt(2)
         super(MeshSolverLaplacian, self).__init__(mesh_model_part, custom_settings)
-        print("::[MeshSolverLaplacian]:: Construction finished")
+        KM.Logger.PrintInfo("::[MeshSolverLaplacian]:: Construction finished")
 
     def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()

@@ -346,11 +346,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(mpTracedElement);
         std::string element_name;
-        CompareElementsAndConditionsUtility::GetRegisteredName(*(p_adjoint_element->pGetPrimalElement()), element_name);
+        CompareElementsAndConditionsUtility::GetRegisteredName(*mpTracedElement, element_name);
 
-        if(element_name == "CrLinearBeamElement3D2N" || element_name == "TrussLinearElement3D2N")
+        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N")
         {
             Vector particular_solution;
             // delivers particular solution of influence function in local coordinates

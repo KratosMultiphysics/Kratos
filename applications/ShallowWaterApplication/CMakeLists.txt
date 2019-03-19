@@ -20,6 +20,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 set(KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shallow_water_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 )
 
 ## define fluid dynamics test sources
