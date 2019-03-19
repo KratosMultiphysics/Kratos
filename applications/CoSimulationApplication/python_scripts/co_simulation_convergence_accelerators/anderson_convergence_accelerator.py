@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division
 # Date: Jul. 2018
 
 # Importing the base class
-from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from . import co_simulation_base_convergence_accelerator
 
 # Other imports
 import numpy as np
@@ -15,7 +15,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import class
 def Create(settings, solvers, cosim_solver_details, level):
     return Anderson(settings, solvers, cosim_solver_details, level)
 
-class Anderson(CoSimulationBaseConvergenceAccelerator):
+class Anderson(co_simulation_base_convergence_accelerator.CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param iteration_horizon number of values to be stored of last iterations.
     # @param alpha Relaxation factor for computing the update.

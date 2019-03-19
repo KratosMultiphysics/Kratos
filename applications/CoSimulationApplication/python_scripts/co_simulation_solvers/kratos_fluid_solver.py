@@ -2,23 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
-try:
-    import KratosMultiphysics.MeshMovingApplication
-    KratosMultiphysics.Logger.PrintInfo("MeshMovingApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("MeshMovingApplication", "not imported")
 
 # Importing the base class
-from kratos_base_field_solver import KratosBaseFieldSolver
+from . import kratos_base_field_solver
 
 # Other imports
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 def CreateSolver(cosim_solver_settings, level):
     return KratosFluidSolver(cosim_solver_settings, level)
 
-class KratosFluidSolver(KratosBaseFieldSolver):
+class KratosFluidSolver(kratos_base_field_solver.KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
         return FluidDynamicsAnalysis(self.model, self.project_parameters)
 

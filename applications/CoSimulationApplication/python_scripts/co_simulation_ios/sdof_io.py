@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Importing the base class
-from co_simulation_base_io import CoSimulationBaseIO
+from . import co_simulation_base_io
 
 # Other imports
 import numpy as np
@@ -10,7 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 def Create(solvers, solver_name, level):
     return SDoFIO(solvers, solver_name, level)
 
-class SDoFIO(CoSimulationBaseIO):
+class SDoFIO(co_simulation_base_io.CoSimulationBaseIO):
 
     def ImportData(self, data_settings, from_client):
         data_name = data_settings["data_name"]

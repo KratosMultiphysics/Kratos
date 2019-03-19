@@ -11,9 +11,11 @@ def CreateSolver(cosim_solver_settings, level):
     if (type(cosim_solver_settings) != dict):
         raise Exception("Input is expected to be provided as a python dictionary")
 
-    solver_module_name = cosim_solver_settings["solver_type"] + "_solver"
+    module_name = cosim_solver_settings["solver_type"]
+    module_full = "KratosMultiphysics.CoSimulationApplication.co_simulation_solvers."+module_name
+    module_full += "_solver"
+    solver_module = __import__(module_full,fromlist=[module_name])
 
-    solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(cosim_solver_settings, level+1)
     if not isinstance(solver, CoSimulationBaseSolver):
         err_msg  = 'The requested solver "' + solver_type

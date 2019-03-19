@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Importing the base class
-from co_simulation_base_predictor import CosimulationBasePredictor
+from . import co_simulation_base_predictor
 
 # Other imports
 import numpy as np
@@ -10,7 +10,7 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import class
 def Create(predictor_settings, solvers, level):
     return StandardLinearPredictor(predictor_settings, solvers, level)
 
-class StandardLinearPredictor(CosimulationBasePredictor):
+class StandardLinearPredictor(co_simulation_base_predictor.CosimulationBasePredictor):
     def __init__(self, settings, solvers, level):
         super(StandardLinearPredictor, self).__init__(settings, solvers, level)
         # TODO add comment why we do this

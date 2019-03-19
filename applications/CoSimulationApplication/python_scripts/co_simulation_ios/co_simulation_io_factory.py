@@ -6,7 +6,10 @@ def CreateIO(io_name, solvers, solver_name, level):
     Naming-Convention: The module-file has to end with "_io"
     """
 
-    io_module_name = io_name + "_io"
+    module_name = io_name
 
-    io_module = __import__(io_module_name)
+    module_full = "KratosMultiphysics.CoSimulationApplication.co_simulation_ios."+module_name
+    module_full += "_io"
+
+    io_module = __import__(module_full,fromlist=[module_name])
     return io_module.Create(solvers, solver_name, level)

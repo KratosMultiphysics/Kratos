@@ -15,7 +15,7 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
         self.solver_names = []
         self.solvers = {}
 
-        import python_solvers_wrapper_co_simulation as solvers_wrapper
+        from . import python_solvers_wrapper_co_simulation as solvers_wrapper
 
         for solver_settings in self.cosim_solver_settings["coupling_loop"]:
             solver_name = solver_settings["name"]

@@ -2,18 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Importing the base class
-from kratos_base_field_solver import KratosBaseFieldSolver
+from . import kratos_base_field_solver
 
 # Other imports
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 def CreateSolver(cosim_solver_settings, level):
     return KratosStructuralSolver(cosim_solver_settings, level)
 
-class KratosStructuralSolver(KratosBaseFieldSolver):
+class KratosStructuralSolver(kratos_base_field_solver.KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
         return StructuralMechanicsAnalysis(self.model, self.project_parameters)
 

@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division
 # Date: Feb. 20, 2017
 
 # Importing the base class
-from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+from . import co_simulation_base_convergence_accelerator
 
 # Other imports
 import numpy as np
@@ -19,7 +19,7 @@ def Create(settings, solvers, level):
 ## Class MVQN.
 # This class contains the implementation of the MVQN method and helper functions.
 # Reference: A.E.J. Bogaers et al. "Quasi-Newton methods for implicit black-box FSI coupling", Computational methods in applied mechanics and engineering. 279(2014) 113-132.
-class MVQN(CoSimulationBaseConvergenceAccelerator):
+class MVQN(co_simulation_base_convergence_accelerator.CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
