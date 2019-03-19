@@ -105,29 +105,28 @@ class ApplyChimeraProcessMonolithic : public Process
 	{
 		Parameters default_parameters(R"(
             {
-                "process_name":"chimera",
-                                "Chimera_levels" :  [
-													[{
-														"model_part_name":"GENERIC_background",
-														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
-		            					            }],
-				    								[{
-														"model_part_name":"GENERIC_patch_1_1",
-														"model_part_inside_boundary_name":"GENERIC_structure_1_1"
-		            						     	}],
-				    								[{
-														"model_part_name":"GENERIC_patch_2_1",
-														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
-		            						    	}]
-													],
-                                "overlap_distance":0.045
+               	"chimera"   :   [
+									[{
+										"model_part_name":"GENERIC_background",
+										"model_part_inside_boundary_name" :"GENERIC_domainboundary",
+										"overlap_distance":0.045
+									}],
+									[{
+										"model_part_name":"GENERIC_patch_1_1",
+										"model_part_inside_boundary_name":"GENERIC_structure_1_1",
+										"overlap_distance":0.045
+									}],
+									[{
+										"model_part_name":"GENERIC_patch_2_1",
+										"model_part_inside_boundary_name":"GENERIC_strcuture2_1",
+										"overlap_distance":0.045
+									}]
+								]
             })");
 		
-		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
-		NumberOfLevels = m_parameters["Chimera_levels"].size();
-
+		NumberOfLevels = m_parameters.size();
 		for (int i =0; i<NumberOfLevels ;i++)
-			LevelTable.push_back ( m_parameters["Chimera_levels"][i].size());
+			LevelTable.push_back ( m_parameters[i].size());
 
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
@@ -368,11 +367,19 @@ class ApplyChimeraProcessMonolithic : public Process
 				{
 					for(int patch_j= 0; patch_j < LevelTable[patch_i];patch_j++)
 					{
-						m_background_model_part_name  =  m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_name"].GetString();
-						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
-						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
-						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+						m_background_model_part_name  =  m_parameters[BG_i][BG_j]["model_part_name"].GetString();
+						m_domain_boundary_model_part_name = m_parameters[BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
+						m_patch_model_part_name       =  m_parameters[patch_i][patch_j]["model_part_name"].GetString();
+						m_patch_inside_boundary_model_part_name = m_parameters[patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
 						
+						double mesh_size_1 = m_parameters[BG_i][BG_j]["overlap_distance"].GetDouble();
+						double mesh_size_2 = m_parameters[patch_i][patch_j]["overlap_distance"].GetDouble();
+
+						if(mesh_size_1>mesh_size_2)
+							m_overlap_distance = mesh_size_1;
+						else
+							m_overlap_distance = mesh_size_2;
+							
 						KRATOS_INFO("Formulating Chimera for the combination \n background::") << m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
 
 						MainDomainOrNot = 1 ;

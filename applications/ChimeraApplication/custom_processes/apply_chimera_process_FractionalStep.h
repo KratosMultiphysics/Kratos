@@ -112,29 +112,28 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		Parameters default_parameters(R"(
             {
-                "process_name":"chimera",
-                                "Chimera_levels" : [
+                "chimera"           :      [
 													[{
 														"model_part_name":"GENERIC_background",
-														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
+														"model_part_inside_boundary_name" :"GENERIC_domainboundary",
+                                						"overlap_distance":0.045
 		            								}],
 				    								[{
 														"model_part_name":"GENERIC_patch_1_1",
-														"model_part_inside_boundary_name":"GENERIC_structure_1_1"
+														"model_part_inside_boundary_name":"GENERIC_structure_1_1",
+                                						"overlap_distance":0.045
 		            								}],
 				    								[{
 														"model_part_name":"GENERIC_patch_2_1",
-														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
+														"model_part_inside_boundary_name":"GENERIC_strcuture2_1",
+                                						"overlap_distance":0.045
 		            								}]
-													],
-                                "overlap_distance":0.045
+													]
             })");
-
-		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
-		NumberOfLevels = m_parameters["Chimera_levels"].size();
+		NumberOfLevels = m_parameters.size();
 
 		for (int i =0; i<NumberOfLevels ;i++)
-			LevelTable.push_back ( m_parameters["Chimera_levels"][i].size());
+			LevelTable.push_back ( m_parameters[i].size());
 
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
@@ -238,7 +237,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 	{
 	}
 
-	void ApplyMpcConstraintForFractionalStep(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV, MpcDataPointerType pMpcP, std::string pressure_coupling)
+	void ApplyMpcConstraintForFractionalStep(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV, MpcDataPointerType pMpcP)
 	{
 		//loop over nodes and find the triangle in which it falls, than do interpolation
 		Vector N;
@@ -445,10 +444,18 @@ class ApplyChimeraProcessFractionalStep : public Process
 				{
 					for(int patch_j= 0; patch_j < LevelTable[patch_i];patch_j++)
 					{
-						m_background_model_part_name  =  m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_name"].GetString();
-						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
-						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
-						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+						m_background_model_part_name  =  m_parameters[BG_i][BG_j]["model_part_name"].GetString();
+						m_domain_boundary_model_part_name = m_parameters[BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
+						m_patch_model_part_name       =  m_parameters[patch_i][patch_j]["model_part_name"].GetString();
+						m_patch_inside_boundary_model_part_name = m_parameters[patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+
+						double mesh_size_1 = m_parameters[BG_i][BG_j]["overlap_distance"].GetDouble();
+						double mesh_size_2 = m_parameters[patch_i][patch_j]["overlap_distance"].GetDouble();
+
+						if(mesh_size_1>mesh_size_2)
+							m_overlap_distance = mesh_size_1;
+						else
+							m_overlap_distance = mesh_size_2;
 
 						KRATOS_INFO("Formulating Chimera for the combination background::")<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
 
@@ -549,11 +556,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 			pMpcVelocity->SetIsWeak(true);
 			pMpcPressure->SetIsWeak(true);
 
-			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
-			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
-
-			ApplyMpcConstraintForFractionalStep(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
-			ApplyMpcConstraintForFractionalStep(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
+			ApplyMpcConstraintForFractionalStep(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure);
+			ApplyMpcConstraintForFractionalStep(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure);
 
 			KRATOS_INFO( "Fractional : Patch boundary coupled with background and hole boundary with patch") << std::endl;
 

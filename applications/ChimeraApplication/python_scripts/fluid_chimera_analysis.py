@@ -12,16 +12,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         # Deprecation warnings
         self.parameters = parameters
-        solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
-            Kratos.Logger.PrintInfo("FluidChimeraAnalysis", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
-
-        if not solver_settings.Has("model_part_name"):
-            Kratos.Logger.PrintInfo("FluidChimeraAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
@@ -35,14 +25,17 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         list_of_processes = super(FluidChimeraAnalysis,self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            # Adding the Chimera Process to the list of processes
-            chimera_params = self.project_parameters["chimera"][0]
-            main_model_part = self.model["FluidModelPart"]
+            if self.parameters["solver_settings"].Has("fluid_solver_settings"):
+                self.solver_settings =  self.parameters["solver_settings"]["fluid_solver_settings"]
+            else:
+                self.solver_settings = self.parameters["solver_settings"]
+
+            chimera_params = self.project_parameters["chimera"]
+
+            print(chimera_params)
+            
+            main_model_part = self.model[self.solver_settings["model_part_name"].GetString()]
             domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-            #computing_model_part = 
-
-            print("domain size is",domain_size)
-
             solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
 
             if domain_size == 2:
@@ -56,9 +49,6 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                 elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
                     self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,chimera_params)
 
-            #list_of_processes.insert(0, ChimeraProcess)
-            #print(list_of_processes)
-            #err
         return list_of_processes
 
     ''' def Initialize(self):
