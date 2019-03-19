@@ -55,9 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
+#include <pybind11/pybind11.h>
 
 /*
 // Project includes
@@ -93,10 +91,11 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
 
-void  AddCustomParallelStrategiesToPython()
+void  AddCustomParallelStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
 // #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
 //     typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
 //     typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;

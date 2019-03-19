@@ -8,8 +8,6 @@ BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 class PouliotBenchmark2DAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
-        self.pp.CFD_DEM.coupling_level_type = 0 #TODO: check if this should be here in this format or writing to Json!
-        self.pp.CFD_DEM.laplacian_calculation_type = 0
 
     def ReadFluidModelParts(self):
         model_part_io_fluid = ModelPartIO('benchmark2D')
@@ -34,7 +32,11 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         self.AddExtraProcessInfoVariablesToFluid()
         self.ReadFluidModelParts()
         self.fluid_solution.SetFluidBufferSizeAndAddDofs()
-        SDP.AddExtraDofs(self.pp, self.fluid_model_part, self.disperse_phase_solution.spheres_model_part, self.disperse_phase_solution.cluster_model_part, self.disperse_phase_solution.DEM_inlet_model_part)
+        SDP.AddExtraDofs(self.fluid_model_part,
+                         self.disperse_phase_solution.spheres_model_part,
+                         self.disperse_phase_solution.cluster_model_part,
+                         self.disperse_phase_solution.DEM_inlet_model_part,
+                         self.vars_man)
         self.fluid_solution.SetFluidSolver()
         self.fluid_solution.fluid_solver.Initialize()
         self.fluid_solution.ActivateTurbulenceModel()

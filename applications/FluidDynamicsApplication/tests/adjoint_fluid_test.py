@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-hdf5_is_available = kratos_utilities.IsApplicationAvailable("HDF5Application")
+hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis

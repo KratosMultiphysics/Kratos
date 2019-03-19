@@ -46,7 +46,7 @@ struct complex_adapter {
     static_assert(is_complex<typename backend::value_type<Matrix>::type>::value,
             "value type should be complex");
 
-    typedef typename backend::value_type<Matrix>::type::value_type val_type;
+    typedef typename backend::value_type<Matrix>::type::value_type value_type;
 
     const Matrix &A;
 
@@ -89,7 +89,7 @@ struct complex_adapter {
                 return base.col() * 2 + 1;
         }
 
-        val_type value() const {
+        value_type value() const {
             if (row_real) {
                 if (col_real)
                     return std::real(base.value());
@@ -162,56 +162,6 @@ complex_range(Range &rng) {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix>
-struct value_type< adapter::complex_adapter<Matrix> >
-{
-    typedef typename adapter::complex_adapter<Matrix>::val_type type;
-};
-
-template <class Matrix>
-struct rows_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix>
-struct cols_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix>
-struct nonzeros_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix>
-struct row_iterator< adapter::complex_adapter<Matrix> >
-{
-    typedef typename adapter::complex_adapter<Matrix>::row_iterator type;
-};
-
-template <class Matrix>
-struct row_begin_impl< adapter::complex_adapter<Matrix> >
-{
-    typedef adapter::complex_adapter<Matrix> CM;
-    static typename row_iterator<CM>::type
-    get(const CM &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class Matrix>

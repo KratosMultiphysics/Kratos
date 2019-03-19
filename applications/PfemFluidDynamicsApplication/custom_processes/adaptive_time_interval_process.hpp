@@ -108,7 +108,7 @@ namespace Kratos
     {
 
       KRATOS_TRY
-	std::cout<<" Execute() in AdaptiveTimeIntervalProcess"<<std::endl;
+      KRATOS_INFO("AdaptiveTimeIntervalProcess") << " Execute() "<<std::endl;
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
@@ -204,7 +204,7 @@ namespace Kratos
 
 
       if (newTimeInterval<initialTimeInterval){
-	std::cout<<"current time "<<updatedTime<<" time step: new  "<<newTimeInterval<<" previous "<<currentTimeInterval<<" initial  "<<initialTimeInterval<<"\n"<<std::endl;
+          KRATOS_INFO("AdaptiveTimeIntervalProcess") <<"current time "<<updatedTime<<" time step: new  "<<newTimeInterval<<" previous "<<currentTimeInterval<<" initial  "<<initialTimeInterval<<std::endl;
       }
 
 

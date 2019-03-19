@@ -74,9 +74,9 @@ namespace Kratos
 
 namespace ContinuousDamage3DAuxiliaries
 {
-boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
+BoundedMatrix<double,3,3> mstemp;
 #pragma omp threadprivate(mstemp)
-boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+BoundedMatrix<double,3,3> msaux;
 #pragma omp threadprivate(msaux)
 }
 using namespace ContinuousDamage3DAuxiliaries;
