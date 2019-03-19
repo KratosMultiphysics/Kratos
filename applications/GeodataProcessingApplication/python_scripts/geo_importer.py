@@ -25,7 +25,7 @@ class GeoImporter( GeoProcessor ):
             ID_vertex = 1
             ID_elem = 1
 
-            '''current_sub_model_building = self.ModelPart ### CHECK THIS ###'''
+            current_sub_model_building = self.ModelPart # we set the ModelPart if we haven't groups in obj file
 
             for row in read_file.readlines():
                 row = row.split()
