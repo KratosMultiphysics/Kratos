@@ -37,7 +37,6 @@ public:
     typedef std::size_t SizeType;
 
 
-
 // These functions add two vectors 
 
 template <typename TDataType>
@@ -101,6 +100,31 @@ static void SetToZero(Matrix& rOutput)
             rOutput(i,j) = 0; 
 }
 
+// These functions size the components of a vector
+
+template <typename TDataType>
+static void SizeVectorComponents(std::vector<std::vector<TDataType>>& rVector)
+{   
+    for (IndexType i = 0; i < rVector.size(); ++i)
+        SizeVectorComponents(rVector[i]);   
+}
+
+
+template <typename TDataType>
+static void SizeVectorComponents(std::vector<TDataType>& rVector)
+{   
+    for (IndexType i = 0; i < rVector.size(); ++i)
+        SizeVectorComponents(rVector[i]);   
+}
+
+static void SizeVectorComponents(array_1d<double,3>& rComponent){}
+
+static void SizeVectorComponents(Matrix& rComponent)
+{   
+    if (rComponent.size1() != 3 || rComponent.size1() != 3 )
+    rComponent.resize(3,3);
+}
+
 // These functions multiply a vector by a scalar factor
 
 template <typename TDataType>
@@ -137,8 +161,8 @@ template <typename TDataType>
 static void ScalarProduct(const std::vector<std::vector<TDataType>>& rFactor1,
                             const Vector& rFactor2,
                             std::vector<TDataType>& rScalarProduct)
-{
-    SetToZero(rScalarProduct);
+{    
+    SetToZero(rScalarProduct);    
     for(IndexType i = 0; i < rFactor1.size(); ++i)
         for( IndexType j = 0; j < rFactor1[0].size(); ++j )
             MultiplyFactorsForScalarProduct(rScalarProduct[j], rFactor1[i][j], rFactor2[i]);
@@ -167,7 +191,6 @@ static void Product(const std::vector<TDataType>& rFactor1,
         MultiplyFactorsForProduct(rScalarProduct, rFactor1[i], rFactor2);
 }
 
-
     
 private:
 
@@ -177,20 +200,25 @@ static void MultiplyFactorsForScalarProduct( array_1d<double, 3>& rScalarProduct
         rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2; 
 }
 
+static void MultiplyFactorsForScalarProduct( Matrix& rScalarProduct ,const Matrix& rFactor1 , const double& rFactor2)
+{     
+   for( IndexType i = 0; i < rFactor1.size1(); ++i )
+        for( IndexType j = 0; j < rFactor1.size2(); ++j )
+            rScalarProduct(i,j) += rFactor1(i,j) * rFactor2; 
+}
+
 static void MultiplyFactorsForProduct( array_1d<double, 3>& rScalarProduct ,const array_1d<double, 3>& rFactor1 , const array_1d<double, 3>& rFactor2)
 {    
    for( IndexType dir_it = 0; dir_it < 3; ++dir_it )
         rScalarProduct[dir_it] += rFactor1[dir_it] * rFactor2[dir_it]; 
 }
 
-static void MultiplyFactorsForScalarProduct( Matrix& rScalarProduct ,const Matrix& rFactor1 , const double& rFactor2)
+static void MultiplyFactorsForProduct( Matrix& rScalarProduct , const Matrix& rFactor1 , const Matrix& rFactor2)
 {    
-   for( IndexType i = 0; i < rFactor1.size1(); ++i )
-        for( IndexType j = 0; j < rFactor1.size2(); ++j )
-            rScalarProduct(i,j) += rFactor1(i,j) * rFactor2; 
+   KRATOS_ERROR << "MultiplyFactorsForProduct not yet implemented for matrix type." << std::endl;
 }
 
-    
+
 }; // class DerivativeBuilder
 
 

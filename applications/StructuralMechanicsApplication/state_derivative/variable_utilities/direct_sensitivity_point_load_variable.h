@@ -9,8 +9,8 @@
 //  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
-#ifndef DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H
-#define DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H
+#ifndef DIRECT_SENSITIVITY_POINT_LOAD_VARIABLE_H
+#define DIRECT_SENSITIVITY_POINT_LOAD_VARIABLE_H
 
 // System includes
 
@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityElementDataVariable : public DirectSensitivityVariable
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityPointLoadVariable : public DirectSensitivityVariable
 {
 public:
     ///@name Type Definitions
@@ -33,18 +33,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of DirectSensitivityElementDataVariable
-    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityElementDataVariable);
+    /// Pointer definition of DirectSensitivityPointLoadVariable
+    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityPointLoadVariable);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DirectSensitivityElementDataVariable(ModelPart& rModelPart, Parameters VariableSettings);
+    DirectSensitivityPointLoadVariable(ModelPart& rModelPart, Parameters VariableSettings);
 
     /// Destructor.
-    ~DirectSensitivityElementDataVariable();
+    ~DirectSensitivityPointLoadVariable();
     
     ///@}
     ///@name Operators
@@ -97,7 +97,9 @@ protected:
 private:
     ///@name private member Variables
     ///@{
-        std::vector<unsigned int> mTracedElementIdVector;        
+    std::vector<unsigned int> mTracedElementIdVector;
+    std::vector<unsigned int> mTracedConditionIdVector;
+    std::string mCoordinateDirection;        
     ///@}
 
     ///@name private Operators
@@ -106,10 +108,11 @@ private:
     ///@}
     ///@name private Operations
     ///@{
-                    
+    unsigned int GetCoordinateDirection();
+    
     ///@}
 
-}; // Class DirectSensitivityElementDataVariable
+}; // Class DirectSensitivityPointLoadVariable
 
 ///@}
 
@@ -124,4 +127,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H_INCLUDED
+#endif // DIRECT_SENSITIVITY_POINT_LOAD_VARIABLE_H_INCLUDED

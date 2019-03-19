@@ -123,11 +123,13 @@ protected:
     void UpdateSensitivitiesOnNodes(DirectSensitivityResponseFunction& rResponseFunction, Variable<TDataType> const& rResponseVariable, 
                                             Variable<TDataType> const& rOutputVariable);
 
-    void AssembleNodalSensitivityContribution(Variable<array_1d<double,3>> const& rVariable,
-                                            array_1d<double,3> const& rSensitivityVector, Node<3>& rNode);
+    template <typename TDataType>
+    void AssembleNodalSensitivityContribution(Variable<TDataType> const& rVariable,
+                                            TDataType const& rSensitivityVector, Node<3>& rNode);
 
-    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
-                                            std::vector<array_1d<double,3>>& rSensitivityVector, Element& rElement);
+    template <typename TDataType>
+    void AssembleElementSensitivityContribution(Variable<TDataType> const& rVariable,
+                                            std::vector<TDataType>& rSensitivityVector, Element& rElement);
 
     
     
@@ -151,7 +153,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-                
+    bool EvaluateIfObjectIsOfSizeZero(array_1d<double, 3> const& rArray);
+
+    bool EvaluateIfObjectIsOfSizeZero(Matrix const& rMatrix);
+
     ///@}
 };
 

@@ -9,8 +9,8 @@
 //  Main authors:    Kevin Braun, https://github.com/MFusseder
 //
 
-#ifndef DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H
-#define DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H
+#ifndef DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H
+#define DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H
 
 // System includes
 
@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityElementDataVariable : public DirectSensitivityVariable
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DirectSensitivityNodalDataVariable : public DirectSensitivityVariable
 {
 public:
     ///@name Type Definitions
@@ -33,18 +33,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of DirectSensitivityElementDataVariable
-    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityElementDataVariable);
+    /// Pointer definition of DirectSensitivityNodalDataVariable
+    KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityNodalDataVariable);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DirectSensitivityElementDataVariable(ModelPart& rModelPart, Parameters VariableSettings);
+    DirectSensitivityNodalDataVariable(ModelPart& rModelPart, Parameters VariableSettings);
 
     /// Destructor.
-    ~DirectSensitivityElementDataVariable();
+    ~DirectSensitivityNodalDataVariable();
     
     ///@}
     ///@name Operators
@@ -61,6 +61,10 @@ public:
     void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;    
          
     std::vector<unsigned int> GetTracedElementId() override;
+
+    void ExtractDataFromDerivativeMatrix(Element& rDirectElement,
+                                        Matrix& rExtractedDerivativeMatrix,
+                                        const Matrix& rDerivativeMatrix) override;
 
     ///@}
     ///@name Access
@@ -97,7 +101,11 @@ protected:
 private:
     ///@name private member Variables
     ///@{
-        std::vector<unsigned int> mTracedElementIdVector;        
+    
+    std::vector<unsigned int> mNeighboringElementIdVector;
+    std::vector<unsigned int> mNeighboringConditionIdVector;
+    std::string mCoordinateDirection;
+
     ///@}
 
     ///@name private Operators
@@ -105,11 +113,16 @@ private:
 
     ///@}
     ///@name private Operations
-    ///@{
-                    
+    ///@{    
+
+    void GetNeighboringElementIdVector(std::vector<unsigned int>& rTracedElementIdVector);
+
+    void GetNeighboringConditionIdVector(std::vector<unsigned int>& rNeighboringConditionIdVector);
+
+    unsigned int GetCoordinateDirection();                
     ///@}
 
-}; // Class DirectSensitivityElementDataVariable
+}; // Class DirectSensitivityNodalDataVariable
 
 ///@}
 
@@ -124,4 +137,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H_INCLUDED
+#endif // DIRECT_SENSITIVITY_NODAL_DATA_VARIABLE_H_INCLUDED

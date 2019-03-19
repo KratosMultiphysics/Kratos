@@ -53,7 +53,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
   ## DIRECT SENSITIVITY VARIABLE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_variable.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_point_load_variable.cpp  
 
   ## DIRECT SENSITIVITY POSTPROCESS
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_postprocess.cpp  
@@ -62,17 +64,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_nodal_displacement_response_function.cpp
-
-  ## Derivative Builder
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/derivative_builder.cpp
-
-  ## Math FUNCTIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/math_functions/vector_math.cpp
-
-  ## Output Utility
-  ##${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/output_utilities/output_utility.cpp
-
-
+  
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_plasticity_constitutive_law.cpp

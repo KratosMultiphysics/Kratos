@@ -78,6 +78,11 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable,
                             std::vector<std::vector<array_1d<double, 3>>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
+    
+    void CalculateGradient(Element& rDirectElement,                            
+                            Variable<Matrix> const& rStressVariable,
+                            std::vector<std::vector<Matrix>>& rOutput, 
+                            const ProcessInfo& rProcessInfo) override;
 
        
     
@@ -86,6 +91,12 @@ public:
                             Variable<array_1d<double, 3>> const& rStressVariable, 
                             std::vector<array_1d<double, 3>>& rOutput, 
                             const ProcessInfo& rProcessInfo) override;
+
+    void CalculatePartialSensitivity(Element& rDirectElement, 
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    Variable<Matrix> const& rStressVariable, 
+                                    std::vector<Matrix>& rOutput, 
+                                    const ProcessInfo& rProcessInfo) override;
 
     std::string GetEvaluationFlag() override;
 
@@ -125,6 +136,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    template <typename TDataType>
+    void PartialSensitivityBuilder(Element& rDirectElement, 
+                                    DirectSensitivityVariable& rDesignVariable,
+                                    Variable<TDataType> const& rStressVariable, 
+                                    std::vector<TDataType>& rOutput, 
+                                    const ProcessInfo& rProcessInfo);
     
     template <typename TDataType>
     void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
@@ -139,11 +157,13 @@ private:
                                     std::vector<std::vector<TDataType>>& rOutput,
                                     const ProcessInfo& rProcessInfo);
 
-    void ExtractMeanStressDerivative(const std::vector<array_1d<double, 3>>& rStressDerivativesMatrix,
-                            std::vector<array_1d<double, 3>>& rOutput);
+    template <typename TDataType>
+    void ExtractMeanStressDerivative(const std::vector<TDataType>& rStressDerivativesMatrix,
+                            std::vector<TDataType>& rOutput);
 
-    void ExtractGaussPointStressDerivative(const std::vector<array_1d<double, 3>>& rStressDerivativesMatrix,
-                            std::vector<array_1d<double, 3>>& rOutput);
+    template <typename TDataType>
+    void ExtractGaussPointStressDerivative(const std::vector<TDataType>& rStressDerivativesMatrix,
+                            std::vector<TDataType>& rOutput);
 
     
     ///@}

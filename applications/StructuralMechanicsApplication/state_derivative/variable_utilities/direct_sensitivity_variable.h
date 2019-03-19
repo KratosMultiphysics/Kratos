@@ -23,6 +23,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "state_derivative/output_utilities/output_utility.h"
 
 
 
@@ -97,18 +98,18 @@ public:
     virtual void CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rRHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
 
     virtual void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
-
-    virtual void PerturbDesignVariable(Element& rDirectElement);
-    
-    virtual void UnperturbDesignVariable(Element& rDirectElement);        
-       
+      
     virtual std::string GetDesignVariableName();
 
     virtual std::string GetDesignVariableType();
 
-    virtual unsigned int GetTracedElementId();
+    virtual std::vector<unsigned int> GetTracedElementId();
 
     virtual double GetPerturbationSize();
+
+    virtual void ExtractDataFromDerivativeMatrix(Element& rDirectElement,
+                                        Matrix& rExtractedDerivativeMatrix,
+                                        const Matrix& rDerivativeMatrix);
 
     
 
@@ -119,11 +120,10 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
+    ModelPart* mpTracedModelPart = nullptr;
     double mDelta;
     std::string mDesignVariableName;
     std::string mVariableType;
-    unsigned int mTracedElement;
-
      
     ///@}
     ///@name protected Operators
@@ -150,9 +150,7 @@ private:
     ///@}
     ///@name private Operations
     ///@{
-    virtual Variable<double> ReadScalarDesignVariables(std::string const& rVariableName);
-
-    virtual Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName);    
+        
     ///@} 
         
 };
