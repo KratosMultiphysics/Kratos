@@ -175,7 +175,6 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(DELTA_TIME, pp.delta_time)
 
     # SWIMMING
-    model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
     model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)
     model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.drag_porosity_correction_type)
     model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)

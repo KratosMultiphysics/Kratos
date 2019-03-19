@@ -25,8 +25,6 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
         self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
         Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
-    def GetFluidSolveCounter(self):
-        return SDP.Counter(is_dead = True)
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(is_dead=True)

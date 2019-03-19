@@ -210,9 +210,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
 
-        if self.project_parameters["coupling_level_type"].GetInt() == 0:
-            self.project_parameters["project_at_every_substep_option"].SetBool(False)
-
         # The fluid fraction is not projected from DEM (there may not
         # be a DEM part) but is externally imposed instead:
         if self.project_parameters["flow_in_porous_medium_option"].GetBool():
@@ -389,7 +386,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.stationarity = False
 
         # setting up loop counters:
-        self.fluid_solve_counter = self.GetFluidSolveCounter()
         self.DEM_to_fluid_counter = self.GetBackwardCouplingCounter()
         self.derivative_recovery_counter = self.GetRecoveryCounter()
         self.stationarity_counter = self.GetStationarityCounter()
@@ -676,9 +672,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
                          + '*' * message_n_char_width + '\n')
 
         Say(final_message)
-
-    def GetFluidSolveCounter(self):
-        return SDP.Counter(is_dead=(self.project_parameters["drag_force_type"].GetInt() == 9))
 
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 1, self.project_parameters["coupling_level_type"].GetInt() > 1)
