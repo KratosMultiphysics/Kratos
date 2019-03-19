@@ -48,9 +48,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spr_error_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/impose_rigid_movement_process.cpp
-
-  ## RESPONSE FUNCTIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.cpp
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
