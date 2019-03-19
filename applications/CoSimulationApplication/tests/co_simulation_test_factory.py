@@ -16,18 +16,32 @@ except ImportError:
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
-    def test_MokFSI(self):
+    def test_MokFSI_mvqn(self):
         self.name = "mvqn"
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.createTest("fsi_mok", "cosim_mok_fsi")
-            self.__ManipulateCheckSettings(self.name)
-            self.__AddVtkOutputToCFD() # uncomment to get output
+            self.__ManipulateSettings()
+            # self.__AddVtkOutputToCFD() # uncomment to get output
             self.__DumpUpdatedCFDSettings()
             self.runTest()
 
-    def __ManipulateCheckSettings(self, ref_file_name_extension):
+    def test_MokFSI_aitken(self):
+        self.name = "aitken"
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self.createTest("fsi_mok", "cosim_mok_fsi")
+            self.__ManipulateSettings()
+            # self.__AddVtkOutputToCFD() # uncomment to get output
+            self.__DumpUpdatedCFDSettings()
+            self.runTest()
+
+    def __ManipulateSettings(self):
+
+        self.cosim_parameters["solver_settings"]["convergence_accelerator_settings"]["type"] = self.name
+
         with open("fsi_mok/ProjectParametersCFD_ref.json",'r') as parameter_file:
             self.cfd_parameters = KM.Parameters(parameter_file.read())
 
