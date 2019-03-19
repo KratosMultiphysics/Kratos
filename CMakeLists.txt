@@ -220,11 +220,6 @@ include(pybind11Tools)
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
-if(DEFINED KRATOS_PYBIND11_NO_LTO)
-    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
-    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
-endif(DEFINED KRATOS_PYBIND11_NO_LTO)
-
 # Set installation directory
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
