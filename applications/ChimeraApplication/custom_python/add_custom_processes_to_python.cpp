@@ -44,7 +44,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<2>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<2>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<2>::SetOverlapDistance)
-		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<2>::CalculateNodalAreaAndNodalMass)
 		;
 
 	class_<ApplyChimeraProcessMonolithic<3>, ApplyChimeraProcessMonolithic<3>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
@@ -52,7 +51,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<3>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<3>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<3>::SetOverlapDistance)
-		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<3>::CalculateNodalAreaAndNodalMass)
 		;
 
 	class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
