@@ -15,7 +15,7 @@
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
 "GravityZ"                         : 0.0,
-"strategy_parameters" :{
+"solver_settings" :{
     "strategy"                 : "continuum_sphere_strategy",
     "RemoveBallsInitiallyTouchingWalls": false
 },

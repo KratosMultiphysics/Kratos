@@ -233,7 +233,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def _CreateSolver(self):
         def SetSolverStrategy():
-            strategy = self.DEM_parameters["strategy_parameters"]["strategy"].GetString()
+            strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
             filename = __import__(strategy)
             ## Alternative option
             #from importlib import import_module

@@ -1305,7 +1305,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
-	puts $fileid "\"strategy_parameters\" : {"
+	puts $fileid "\"solver_settings\" : {"
 
     # Write dem strategy
 	set ElementType [::wkcf::GetElementType]

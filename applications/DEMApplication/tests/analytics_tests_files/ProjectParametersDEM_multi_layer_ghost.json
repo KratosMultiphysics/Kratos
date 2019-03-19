@@ -21,7 +21,7 @@
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : false,
 "RemoveBallsInEmbeddedOption"      : false,
-"strategy_parameters" : {
+"solver_settings" : {
     "strategy"                 : "sphere_strategy",
     "RemoveBallsInitiallyTouchingWalls"          : false
 },

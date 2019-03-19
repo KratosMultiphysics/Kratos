@@ -39,7 +39,7 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-            "strategy_parameters" :{
+            "solver_settings" :{
                 "strategy"                 : "deprecated_key.invalid_strategy",
                 "RemoveBallsInitiallyTouchingWalls": false
             },
