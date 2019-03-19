@@ -10,9 +10,11 @@ class CoSimulationAnalysis(object):
     It mimicks the AnalysisStage of Kratos but does NOT derive from it
     The reason is that it also needs to work without Kratos
     """
-    def __init__(self, cosim_settings):
+    def __init__(self, model, cosim_settings):
         if (type(cosim_settings) != dict):
             raise Exception("Input is expected to be provided as a python dictionary")
+
+        self.model = model
 
         CheckCoSimulationSettingsAndAssignDefaults(cosim_settings)
 
@@ -97,18 +99,22 @@ class CoSimulationAnalysis(object):
 
 if __name__ == '__main__':
     from sys import argv
-    import json
 
     if len(argv) != 2:
-        err_msg =  'Wrong number of input arguments!\n'
+        err_msg  = 'Wrong number of input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '    "python co_simulation_analysis.py <cosim-parameter-file>.json"\n'
         raise Exception(err_msg)
 
     parameter_file_name = argv[1]
+    global cs_data_structure
+    cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name)
 
+    # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = json.load(parameter_file)
+        parameters = cs_data_structure.Parameters(parameter_file.read())
 
-    simulation = CoSimulationAnalysis(parameters)
+    model = cs_data_structure.Model()
+
+    simulation = CoSimulationAnalysis(model, parameters)
     simulation.Run()

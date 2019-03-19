@@ -27,7 +27,8 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def runTest(self):
-        CoSimulationAnalysis(self.cosim_parameters).Run()
+        model = KM.Model()
+        CoSimulationAnalysis(model, self.cosim_parameters).Run()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
 
     # called only once for this class, opposed of tearDown()

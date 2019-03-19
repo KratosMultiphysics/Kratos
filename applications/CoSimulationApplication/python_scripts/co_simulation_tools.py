@@ -1,5 +1,38 @@
 import json
 
+## ImportDataStructure : Imports the data structure which is specified in the parameters file
+#
+#  @param parameters_file_name   The JSON file name which contains the settings for the co-simulation
+def ImportDataStructure(parameters_file_name):
+    global cs_data_structure
+    if not cs_data_structure:
+        import json
+        with open(parameters_file_name,'r') as parameter_file:
+            parameters = json.load(parameter_file) # This is for getting the flag for database
+            if 'data_structure' in parameters['problem_data'].keys():
+                data_structure_name = parameters['problem_data']['data_structure']
+                if not data_structure_name in ['KratosMultiphysics', 'pyKratos']:
+                    raise Exception('data_structure needs to be "KratosMultiphysics" or "pyKratos"')
+            else:
+                data_structure_name = 'KratosMultiphysics' # Kratos is default
+
+            # Initialize cs_data_structure and import corresponding module
+            cs_data_structure = __import__(data_structure_name)
+
+    return cs_data_structure
+
+
+
+
+
+
+
+
+
+
+
+
+
 def GetSolverCoSimulationDetails(co_simulation_solver_settings):
     num_solvers = len(co_simulation_solver_settings)
     solver_cosim_details = {}
