@@ -189,10 +189,11 @@ namespace Kratos {
             KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedBB2D, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedOBB2D, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
             r_surface_part.CreateNewNode(1, 0.0, 0.0, 0.0);
             r_surface_part.CreateNewNode(2, 0.0, 1.0, 0.0);
@@ -234,10 +235,11 @@ namespace Kratos {
             KRATOS_CHECK((r_surface_part.Conditions()[4]).IsNot(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedBB3D, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessIntersectionExtendedOBB3D, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
             Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
@@ -306,6 +308,184 @@ namespace Kratos {
             KRATOS_CHECK((r_surface_part.Conditions()[10]).IsNot(SELECTED));
             KRATOS_CHECK((r_surface_part.Conditions()[11]).IsNot(SELECTED));
             KRATOS_CHECK((r_surface_part.Conditions()[12]).Is(SELECTED));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleTriangleOBB3D, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
+
+            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+
+            // Generate the nodes of the surface
+            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
+            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
+
+            // Now we create the "conditions"
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{3, 4, 1}}, p_properties_0);
+
+            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
+
+            // Generate the nodes of the skin
+            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
+            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
+
+            // Now we create the "conditions"
+            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 5, 6, 7 }}, p_properties_1);
+            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 4, {{ 7, 8, 5 }}, p_properties_1);
+
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            find_intersections.Execute();
+
+//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+//             gid_io.InitializeMesh(0.0);
+//             gid_io.WriteMesh(r_main_model_part.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
+//             gid_io.FinalizeResults();
+
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3D, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
+
+            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+
+            // Generate the nodes of the surface
+            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
+            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
+
+            // Now we create the "conditions"
+            r_surface_part.CreateNewCondition("SurfaceCondition3D4N", 1, {{1, 2, 3, 4}}, p_properties_0);
+
+            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
+
+            // Generate the nodes of the skin
+            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
+            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
+
+            // Now we create the "conditions"
+            r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 2, {{ 5, 6, 7, 8 }}, p_properties_1);
+
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            find_intersections.Execute();
+
+//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+//             gid_io.InitializeMesh(0.0);
+//             gid_io.WriteMesh(r_main_model_part.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
+//             gid_io.FinalizeResults();
+
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleQuadrilateralOBB3D, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
+
+            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+
+            // Generate the nodes of the surface
+            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
+            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
+
+            // Now we create the "conditions"
+            r_surface_part.CreateNewCondition("SurfaceCondition3D4N", 1, {{1, 2, 3, 4}}, p_properties_0);
+
+            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
+
+            // Generate the nodes of the skin
+            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
+            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
+
+            // Now we create the "conditions"
+            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{ 5, 6, 7 }}, p_properties_1);
+            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 7, 8, 5 }}, p_properties_1);
+
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            find_intersections.Execute();
+
+//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+//             gid_io.InitializeMesh(0.0);
+//             gid_io.WriteMesh(r_main_model_part.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
+//             gid_io.FinalizeResults();
+
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralTriangleOBB3D, KratosCoreFastSuite)
+        {
+            Model current_model;
+            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
+            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
+
+            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+
+            // Generate the nodes of the surface
+            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
+            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
+            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
+
+            // Now we create the "conditions"
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{3, 4, 1}}, p_properties_0);
+
+            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
+
+            // Generate the nodes of the skin
+            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
+            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
+            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
+
+            // Now we create the "conditions"
+            r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 3, {{ 5, 6, 7, 8 }}, p_properties_1);
+
+            FindIntersectedGeometricalObjectsWithOBBProcess<Condition> find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            find_intersections.Execute();
+
+//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
+//             gid_io.InitializeMesh(0.0);
+//             gid_io.WriteMesh(r_main_model_part.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
+//             gid_io.FinalizeResults();
+
+            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
+            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)

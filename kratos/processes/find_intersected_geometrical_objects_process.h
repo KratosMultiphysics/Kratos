@@ -516,6 +516,11 @@ protected:
     ///@{
 
     /**
+     * @brief This method sets the Octree bounding box
+     */
+    virtual void SetOctreeBoundingBox();
+
+    /**
      * @brief This method marks if intersected
      * @param rEntity1 The entity of interest
      * @param rLeaves The Octree cells vectors
@@ -601,11 +606,6 @@ private:
      * @brief This method generates a new Octree class (conditions)
      */
     void GenerateOctreeConditions();
-
-    /**
-     * @brief This method sets the Octree bounding box
-     */
-    void SetOctreeBoundingBox();
 
     /**
      * @brief This method finds intected skin objects

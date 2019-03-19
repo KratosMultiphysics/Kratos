@@ -95,6 +95,60 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 /***********************************************************************************/
 
 template<class TEntity>
+void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBoundingBox()
+{
+    PointType low(BaseType::mrModelPart1.NodesBegin()->Coordinates());
+    PointType high(BaseType::mrModelPart1.NodesBegin()->Coordinates());
+
+    // Loop over all nodes in first modelpart
+    for (auto it_node = BaseType::mrModelPart1.NodesBegin(); it_node != BaseType::mrModelPart1.NodesEnd(); it_node++) {
+        const array_1d<double,3>& r_coordinates = it_node->Coordinates();
+        for (IndexType i = 0; i < 3; i++) {
+            low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+            high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
+        }
+    }
+
+    // Loop over all skin nodes
+    for (auto it_node = BaseType::mrModelPart2.NodesBegin(); it_node != BaseType::mrModelPart2.NodesEnd(); it_node++) {
+        const array_1d<double,3>& r_coordinates = it_node->Coordinates();
+        for (IndexType i = 0; i < 3; i++) {
+            low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+            high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
+        }
+    }
+
+    // Slightly increase the bounding box size to avoid problems with geometries in the borders
+    // Note that std::numeric_limits<double>::double() is added for the 2D cases. Otherwise, the
+    // third component will be 0, breaking the octree behaviour.
+    for(IndexType i = 0 ; i < 3; i++) {
+        low[i] -= std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
+        high[i] += std::abs(high[i] - low[i])*1e-3 + std::numeric_limits<double>::epsilon();
+    }
+
+    // In case we consider the bounding box we extend box
+    if (mBoundingBoxFactor > 0.0) {
+        const std::size_t dimension = BaseType::mrModelPart1.GetProcessInfo()[DOMAIN_SIZE];
+        for(IndexType i = 0 ; i < dimension; i++) {
+            if (std::abs(high[i] - low[i]) < mBoundingBoxFactor) {
+//                 low[i] -= mBoundingBoxFactor;
+                high[i] += mBoundingBoxFactor;
+            }
+        }
+    }
+
+    // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+    BaseType::mOctree.SetBoundingBox(low.data(), high.data());
+#else
+    BaseType::mOctree.SetBoundingBox(low.data().data(), high.data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
 bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
