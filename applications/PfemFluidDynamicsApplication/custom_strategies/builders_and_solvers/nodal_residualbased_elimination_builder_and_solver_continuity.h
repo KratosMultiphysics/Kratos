@@ -723,7 +723,6 @@ namespace Kratos
 
 	  /* boost::timer c_contruct_matrix; */
 
-    std::cout<<" ResizeAndInitializeVectors 1"<<std::endl;
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -746,7 +745,6 @@ namespace Kratos
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
 	  }
 
-    std::cout<<" ResizeAndInitializeVectors 2"<<std::endl;
         TSystemMatrixType& A = *pA;
         TSystemVectorType& Dx = *pDx;
         TSystemVectorType& b = *pb;
@@ -754,9 +752,7 @@ namespace Kratos
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 	  {
-  			    std::cout<<" A.resize"<<std::endl;
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-  			    std::cout<<" ConstructMatrixStructure"<<std::endl;
             ConstructMatrixStructure(pScheme, A, rModelPart);
 	  }
         else
