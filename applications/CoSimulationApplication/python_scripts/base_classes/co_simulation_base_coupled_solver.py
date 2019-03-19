@@ -9,8 +9,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cosim_t
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
 class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseSolver):
-    def __init__(self, cosim_solver_settings, level):
-        super(CoSimulationBaseCouplingSolver, self).__init__(cosim_solver_settings, level)
+    def __init__(self, cosim_solver_settings):
+        super(CoSimulationBaseCouplingSolver, self).__init__(cosim_solver_settings)
 
         self.solver_names = []
         self.solvers = {}
@@ -25,7 +25,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.solver_names.append(solver_name)
             self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
             self.solvers[solver_name] = solver_factory.CreateSolverInterface(
-                self.cosim_solver_settings["solvers"][solver_name], self.lvl-1) # -1 to have solver prints on same lvl
+                self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
         self.cosim_solver_details = cosim_tools.GetSolverCoSimulationDetails(
             self.cosim_solver_settings["coupling_loop"])
@@ -33,7 +33,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         self.predictor = None
         if "predictor_settings" in self.cosim_solver_settings:
             self.predictor = CreatePredictor(self.cosim_solver_settings["predictor_settings"],
-                                             self.solvers, self.lvl)
+                                             self.solvers)
             self.predictor.SetEchoLevel(self.echo_level)
 
         # With this setting the coupling can start later
@@ -73,7 +73,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         if not self.coupling_started and self.time > self.start_coupling_time:
             self.coupling_started = True
             if self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(), bold("Starting Coupling"))
+                couplingsolverprint(self._Name(), bold("Starting Coupling"))
 
         # if a predictor is used then the delta_time is set
         # this is needed by some predictors
@@ -142,13 +142,13 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()
 
-        couplingsolverprint(self.lvl, self._Name(), "Has the following participants:")
+        couplingsolverprint(self._Name(), "Has the following participants:")
 
         for solver_name in self.solver_names:
             self.solvers[solver_name].PrintInfo()
 
         if self.predictor is not None:
-            couplingsolverprint(self.lvl, self._Name(), "Uses a Predictor:")
+            couplingsolverprint(self._Name(), "Uses a Predictor:")
             self.predictor.PrintInfo()
 
     def Check(self):

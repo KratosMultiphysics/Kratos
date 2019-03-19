@@ -9,14 +9,14 @@ from copy import deepcopy
 from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(settings, solvers, cosim_solver_details, level):
-    return ConstantRelaxation(settings, solvers, cosim_solver_details, level)
+def Create(settings, solvers, cosim_solver_details):
+    return ConstantRelaxation(settings, solvers, cosim_solver_details)
 
 class ConstantRelaxation(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param alpha relaxation factor.
-    def __init__( self, settings, solvers, cosim_solver_details, level ):
-        super(ConstantRelaxation, self).__init__(settings, solvers, cosim_solver_details, level)
+    def __init__( self, settings, solvers, cosim_solver_details ):
+        super(ConstantRelaxation, self).__init__(settings, solvers, cosim_solver_details)
         if "alpha" in self.settings:
             self.alpha = self.settings["alpha"]
         else:
@@ -28,7 +28,7 @@ class ConstantRelaxation(CoSimulationBaseConvergenceAccelerator):
     # Computes the approximated update in each iteration.
     def _ComputeUpdate( self, r, x ):
         if self.echo_level > 3:
-            classprint(self.lvl, self._Name(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
+            classprint(self._Name(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
         delta_x = self.alpha * r
         return delta_x
 

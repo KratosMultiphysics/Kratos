@@ -12,8 +12,8 @@ from copy import deepcopy
 from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red, magenta, blue
 
-def Create(settings, solvers, cosim_solver_details, level):
-    return Anderson(settings, solvers, cosim_solver_details, level)
+def Create(settings, solvers, cosim_solver_details):
+    return Anderson(settings, solvers, cosim_solver_details)
 
 class Anderson(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
@@ -22,8 +22,8 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
     # @param beta weighting factor of constant relaxation
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
-    def __init__( self, settings, solvers, cosim_solver_details, level ):
-        super(Anderson, self).__init__(settings, solvers, cosim_solver_details, level)
+    def __init__( self, settings, solvers, cosim_solver_details ):
+        super(Anderson, self).__init__(settings, solvers, cosim_solver_details)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:
@@ -64,7 +64,7 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
         if k == 0:
             ## For the first iteration, do relaxation only
             if self.echo_level > 3:
-                classprint(self.lvl, self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                classprint(self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
             return self.alpha * r
         else:
             self.F = np.empty( shape = (col, row) ) # will be transposed later
@@ -81,16 +81,16 @@ class Anderson(CoSimulationBaseConvergenceAccelerator):
 
             switch = (self.iteration_counter + 1)/self.p
 
-            classprint(self.lvl, magenta(self.iteration_counter))
+            classprint(magenta(self.iteration_counter))
 
             if switch.is_integer() == True:
                 B = self.beta * np.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), blue("Compute B with Anderson"))
+                    classprint(self._Name(), blue("Compute B with Anderson"))
             else:
                 B = self.alpha * np.identity(row)
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), red("Constant underrelaxtion"))
+                    classprint(self._Name(), red("Constant underrelaxtion"))
 
             delta_x = B @ r
 

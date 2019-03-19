@@ -7,12 +7,12 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(predictor_settings, solvers, level):
-    return StandardLinearPredictor(predictor_settings, solvers, level)
+def Create(predictor_settings, solvers):
+    return StandardLinearPredictor(predictor_settings, solvers)
 
 class StandardLinearPredictor(CosimulationBasePredictor):
-    def __init__(self, settings, solvers, level):
-        super(StandardLinearPredictor, self).__init__(settings, solvers, level)
+    def __init__(self, settings, solvers):
+        super(StandardLinearPredictor, self).__init__(settings, solvers)
         # TODO add comment why we do this
         num_data = len(self.settings["data_list"])
         self.data_arrays_t0 = [np.array([]) for e in range(num_data)]

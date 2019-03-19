@@ -5,10 +5,9 @@ import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CoSimulationBaseConvergenceAccelerator(object):
-    def __init__(self, settings, solvers, level):
+    def __init__(self, settings, solvers):
         self.settings = settings
         self.solvers = solvers
-        self.lvl = level
         self.echo_level = 0
 
         ## Here we preallocate the arrays that will be used to exchange data
@@ -66,7 +65,7 @@ class CoSimulationBaseConvergenceAccelerator(object):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
         '''
-        cs_tools.classprint(self.lvl, "Convergence Accelerator", cs_tools.bold(self._Name()))
+        cs_tools.classprint("Convergence Accelerator", cs_tools.bold(self._Name()))
 
     def SetEchoLevel(self, level):
         self.echo_level = level

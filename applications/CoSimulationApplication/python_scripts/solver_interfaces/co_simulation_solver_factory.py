@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
-def CreateSolverInterface(settings, level):
+def CreateSolverInterface(settings):
     """
     This function creates and returns the coupled solver.
     """
@@ -9,4 +9,4 @@ def CreateSolverInterface(settings, level):
     module_full  = 'KratosMultiphysics.CoSimulationApplication.solver_interfaces.kratos_interfaces.'+coupled_solver_type
     module_full += '_solver'
     coupled_solver_module = __import__(module_full, fromlist=[coupled_solver_type])
-    return coupled_solver_module.CreateSolver(settings, level+1)
+    return coupled_solver_module.CreateSolver(settings)

@@ -11,8 +11,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as co_simu
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold, red
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
-    def __init__(self, cosim_solver_settings, level):
-        super(KratosBaseFieldSolver, self).__init__(cosim_solver_settings, level)
+    def __init__(self, cosim_solver_settings):
+        super(KratosBaseFieldSolver, self).__init__(cosim_solver_settings)
         self.model = KratosMultiphysics.Model()
 
         input_file_name = self.cosim_solver_settings["input_file"]
@@ -73,7 +73,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
 
 
     def PrintInfo(self):
-        solverprint(self.lvl, "KratosSolver", bold(self._Name()))
+        solverprint("KratosSolver", bold(self._Name()))
         ## TODO print additional stuff with higher echo-level
 
     def Check(self):
@@ -82,11 +82,11 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         if is_distributed and not solver_parallel_type == "MPI":
             warning_msg  = 'WARNING: Global "parallel_type" (MPI) is different '
             warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self.lvl, self._Name(), ": " + red(warning_msg))
+            solverprint(self._Name(), ": " + red(warning_msg))
         elif not is_distributed and not solver_parallel_type == "OpenMP":
             warning_msg  = 'WARNING: Global "parallel_type" (OpenMP) is different '
             warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self.lvl, self._Name(), ": " + red(warning_msg))
+            solverprint(self._Name(), ": " + red(warning_msg))
 
     def IsDistributed(self):
         return (self._GetParallelType() == "MPI")

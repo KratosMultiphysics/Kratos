@@ -13,8 +13,8 @@ from copy import deepcopy
 from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(settings, solvers, level):
-    return IQNILS(settings, solvers, level)
+def Create(settings, solvers):
+    return IQNILS(settings, solvers)
 
 ## Class IQNILS.
 # This class contains the implementation of the IQN-ILS method and helper functions.
@@ -24,8 +24,8 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solvers, level ):
-        super(IQNILS, self).__init__(settings, solvers, level)
+    def __init__( self, settings, solvers):
+        super(IQNILS, self).__init__(settings, solvers)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:
@@ -65,12 +65,12 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
             if k == 0:
                 ## For the first iteration in the first time step, do relaxation only
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                    classprint(self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
                 return self.alpha * r
             else:
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), "Doing multi-vector extrapolation")
-                    classprint(self.lvl, self._Name(), "Number of new modes: ", col)
+                    classprint(self._Name(), "Doing multi-vector extrapolation")
+                    classprint(self._Name(), "Number of new modes: ", col)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
@@ -79,7 +79,7 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
 
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ) and self.echo_level > 0:
-                    classprint(self.lvl, self._Name(), ": "+ red("WARNING: column number larger than row number!"))
+                    classprint(self._Name(), ": "+ red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
@@ -99,8 +99,8 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
         else:  # previous vectors can be reused
             if k == 0: # first iteration
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), "Using matrices from previous time steps")
-                    classprint(self.lvl, self._Name(), "Number of previous matrices: ", num_old_matrices)
+                    classprint(self._Name(), "Using matrices from previous time steps")
+                    classprint(self._Name(), "Number of previous matrices: ", num_old_matrices)
                 V = self.V_old
                 W = self.W_old
                 ## Solve least-squares problem
@@ -113,9 +113,9 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
             else:
                 ## For other iterations, construct new V and W matrices and combine them with old ones
                 if self.echo_level > 3:
-                    classprint(self.lvl, self._Name(), "Doing multi-vector extrapolation")
-                    classprint(self.lvl, self._Name(), "Number of new modes: ", col)
-                    classprint(self.lvl, self._Name(), "Number of previous matrices: ", num_old_matrices)
+                    classprint(self._Name(), "Doing multi-vector extrapolation")
+                    classprint(self._Name(), "Number of new modes: ", col)
+                    classprint(self._Name(), "Number of previous matrices: ", num_old_matrices)
                 ## Construct matrix V (differences of residuals)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
@@ -124,7 +124,7 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
                 V = np.hstack( (self.V_new, self.V_old) )
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ) and self.echo_level > 0:
-                    classprint(self.lvl, self._Name(), ": "+ red("WARNING: column number larger than row number!"))
+                    classprint(self._Name(), ": "+ red("WARNING: column number larger than row number!"))
 
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
@@ -154,7 +154,7 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
         ## Clear the buffer
         if self.R and self.X:
             if self.echo_level > 3:
-                classprint(self.lvl, self._Name(), "Cleaning")
+                classprint(self._Name(), "Cleaning")
             self.R.clear()
             self.X.clear()
         self.V_new = []

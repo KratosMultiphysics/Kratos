@@ -95,7 +95,7 @@ class CoSimulationAnalysis(object):
         """Create the solver
         """
         import KratosMultiphysics.CoSimulationApplication.coupled_solvers.co_simulation_coupled_solver_factory as solvers_wrapper
-        return solvers_wrapper.CreateCoupledSolver(self.cosim_settings["solver_settings"], level=0)
+        return solvers_wrapper.CreateCoupledSolver(self.cosim_settings["solver_settings"])
 
 if __name__ == '__main__':
     from sys import argv
@@ -113,6 +113,9 @@ if __name__ == '__main__':
     # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:
         parameters = cs_data_structure.Parameters(parameter_file.read())
+
+    print(type(parameters))
+    errr
 
     model = cs_data_structure.Model()
 

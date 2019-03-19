@@ -3,20 +3,19 @@ from __future__ import print_function, absolute_import, division
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_io_factory as io_factory
 
-def CreateSolver(cosim_solver_settings, level):
-    return CoSimulationBaseSolver(cosim_solver_settings, level)
+def CreateSolver(cosim_solver_settings):
+    return CoSimulationBaseSolver(cosim_solver_settings)
 
 class CoSimulationBaseSolver(object):
     """The base class for the CoSimulation Solvers
     The intention is that every solver that derives from this class
     can be used standalone.
     """
-    def __init__(self, cosim_solver_settings, level):
+    def __init__(self, cosim_solver_settings):
         """Constructor of the Base-Solver
         Deriving classes should call it in their constructors
         """
         self.cosim_solver_settings = cosim_solver_settings
-        self.lvl = level
         self.echo_level = 0
         if "echo_level" in self.cosim_solver_settings:
             self.echo_level = self.cosim_solver_settings["echo_level"]
@@ -32,8 +31,7 @@ class CoSimulationBaseSolver(object):
 
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       solvers,
-                                      solver_name,
-                                      self.lvl)
+                                      solver_name)
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 

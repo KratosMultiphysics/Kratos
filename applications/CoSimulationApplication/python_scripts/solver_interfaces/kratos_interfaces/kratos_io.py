@@ -11,12 +11,12 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import csprint, bold, green, red
 
-def Create(solvers, solver_name, level):
-    return KratosIO(solvers, solver_name, level)
+def Create(solvers, solver_name):
+    return KratosIO(solvers, solver_name)
 
 class KratosIO(CoSimulationBaseIO):
-    def __init__(self, solvers, solver_name, level):
-        super(KratosIO, self).__init__(solvers, solver_name, level)
+    def __init__(self, solvers, solver_name):
+        super(KratosIO, self).__init__(solvers, solver_name)
 
         self.mappers = {}
         self.mapper_flags = {
@@ -234,7 +234,7 @@ class KratosIO(CoSimulationBaseIO):
                 info_msg  = bold("Mapper created") + ' for solver "' + self.solver_name + '": from "'
                 info_msg += from_client._Name() + ':' + geometry_name_from + '" to "'
                 info_msg += to_client._Name() + ':' + geometry_name_to + '"'
-                csprint(self.lvl, info_msg)
+                csprint(info_msg)
 
         return mapper, is_inverse_mapper
 
@@ -279,7 +279,7 @@ class KratosIO(CoSimulationBaseIO):
                         info_msg  = bold("Distributing Point Values of ")
                         info_msg += bold("Variable: ") + var_origin.Name()
                         info_msg += bold(" On: ") + geometry_name
-                        csprint(self.lvl, info_msg)
+                        csprint(info_msg)
 
             distribute_on_dest=False
             if "type_of_quantity" in data_definition_to:
@@ -303,7 +303,7 @@ class KratosIO(CoSimulationBaseIO):
                     info_msg  = bold("Converting Distributed-Values to Point-Values ")
                     info_msg += bold("Variable: ") + var_dest.Name()
                     info_msg += bold(" On: ") + geometry_name
-                    csprint(self.lvl, info_msg)
+                    csprint(info_msg)
 
             if self.echo_level > 3:
                 pre_string = ""
@@ -314,7 +314,7 @@ class KratosIO(CoSimulationBaseIO):
                 info_msg += bold("Destination_Variable: ") + var_dest.Name()
                 if "mapper_args" in data_settings["io_settings"]:
                     info_msg += " | " + bold("Mapper-Flags: ") + ", ".join(data_settings["io_settings"]["mapper_args"])
-                csprint(self.lvl, info_msg)
+                csprint(info_msg)
 
     def __GetKratosVariable(self, var_name):
         # TODO properly check which one is faster

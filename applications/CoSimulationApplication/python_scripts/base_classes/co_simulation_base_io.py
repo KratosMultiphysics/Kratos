@@ -5,10 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 class CoSimulationBaseIO(object):
-    def __init__(self, solvers, solver_name, level):
+    def __init__(self, solvers, solver_name):
         self.solvers = solvers
         self.solver_name = solver_name
-        self.lvl = level
         self.echo_level = 0
 
     def ImportData(self, data_settings, from_client):

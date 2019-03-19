@@ -8,24 +8,24 @@ from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.co_simu
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, red, green, cyan, bold
 
-def Create(cosim_solver_settings, level):
-    return GaussSeidelStrongCouplingSolver(cosim_solver_settings, level)
+def Create(cosim_solver_settings):
+    return GaussSeidelStrongCouplingSolver(cosim_solver_settings)
 
 class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
-    def __init__(self, cosim_solver_settings, level):
+    def __init__(self, cosim_solver_settings):
         if not len(cosim_solver_settings["solvers"]) == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        super(GaussSeidelStrongCouplingSolver, self).__init__(cosim_solver_settings, level)
+        super(GaussSeidelStrongCouplingSolver, self).__init__(cosim_solver_settings)
 
         self.convergence_accelerator = CreateConvergenceAccelerator(
             self.cosim_solver_settings["convergence_accelerator_settings"],
-            self.solvers, self.lvl)
+            self.solvers)
         self.convergence_accelerator.SetEchoLevel(self.echo_level)
 
         self.convergence_criteria = CreateConvergenceCriteria(
             self.cosim_solver_settings["convergence_criteria_settings"],
-            self.solvers, self.lvl)
+            self.solvers)
         self.convergence_criteria.SetEchoLevel(self.echo_level)
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
@@ -53,7 +53,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(),
+                couplingsolverprint(self._Name(),
                                     cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             self.convergence_accelerator.InitializeNonLinearIteration()
@@ -70,18 +70,18 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
             if self.convergence_criteria.IsConverged():
                 if self.echo_level > 0:
-                    couplingsolverprint(self.lvl, self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
+                    couplingsolverprint(self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
                 break
             else:
                 self.convergence_accelerator.ComputeUpdate()
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                couplingsolverprint(self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
 
     def PrintInfo(self):
         super(GaussSeidelStrongCouplingSolver, self).PrintInfo()
 
-        couplingsolverprint(self.lvl, self._Name(), "Uses the following objects:")
+        couplingsolverprint(self._Name(), "Uses the following objects:")
         self.convergence_accelerator.PrintInfo()
         self.convergence_criteria.PrintInfo()
 

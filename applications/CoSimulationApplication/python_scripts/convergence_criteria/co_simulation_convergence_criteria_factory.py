@@ -6,15 +6,14 @@ from numpy import linalg as la
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def CreateConvergenceCriteria(settings, solvers, level):
-    return CoSimulationConvergenceCriteria(settings, solvers, level)
+def CreateConvergenceCriteria(settings, solvers):
+    return CoSimulationConvergenceCriteria(settings, solvers)
 
 class CoSimulationConvergenceCriteria(object):
-    def __init__(self, settings, solvers, level):
+    def __init__(self, settings, solvers):
         self.settings = settings
         self.solvers = solvers
         self.echo_level = 0
-        self.lvl = level
         self.abs_tolerances = [data_entry["abs_tolerance"] for data_entry in self.settings["data_list"]]
         self.rel_tolerances = [data_entry["rel_tolerance"] for data_entry in self.settings["data_list"]]
 
@@ -66,18 +65,18 @@ class CoSimulationConvergenceCriteria(object):
                     info_msg += green("ACHIEVED")
                 else:
                     info_msg += red("NOT ACHIEVED")
-                classprint(self.lvl, self._Name(), info_msg)
+                classprint(self._Name(), info_msg)
             if self.echo_level > 2:
                 info_msg  = bold("abs_norm")+" = " + str(abs_norm) + " | "
                 info_msg += bold("abs_tol")+" = " + str(self.abs_tolerances[i])
                 info_msg += " || "+bold("rel_norm")+" = " + str(rel_norm) + " | "
                 info_msg += bold("rel_tol") +" = " + str(self.rel_tolerances[i])
-                classprint(self.lvl, self._Name(), info_msg)
+                classprint(self._Name(), info_msg)
 
         return min(convergence_list) # return false if any of them did not converge!
 
     def PrintInfo(self):
-        classprint(self.lvl, "Convergence Criteria", bold(self._Name()))
+        classprint("Convergence Criteria", bold(self._Name()))
 
     def Check(self):
         print("ConvCrit does not implement Check yet!")

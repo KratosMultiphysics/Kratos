@@ -392,20 +392,19 @@ def magenta(string2color):
 def darkmagenta(string2color):
     return (darkify(magenta(string2color)))
 
-SPACE = 4 * " "
-def csprint(level, *args):
+def csprint(*args):
     if PRINTING_RANK:
-        print(level*SPACE + blue("<CS-"+str(level)+">"), " ".join(map(str,args)))
+        print(" ".join(map(str,args)))
     COSIM_SPACE.Barrier()
 
-def solverprint(level, solver_name, *args):
-    csprint(level, yellow(solver_name + ":"), *args)
+def solverprint(solver_name, *args):
+    csprint(yellow(solver_name + ":"), *args)
 
-def couplingsolverprint(level, solver_name, *args):
-    csprint(level, darkyellow(solver_name + ":"), *args)
+def couplingsolverprint(solver_name, *args):
+    csprint(darkyellow(solver_name + ":"), *args)
 
-def classprint(level, solver_name, *args):
-    csprint(level, magenta(solver_name + ":"), *args)
+def classprint(solver_name, *args):
+    csprint(magenta(solver_name + ":"), *args)
 
 if __name__ == "__main__":
     print("printing all color options:\n")

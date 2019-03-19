@@ -13,8 +13,8 @@ from copy import deepcopy
 from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
-def Create(settings, solvers, level):
-    return MVQN(settings, solvers, level)
+def Create(settings, solvers):
+    return MVQN(settings, solvers)
 
 ## Class MVQN.
 # This class contains the implementation of the MVQN method and helper functions.
@@ -23,8 +23,8 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solvers, level ):
-        super(MVQN, self).__init__(settings, solvers, level)
+    def __init__( self, settings, solvers, ):
+        super(MVQN, self).__init__(settings, solvers)
         if "horizon" in self.settings:
             horizon = self.settings["horizon"]
         else:
@@ -49,7 +49,7 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
         row = len(r)
         k = col
         if self.echo_level > 3:
-            classprint(self.lvl, self._Name(), "Number of new modes: ", col )
+            classprint(self._Name(), "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
@@ -98,7 +98,7 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
             for j in range(0, col):
                 self.J[i][j] = self.J_hat[i][j]
         if self.echo_level > 3:
-            classprint(self.lvl, self._Name(), "Jacobian matrix updated!")
+            classprint(self._Name(), "Jacobian matrix updated!")
         ## Clear the buffer
         if self.R and self.X:
             self.R.clear()

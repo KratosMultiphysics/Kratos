@@ -7,8 +7,8 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(solvers, solver_name, level):
-    return SDoFIO(solvers, solver_name, level)
+def Create(solvers, solver_name):
+    return SDoFIO(solvers, solver_name)
 
 class SDoFIO(CoSimulationBaseIO):
 
