@@ -68,7 +68,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                         : "in_radius",
+                "type_search"                         : "octree_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,

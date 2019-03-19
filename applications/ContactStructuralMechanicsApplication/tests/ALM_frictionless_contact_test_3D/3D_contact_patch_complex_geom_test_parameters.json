@@ -97,6 +97,7 @@
                 "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},
                 "contact_type"              : "Frictionless",
                 "search_parameters" : {
+                    "type_search"           : "in_radius",
                     "check_gap"             : "direct_check"
                 }
             }
@@ -186,15 +187,5 @@
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
         "point_data_configuration"  : []}}}]
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

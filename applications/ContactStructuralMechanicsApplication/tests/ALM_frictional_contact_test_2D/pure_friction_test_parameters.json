@@ -75,7 +75,10 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
                 "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
-                "contact_type"                : "Frictional"
+                "contact_type"                : "Frictional",
+                "search_parameters" : {
+                    "type_search"             : "in_radius"
+                }
             }
         }],
         "loads_process_list"       : [{
