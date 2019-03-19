@@ -145,6 +145,7 @@ output:
 """
 @ExaquteTask(returns=3)
 def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,sample,current_level,current_analysis_stage,mlmc_results):
+    time_0 = time.time()
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
     current_model = KratosMultiphysics.Model()
@@ -155,10 +156,12 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
+    time_1 = time.time()
     # start time
     start_MLMC_time = time.time()
     # refine if current current_level > 0, adaptive refinement based on the solution of previous level
     if (current_level > 0):
+        time_2 = time.time()
         # unpickle metric and remesh refinement parameters and build Kratos Parameters objects
         serialized_custom_metric_refinement_parameters = pickle.loads(pickled_custom_metric_refinement_parameters)
         serialized_custom_remesh_refinement_parameters = pickle.loads(pickled_custom_remesh_refinement_parameters)
@@ -167,9 +170,11 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
         serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
         serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
         del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
+        time_3 = time.time()
         # refine the model Kratos object
         refined_model,refined_project_parameters = \
             hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,mesh_sizes[current_level],mesh_sizes[current_level-1],current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+        time_4 = time.time()
         # initialize the model Kratos object
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
         simulation.Initialize()
@@ -177,9 +182,12 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
         current_model = simulation.model
         current_project_parameters = simulation.project_parameters
         del(simulation)
+        time_5 = time.time()
+    time_6 = time.time()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
+    time_7 = time.time()
     # save model and parameters as StreamSerializer Kratos objects
     serialized_finer_model = KratosMultiphysics.StreamSerializer()
     serialized_finer_model.Save("ModelSerialization",simulation.model)
@@ -189,10 +197,35 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
     pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_finer_project_parameters = pickle.dumps(serialized_finer_project_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     del(simulation)
+    time_8 = time.time()
     end_MLMC_time = time.time()
     # register results of the current level in the MultilevelMonteCarloResults class
     mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
+
+    # post process times of the task
+    print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
+    deserealization_time = time_1 - time_0
+    if (current_level > 0):
+        mmg_refinement_time = time_4 - time_3
+    refinement_time = time_6 - time_1
+    Kratos_run_time = time_7 - time_6
+    serealization_time = time_8 - time_7
+    total_task_time = time_8 - time_0
+    print("current level:",current_level)
+    print("total task time:", total_task_time)
+    print("Kratos Run time:",Kratos_run_time)
+    print("Deserealization + serialization time:",deserealization_time,"+",serealization_time,"=",deserealization_time+serealization_time)
+    if (current_level > 0):
+        print("mmg refinement time",)
+    print("RATIOs: time of interest / total task time")
+    print("Relative serialization and deserialization times:",(serealization_time+deserealization_time)/total_task_time)
+    print("Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    if (current_level > 0):
+        print("Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+
     return mlmc_results,pickled_finer_model,pickled_finer_project_parameters
 
 
