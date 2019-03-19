@@ -63,17 +63,18 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
     array_1d<double, 3> weight = ZeroVector(3);
-    array_1d<double, 3> buoyancy;
-    array_1d<double, 3> drag_force;
-    array_1d<double, 3> inviscid_force;
-    array_1d<double, 3> vorticity_induced_lift;
-    array_1d<double, 3> rotation_induced_lift;
-    array_1d<double, 3>& history_force = node.FastGetSolutionStepValue(BASSET_FORCE);
-    array_1d<double, 3> steady_viscous_torque;
+    array_1d<double, 3> buoyancy = ZeroVector(3);
+    array_1d<double, 3> drag_force = ZeroVector(3);
+    array_1d<double, 3> inviscid_force = ZeroVector(3);
+    array_1d<double, 3> history_force = ZeroVector(3);
+    array_1d<double, 3> vorticity_induced_lift = ZeroVector(3);
+    array_1d<double, 3> rotation_induced_lift = ZeroVector(3);
+    array_1d<double, 3> steady_viscous_torque = ZeroVector(3);
     Geometry<Node<3> >& r_geometry = GetGeometry();
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
+
     TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could be adding something else apart from weight
 
     mHydrodynamicInteractionLaw->ComputeBuoyancyForce(r_geometry,
@@ -97,7 +98,13 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       inviscid_force,
                                                       r_current_process_info);
 
-
+    mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
+                                                     mRadius,
+                                                     mFluidDensity,
+                                                     mKinematicViscosity,
+                                                     mSlipVel,
+                                                     history_force,
+                                                     r_current_process_info);
 
     mHydrodynamicInteractionLaw->ComputeVorticityInducedLift(r_geometry,
                                                              mRadius,
@@ -112,16 +119,16 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                             mFluidDensity,
                                                             mKinematicViscosity,
                                                             mSlipVel,
-                                                            steady_viscous_torque,
+                                                            rotation_induced_lift,
                                                             r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeHistoryForce(r_geometry,
-                                                     mRadius,
-                                                     mFluidDensity,
-                                                     mKinematicViscosity,
-                                                     mSlipVel,
-                                                     history_force,
-                                                     r_current_process_info);
+    mHydrodynamicInteractionLaw->ComputeSteadyViscousTorque(r_geometry,
+                                                            mRadius,
+                                                            mFluidDensity,
+                                                            mKinematicViscosity,
+                                                            mSlipVel,
+                                                            steady_viscous_torque,
+                                                            r_current_process_info);
 
     // Adding all fluid-related forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += weight

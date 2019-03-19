@@ -20,6 +20,8 @@
 #include "add_mpi_data_communicator_to_python.h"
 #include "add_mpi_utilities_to_python.h"
 
+#include "includes/parallel_environment.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -35,6 +37,7 @@ PYBIND11_MODULE(KratosMPI, m)
     // Define a callback to finalize MPI on module cleanup
     auto cleanup_callback = []() {
         MPIEnvironment::Finalize();
+        ParallelEnvironment::SetDefaultDataCommunicator("Serial");
     };
 
     m.add_object("_cleanup", py::capsule(cleanup_callback));

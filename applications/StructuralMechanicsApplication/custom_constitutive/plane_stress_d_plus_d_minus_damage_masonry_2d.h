@@ -623,10 +623,10 @@ private:
      *          Control nodes:  K=(e_k,s_k); R=(e_r,s_r); U=(e_u,s_u)
      *  {V}   Residual Strength
      *
-     *   STRESS                 
-     *      ^
-     *     /|\
-     *      |                     (P)
+     *    STRESS                 
+     *       ^
+     *      /|\
+     *       |                     (P)
      * s_p = |------------(I)+----#####--+(J) 
      * s_i = |               ' ###  ' ####
      * s_j   |              ###     '    ####
