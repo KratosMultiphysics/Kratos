@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics
 
-# Importing the solvers
-import KratosMultiphysics.ExternalSolversApplication
-
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
