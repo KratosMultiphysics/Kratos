@@ -52,13 +52,13 @@ def compareResults(reference_file, results_file):
 
 class TestKratosSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_KratosStructuralMechanicsSolver(self):
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             # self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
             # self.runTest()
             kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")
 
     def test_KratosFluidDynamicsSolver(self):
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             # self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
             # self.runTest()
             kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")
@@ -67,7 +67,7 @@ class TestSDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_SDoFSolver(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             folder_name = "sdof_solver"
             self.createTest("sdof_solver", "cosim_sdof")
             self.runTest()
@@ -79,7 +79,7 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_MDoFSDoFModel(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_sdof")
             self.runTest()
@@ -90,7 +90,7 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_MDoFGenericModel(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_generic")
             self.runTest()
@@ -103,7 +103,7 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             self.skipTest("Numpy not available")
         if not scipy_and_sympy_available:
             self.skipTest("Scipy/Sympy not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_cantilever_shear_2d")
             self.runTest()
@@ -116,7 +116,7 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             self.skipTest("Numpy not available")
         if not scipy_and_sympy_available:
             self.skipTest("Scipy/Sympy not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_bridge_2dof")
             self.runTest()
@@ -128,7 +128,7 @@ class TestEmpireSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_EmpireSolverWrapper(self):
         if "EMPIRE_API_LIBSO_ON_MACHINE" not in os.environ:
             self.skipTest("EMPIRE is not available")
-        with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             # self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
             # self.runTest()
             kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")

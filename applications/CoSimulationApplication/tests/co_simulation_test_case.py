@@ -9,17 +9,6 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import Co
 
 import os, json
 
-class ControlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
 class CoSimulationTestCase(KratosUnittest.TestCase):
     '''This class is the basis for the testing the framework
     It can be used to test complete cases with the "CoSimulation-Analysis"
