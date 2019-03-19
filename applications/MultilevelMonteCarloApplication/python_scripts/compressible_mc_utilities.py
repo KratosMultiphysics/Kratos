@@ -80,6 +80,13 @@ output: convergence_boolean: boolean setting if convergence is achieved
 @ExaquteTask(returns=1)
 def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
+    # TODO: rempve fllowing lines later
+    cphi_confidence = norm.ppf(current_delta)
+    statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+    bias = 0.0 # hypothesis bias = 0 since we can't compute
+    total_error = bias + statistical_error
+    print("[TOT-ERR] total error = bias (hyp MC == 0) + statistical error =",total_error)
+    # TODO: remove above lines later
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
@@ -125,15 +132,16 @@ output: QoI: Quantity of Interest
 """
 # @constraint(ComputingUnits="${computing_units}")
 @ExaquteTask(returns=1)
-def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
+# def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
+def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,current_analysis_stage,current_level):
     time_0 = time.time()
-    # overwrite the old model serializer with the unpickled one
-    model_serializer = pickle.loads(pickled_model)
+    # # overwrite the old model serializer with the unpickled one
+    # model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
-    model_serializer.Load("ModelSerialization",current_model)
-    del(model_serializer)
-    # overwrite the old parameters serializer with the unpickled one
-    serialized_project_parameters = pickle.loads(pickled_project_parameters)
+    serialized_model.Load("ModelSerialization",current_model)
+    del(serialized_model)
+    # # overwrite the old parameters serializer with the unpickled one
+    # serialized_project_parameters = pickle.loads(pickled_project_parameters)
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
     del(serialized_project_parameters)
@@ -280,7 +288,8 @@ class MonteCarlo(object):
         current_level = self.current_level
         if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
-        return (ExecuteInstanceAux_Task(self.pickled_model,self.pickled_project_parameters,self.GetAnalysis(),self.current_level),current_level)
+        # return (ExecuteInstanceAux_Task(self.serialized_model,self.serialized_project_parameters,self.GetAnalysis(),self.current_level),current_level)
+        return (ExecuteInstanceAux_Task(self.serialized_model,self.serialized_project_parameters,self.GetAnalysis(),self.current_level),current_level)
 
     """
     function serializing and pickling the model and the project parameters of the problem
@@ -305,13 +314,15 @@ class MonteCarlo(object):
         serialized_model.Save("ModelSerialization",simulation.model)
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
         serialized_project_parameters.Save("ParametersSerialization",simulation.project_parameters)
-        # pickle dataserialized_data
-        pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-        pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2)
-        self.pickled_model = pickled_model
-        self.pickled_project_parameters = pickled_project_parameters
-        self.is_project_parameters_pickled = True
-        self.is_model_pickled = True
+        self.serialized_model = serialized_model
+        self.serialized_project_parameters = serialized_project_parameters
+        # # pickle dataserialized_data
+        # pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        # pickled_project_parameters = pickle.dumps(serialized_project_parameters, 2)
+        # self.pickled_model = pickled_model
+        # self.pickled_project_parameters = pickled_project_parameters
+        # self.is_project_parameters_pickled = True
+        # self.is_model_pickled = True
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
 
     """
@@ -426,6 +437,10 @@ class MonteCarlo(object):
         # synchronization point needed to launch new tasks if convergence is false
         # put the synchronization point as in the end as possible
         self.convergence = get_value_from_remote(self.convergence)
+        # bring to master what is needed to print
+        self.number_samples = get_value_from_remote(self.number_samples)
+        self.QoI.mean = get_value_from_remote(self.QoI.mean)
+        self.QoI.sample_variance = get_value_from_remote(self.QoI.sample_variance)
 
     """
     function printing informations about initializing MLMC phase
