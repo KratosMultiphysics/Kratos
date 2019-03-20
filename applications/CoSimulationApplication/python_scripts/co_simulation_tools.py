@@ -38,6 +38,14 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings, solvers):
 
     return convergence_accelerators
 
+def CreateConvergenceCriteria(convergence_criteria_settings, solvers):
+    from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
+    convergence_criteria = []
+    for conv_crit_setting in convergence_criteria_settings:
+        convergence_criteria.append(CreateConvergenceCriteria(conv_crit_setting, solvers))
+
+    return convergence_criteria
+
 
 
 

@@ -27,18 +27,14 @@
                 "data_name" : "disp_x"
             }
         ],
-        "convergence_criteria" :
-        {
-            "data_list" :
-            [
-                {
-                    "solver"   : "fluid",
-                    "data_name"     : "disp_x",
-                    "abs_tolerance" : 1e-9,
-                    "rel_tolerance" : 1e-2
-                }
-            ]
-        },
+        "convergence_criteria" : [
+            {
+                "solver"        : "fluid",
+                "data_name"     : "disp_x",
+                "abs_tolerance" : 1e-9,
+                "rel_tolerance" : 1e-2
+            }
+        ],
         "coupling_sequence":
         [
             {

@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_coupled_solver import CoSimulationBaseCouplingSolver
 
 # Other imports
-from KratosMultiphysics.CoSimulationApplication.convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, red, green, cyan, bold
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
@@ -23,10 +22,10 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             self.solvers)
         # self.convergence_accelerator.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
 
-        self.convergence_criteria = CreateConvergenceCriteria(
+        self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
             self.cosim_solver_settings["convergence_criteria"],
             self.solvers)
-        self.convergence_criteria.SetEchoLevel(self.echo_level)
+        # self.convergence_criteria.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
 
@@ -34,25 +33,29 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
         super(GaussSeidelStrongCouplingSolver, self).Initialize()
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()
-        self.convergence_criteria.Initialize()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.Initialize()
 
     def Finalize(self):
         super(GaussSeidelStrongCouplingSolver, self).Finalize()
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Finalize()
-        self.convergence_criteria.Finalize()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.Finalize()
 
     def InitializeSolutionStep(self):
         super(GaussSeidelStrongCouplingSolver, self).InitializeSolutionStep()
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.InitializeSolutionStep()
-        self.convergence_criteria.InitializeSolutionStep()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(GaussSeidelStrongCouplingSolver, self).FinalizeSolutionStep()
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.FinalizeSolutionStep()
-        self.convergence_criteria.FinalizeSolutionStep()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
@@ -62,7 +65,8 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
             for conv_acc in self.convergence_accelerators_list:
                 conv_acc.InitializeNonLinearIteration()
-            self.convergence_criteria.InitializeNonLinearIteration()
+            for conv_crit in self.convergence_criteria_list:
+                conv_crit.InitializeNonLinearIteration()
 
             for solver_name in self.solver_names:
                 solver = self.solvers[solver_name]
@@ -72,9 +76,13 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
             for conv_acc in self.convergence_accelerators_list:
                 conv_acc.FinalizeNonLinearIteration()
-            self.convergence_criteria.FinalizeNonLinearIteration()
+            for conv_crit in self.convergence_criteria_list:
+                conv_crit.FinalizeNonLinearIteration()
 
-            if self.convergence_criteria.IsConverged():
+            is_converged = True
+            for conv_crit in self.convergence_criteria_list:
+                is_converged = is_converged and conv_crit.IsConverged()
+            if is_converged:
                 if self.echo_level > 0:
                     couplingsolverprint(self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
                 break
@@ -91,13 +99,15 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
         couplingsolverprint(self._Name(), "Uses the following objects:")
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.PrintInfo()
-        self.convergence_criteria.PrintInfo()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.PrintInfo()
 
     def Check(self):
         super(GaussSeidelStrongCouplingSolver, self).Check()
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Check()
-        self.convergence_criteria.Check()
+        for conv_crit in self.convergence_criteria_list:
+            conv_crit.Check()
 
     def _Name(self):
         return self.__class__.__name__
