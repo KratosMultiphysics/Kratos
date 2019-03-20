@@ -610,7 +610,7 @@ namespace Kratos
             {
                 for (std::size_t j = 0; j < edge_dict["topology"].size(); j++)
                 {
-                    int face_id = edge_dict["topology"][j]["face_id"].GetInt();
+                    int face_id = edge_dict["topology"][j]["brep_id"].GetInt();
                     int trim_index = edge_dict["topology"][j]["trim_index"].GetInt();
                     bool relative_direction = edge_dict["topology"][j]["relative_direction"].GetBool();
 
