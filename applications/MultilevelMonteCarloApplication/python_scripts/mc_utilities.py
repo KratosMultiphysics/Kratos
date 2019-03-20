@@ -73,7 +73,7 @@ input:  current_number_samples:                   current number of samples comp
         current_sample_central_moment_3_absolute: current third absolute central moment
         current_h4:                               current h4 statistics
         current_tol:                              current tolerance
-        current_delta:                            current convergence probability
+        current_delta:                            current error probability (1 - confidence)
         convergence_criteria:                     convergence criteria exploited to check convergence
 output: convergence_boolean: boolean setting if convergence is achieved
 """
@@ -169,13 +169,14 @@ class MonteCarlo(object):
             raise Exception ("Please provide the path of the project parameters json file")
         # default settings of the Monte Carlo algorithm
         # tolerance:            tolerance
-        # confidence:                 confidence on tolerance
+        # confidence:           confidence on tolerance
         # batch_size:           number of samples per batch size
         # convergence_criteria: convergence criteria to get if convergence is achieved
         default_settings = KratosMultiphysics.Parameters("""
         {
             "tolerance" : 1e-1,
-            "confidence" : 1e-1,
+            "confidence" : 9e-1,
+            "error_probability" : 1e-1,
             "batch_size" : 50,
             "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
         }
@@ -185,6 +186,8 @@ class MonteCarlo(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         # convergence: boolean variable defining if MC algorithm has converged
         self.convergence = False
+        # ensure confidence + error_probability = 1.0
+        self.settings["error_probability"].SetDouble(1-self.settings["confidence"].GetDouble())
         # current_number_levels: number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
         # current_level: current level of work, current_level = 0 for MC
@@ -320,10 +323,10 @@ class MonteCarlo(object):
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         current_h4 = self.QoI.h_statistics_4[level]
         current_tol = self.settings["tolerance"].GetDouble()
-        current_conf = self.settings["confidence"].GetDouble()
+        current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] in the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
         convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
-            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_conf,convergence_criteria)
+            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
         self.convergence = convergence_boolean
 
     """
