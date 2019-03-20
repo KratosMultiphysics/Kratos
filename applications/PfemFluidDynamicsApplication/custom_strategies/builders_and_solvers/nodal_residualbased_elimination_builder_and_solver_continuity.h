@@ -208,18 +208,21 @@ void BuildNodally(
 
 							LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
 							RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE))*nodalVolume;
+              // std::cout<<"itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) "<<itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) <<std::endl;
+              // std::cout<<"nodalVolume "<<nodalVolume <<std::endl;
+              // std::cout<<"volumetricCoeff "<<volumetricCoeff <<std::endl;
+              // std::cout<<"deltaPressure "<<deltaPressure <<std::endl;
+							const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
+							EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
-							const unsigned int xpos = itNode->GetDofPosition(PRESSURE);
-							EquationId[0]=itNode->GetDof(PRESSURE,xpos).EquationId();
-
-							stabilizationNeeded=false;
+              stabilizationNeeded=false;
 							if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
 								stabilizationNeeded=true;
 							}else{
 
 								for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 									{
-										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+										EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
 									}
 
 							}
@@ -318,12 +321,11 @@ void BuildNodally(
 
 										if(i<neighb_nodes.size()){
 									// i==0 of EquationIs has been already filled with the master node (that is not included in neighb_nodes)
-											EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+											EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
 									// at i==0 density and volume acceleration are taken from the master node
 											density= neighb_nodes[i].FastGetSolutionStepValue(DENSITY);
 											VolumeAcceleration = neighb_nodes[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 										}
-
 										firstRow=0;
 
 										for (unsigned int j = 0; j< neighSize; j++)
@@ -942,18 +944,18 @@ void BuildNodally(
 	    if (EquationId.size() != neighSize)
 	      EquationId.resize(neighSize, false);
 
-	    /* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
-	    const unsigned int xpos = itNode->GetDofPosition(PRESSURE);
-	    EquationId[0]=itNode->GetDof(PRESSURE,xpos).EquationId();
+	    /* const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X); */
+	    const unsigned int xDofPos = itNode->GetDofPosition(PRESSURE);
+	    EquationId[0]=itNode->GetDof(PRESSURE,xDofPos).EquationId();
 
 	    /* Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID); */
 
 
 	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
-		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xDofPos).EquationId();
 		/* unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i]; */
-		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
+		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xDofPos).EquationId(); */
 		/* rNodeOrderedNeighboursPressureId[i]=EquationId[i]; */
 	      }
 
