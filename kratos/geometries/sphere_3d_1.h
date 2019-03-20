@@ -158,13 +158,13 @@ public:
 //     }
 
     Sphere3D1( typename PointType::Pointer pFirstPoint )
-        : BaseType( PointsArrayType(), &msGeometryData ), mRadius(0.0)
+        : BaseType( PointsArrayType(), &msGeometryData ), mpRadius(NULL)
     {
         BaseType::Points().push_back( pFirstPoint );
     }
 
     Sphere3D1( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData ) , mRadius(0.0)
+        : BaseType( ThisPoints, &msGeometryData ) , mpRadius(NULL)
     {
         if ( BaseType::PointsNumber() != 1 )
             KRATOS_ERROR << "Invalid points number. Expected 1, given " << BaseType::PointsNumber() << std::endl;
@@ -181,7 +181,7 @@ public:
     Sphere3D1( Sphere3D1 const& rOther )
         : BaseType( rOther )
     {
-        mRadius = rOther.GetRadius();
+        mpRadius = rOther.mpRadius;
     }
 
 
@@ -199,7 +199,7 @@ public:
     template<class TOtherPointType> Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
-        mRadius = rOther.GetRadius();
+        mpRadius = rOther.mpRadius;
     }
 
     /// Destructor. Do nothing!!!
@@ -367,6 +367,47 @@ public:
     ///@name Jacobian
     ///@{
 
+    /**
+     * Check if an axis-aliged bounding box (AABB) intersects a triangle
+     *
+     * Based on an answer by Ben Voigt : https://stackoverflow.com/questions/4578967/cube-sphere-intersection-test
+     *
+     * @return bool if the triangle overlaps a box
+     * @param rLowPoint first corner of the box
+     * @param rHighPoint second corner of the box
+     */
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        const array_1d<double, 3>& center = this->operator[](0).Coordinates();
+        double radius_squared = std::pow(this->GetRadius(), 2);
+
+        /* assume C1 and C2 are element-wise sorted, if not, do that now */
+        if (center[0] < rLowPoint[0]){
+            radius_squared -=std::pow(center[0] - rLowPoint[0], 2);
+        }
+
+        else if (center[0] > rHighPoint[0]){
+            radius_squared -=std::pow(center[0] - rHighPoint[0], 2);
+        }
+
+        if (center[1] < rLowPoint[1]){
+            radius_squared -=std::pow(center[1] - rLowPoint[1], 2);
+        }
+
+        else if (center[1] > rHighPoint[1]){
+            radius_squared -=std::pow(center[1] - rHighPoint[1], 2);
+        }
+
+        if (center[2] < rLowPoint[2]){
+            radius_squared -=std::pow(center[2] - rLowPoint[2], 2);
+        }
+
+        else if (center[2] > rHighPoint[2]){
+            radius_squared -=std::pow(center[2] - rHighPoint[2], 2);
+        }
+
+        return radius_squared > 0;
+    }
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -573,9 +614,14 @@ public:
 
 
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType returns the number of edges of the geometry.
     */
     SizeType EdgesNumber() const override
+    {
+        return 0;
+    }
+
+    SizeType FacesNumber() const override
     {
         return 1;
     }
@@ -607,7 +653,9 @@ public:
     }
 
     double GetRadius() const override{
-        return mRadius;
+        KRATOS_ERROR_IF(mpRadius == NULL) << "The Sphere3D1's radius address has not been properly set before calling the method 'GetRadius'. Use 'SetRadius' for that." << std::endl;
+
+        return *mpRadius;
     }
 
     /** Counterpart of GetRadius(). It provides an interface
@@ -615,8 +663,8 @@ public:
      * information in the object (e.g., in a sphere)
      */
 
-    void SetRadius(const double Radius=0.0) override {
-        mRadius = Radius;
+    void SetRadius(const double& rRadius) override {
+        mpRadius = &rRadius;
     }
 
     /** Turn back information as a string.
@@ -627,7 +675,7 @@ public:
     */
     std::string Info() const override
     {
-        return "a sphere with 1 nodes in its center, in 3D space";
+        return "A sphere with 1 node in its center, in 3D space";
     }
 
     /** Print information about this object.
@@ -638,7 +686,7 @@ public:
     */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "a sphere with 1 nodes in its center, in 3D space";
+        rOStream << "A sphere with 1 node in its center, in 3D space";
     }
 
     /** Print geometry's data into given stream. Prints it's points
@@ -707,7 +755,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mRadius;
+    const double* mpRadius;
     ///@}
     ///@name Serialization
     ///@{

@@ -2258,7 +2258,7 @@ public:
      * to set the radius when it cannot be inferred from other
      * information in the object (e.g., in a sphere)
      */
-    virtual void SetRadius(const double Radius=0.0) {
+    virtual void SetRadius(const double& Radius) {
       KRATOS_ERROR << "Calling base class 'SetRadius' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
