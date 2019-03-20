@@ -19,7 +19,7 @@ class SDoFIO(CoSimulationBaseIO):
         cs_tools.ImportArrayFromSolver(from_client, data_name, data_array)
 
         sdof_solver = self.solvers[self.solver_name]
-        sdof_data_settings = sdof_solver.GetDataDefinition(data_settings["data_name"])
+        sdof_data_settings = sdof_solver.GetInterfaceData(data_settings["data_name"])
 
         value = sum(data_array)
 
@@ -33,7 +33,7 @@ class SDoFIO(CoSimulationBaseIO):
 
     def ExportCouplingInterfaceData(self, data_settings, to_client):
         sdof_solver = self.solvers[self.solver_name]
-        sdof_data_settings = sdof_solver.GetDataDefinition(data_settings["data_name"])
+        sdof_data_settings = sdof_solver.GetInterfaceData(data_settings["data_name"])
         sdof_data_settings["data_name"] = data_settings["data_name"]
 
         if not sdof_data_settings["data_format"] == "scalar_value":

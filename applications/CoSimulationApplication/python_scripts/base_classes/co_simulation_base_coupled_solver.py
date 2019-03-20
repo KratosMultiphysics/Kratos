@@ -95,7 +95,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                 for input_data in input_data_list:
                     from_solver = self.participating_solvers[input_data["from_solver"]]
                     data_name = input_data["data_name"]
-                    data_definition = from_solver.GetDataDefinition(data_name)
+                    data_definition = from_solver.GetInterfaceData(data_name)
                     data_settings = { "data_format" : data_definition["data_format"],
                                     "data_name"   : data_name,
                                     "io_settings" : input_data["io_settings"] }
@@ -109,7 +109,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                 for output_data in output_data_list:
                     to_solver = self.participating_solvers[output_data["to_solver"]]
                     data_name = output_data["data_name"]
-                    data_definition = to_solver.GetDataDefinition(data_name)
+                    data_definition = to_solver.GetInterfaceData(data_name)
                     data_settings = { "data_format" : data_definition["data_format"],
                                     "data_name"   : data_name,
                                     "io_settings" : output_data["io_settings"] }

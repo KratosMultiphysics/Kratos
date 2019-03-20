@@ -73,7 +73,7 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(mesh_name, to_client)
 
-    def GetDataDefinition(self, data_name):
+    def GetInterfaceData(self, data_name):
         return self.cosim_solver_settings["data"][data_name]
 
     def GetBufferSize(self):

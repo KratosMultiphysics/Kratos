@@ -36,7 +36,7 @@ class KratosIO(CoSimulationBaseIO):
         if data_format == "numpy_array":
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
-            data_definition = from_client.GetDataDefinition(data_name)
+            data_definition = from_client.GetInterfaceData(data_name)
             geometry_name = data_definition["geometry_name"]
             var_name = data_definition["data_identifier"]
             data_array = data_settings["data_array"]
@@ -71,7 +71,7 @@ class KratosIO(CoSimulationBaseIO):
         elif data_format == "scalar_value":
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
-            data_definition = from_client.GetDataDefinition(data_name)
+            data_definition = from_client.GetInterfaceData(data_name)
             geometry_name = data_definition["geometry_name"]
             var_name = data_definition["data_identifier"]
             value = data_settings["scalar_value"]
@@ -99,7 +99,7 @@ class KratosIO(CoSimulationBaseIO):
         if data_format == "numpy_array":
             # TODO check if var in ModelPart!
             # In this case the to_client is the solver itself
-            data_definition = to_client.GetDataDefinition(data_name)
+            data_definition = to_client.GetInterfaceData(data_name)
             geometry_name = data_definition["geometry_name"]
             var_name = data_definition["data_identifier"]
             data_array = data_settings["data_array"]
@@ -150,7 +150,7 @@ class KratosIO(CoSimulationBaseIO):
 
         if data_format == "numpy_array_mesh":
             # In this case the to_client is the solver itself
-            data_definition = to_client.GetDataDefinition(data_name)
+            data_definition = to_client.GetInterfaceData(data_name)
             geometry_name = data_definition["geometry_name"]
             model_part = to_client.model[geometry_name]
 
@@ -193,8 +193,8 @@ class KratosIO(CoSimulationBaseIO):
 
     def __GetMapper(self, from_client, to_client, data_settings):
         data_name = data_settings["data_name"]
-        data_definition_from = from_client.GetDataDefinition(data_name)
-        data_definition_to   = to_client.GetDataDefinition(data_name)
+        data_definition_from = from_client.GetInterfaceData(data_name)
+        data_definition_to   = to_client.GetInterfaceData(data_name)
 
         geometry_name_from = data_definition_from["geometry_name"]
         geometry_name_to = data_definition_to["geometry_name"]
@@ -243,8 +243,8 @@ class KratosIO(CoSimulationBaseIO):
 
             data_name = data_settings["data_name"]
 
-            data_definition_from = from_client.GetDataDefinition(data_name)
-            data_definition_to = to_client.GetDataDefinition(data_name)
+            data_definition_from = from_client.GetInterfaceData(data_name)
+            data_definition_to = to_client.GetInterfaceData(data_name)
 
             if is_inverse_mapper:
                 var_origin = self.__GetKratosVariable(data_definition_to["data_identifier"])
@@ -351,3 +351,16 @@ def Elements(model_part):
 
 def NumberOfElements(model_part):
     return len(Elements(model_part)) # Mesh does currently not expose NumberOfElements!
+
+
+
+    # def HasMapper(self, mapper_tuple):
+    #     return mapper_tuple in self.mappers.keys()
+
+    # def GetMapper(self, mapper_tuple):
+    #     return self.mappers[(mapper_tuple)]
+
+    # def SetupMapper(self, geo_origin, geo_destination, mapper_settings):
+    #     mapper = MappingApp.MapperFactory.CreateMapper(geo_origin, geo_destination, mapper_settings)
+    #     self.mappers[(geo_origin.Name, geo_destination.Name)] = mapper
+    #     return mapper
