@@ -73,6 +73,23 @@ namespace ConstraintUtilities
         const std::vector<std::string>& rResidualDofVariableNames
         );
 
+    /**
+     * @brief This method precomputes the contribution of the explicit MPC over nodal masses and inertias
+     * @todo The inertia must be computed using the Steiner theorem https://en.wikipedia.org/wiki/Parallel_axis_theorem
+     * @param rModelPart The model of the problem to solve
+     * @param DofDisplacementVariableName The name of the Dof variables to check
+     * @param MassVariableName The name of the variable of the nodal mass
+     * @param DofRotationVariableName The name of the rotational variable name
+     * @param InertiaVariableName The inertia variable to be considered
+     */
+    void KRATOS_API(KRATOS_CORE) PreComputeExplicitConstraintMassAndInertia(
+        ModelPart& rModelPart,
+        const std::string DofDisplacementVariableName = "DISPLACEMENT",
+        const std::string MassVariableName = "NODAL_MASS",
+        const std::string DofRotationVariableName = "ROTATION",
+        const std::string InertiaVariableName = "NODAL_INERTIA_TENSOR"
+        );
+
 }; // namespace ConstraintUtilities
 }  // namespace Kratos
 #endif /* KRATOS_CONSTRAINT_UTILITIES defined */
