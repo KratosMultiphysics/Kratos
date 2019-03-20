@@ -164,15 +164,35 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-        const double delta_time = current_process_info[DELTA_TIME];
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
+        // Getting position
+        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
+        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
+        const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
+        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
+        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
+        const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
+
+        // Auxiliar variables
+        bool predicted_x, predicted_y, predicted_z;
+
+        #pragma omp parallel for private(predicted_x, predicted_y, predicted_z)
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
+
+            predicted_x = false;
+            predicted_y = false;
+            predicted_z = false;
 
             //ATTENTION::: the prediction is performed only on free nodes
 
@@ -183,8 +203,8 @@ public:
             array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node->HasDofFor(ACCELERATION_X)) {
-                if (it_node -> IsFixed(ACCELERATION_X)) {
+            if (accelpos_x > -1) {
+                if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
                     dotun0[0] = dot2un0[0];
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         dotun0[0] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(VELOCITY_X, i_order);
@@ -194,18 +214,26 @@ public:
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         un0[0] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_X, i_order);
                     un0[0] /= BDFBaseType::mBDF[0];
-            } } else if (it_node->HasDofFor(VELOCITY_X)) {
-                if (it_node -> IsFixed(VELOCITY_X)) {
+                    predicted_x = true;
+                }
+            }
+            if (velpos_x > -1 && !predicted_x) {
+                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !predicted_x) {
                     un0[0] = dotun0[0];
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         un0[0] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_X, i_order);
                     un0[0] /= BDFBaseType::mBDF[0];
-            } } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
-                un0[0] = un1[0] + delta_time * dotun1[0] + 0.5 * std::pow(delta_time, 2) * dot2un1[0];
+                    predicted_x = true;
+                }
+            }
+            if (disppos_x > -1 && !predicted_x) {
+                if (!it_node->GetDof(DISPLACEMENT_X, disppos_x).IsFixed() && !predicted_x) {
+                    un0[0] = un1[0] + delta_time * dotun1[0] + 0.5 * std::pow(delta_time, 2) * dot2un1[0];
+                }
             }
 
-            if (it_node->HasDofFor(ACCELERATION_Y)) {
-                if (it_node -> IsFixed(ACCELERATION_Y)) {
+            if (accelpos_y > -1) {
+                if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
                     dotun0[1] = dot2un0[1];
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         dotun0[1] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(VELOCITY_Y, i_order);
@@ -215,36 +243,50 @@ public:
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         un0[1] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Y, i_order);
                     un0[1] /= BDFBaseType::mBDF[0];
-            } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                if (it_node -> IsFixed(VELOCITY_Y)) {
+                    predicted_y = true;
+                }
+            }
+            if (velpos_y > -1 && !predicted_y) {
+                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !predicted_y) {
                     un0[1] = dotun0[1];
                     for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                         un0[1] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Y, i_order);
                     un0[1] /= BDFBaseType::mBDF[0];
-            } } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
-                un0[1] = un1[1] + delta_time * dotun1[1] + 0.5 * std::pow(delta_time, 2) * dot2un1[1];
+                    predicted_y = true;
+                }
+            }
+            if (disppos_y > -1 && !predicted_y) {
+                if (!it_node->GetDof(DISPLACEMENT_Y, disppos_y).IsFixed() && !predicted_y) {
+                    un0[1] = un1[1] + delta_time * dotun1[1] + 0.5 * std::pow(delta_time, 2) * dot2un1[1];
+                }
             }
 
             // For 3D cases
-            if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node->HasDofFor(ACCELERATION_Z)) {
-                    if (it_node -> IsFixed(ACCELERATION_Z)) {
-                        dotun0[2] = dot2un0[2];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            dotun0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(VELOCITY_Z, i_order);
-                        dotun0[2] /= BDFBaseType::mBDF[0];
+            if (accelpos_z > -1) {
+                if (it_node->GetDof(ACCELERATION_Z, accelpos_x + 2).IsFixed()) {
+                    dotun0[2] = dot2un0[2];
+                    for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                        dotun0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(VELOCITY_Z, i_order);
+                    dotun0[2] /= BDFBaseType::mBDF[0];
 
-                        un0[2] = dotun0[2];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Z, i_order);
-                        un0[2] /= BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                    if (it_node -> IsFixed(VELOCITY_Y)) {
-                        un0[2] = dotun0[2];
-                        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                            un0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Z, i_order);
-                        un0[2] /= BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
+                    un0[2] = dotun0[2];
+                    for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                        un0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Z, i_order);
+                    un0[2] /= BDFBaseType::mBDF[0];
+                    predicted_z = true;
+                }
+            }
+            if (velpos_z > -1 && !predicted_z) {
+                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !predicted_z) {
+                    un0[2] = dotun0[2];
+                    for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                        un0[2] -= BDFBaseType::mBDF[i_order] * it_node->FastGetSolutionStepValue(DISPLACEMENT_Z, i_order);
+                    un0[2] /= BDFBaseType::mBDF[0];
+                    predicted_z = true;
+                }
+            }
+            if (disppos_z > -1 && !predicted_z) {
+                if (!it_node->GetDof(DISPLACEMENT_Z, disppos_z).IsFixed() && !predicted_z) {
                     un0[2] = un1[2] + delta_time * dotun1[2] + 0.5 * std::pow(delta_time, 2) * dot2un1[2];
                 }
             }
