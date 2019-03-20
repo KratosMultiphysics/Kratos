@@ -1,4 +1,5 @@
 import json
+cs_data_structure = None
 
 ## ImportDataStructure : Imports the data structure which is specified in the parameters file
 #
