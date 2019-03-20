@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 
 # Importing the base class
 from  . import co_simulation_base_solver
-from collections import OrderedDict
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -13,22 +12,21 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
 
         # self.solver_names = []
-        self.participating_solvers = OrderedDict()
+        # self.participating_solvers = OrderedDict()
 
-        ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
-        import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
 
-        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
-            solver_name = solver_settings["name"]
-            # if solver_name in self.solver_names:
-            #     raise NameError('Solver name "' + solver_name + '" defined twice!')
-            # self.solver_names.append(solver_name)
-            self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
-            self.participating_solvers[solver_name] = solver_factory.CreateSolverInterface(
-                model, self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
-        self.cosim_solver_details = self.__GetSolverCoSimulationDetails(
-            self.cosim_solver_settings["coupling_sequence"])
+        # for solver_name, solver_settings in self.cosim_solver_settings["solvers"].items():
+        #     # if solver_name in self.solver_names:
+        #     #     raise NameError('Solver name "' + solver_name + '" defined twice!')
+        #     # self.solver_names.append(solver_name)
+        #     solver_settings["name"] = solver_name # adding the name such that the solver can identify itself
+        #     self.participating_solvers[solver_name] = solver_factory.CreateSolverInterface(
+        #         model, solver_settings) # -1 to have solver prints on same lvl
+
+        self.participating_solvers = self.__CreateSolvers()
+
+        self.cosim_solver_details = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
@@ -161,10 +159,31 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         return True
 
 
-    def __GetSolverCoSimulationDetails(self, co_simulation_solver_settings):
-        num_solvers = len(co_simulation_solver_settings)
+    def __CreateSolvers(self):
+        ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
+        import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
+        from collections import OrderedDict
+        # first create all solvers
+        solvers = {}
+        for solver_name, solver_settings in self.cosim_solver_settings["solvers"].items():
+            solver_settings["name"] = solver_name # adding the name such that the solver can identify itself # TODO remove this, this will eventually not be necessary any more
+            solvers[solver_name] = solver_factory.CreateSolverInterface(
+                self.model, solver_settings)
+
+        # then order them according to the coupling-loop
+        # NOTE solvers that are not used in the coupling-sequence will not participate
+        solvers_map = OrderedDict()
+        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
+            solver_name = solver_settings["name"]
+            solvers_map[solver_name] = solvers[solver_name]
+
+        return solvers_map
+
+
+    def __GetSolverCoSimulationDetails(self):
         solver_cosim_details = {}
-        for solver_settings in co_simulation_solver_settings:
+        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
             solver_name = solver_settings["name"]
             solver_cosim_details[solver_name] = solver_settings
         return solver_cosim_details
+
