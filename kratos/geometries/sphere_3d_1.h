@@ -179,9 +179,9 @@ public:
     source geometry's points too.
     */
     Sphere3D1( Sphere3D1 const& rOther )
-        : BaseType( rOther )
+        : BaseType(rOther),
+	  mpRadius(rOther.mpRadius)
     {
-        mpRadius = rOther.mpRadius;
     }
 
 
@@ -196,10 +196,11 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
-        : BaseType( rOther )
+    template<class TOtherPointType> 
+    Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
+        : BaseType(rOther),
+	  mpRadius(rOther.mpRadius)
     {
-        mpRadius = rOther.mpRadius;
     }
 
     /// Destructor. Do nothing!!!
@@ -334,12 +335,12 @@ public:
     */
     double Area() const override
     {
-        return 4 * Globals::Pi * std::pow(GetRadius(), 2);
+        return 4.0 * Globals::Pi * std::pow(GetRadius(), 2);
     }
 
     double Volume() const override
     {
-        return 4/3 * Globals::Pi * std::pow(GetRadius(), 3);
+        return 4.0/3.0 * Globals::Pi * std::pow(GetRadius(), 3);
     }
 
     /** This method calculate and return length, area or volume of
