@@ -24,7 +24,6 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         init_velocity = 0.1
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-        node.Fix(KratosMultiphysics.VELOCITY_Y)
         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,init_velocity)
 
         # Create element
@@ -45,6 +44,8 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
 
         current_disp = 0.0
         current_vel = init_velocity
+        c1 = 200.0
+        c4 = 1.0
         # Solve the problem
         while time <= end_time:
             time = time + dt
@@ -54,17 +55,24 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
 
             self.strategy.Solve()
 
-            current_analytical_displacement_y = current_disp + current_vel * dt * (1.0 - 5.0 * beta * mass)
-            current_disp = current_analytical_displacement_y
+            delta_disp = 0.0
+            if beta > 0.0 and current_vel > 0.0:
+                rhs = beta * mass * current_vel
+                lhs = beta * mass * c1
+                delta_disp = rhs/lhs
+                current_vel = c1 * delta_disp - c4 * current_vel
+
             current_analytical_velocity_y = current_vel
             current_vel = current_analytical_velocity_y
+            current_analytical_displacement_y = current_disp + current_vel * dt + delta_disp
+            current_disp = current_analytical_displacement_y
 
-            computed_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-            computed_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
+            disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
+            vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
 
-            ### ASSERT
-            self.assertAlmostEqual(computed_disp, current_analytical_displacement_y, delta=1e-3)
-            self.assertAlmostEqual(computed_vel, current_analytical_velocity_y, delta=1e-3)
+            ## ASSERT
+            self.assertAlmostEqual(disp, current_analytical_displacement_y, delta=1e-3)
+            self.assertAlmostEqual(vel, current_analytical_velocity_y, delta=1e-3)
 
     def _base_spring_test_dynamic_schemes(self, current_model, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
         mp = current_model.CreateModelPart("sdof")
