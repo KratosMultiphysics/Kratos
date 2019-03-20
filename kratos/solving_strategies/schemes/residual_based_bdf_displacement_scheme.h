@@ -275,7 +275,6 @@ public:
             predicted_y = false;
             predicted_z = false;
 
-            //ATTENTION::: the prediction is performed only on free nodes
 
             const array_1d<double, 3>& dot2un1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double, 3>& dotun1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
