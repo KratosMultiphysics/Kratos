@@ -17,13 +17,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"                   : 0,
-                "model_part_name"           : "please specify the model part that contains the kutta nodes",
-                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
-                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
-                "fluid_part_name"           : "MainModelPart",
-                "wake_direction"                 : [1.0,0.0,0.0],
-                "epsilon"    : 1e-9
+                "mesh_id"                  : 0,
+                "body_model_part_name"     : "please specify the model part that contains the surface nodes",
+                "wake_direction"           : [1.0,0.0,0.0],
+                "epsilon"                  : 1e-9
             }
             """)
 
@@ -47,12 +44,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString(
-        )]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString(
-        )]
+        self.body_model_part = Model[settings["body_model_part_name"].GetString()]
 
-        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
+        self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
 
@@ -80,7 +74,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
         max_x_coordinate = -1e30
-        for node in self.upper_surface_model_part.Nodes:
+        for node in self.body_model_part.Nodes:
             if(node.X > max_x_coordinate):
                 max_x_coordinate = node.X
                 self.te = node
