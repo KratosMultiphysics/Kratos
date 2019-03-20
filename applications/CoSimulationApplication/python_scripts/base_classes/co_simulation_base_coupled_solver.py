@@ -11,19 +11,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
     def __init__(self, model, cosim_solver_settings):
         super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
 
-        # self.solver_names = []
-        # self.participating_solvers = OrderedDict()
-
-
-
-        # for solver_name, solver_settings in self.cosim_solver_settings["solvers"].items():
-        #     # if solver_name in self.solver_names:
-        #     #     raise NameError('Solver name "' + solver_name + '" defined twice!')
-        #     # self.solver_names.append(solver_name)
-        #     solver_settings["name"] = solver_name # adding the name such that the solver can identify itself
-        #     self.participating_solvers[solver_name] = solver_factory.CreateSolverInterface(
-        #         model, solver_settings) # -1 to have solver prints on same lvl
-
         self.participating_solvers = self.__CreateSolvers()
 
         self.cosim_solver_details = self.__GetSolverCoSimulationDetails()
@@ -64,11 +51,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         self.time = 0.0
         for solver in self.participating_solvers.values():
             self.time = max(self.time, solver.AdvanceInTime(current_time))
-        # self.time = self.participating_solvers[self.solver_names[0]].AdvanceInTime(current_time)
-        # for solver_name in self.solver_names[1:]:
-        #     time_other_solver = self.participating_solvers[solver_name].AdvanceInTime(current_time)
-        #     if abs(self.time - time_other_solver) > 1e-12:
-        #         raise Exception("Solver time mismatch")
 
         if not self.coupling_started and self.time > self.start_coupling_time:
             self.coupling_started = True
