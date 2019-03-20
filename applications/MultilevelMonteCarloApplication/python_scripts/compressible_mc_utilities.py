@@ -14,7 +14,7 @@ import time
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from statistical_variable_utilities import StatisticalVariable
+from compressible_statistical_variable_utilities import StatisticalVariable
 
 # Import random variable generator
 import compressible_generator_utilities as generator
@@ -52,7 +52,7 @@ input:  simulation_results: an instance of the monte carlo result class
         level:              working level
 output: QoI_value: qoi value to be added
 """
-@ExaquteTask(returns=1)
+@ExaquteTask(returns=1,priority=True)
 def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed

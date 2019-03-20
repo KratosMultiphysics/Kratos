@@ -13,7 +13,7 @@ import time
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from statistical_variable_utilities import StatisticalVariable
+from compressible_statistical_variable_utilities import StatisticalVariable
 
 # Import refinement library
 import compressible_adaptive_refinement_utilities as hessian_metric_refinement
