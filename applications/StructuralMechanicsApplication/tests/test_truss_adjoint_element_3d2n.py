@@ -139,9 +139,7 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part, dim)
         prop = self.model_part.GetProperties()[1]
 
-        self.model_part.CreateNewElement("TrussLinearElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussLinearElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("TrussLinearElement3D2N", 2, [1, 2], prop)
@@ -210,9 +208,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part, dim)
         prop = self.model_part.GetProperties()[1]
 
-        self.model_part.CreateNewElement("TrussElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("TrussElement3D2N", 2, [1, 2], prop)

@@ -66,9 +66,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
 
-        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceCrBeamElementLinear3D2N", 1, [1, 2], prop)
         self.adjoint_beam_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 2, [1, 2], prop)

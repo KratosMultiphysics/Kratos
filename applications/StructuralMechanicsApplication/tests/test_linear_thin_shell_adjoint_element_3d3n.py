@@ -57,9 +57,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
 
-        self.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferencingShellThinElement3D3N", 1, [1, 2, 3], prop)
         self.adjoint_shell_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("ShellThinElement3D3N", 2, [1, 2, 3], prop)
