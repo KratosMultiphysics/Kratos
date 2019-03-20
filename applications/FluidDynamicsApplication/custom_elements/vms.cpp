@@ -210,7 +210,7 @@ double VMS<2,3>::ElementSize(const double Area)
  * @see VMS::ElementSize
  */
 template <>
-double VMS<3,4>::ElementSize(const double Volume) 
+double VMS<3,4>::ElementSize(const double Volume)
 {
     return 0.60046878 * pow(Volume,0.333333333333333333333);
 }

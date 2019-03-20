@@ -109,15 +109,6 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-    //for visualizing Gauss point results in GiD
-    //void GetValueOnIntegrationPoints( const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo   );
-
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
 
     ///@}
     ///@name Access

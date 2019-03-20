@@ -171,8 +171,7 @@ namespace Kratos {
 		    //WE ARE TREATING THE NODES THAT ARE MARKED WITH STRUCTURE FLAG AS LAGRANGIAN AND THE REST AS EULERIAN
                     if (mMeshVelocity == 1)//ALE
                     {
-			//TO MOVE SOME MORE OF THE FLUID
-                        if((itNode)->Is(STRUCTURE))// || (itNode)->FastGetSolutionStepValue(FLAG_VARIABLE)==5.0)
+                        if((itNode)->Is(STRUCTURE))
                         {
                             array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
                             array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -184,8 +183,8 @@ namespace Kratos {
                         }
                         else
                         {
-                            //noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
-                            //noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
                         }
                     }
 	 	    else
@@ -258,7 +257,7 @@ namespace Kratos {
                         array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
                         array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 
-                    if((itNode)->Is(STRUCTURE))// || (itNode)->FastGetSolutionStepValue(FLAG_VARIABLE)==5.0)
+                  if((itNode)->Is(STRUCTURE))
 			{
 			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
 			    //ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace>::UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
@@ -266,10 +265,10 @@ namespace Kratos {
 			}
 			else
 			{
-			  //itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-			  //itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-			  //itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-			  //itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
+			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
 			}
                     }
 		  else

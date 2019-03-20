@@ -27,7 +27,6 @@
 
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic_normalonly.h"
 #include "custom_strategies/strategies/modified_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
@@ -75,18 +74,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 //
 //    //********************************************************************
     //********************************************************************
-
-			//********************************************************************
-			//********************************************************************
-
-class_< ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-		typename ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-		ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >
-		//BaseSolvingStrategyType>
-		(m,"ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly")
-		.def(init<LinearSolverType::Pointer, const Variable<int>& >());
-
-
 
 
 class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>,

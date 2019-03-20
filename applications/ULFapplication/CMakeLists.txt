@@ -32,16 +32,6 @@ set( KRATOS_ULF_APPLICATION_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_tension.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/hypo_elastic_solid2d.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/hypo_elastic_solid3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tangent_velocity_periodic_condition_3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tangent_velocity_periodic_edge_condition_3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tangent_velocity_periodic_vertex_condition_3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/second_tangent_velocity_periodic_vertex_condition_3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tangent_velocity_periodic_normal_to_edge_condition_3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tangent_velocity_periodic_condition_2D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/normal_velocity_periodic_condition_2D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_mean_velocity_2D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_mean_velocity_3D.cpp
-
 
 
 )

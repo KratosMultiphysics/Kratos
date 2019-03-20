@@ -100,15 +100,6 @@ public:
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
-    //for visualizing Gauss point results in GiD
-    //void GetValueOnIntegrationPoints( const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo   );
-
-    void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     //void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 

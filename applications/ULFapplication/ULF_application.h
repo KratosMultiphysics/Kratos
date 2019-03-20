@@ -24,9 +24,9 @@
 
 // Project includes
 #include "includes/define.h" 
-#include "includes/kratos_application.h" 
+#include "includes/kratos_application.h"
 
-#include <pybind11/pybind11.h> 
+#include <pybind11/pybind11.h>
 
 #include "ULF_application_variables.h"
 
@@ -48,19 +48,6 @@
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
 #include "custom_elements/surface_tension.h"
-
-
-#include "custom_conditions/lagrange_multiplier_mean_velocity_3D.h" //the condition
-#include "custom_conditions/lagrange_multiplier_mean_velocity_2D.h" //the condition
-#include "custom_conditions/tangent_velocity_periodic_edge_condition_3D.h" //the condition3
-#include "custom_conditions/tangent_velocity_periodic_vertex_condition_3D.h" //the condition3
-#include "custom_conditions/second_tangent_velocity_periodic_vertex_condition_3D.h" //the condition3
-#include "custom_conditions/tangent_velocity_periodic_normal_to_edge_condition_3D.h" //the condition3
-#include "custom_conditions/tangent_velocity_periodic_condition_3D.h" //the condition3
-#include "custom_conditions/tangent_velocity_periodic_condition_2D.h" //the condition3
-#include "custom_conditions/normal_velocity_periodic_condition_2D.h" //the condition3
-
-
 #include "includes/ublas_interface.h"
 
 namespace Kratos
@@ -239,17 +226,6 @@ private:
     const SurfaceTension<2> mSurfaceTension2D;
     /// 3D instance of the SurfaceTension element
     const SurfaceTension<3> mSurfaceTension3D;
-
-    const MeanVelocityLagrangeMultiplierCondition2D   mMeanVelocityLagrangeMultiplierCondition2D;
-    const MeanVelocityLagrangeMultiplierCondition3D   mMeanVelocityLagrangeMultiplierCondition3D;  
-    const TangentVelocityPeriodicCondition3D2N   mTangentVelocityPeriodicCondition3D2N;
-    const TangentVelocityPeriodicEdgeCondition3D2N   mTangentVelocityPeriodicEdgeCondition3D2N;
-    const TangentVelocityPeriodicVertexCondition3D2N   mTangentVelocityPeriodicVertexCondition3D2N;
-    const SecondTangentVelocityPeriodicVertexCondition3D2N   mSecondTangentVelocityPeriodicVertexCondition3D2N;
-    const TangentVelocityPeriodicNormalToEdgeCondition3D2N   mTangentVelocityPeriodicNormalToEdgeCondition3D2N;
-    const TangentVelocityPeriodicCondition2D2N   mTangentVelocityPeriodicCondition2D2N;  
-    const NormalVelocityPeriodicCondition2D2N   mNormalVelocityPeriodicCondition2D2N;  
-		//const InverseNormalVelocityPeriodicCondition2D2N   mInverseNormalVelocityPeriodicCondition2D2N; 
 
     ///@}
     ///@name Private Operators

@@ -98,7 +98,7 @@ public:
     const std::string element_type = "LaplacianMeshMovingElement";
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
         BaseType::GetModelPart(), element_type);
-   
+
     typedef typename Kratos::VariableComponent<
         Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
         VarComponent;

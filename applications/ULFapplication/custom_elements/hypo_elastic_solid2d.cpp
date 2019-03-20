@@ -421,7 +421,6 @@ void  HypoElasticSolid2D::Calculate(const Variable<Matrix >& rVariable, Matrix& 
     CauchyStress+=HistoricalCauchyStress;
 
     this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
-    Output=CauchyStress;
 
     }
     else 
@@ -429,18 +428,6 @@ void  HypoElasticSolid2D::Calculate(const Variable<Matrix >& rVariable, Matrix& 
 
 
 }
-void  HypoElasticSolid2D::GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        )//(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-{
-//KRATOS_WATCH("Writing stress on Gauss point")
-//we have just one Gauss point
-Calculate(rVariable, rValues[0], rCurrentProcessInfo);
-
-}
-
 
 } // Namespace Kratos
 

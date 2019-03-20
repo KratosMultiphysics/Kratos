@@ -27,8 +27,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VISCOUS_STRESSY": VISCOUS_STRESSY,
                         "IS_WATER": IS_WATER,
                         "DENSITY": DENSITY,
-                        "VISCOSITY": VISCOSITY,
-                        "CAUCHY_STRESS_TENSOR": CAUCHY_STRESS_TENSOR}
+                        "VISCOSITY": VISCOSITY}
 
 
 def AddVariables(model_part, config=None):
@@ -181,9 +180,6 @@ class FsiAleMonolithicSolver:
         #initializes Cachy stress to zero
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
         print("Lalalal")
-        #for printing the Gauss point values
-        #for element in self.model_part.Elements:
-        #    element.Set(ACTIVE, True)
 # print "Initialization monolithic solver finished"
     #
     def Solve(self):
@@ -216,7 +212,7 @@ def CreateSolver(model_part, config): #FOR 3D!
         fluid_solver.alpha = config.alpha
  
     # definition of the convergence criteria
-    if(hasattr(config, "velocity_relative_tolerance")): 
+    if(hasattr(config, "velocity_relative_tolerance")):
         fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
     if(hasattr(config, "velocity_absolute_tolerance")):
         fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance

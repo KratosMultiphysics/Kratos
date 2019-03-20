@@ -44,9 +44,6 @@
 #include "custom_processes/mark_free_surface_process.h"
 #include "custom_processes/hypoelastic_solid_stress_tensor_calculate_process.h"
 
-#include "custom_processes/add_periodic_conditions_process.h"
-#include "custom_processes/add_mean_velocity_condition_lag_mult_process.h"
-
 #include "includes/node.h"
 
 #include "custom_processes/calculate_normal_eq.h"
@@ -128,26 +125,10 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
     ;     
 /////////////////////////////////////////////
-    class_<AddPeriodicConditionsProcess>(m,"AddPeriodicConditionsProcess")
-    .def(init<ModelPart&>())
-    .def("AddTangentConditions3D", &AddPeriodicConditionsProcess::AddTangentConditions3D)
-    .def("AddTangentConditions2D", &AddPeriodicConditionsProcess::AddTangentConditions2D)
-    .def("AddNormalAndTangentConditions2D", &AddPeriodicConditionsProcess::AddNormalAndTangentConditions2D)
-    ;  
-
-    class_<AddMeanVelocityConditionProcess>(m,"AddMeanVelocityConditionProcess")
-    .def(init<ModelPart&>())
-    .def("AddMeanVelCond3D", &AddMeanVelocityConditionProcess::AddMeanVelCond3D)
-    .def("AddMeanVelCond2D", &AddMeanVelocityConditionProcess::AddMeanVelCond2D)
-    ;  
-
-
     class_<AddWallProcess>(m,"AddWallProcess")
     .def(init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
     ;  
-
-
     class_<CalculateCurvature> (m,"CalculateCurvature")
     .def(init<>())
     .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
