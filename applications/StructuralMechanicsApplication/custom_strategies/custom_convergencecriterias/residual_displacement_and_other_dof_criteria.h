@@ -179,17 +179,14 @@ public:
             const TDataType AbsoluteNormDisp     = (mCurrentResidualDispNorm/static_cast<TDataType>(DispSize));
             const TDataType AbsoluteNormOtherDoF = (mCurrentResidualOtherDoFNorm/static_cast<TDataType>(SystemSize - DispSize));
 
-            if (this->GetEchoLevel() > 0)
-            {
-                std::cout << "RESIDUAL DISPLACEMENT CRITERION :: Ratio = "<< RatioDisplacement  << ";  Norm = " << AbsoluteNormDisp << std::endl;
-                std::cout << "RESIDUAL " << mOtherDoFName << " CRITERION :: Ratio = "<< RatioOtherDoF  << ";  Norm = " << AbsoluteNormOtherDoF << std::endl;
-            }
+            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL DISPLACEMENT CRITERION :: Ratio = "<< RatioDisplacement  << ";  Norm = " << AbsoluteNormDisp << std::endl;
+            KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "RESIDUAL " << mOtherDoFName << " CRITERION :: Ratio = "<< RatioOtherDoF  << ";  Norm = " << AbsoluteNormOtherDoF << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = RatioDisplacement;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNormDisp;
 
             if ((RatioDisplacement <= mRatioTolerance || AbsoluteNormDisp < mAbsoluteTolerance) && (RatioOtherDoF <= mRatioTolerance || AbsoluteNormOtherDoF < mAbsoluteTolerance)) {
-                if (this->GetEchoLevel() > 0)  std::cout << "Convergence is achieved" << std::endl;
+                KRATOS_INFO_IF("ResidualDisplacementAndOtherDoFCriteria", this->GetEchoLevel() > 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;
