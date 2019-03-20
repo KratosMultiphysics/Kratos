@@ -130,7 +130,7 @@ input:  model:      serialization of the model
         parameters: serialization of the Project Parameters
 output: QoI: Quantity of Interest
 """
-# @constraint(ComputingUnits="${computing_units}")
+@constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=1)
 # def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
 def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,current_analysis_stage,current_level):
@@ -432,7 +432,7 @@ class MonteCarlo(object):
             self.QoI.UpdateOnePassPowerSums(current_level,i_sample)
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
-        self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
+        # self.QoI.central_moment_from_scratch_3_absolute_to_compute = True # by default set to true
         self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level])
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)

@@ -180,19 +180,21 @@ output: central_moment_from_scratch_1:          updated first central moment
         central_moment_from_scratch_4:          update fourth central moment
 """
 @ExaquteTask(returns=5)
-def ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
+def ComputeSampleCentralMomentsFromScratchAux_Task(curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
     central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
-    central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4):
-    if (central_moment_from_scratch_1_to_compute):
-        central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
-    if (central_moment_from_scratch_2_to_compute):
-        central_moment_from_scratch_2 = central_moment_from_scratch_2 + ((sample - curr_mean)**2) / number_samples_level
-    if (central_moment_from_scratch_3_to_compute):
-        central_moment_from_scratch_3 = central_moment_from_scratch_3 + ((sample - curr_mean)**3) / number_samples_level
-    if (central_moment_from_scratch_3_absolute_to_compute):
-        central_moment_from_scratch_3_absolute = central_moment_from_scratch_3_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
-    if (central_moment_from_scratch_4_to_compute):
-        central_moment_from_scratch_4 = central_moment_from_scratch_4 + ((sample - curr_mean)**4) / number_samples_level
+    central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, \
+    *samples):
+    for sample in samples:
+        if (central_moment_from_scratch_1_to_compute):
+            central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
+        if (central_moment_from_scratch_2_to_compute):
+            central_moment_from_scratch_2 = central_moment_from_scratch_2 + ((sample - curr_mean)**2) / number_samples_level
+        if (central_moment_from_scratch_3_to_compute):
+            central_moment_from_scratch_3 = central_moment_from_scratch_3 + ((sample - curr_mean)**3) / number_samples_level
+        if (central_moment_from_scratch_3_absolute_to_compute):
+            central_moment_from_scratch_3_absolute = central_moment_from_scratch_3_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
+        if (central_moment_from_scratch_4_to_compute):
+            central_moment_from_scratch_4 = central_moment_from_scratch_4 + ((sample - curr_mean)**4) / number_samples_level
     return central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4
 
 
@@ -243,11 +245,12 @@ class StatisticalVariable(object):
         self.central_moment_from_scratch_3 = []
         self.central_moment_from_scratch_3_absolute = [] # \mu_p = \sum_{i=1}^{n} abs((Q(sample_i)-mean_n)**p) / n
         self.central_moment_from_scratch_4 = []
-        self.central_moment_from_scratch_1_to_compute = False
-        self.central_moment_from_scratch_2_to_compute = False
-        self.central_moment_from_scratch_3_to_compute = False
-        self.central_moment_from_scratch_3_absolute_to_compute = False
-        self.central_moment_from_scratch_4_to_compute = False
+        # TODO: moved to True
+        self.central_moment_from_scratch_1_to_compute = True
+        self.central_moment_from_scratch_2_to_compute = True
+        self.central_moment_from_scratch_3_to_compute = True
+        self.central_moment_from_scratch_3_absolute_to_compute = True
+        self.central_moment_from_scratch_4_to_compute = True
         # h-statistics h_p, the unbiased central moment estimator with minimal variance, organized per level
         self.h_statistics_1 = []
         self.h_statistics_2 = []
@@ -380,13 +383,28 @@ class StatisticalVariable(object):
         central_moment_from_scratch_3_to_compute = self.central_moment_from_scratch_3_to_compute
         central_moment_from_scratch_3_absolute_to_compute = self.central_moment_from_scratch_3_absolute_to_compute
         central_moment_from_scratch_4_to_compute = self.central_moment_from_scratch_4_to_compute
-        for i in range(0,number_samples_level):
-            # compute only the central moements we need, since it is expensive their computation at large number_samples_level
-            sample = self.values[level][i]
+        """
+        sum_chunk_size = 10
+        i = 0
+        elements_to_sum = []
+        while i < number_samples_level:
+            current_chunk = self.values[level][i:i+sum_chunk_size]
+            print(current_chunk)
             central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
-                ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
+                ComputeSampleCentralMomentsFromScratchAux_Task(curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
                 central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
-                central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4)
+                central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, *samples)
+            elements_to_sum.append()
+        """
+        # for i in range(0,number_samples_level):
+        for i in range(0,1):
+            # compute only the central moements we need, since it is expensive their computation at large number_samples_level
+            samples = [self.values[level][i]]
+            samples = self.values[level]
+            central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
+                ComputeSampleCentralMomentsFromScratchAux_Task(curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
+                central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
+                central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, *samples)
         self.central_moment_from_scratch_1[level] = central_moment_from_scratch_1
         self.central_moment_from_scratch_2[level] = central_moment_from_scratch_2
         self.central_moment_from_scratch_3[level] = central_moment_from_scratch_3
