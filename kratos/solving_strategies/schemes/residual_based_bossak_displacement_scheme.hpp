@@ -196,28 +196,29 @@ public:
      * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
-        mpDofUpdater->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
 
         #pragma omp parallel for
         for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
             array_1d<double, 3 > delta_displacement;
 

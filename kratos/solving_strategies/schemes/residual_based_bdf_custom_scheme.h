@@ -175,7 +175,6 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
