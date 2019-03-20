@@ -6,26 +6,6 @@
         "start_time"      : 0.0,
         "end_time"        : 3
     },
-    "_output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : false,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT", "MESH_VELOCITY"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
     "solver_settings"                  : {
         "solver_type" : "ale_fluid",
         "ale_boundary_parts" : ["NoSlip2D_FSI_Interface"],
@@ -255,15 +235,26 @@
                 }
             ]
     },
-    "python_module" : "hdf5_output_process",
-                        "kratos_module" : "KratosMultiphysics.HDF5Application",
-                        "process_name"  : "",
-                        "Parameters"    : {
-                            "model_part_name"                    : "FluidModelPart",
-                            "create_xdmf_file_level"             : 2,
-                            "save_h5_files_in_folder"            : true,
-                            "output_control_type"                : "step",
-                            "output_frequency"                   : 1,
-                            "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"]
-                        }
+    "_output_processes" : {
+        "vtk" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "FluidModelPart.Parts_Fluid",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "binary",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "fsi_wall/vtk_output_fsi_wall",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : []
+            }
+        }]
+    }
 }
