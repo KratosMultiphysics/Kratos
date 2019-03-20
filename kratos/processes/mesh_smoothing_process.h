@@ -215,7 +215,7 @@ namespace Kratos
 
 		void MoveNode(NodeType& rNode, NeighboursVectorType const& rNeighbours, PointsVectorType const& rOptimumPoints, Vector const& rWeights);
 
-		void MeshSmoothingProcess::FindOptimumPositionsAndWeights(NodeType& rNode, NeighboursVectorType const& rNeighbours, PointsVectorType& rOptimumPoints, Vector& rWeights);
+		void FindOptimumPositionsAndWeights(NodeType& rNode, NeighboursVectorType const& rNeighbours, PointsVectorType& rOptimumPoints, Vector& rWeights);
 
 		void LaplacianSmoothingPositionsAndWeights(NodeType& rNode, NeighboursVectorType const& rNeighbours, PointsVectorType& rOptimumPoints, Vector& rWeights);
 

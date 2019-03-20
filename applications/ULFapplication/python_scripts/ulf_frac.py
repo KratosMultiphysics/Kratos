@@ -268,7 +268,7 @@ class ULF_FSISolver:
         timeRemesh = time.time()
         # preventing the nodes from coming tooo close to wall
         self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
-        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.000005)	
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();

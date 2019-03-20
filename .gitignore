@@ -68,3 +68,9 @@ kratos/includes/kratos_version.h
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
+
+*.txt
+
+*.out
+applications/fluid_rve_lagrange_multipliers_application
+applications/fluid_rve_lagrange_multipliers_application/*.*

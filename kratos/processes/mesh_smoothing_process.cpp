@@ -48,7 +48,7 @@ namespace Kratos
 	void MeshSmoothingProcess::Execute()
 	{
 		KRATOS_TRY
-
+		KRATOS_WATCH("Performing smoothing ============================================= ")
 		PerformSmoothing();
 
 		MeasureMeshQualityProcess measure_mesh_quality_process(mrModelPart, 2);

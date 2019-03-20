@@ -7,7 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.MeshingApplication import *
+#from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 #from KratosConstitutiveModelsApplication import *
 
@@ -19,16 +19,9 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
-                        "DISPLACEMENT" : DISPLACEMENT,
-                        "IS_INTERFACE" : IS_INTERFACE,
-                        "IS_STRUCTURE" : IS_STRUCTURE,
-                        "VISCOUS_STRESSX": VISCOUS_STRESSX,
-                        "VISCOUS_STRESSY": VISCOUS_STRESSY,
-                        "IS_WATER": IS_WATER,
                         "DENSITY": DENSITY,
-                        "VISCOSITY": VISCOSITY,
-                        "CAUCHY_STRESS_TENSOR": CAUCHY_STRESS_TENSOR}
+                        "VISCOSITY": VISCOSITY
+                        }
 
 
 def AddVariables(model_part, config=None):
@@ -53,14 +46,25 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
-    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
-    model_part.AddNodalSolutionStepVariable(IS_FLUID)
-    model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
-    model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
-    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR)    
-    #CHECK! FOR SOME STRANGE REASON THE SOLVER DOESNT WORK IF TRIPLE_POINT is not added, even though it is not used anywhere
-    #model_part.AddNodalSolutionStepVariable(TRIPLE_POINT)
+    #
+    model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_VELOCITY)
+    #main_model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_VELOCITY_GRADIENTS)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_X_COMPONENT)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_Y_COMPONENT)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_Z_COMPONENT)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_X_COMPONENT_ANTIPERIODIC)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_Y_COMPONENT_ANTIPERIODIC)
+    model_part.AddNodalSolutionStepVariable(NODE_PAIR_Z_COMPONENT_ANTIPERIODIC)
+    model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_TANGENT_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_NORMAL_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_SECOND_TANGENT_VELOCITY)
+    #the two below I use only for storing the stress data at postprocessing step 
+    model_part.AddNodalSolutionStepVariable(REYNOLDS_STRESS_2D)
+    model_part.AddNodalSolutionStepVariable(PRESSURE_FORCE)
+    
+    
+    model_part.AddNodalSolutionStepVariable(AUX_VECTOR)
 
 
 
@@ -76,7 +80,7 @@ def AddDofs(model_part, config=None):
     print("dofs for the ALE FSI monolithic solver added correctly")
 
 
-class FsiAleMonolithicSolver:
+class RVEMonolithicSolver:
     def __init__(self, model_part, domain_size):
         self.model_part = model_part        
         self.domain_size = domain_size
@@ -86,7 +90,7 @@ class FsiAleMonolithicSolver:
         self.alpha = -0.3
         #2 Lagr 0 Eul #1 ALE
         #self.move_mesh_strategy = 2
-        self.move_mesh_strategy = 1
+        self.move_mesh_strategy = 0
 
         # definition of the convergence criteria
         self.rel_vel_tol = 1e-3
@@ -105,8 +109,8 @@ class FsiAleMonolithicSolver:
         self.echo_level = 0
         self.compute_reactions = False
         self.ReformDofSetAtEachStep = False
-        self.CalculateNormDxFlag = True
-        self.MoveMeshFlag = True
+        self.CalculateNormDxFlag = False
+        self.MoveMeshFlag = False
         self.use_slip_conditions = False
 
         #self.time_scheme = None
@@ -117,10 +121,48 @@ class FsiAleMonolithicSolver:
         self.use_des = False
         self.Cdes = 1.0
         self.wall_nodes = list()
-        #self.spalart_allmaras_linear_solver = None
-        
-        pDiagPrecond = DiagonalPreconditioner()
-        self.linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
+        #self.spalart_allmaras_linear_solver = None        
+        #pDiagPrecond = DiagonalPreconditioner()
+        #iLUprec=ILU0Preconditioner()
+        #self.linear_solver = BICGSTABSolver(1e-6, 5000)#, iLUprec)
+        #self.linear_solver=SuperLUSolver()
+        class custom_settings_BICG:
+          solver_type = "BiConjugate gradient stabilized"
+          scaling = True
+          preconditioner_type = "None"
+          max_iteration = 5000
+          tolerance = 1e-6
+        class solver_configure:
+          solver_type = "SuperLUIterativeSolver"
+          scaling = False
+          tolerance = 1e-7
+          max_iteration = 300
+          gmres_krylov_space_dimension=100 
+          DropTol=1e-4
+          FillTol = 1e-2          
+          ilu_level_of_fill = 5
+        class solver_configure1:
+          solver_type = "PastixIterative"
+          scaling = False
+          tolerance = 1e-7
+          max_iteration = 300     
+          gmres_krylov_space_dimension = 100
+          ilu_level_of_fill = 5
+          verbosity = 0
+          is_symmetric = False 
+        class solver_configuration_AMGCL:
+          solver_type = "AMGCL"
+          scaling = False
+          max_iteration = 50
+          tolerance = 1e-5
+          preconditioner_type = "None"
+          smoother_type = "SPAI0"#"ILU0"  #other options are "DAMPED_JACOBI" and "SPAI0"
+          krylov_type = "GMRES" #other options are "BICGSTAB" and "CG"
+          verbosity = 0 #OPTIONAL! set to 1 to have some output          
+          gmres_krylov_space_dimension = 50 #OPTIONAL! only read in case GMRES is chosen. 
+          
+        import linear_solver_factory
+        self.linear_solver =  linear_solver_factory.ConstructSolver(custom_settings_BICG)        
 
         self.divergence_clearance_steps = 0
 
@@ -142,30 +184,38 @@ class FsiAleMonolithicSolver:
         #self.cond_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
 
         #(self.fluid_neigh_finder).Execute();
-        Hfinder  = FindNodalHProcess(self.model_part);
-        Hfinder.Execute();
+        
         #for computing pressure in hypoelastic element
         #self.pressure_calculate_process = PressureCalculateProcess(self.model_part, self.domain_size);
-        self.hypoelastic_solid_stress_tensor_calculate_process=HypoelasticStressCalculateProcess(self.model_part, self.domain_size)
+        #self.hypoelastic_solid_stress_tensor_calculate_process=HypoelasticStressCalculateProcess(self.model_part, self.domain_size)
         
     #
     def Initialize(self):
                 
         #self.Remesh()
+        Hfinder  = FindNodalHProcess(self.model_part);
+        Hfinder.Execute();
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
 
 
         #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.alpha, self.move_mesh_strategy, self.domain_size)
-        self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi(self.alpha, self.move_mesh_strategy, self.domain_size)
+        self.time_scheme = FluidDynamicsApplication.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,                                        
+                                        self.domain_size,
+                                        FluidDynamicsApplication.PATCH_INDEX
+                                        )
+        #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi(self.alpha, self.move_mesh_strategy, self.domain_size)
         
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(
-            self.linear_solver)
+        #builder_and_solver = ResidualBasedBlockBuilderAndSolver(
+        #    self.linear_solver)
+        builder_and_solver = ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly(self.linear_solver,
+                                                                                FluidDynamicsApplication.PATCH_INDEX)
 
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
             builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
+        
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()   
 
@@ -174,12 +224,14 @@ class FsiAleMonolithicSolver:
         #(self.append_model_part_process).AppendPart(self.model_part, solid_model_part);        
         (self.neigh_finder).Execute();       
         #we need normals to prescribe the inlet velocity
-        self.normal_util = NormalCalculationUtils()
+        #self.normal_util = NormalCalculationUtils()
         
-        self.normal_util.CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        #self.normal_util.CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        normal_tools = BodyNormalCalculationUtils()
+        normal_tools.CalculateBodyNormals(self.model_part, self.domain_size)  
         #NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)     
         #initializes Cachy stress to zero
-        self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
+        #self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
         print("Lalalal")
         #for printing the Gauss point values
         #for element in self.model_part.Elements:
@@ -190,9 +242,9 @@ class FsiAleMonolithicSolver:
 
         (self.solver).Solve() #it dumps in this line... 20151020
       
-        (self.UlfUtils).CalculateNodalArea(self.model_part, self.domain_size);
+        #(self.UlfUtils).CalculateNodalArea(self.model_part, self.domain_size);
         #self.pressure_calculate_process.Execute()
-        self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
+        #self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
         print("Lalalal222222222222222")
 
 
@@ -210,7 +262,7 @@ class FsiAleMonolithicSolver:
 
 
 def CreateSolver(model_part, config): #FOR 3D!
-    fluid_solver = FsiAleMonolithicSolver(model_part, config.domain_size)
+    fluid_solver = RVEMonolithicSolver(model_part, config.domain_size)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

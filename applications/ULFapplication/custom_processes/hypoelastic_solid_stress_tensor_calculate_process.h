@@ -120,7 +120,7 @@ public:
                   im != mr_model_part.ElementsEnd() ; ++im)
                   {
     	          //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
-                  if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE))
+                  //if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE))
                       im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
                   }
 	      }
@@ -145,7 +145,7 @@ public:
               for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
                   im != mr_model_part.ElementsEnd() ; ++im)
                   {
-                  if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE) && im->GetGeometry()[3].Is(STRUCTURE))
+                  //if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE) && im->GetGeometry()[3].Is(STRUCTURE))
                       im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
                   }
 	      }

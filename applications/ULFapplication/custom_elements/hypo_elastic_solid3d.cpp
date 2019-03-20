@@ -115,6 +115,8 @@ void HypoElasticSolid3D::CalculateRightHandSide(VectorType& rRightHandSideVector
         rRightHandSideVector[i*3+2] = body_force[2] * density  * 0.25;
     }
 
+	//KRATOS_WATCH(rRightHandSideVector)
+
     //get the value of Cauchy stress at the Gauss point. It is given by: 
     const BoundedMatrix<double,3,3> & CauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
 
@@ -151,6 +153,8 @@ void HypoElasticSolid3D::CalculateRightHandSide(VectorType& rRightHandSideVector
     rRightHandSideVector[11] -= msDN_Dx(3,2)*CauchyStress(2,2) + msDN_Dx(3,0)*CauchyStress(0,2) + msDN_Dx(3,1)*CauchyStress(1,2);
 
     rRightHandSideVector*=current_vol;
+
+//KRATOS_WATCH(CauchyStress)
     //KRATOS_WATCH(rRightHandSideVector)
 
 }
@@ -335,8 +339,11 @@ void HypoElasticSolid3D::CalculateLocalVelocityContribution(MatrixType& rDamping
     Vel[10] = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_Y);
     Vel[11] = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_Z);
 
+  //  KRATOS_WATCH(Vel)
+//    KRATOS_WATCH(rDampingMatrix)
     noalias(rRightHandSideVector) -= prod(rDampingMatrix, Vel);
-    //KRATOS_WATCH(rDampingMatrix)
+    
+	//KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH("")
 }
@@ -517,11 +524,24 @@ void  HypoElasticSolid3D::Calculate(const Variable<Matrix >& rVariable, Matrix& 
     //KRATOS_WATCH(CauchyStress)
 
     this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
+    Output=CauchyStress;
 
     }
     else 
        KRATOS_ERROR << "Wrong variable. Calculate function of hypoelastic element is meant to compute Cauchy stress only." << std::endl;
 
+
+}
+
+void  HypoElasticSolid3D::GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        )//(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+{
+//KRATOS_WATCH("Writing stress on Gauss point")
+//we have just one Gauss point
+Calculate(rVariable, rValues[0], rCurrentProcessInfo);
 
 }
 

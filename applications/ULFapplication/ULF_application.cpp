@@ -37,7 +37,8 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d.h"
-#include "geometries/line_2d_3.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 
 namespace Kratos
 {
@@ -62,7 +63,20 @@ KratosULFApplication::KratosULFApplication():
     mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mHypoElasticSolid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mHypoElasticSolid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mHypoElasticSolid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTangentVelocityPeriodicCondition2D2N ( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    mNormalVelocityPeriodicCondition2D2N ( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    mTangentVelocityPeriodicCondition3D2N ( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),      
+    mTangentVelocityPeriodicEdgeCondition3D2N ( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    mTangentVelocityPeriodicNormalToEdgeCondition3D2N ( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),            
+    mTangentVelocityPeriodicVertexCondition3D2N ( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    mSecondTangentVelocityPeriodicVertexCondition3D2N ( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    mMeanVelocityLagrangeMultiplierCondition2D ( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType (1) ) ) ),
+    mMeanVelocityLagrangeMultiplierCondition3D ( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType (1) ) ) )
+    //mInverseTangentVelocityPeriodicCondition2D2N ( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+    //mInverseNormalVelocityPeriodicCondition2D2N ( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
+    
+
 
 {}
 
@@ -115,10 +129,9 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY)
 
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY) 
-    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1) 
 
 
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2D", mUpdatedLagrangianFluid2D);
@@ -141,6 +154,18 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
     KRATOS_REGISTER_ELEMENT("HypoElasticSolid2D",mHypoElasticSolid2D);
     KRATOS_REGISTER_ELEMENT("HypoElasticSolid3D",mHypoElasticSolid3D);
+
+    KRATOS_REGISTER_CONDITION( "MeanVelocityLagrangeMultiplierCondition2D", mMeanVelocityLagrangeMultiplierCondition2D ) //and our condition
+    KRATOS_REGISTER_CONDITION( "MeanVelocityLagrangeMultiplierCondition3D", mMeanVelocityLagrangeMultiplierCondition3D ) //and our condition        
+    KRATOS_REGISTER_CONDITION( "TangentVelocityPeriodicCondition3D2N", mTangentVelocityPeriodicCondition3D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "TangentVelocityPeriodicEdgeCondition3D2N", mTangentVelocityPeriodicEdgeCondition3D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "TangentVelocityPeriodicVertexCondition3D2N", mTangentVelocityPeriodicVertexCondition3D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "SecondTangentVelocityPeriodicVertexCondition3D2N", mSecondTangentVelocityPeriodicVertexCondition3D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "TangentVelocityPeriodicNormalToEdgeCondition3D2N", mTangentVelocityPeriodicNormalToEdgeCondition3D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "TangentVelocityPeriodicCondition2D2N", mTangentVelocityPeriodicCondition2D2N ); //and our condition
+    KRATOS_REGISTER_CONDITION( "NormalVelocityPeriodicCondition2D2N", mNormalVelocityPeriodicCondition2D2N ); //and our condition
+    //KRATOS_REGISTER_CONDITION( "InverseTangentVelocityPeriodicCondition2D2N", mInverseTangentVelocityPeriodicCondition2D2N ) //and our condition
+    //KRATOS_REGISTER_CONDITION( "InverseNormalVelocityPeriodicCondition2D2N", mInverseNormalVelocityPeriodicCondition2D2N ) //and our condition
 
 
 }
