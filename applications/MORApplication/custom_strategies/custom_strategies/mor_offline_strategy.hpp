@@ -717,26 +717,41 @@ class MorOfflineStrategy
         return mb;
     }
 
-    TSystemMatrixType &GetMr()
+    TSystemMatrixType& GetMr()
     {
         TSystemMatrixType &mMr = *mpMr;
 
         return mMr;
-    };
+    }
 
-    TSystemMatrixType &GetAr()
+    TSystemMatrixPointerType& pGetMr()
+    {
+        return mpMr;
+    }
+
+    TSystemMatrixType& GetKr()
     {
         TSystemMatrixType &mAr = *mpAr;
 
         return mAr;
-    };
+    }
 
-    TSystemMatrixType &GetSr()
+    TSystemMatrixPointerType& pGetKr()
+    {
+        return mpAr;
+    }
+
+    TSystemMatrixType& GetDr()
     {
         TSystemMatrixType &mSr = *mpSr;
 
         return mSr;
     };
+
+    TSystemMatrixPointerType& pGetDr()
+    {
+        return mpSr;
+    }
 
     TSystemVectorType& GetRHSr()
     {
@@ -746,12 +761,22 @@ class MorOfflineStrategy
         return mb;
     };
 
-    TSystemMatrixType &GetBasis()
+    TSystemVectorPointerType& pGetRHSr()
+    {
+        return mpRHSr;
+    }
+
+    TSystemMatrixType& GetBasis()
     {
         TSystemMatrixType &mBasis = *mpBasis;
 
         return mBasis;
-    };
+    }
+
+    TSystemMatrixPointerType& pGetBasis()
+    {
+        return mpBasis;
+    }
 
     ///@}
     ///@name Inquiry
