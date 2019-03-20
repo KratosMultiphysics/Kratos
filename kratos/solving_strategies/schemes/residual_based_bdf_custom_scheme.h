@@ -356,24 +356,20 @@ protected:
         // DOUBLES
         std::size_t counter = 0;
         for (auto p_var : mDoubleVariable) {
-            if (!itNode->IsFixed(*mFirstDoubleDerivatives[counter])) {
-                double& dotun0 = itNode->FastGetSolutionStepValue(*mFirstDoubleDerivatives[counter]);
-                dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
-            }
+            double& dotun0 = itNode->FastGetSolutionStepValue(*mFirstDoubleDerivatives[counter]);
+            dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
             counter++;
         }
 
         // ARRAYS
         counter = 0;
         for (auto p_var : mArrayVariable) {
-            if (!itNode->IsFixed(*mFirstArrayDerivatives[counter])) {
-                double& dotun0 = itNode->FastGetSolutionStepValue(*mFirstArrayDerivatives[counter]);
-                dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
-            }
+            double& dotun0 = itNode->FastGetSolutionStepValue(*mFirstArrayDerivatives[counter]);
+            dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
             counter++;
         }
     }
@@ -387,24 +383,20 @@ protected:
         // DOUBLES
         std::size_t counter = 0;
         for (auto p_var : mFirstDoubleDerivatives) {
-            if (!itNode->IsFixed(*mSecondDoubleDerivatives[counter])) {
-                double& dot2un0 = itNode->FastGetSolutionStepValue(*mSecondDoubleDerivatives[counter]);
-                dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
-            }
+            double& dot2un0 = itNode->FastGetSolutionStepValue(*mSecondDoubleDerivatives[counter]);
+            dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
             counter++;
         }
 
         // ARRAYS
         counter = 0;
         for (auto p_var : mFirstArrayDerivatives) {
-            if (!itNode->IsFixed(*mSecondArrayDerivatives[counter])) {
-                double& dot2un0 = itNode->FastGetSolutionStepValue(*mSecondArrayDerivatives[counter]);
-                dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
-            }
+            double& dot2un0 = itNode->FastGetSolutionStepValue(*mSecondArrayDerivatives[counter]);
+            dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
             counter++;
         }
     }
@@ -441,45 +433,57 @@ private:
     /**
      * @brief This method reduces the code duplication for each components when computing the prediction
      * @param itNode The node iterator of the node currently being computed
-     * @param iVar The variable currently being integrated
-     * @param DerivedVariable The first time derivative of the current variable
-     * @param Derived2Variable The second time derivative of the current variable
+     * @param rVariable The variable currently being integrated
+     * @param rDerivedVariable The first time derivative of the current variable
+     * @param rDerived2Variable The second time derivative of the current variable
      * @param DeltaTime The increment of time for the time integration
      */
     template<class TClassVar>
     void ComputePredictComponent(
         NodesArrayType::iterator itNode,
-        const TClassVar& iVar,
-        const TClassVar& DerivedVariable,
-        const TClassVar& Derived2Variable,
+        const TClassVar& rVariable,
+        const TClassVar& rDerivedVariable,
+        const TClassVar& rDerived2Variable,
         const double DeltaTime
         )
     {
         // Values
-        const double dot2un1 = itNode->FastGetSolutionStepValue(Derived2Variable, 1);
-        const double dotun1 = itNode->FastGetSolutionStepValue(DerivedVariable, 1);
-        const double un1 = itNode->FastGetSolutionStepValue(iVar, 1);
-        const double dot2un0 = itNode->FastGetSolutionStepValue(Derived2Variable);
-        double& dotun0 = itNode->FastGetSolutionStepValue(DerivedVariable);
-        double& un0 = itNode->FastGetSolutionStepValue(iVar);
+        const double dot2un1 = itNode->FastGetSolutionStepValue(rDerived2Variable, 1);
+        const double dotun1 = itNode->FastGetSolutionStepValue(rDerivedVariable, 1);
+        const double un1 = itNode->FastGetSolutionStepValue(rVariable, 1);
+        const double dot2un0 = itNode->FastGetSolutionStepValue(rDerived2Variable);
+        double& dotun0 = itNode->FastGetSolutionStepValue(rDerivedVariable);
+        double& un0 = itNode->FastGetSolutionStepValue(rVariable);
 
-        if (itNode->IsFixed(Derived2Variable)) {
-            dotun0 = dot2un0;
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                dotun0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DerivedVariable, i_order);
-            dotun0 /= BDFBaseType::mBDF[0];
+        bool predicted = false;
 
-            un0 = dotun0;
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(iVar, i_order);
-            un0 /= BDFBaseType::mBDF[0];
-        } else if (itNode->IsFixed(DerivedVariable)) {
-            un0 = dotun0;
-            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(iVar, i_order);
-            un0 /= BDFBaseType::mBDF[0];
-        } else if (!itNode->IsFixed(iVar)) {
-            un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
+        if (itNode->HasDofFor(rDerived2Variable)) {
+            if (itNode->IsFixed(rDerived2Variable)) {
+                dotun0 = dot2un0;
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    dotun0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rDerivedVariable, i_order);
+                dotun0 /= BDFBaseType::mBDF[0];
+
+                un0 = dotun0;
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
+                un0 /= BDFBaseType::mBDF[0];
+                predicted = true;
+            }
+        }
+        if (itNode->HasDofFor(rDerivedVariable) && !predicted) {
+            if (itNode->IsFixed(rDerivedVariable) && !predicted) {
+                un0 = dotun0;
+                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                    un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
+                un0 /= BDFBaseType::mBDF[0];
+                predicted = true;
+            }
+        }
+        if (itNode->HasDofFor(rVariable) && !predicted) {
+            if (!itNode->IsFixed(rVariable) && !predicted) {
+                un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
+            }
         }
     }
 
