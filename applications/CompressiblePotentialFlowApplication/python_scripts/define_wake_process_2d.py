@@ -2,34 +2,40 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
-
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string")
 
-    return DefineWakeProcess(Model, settings["Parameters"])
+    return DefineWakeProcess2D(Model, settings["Parameters"])
 
-
-class DefineWakeProcess(KratosMultiphysics.Process):
+# TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
+class DefineWakeProcess2D(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
+        # Call the base Kratos process constructor
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "mesh_id"                  : 0,
-                "body_model_part_name"     : "please specify the model part that contains the surface nodes",
-                "wake_direction"           : [1.0,0.0,0.0],
-                "epsilon"                  : 1e-9
-            }
-            """)
-
+        # Check default settings
+        default_settings = KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "",
+            "wake_direction": [1.0,0.0,0.0],
+            "epsilon": 1e-9
+        }''')
         settings.ValidateAndAssignDefaults(default_settings)
-        # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
-
+        
+        # Extract and check data from custom settings
         self.wake_direction = settings["wake_direction"].GetVector()
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
+
+        body_model_part_name = settings["model_part_name"].GetString()
+        if body_model_part_name == "":
+            err_msg = "Empty model_part_name in DefineWakeProcess2D\n"
+            err_msg += "Please specify the model part that contains the body surface nodes"
+            raise Exception(err_msg)
+        self.body_model_part = Model[body_model_part_name]
+
+        self.epsilon = settings["epsilon"].GetDouble()
 
         dnorm = math.sqrt(
             self.wake_direction[0]**2 + self.wake_direction[1]**2 + self.wake_direction[2]**2)
@@ -42,24 +48,18 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.wake_normal[1] = self.wake_direction[0]
         self.wake_normal[2] = 0.0
 
-        self.epsilon = settings["epsilon"].GetDouble()
-
-        self.body_model_part = Model[settings["body_model_part_name"].GetString()]
-
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
-            "trailing_edge_model_part")
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
-                                                                       self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        # Call the nodal normal calculation util
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            self.fluid_model_part, self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        # Neigbour search tool instance
-        AvgElemNum = 10
-        AvgNodeNum = 10
-        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(
-            self.fluid_model_part, AvgElemNum, AvgNodeNum)
-        # Find neighbours
-        nodal_neighbour_search.Execute()
+        # Find nodal neigbours util call
+        avg_elem_num = 10
+        avg_node_num = 10
+        KratosMultiphysics.FindNodalNeighboursProcess(
+            self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
 
     def ExecuteInitialize(self):
         # Save the trailing edge for further computations
