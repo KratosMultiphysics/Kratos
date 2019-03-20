@@ -8,8 +8,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import couplingsolverprint, bold
 
 class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseSolver):
-    def __init__(self, model, cosim_solver_settings):
-        super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
+    def __init__(self, model, cosim_solver_settings, solver_name):
+        super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
         self.participating_solvers = self.__CreateSolvers()
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
@@ -146,9 +146,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.cosim_solver_settings["solvers"].items():
-            solver_settings["name"] = solver_name # adding the name such that the solver can identify itself # TODO remove this, this will eventually not be necessary any more
             solvers[solver_name] = solver_factory.CreateSolverInterface(
-                self.model, solver_settings)
+                self.model, solver_settings, solver_name)
 
         # then order them according to the coupling-loop
         # NOTE solvers that are not used in the coupling-sequence will not participate

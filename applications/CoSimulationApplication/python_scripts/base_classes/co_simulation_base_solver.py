@@ -11,12 +11,13 @@ class CoSimulationBaseSolver(object):
     The intention is that every solver that derives from this class
     can be used standalone.
     """
-    def __init__(self, model, cosim_solver_settings):
+    def __init__(self, model, cosim_solver_settings, solver_name):
         """Constructor of the Base-Solver
         Deriving classes should call it in their constructors
         """
         self.model = model
         self.cosim_solver_settings = cosim_solver_settings
+        self.name = solver_name
         self.echo_level = 0
         if "echo_level" in self.cosim_solver_settings:
             self.echo_level = self.cosim_solver_settings["echo_level"]
@@ -26,13 +27,12 @@ class CoSimulationBaseSolver(object):
         pass
 
     def InitializeIO(self, solvers, io_echo_level):
-        solver_name = self.cosim_solver_settings["name"]
         if self.io_is_initialized:
-            raise Exception('IO for "' + solver_name + '" is already initialized!')
+            raise Exception('IO for "' + self.name + '" is already initialized!')
 
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       solvers,
-                                      solver_name)
+                                      self.name)
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -59,20 +59,20 @@ class CoSimulationBaseSolver(object):
 
     def ImportCouplingInterfaceData(self, data_name, from_client):
         if not self.io_is_initialized:
-            raise Exception('IO for "' + solver_name + '" is not initialized!')
+            raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterfaceData(data_name, from_client)
     def ImportCouplingInterface(self, mesh_name, from_client):
         if not self.io_is_initialized:
-            raise Exception('IO for "' + solver_name + '" is not initialized!')
+            raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterface(mesh_name, from_client)
 
     def ExportCouplingInterfaceData(self, data_name, to_client):
         if not self.io_is_initialized:
-            raise Exception('IO for "' + solver_name + '" is not initialized!')
+            raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
     def ExportCouplingInterface(self, mesh_name, to_client):
         if not self.io_is_initialized:
-            raise Exception('IO for "' + solver_name + '" is not initialized!')
+            raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(mesh_name, to_client)
 
     def GetDataDefinition(self, data_name):
