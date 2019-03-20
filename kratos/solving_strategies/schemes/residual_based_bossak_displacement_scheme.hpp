@@ -295,7 +295,7 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accelpos + i_dim).IsFixed()) {
+                    if (it_node->FastGetDof(accelpos + i_dim).IsFixed()) {
                         delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
                         r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
                         predicted[i_dim] = true;
@@ -304,7 +304,7 @@ public:
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(velpos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    if (it_node->FastGetDof(velpos + i_dim).IsFixed() && !predicted[i_dim]) {
                         delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
                         r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
                         predicted[i_dim] = true;
@@ -313,7 +313,7 @@ public:
             }
             if (disppos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (!it_node->GetDof(disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    if (!it_node->FastGetDof(disppos + i_dim).IsFixed() && !predicted[i_dim]) {
                         r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
                     }
                 }
@@ -383,7 +383,7 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(accelpos + i_dim).IsFixed()) {
+                    if (it_node->FastGetDof(accelpos + i_dim).IsFixed()) {
                         if (disppos > -1) it_node->Fix(disp_components[i_dim]);
                         fixed[i_dim] = true;
                     }
@@ -391,7 +391,7 @@ public:
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->GetDof(velpos + i_dim).IsFixed() && !fixed[i_dim]) {
+                    if (it_node->FastGetDof(velpos + i_dim).IsFixed() && !fixed[i_dim]) {
                         if (disppos > -1) it_node->Fix(disp_components[i_dim]);
                     }
                 }
