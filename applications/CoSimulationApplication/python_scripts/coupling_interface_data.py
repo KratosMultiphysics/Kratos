@@ -18,7 +18,7 @@ class CouplingInterfaceData(object):
 
         self.name = custom_config["name"].GetString()
         self.variable = None
-        self.filters = []
+        # self.filters = []
         self.solver = solver
         self.dimension = custom_config["dimension"].GetInt()
         self.location_on_mesh = custom_config["location_on_mesh"].GetString()
@@ -27,9 +27,9 @@ class CouplingInterfaceData(object):
         self.origin_data = None
         self.mapper_settings = None
 
-    def ApplyFilters(self):
-        for filter in self.filters:
-            filter.Apply()
+    # def ApplyFilters(self):
+    #     for filter in self.filters:
+    #         filter.Apply()
 
     def GetPythonList(self):
         data = []
