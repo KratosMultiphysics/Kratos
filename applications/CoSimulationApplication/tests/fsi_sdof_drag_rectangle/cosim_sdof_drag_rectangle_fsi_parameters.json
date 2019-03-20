@@ -14,23 +14,19 @@
         "start_coupling_time" : 0.0,
         "predictors" : [
             {
-                "type" : "linear_derivative_based",
-                "solver": "fluid",
-                "data_name"  : "disp_x",
-                "derivative_data_name"  : "vel_x"
+                "type"                 : "linear_derivative_based",
+                "solver"               : "fluid",
+                "data_name"            : "disp_x",
+                "derivative_data_name" : "vel_x"
             }
         ],
-        "convergence_accelerator_settings" :
-        {
-            "type"          : "aitken",
-            "data_list" :
-            [
-                {
-                    "solver"   : "fluid",
-                    "data_name"     : "disp_x"
-                }
-            ]
-        },
+        "convergence_accelerators" : [
+            {
+                "type"      : "aitken",
+                "solver"    : "fluid",
+                "data_name" : "disp_x"
+            }
+        ],
         "convergence_criteria" :
         {
             "data_list" :

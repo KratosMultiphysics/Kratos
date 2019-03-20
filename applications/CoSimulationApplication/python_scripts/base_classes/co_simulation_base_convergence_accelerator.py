@@ -11,8 +11,8 @@ class CoSimulationBaseConvergenceAccelerator(object):
         self.echo_level = 0
 
         ## Here we preallocate the arrays that will be used to exchange data
-        num_data = len(self.settings["data_list"])
-        self.arrays = [np.array([]) for e in range(num_data)]
+        self.data_array = np.array([])
+        self.prev_data = np.array([])
 
     def Initialize(self):
         pass
@@ -29,37 +29,24 @@ class CoSimulationBaseConvergenceAccelerator(object):
     def InitializeNonLinearIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
-        self.data_sizes = [] # saving the sizes of the data to later split them again
-        size_counter = 0
-        for i, data_entry in enumerate(self.settings["data_list"]):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.arrays[i])
-
-            size_counter += self.arrays[i].size
-            self.data_sizes.append(size_counter)
-
-        self.combined_prev_data = np.concatenate(self.arrays)
+        solver = self.solvers[self.settings["solver"]]
+        data_name = self.settings["data_name"]
+        cs_tools.ImportArrayFromSolver(solver, data_name, self.prev_data)
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def ComputeUpdate(self):
-        for i, data_entry in enumerate(self.settings["data_list"]):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.arrays[i])
+        solver = self.solvers[self.settings["solver"]]
+        data_name = self.settings["data_name"]
 
-        combined_residuals = np.concatenate(self.arrays) - self.combined_prev_data
+        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array)
 
-        combined_new_data = self.combined_prev_data + self._ComputeUpdate(combined_residuals, self.combined_prev_data)
+        residual = self.data_array - self.prev_data
 
-        updated_data = np.split(combined_new_data, self.data_sizes)
+        updated_data = self.prev_data + self._ComputeUpdate(residual, self.prev_data)
 
-        for data_entry, data_update in zip(self.settings["data_list"], updated_data):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ExportArrayToSolver(solver, data_name, data_update)
+        cs_tools.ExportArrayToSolver(solver, data_name, updated_data)
 
     def PrintInfo(self):
         '''Function to print Info abt the Object

@@ -30,6 +30,14 @@ def CreatePredictors(predictor_settings, solvers):
 
     return predictors
 
+def CreateConvergenceAccelerators(convergence_accelerator_settings, solvers):
+    from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
+    convergence_accelerators = []
+    for conv_acc_setting in convergence_accelerator_settings:
+        convergence_accelerators.append(CreateConvergenceAccelerator(conv_acc_setting, solvers))
+
+    return convergence_accelerators
+
 
 
 
