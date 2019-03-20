@@ -18,14 +18,15 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
+
+// Application includes
+#include "mor_application_variables.h"
 
 namespace Kratos
 {
@@ -358,9 +359,8 @@ class MorOnlineStrategy
     {
         KRATOS_TRY;
 
-        typename OfflineStrategyType::Pointer p_offline_strategy = GetOfflineStrategy();
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        double excitation_frequency = r_process_info[TIME];
+        const double excitation_frequency = r_process_info[FREQUENCY];
 
         TSystemMatrixType& r_Kr = *mpKr;
         // TSystemMatrixType& r_Dr = *mpDr;
