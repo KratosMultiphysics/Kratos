@@ -19,12 +19,12 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.cosim_solver_settings["convergence_accelerators"],
-            self.solvers)
+            self.participating_solvers)
         # self.convergence_accelerator.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
 
         self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
             self.cosim_solver_settings["convergence_criteria"],
-            self.solvers)
+            self.participating_solvers)
         # self.convergence_criteria.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
@@ -69,7 +69,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
                 conv_crit.InitializeNonLinearIteration()
 
             for solver_name in self.solver_names:
-                solver = self.solvers[solver_name]
+                solver = self.participating_solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver, solver_name)

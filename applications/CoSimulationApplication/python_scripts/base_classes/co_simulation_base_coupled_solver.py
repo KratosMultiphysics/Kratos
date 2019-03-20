@@ -13,7 +13,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
 
         self.solver_names = []
-        self.solvers = {}
+        self.participating_solvers = {}
 
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
         import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
@@ -24,7 +24,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                 raise NameError('Solver name "' + solver_name + '" defined twice!')
             self.solver_names.append(solver_name)
             self.cosim_solver_settings["solvers"][solver_name]["name"] = solver_name # adding the name such that the solver can identify itself
-            self.solvers[solver_name] = solver_factory.CreateSolverInterface(
+            self.participating_solvers[solver_name] = solver_factory.CreateSolverInterface(
                 model, self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
         self.cosim_solver_details = cs_tools.GetSolverCoSimulationDetails(
@@ -33,7 +33,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
             self.cosim_solver_settings["predictors"],
-            self.solvers) # TODO set echo-lvl?
+            self.participating_solvers) # TODO set echo-lvl?
 
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
@@ -46,9 +46,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def Initialize(self):
         for solver_name in self.solver_names:
-            self.solvers[solver_name].Initialize()
+            self.participating_solvers[solver_name].Initialize()
         for solver_name in self.solver_names:
-            self.solvers[solver_name].InitializeIO(self.solvers, self.echo_level)
+            self.participating_solvers[solver_name].InitializeIO(self.participating_solvers, self.echo_level)
             # we use the Echo_level of the coupling solver, since IO is needed by the coupling
             # and not by the (physics-) solver
 
@@ -57,15 +57,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def Finalize(self):
         for solver_name in self.solver_names:
-            self.solvers[solver_name].Finalize()
+            self.participating_solvers[solver_name].Finalize()
 
         for predictor in self.predictors_list:
             predictor.Finalize()
 
     def AdvanceInTime(self, current_time):
-        self.time = self.solvers[self.solver_names[0]].AdvanceInTime(current_time)
+        self.time = self.participating_solvers[self.solver_names[0]].AdvanceInTime(current_time)
         for solver_name in self.solver_names[1:]:
-            time_other_solver = self.solvers[solver_name].AdvanceInTime(current_time)
+            time_other_solver = self.participating_solvers[solver_name].AdvanceInTime(current_time)
             if abs(self.time - time_other_solver) > 1e-12:
                 raise Exception("Solver time mismatch")
 
@@ -81,24 +81,24 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             predictor.Predict()
 
         for solver_name in self.solver_names:
-            self.solvers[solver_name].Predict()
+            self.participating_solvers[solver_name].Predict()
 
     def InitializeSolutionStep(self):
         for solver_name in self.solver_names:
-            self.solvers[solver_name].InitializeSolutionStep()
+            self.participating_solvers[solver_name].InitializeSolutionStep()
 
         for predictor in self.predictors_list:
             predictor.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         for solver_name in self.solver_names:
-            self.solvers[solver_name].FinalizeSolutionStep()
+            self.participating_solvers[solver_name].FinalizeSolutionStep()
         for predictor in self.predictors_list:
             predictor.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         for solver_name in self.solver_names:
-            self.solvers[solver_name].OutputSolutionStep()
+            self.participating_solvers[solver_name].OutputSolutionStep()
 
     def SolveSolutionStep(self):
         err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
@@ -111,7 +111,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             if self.time >= self.cosim_solver_details[solver_name]["input_coupling_start_time"]:
                 for input_data in input_data_list:
-                    from_solver = self.solvers[input_data["from_solver"]]
+                    from_solver = self.participating_solvers[input_data["from_solver"]]
                     data_name = input_data["data_name"]
                     data_definition = from_solver.GetDataDefinition(data_name)
                     data_settings = { "data_format" : data_definition["data_format"],
@@ -125,7 +125,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
             if self.time >= self.cosim_solver_details[solver_name]["output_coupling_start_time"]:
                 for output_data in output_data_list:
-                    to_solver = self.solvers[output_data["to_solver"]]
+                    to_solver = self.participating_solvers[output_data["to_solver"]]
                     data_name = output_data["data_name"]
                     data_definition = to_solver.GetDataDefinition(data_name)
                     data_settings = { "data_format" : data_definition["data_format"],
@@ -139,7 +139,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         couplingsolverprint(self._Name(), "Has the following participants:")
 
         for solver_name in self.solver_names:
-            self.solvers[solver_name].PrintInfo()
+            self.participating_solvers[solver_name].PrintInfo()
 
         # if self.predictor is not None:
         #     couplingsolverprint(self._Name(), "Uses a Predictor:")
@@ -149,7 +149,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         super(CoSimulationBaseCouplingSolver, self).Check()
 
         for solver_name in self.solver_names:
-            self.solvers[solver_name].Check()
+            self.participating_solvers[solver_name].Check()
 
         # if self.predictor is not None:
         #     self.predictor.Check()
