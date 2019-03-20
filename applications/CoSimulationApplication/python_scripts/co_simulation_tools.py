@@ -79,7 +79,7 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
 
         return solver_data_dict
 
-    def CheckCouplingLoop(coupling_loop, solver_data_dict):
+    def CheckCouplingLoop(coupling_sequence, solver_data_dict):
         def CheckInputDataList(input_data_list, solver_name, solver_data_dict):
             input_data_list_default = {
                 "from_solver" : "UNSPECIFIED",
@@ -92,11 +92,11 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
                 data_name   = data["data_name"]
                 if from_solver == "UNSPECIFIED":
                     err_msg  = '"from_solver" not specified for solver "'
-                    err_msg += solver_name + '" in "coupling_loop"!'
+                    err_msg += solver_name + '" in "coupling_sequence"!'
                     raise Exception(err_msg)
                 if data_name == "UNSPECIFIED":
                     err_msg  = '"data_name" not specified for solver "'
-                    err_msg += solver_name + '" in "coupling_loop"!'
+                    err_msg += solver_name + '" in "coupling_sequence"!'
                     raise Exception(err_msg)
                 if from_solver not in solver_data_dict:
                     raise Exception('the solver with name "' + from_solver + '" was not specified under "solvers"!')
@@ -121,11 +121,11 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
                 data_name = data["data_name"]
                 if to_solver == "UNSPECIFIED":
                     err_msg  = '"to_solver" not specified for solver "'
-                    err_msg += solver_name + '" in "coupling_loop"!'
+                    err_msg += solver_name + '" in "coupling_sequence"!'
                     raise Exception(err_msg)
                 if data_name == "UNSPECIFIED":
                     err_msg  = '"data_name" not specified for solver "'
-                    err_msg += solver_name + '" in "coupling_loop"!'
+                    err_msg += solver_name + '" in "coupling_sequence"!'
                     raise Exception(err_msg)
                 if to_solver not in solver_data_dict:
                     raise Exception('the solver with name "' + to_solver + '" was not specified under "solvers"!')
@@ -145,11 +145,11 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
             "input_coupling_start_time" : 0.0,
             "output_coupling_start_time" : 0.0
         }
-        for solver_i, solver in enumerate(coupling_loop):
+        for solver_i, solver in enumerate(coupling_sequence):
             ValidateAndAssignDefaults(solver_default, solver)
             solver_name = solver["name"]
             if solver_name == "UNSPECIFIED":
-                raise Exception('"name" not specified for solver ' + str(solver_i) + ' in "coupling_loop"!')
+                raise Exception('"name" not specified for solver ' + str(solver_i) + ' in "coupling_sequence"!')
             if solver_name not in solver_data_dict:
                 raise Exception('the solver with name "' + solver_name + '" was not specified under "solvers"!')
             CheckInputDataList(solver["input_data_list"], solver_name, solver_data_dict)
@@ -187,10 +187,10 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
     CheckIfEntryExists("solver_type", "solver_settings", solver_settings)
 
     # This is only existing in a coupled simulation
-    if "coupling_loop" in solver_settings:
+    if "coupling_sequence" in solver_settings:
         solver_data_dict = CheckSolverSetting(solver_settings["solvers"])
         CheckIfEntryExists("solvers", "solver_settings", solver_settings)
-        CheckCouplingLoop(solver_settings["coupling_loop"], solver_data_dict)
+        CheckCouplingLoop(solver_settings["coupling_sequence"], solver_data_dict)
 
 
 

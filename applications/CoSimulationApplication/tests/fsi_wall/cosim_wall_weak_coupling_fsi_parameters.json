@@ -24,7 +24,7 @@
             ]
         },
 
-        "coupling_loop":
+        "coupling_sequence":
         [
         {
             "name": "structure",

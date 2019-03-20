@@ -18,7 +18,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
         import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
 
-        for solver_settings in self.cosim_solver_settings["coupling_loop"]:
+        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
             solver_name = solver_settings["name"]
             if solver_name in self.solver_names:
                 raise NameError('Solver name "' + solver_name + '" defined twice!')
@@ -28,7 +28,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                 model, self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
         self.cosim_solver_details = cosim_tools.GetSolverCoSimulationDetails(
-            self.cosim_solver_settings["coupling_loop"])
+            self.cosim_solver_settings["coupling_sequence"])
 
         self.predictor = None
         if "predictor_settings" in self.cosim_solver_settings:
