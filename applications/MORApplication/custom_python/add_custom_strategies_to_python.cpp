@@ -17,6 +17,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include "boost/numeric/ublas/vector.hpp"
 
 
 // Project includes
@@ -30,14 +31,14 @@
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
-#include "custom_strategies/custom_strategies/frequency_response_analysis.hpp"
+//#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
+#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
 
 // Builders and solvers
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos {
 namespace Python {
@@ -61,7 +62,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef MorOnlineStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
 	typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
-    //typedef FrequencyResponseAnalysis < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisType;
+    typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -83,9 +84,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
     
-    //py::class_< FrequencyResponseAnalysisType, typename FrequencyResponseAnalysisType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponse")
-       // .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
-       // ;
+    py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, /*vector<double>,*/ bool >())
+        ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
