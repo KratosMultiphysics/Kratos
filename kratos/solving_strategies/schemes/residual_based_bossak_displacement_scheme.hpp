@@ -88,6 +88,8 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
+    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -265,27 +267,23 @@ public:
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting position
-        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
-        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
-        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
-        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
-        const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
-        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
-        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
-        const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
+        const int disppos = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+
+        // Getting dimension
+        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Auxiliar variables
         array_1d<double, 3 > delta_displacement;
-        bool predicted_x, predicted_y, predicted_z;
+        std::array<bool, 3> predicted = {false, false, false};
 
-        #pragma omp parallel for private(delta_displacement, predicted_x, predicted_y, predicted_z)
+        #pragma omp parallel for private(delta_displacement, predicted)
         for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = it_node_begin + i;
 
-            predicted_x = false;
-            predicted_y = false;
-            predicted_z = false;
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
+                predicted[i_dim] = false;
 
             // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
             const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
@@ -295,72 +293,35 @@ public:
             array_1d<double, 3>& r_current_velocity            = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& r_current_displacement        = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (accelpos_x > -1) {
-                if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
-                    delta_displacement[0] = (r_current_acceleration[0] + mBossak.c3 * r_previous_acceleration[0] +  mBossak.c2 * r_previous_velocity[0])/mBossak.c0;
-                    r_current_displacement[0] =  r_previous_displacement[0] + delta_displacement[0];
-                    predicted_x = true;
+            if (accelpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(accelpos + i_dim).IsFixed()) {
+                        delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
+                        predicted[i_dim] = true;
+                    }
                 }
             }
-            if (velpos_x > -1 && !predicted_x) {
-                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !predicted_x) {
-                    delta_displacement[0] = (r_current_velocity[0] + mBossak.c4 * r_previous_velocity[0] + mBossak.c5 * r_previous_acceleration[0])/mBossak.c1;
-                    r_current_displacement[0] =  r_previous_displacement[0] + delta_displacement[0];
-                    predicted_x = true;
+            if (velpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(velpos + i_dim).IsFixed() && !predicted[i_dim]) {
+                        delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
+                        r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
+                        predicted[i_dim] = true;
+                    }
                 }
             }
-            if (disppos_x > -1 && !predicted_x) {
-                if (!it_node->GetDof(DISPLACEMENT_X, disppos_x).IsFixed() && !predicted_x) {
-                    r_current_displacement[0] = r_previous_displacement[0] + delta_time * r_previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[0];
-                }
-            }
-
-            if (accelpos_y > -1) {
-                if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
-                    delta_displacement[1] = (r_current_acceleration[1] + mBossak.c3 * r_previous_acceleration[1] +  mBossak.c2 * r_previous_velocity[1])/mBossak.c0;
-                    r_current_displacement[1] =  r_previous_displacement[1] + delta_displacement[1];
-                    predicted_y = true;
-                }
-            }
-            if (velpos_y > -1 && !predicted_y) {
-                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !predicted_y) {
-                    delta_displacement[1] = (r_current_velocity[1] + mBossak.c4 * r_previous_velocity[1] + mBossak.c5 * r_previous_acceleration[1])/mBossak.c1;
-                    r_current_displacement[1] =  r_previous_displacement[1] + delta_displacement[1];
-                    predicted_y = true;
-                }
-            }
-            if (disppos_y > -1 && !predicted_y) {
-                if (!it_node->GetDof(DISPLACEMENT_Y, disppos_y).IsFixed() && !predicted_y) {
-                    r_current_displacement[1] = r_previous_displacement[1] + delta_time * r_previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[1];
-                }
-            }
-
-            // For 3D cases
-            if (accelpos_z > -1) {
-                if (it_node->GetDof(ACCELERATION_Z, accelpos_z).IsFixed()) {
-                    delta_displacement[2] = (r_current_acceleration[2] + mBossak.c3 * r_previous_acceleration[2] +  mBossak.c2 * r_previous_velocity[2])/mBossak.c0;
-                    r_current_displacement[2] =  r_previous_displacement[2] + delta_displacement[2];
-                    predicted_z = true;
-                }
-            }
-            if (velpos_z > -1 && !predicted_z) {
-                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !predicted_z) {
-                    delta_displacement[2] = (r_current_velocity[2] + mBossak.c4 * r_previous_velocity[2] + mBossak.c5 * r_previous_acceleration[2])/mBossak.c1;
-                    r_current_displacement[2] =  r_previous_displacement[2] + delta_displacement[2];
-                    predicted_z = true;
-                }
-            }
-            if (disppos_z > -1 && !predicted_z) {
-                if (!it_node->GetDof(DISPLACEMENT_Z, disppos_z).IsFixed() && !predicted_z) {
-                    r_current_displacement[2] = r_previous_displacement[2] + delta_time * r_previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[2];
+            if (disppos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (!it_node->GetDof(disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                        r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
+                    }
                 }
             }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
             noalias(delta_displacement) = r_current_displacement - r_previous_displacement;
-
             UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-
             UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
         }
 
@@ -402,58 +363,37 @@ public:
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
+        // Getting dimension
+        const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+
         // Getting position
-        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
-        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
-        const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
-        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
-        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
-        const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
-        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
-        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
-        const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
+        const int disppos = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
-        bool fixed_x, fixed_y, fixed_z;
+        std::array<bool, 3> fixed = {false, false, false};
+        std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
 
-        #pragma omp parallel for private(fixed_x, fixed_y, fixed_z)
+        #pragma omp parallel for private(fixed)
         for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = it_node_begin + i;
 
-            fixed_x = false;
-            fixed_y = false;
-            fixed_z = false;
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim)
+                fixed[i_dim] = false;
 
-            if (accelpos_x > -1) {
-                if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
-                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
-                    fixed_x = true;
+            if (accelpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(accelpos + i_dim).IsFixed()) {
+                        if (disppos > -1) it_node->Fix(disp_components[i_dim]);
+                        fixed[i_dim] = true;
+                    }
                 }
             }
-            if (velpos_x > -1 && !fixed_x) {
-                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !fixed_x) {
-                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
-                }
-            }
-            if (accelpos_y > -1) {
-                if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
-                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
-                    fixed_y = true;
-                }
-            }
-            if (velpos_y > -1 && !fixed_y) {
-                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !fixed_y) {
-                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
-                }
-            }
-            if (accelpos_z > -1) {
-                if (it_node->GetDof(ACCELERATION_Z, accelpos_z).IsFixed()) {
-                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
-                    fixed_z = true;
-                }
-            }
-            if (velpos_z > -1 && !fixed_z) {
-                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !fixed_z) {
-                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+            if (velpos > -1) {
+                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                    if (it_node->GetDof(velpos + i_dim).IsFixed() && !fixed[i_dim]) {
+                        if (disppos > -1) it_node->Fix(disp_components[i_dim]);
+                    }
                 }
             }
         }
