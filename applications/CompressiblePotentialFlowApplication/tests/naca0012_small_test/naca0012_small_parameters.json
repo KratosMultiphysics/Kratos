@@ -14,10 +14,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "naca0012_small"
         },
-        "element_replace_settings": {
-                    "element_name":"IncompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
-        },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
         "linear_solver_settings"  : {
@@ -25,7 +21,7 @@
                 "verbosity"               : 0
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
-        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_UpperSurface","Body2D_LowerSurface"],
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"          : []
     },
     "processes" : {
@@ -46,9 +42,7 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Wake2D_Wake_Auto1",
-                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
+                "body_model_part_name" : "MainModelPart.Body2D_Body",
                 "wake_direction"       : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
@@ -58,9 +52,7 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart",
-                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
+                "body_model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
             }
@@ -70,7 +62,7 @@
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart.Body2D_UpperSurface"
+                "body_model_part_name" : "MainModelPart.Body2D_Body"
             }
         },{
             "python_module" : "placeholder_process",
