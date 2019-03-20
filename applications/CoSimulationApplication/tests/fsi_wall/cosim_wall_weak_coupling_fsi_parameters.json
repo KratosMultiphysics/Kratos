@@ -11,7 +11,7 @@
         "solver_type" : "gauss_seidel_weak",
         "echo_level" : 0,
         "start_coupling_time" : 0.0,
-        "predictor_settings" :
+        "predictors" :
         {
             "predictor_type" : "average_value_based",
             "data_list"      :

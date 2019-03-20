@@ -31,8 +31,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.cosim_solver_settings["coupling_sequence"])
 
         self.predictor = None
-        if "predictor_settings" in self.cosim_solver_settings:
-            self.predictor = CreatePredictor(self.cosim_solver_settings["predictor_settings"],
+        if "predictors" in self.cosim_solver_settings:
+            self.predictor = CreatePredictor(self.cosim_solver_settings["predictors"],
                                              self.solvers)
             self.predictor.SetEchoLevel(self.echo_level)
 
