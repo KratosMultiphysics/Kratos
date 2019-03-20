@@ -230,8 +230,8 @@ public:
             array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
             const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            UpdateVelocity(it_node, r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
-            UpdateAcceleration(it_node, r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -361,9 +361,9 @@ public:
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
             noalias(delta_displacement) = r_current_displacement - r_previous_displacement;
 
-            UpdateVelocity(it_node, r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateVelocity(r_current_velocity, delta_displacement, r_previous_velocity, r_previous_acceleration);
 
-            UpdateAcceleration (it_node, r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
+            UpdateAcceleration(r_current_acceleration, delta_displacement, r_previous_velocity, r_previous_acceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -618,13 +618,12 @@ protected:
 
     /**
      * @brief Updating first time Derivative
-     * @param CurrentVelocity The current velocity
-     * @param DeltaDisplacement The increment of displacement
-     * @param PreviousVelocity The previous velocity
-     * @param PreviousAcceleration The previous acceleration
+     * @param rCurrentVelocity The current velocity
+     * @param rDeltaDisplacement The increment of displacement
+     * @param rPreviousVelocity The previous velocity
+     * @param rPreviousAcceleration The previous acceleration
      */
     inline void UpdateVelocity(
-        NodeIterator itNode,
         array_1d<double, 3>& rCurrentVelocity,
         const array_1d<double, 3>& rDeltaDisplacement,
         const array_1d<double, 3>& rPreviousVelocity,
@@ -636,13 +635,12 @@ protected:
 
     /**
      * @brief Updating second time Derivative
-     * @param CurrentAcceleration The current velocity
-     * @param DeltaDisplacement The increment of displacement
-     * @param PreviousVelocity The previous velocity
-     * @param PreviousAcceleration The previous acceleration
+     * @param rCurrentAcceleration The current velocity
+     * @param rDeltaDisplacement The increment of displacement
+     * @param rPreviousVelocity The previous velocity
+     * @param rPreviousAcceleration The previous acceleration
      */
     inline void UpdateAcceleration(
-        NodeIterator itNode,
         array_1d<double, 3>& rCurrentAcceleration,
         const array_1d<double, 3>& rDeltaDisplacement,
         const array_1d<double, 3>& rPreviousVelocity,
