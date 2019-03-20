@@ -28,7 +28,7 @@ if __name__ == '__main__':
         "tolerance"  : 0.1,
         "confidence" : 0.9,
         "batch_size" : 20,
-        "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+        "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
     }
     """)
     # contruct MonteCarlo or MultilevelMonteCarlo class
