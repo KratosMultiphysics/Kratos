@@ -372,7 +372,7 @@ public:
      *
      * Based on an answer by Ben Voigt : https://stackoverflow.com/questions/4578967/cube-sphere-intersection-test
      *
-     * @return bool if the triangle overlaps a box
+     * @return bool if the sphere overlaps over a box that is aligned with the global coordinate axes.
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
@@ -381,29 +381,28 @@ public:
         const array_1d<double, 3>& center = this->operator[](0).Coordinates();
         double radius_squared = std::pow(this->GetRadius(), 2);
 
-        /* assume C1 and C2 are element-wise sorted, if not, do that now */
         if (center[0] < rLowPoint[0]){
-            radius_squared -=std::pow(center[0] - rLowPoint[0], 2);
+            radius_squared -= std::pow(center[0] - rLowPoint[0], 2);
         }
 
         else if (center[0] > rHighPoint[0]){
-            radius_squared -=std::pow(center[0] - rHighPoint[0], 2);
+            radius_squared -= std::pow(center[0] - rHighPoint[0], 2);
         }
 
         if (center[1] < rLowPoint[1]){
-            radius_squared -=std::pow(center[1] - rLowPoint[1], 2);
+            radius_squared -= std::pow(center[1] - rLowPoint[1], 2);
         }
 
         else if (center[1] > rHighPoint[1]){
-            radius_squared -=std::pow(center[1] - rHighPoint[1], 2);
+            radius_squared -= std::pow(center[1] - rHighPoint[1], 2);
         }
 
         if (center[2] < rLowPoint[2]){
-            radius_squared -=std::pow(center[2] - rLowPoint[2], 2);
+            radius_squared -= std::pow(center[2] - rLowPoint[2], 2);
         }
 
         else if (center[2] > rHighPoint[2]){
-            radius_squared -=std::pow(center[2] - rHighPoint[2], 2);
+            radius_squared -= std::pow(center[2] - rHighPoint[2], 2);
         }
 
         return radius_squared > 0;
