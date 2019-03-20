@@ -1,9 +1,13 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2007-12-10 09:03:15 $
-//   Revision:            $Revision: 1.1 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:  Pooyan Dadvand
 //
 
 

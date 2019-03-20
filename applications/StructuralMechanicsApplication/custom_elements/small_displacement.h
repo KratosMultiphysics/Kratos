@@ -125,7 +125,19 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
-    
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -134,8 +146,6 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    //std::string Info() const;
 
     ///@}
     ///@name Access
@@ -149,13 +159,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -171,7 +193,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     SmallDisplacement() : BaseSolidElement()
     {
     }
@@ -179,8 +201,8 @@ protected:
      /**
      * @brief This method returns if the element provides the strain
      */
-    bool UseElementProvidedStrain() override;
-    
+    bool UseElementProvidedStrain() const override;
+
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS
@@ -190,36 +212,52 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-    
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-        
-     /**
+
+    /**
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     */
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
+
+    /**
      * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
      * @param rValues The CL parameters
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
      * @param ThisStressMeasure The stress measure considered
-     */ 
+     */
     void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables, 
-        ConstitutiveVariables& rThisConstitutiveVariables, 
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
@@ -238,14 +276,17 @@ protected:
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        );
+        ) const;
 
     /**
-     * Calculation of the equivalent deformation gradient
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
      * @param StrainVector The strain tensor (Voigt notation)
-     * @return The deformation gradient F
      */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
+    virtual void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const;
 
     ///@}
     ///@name Protected Operations
@@ -317,4 +358,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined

@@ -57,7 +57,7 @@ public:
 
     /// Default constructor.
     Process() : Flags() {}
-    Process(Flags options) : Flags( options ) {}
+    explicit Process(Flags options) : Flags( options ) {}
 
     /// Destructor.
     ~Process() override {}
@@ -122,6 +122,13 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+    }
+
+    /// this function is designed for being called after ExecuteInitialize ONCE to
+    /// verify that the input is correct.
+    virtual int Check()
+    {
+        return 0;
     }
 
 
@@ -217,6 +224,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_PROCESS_H_INCLUDED  defined
 
 

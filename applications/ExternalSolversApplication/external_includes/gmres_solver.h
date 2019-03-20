@@ -126,6 +126,8 @@ public:
     }
     
      GMRESSolver(Parameters settings):BaseType(settings) {}
+     
+     GMRESSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):BaseType(settings, pNewPreconditioner) {}
 
     /// Copy constructor.
     GMRESSolver(const GMRESSolver& Other) : BaseType(Other) {}

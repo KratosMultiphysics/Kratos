@@ -76,10 +76,24 @@ class DistanceSpatialContainersConditionConfigure
 
     typedef Point                                               PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                       DistanceIteratorType;
-    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ContainerType;
+    typedef PointerVectorSet<
+                GeometricalObject::Pointer, 
+                IndexedObject,
+                std::less<typename IndexedObject::result_type>,
+                std::equal_to<typename IndexedObject::result_type>,
+                Kratos::shared_ptr<typename GeometricalObject::Pointer>,
+                std::vector< Kratos::shared_ptr<typename GeometricalObject::Pointer> >
+                    >  ContainerType;
     typedef ContainerType::value_type                           PointerType;
     typedef ContainerType::iterator                             IteratorType;
-    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ResultContainerType;
+    typedef PointerVectorSet<
+                GeometricalObject::Pointer, 
+                IndexedObject,
+                std::less<typename IndexedObject::result_type>,
+                std::equal_to<typename IndexedObject::result_type>,
+                Kratos::shared_ptr<typename GeometricalObject::Pointer>,
+                std::vector< Kratos::shared_ptr<typename GeometricalObject::Pointer> >
+                    >  ResultContainerType;
     typedef ResultContainerType::value_type                     ResultPointerType;
     typedef ResultContainerType::iterator                       ResultIteratorType;
 

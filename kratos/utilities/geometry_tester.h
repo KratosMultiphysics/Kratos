@@ -26,6 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/element.h"
 #include "geometries/geometry_data.h"
 #include "utilities/geometry_utilities.h"
@@ -34,15 +35,18 @@
 #include "geometries/triangle_2d_6.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_interface_2d_4.h"
 
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/hexahedra_interface_3d_8.h"
 
 #include "geometries/prism_3d_6.h"
 //#include "geometries/prism_3d_15.h"
+#include "geometries/prism_interface_3d_6.h"
 
 namespace Kratos
 {
@@ -94,7 +98,7 @@ public:
     }
 
     /// Default constructor.
-    bool RunTest() //std::string& out_error_msg)
+    bool RunTest(Model& rModel) //std::string& out_error_msg)
     {
         //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
         //side has a lenght 0f 2.0/3.0
@@ -107,7 +111,7 @@ public:
         //| 7---8---9
         //|4   5   6
         //1---2---3
-        ModelPart model_part("aux_model_part");
+        ModelPart& model_part = rModel.CreateModelPart("aux_model_part");
         GenerateNodes(model_part);
 
         bool succesful = true;
@@ -116,15 +120,18 @@ public:
         if(TestTriangle2D6N(model_part) == false) succesful=false;
         if(TestQuadrilateral2D4N(model_part) == false) succesful=false;
         if(TestQuadrilateral2D9N(model_part) == false) succesful=false;
+        if(TestQuadrilateralInterface2D4N(model_part) == false) succesful=false;
 
         if(TestTetrahedra3D4N(model_part) == false) succesful=false;
         if(TestTetrahedra3D10N(model_part) == false) succesful=false;
         if(TestHexahedra3D8N(model_part) == false) succesful=false;
         if(TestHexahedra3D20N(model_part) == false) succesful=false;
         if(TestHexahedra3D27N(model_part) == false) succesful=false;
+        if(TestHexahedraInterface3D8N(model_part) == false) succesful=false;
 
         if(TestPrism3D6N(model_part) == false) succesful=false;
 //        if(TestPrism3D15N( error_msg ) == false) succesful=false;
+        if(TestPrismInterface3D6N(model_part) == false) succesful=false;
 
         if(succesful == false)
             std::cout << "*** some errors were detected in the GeometryTester Utility ***" << std::endl;
@@ -387,6 +394,30 @@ public:
 
     }
 
+    bool TestQuadrilateralInterface2D4N(ModelPart& rModelPart)
+    {
+        GenerateNodes(rModelPart);
+
+        std::stringstream error_msg;
+        QuadrilateralInterface2D4<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(6), rModelPart.pGetNode(4));
+
+        bool succesful = true;
+
+        //compute area (length in interface geometries)
+        const double expected_area = 2.0/3.0;
+
+        if(std::abs(geom.Area() - expected_area) > 1e-14)
+        {
+            error_msg << "Geometry Type = " << "Kratos_QuadrilateralInterface3D4" << " --> " 
+                      << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
+            succesful=false;
+        }
+
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
+
+        return succesful;
+    }
+
     bool TestHexahedra3D8N(ModelPart& rModelPart)
     {
         GenerateNodes(rModelPart);
@@ -531,6 +562,31 @@ public:
 
     }
 
+    bool TestHexahedraInterface3D8N(ModelPart& rModelPart)
+    {
+        GenerateNodes(rModelPart);
+
+        std::stringstream error_msg;
+        HexahedraInterface3D8<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(19), rModelPart.pGetNode(21), rModelPart.pGetNode(3),
+                                          rModelPart.pGetNode(4), rModelPart.pGetNode(22), rModelPart.pGetNode(24), rModelPart.pGetNode(6) );
+
+        bool succesful = true;
+
+        //compute volume (area in interface geometries)
+        const double expected_vol = 2.0/3.0*2.0/3.0;
+
+        if(std::abs(geom.Volume() - expected_vol) > 1e-14)
+        {
+            error_msg << "Geometry Type = " << "Kratos_HexahedraInterface3D8" << " --> " 
+                      << " error: volume returned by the function geom.Volume() does not deliver the correct result " << std::endl;
+            succesful=false;
+        }
+
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
+
+        return succesful;
+    }
+
     bool TestPrism3D6N(ModelPart& rModelPart)
     {
         GenerateNodes(rModelPart);
@@ -607,6 +663,31 @@ public:
 
 //          return succesful;
 //    }
+
+    bool TestPrismInterface3D6N(ModelPart& rModelPart)
+    {
+        GenerateNodes(rModelPart);
+
+        std::stringstream error_msg;
+        PrismInterface3D6<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(19), rModelPart.pGetNode(3),
+                                          rModelPart.pGetNode(4), rModelPart.pGetNode(22), rModelPart.pGetNode(6) );
+
+        bool succesful = true;
+
+        //compute volume (area in interface geometries)
+        const double expected_vol = 0.5*2.0/3.0*2.0/3.0;
+
+        if(std::abs(geom.Volume() - expected_vol) > 1e-14)
+        {
+            error_msg << "Geometry Type = " << "Kratos_PrismInterface3D6" << " --> " 
+                      << " error: volume returned by the function geom.Volume() does not deliver the correct result " << std::endl;
+            succesful=false;
+        }
+
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
+
+        return succesful;
+    }
 
     ///@}
     ///@name Access

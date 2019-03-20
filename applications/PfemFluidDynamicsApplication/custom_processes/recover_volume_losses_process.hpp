@@ -22,7 +22,8 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:      
@@ -45,7 +46,7 @@ namespace Kratos
   */
 
   class RecoverVolumeLossesProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions
@@ -65,7 +66,7 @@ namespace Kratos
 
     /// Default constructor.
     RecoverVolumeLossesProcess(ModelPart& rModelPart,
-			       ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			       MesherUtilities::MeshingParameters& rRemeshingParameters,
 			       int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -108,7 +109,7 @@ namespace Kratos
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
-      ModelerUtilities ModelerUtils;
+      MesherUtilities MesherUtils;
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
@@ -119,7 +120,7 @@ namespace Kratos
       double volumeLoss=0;
 	
       if(currentTime<=2*timeInterval){
-	initialVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
+	initialVolume=MesherUtils.ComputeModelPartVolume(mrModelPart);
 	if( mEchoLevel > 0 )
 	  std::cout<<"setting                                InitialVolume "<<initialVolume<<std::endl;
 	mrRemesh.Info->SetInitialMeshVolume(initialVolume);
@@ -128,7 +129,7 @@ namespace Kratos
       if(currentTime>2*timeInterval){
 
 	initialVolume=mrRemesh.Info->InitialMeshVolume;
-	currentVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
+	currentVolume=MesherUtils.ComputeModelPartVolume(mrModelPart);
 	volumeLoss=initialVolume-currentVolume;
 	if( mEchoLevel > 0 ){
 	  std::cout<<" InitialVolume "<<initialVolume<<" currentVolume "<<currentVolume<<"-->  volumeLoss "<<volumeLoss<<std::endl;
@@ -280,9 +281,9 @@ namespace Kratos
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::MeshingParameters& mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    MesherUtilities mMesherUtilities;  
 
     int mEchoLevel;
 

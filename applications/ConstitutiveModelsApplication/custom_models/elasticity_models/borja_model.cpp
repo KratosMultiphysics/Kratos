@@ -39,7 +39,7 @@ namespace Kratos
 
    ConstitutiveModel::Pointer BorjaModel::Clone() const
    {
-      return ( BorjaModel::Pointer(new BorjaModel(*this)) );
+      return Kratos::make_shared<BorjaModel>(*this);
    }
 
    //********************************ASSIGNMENT******************************************
@@ -96,14 +96,14 @@ namespace Kratos
       // material parameters
 
       const ModelDataType & rModelData = rVariables.GetModelData();
-      const Properties    & rMaterialProperties = rModelData.GetMaterialProperties();
+      const Properties    & rProperties = rModelData.GetProperties();
 
-      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-      const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
-      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
+      const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+      const double & rAlphaShear = rProperties[ALPHA_SHEAR];
+      const double & rReferencePressure = rProperties[PRE_CONSOLIDATION_STRESS];
+      const double & rOCR = rProperties[OVER_CONSOLIDATION_RATIO];
       const double ReferencePressure = rReferencePressure / rOCR;
-      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
+      const double & rConstantShearModulus = rProperties[INITIAL_SHEAR_MODULUS];
 
       const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
 
@@ -140,14 +140,14 @@ namespace Kratos
       // material parameters
 
       const ModelDataType & rModelData = rVariables.GetModelData();
-      const Properties    & rMaterialProperties = rModelData.GetMaterialProperties();
+      const Properties    & rProperties = rModelData.GetProperties();
 
-      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-      const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
-      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
+      const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+      const double & rAlphaShear = rProperties[ALPHA_SHEAR];
+      const double & rReferencePressure = rProperties[PRE_CONSOLIDATION_STRESS];
+      const double & rOCR = rProperties[OVER_CONSOLIDATION_RATIO];
       const double ReferencePressure = rReferencePressure / rOCR;
-      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
+      const double & rConstantShearModulus = rProperties[INITIAL_SHEAR_MODULUS];
 
       // 1. Define some matrices
       Matrix FourthOrderIdentity = ZeroMatrix(6,6);
@@ -191,8 +191,8 @@ namespace Kratos
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) ); 
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) ); 
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) );
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) );
          }
       }
 

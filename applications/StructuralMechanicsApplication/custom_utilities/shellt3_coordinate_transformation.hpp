@@ -67,19 +67,19 @@ public:
     {
     }
 
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeSolutionStep()
     {
     }
 
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeSolutionStep()
     {
     }
 
-    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void InitializeNonLinearIteration()
     {
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration()
     {
     }
 
@@ -132,14 +132,14 @@ public:
             const Vector& globalDisplacements,
             size_t nodeid)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
     virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
             const Vector& globalDisplacements,
             const Vector& N)
     {
-        return IdentityMatrix(3,3);
+        return IdentityMatrix(3);
     }
 
 public:

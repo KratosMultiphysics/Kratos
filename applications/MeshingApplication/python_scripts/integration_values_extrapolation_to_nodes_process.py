@@ -3,24 +3,22 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshingApplication")
-
 # Import applications
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 
-def Factory(settings, Model): 
-    if(type(settings) != KratosMultiphysics.Parameters): 
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string") 
+def Factory(settings, Model):
+    if(type(settings) != KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return IntegrationValuesExtrapolationToNodesProcess(Model, settings["Parameters"])
- 
-## All the processes python should be derived from "Process" 
+
+## All the processes python should be derived from "Process"
 class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ): 
-        KratosMultiphysics.Process.__init__(self) 
- 
-        default_settings = KratosMultiphysics.Parameters(""" 
+    def __init__(self, Model, settings ):
+        KratosMultiphysics.Process.__init__(self)
+
+        default_settings = KratosMultiphysics.Parameters("""
         {
+            "help"                       : "This process extrapolates the values from integration points to the mesh nodes",
             "model_part_name"            : "",
             "echo_level"                 : 0,
             "average_variable"           : "NODAL_AREA",

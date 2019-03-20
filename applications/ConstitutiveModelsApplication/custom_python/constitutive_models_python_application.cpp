@@ -13,7 +13,9 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 #include "constitutive_models_application.h"
 
@@ -24,19 +26,45 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
 {
 
-  class_<KratosConstitutiveModelsApplication,
+  py::class_<KratosConstitutiveModelsApplication,
          KratosConstitutiveModelsApplication::Pointer,
          KratosApplication>(m,"KratosConstitutiveModelsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
-  AddCustomConstitutiveLawsToPython(m); 
+  AddCustomConstitutiveLawsToPython(m);
+  AddCustomUtilitiesToPython(m);
+  AddCustomProcessesToPython(m);
+
+      //registering variables in python
+
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_LAYOUT )
+      
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RHOS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RHOT )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KSIM )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CHIS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CHIT )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REFERENCE_PRESSURE )
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PT )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PM )
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_VOL_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_VOL_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_VOL_DEF_ABS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_VOL_DEF_ABS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_DEV_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_DEV_DEF )
+
 }
 
 

@@ -3,9 +3,6 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties  2
-YOUNG_MODULUS          1.00000e+12
-POISSON_RATIO          2.50000e-01
-DENSITY        1.00000e+00
 End Properties
 
 Begin Nodes

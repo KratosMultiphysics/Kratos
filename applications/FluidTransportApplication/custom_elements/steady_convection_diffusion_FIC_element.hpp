@@ -15,6 +15,7 @@
 #define  KRATOS_STEADY_CONVECTION_DIFFUSION_FIC_ELEMENT_H_INCLUDED
 
 // Project includes
+#include <cmath>
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -22,9 +23,10 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/convection_diffusion_settings.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/element_size_calculator.h"
 
 // Application includes
-// TODO: Create base element
 #include "fluid_transport_application_variables.h"
 
 namespace Kratos
@@ -72,6 +74,14 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.
      * @return Gauss Order
@@ -82,7 +92,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -99,35 +109,82 @@ protected:
         ///Properties variables
         double rho_dot_c;
         double Peclet;
+        double AlphaVBar;
         double AlphaV;
+        double AlphaR;
         double lv;
+        double lsc;
+        double OmegaV;
+        double SigmaV;
+        double LambdaV;
+        double XiV;
+        double Residual;
+        double NormAux2;
+        double Beta;
+        double NormGradPhi;
+        double absorption;
+        double DifSC;
+        double AuxDiffusion;
+        double CosinusNormals;
+        double CosinusGradPhi;
+        double LowTolerance;
+        double HighTolerance;
+        double Courant;
+
+        //Transient variables
+        double TransientAbsorption;
+        double TransientResidual;
+
+        int IterationNumber;
 
         array_1d<double,TDim> HVector;
+        array_1d<double,TDim> HvVector;
+        array_1d<double,TDim> HrVector;
+        array_1d<double,TDim> HscVector;
+        array_1d<double,TDim> GradPhi;
+        array_1d<double,TDim> FICVectorAuxOne;
+
+        BoundedMatrix<double,TDim,TDim> DifMatrix;
         BoundedMatrix<double,TDim,TDim> DifMatrixK;
+        BoundedMatrix<double,TDim,TDim> DifMatrixV;
+        BoundedMatrix<double,TDim,TDim> DifMatrixS;
+        BoundedMatrix<double,TDim,TDim> DifMatrixR;
+        BoundedMatrix<double,TDim,TDim> DifMatrixSC;
+
+        BoundedMatrix<double,TDim,TDim> IdentityMatrix;
 
         ///ProcessInfo variables
 
         ///Nodal variables
         array_1d<double,TNumNodes> NodalPhi;
+        //Contains components of nodal derivatives
+        array_1d<array_1d<double,TNumNodes>,TDim> NodalPhiGradient;
+        array_1d<array_1d<double,TDim>,TDim> SecondGradPhi;
         array_1d<double,TNumNodes> NodalQSource;
         array_1d<array_1d<double,3>, TNumNodes> NodalVel;
+
+        // array_1d<double,TNumNodes> Aux1;
+        // array_1d<double,TNumNodes> Aux2;
+
 
         ///Variables computed at each GP
         double IntegrationCoefficient;
         double QSource;
         array_1d<double,TNumNodes> N;
         array_1d<double,TDim> VelInter;
+        array_1d<double,TDim> VelInterHat;
         BoundedMatrix<double,TNumNodes,TDim> GradNT;
 
         //Auxiliary
+        //TODO: Some can be defined in situ
         BoundedMatrix<double,TNumNodes,TDim> AdvMatrixAux;
+        BoundedMatrix<double,TNumNodes,TNumNodes> AbpMatrixAux;
         BoundedMatrix<double,TNumNodes,TDim> DifMatrixAux;
-        BoundedMatrix<double,TDim,TDim> FICMatrixAuxOne;
-        BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxTwo;
+        BoundedMatrix<double,TNumNodes,TNumNodes> MatrixAux;
+        BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxOne;
         BoundedMatrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
         BoundedMatrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
-        BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
-
+        BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxTwo;
 
     };
 
@@ -135,26 +192,46 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void SaveGPGradPhi(Matrix& rGradPhiContainer, const array_1d<double,TDim>& GradPhi, const unsigned int& GPoint);
+
+    void ExtrapolateGPValues(const Matrix& GradPhiContainer);
+
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
-    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    void CalculateNormalsAngle(ElementVariables& rVariables);
+
+    void CalculateBoundaryLv(ElementVariables& rVariables);
+
+    virtual void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
+    virtual void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
+    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
+                                                    const PropertiesType& Prop);
+
+    void CalculateDifTerm(ElementVariables& rVariables);
+
+    void CalculateFICBeta(ElementVariables& rVariables);
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
-
-    double AverageElementSize(const Geometry<Node<3> >& rGeometry);
-
-    void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
-                                        const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint);
-
-
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+
+    void CalculateAndAddAbsorptionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -165,6 +242,8 @@ protected:
     void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+    void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

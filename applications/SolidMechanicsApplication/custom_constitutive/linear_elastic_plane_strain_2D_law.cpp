@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -43,8 +40,7 @@ LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw(const LinearElastic
 
 ConstitutiveLaw::Pointer LinearElasticPlaneStrain2DLaw::Clone() const
 {
-    LinearElasticPlaneStrain2DLaw::Pointer p_clone(new LinearElasticPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -132,7 +128,7 @@ void LinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

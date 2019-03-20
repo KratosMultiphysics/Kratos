@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialHardeningRule 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialHardeningRule
     : public HardeningRule
   {
   public:
@@ -68,10 +68,10 @@ namespace Kratos
     SimoExponentialHardeningRule& operator=(SimoExponentialHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
-    
+    HardeningRule::Pointer Clone() const override;
+
     /// Destructor.
-    ~SimoExponentialHardeningRule();
+    ~SimoExponentialHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -82,18 +82,18 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
+
     /**
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
-      
+    double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
+
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
+    double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
 
 
     ///@}
@@ -111,7 +111,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "SimoExponentialHardeningRule" ;
@@ -119,16 +119,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -152,8 +152,8 @@ namespace Kratos
      * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
      */
     constexpr static const double mTheta = 1.0;
-	
-     
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -177,12 +177,12 @@ namespace Kratos
     virtual double& CalculateAndAddDeltaKinematicHardening(const PlasticDataType& rVariables, double& rDeltaKinematicHardening);
 
 
-    
+
     virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor);
 
     virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor);
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -229,16 +229,16 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
-    virtual void load(Serializer& rSerializer) override
+
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -270,6 +270,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED  defined
 
 

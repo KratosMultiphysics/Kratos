@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
@@ -79,9 +85,9 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
     
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ConditionUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     array_1d<double,TNumNodes*TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector(FaceLoadVector,Geom);
+    PoroConditionUtilities::GetNodalVariableVector(FaceLoadVector,Geom,FACE_LOAD);
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool ComputeJointWidth;
@@ -98,7 +104,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute traction vector 
-        ConditionUtilities::InterpolateVariableWithComponents(TractionVector,NContainer,FaceLoadVector,GPoint);
+        PoroConditionUtilities::InterpolateVariableWithComponents(TractionVector,NContainer,FaceLoadVector,GPoint);
         
         //Compute Nu Matrix
         InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
@@ -111,7 +117,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        ConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
     }
 }
 

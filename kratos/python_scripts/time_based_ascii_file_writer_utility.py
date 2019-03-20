@@ -20,8 +20,11 @@ class TimeBasedAsciiFileWriterUtility(object):
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
+        # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
+        # write_buffer_size > 0 means value specified is the size of buffer
 
         self.model_part = model_part
+        has_initial_write_buffer_size = params.Has("write_buffer_size")
 
         params.ValidateAndAssignDefaults(default_settings)
 
@@ -31,7 +34,18 @@ class TimeBasedAsciiFileWriterUtility(object):
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
-        self.write_buffer_size = params["write_buffer_size"].GetInt()
+        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
+        if not is_mpi_execution and not has_initial_write_buffer_size:
+            info_msg  = "File output buffer size set to 1 \n"
+            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ self.file_name
+            KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
+            self.write_buffer_size = 1
+        else:
+            self.write_buffer_size = params["write_buffer_size"].GetInt()
+            if (self.write_buffer_size == 0):
+                err_msg  = "Buffer size of 0 not possible for ASCII output. \n"
+                err_msg  += "\t\tPlease choose a number greater than 1 or set -1 for default size. \n"
+                raise Exception(err_msg)
 
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.file = self.__InitializeOutputFile(file_header)
@@ -83,15 +97,18 @@ class TimeBasedAsciiFileWriterUtility(object):
             for line in lines_existing_file:
                 new_lines+=line
                 time_in_file = float(line.split()[0])
-                if abs(time_in_file - restart_time) < 1e-20:
+                if abs(time_in_file - restart_time) < 1e-12:
                     is_found = True
                     break
 
             if not(is_found):
                 warn_msg  = "No line was found in " + self.file_name + " after restarting containing indicated restart time, \n"
-                warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
+                warn_msg += "appending results after restart from time " + str(restart_time) + " not possible.\n"
+                warn_msg += "To avoid loss of data continuing writing from the end of file\n"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
-                return None
+
+                new_lines+= "# indicated restart time " + str(restart_time) + " not found (up to the given tolerance)\n"
+                new_lines+= "# continuing writing after restart from the previous end of file\n"
 
             output_file = self.__OpenOutputFile() # this overwrites the old file
             output_file.write(file_header)

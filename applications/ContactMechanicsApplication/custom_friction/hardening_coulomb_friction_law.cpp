@@ -15,36 +15,9 @@ namespace Kratos
 {
 
   /**
-   * Constructor.
-   */
-   HardeningCoulombFrictionLaw::HardeningCoulombFrictionLaw()
-   {
-   }
-
-  /**
-   * Destructor.
-   */
-   HardeningCoulombFrictionLaw::~HardeningCoulombFrictionLaw()
-   {
-   }
-
-  /**
-   * Clone function (has to be implemented by any derived class)
-   * @return a pointer to a new instance of this constitutive law
-   * NOTE: implementation scheme:
-   *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-   *      return p_clone;
-   */
-  FrictionLaw::Pointer HardeningCoulombFrictionLaw::Clone() const
-  {
-    HardeningCoulombFrictionLaw::Pointer p_clone(new HardeningCoulombFrictionLaw(*this));
-    return p_clone;
-  }
-  
-  /**
    * Methods
    */
-  double HardeningCoulombFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+  double HardeningCoulombFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)
    {
       double aux2 = -std::exp( -rTangentVariables.Alpha * rPlasticSlip );
       double H = - aux2 * rTangentVariables.FrictionCoefficient * rTangentVariables.Alpha * fabs(rNormalStress);
@@ -54,10 +27,10 @@ namespace Kratos
   /**
    * Methods
    */
-   double HardeningCoulombFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+   double HardeningCoulombFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)
    {
       double aux = (1- std::exp( -rTangentVariables.Alpha * rPlasticSlip ));
-      double YieldFunction = fabs(rTangentStress) - rTangentVariables.FrictionCoefficient * aux * fabs(rNormalStress); 
+      double YieldFunction = fabs(rTangentStress) - rTangentVariables.FrictionCoefficient * aux * fabs(rNormalStress);
 
       return YieldFunction;
 
@@ -66,7 +39,7 @@ namespace Kratos
   /**
    * Methods
    */
-   void HardeningCoulombFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+   void HardeningCoulombFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)
    {
       rdF_dt = 1.0;
 

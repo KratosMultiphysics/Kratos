@@ -15,6 +15,7 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
  
         default_settings = KratosMultiphysics.Parameters(""" 
         {
+            "help"                                  : "This process detects the skin from a given submodelpart and it generates the correspong conditions",
             "model_part_name"                       : "Main",
             "computing_model_part_name"             : "computing_domain",
             "recursive_detection"                   : false,

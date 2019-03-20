@@ -44,69 +44,69 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_< ThermalLinearElastic3DLaw, ThermalLinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    py::class_< ThermalLinearElastic3DLaw, ThermalLinearElastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic3DLaw")
-    .def(init<>());
-    class_< ThermalLinearElastic2DPlaneStrain, ThermalLinearElastic2DPlaneStrain::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStrain, ThermalLinearElastic2DPlaneStrain::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic2DPlaneStrain")
-    .def(init<>());
-    class_< ThermalLinearElastic2DPlaneStress, ThermalLinearElastic2DPlaneStress::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStress, ThermalLinearElastic2DPlaneStress::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic2DPlaneStress")
-    .def(init<>());
+    .def(py::init<>());
 
-    class_< LinearElastic3DLawNodal, LinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
+    py::class_< LinearElastic3DLawNodal, LinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
     (m, "LinearElastic3DLawNodal")
-    .def(init<>());
-    class_< LinearElastic2DPlaneStrainNodal, LinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< LinearElastic2DPlaneStrainNodal, LinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
     (m, "LinearElastic2DPlaneStrainNodal")
-    .def(init<>());
-    class_< LinearElastic2DPlaneStressNodal, LinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< LinearElastic2DPlaneStressNodal, LinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
     (m, "LinearElastic2DPlaneStressNodal")
-    .def(init<>());
+    .def(py::init<>());
 
-    class_< ThermalLinearElastic3DLawNodal, ThermalLinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
+    py::class_< ThermalLinearElastic3DLawNodal, ThermalLinearElastic3DLawNodal::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic3DLawNodal")
-    .def(init<>());
-    class_< ThermalLinearElastic2DPlaneStrainNodal, ThermalLinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStrainNodal, ThermalLinearElastic2DPlaneStrainNodal::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic2DPlaneStrainNodal")
-    .def(init<>());
-    class_< ThermalLinearElastic2DPlaneStressNodal, ThermalLinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalLinearElastic2DPlaneStressNodal, ThermalLinearElastic2DPlaneStressNodal::Pointer, ConstitutiveLaw >
     (m, "ThermalLinearElastic2DPlaneStressNodal")
-    .def(init<>());
+    .def(py::init<>());
 
-    class_< ThermalSimoJuLocalDamage3DLaw, ThermalSimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    py::class_< ThermalSimoJuLocalDamage3DLaw, ThermalSimoJuLocalDamage3DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuLocalDamage3DLaw")
-    .def(init<>());
-    class_< ThermalSimoJuLocalDamagePlaneStrain2DLaw, ThermalSimoJuLocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalSimoJuLocalDamagePlaneStrain2DLaw, ThermalSimoJuLocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuLocalDamagePlaneStrain2DLaw")
-    .def(init<>());
-    class_< ThermalSimoJuLocalDamagePlaneStress2DLaw, ThermalSimoJuLocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalSimoJuLocalDamagePlaneStress2DLaw, ThermalSimoJuLocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuLocalDamagePlaneStress2DLaw")
-    .def(init<>());
+    .def(py::init<>());
 
-    class_< ThermalSimoJuNonlocalDamage3DLaw, ThermalSimoJuNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    py::class_< ThermalSimoJuNonlocalDamage3DLaw, ThermalSimoJuNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuNonlocalDamage3DLaw")
-    .def(init<>());
-    class_< ThermalSimoJuNonlocalDamagePlaneStrain2DLaw, ThermalSimoJuNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalSimoJuNonlocalDamagePlaneStrain2DLaw, ThermalSimoJuNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuNonlocalDamagePlaneStrain2DLaw")
-    .def(init<>());
-    class_< ThermalSimoJuNonlocalDamagePlaneStress2DLaw, ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalSimoJuNonlocalDamagePlaneStress2DLaw, ThermalSimoJuNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalSimoJuNonlocalDamagePlaneStress2DLaw")
-    .def(init<>());
+    .def(py::init<>());
 
-    class_< ThermalModifiedMisesNonlocalDamage3DLaw, ThermalModifiedMisesNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
+    py::class_< ThermalModifiedMisesNonlocalDamage3DLaw, ThermalModifiedMisesNonlocalDamage3DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalModifiedMisesNonlocalDamage3DLaw")
-    .def(init<>());
-    class_< ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw")
-    .def(init<>());
-    class_< ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    .def(py::init<>());
+    py::class_< ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw, ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw::Pointer, ConstitutiveLaw >
     (m, "ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw")
-    .def(init<>());
+    .def(py::init<>());
 }
 
 }  // namespace Python.

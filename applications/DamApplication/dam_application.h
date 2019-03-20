@@ -59,7 +59,7 @@
 namespace Kratos
 {
 
-class KratosDamApplication : public KratosApplication
+class KRATOS_API(DAM_APPLICATION) KratosDamApplication : public KratosApplication
 {
 
 public:

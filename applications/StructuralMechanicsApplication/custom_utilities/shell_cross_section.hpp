@@ -23,7 +23,6 @@
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "shell_utilities.h"
-#include "properties_extensions.hpp"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -342,6 +341,8 @@ public:
             , mConstitutiveLaw(pMaterial)
         {}
 
+        virtual ~IntegrationPoint() {};
+
         IntegrationPoint(const IntegrationPoint& other)
             : mWeight(other.mWeight)
             , mLocation(other.mLocation)
@@ -443,6 +444,8 @@ public:
             , mIntegrationPoints(other.mIntegrationPoints)
         {}
 
+        virtual ~Ply() {}
+
         Ply & operator = (const Ply & other)
         {
             if(this != &other)
@@ -476,6 +479,12 @@ public:
             return my_location;
         }
 
+        /**
+        * Returns the orientation angle (in degrees) of this Ply
+        * with respect to the parent element.
+        * @return the orientation angle in degrees
+        * @note this is different from what the ShellCrossSection returns
+        */
         inline double GetOrientationAngle(const Properties& rProps) const
         {
             return ShellUtilities::GetOrientationAngle(rProps, mPlyIndex);
@@ -1195,6 +1204,7 @@ public:
     * Returns the orientation angle (in radians) of this cross section
     * with respect to the parent element.
     * @return the orientation angle in radians
+    * @note this is different from what the Ply returns
     */
     inline double GetOrientationAngle() const
     {
@@ -1372,11 +1382,6 @@ private:
     }
 
     ///@}
-
-public:
-
-    DECLARE_ADD_THIS_TYPE_TO_PROPERTIES
-    DECLARE_GET_THIS_TYPE_FROM_PROPERTIES
 
 };
 

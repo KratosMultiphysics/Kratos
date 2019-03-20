@@ -12,7 +12,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+			 "AUX_VEL" : AUX_VEL,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -128,7 +128,7 @@ class STMonolithicSolver:
         self.zeta_dissapative_SM = zeta_dissapative_SM
         #self.gamma_sl = gamma_sl
         #self.gamma_sv = gamma_sv
-        
+
 
         # default settings
         self.echo_level = 0
@@ -410,7 +410,7 @@ def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

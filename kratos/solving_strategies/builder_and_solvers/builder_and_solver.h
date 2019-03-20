@@ -115,7 +115,6 @@ public:
 
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
-
     /**
      * This struct is used in the component wise calculation only
      * is defined here and is used to declare a member variable in the component wise builder and solver
@@ -206,18 +205,28 @@ public:
      */
     /*@{ */
 
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // We set the other member variables
+        mpLinearSystemSolver = pNewLinearSystemSolver;
+    }
+
     /** Constructor.
      */
-    BuilderAndSolver(
+    explicit BuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
-
-        mDofSetIsInitialized = false;
-
-        mReshapeMatrixFlag = false; //by default the matrix is shaped just once
-        //		mVectorsAreInitialized = false;
-
     }
 
     /** Destructor.
@@ -281,6 +290,11 @@ public:
     typename TLinearSolver::Pointer GetLinearSystemSolver()
     {
       return mpLinearSystemSolver;
+    }
+
+    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
+    {
+       mpLinearSystemSolver = pLinearSystemSolver;
     }
 
     /**
@@ -499,7 +513,7 @@ public:
     virtual void Clear()
     {
         this->mDofSet = DofsArrayType();
-        if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
+        this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
         KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
@@ -552,6 +566,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "BuilderAndSolver";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -575,14 +610,13 @@ protected:
 
     DofsArrayType mDofSet;
 
-    bool mReshapeMatrixFlag;
-    //		bool mVectorsAreInitialized;
+    bool mReshapeMatrixFlag = false;
 
     /// flag taking care if the dof set was initialized ot not
-    bool mDofSetIsInitialized;
+    bool mDofSetIsInitialized = false;
 
     /// flag taking in account if it is needed or not to calculate the reactions
-    bool mCalculateReactionsFlag;
+    bool mCalculateReactionsFlag = false;
 
     /// number of degrees of freedom of the problem to be solve
     unsigned int mEquationSystemSize;

@@ -12,6 +12,7 @@
 // System includes
 
 // External includes
+#include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -30,30 +31,25 @@
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
-// Builder and solvers
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
-
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
 // Builders and solvers
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-
-namespace Kratos
-{
-
-namespace Python
-{
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    namespace py = pybind11;
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
@@ -85,6 +81,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
+    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
 
     // Custom builder and solvers types
 
@@ -100,13 +97,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //        ;
 
     // Eigensolver Strategy
-    class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
+    py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
             ;
 
-    class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool >())
+    py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool >())
         .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
         .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
         .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
@@ -116,18 +113,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
 
-    class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+    py::class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
         .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
         ;
 
     // harmonic Analysis Strategy
-    class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
-            .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
-            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
-            ;
+    py::class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+        .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+        .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+        ;
 
 
     //********************************************************************
@@ -135,46 +132,49 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Residual Based Relaxation Scheme Type
-    class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
-    .def(init< double , double >() )
-            .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
+    py::class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
+        .def(py::init< double , double >() )
+        .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+        ;
 
     // Eigensolver Scheme Type
-    class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
-    .def(init<>() )
-            ;
+    py::class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
+        .def(py::init<>() )
+        ;
 
     // Explicit Central Differences Scheme Type
-    class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
-    .def(init< const double, const double, const double>() );
+    py::class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
+        .def(py::init< const double, const double, const double>())
+        .def(py::init< Parameters>())
+        ;
+
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
     // Displacement and other DoF Convergence Criterion
-    class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-            .def(init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    py::class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
+        .def(py::init< double, double, std::string >())
+        .def(py::init< double, double>())
+        ;
 
     // Displacement and other DoF residual Convergence Criterion
-    class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
-    .def( init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
+        .def(py::init< double, double, std::string >())
+        .def(py::init< double, double>())
+        ;
+
+    // Error mesh Convergence Criterion
+    py::class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
+        .def(py::init<Parameters>())
+        ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-     typename ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpc")
-                .def(init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

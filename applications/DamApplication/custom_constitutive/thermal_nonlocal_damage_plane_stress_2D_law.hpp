@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThermalNonlocalDamagePlaneStress2DLaw : public ThermalNonlocalDamagePlaneStrain2DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalNonlocalDamagePlaneStress2DLaw : public ThermalNonlocalDamagePlaneStrain2DLaw
 {
 
 public:

@@ -17,7 +17,7 @@
 #endif
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
 
 /* Project includes */
@@ -90,6 +90,9 @@ public:
     typedef BeamMathUtils<double> BeamMathUtilsType;
 
     typedef Quaternion<double> QuaternionType;
+
+    typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+
     /*@} */
     /**@name Life Cycle
      */
@@ -227,13 +230,13 @@ public:
 		   double& nodal_mass           =  i->FastGetSolutionStepValue(NODAL_MASS);
 		   Matrix& nodal_inertia_dyadic =  i->FastGetSolutionStepValue(INERTIA_DYADIC);
 
-		   //inertia_dyadic is multiplied by the mass and divided by the total mass 
-		   //this is done to not increase the total inertia of the section 
+		   //inertia_dyadic is multiplied by the mass and divided by the total mass
+		   //this is done to not increase the total inertia of the section
 		   //the end is an average inertia for the nodal section
-		   nodal_inertia_dyadic /= nodal_mass; 
+		   nodal_inertia_dyadic /= nodal_mass;
 
 		   //std::cout<<" Node ["<<i->Id()<<"] (mass:"<<nodal_mass<<", inertia:"<<nodal_inertia_dyadic<<") "<<std::endl;
-		   
+
 		 }
 	     }
 
@@ -252,8 +255,8 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        	
-	
+
+
         //Set Nodal Liapunov variables to zero
 
  	//getting nodes from the model
@@ -267,7 +270,7 @@ public:
 
 	vector<unsigned int> node_partition;
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-	
+
         #pragma omp parallel
 	{
 
@@ -314,10 +317,10 @@ public:
 
 	NodesArrayType& pNodes           = r_model_part.Nodes();
         ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-	 
+
 	double DeltaTime  = rCurrentProcessInfo[DELTA_TIME];
 	double Alpha      = rCurrentProcessInfo[ALPHA_TRAPEZOIDAL_RULE];
-      
+
         #ifdef _OPENMP
 	int number_of_threads = omp_get_max_threads();
         #else
@@ -346,38 +349,38 @@ public:
 		   bool node_is_active = true;
 		   if( (i)->IsDefined(ACTIVE) )
 		     node_is_active = (i)->Is(ACTIVE);
-	     
+
 		   if(node_is_active)
 		     {
-	       
+
 		       //Rotation
 		       array_1d<double, 3 >& CurrentStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
 
 		       //Moment and momentum: Rotation Part
-		       array_1d<double,3>& moment_residual        = (i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);	   
+		       array_1d<double,3>& moment_residual        = (i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
 		       array_1d<double,3>& rotation_momentum      = (i)->FastGetSolutionStepValue(ROTATION_MOMENTUM);
 
 		       //moment_residual is (Mext-Mint) then the sign is changed respect the reference formulation
 		       array_1d<double,3> Y = DeltaTime * ( rotation_momentum + Alpha * DeltaTime * moment_residual );
-		   			     
+
 		       // (0) Solving Lyapunov - type  equation:  WRONG it must be done at integration point!!
-		   
+
 		       int iter = 0;
 		       int max_iters = 15;
-		   
+
 		       double residual  = 1;
-		       double tolerance = 1e-12; 
-		   
+		       double tolerance = 1e-12;
+
 		       Vector Residual  = ZeroVector(3); //current iteration residual vector
 		       Vector Rotation  = ZeroVector(3); //current step rotation vector
 		       Vector ReferenceResidual = ZeroVector(3);
-		   
+
 		       for(unsigned int j=0; j<3; j++)
 			 {
 			   Rotation[j]            = 1e-5; //CurrentStepRotation[j];
 			   ReferenceResidual[j]   = Y[j];
 			 }
-			     
+
 
 		       //std::cout<<" Node ["<<i->Id()<<"] (moment:"<<moment_residual<<",momentum:"<<rotation_momentum<<") norm residual "<<norm_2(ReferenceResidual)<<std::endl;
 
@@ -388,7 +391,7 @@ public:
 		       // 	 CurrentStepRotation.clear();
 
 		       // 	 //std::cout<<" Node ["<<i->Id()<<"] (STEP_ROTATION:"<<Rotation<<") "<<iter<<" reference_residual "<<norm_2(ReferenceResidual)<<std::endl;
-   		 
+
 		       // }
 		       // else {
 
@@ -400,16 +403,16 @@ public:
 			   {
 			     CurrentStepRotation[j] = Rotation[j];
 			   }
-	       		      
+
 
 			 while ( residual > tolerance && iter < max_iters )
 			   {
-			     // (1) Build the residual : 
+			     // (1) Build the residual :
 
 			     // double BuildTimeStart = Timer::GetTime();
 			     this->Build(*i.base(), pScheme, r_model_part, A, b);
-			     // BuildTime = Timer::GetTime() - BuildTime; 
-			   
+			     // BuildTime = Timer::GetTime() - BuildTime;
+
 			     // if (this->GetEchoLevel() > 1)
 			     // {
 			     //   std::cout<<"Time Building :"<<BuildTime<<std::endl;
@@ -417,8 +420,8 @@ public:
 
 			     array_1d<double,3>& LyapunovResidual = i->FastGetSolutionStepValue(RESIDUAL_LYAPUNOV);
 			     Matrix& LyapunovTangent = i->FastGetSolutionStepValue(TANGENT_LYAPUNOV);
-			   
-			   
+
+
 			     //std::cout<<"(id:"<<i->Id()<<") LyapunovResidual "<<LyapunovResidual<<" LyapunovTangent "<<LyapunovTangent<<std::endl;
 
 			     for(unsigned int j=0; j<3; j++)
@@ -430,7 +433,7 @@ public:
 			     MathUtils<double>::InvertMatrix( LyapunovTangent, InverseTangent, determinant );
 
 			     Rotation += prod( InverseTangent, Residual );
-			   
+
 
 			     // (4) Update Step Rotations:
 			     if( (i->pGetDof(ROTATION_X))->IsFree() )
@@ -439,11 +442,11 @@ public:
 			       CurrentStepRotation[1]  = Rotation[1];
 			     if( (i->pGetDof(ROTATION_Z))->IsFree() )
 			       CurrentStepRotation[2]  = Rotation[2];
-			     			     
 
-			     // (5) Update Rotations: 
+
+			     // (5) Update Rotations:
 			     bool update_rotations = false;
-			     
+
 			     if( update_rotations ){
 
 			       array_1d<double, 3 >& PreviousRotation     = (i)->FastGetSolutionStepValue(ROTATION,1);
@@ -454,20 +457,20 @@ public:
 				 {
 				   CurrentRotationVector[j]  = PreviousRotation[j];    //previous iteration total rotation
 				 }
-			   
+
 			       QuaternionType ReferenceRotationQuaternion = QuaternionType::FromRotationVector( CurrentRotationVector );
-			       QuaternionType StepRotationQuaternion      = QuaternionType::FromRotationVector( Rotation );		       
+			       QuaternionType StepRotationQuaternion      = QuaternionType::FromRotationVector( Rotation );
 			       QuaternionType CurrentRotationQuaternion   = StepRotationQuaternion * ReferenceRotationQuaternion;
-			   
+
 			       CurrentRotationQuaternion.ToRotationVector( CurrentRotationVector );
-			   
-			     
-			     
+
+
+
 			       for( unsigned int j=0; j<3; j++)
 			     	 {
 			     	   CurrentRotation[j] = CurrentRotationVector[j];
 			     	 }
-			     
+
 			     }
 
 			     //(6) Check Residual:
@@ -481,8 +484,8 @@ public:
 
 			   }
 
-			 
-			 
+
+
 			 if( iter >= max_iters ){
 			     std::cout<<" Node ["<<i->Id()<<"] : LYAPUNOV ROTATION EQUATION NOT CONVERGED, iters:"<<iter<<", residual: "<<residual<<" STEP_ROTATION:"<<Rotation<<std::endl;
 			 }
@@ -500,7 +503,7 @@ public:
 	 }
 
 	KRATOS_CATCH("")
-	  
+
     }
 
     //***************************************************************************
@@ -527,7 +530,7 @@ public:
 
 	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
 
-	WeakPointerVector<Element >& rE = pNode->GetValue(NEIGHBOUR_ELEMENTS);
+	ElementWeakPtrVectorType& nElements = pNode->GetValue(NEIGHBOUR_ELEMENTS);
 
 	//std::cout<<" node ("<<(pNode)->Id()<<"): "<<rE.size()<<std::endl;
 
@@ -538,16 +541,16 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-	for(WeakPointerVector< Element >::iterator ie = rE.begin(); ie!=rE.end(); ++ie)
-	  {	    
-            //calculate elemental contribution
-            pScheme->CalculateSystemContributions(Element::Pointer( *(ie.base()) ), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
+	for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+        {
+          //calculate elemental contribution
+          pScheme->CalculateSystemContributions(*i_nelem.base(), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
-            // clean local elemental memory
-            pScheme->CleanMemory(Element::Pointer( *(ie.base()) ));
-	  }
+          // clean local elemental memory
+          pScheme->CleanMemory(*i_nelem.base());
+        }
 
- 
+
 
         KRATOS_CATCH( "" )
 
@@ -586,7 +589,7 @@ public:
 
 	vector<unsigned int> node_partition;
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-	
+
         #pragma omp parallel
 	{
 
@@ -609,7 +612,7 @@ public:
 
         }
 
-	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
+	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOR ELEMENTS AND CONDITIONS:
 	bool compute_everything = false;
 	if( compute_everything ){
 
@@ -653,7 +656,7 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-   
+
     void CalculateAndAddConditionsRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
     {
 
@@ -672,7 +675,7 @@ public:
     OpenMPUtils::CreatePartition(number_of_threads, pConditions.size(), condition_partition);
 
 
-    #pragma omp parallel for 
+    #pragma omp parallel for
     for(int k=0; k<number_of_threads; k++)
     {
        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
@@ -684,12 +687,12 @@ public:
            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
 
            Element::EquationIdVectorType EquationId; //Dummy
-	   
+
 	   //is active by default
 	   bool condition_is_active = true;
 	   if( (*it)->IsDefined(ACTIVE) )
 	     condition_is_active = (*it)->Is(ACTIVE);
-	     
+
 	   if(condition_is_active)
 	     {
 	       pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, EquationId, rCurrentProcessInfo);
@@ -702,7 +705,7 @@ public:
     KRATOS_CATCH("")
     }
 
-    
+
     //***************************************************************************
     //***************************************************************************
 
@@ -711,7 +714,7 @@ public:
     {
 
         KRATOS_TRY
-        
+
         ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements        = r_model_part.Elements();
 
@@ -724,7 +727,7 @@ public:
         vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
         {
             typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -739,7 +742,7 @@ public:
 		bool element_is_active = true;
 		if( (*it)->IsDefined(ACTIVE) )
 		  element_is_active = (*it)->Is(ACTIVE);
-		
+
 		if(element_is_active)
 		  {
 		    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, rCurrentProcessInfo);
@@ -750,12 +753,12 @@ public:
 
         KRATOS_CATCH("")
     }
-    
-    
+
+
     //**************************************************************************
     //**************************************************************************
 
-    
+
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -914,4 +917,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_HAMILTON_BUILDER_AND_SOLVER  defined */
-

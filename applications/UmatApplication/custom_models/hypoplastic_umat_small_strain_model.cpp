@@ -41,7 +41,7 @@ namespace Kratos
 
    ConstitutiveModel::Pointer HypoplasticSmallStrainUmatModel::Clone() const
    {
-      return ( HypoplasticSmallStrainUmatModel::Pointer(new HypoplasticSmallStrainUmatModel(*this)) );
+     return Kratos::make_shared<HypoplasticSmallStrainUmatModel>(*this);
    }
 
    //********************************ASSIGNMENT******************************************

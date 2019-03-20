@@ -456,7 +456,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "GearScheme";
@@ -464,13 +464,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "GearScheme";
+        rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -649,7 +649,7 @@ protected:
 
         // iteration variables
         unsigned int iter = 0;
-        array_1d<double,3> dMomProj(3,0.0);
+        array_1d<double,3> dMomProj = ZeroVector(3);
         double dMassProj = 0.0;
 
         double RelMomErr = 1000.0 * RelTol;
@@ -719,8 +719,8 @@ protected:
             iter++;
         }
 
-        if (rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
+            << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void LumpedProjection(ModelPart& rModelPart)
@@ -761,8 +761,8 @@ protected:
             iNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
         }
 
-        if (rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Performed OSS Projection" << std::endl;
+        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
+            << "Computing OSS projections" << std::endl;
     }
 
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
@@ -810,7 +810,7 @@ protected:
         unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
         double nodal_area = 0.0;
-        array_1d<double,3> momentum_projection(3,0.0);
+        array_1d<double,3> momentum_projection = ZeroVector(3);
         double mass_projection = 0.0;
         for ( unsigned int i = 0; i < nodes_in_cond; i++ )
         {

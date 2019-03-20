@@ -28,7 +28,7 @@
 
 #ifdef OPT_1_POINT_INTEGRATION
 #define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
-#define OPT_NUM_GP 1 
+#define OPT_NUM_GP 1
 #else
 #define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
 #define OPT_NUM_GP 3
@@ -65,7 +65,7 @@ inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
 #ifdef OPT_AVARAGE_RESULTS
   v1 = (vg1+vg2+vg3)/3.0;
   v2 = (vg1+vg2+vg3)/3.0;
-  v3 = (vg1+vg2+vg3)/3.0; 
+  v3 = (vg1+vg2+vg3)/3.0;
 #else
   v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
   v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
@@ -140,32 +140,32 @@ ShellThinElement3D3N::CalculationData::CalculationData(const CoordinateTransform
 //
 // =====================================================================================
 
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId, 
-                                           GeometryType::Pointer pGeometry, 
+ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+                                           GeometryType::Pointer pGeometry,
                                            bool NLGeom)
     : Element(NewId, pGeometry)
-    , mpCoordinateTransformation( NLGeom ? 
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) : 
-                                  new ShellT3_CoordinateTransformation(pGeometry))
-{
-  mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
-}
-    
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId, 
-                                           GeometryType::Pointer pGeometry, 
-                                           PropertiesType::Pointer pProperties, 
-                                           bool NLGeom)
-    : Element(NewId, pGeometry, pProperties)
-    , mpCoordinateTransformation( NLGeom ? 
-                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) : 
+    , mpCoordinateTransformation( NLGeom ?
+                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellT3_CoordinateTransformation(pGeometry))
 {
   mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
 }
 
-ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId, 
-                                           GeometryType::Pointer pGeometry, 
-                                           PropertiesType::Pointer pProperties, 
+ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+                                           GeometryType::Pointer pGeometry,
+                                           PropertiesType::Pointer pProperties,
+                                           bool NLGeom)
+    : Element(NewId, pGeometry, pProperties)
+    , mpCoordinateTransformation( NLGeom ?
+                                  new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
+                                  new ShellT3_CoordinateTransformation(pGeometry))
+{
+  mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
+}
+
+ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
+                                           GeometryType::Pointer pGeometry,
+                                           PropertiesType::Pointer pProperties,
                                            CoordinateTransformationBasePointerType pCoordinateTransformation)
     : Element(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
@@ -180,14 +180,14 @@ ShellThinElement3D3N::~ShellThinElement3D3N()
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
   GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-  return Element::Pointer( new ShellThinElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
+  return Kratos::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom));
 }
-    
+
 ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const
 {
   return mThisIntegrationMethod;
 }
-    
+
 void ShellThinElement3D3N::Initialize()
 {
   KRATOS_TRY
@@ -213,7 +213,7 @@ void ShellThinElement3D3N::Initialize()
     }
     else
     {
-      theSection = ShellCrossSection::Pointer(new ShellCrossSection());
+      theSection = Kratos::make_shared<ShellCrossSection>();
       theSection->BeginStack();
       theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
       theSection->EndStack();
@@ -297,7 +297,7 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
-      GeometryType& geom = GetGeometry(); 
+      GeometryType& geom = GetGeometry();
 
   // verify that the variables are correctly initialized
   if(DISPLACEMENT.Key() == 0)
@@ -348,7 +348,7 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     section->Check(props, geom, rCurrentProcessInfo);
   }
   else // ... allow the automatic creation of a homogeneous section from a material and a thickness
-  { 
+  {
     if(!props.Has(CONSTITUTIVE_LAW))
       KRATOS_THROW_ERROR(std::logic_error, "CONSTITUTIVE_LAW not provided for element ", this->Id());
     const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
@@ -360,7 +360,7 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     if(props[THICKNESS] <= 0.0)
       KRATOS_THROW_ERROR(std::logic_error, "wrong THICKNESS value provided for element ", this->Id());
 
-    ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+    ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>();
     dummySection->BeginStack();
     dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
     dummySection->EndStack();
@@ -403,7 +403,7 @@ void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
 
 void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
 {
-  if(values.size() != OPT_NUM_DOFS)   
+  if(values.size() != OPT_NUM_DOFS)
     values.resize(OPT_NUM_DOFS,false);
 
   const GeometryType & geom = GetGeometry();
@@ -425,7 +425,7 @@ void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
 
 void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
 {
-  if(values.size() != OPT_NUM_DOFS)   
+  if(values.size() != OPT_NUM_DOFS)
     values.resize(OPT_NUM_DOFS,false);
 
   const GeometryType & geom = GetGeometry();
@@ -497,7 +497,7 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
 
   // Compute the local coordinate system.
 
-  ShellT3_LocalCoordinateSystem referenceCoordinateSystem( 
+  ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
       mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
   // lumped area
@@ -538,7 +538,7 @@ void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
                                                 ProcessInfo& rCurrentProcessInfo)
 {
-  CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+  CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
 }
 
 void ShellThinElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -580,15 +580,15 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& r
   if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
-                                                       std::vector<array_1d<double,3> >& rValues, 
+void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                                       std::vector<array_1d<double,3> >& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
   if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
-                                                       std::vector<array_1d<double,6> >& rValues, 
+void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
+                                                       std::vector<array_1d<double,6> >& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
 }
@@ -628,8 +628,8 @@ void ShellThinElement3D3N::SetupOrientationAngles()
   noalias( normal ) = lcs.Vz();
 
   Vector3Type dZ;
-  dZ(0) = 0.0; 
-  dZ(1) = 0.0; 
+  dZ(0) = 0.0;
+  dZ(1) = 0.0;
   dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
   Vector3Type dirX;
@@ -639,8 +639,8 @@ void ShellThinElement3D3N::SetupOrientationAngles()
   // to choose a default one.
   double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
   if(dirX_norm < 1.0E-12) {
-    dirX(0) = 1.0; 
-    dirX(1) = 0.0; 
+    dirX(0) = 1.0;
+    dirX(1) = 0.0;
     dirX(2) = 0.0;
   }
   else if(dirX_norm != 1.0) {
@@ -679,17 +679,17 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   // geometry data
 
   const double x12 = data.LCS0.X1() - data.LCS0.X2();
-  const double x23 = data.LCS0.X2() - data.LCS0.X3(); 
-  const double x31 = data.LCS0.X3() - data.LCS0.X1(); 
-  const double x21 = -x12; 
-  const double x32 = -x23; 
+  const double x23 = data.LCS0.X2() - data.LCS0.X3();
+  const double x31 = data.LCS0.X3() - data.LCS0.X1();
+  const double x21 = -x12;
+  const double x32 = -x23;
   const double x13 = -x31;
 
   const double y12 = data.LCS0.Y1() - data.LCS0.Y2();
-  const double y23 = data.LCS0.Y2() - data.LCS0.Y3(); 
-  const double y31 = data.LCS0.Y3() - data.LCS0.Y1(); 
-  const double y21 = -y12; 
-  const double y32 = -y23; 
+  const double y23 = data.LCS0.Y2() - data.LCS0.Y3();
+  const double y31 = data.LCS0.Y3() - data.LCS0.Y1();
+  const double y21 = -y12;
+  const double y32 = -y23;
   const double y13 = -y31;
 
   const double A  = 0.5*(y21*x13 - x21*y13);
@@ -701,11 +701,11 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   const double LL32 = x32*x32 + y32*y32;
   const double LL13 = x13*x13 + y13*y13;
 
-  // Note: here we compute the avarage thickness, 
+  // Note: here we compute the avarage thickness,
   // since L is constant over the element.
-  // Now it is not necessary to compute the avarage 
-  // because the current implementation of the cross section 
-  // doesn't have a variable thickness 
+  // Now it is not necessary to compute the avarage
+  // because the current implementation of the cross section
+  // doesn't have a variable thickness
   // (for example as a function of the spatial coordinates...).
   // This is just a place-holder for future
   // implementation of a variable thickness
@@ -739,7 +739,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   array_1d<double,3>& gp0 = data.gpLocations[0];
   array_1d<double,3>& gp1 = data.gpLocations[1];
   array_1d<double,3>& gp2 = data.gpLocations[2];
-#ifdef OPT_USES_INTERIOR_GAUSS_POINTS 
+#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
   gp0[0] = 1.0/6.0; gp0[1] = 1.0/6.0; gp0[2] = 2.0/3.0;
   gp1[0] = 2.0/3.0; gp1[1] = 1.0/6.0; gp1[2] = 1.0/6.0;
   gp2[0] = 1.0/6.0; gp2[1] = 2.0/3.0; gp2[2] = 1.0/6.0;
@@ -852,13 +852,13 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   data.Q3(2,2) = b1*A2/(LL13*3.00);
 
   //--------------------------------------
-  // calculate Te, TTu - 
+  // calculate Te, TTu -
   // transformation matrices
   // for the construction of the
   // higher order stiffness
 
   data.Te.resize(3, 3, false);
-		
+
   data.Te(0,0) = 1.0/AA4 * y23*y13*LL21;
   data.Te(0,1) = 1.0/AA4 * y31*y21*LL32;
   data.Te(0,2) = 1.0/AA4 * y12*y32*LL13;
@@ -875,10 +875,10 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   {
     data.TTu(i, 0) = 1.0/A4 * x32;
     data.TTu(i, 1) = 1.0/A4 * y32;
-    data.TTu(i, 2) = 0.0;	
+    data.TTu(i, 2) = 0.0;
     data.TTu(i, 3) = 1.0/A4 * x13;
     data.TTu(i, 4) = 1.0/A4 * y13;
-    data.TTu(i, 5) = 0.0;			 
+    data.TTu(i, 5) = 0.0;
     data.TTu(i, 6) = 1.0/A4 * x21;
     data.TTu(i, 7) = 1.0/A4 * y21;
     data.TTu(i, 8) = 0.0;
@@ -894,7 +894,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
   data.globalDisplacements.resize(OPT_NUM_DOFS, false);
   GetValuesVector( data.globalDisplacements );
 
-  data.localDisplacements = 
+  data.localDisplacements =
       mpCoordinateTransformation->CalculateLocalDisplacements(
           data.LCS, data.globalDisplacements);
 
@@ -951,10 +951,10 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
   double loc3 = gpLoc[2];
 
   const double x12 = data.LCS0.X1() - data.LCS0.X2();
-  const double x23 = data.LCS0.X2() - data.LCS0.X3(); 
+  const double x23 = data.LCS0.X2() - data.LCS0.X3();
   const double x31 = data.LCS0.X3() - data.LCS0.X1();
   const double y12 = data.LCS0.Y1() - data.LCS0.Y2();
-  const double y23 = data.LCS0.Y2() - data.LCS0.Y3(); 
+  const double y23 = data.LCS0.Y2() - data.LCS0.Y3();
   const double y31 = data.LCS0.Y3() - data.LCS0.Y1();
 
   //---------------------------------------------
@@ -976,7 +976,7 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
 
   //---------------------------------------------
   // compute the bending B matrix (DKT)
-		
+
   const double LL12 = x12*x12 + y12*y12;
   const double LL23 = x23*x23 + y23*y23;
   const double LL31 = x31*x31 + y31*y31;
@@ -1048,7 +1048,7 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
   }
 
   //---------------------------------------------
-  // assemble the 2 mamebrane contributions 
+  // assemble the 2 mamebrane contributions
   // and the bending contribution
   // into the combined B matrix
   for(int nodeid = 0; nodeid < 3; nodeid++)
@@ -1075,11 +1075,11 @@ void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)
     data.B(3, j+2) = data.Bb(0, i  );
     data.B(3, j+3) = data.Bb(0, i+1);
     data.B(3, j+4) = data.Bb(0, i+2);
-			
+
     data.B(4, j+2) = data.Bb(1, i  );
     data.B(4, j+3) = data.Bb(1, i+1);
     data.B(4, j+4) = data.Bb(1, i+2);
-			
+
     data.B(5, j+2) = data.Bb(2, i  );
     data.B(5, j+3) = data.Bb(2, i+1);
     data.B(5, j+4) = data.Bb(2, i+2);
@@ -1096,7 +1096,7 @@ void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
   const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
   for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
-    data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid); 
+    data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
 #else
   const array_1d<double,3>& loc = data.gpLocations[data.gpIndex];
   data.N(0) = 1.0 - loc[1] - loc[2];
@@ -1149,7 +1149,7 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
     noalias( meanS ) += data.Sig[i];
   meanS /= 3.0;
 
-  for(int i = 0; i < 3; i++) 
+  for(int i = 0; i < 3; i++)
   {
     int i1 = i;
     int i2 = i == 2 ? 0 : i+1;
@@ -1190,7 +1190,7 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
 }
 
 void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
-{	
+{
   const GeometryType& geom = GetGeometry();
 
   // Get shape functions
@@ -1276,7 +1276,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
   //ApplyCorrectionToRHS(data, rRightHandSideVector);
 
   // Let the CoordinateTransformation finalize the calculation.
-  // This will handle the transformation of the local matrices/vectors to 
+  // This will handle the transformation of the local matrices/vectors to
   // the global coordinate system.
 
   mpCoordinateTransformation->FinalizeCalculations(data.LCS,
@@ -1293,7 +1293,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
 }
 
 bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-                                                                              std::vector<array_1d<double,3> >& rValues, 
+                                                                              std::vector<array_1d<double,3> >& rValues,
                                                                               const ProcessInfo& rCurrentProcessInfo)
 {
   // Check the required output
@@ -1317,7 +1317,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
 
   // Compute the local coordinate system.
 
-  ShellT3_LocalCoordinateSystem localCoordinateSystem( 
+  ShellT3_LocalCoordinateSystem localCoordinateSystem(
       mpCoordinateTransformation->CreateLocalCoordinateSystem() );
 
   Vector3Type eZ = localCoordinateSystem.Vz();
@@ -1349,12 +1349,12 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
       noalias( rValues[i] ) = eZ;
     }
   }
-        
+
   return true;
 }
 
 bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-                                                                                       std::vector<Matrix>& rValues, 
+                                                                                       std::vector<Matrix>& rValues,
                                                                                        const ProcessInfo& rCurrentProcessInfo)
 {
   // Check the required output

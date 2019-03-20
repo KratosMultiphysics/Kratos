@@ -1,7 +1,9 @@
 import KratosMultiphysics
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
+#from CompressiblePotentialFlowApplication import*
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyFarFieldProcess(Model, settings["Parameters"])
 
@@ -29,12 +31,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.inlet_phi = settings["inlet_phi"].GetDouble()
         
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,self.velocity_infinity)
+        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
+        
         
         
     def Execute(self):
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(KratosMultiphysics.VELOCITY, self.velocity_infinity)
+            cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -65,8 +69,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
             
             if(tmp < pos+1e-9):
-                node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,self.inlet_phi)
+                node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
+                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

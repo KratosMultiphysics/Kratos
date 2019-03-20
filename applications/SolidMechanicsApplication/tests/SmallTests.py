@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Check external dependencies
 try:
-  import KratosMultiphysics 
+  import KratosMultiphysics
   import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
   missing_external_dependencies = False
   missing_application = ''
@@ -25,65 +25,65 @@ except ImportError as e:
 class SD_Element2D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D4N_shear"
     file_parameters = "element_tests/shear_2D_inputs.json"
-    
+
 class SD_Element2D3N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D3N_shear"
     file_parameters = "element_tests/shear_2D_parameters_material.json"
-    
+
 class SD_Element2D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D4N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class SD_Element2D3N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D3N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class SD_Element3D8N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_3D8N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class SD_Element3D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_3D4N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class SD_Element3D8N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_3D8N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
-    
+
 class SD_Element3D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_3D4N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
-    
+
 
 # Total lagrangian elements TLE
 class TL_Element2D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_2D4N_shear"
     file_parameters = "element_tests/shear_2D_parameters.json"
-    
+
 class TL_Element2D3N_ShearTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_2D3N_shear"
     file_parameters = "element_tests/shear_2D_parameters.json"
-    
+
 class TL_Element2D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_2D4N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class TL_Element2D3N_TensionTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_2D3N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class TL_Element3D8N_ShearTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_3D8N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class TL_Element3D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_3D4N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class TL_Element3D8N_TensionTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_3D8N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
-     
+
 class TL_Element3D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/total_lagrangian_elements/patch_test_3D4N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
@@ -92,31 +92,31 @@ class TL_Element3D4N_TensionTest(TF.TestFactory):
 class UL_Element2D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_2D4N_shear"
     file_parameters = "element_tests/shear_2D_parameters.json"
-    
+
 class UL_Element2D3N_ShearTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_2D3N_shear"
     file_parameters = "element_tests/shear_2D_parameters.json"
-    
+
 class UL_Element2D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_2D4N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class UL_Element2D3N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_2D3N_tension"
     file_parameters = "element_tests/tension_2D_parameters.json"
-    
+
 class UL_Element3D8N_ShearTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D8N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class UL_Element3D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D4N_shear"
     file_parameters = "element_tests/shear_3D_parameters.json"
-    
+
 class UL_Element3D8N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D8N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
-    
+
 class UL_Element3D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D4N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
@@ -130,7 +130,7 @@ class Dynamic_Test_Simo_TL_3D(TF.TestFactory):
     file_name = "dynamic_tests/solid_elements/dynamic_bossak_TL3D"
     file_parameters  = "dynamic_tests/solid_elements/dynamic_simo_TL3D_input.json"
 
-    
+
 # Large displacement beam elements BEM
 class LD_Beam_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/beam_elements/static_beam_bending"
@@ -146,9 +146,9 @@ class LD_Beam_DynamicRotation(TF.TestFactory):
 
 class EMC_Beam_DynamicRotation(TF.TestFactory):
     file_name = "dynamic_tests/beam_elements/emc_dynamic_beam"
-    file_parameters = None  
-    
-# Large displacement shells SHE        
+    file_parameters = None
+
+# Large displacement shells SHE
 class Thick_Shell3D4N_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/thick_quadrilateral_shell_bending"
     file_parameters = None
@@ -164,16 +164,16 @@ class Thin_Shell3D3N_BendingRollUpTest(TF.TestFactory):
 class Thin_Shell3D3N_DrillingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/thin_triangular_shell_drilling"
     file_parameters = None
-    
+
 # Eigen modal analysis tests
 class EigenQ4Thick2x2PlateTests(TF.TestFactory):
     file_name = "eigen_tests/Eigen_Q4_Thick_2x2_Plate"
     file_parameters = None
-    
+
 class EigenTL3D8NCubeTests(TF.TestFactory):
     file_name = "eigen_tests/Eigen_TL_3D8N_Cube"
     file_parameters = None
-    
+
 class Eigen3D3NThinCircleTests(TF.TestFactory):
     file_name = "eigen_tests/Eigen_3D3N_Thin_Circle"
     file_parameters = None
@@ -181,7 +181,7 @@ class Eigen3D3NThinCircleTests(TF.TestFactory):
 
 def SetTestSuite(suites):
     small_suite = suites['small']
-    
+
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             #SDE
@@ -227,7 +227,7 @@ def SetTestSuite(suites):
 
         ])
     )
-    
+
     if (missing_external_dependencies == False):
         if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
             small_suite.addTests(

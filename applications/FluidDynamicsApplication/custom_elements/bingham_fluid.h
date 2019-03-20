@@ -69,8 +69,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
 
@@ -88,7 +86,7 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    BinghamFluid(IndexType NewId = 0) :
+    explicit BinghamFluid(IndexType NewId = 0) :
         TBaseElement(NewId)
     {}
 
@@ -369,7 +367,7 @@ protected:
     ///@{
 
     /// Assignment operator.
-    BinghamFluid& operator=(BinghamFluid const& rOther){}
+    BinghamFluid& operator=(BinghamFluid const& rOther){ return *this; }
 
     /// Copy constructor.
     BinghamFluid(BinghamFluid const& rOther){}

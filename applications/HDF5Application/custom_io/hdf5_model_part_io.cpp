@@ -22,7 +22,7 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
     Vector<int> ids;
     ids.resize(rContainer.size());
     #pragma omp parallel for
-    for (std::size_t i = 0; i < rContainer.size(); ++i)
+    for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
     {
         const auto it = rContainer.begin() + i;
         ids[i] = it->Id();
@@ -257,7 +257,7 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     mpFile->ReadDataSet(rPath, id_buf, start_index, block_size);
     std::vector<std::size_t> ids(id_buf.size());
 #pragma omp parallel for
-    for (std::size_t i = 0; i < ids.size(); ++i)
+    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
         ids[i] = id_buf[i];
     return ids;
 }
@@ -294,13 +294,13 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
     for (const auto& r_name : sub_model_parts)
     {
         const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
-        auto p_sub_model_part = rModelPart.CreateSubModelPart(r_name);
+        auto& r_sub_model_part = rModelPart.CreateSubModelPart(r_name);
         if (mpFile->HasPath(sub_model_part_path + "/NodeIds"))
-            p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
+            r_sub_model_part.AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ElementIds"))
-            p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
+            r_sub_model_part.AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ConditionIds"))
-            p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+            r_sub_model_part.AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
     }
 }
 

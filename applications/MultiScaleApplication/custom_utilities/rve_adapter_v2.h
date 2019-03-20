@@ -231,7 +231,7 @@ public:
 	* Creates a new empty RveAdapterV2
 	*/
 	RveAdapterV2()
-		: mpModelPart(ModelPart::Pointer())
+		: mpModelPart(ModelPart*())
 		, mpMacroscaleData(RveMacroscaleData::Pointer())
 		, mpGeometryDescriptor(RveGeometryDescriptor::Pointer())
 		, mpConstraintHandler(RveConstraintHandlerPointerType())
@@ -272,7 +272,7 @@ public:
 	* Returns a pointer to the model part used for the microscale calculation.
 	* @return a pointer to the model part.
 	*/
-	inline const ModelPart::Pointer& GetModelPart()const
+	inline const ModelPart*& GetModelPart()const
 	{
 		return mpModelPart;
 	}
@@ -313,7 +313,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetPredictorData(const ModelPart::Pointer& pNewModelPart,
+	virtual void SetPredictorData(const ModelPart*& pNewModelPart,
 		const RvePredictorCalculator::Pointer& pNewPredictorCalculator)
 	{
 		KRATOS_TRY
@@ -354,7 +354,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetRveDataAfterPredictor(//const ModelPart::Pointer& pNewModelPart,
+	virtual void SetRveDataAfterPredictor(//const ModelPart*& pNewModelPart,
 		const RveMacroscaleData::Pointer& pNewMacroScaleData,
 		const RveGeometryDescriptor::Pointer& pNewGeometryDescriptor,
 		const RveConstraintHandlerPointerType& pNewConstraintHandler,
@@ -435,7 +435,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetRveData(const ModelPart::Pointer& pNewModelPart,
+	virtual void SetRveData(const ModelPart*& pNewModelPart,
 		                    const RveMacroscaleData::Pointer& pNewMacroScaleData,
 		                    const RveGeometryDescriptor::Pointer& pNewGeometryDescriptor,
 							const RveConstraintHandlerPointerType& pNewConstraintHandler,
@@ -1982,7 +1982,7 @@ protected:
 
 	// RVE components
 
-	ModelPart::Pointer                    mpModelPart;
+	ModelPart*                    mpModelPart;
 	RveMacroscaleData::Pointer            mpMacroscaleData;
 	RveGeometryDescriptor::Pointer        mpGeometryDescriptor;
 	RveConstraintHandlerPointerType       mpConstraintHandler;

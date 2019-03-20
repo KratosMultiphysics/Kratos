@@ -13,6 +13,7 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
@@ -41,7 +42,6 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
-
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         # Construct the component by component parameter objects

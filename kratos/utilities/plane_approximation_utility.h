@@ -50,11 +50,11 @@ namespace Kratos
  * approximate them in a least square sense. The base point of the plane is the
  * set of points average coordinates while the plane normal is taken as the
  * eigenvector associated to the minimum eigenvalue of the matrix A. Matrix A is
- * trans(P)*P, being P the matrix that stores in each row the difference between 
+ * trans(P)*P, being P the matrix that stores in each row the difference between
  * the base point and each one of the points to approximate.
  * @author Ruben Zorrilla
  */
-template <unsigned int TDim> 
+template <unsigned int TDim>
 class PlaneApproximationUtility
 {
 public:
@@ -64,7 +64,7 @@ public:
 
     /// Pointer definition of PlaneApproximationUtility
     KRATOS_CLASS_POINTER_DEFINITION( PlaneApproximationUtility );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,7 +86,7 @@ public:
     ///@{
 
     /**
-     * @brief Provided a list of point coordinates, computes 
+     * @brief Provided a list of point coordinates, computes
      * the best plane approximation in a least squares sense.
      * @param rPointsCoords Vector containing the set of point coordinates
      * @return rPlaneBasePointCoords Plane base point
@@ -141,7 +141,7 @@ private:
      */
     static void ComputeBasePoint(
         const std::vector< array_1d<double,3> > &rPointsCoords,
-        array_1d<double,3> &rBasePointCoords) 
+        array_1d<double,3> &rBasePointCoords)
     {
         const unsigned int n_points = rPointsCoords.size();
         KRATOS_ERROR_IF(n_points == 0) << "No base point can be computed. Points container is empty." << std::endl;
@@ -162,9 +162,9 @@ private:
     static void SetMatrixA(
         const std::vector< array_1d< double,3 > > &rPointsCoords,
         const array_1d<double,3> &rPlaneBasePointCoords,
-        BoundedMatrix<double,TDim,TDim> &rA) 
+        BoundedMatrix<double,TDim,TDim> &rA)
     {
-        noalias(rA) = ZeroMatrix(TDim);
+        noalias(rA) = ZeroMatrix(TDim,TDim);
         const unsigned int n_points = rPointsCoords.size();
 
         for (unsigned int i = 0; i < TDim; ++i){
@@ -189,9 +189,9 @@ private:
     static void ComputePlaneNormal(
         const std::vector< array_1d<double,3> > &rPointsCoords,
         const array_1d<double,3> &rPlaneBasePointCoords,
-        array_1d<double,3> &rPlaneNormal) 
+        array_1d<double,3> &rPlaneNormal)
     {
-        // Solve the A matrix eigenvalue problem 
+        // Solve the A matrix eigenvalue problem
         BoundedMatrix<double, TDim, TDim> a_mat, eigenval_mat, eigenvector_mat;
         SetMatrixA(rPointsCoords, rPlaneBasePointCoords, a_mat);
         bool converged = MathUtils<double>::EigenSystem<TDim>(a_mat, eigenvector_mat, eigenval_mat);

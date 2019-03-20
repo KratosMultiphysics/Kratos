@@ -147,11 +147,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymSmallDisplacement() : SmallDisplacement()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -177,7 +177,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -192,15 +192,18 @@ private:
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        ) override;
-    
+        ) const override;
+
     /**
-     * Calculation of the equivalent deformation gradient
-     * @param StrainVector: The strain tensor (Voigt notation)
-     * @return The deformation gradient F
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
+     * @param StrainVector The strain tensor (Voigt notation)
      */
-    Matrix ComputeEquivalentF(const Vector& rStrainVector) override;
-    
+    void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const override;
+
     /**
      * This functions computes the integration weight to consider
      * @param IntegrationPoints: The array containing the integration points
@@ -211,7 +214,7 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Private  Access
@@ -221,7 +224,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -252,4 +255,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined

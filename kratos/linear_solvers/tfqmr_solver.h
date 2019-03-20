@@ -2,24 +2,28 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
+//
+
 
 #if !defined(KRATOS_TFQMR_SOLVER_H_INCLUDED )
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
+
+// System includes
+#include <math.h>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include <math.h>
+#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -56,6 +60,11 @@ public:
 
     TFQMRSolver(double NewTolerance) : BaseType(NewTolerance) {}
 
+    TFQMRSolver(Parameters settings ) : BaseType(settings) 
+    {
+        if(settings.Has("preconditioner_type"))
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(settings["preconditioner_type"].GetString()) );
+    }
     TFQMRSolver(Parameters settings,typename TPreconditionerType::Pointer pNewPreconditioner) : BaseType(settings) {}
 
 

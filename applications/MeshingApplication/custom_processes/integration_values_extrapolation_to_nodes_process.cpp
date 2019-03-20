@@ -160,8 +160,9 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        double& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(i_var) : r_this_geometry[i_node].FastGetSolutionStepValue(i_var);
+                        #pragma omp atomic
+                        aux_value += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                     }
                 }
             }
@@ -175,8 +176,12 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        array_1d<double, 3>& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(i_var) : r_this_geometry[i_node].FastGetSolutionStepValue(i_var);
+                        const array_1d<double, 3>& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                            #pragma omp atomic
+                            aux_value[i_comp] += aux_sol[i_comp];
+                        }
                     }
                 }
             }
@@ -190,8 +195,12 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        Vector& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(i_var) : r_this_geometry[i_node].FastGetSolutionStepValue(i_var);
+                        const Vector& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        for (IndexType i_comp = 0; i_comp < aux_sol.size(); ++i_comp) {
+                            #pragma omp atomic
+                            aux_value[i_comp] += aux_sol[i_comp];
+                        }
                     }
                 }
             }
@@ -205,8 +214,14 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        Matrix& aux_value = (mExtrapolateNonHistorical) ? r_this_geometry[i_node].GetValue(i_var) : r_this_geometry[i_node].FastGetSolutionStepValue(i_var);
+                        const Matrix& aux_sol = area_coeff * node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        for (IndexType i_comp = 0; i_comp < aux_sol.size1(); ++i_comp) {
+                            for (IndexType j_comp = 0; j_comp < aux_sol.size2(); ++j_comp) {
+                                #pragma omp atomic
+                                aux_value(i_comp, j_comp) += aux_sol(i_comp, j_comp);
+                            }
+                        }
                     }
                 }
             }
@@ -331,28 +346,31 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // The process info
     const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
 
-    // The first iterator of elements
-    auto it_elem_begin = elements_array.begin();
-    auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
+    // First we check if the model part constains at least one element
+    if (elements_array.size() != 0) {
+        // The first iterator of elements
+        auto it_elem_begin = elements_array.begin();
+        auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
-    // Auxiliar values
-    const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
-    const SizeType integration_points_number = integration_points.size();
+        // Auxiliar values
+        const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
+        const SizeType integration_points_number = integration_points.size();
 
-    // We init the vector sizes
-    for ( const auto& i_var : mVectorVariable) {
-        std::vector<Vector> aux_result(integration_points_number);
-        it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-        mSizeVectors.insert({i_var, aux_result[0].size()});
-    }
+        // We init the vector sizes
+        for ( const auto& i_var : mVectorVariable) {
+            std::vector<Vector> aux_result(integration_points_number);
+            it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            mSizeVectors.insert({i_var, aux_result[0].size()});
+        }
 
-    // We init the matrix sizes
-    for ( const auto& i_var : mMatrixVariable) {
-        std::vector<Matrix> aux_result(integration_points_number);
-        it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-        std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
-        mSizeMatrixes.insert({i_var, aux_pair});
+        // We init the matrix sizes
+        for ( const auto& i_var : mMatrixVariable) {
+            std::vector<Matrix> aux_result(integration_points_number);
+            it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
+            mSizeMatrixes.insert({i_var, aux_pair});
+        }
     }
 }
 

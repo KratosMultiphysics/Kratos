@@ -56,7 +56,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@{
 
   // Counted pointer of ClassName
-  
+
   KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolutionStrategy);
 
   typedef SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            BaseType;
@@ -86,25 +86,25 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
   ///@{
 
-  
-  /// Constructor.  
+
+  /// Constructor.
   ExplicitSolutionStrategy(ModelPart& rModelPart,
                    typename SchemeType::Pointer pScheme,
                    Flags& rOptions)
       : SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, rOptions)
   {
-    KRATOS_TRY      
+    KRATOS_TRY
 
-            
+
     //saving the scheme
     mpScheme = pScheme;
-            
+
     //create explicit builder
-    mpBuilderAndSolver = typename BuilderAndSolverType::Pointer(new ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>());
-            
+    mpBuilderAndSolver = Kratos::make_shared<ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >();
+
     //set lumped mass matrix by default
     if( this->GetModelPart().GetProcessInfo().Has(COMPUTE_LUMPED_MASS_MATRIX) )
-      this->GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
+      this->GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true;
     KRATOS_CATCH( "" )
   }
 
@@ -119,7 +119,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@}
   ///@name Operations
   ///@{
- 
+
   /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
@@ -134,15 +134,15 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(mpScheme, this->GetModelPart(), mpA, mpDx, mpb);
-    
+
     //initial operations ... things that are constant over the Solution Step
     mpScheme->InitializeSolutionStep(this->GetModelPart());
 
- 
+
     KRATOS_CATCH( "" )
   }
 
-  
+
   /**
    * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
    */
@@ -151,11 +151,11 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
     KRATOS_TRY
 
     //Finalization of the solution step
-   
+
     //calculate reactions if required
     // if(mOptions.Is(LocalFlagType::COMPUTE_REACTIONS))
     //   mpBuilderAndSolver->CalculateReactions(pScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
-       
+
     //finalize scheme anb builder and solver
     mpScheme->FinalizeSolutionStep(this->GetModelPart());
     mpBuilderAndSolver->FinalizeSolutionStep(mpScheme, this->GetModelPart(), mpA, mpDx, mpb);
@@ -174,24 +174,24 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
     KRATOS_CATCH("")
   }
 
-  
+
   /**
    * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-   */   
+   */
   bool SolveSolutionStep() override
   {
     KRATOS_TRY
-        
+
     //compute nodal mass and inertia
     if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX))
       mpBuilderAndSolver->BuildLHS(mpScheme, this->GetModelPart(), (*mpA));
 
-        
+
     mpBuilderAndSolver->BuildRHS(mpScheme, this->GetModelPart(), (*mpb));
 
     //update explicitly integrates the equation of motion
     this->Update();
-        
+
     return true;
 
     KRATOS_CATCH( "" )
@@ -209,10 +209,10 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
     KRATOS_CATCH( "" )
   }
-    
-    
+
+
   ///@}
-  ///@name Access  
+  ///@name Access
   ///@{
 
   /**
@@ -242,7 +242,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@{
 
   ///@}
-  
+
  protected:
   ///@name Protected static Member Variables
   ///@{
@@ -250,7 +250,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@}
   ///@name Protected member Variables
   ///@{
-  
+
   typename SchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
   typename BuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
 
@@ -269,15 +269,15 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
   /**
    * @brief Initialization of member variables and prior operations
-   */    
+   */
   void Initialize() override
   {
     KRATOS_TRY
- 
+
     //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
     if (mpScheme->IsNot(LocalFlagType::INITIALIZED))
       mpScheme->Initialize(this->GetModelPart());
-        
+
     // //Initialize The Elements - OPERATIONS TO BE DONE ONCE
     // if (mpScheme->ElementsAreInitialized() == false)
     //   mpScheme->InitializeElements(this->GetModelPart());
@@ -292,7 +292,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
     this->Set(LocalFlagType::INITIALIZED,true);
 
-        
+
     KRATOS_CATCH( "" )
   }
 
@@ -306,21 +306,21 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   void Update() override
   {
     KRATOS_TRY
-      
+
     mpScheme->Update(this->GetModelPart(), mpBuilderAndSolver->GetDofSet(), (*mpDx));
-    
+
     KRATOS_CATCH("")
   }
-  
+
   /**
    * function to perform expensive checks.
    * It is designed to be called ONCE to verify that the input is correct.
-   */    
+   */
   int Check() override
   {
     KRATOS_TRY
-        
-    //check the model part    
+
+    //check the model part
     BaseType::Check();
 
     //check the scheme
@@ -328,7 +328,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
     //check the builder and solver
     mpBuilderAndSolver->Check(this->GetModelPart());
-    
+
     return 0;
 
     KRATOS_CATCH( "" )
@@ -372,7 +372,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
   ///@}
 
-}; /// Class ExplicitSolutionStrategy  
+}; /// Class ExplicitSolutionStrategy
 
 ///@}
 
@@ -384,7 +384,6 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 ///@}
 
 ///@} addtogroup block
-  
-}  // namespace Kratos. 
-#endif // KRATOS_EXPLICIT_STRATEGY_H_INCLUDED  defined
 
+}  // namespace Kratos.
+#endif // KRATOS_EXPLICIT_STRATEGY_H_INCLUDED  defined

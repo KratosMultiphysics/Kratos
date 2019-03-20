@@ -74,7 +74,7 @@ public:
     AxisymmetricSmallDisplacementElement(AxisymmetricSmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymmetricSmallDisplacementElement();
+    ~AxisymmetricSmallDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -162,7 +162,7 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementVariables& rVariables,
+                            ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
 
     /**
@@ -170,7 +170,7 @@ protected:
      */
 
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            ElementVariables& rVariables,
+                            ElementDataType& rVariables,
                             Vector& rVolumeForce,
                             double& rIntegrationWeight) override;
 
@@ -183,14 +183,14 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
 
@@ -274,9 +274,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -297,4 +297,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

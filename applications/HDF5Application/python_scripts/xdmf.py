@@ -100,7 +100,7 @@ class Geometry(XdmfItem):
 
 class TopologyCellType:
     """A helper class for identifying the cell/element topology type.
-    
+
     Attributes:
 
     _topologies(dimension, num_points) -> str -- dictionary of XDMF cell types.
@@ -176,15 +176,15 @@ class HDF5UniformDataItem(DataItem):
         return attribs
 
 
-class NodalSolutionStepData(Attribute):
-    """Represents nodal solution step data."""
+class NodalData(Attribute):
+    """Represents nodal solution step and data value container data."""
 
     def __init__(self, name, data):
         #assert isinstance(name, str)
         #assert isinstance(data, DataItem)
         self._name = name
         self._data = data
-    
+
     def create_xml_element(self):
         e = ET.Element(self.xml_tag())
         e.set("Name", self.name())
@@ -215,7 +215,7 @@ class ElementSolutionStepData(Attribute):
         #assert isinstance(data, DataItem)
         self._name = name
         self._data = data
-    
+
     def create_xml_element(self):
         e = ET.Element(self.xml_tag())
         e.set("Name", self.name())
@@ -330,7 +330,7 @@ class Domain(XdmfItem):
     def __init__(self, grid):
         #assert isinstance(grid, Grid)
         self._grid = grid
-    
+
     def xml_tag(self):
         return "Domain"
 
@@ -345,7 +345,7 @@ class Xdmf(XdmfItem):
     def __init__(self, domain):
         #assert isinstance(domain, Domain)
         self._domain = domain
-    
+
     def xml_tag(self):
         return "Xdmf"
 

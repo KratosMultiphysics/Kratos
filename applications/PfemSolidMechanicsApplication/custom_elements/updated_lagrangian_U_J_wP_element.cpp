@@ -162,8 +162,8 @@ namespace Kratos
             voigtSize = 6; 
 
          // vale, torno a fer de les meves...
-         ElementVariables Variables;
-         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
+         ElementDataType Variables;
+         this->InitializeElementData( Variables, rCurrentProcessInfo);
 
          const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod);
          //reading integration points
@@ -197,8 +197,8 @@ namespace Kratos
          const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
          // vale, torno a fer de les meves...
-         ElementVariables Variables;
-         this->InitializeElementVariables( Variables, rCurrentProcessInfo);
+         ElementDataType Variables;
+         this->InitializeElementData( Variables, rCurrentProcessInfo);
 
          //create constitutive law parameters:
          ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -227,7 +227,7 @@ namespace Kratos
             }		
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
             double ElementalDetFT = Variables.detH;
@@ -470,9 +470,9 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJwPElement::InitializeElementVariables ( ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUJwPElement::InitializeElementData ( ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUJElement::InitializeElementVariables( rVariables, rCurrentProcessInfo );
+      UpdatedLagrangianUJElement::InitializeElementData( rVariables, rCurrentProcessInfo );
 
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
@@ -530,7 +530,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUJwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -602,7 +602,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUJwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -694,8 +694,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
  
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )

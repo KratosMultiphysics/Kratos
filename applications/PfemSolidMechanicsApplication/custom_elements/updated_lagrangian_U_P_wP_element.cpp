@@ -123,7 +123,7 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      NewElement.mTimeStep = mTimeStep; 
+      NewElement.mTimeStep = mTimeStep;
 
       return Element::Pointer( new UpdatedLagrangianUPwPElement(NewElement) );
    }
@@ -244,7 +244,7 @@ namespace Kratos
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         unsigned int index = i * (dimension + 2);  
+         unsigned int index = i * (dimension + 2);
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
          if ( dimension == 3 )
@@ -295,9 +295,9 @@ namespace Kratos
    }
 
 
-   void UpdatedLagrangianUPwPElement::InitializeElementVariables ( ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUPwPElement::InitializeElementData ( ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUPressureElement::InitializeElementVariables( rVariables, rCurrentProcessInfo );
+      UpdatedLagrangianUPressureElement::InitializeElementData( rVariables, rCurrentProcessInfo );
 
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
@@ -386,7 +386,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUPwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -397,7 +397,7 @@ namespace Kratos
 
 
       // I HAVE TO DO SOMETHING WITH THE GENERAL VARIABLES * DETFT ETC
-      LocalSystemComponents UPLocalSystem; 
+      LocalSystemComponents UPLocalSystem;
       unsigned int MatSize = number_of_nodes * ( dimension+1);
       MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize, MatSize) ;
 
@@ -416,7 +416,7 @@ namespace Kratos
                for (unsigned int jdim = 0; jdim < dimension+1; jdim++) {
                   rLeftHandSideMatrix( dime2*iNode + idim, dime2*jNode+jdim) += LocalLeftHandSideMatrix( dime1*iNode + idim, dime1*jNode + jdim);
                }
-            } 
+            }
          }
       }
 
@@ -454,7 +454,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUPwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       /*if ( this->Id() == 1) {
@@ -466,7 +466,7 @@ namespace Kratos
       rVariables.detF = 1.0;
 
       //contribution of the internal and external forces
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
       CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
@@ -495,7 +495,7 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          Vector& rVolumeForce,
          double& rIntegrationWeight)
 
@@ -530,7 +530,7 @@ namespace Kratos
    //************************************** Idem but with Total Stress ***********
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -539,14 +539,14 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       unsigned int voigtsize = 3;
-      if (dimension == 3) 
+      if (dimension == 3)
          voigtsize = 6;
 
       VectorType Fh=rRightHandSideVector;
 
       Vector StressVector = rVariables.StressVector;
 
-      double ElemMeanPressure = 0.0; 
+      double ElemMeanPressure = 0.0;
       for (unsigned int i = 0; i < 3; i++)
          ElemMeanPressure += StressVector(i);
       ElemMeanPressure /= 3.0;
@@ -557,11 +557,11 @@ namespace Kratos
       for (unsigned int i = 0; i < 3; i++)
          StressVector(i) += ( NodalMeanPressure - ElemMeanPressure );
 
-      Vector TotalStress = ZeroVector(voigtsize); 
+      Vector TotalStress = ZeroVector(voigtsize);
 
-      if ( voigtsize == 6) 
+      if ( voigtsize == 6)
       {
-         TotalStress = StressVector; 
+         TotalStress = StressVector;
       }
       else {
          TotalStress(0) = StressVector(0);
@@ -576,7 +576,7 @@ namespace Kratos
          WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
 
       for (unsigned int i = 0; i < dimension; i++) {
-         TotalStress(i) += WaterPressure; 
+         TotalStress(i) += WaterPressure;
       }
 
       Vector InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), TotalStress );
@@ -599,8 +599,8 @@ namespace Kratos
 
    // ********* MASS BALANCE EQUATION: WATER PRESSURE EQUATION ***********************
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   void UpdatedLagrangianUPwPElement::CalculateAndAddWaterPressureForces( VectorType& rRightHandSideVector, 
-         ElementVariables& rVariables,
+   void UpdatedLagrangianUPwPElement::CalculateAndAddWaterPressureForces( VectorType& rRightHandSideVector,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -694,7 +694,7 @@ namespace Kratos
    // ******************************* CALCULATE AND ADD PRESSURE FORCES ***************
    // *********************************************************************************
    void UpdatedLagrangianUPwPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -740,7 +740,7 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -754,7 +754,7 @@ namespace Kratos
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_P];
       AlphaStabilization *= StabilizationFactor;
 
@@ -814,8 +814,8 @@ namespace Kratos
 
    // ********* STABILIZATION OF THE MASS BALANCE EQUATION **************************
    // *******************************************************************************
-   void UpdatedLagrangianUPwPElement::CalculateAndAddStabilizedWaterPressure( VectorType& rRightHandSideVector, 
-         ElementVariables& rVariables,
+   void UpdatedLagrangianUPwPElement::CalculateAndAddStabilizedWaterPressure( VectorType& rRightHandSideVector,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       // FPL just copied from there
@@ -825,7 +825,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux, StabilizationFactor; 
+      double StabilizationAlpha, Caux, StabilizationFactor;
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -837,7 +837,7 @@ namespace Kratos
       he = GetElementSize( rVariables.DN_DX);
       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
+      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability;
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
@@ -896,10 +896,10 @@ namespace Kratos
 
    }
 
-   // ** ***************** Calculation of the geometric terms due to the water pressure 
+   // ** ***************** Calculation of the geometric terms due to the water pressure
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddUnconsideredKuuTerms(MatrixType& rK,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -910,7 +910,7 @@ namespace Kratos
    // ************** Calculation of the Ku wP Matrix *********************************************
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKuwP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -941,7 +941,7 @@ namespace Kratos
    //* *************************** Calculation of the KwP U Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPu(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -989,9 +989,9 @@ namespace Kratos
    }
 
    // ********************** Calculation of the KwP P Matrix
-   // 
+   //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1003,7 +1003,7 @@ namespace Kratos
    //** ***************** Calculation of the K wP wP Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPwP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight )
    {
       KRATOS_TRY
@@ -1026,10 +1026,10 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
 
-      for (unsigned int m = 0; m < number_of_nodes; m++) {   
-         for (unsigned int n = 0; n < number_of_nodes; n++) {   
-            for (unsigned int i = 0; i < dimension; i++) {   
-               for (unsigned int j = 0; j < dimension; j++) {  
+      for (unsigned int m = 0; m < number_of_nodes; m++) {
+         for (unsigned int n = 0; n < number_of_nodes; n++) {
+            for (unsigned int i = 0; i < dimension; i++) {
+               for (unsigned int j = 0; j < dimension; j++) {
                   SmallMatrix(m,n) +=  rVariables.DN_DX(m,i) * K(i,j) * rVariables.DN_DX(n,j) ;
                }
             }
@@ -1041,7 +1041,7 @@ namespace Kratos
       for (unsigned int i = 0; i< number_of_nodes; i++) {
          for (unsigned int j = 0; j< number_of_nodes; j++) {
             consistent = 1.0/12.0;
-            if ( i == j) 
+            if ( i == j)
                consistent *= 2.0;
             SmallMatrix(i,j) += ( 1.0/WaterBulk) * consistent * rIntegrationWeight * ScalingConstant/ rVariables.detF0;
          }
@@ -1062,7 +1062,7 @@ namespace Kratos
    // ** ***************** Calculation of the Stabilization Tangent Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPwPStab(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1074,7 +1074,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux, StabilizationFactor; 
+      double StabilizationAlpha, Caux, StabilizationFactor;
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -1085,7 +1085,7 @@ namespace Kratos
       he = GetElementSize( rVariables.DN_DX);
       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
+      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability;
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
@@ -1130,7 +1130,7 @@ namespace Kratos
    //************************************CALCULATE VOLUME CHANGE*************************
    //************************************************************************************
 
-   double& UpdatedLagrangianUPwPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+   double& UpdatedLagrangianUPwPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
    {
       KRATOS_TRY
 
@@ -1149,8 +1149,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       //create constitutive law parameters:
       ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1169,18 +1169,11 @@ namespace Kratos
          this->CalculateKinematics(Variables,PointNumber);
 
          //set general variables to constitutivelaw parameters
-         this->SetElementVariables(Variables,Values,PointNumber);
+         this->SetElementData(Variables,Values,PointNumber);
 
 
          //call the constitutive law to update material variables
          mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
-
-         //call the constitutive law to finalize the solution step
-         mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-               GetGeometry(),
-               Variables.N,
-               rCurrentProcessInfo );
-
 
 
          //call the element internal variables update
@@ -1188,16 +1181,10 @@ namespace Kratos
       }
 
 
-
-      mFinalizedStep = true;
+      this->Set(SolidElement::FINALIZED_STEP,true);
 
       KRATOS_CATCH( "" )
    }
-   ////************************************************************************************
-   ////************************************************************************************
-
-   ////************************************************************************************
-   ////************************************************************************************
 
    ////************************************************************************************
    ////************************************************************************************
@@ -1208,8 +1195,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       //create constitutive law parameters:
       ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1233,7 +1220,7 @@ namespace Kratos
          this->CalculateKinematics(Variables,PointNumber);
 
          //set general variables to constitutivelaw parameters
-         this->SetElementVariables(Variables,Values,PointNumber);
+         this->SetElementData(Variables,Values,PointNumber);
 
 
          //compute stresses and constitutive parameters
@@ -1241,7 +1228,7 @@ namespace Kratos
 
 
          //some transformation of the configuration can be needed (UL element specially)
-         this->TransformElementVariables(Variables,PointNumber);
+         this->TransformElementData(Variables,PointNumber);
 
          //calculating weights for integration on the "reference configuration"
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;

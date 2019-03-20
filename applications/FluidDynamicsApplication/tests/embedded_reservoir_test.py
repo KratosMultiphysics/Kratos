@@ -1,26 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
-
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-
-import os
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedReservoirTest(UnitTest.TestCase):
@@ -57,7 +40,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.ExecuteEmbeddedReservoirTest()
 
     def ExecuteEmbeddedReservoirTest(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUp()
             self.setUpProblem()
             self.setUpDistanceField()
@@ -71,14 +54,12 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting(
+                self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
 
     def setUpProblem(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -87,6 +68,10 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             ## Solver construction
             import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_level_set and self.solver.settings.Has("is_slip"):
+                self.ProjectParameters["solver_settings"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 
@@ -102,8 +87,8 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
 
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
@@ -131,12 +116,8 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
 
-        # If proceeds, set the SLIP flag
-        if (self.slip_level_set):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.main_model_part.Elements)
-
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if (self.print_output):
                 gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
                 multifile = KratosMultiphysics.MultiFileFlag.SingleFile
@@ -191,7 +172,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                 gid_io.FinalizeResults()
 
     def checkResults(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if self.print_reference_values:
                 with open(self.reference_file+'.csv','w') as ref_file:
                     ref_file.write("#ID, PRESSURE\n")
@@ -230,4 +211,3 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-

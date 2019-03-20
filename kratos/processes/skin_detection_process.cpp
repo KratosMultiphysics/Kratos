@@ -46,48 +46,59 @@ void SkinDetectionProcess<TDim>::Execute()
     KRATOS_TRY;
 
     // Auxiliar values
-    const SizeType number_of_elements = mrModelPart.Elements().size();
+    auto& r_elements_array = mrModelPart.Elements();
+    const SizeType number_of_elements = r_elements_array.size();
+    const auto it_elem_begin = r_elements_array.begin();
     const SizeType echo_level = mThisParameters["echo_level"].GetInt();
 
     /* NEIGHBOUR ELEMENTS */
     // Create the inverse_face_map
     HashMapVectorIntType inverse_face_map;
+    HashMapVectorIntIdsType properties_face_map;
 
     for(IndexType i = 0; i < number_of_elements; ++i) {
-        auto it_elem = mrModelPart.Elements().begin() + i;
+        auto it_elem = it_elem_begin + i;
 
-        GeometryType& geom = it_elem->GetGeometry();
+        // Detect if the element is active or not. If the user did not make any choice the element is active by default
+        bool element_is_active = true;
+        if (it_elem->IsDefined(ACTIVE))
+            element_is_active = it_elem->Is(ACTIVE);
 
-        const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
+        if (element_is_active) {
+            GeometryType& r_geometry = it_elem->GetGeometry();
 
-        for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
+            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
 
-            /* FACES/EDGES */
-            const SizeType number_nodes = TDim == 2 ? geom.Edges()[i_face].size() : geom.Faces()[i_face].size();
-            VectorIndexType vector_ids(number_nodes);
-            VectorIndexType ordered_vector_ids(number_nodes);
+            for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
-            /* FACE/EDGE */
-            if (TDim == 2) {
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = geom.Edges()[i_face][i_node].Id();
-                    ordered_vector_ids[i_node] = vector_ids[i_node];
+                /* FACES/EDGES */
+                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
+                VectorIndexType vector_ids(number_nodes);
+                VectorIndexType ordered_vector_ids(number_nodes);
+
+                /* FACE/EDGE */
+                if (TDim == 2) {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                        ordered_vector_ids[i_node] = vector_ids[i_node];
+                    }
+                } else {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                        ordered_vector_ids[i_node] = vector_ids[i_node];
+                    }
                 }
-            } else {
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = geom.Faces()[i_face][i_node].Id();
-                    ordered_vector_ids[i_node] = vector_ids[i_node];
+
+                /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
+                std::sort(vector_ids.begin(), vector_ids.end());
+                // Check if the elements already exist in the HashMapVectorIntType
+                HashMapVectorIntTypeIteratorType it_check = inverse_face_map.find(vector_ids);
+
+                if(it_check == inverse_face_map.end() ) {
+                    // If it doesn't exist it is added to the database
+                    inverse_face_map.insert(std::pair<VectorIndexType, VectorIndexType>(vector_ids, ordered_vector_ids));
+                    properties_face_map.insert(std::pair<VectorIndexType, IndexType>(vector_ids, (it_elem->pGetProperties())->Id()));
                 }
-            }
-
-            /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
-            std::sort(vector_ids.begin(), vector_ids.end());
-            // Check if the elements already exist in the HashMapVectorIntType
-            HashMapVectorIntTypeIteratorType it_check = inverse_face_map.find(vector_ids);
-
-            if(it_check == inverse_face_map.end() ) {
-                // If it doesn't exist it is added to the database
-                inverse_face_map.insert(std::pair<VectorIndexType, VectorIndexType>(vector_ids, ordered_vector_ids));
             }
         }
     }
@@ -96,40 +107,48 @@ void SkinDetectionProcess<TDim>::Execute()
     HashSetVectorIntType face_set;
 
     for(IndexType i = 0; i < number_of_elements; ++i) {
-        auto it_elem = mrModelPart.Elements().begin() + i;
+        auto it_elem = it_elem_begin + i;
 
-        GeometryType& geom = it_elem->GetGeometry();
+        // Detect if the element is active or not. If the user did not make any choice the element is active by default
+        bool element_is_active = true;
+        if (it_elem->IsDefined(ACTIVE))
+            element_is_active = it_elem->Is(ACTIVE);
 
-        const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
+        if (element_is_active) {
+            GeometryType& r_geometry = it_elem->GetGeometry();
 
-        for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
+            const SizeType potential_number_neighbours = ComputePotentialNeighboursSize(it_elem);
 
-            /* FACES/EDGES */
-            const SizeType number_nodes = TDim == 2 ? geom.Edges()[i_face].size() : geom.Faces()[i_face].size();
-            VectorIndexType vector_ids(number_nodes);
+            for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
-            /* FACE/EDGE */
-            if (TDim == 2) {
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = geom.Edges()[i_face][i_node].Id();
+                /* FACES/EDGES */
+                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
+                VectorIndexType vector_ids(number_nodes);
+
+                /* FACE/EDGE */
+                if (TDim == 2) {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                    }
+                } else {
+                    for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
+                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                    }
                 }
-            } else {
-                for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                    vector_ids[i_node] = geom.Faces()[i_face][i_node].Id();
+
+                /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
+                std::sort(vector_ids.begin(), vector_ids.end());
+                // Check if the elements already exist in the HashSetVectorIntType
+                HashSetVectorIntTypeIteratorType it_check = face_set.find(vector_ids);
+
+                if(it_check != face_set.end() ) {
+                    // If it exists we remove from the inverse map
+                    inverse_face_map.erase(vector_ids);
+                    properties_face_map.erase(vector_ids);
+                } else {
+                    // If it doesn't exist it is added to the database
+                    face_set.insert(vector_ids);
                 }
-            }
-
-            /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
-            std::sort(vector_ids.begin(), vector_ids.end());
-            // Check if the elements already exist in the HashSetVectorIntType
-            HashSetVectorIntTypeIteratorType it_check = face_set.find(vector_ids);
-
-            if(it_check != face_set.end() ) {
-                // If it exists we remove from the inverse map
-                inverse_face_map.erase(vector_ids);
-            } else {
-                // If it doesn't exist it is added to the database
-                face_set.insert(vector_ids);
             }
         }
     }
@@ -139,50 +158,57 @@ void SkinDetectionProcess<TDim>::Execute()
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     } else {
-        ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
+        auto& r_conditions_array = mrModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions();
+        const SizeType number_of_conditions = r_conditions_array.size();
+        const auto it_cond_begin = r_conditions_array.begin();
 
-        auto& nodes_array = r_auxiliar_model_part.Nodes();
-    
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->Set(TO_ERASE, true);
-   
-        r_auxiliar_model_part.RemoveNodes(TO_ERASE);
-    
-        auto& conditions_array = r_auxiliar_model_part.Conditions();
- 
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-            (conditions_array.begin() + i)->Set(TO_ERASE, true);
-         
-        r_auxiliar_model_part.RemoveConditions(TO_ERASE);
-    } 
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(number_of_conditions); ++i)
+            (it_cond_begin + i)->Set(TO_ERASE, true);
+
+        mrModelPart.GetSubModelPart(name_auxiliar_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
+
+        mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+    }
     ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && name_condition == "Condition") 
+    if (TDim == 3 && name_condition == "Condition")
         pre_name = "Surface";
 
     // The number of conditions
-    IndexType condition_id = mrModelPart.Conditions().size();
+    ConditionsArrayType& condition_array = mrModelPart.GetRootModelPart().Conditions();
+    const auto& it_begin = condition_array.begin();
+    for(IndexType i = 0; i < condition_array.size(); ++i)
+        (it_begin + i)->SetId(i + 1);
+
+    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
 
     // Create the auxiliar conditions
-    Properties::Pointer p_prop_0 = mrModelPart.pGetProperties(0);
     for (auto& map : inverse_face_map) {
         condition_id += 1;
 
         const VectorIndexType& nodes_face = map.second;
 
+        Properties::Pointer p_prop;
+        const IndexType property_id = properties_face_map[map.first];
+         if (mrModelPart.RecursivelyHasProperties(property_id)) {
+             p_prop = mrModelPart.pGetProperties(property_id);
+         } else {
+             p_prop = mrModelPart.CreateNewProperties(property_id);
+         }
+
         for (auto& index : nodes_face)
             nodes_in_the_skin.insert(index);
 
         const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
+        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
         r_auxiliar_model_part.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize();

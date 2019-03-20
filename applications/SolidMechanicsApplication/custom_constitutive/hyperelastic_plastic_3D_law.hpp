@@ -22,11 +22,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in 3D 
+ * Defines a hyperelastic-plastic isotropic constitutive law in 3D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlastic3DLaw : public HyperElastic3DLaw
@@ -79,7 +79,7 @@ public:
     HyperElasticPlastic3DLaw();
 
 
-    HyperElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -102,7 +102,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlastic3DLaw();
+    ~HyperElasticPlastic3DLaw() override;
 
     /**
      * Operators
@@ -142,7 +142,7 @@ public:
 
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
@@ -163,18 +163,6 @@ public:
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
                              const Vector& rShapeFunctionsValues ) override;
-
-
-    void InitializeSolutionStep( const Properties& rMaterialProperties,
-                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep( const Properties& rMaterialProperties,
-                               const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
-                               const ProcessInfo& rCurrentProcessInfo) override;
-
 
     /**
      * Computes the material response:
@@ -229,15 +217,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-  
+
     Matrix mElasticLeftCauchyGreen;
-    
+
     FlowRulePointer       mpFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
-	
+
     HardeningLawPointer   mpHardeningLaw;
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -254,7 +242,7 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,		     
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
 						     Matrix& rConstitutiveMatrix);
 
 
@@ -265,7 +253,7 @@ protected:
     double& PlasticConstitutiveComponent( double & rCabcd,
             const MaterialResponseVariables& rElasticVariables,
             const Matrix & rIsoStressMatrix,
-            const FlowRule::PlasticFactors & rScalingFactors,			 
+            const FlowRule::PlasticFactors & rScalingFactors,
             const unsigned int& a, const unsigned int& b,
             const unsigned int& c, const unsigned int& d);
 
@@ -318,7 +306,7 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-	
+
 	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.save("mpFlowRule",mpFlowRule);
 	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
@@ -328,7 +316,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
-	  
+
 	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.load("mpFlowRule",mpFlowRule);
 	rSerializer.load("mpYieldCriterion",mpYieldCriterion);

@@ -12,7 +12,6 @@ set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/shape_optimization_condition.cpp
 )
 
 ###############################################################
@@ -47,4 +46,4 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShapeOptimizationApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShapeOptimizationApplication.py" DESTINATION "KratosMultiphysics/ShapeOptimizationApplication" RENAME "__init__.py")

@@ -107,6 +107,10 @@ public:
                 const Variable<Vector>& rThisVariable,
                 Vector& rValue) override;
 
+    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue) override;
+
     void CalculateMaterialResponse(const Vector& rStrainVector,
                                     const Matrix& rDeformationGradient,
                                     Vector& rStressVector,
@@ -153,7 +157,7 @@ public:
     bool CheckPlasticIterationHistory() const
     {
         bool check_flag = false;
-        if(this->mInElasticFlagVector[1] && !this->mInElasticFlagVector[0])
+        if(this->mPreviousInElasticFlag && !this->mCurrentInElasticFlag)
         {
             check_flag = true;
         }
@@ -211,10 +215,13 @@ private:
     ///@{
     double mStressState = 0.0; // The current stress state
 
-    //the following members are vectors where
-    //[0] is the current non_linear iteration step
-    //[1] is the previous non_linear iteration step
-    BoundedVector<bool, 2> mInElasticFlagVector = ZeroVector(2); /// This flags tells if we are in a elastic or ineslastic regime
+    //the following members are
+    //mCurrentInElasticFlag is the current non_linear iteration step
+    //mPreviousInElasticFlag is the previous non_linear iteration step
+    bool mPreviousInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
+    bool mCurrentInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
+
+
     BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
     BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
 
@@ -245,7 +252,8 @@ private:
         rSerializer.save("StressState", this->mStressState);
         rSerializer.save("PlasticAlpha", this->mPlasticAlphaVector);
         rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.save("InelasticFlag", this->mInElasticFlagVector);
+        rSerializer.save("PreviousInelasticFlag", this->mPreviousInElasticFlag);
+        rSerializer.save("CurrentInElasticFlag", this->mCurrentInElasticFlag);
     }
 
     void load(Serializer& rSerializer) override
@@ -254,7 +262,8 @@ private:
         rSerializer.load("StressState", this->mStressState);
         rSerializer.load("PlasticAlpha", this->mPlasticAlphaVector);
         rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
-        rSerializer.load("InelasticFlag", this->mInElasticFlagVector);
+        rSerializer.load("PreviousInelasticFlag", this->mPreviousInElasticFlag);
+        rSerializer.load("CurrentInElasticFlag", this->mCurrentInElasticFlag);
     }
 
 

@@ -8,7 +8,7 @@ VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
 VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
 SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
-SCALAR CONDITION VISCOSITY     		point line surface volume free  0.000001
+SCALAR CONDITION DYNAMIC_VISCOSITY     		point line surface volume free  0.000001
 SCALAR CONDITION DENSITY     		point line surface volume free  1.0
 SCALAR CONDITION YIELD_STRESS  		point line surface volume free  100.0
 
@@ -20,7 +20,7 @@ FLAG CONDITION IS_SLIP    		point line surface volume free 1.0 0.0
 FLAG CONDITION IS_WATER    		point line surface volume free 1.0 0.0
 
 ELEMENT Condition2D line
-ELEMENT Condition3D surface 
+ELEMENT Condition3D surface
 
 ELEMENT WallCondition2D line
 ELEMENT WallCondition3D surface

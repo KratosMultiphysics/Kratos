@@ -85,7 +85,7 @@ public:
      * @param e3 point on the direction vector of the cylinder
      * e1, e2, e3 form a othogonal basis
      */
-    ClosedCylinder3D(Point M,Point e1,Point e2, Point e3)
+    ClosedCylinder3D(array_1d<double, 3> M,array_1d<double, 3> e1,array_1d<double, 3> e2, array_1d<double, 3> e3)
         :mM(M),mE1(e1),mE2(e2),mE3(e3)
     {
         r1 = mE1-M;
@@ -112,7 +112,7 @@ public:
      * Returns the starting point of the cylinder, is the midpoint of the circle
      * @return mM
      */
-   Point& GetCenter()
+   array_1d<double, 3>& GetCenter()
     {
         return mM;
     }
@@ -175,10 +175,10 @@ public:
      * Calculates a point on the cylinder with the parameters s and t.
      * @param s represents the line segment on the circle
      * @param t represents the distance on the direction vector of the cylinder from M
-     * @param result a Point in 3D result(s,t) on the cylinder
+     * @param result a array_1d<double, 3> in 3D result(s,t) on the cylinder
      * @return result
      */
-   Point& GetPoint(Point& result, double s , double t)
+   array_1d<double, 3>& GetPoint(array_1d<double, 3>& result, double s , double t)
     {
         result = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
         return result;
@@ -210,10 +210,10 @@ public:
      * Calculates a point on the cylinder cap with the parameters s and t.
      * @param s represents the distance on the direction vector r1 from M
      * @param t represents the distance on the direction vector r2 from M
-     * @param result a Point in 3D result(s,t) on the cylinder cap
+     * @param result a array_1d<double, 3> in 3D result(s,t) on the cylinder cap
      * @return result
      */
-   Point& GetPointOnCap(Point& result, double s, double t)
+   array_1d<double, 3>& GetPointOnCap(array_1d<double, 3>& result, double s, double t)
     {
         result = r1*s + r2*t + (mM+r3);
         return result;
@@ -265,7 +265,7 @@ public:
      * @retval false if the point is not in or on the cylinder
      * @retval true if the point is in or on the cylinder
      */
-    bool IsInorOn(Point& point)
+    bool IsInorOn(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -287,7 +287,7 @@ public:
      * @retval false if the point is on or outside the cylinder
      * @retval true if the point is inside the cylinder
      */
-    bool IsIn(Point& point)
+    bool IsIn(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -309,7 +309,7 @@ public:
      * @retval false if the point is on or outside the cylinder
      * @retval true if the point is inside a bigger cylinder
      */
-    bool IsInBigger(Point& point)
+    bool IsInBigger(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -331,7 +331,7 @@ public:
      * @retval false if the point is inside or outside the cylinder
      * @retval true if the point is on the cylinder
      */
-    bool IsOn(Point& point)
+    bool IsOn(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -357,7 +357,7 @@ public:
      * @retval false if the point is not on the cylinder wall
      * @retval true if the point is on the cylinder wall
      */
-    bool IsOnWall(Point& point)
+    bool IsOnWall(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -383,7 +383,7 @@ public:
      * @retval false if the point is not on the cylinder cap
      * @retval true if the point is on the cylinder cap
      */
-    bool IsOnCap(Point& point)
+    bool IsOnCap(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -408,13 +408,13 @@ public:
      * @param point for which the closest point on the cap is searched
      * @return closestpoint
      */
-   Point ClosestPointOnCap(Point& point)
+   array_1d<double, 3> ClosestPointOnCap(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
                                           r3_normalized);
 
-       Point closestpoint;
+       array_1d<double, 3> closestpoint;
 
         closestpoint = point + (mLength-t)*r3_normalized;
 
@@ -426,7 +426,7 @@ public:
      * @param point for which the closest point on the wall is searched
      * @return closestpoint
      */
-   Point ClosestPointOnWall(Point& point)
+   array_1d<double, 3> ClosestPointOnWall(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -436,7 +436,7 @@ public:
         double s2= MathUtils<double>::Dot3(distance,
                                            r2_normalized);
 
-       Point closestpoint;
+       array_1d<double, 3> closestpoint;
 
         if (t <= mLength + 0.000001 && t >= -0.000001)
         {
@@ -456,7 +456,7 @@ public:
      * @param point for which the closest point is searched
      * @return closestpoint
      */
-   Point ClosestPoint(Point& point)
+   array_1d<double, 3> ClosestPoint(array_1d<double, 3>& point)
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -466,7 +466,7 @@ public:
         double s2= MathUtils<double>::Dot3(distance,
                                            r2_normalized);
 
-       Point closestpoint;
+       array_1d<double, 3> closestpoint;
         double rad = sqrt(s1*s1+s2*s2);
 
         if (mLength < t)
@@ -511,10 +511,10 @@ public:
 
 private:
 
-   Point mM;
-   Point mE1;
-   Point mE2;
-   Point mE3;
+   array_1d<double, 3> mM;
+   array_1d<double, 3> mE1;
+   array_1d<double, 3> mE2;
+   array_1d<double, 3> mE3;
     array_1d<double, 3> r1;
     array_1d<double, 3> r2;
     array_1d<double, 3> r3;

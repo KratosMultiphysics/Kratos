@@ -53,7 +53,7 @@ public:
     IsotropicDamageSimoJuPlaneStrain2DLaw();
 
 
-    IsotropicDamageSimoJuPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    IsotropicDamageSimoJuPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageSimoJuPlaneStrain2DLaw();
+    ~IsotropicDamageSimoJuPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -135,9 +135,9 @@ protected:
      * @param rCharacteristicSize, the diameter of the circle
      * @param DomainGeometry geometric information of the element
      */
-     
+
     void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry ) override;
-    
+
     ///@}
 
 private:

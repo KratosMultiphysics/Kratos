@@ -86,7 +86,7 @@ public:
     ///@{
 
     /// Default constructor.
-    VariablesListDataValueContainer(SizeType NewQueueSize = 1)
+    explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(&GetDefaultVariablesList())
     {
@@ -998,7 +998,7 @@ private:
         if(mpVariablesList->DataSize() != 0 )
             rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
         else
-            rSerializer.save("QueueIndex", 0);
+            rSerializer.save("QueueIndex", SizeType(0));
 
 
         if(mpData == 0)

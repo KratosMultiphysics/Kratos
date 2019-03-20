@@ -31,7 +31,7 @@ class KratosFSIApplication : public KratosApplication {
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosMeshMovingApplication
+    /// Pointer definition of KratosFSIApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosFSIApplication);
 
     ///@}
@@ -42,7 +42,7 @@ class KratosFSIApplication : public KratosApplication {
     KratosFSIApplication() : KratosApplication("FSIApplication") {}
 
     /// Destructor.
-    virtual ~KratosFSIApplication() {}
+    ~KratosFSIApplication() override {}
 
     ///@}
     ///@name Operators

@@ -49,7 +49,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonLinearRateDependentPlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -57,13 +57,13 @@ namespace Kratos
     typedef TElasticityModel                               ElasticityModelType;
     typedef typename  ElasticityModelType::Pointer      ElasticityModelPointer;
 
-    //yield surface 
+    //yield surface
     typedef TYieldSurface                                     YieldSurfaceType;
     typedef typename YieldSurfaceType::Pointer             YieldSurfacePointer;
 
     //derived type
     typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>   DerivedType;
-    
+
     //base type
     typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
@@ -76,7 +76,7 @@ namespace Kratos
     typedef typename BaseType::MaterialDataType               MaterialDataType;
     typedef typename BaseType::PlasticDataType                 PlasticDataType;
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
-    
+
     /// Pointer definition of NonLinearRateDependentPlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( NonLinearRateDependentPlasticityModel );
 
@@ -89,7 +89,7 @@ namespace Kratos
 
     /// Constructor.
     NonLinearRateDependentPlasticityModel(ElasticityModelPointer pElasticityModel, YieldSurfacePointer pYieldSurface) : DerivedType(pElasticityModel, pYieldSurface) {}
-    
+
     /// Copy constructor.
     NonLinearRateDependentPlasticityModel(NonLinearRateDependentPlasticityModel const& rOther) : DerivedType(rOther) {}
 
@@ -101,20 +101,20 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
-      return ( NonLinearRateDependentPlasticityModel::Pointer(new NonLinearRateDependentPlasticityModel(*this)) );
+      return Kratos::make_shared<NonLinearRateDependentPlasticityModel>(*this);
     }
 
     /// Destructor.
-    virtual ~NonLinearRateDependentPlasticityModel() {}
+    ~NonLinearRateDependentPlasticityModel() override {}
 
 
     ///@}
     ///@name Operators
     ///@{
 
-   
+
     ///@}
     ///@name Operations
     ///@{
@@ -135,7 +135,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "NonLinearRateDependentPlasticityModel" ;
@@ -143,15 +143,15 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "NonLinearRateDependentPlasticityModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "NonLinearRateDependentPlasticityModel Data";	    
+      rOStream << "NonLinearRateDependentPlasticityModel Data";
     }
 
     ///@}
@@ -164,23 +164,23 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-      
-    // calculate ratial return
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+
+    // calculate return mapping
+    bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -189,24 +189,24 @@ namespace Kratos
       //Start 1rst Newton Raphson iteration
       rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,true);
       rVariables.RateFactor=1; //plastic rate region on
-      converged = CalculateRateDependentRadialReturn(rVariables,rStressMatrix);
-	
+      converged = CalculateRateDependentReturnMapping(rVariables,rStressMatrix);
+
       // if(!converged)
       //   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
 
-      const ModelDataType& rModelData        = rVariables.GetModelData();
-      const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
-      
-      const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-      const double& rPlasticStrainRate       = rMaterialProperties[PLASTIC_STRAIN_RATE];
+      const ModelDataType& rModelData   = rVariables.GetModelData();
+      const double& rDeltaTime          = rModelData.GetProcessInfo()[DELTA_TIME];
 
-      
+      const Properties& rProperties     = rModelData.GetProperties();
+      const double& rPlasticStrainRate  = rProperties[PLASTIC_STRAIN_RATE];
+
+
       double MaterialDeltaPlasticStrain = rPlasticStrainRate * rDeltaTime;
-	
+
       //std::cout<<" DeltaPlasticStrain: "<<rPlasticVariables.DeltaPlasticStrain<<" MaterialDeltaPlasticStrain: "<<MaterialDeltaPlasticStrain<<std::endl;
 
       double& rDeltaGamma = rVariables.DeltaInternal.Variables[0];
-      
+
       if(  sqrt(2.0/3.0) * rDeltaGamma < MaterialDeltaPlasticStrain ){
 
 	//std::cout<<" DeltaPlasticStrain: "<<rPlasticVariables.DeltaPlasticStrain<<" MaterialDeltaPlasticStrain: "<<MaterialDeltaPlasticStrain<<std::endl;
@@ -215,7 +215,7 @@ namespace Kratos
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,false);
 	rVariables.RateFactor=0; //plastic rate region on
 
-	converged = CalculateRateIndependentRadialReturn(rVariables,rStressMatrix);
+	converged = CalculateRateIndependentReturnMapping(rVariables,rStressMatrix);
 
 	// if(!converged)
 	//   std::cout<<" ConstitutiveLaw did not converge on the rate independent return mapping"<<std::endl;
@@ -227,11 +227,11 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    
-    bool CalculateRateDependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+
+    bool CalculateRateDependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
-      
+
       //Set convergence parameters
       unsigned int iter    = 0;
       double Tolerance     = 1e-5;
@@ -241,22 +241,22 @@ namespace Kratos
       double DeltaDeltaGamma    = 0;
       double DeltaStateFunction = 0;
       double DeltaPlasticStrain = 0;
-    
+
       double& rEquivalentPlasticStrainOld  = this->mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
 
-      const ModelDataType& rModelData        = rVariables.GetModelData();
-      const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
-      
-      const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-      const double& rPlasticStrainRate       = rMaterialProperties[PLASTIC_STRAIN_RATE];
+      const ModelDataType& rModelData      = rVariables.GetModelData();
+      const double& rDeltaTime             = rModelData.GetProcessInfo()[DELTA_TIME];
 
-      
+      const Properties& rProperties        = rModelData.GetProperties();
+      const double& rPlasticStrainRate     = rProperties[PLASTIC_STRAIN_RATE];
+
+
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = sqrt(3.0*0.5) * rPlasticStrainRate * rDeltaTime;
-           
+
       DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
       rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 
@@ -271,20 +271,20 @@ namespace Kratos
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
 	  rDeltaGamma += DeltaDeltaGamma;
-	       
+
 	  //Update Equivalent Plastic Strain:
 	  DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
 
 	  //alpha = CalculateLineSearch( rVariables, alpha );
-	  
+
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + alpha * DeltaPlasticStrain;
-	       	
+
 	  //Calculate State Function:
 	  StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
-	   
+
 
       if(iter>MaxIterations)
 	return false;
@@ -295,11 +295,11 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    
-    bool CalculateRateIndependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+
+    bool CalculateRateIndependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
-      
+
       //Set convergence parameters
       unsigned int iter    = 0;
       double Tolerance     = 1e-5;
@@ -309,19 +309,19 @@ namespace Kratos
       double DeltaDeltaGamma    = 0;
       double DeltaStateFunction = 0;
       double DeltaPlasticStrain = 0;
-    
+
       double& rEquivalentPlasticStrainOld  = this->mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = rVariables.Internal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 1e-40;  //this can not be zero (zig-zag in the iterative loop if is zero)
-    
+
       DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
       rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + DeltaPlasticStrain;
 
       double StateFunction     =  rVariables.TrialStateFunction;
-      
+
       double alpha = 1;
       while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
@@ -331,20 +331,20 @@ namespace Kratos
 	  //Calculate DeltaGamma:
 	  DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
 	  rDeltaGamma += DeltaDeltaGamma;
-	       
+
 	  //Update Equivalent Plastic Strain:
 	  DeltaPlasticStrain       = sqrt(2.0/3.0) * rDeltaGamma;
 
 	  //alpha = CalculateLineSearch( rVariables, alpha );
-	  
+
 	  rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + alpha * DeltaPlasticStrain;
-	       	
+
 	  //Calculate State Function:
 	  StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
 
 	  iter++;
 	}
-	   
+
 
       if(iter>MaxIterations)
 	return false;
@@ -354,10 +354,10 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -366,51 +366,51 @@ namespace Kratos
       const double& rEquivalentPlasticStrain     = rVariables.GetInternalVariables()[0];
       const double& rEquivalentPlasticStrainOld  = this->mPreviousInternal.Variables[0];
 
-      double& rDeltaGamma                        = rVariables.Internal.Variables[0];   
+      double& rDeltaGamma                        = rVariables.Internal.Variables[0];
       const double& rDeltaTime                   = rModelData.GetProcessInfo()[DELTA_TIME];
 
-   
+
       //1.-Computation of the plastic Multiplier
       rDeltaGamma = sqrt(3.0*0.5) * ( rEquivalentPlasticStrain - rEquivalentPlasticStrainOld );
-	
+
       //2.- Update back stress, plastic strain and stress
       this->UpdateStressConfiguration(rVariables,rStressMatrix);
 
       //3.- Calculate thermal dissipation and delta thermal dissipation
       if( rDeltaGamma > 0 ){
 
-	const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-	
-	const double& rPlasticStrainRate =rMaterialProperties[PLASTIC_STRAIN_RATE];
-  
+	const Properties& rProperties  = rModelData.GetProperties();
+
+	const double& rPlasticStrainRate =rProperties[PLASTIC_STRAIN_RATE];
+
 	double MaterialDeltaPlasticStrain = rPlasticStrainRate * rDeltaTime;
-	
+
 	//plastic rate region on
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,true);
-	rVariables.RateFactor=1; 
-	 
+	rVariables.RateFactor=1;
+
 	if( sqrt(2.0/3.0) * rDeltaGamma < MaterialDeltaPlasticStrain ){
 	  //plastic rate region off
 
 	  rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,false);
-	  rVariables.RateFactor=0; 
+	  rVariables.RateFactor=0;
 	}
 
 	this->CalculateImplexThermalDissipation( rVariables );
-	  
+
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_REGION,true);
-      
+
       }
       else{
-      
+
 	this->mThermalVariables.PlasticDissipation = 0;
 	this->mThermalVariables.DeltaPlasticDissipation = 0;
-      } 
-  
+      }
+
       KRATOS_CATCH(" ")
     }
 
- 
+
     double& CalculateLineSearch(PlasticDataType& rVariables, double& rAlpha)
     {
       KRATOS_TRY
@@ -430,35 +430,35 @@ namespace Kratos
 
       double& rEquivalentPlasticStrain     = rVariables.GetInternalVariables()[0];
       const double& rEquivalentPlasticStrainOld  = this->mPreviousInternal.Variables[0];
-      
+
       rEquivalentPlasticStrain = rEquivalentPlasticStrainOld + sqrt(2.0/3.0) * rDeltaGamma;
       StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
-	
+
       double R1 = sqrt(2.0/3.0) * rDeltaGamma * StateFunction;
 
       rAlpha = 1;
-	
+
       if(R0*R1<0){
-	
+
 	double R2 = R1;
-	
+
 	if(fabs(R1)<fabs(R0))
 	  R2=R0;
 	double R0start = R0;
-	
+
 
 	double nabla = 0;
 	double delta = 1;
-	
-	//if( Residual0 < StateFunction ){ 
-	
+
+	//if( Residual0 < StateFunction ){
+
 	while ( fabs(R2/R0start)>0.3 && iter<MaxIterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7 )
 	  {
 
 	    rAlpha = 0.5*(nabla+delta);
-	  
+
 	    rDeltaGamma *= rAlpha;
-	    
+
 	    rEquivalentPlasticStrain  = rEquivalentPlasticStrainOld + sqrt(2.0/3.0) * rDeltaGamma;
 
 	    StateFunction = this->mYieldSurface.CalculateStateFunction( rVariables, StateFunction );
@@ -479,27 +479,27 @@ namespace Kratos
 	    else{
 	      break;
 	    }
-	  
+
 	    iter++;
 	  }
 	//}
 
       }
-	
+
       rDeltaGamma = DeltaGamma;
 
       if( rAlpha != 1)
 	std::cout<<" [ LINE SEARCH: (Iterations: "<<iter<<", rAlpha: "<<rAlpha<<") ] "<<std::endl;
-	
-	
+
+
       if(rAlpha>1 || rAlpha<=0)
 	rAlpha=1;
-	
+
       return rAlpha;
 
       KRATOS_CATCH(" ")
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -525,8 +525,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -547,16 +547,16 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )  
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -580,11 +580,9 @@ namespace Kratos
   ///@{
 
   ///@}
-  
+
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTICITY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTICITY_MODEL_H_INCLUDED  defined

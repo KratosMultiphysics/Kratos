@@ -55,6 +55,10 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementVElement::ElementDataType ElementDataType;
 
     /// Counted pointer of UpdatedLagrangianVElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianVElement );
@@ -71,7 +75,7 @@ public:
     UpdatedLagrangianVElement(UpdatedLagrangianVElement const& rOther);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianVElement();
+    ~UpdatedLagrangianVElement() override;
 
     ///@}
     ///@name Operators
@@ -106,16 +110,12 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-  
-    // //************* GETTING METHODS
-
+    //************* GETTING METHODS
     //SET
-
     /**
      * Set a double  Value on the Element Constitutive Law
      */
     void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
 
     //GET:
 
@@ -124,10 +124,7 @@ public:
      */
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-
-
     //************* STARTING - ENDING  METHODS
-
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
@@ -156,7 +153,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Updated Lagrangian V Element #" << Id();
@@ -164,13 +161,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Updated Lagrangian V Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -187,12 +184,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Container for historical total stress vector measure 
-     */
-    std::vector< Vector > mStressVector;
-
-    
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
@@ -213,57 +204,41 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType& rVariables,
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, 
-				       const double& rPointNumber ) override;
+    void FinalizeStepVariables(ElementDataType & rVariables,
+                               const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const double& rPointNumber) override;
+    void CalculateKinematics(ElementDataType& rVariables,
+                             const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Jacobian
      */
-    void CalculateKinetics(ElementVariables& rVariables,
+    void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
-    
-
-    
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    void CalculateDeformationGradient(Matrix& rF,
-                                      const Matrix& rDN_DX,
-                                      const Matrix& rDeltaPosition);
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-				    const Matrix& rF,
-				    const Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -299,9 +274,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -321,4 +296,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_V_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_V_ELEMENT_H_INCLUDED  defined

@@ -8,7 +8,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ULFApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## generate variables with the sources
-set( KRATOS_ULF_APPLICATION_SOURCES     
+set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application_variables.cpp
 	
@@ -20,7 +20,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid_inc.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid3D_inc.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_fluid3D_inc.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_axisym.cpp
@@ -56,7 +56,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosULFApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosULFApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -78,4 +78,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ULFApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ULFApplication.py" DESTINATION "KratosMultiphysics/ULFApplication" RENAME "__init__.py")

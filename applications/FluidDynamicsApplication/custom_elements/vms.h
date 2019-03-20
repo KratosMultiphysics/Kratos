@@ -30,7 +30,6 @@
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "boost/make_shared.hpp"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -141,8 +140,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
@@ -514,7 +511,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -555,7 +552,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3,0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0.0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -1015,7 +1012,7 @@ protected:
     {
         double Coef = Density * Weight;
 
-        array_1d<double, 3 > BodyForce(3, 0.0);
+        array_1d<double, 3 > BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce, BODY_FORCE, rShapeFunc);
 
         // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
@@ -1047,7 +1044,7 @@ protected:
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        array_1d<double,3> MomProj(3,0.0);
+        array_1d<double,3> MomProj = ZeroVector(3);
         double DivProj = 0.0;
         this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
         this->EvaluateInPoint(DivProj,DIVPROJ,rShapeFunc);
@@ -1201,7 +1198,7 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, G, PDivV, L, qF; // Temporary results
 
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
@@ -1633,7 +1630,7 @@ protected:
         }
 
         // Element lengths
-        array_1d<double,3> Delta(3,0.0);
+        array_1d<double,3> Delta;
         Delta[0] = std::fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
         Delta[1] = std::fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
         Delta[2] = std::fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
@@ -1751,7 +1748,7 @@ protected:
         this->GetAdvectiveVel(AdvVel, N);
 
         // Output container
-        array_1d< double, 3 > ElementalMomRes(3, 0.0);
+        array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
 
         // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
         double TauOne;
@@ -1770,7 +1767,7 @@ protected:
 
         // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
         double ErrorRatio(0.0);//, UNorm(0.0);
-        //array_1d< double, 3 > UGauss(3, 0.0);
+        //array_1d< double, 3 > UGauss = ZeroVector(3);
         //this->EvaluateInPoint(UGauss,VELOCITY,N);
 
         for (unsigned int i = 0; i < TDim; ++i)

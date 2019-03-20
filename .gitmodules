@@ -1,3 +1,0 @@
-[submodule "applications/PfemApplication/external_modules/tetgen"]
-	path = applications/PfemApplication/external_modules/tetgen
-	url = https://github.com/PFEM/tetgen.git

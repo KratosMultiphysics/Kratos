@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 
-CheckRegisteredApplications("ExternalSolversApplication")
-
 def ConstructPreconditioner(configuration):
     if hasattr(configuration, 'preconditioner_type'):
         preconditioner_type = configuration.preconditioner_type
@@ -26,13 +24,17 @@ def ConstructPreconditioner(configuration):
 #
 def ConstructSolver(configuration):
 
+    depr_msg  = '"kratos/python_scripts/linear_solver_factory.py" is deprecated and will be removed\n'
+    depr_msg += 'Please use "kratos/python_scripts/python_linear_solver_factory.py" instead!'
+    Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+
     params = 0
     ##############################################################
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
     ###TODO: clean this up!!
     if(type(configuration) == Parameters):
-        import new_linear_solver_factory
-        return new_linear_solver_factory.ConstructSolver(configuration)
+        from KratosMultiphysics import python_linear_solver_factory
+        return python_linear_solver_factory.ConstructSolver(configuration)
         #solver_type = configuration["solver_type"].GetString()
 
         #import json
@@ -129,8 +131,7 @@ def ConstructSolver(configuration):
     #
     elif(solver_type == "Super LU" or solver_type == "Super_LU" or solver_type == "SuperLUSolver"):
         import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(
-        )
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
     #
     elif(solver_type == "SuperLUIterativeSolver"):
         import KratosMultiphysics.ExternalSolversApplication

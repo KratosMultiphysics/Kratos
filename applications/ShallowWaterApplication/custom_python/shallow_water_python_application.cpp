@@ -10,45 +10,49 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <pybind11/pybind11.h>
 
 
-// Project includes 
+// Project includes
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
-  
+
   PYBIND11_MODULE(KratosShallowWaterApplication, m)
   {
-    class_<KratosShallowWaterApplication, 
-        KratosShallowWaterApplication::Pointer, 
+    py::class_<KratosShallowWaterApplication,
+        KratosShallowWaterApplication::Pointer,
         KratosApplication>(m, "KratosShallowWaterApplication")
-        .def(init<>())
+        .def(py::init<>())
         ;
 
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     // Registering variables in python
     // Shallow water variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,BATHYMETRY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TOPOGRAPHY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RAIN);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FREE_SURFACE_ELEVATION);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MANNING);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TOPOGRAPHY_GRADIENT);
 
     // Specific variables for PFEM2
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MEAN_SIZE);
@@ -61,9 +65,9 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TIME_UNIT_CONVERTER)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_HEIGHT_UNIT_CONVERTER)
   }
-  
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

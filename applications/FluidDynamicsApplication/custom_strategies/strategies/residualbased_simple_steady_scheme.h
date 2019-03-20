@@ -246,15 +246,15 @@ public:
     //if orthogonal subscales are computed
     if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
 
-      if (rModelPart.GetCommunicator().MyPID() == 0)
-        std::cout << "Computing OSS projections" << std::endl;
+      KRATOS_INFO_IF("ResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+          << "Computing OSS projections" << std::endl;
 
       const int number_of_nodes = rModelPart.NumberOfNodes();
 
       #pragma omp parallel for
       for (int i = 0; i < number_of_nodes; i++) {
         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = array_1d<double,3>(3,0.0);
+        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
         it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
       }

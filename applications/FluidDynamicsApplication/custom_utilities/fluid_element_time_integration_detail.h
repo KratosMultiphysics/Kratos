@@ -30,8 +30,8 @@ public:
     static void AddTimeIntegratedSystem(
         FluidElement<TElementData>* pElement,
         TElementData& rData,
-        Matrix& rLHS,
-        Vector& rRHS);
+        Kratos::Matrix& rLHS,
+        Kratos::Vector& rRHS);
 };
 
 // For Standard data: Time integration is not available ///////////////////////////////////////////
@@ -42,8 +42,8 @@ public:
     static void AddTimeIntegratedSystem(
         FluidElement<TElementData>* pElement,
         TElementData& rData,
-        Matrix& rLHS,
-        Vector& rRHS)
+        Kratos::Matrix& rLHS,
+        Kratos::Vector& rRHS)
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Trying to use time-integrated element functions with a "
@@ -61,11 +61,11 @@ public:
     static void AddTimeIntegratedSystem(
         FluidElement<TElementData>* pElement,
         TElementData& rData,
-        Matrix& rLHS,
-        Vector& rRHS)
+        Kratos::Matrix& rLHS,
+        Kratos::Vector& rRHS)
     {
-        Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
-        Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
+        Kratos::Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
+        Kratos::Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
 
         pElement->AddVelocitySystem(rData,velocity_lhs,rRHS);
         pElement->AddMassLHS(rData,mass_matrix);

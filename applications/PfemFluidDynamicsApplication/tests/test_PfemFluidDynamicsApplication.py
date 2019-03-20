@@ -1,7 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.PfemApplication as PfemApplication
+import KratosMultiphysics.DelaunayMeshingApplication as DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 

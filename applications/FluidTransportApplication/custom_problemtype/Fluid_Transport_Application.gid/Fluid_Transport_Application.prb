@@ -23,8 +23,14 @@ VALUE: 1
 
 
 TITLE:Solver_Settings
-QUESTION: Solution_Type#CB#(Steady)
+QUESTION: Solution_Type#CB#(Steady,Transient)
 VALUE: Steady
+DEPENDENCIES: (Steady,HIDE,Newmark_Theta,#CURRENT#)(Transient,RESTORE,Newmark_Theta,#CURRENT#)
+QUESTION: Scheme#CB#(Explicit,Implicit)
+VALUE: Implicit
+DEPENDENCIES: (Explicit,HIDE,Newmark_Theta,1.0)(Implicit,RESTORE,Newmark_Theta,#CURRENT#)
+QUESTION: Newmark_Theta
+VALUE: 0.8
 QUESTION: Strategy_Type#CB#(Linear,Newton-Raphson)
 VALUE: Linear
 DEPENDENCIES: (Linear,HIDE,Convergence_Criterion,#CURRENT#,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#,HIDE,Max_Iterations,#CURRENT#)(Newton-Raphson,RESTORE,Convergence_Criterion,#CURRENT#,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#,RESTORE,Max_Iterations,#CURRENT#)
@@ -47,9 +53,9 @@ QUESTION: Move_Mesh#CB#(true,false)
 VALUE: false
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: true
-QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
-VALUE: SuperLUSolver
-HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+QUESTION: Solver_Type#CB#(skyline_lu_factorization,ExternalSolversApplication.super_lu,bicgstab,amgcl,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+VALUE: ExternalSolversApplication.super_lu
+HELP: OpenMP solvers: skyline_lu_factorization (Direct), ExternalSolversApplication.super_lu (Direct), bicgstab (Iter.) and amgcl (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false
 QUESTION: Verbosity
@@ -65,7 +71,22 @@ QUESTION: Write_Face_Heat_Flux#CB#(true,false)
 VALUE: false
 QUESTION: Write_Reactions#CB#(true,false)
 VALUE: false
-
+QUESTION: Write_Q_Source#CB#(true,false)
+VALUE: false
+QUESTION: Write_Peclet#CB#(true,false)
+VALUE: true
+QUESTION: Write_Courant#CB#(true,false)
+VALUE: true
+QUESTION: Write_FIC_Beta#CB#(true,false)
+VALUE: true
+QUESTION: Write_Analytic_Solution#CB#(true,false)
+VALUE: true
+QUESTION: Write_Phi_Gradient#CB#(true,false)
+VALUE: true
+QUESTION: Write_Nodal_Phi_Gradient#CB#(true,false)
+VALUE: true
+QUESTION: Write_Normals_Value#CB#(true,false)
+VALUE: true
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary

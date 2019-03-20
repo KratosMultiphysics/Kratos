@@ -9,11 +9,9 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 with open("optimization_parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
-# Defining the model_part
-optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
-optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
+model = Model()
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part)
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model)
 optimizer.Optimize()

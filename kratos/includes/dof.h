@@ -37,7 +37,10 @@ namespace Kratos
 
 #define KRATOS_DOF_TRAITS \
         KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0); \
-        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1);
+        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1); \
+        KRATOS_MAKE_DOF_TRAIT(2) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 4> > > KRATOS_END_DOF_TRAIT(2); \
+        KRATOS_MAKE_DOF_TRAIT(3) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 6> > > KRATOS_END_DOF_TRAIT(3); \
+        KRATOS_MAKE_DOF_TRAIT(4) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 9> > > KRATOS_END_DOF_TRAIT(4);
 
 
 
@@ -45,8 +48,6 @@ template<class TDataType, class TVariableType = Variable<TDataType> >
 struct DofTrait
 {
     static const int Id;
-
-
 };
 
 
@@ -595,7 +596,6 @@ private:
      */
     const VariableData* mpReaction;
 
-
     int mVariableType;
 
     int mReactionType;
@@ -617,7 +617,7 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
 
     TDataType const& GetReference(VariableData const& ThisVariable, VariablesListDataValueContainer const& rData, IndexType SolutionStepIndex, int ThisId) const
@@ -626,9 +626,8 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
-
 
     ///@}
     ///@name Serialization

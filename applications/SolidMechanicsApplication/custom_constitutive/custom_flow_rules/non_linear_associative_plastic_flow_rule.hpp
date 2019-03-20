@@ -70,9 +70,9 @@ namespace Kratos
 
     /// Assignment operator.
     NonLinearAssociativePlasticFlowRule& operator=(NonLinearAssociativePlasticFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~NonLinearAssociativePlasticFlowRule();
+    ~NonLinearAssociativePlasticFlowRule() override;
 
 
     ///@}
@@ -84,17 +84,17 @@ namespace Kratos
      * @return a pointer to a new instance of this flow rule
      */
     FlowRule::Pointer Clone() const override;
-   
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix ) override;
 
     void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
 
     bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
-    
+
 
     ///@}
     ///@name Access
@@ -136,7 +136,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -148,14 +148,14 @@ namespace Kratos
 
     double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm ) override;
 
-	  
+
     virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
 
 
     virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
 
 
-    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
+    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
 
 
     void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables );
@@ -164,7 +164,7 @@ namespace Kratos
     //implex protected methods
 
     virtual void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
- 
+
     void CalculateImplexThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
 
 
@@ -193,8 +193,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -275,6 +275,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

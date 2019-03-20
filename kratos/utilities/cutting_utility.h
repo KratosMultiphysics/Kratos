@@ -19,7 +19,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
 #include <boost/timer.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -165,7 +164,7 @@ public:
         DenseVector<array_1d<int, 2 > > Position_Node;
         DenseVector<int> List_New_Nodes;
 
-        compressed_matrix<int> Coord;
+		boost::numeric::ublas::compressed_matrix<int> Coord;
         ModelPart& this_model_part = mr_model_part;
         ModelPart& new_model_part = mr_new_model_part;
 
@@ -334,7 +333,7 @@ public:
     //LIST OF SUBROUTINES
 
 
-    void CSR_Row_Matrix_Mod(ModelPart& this_model_part, compressed_matrix<int>& Coord)
+    void CSR_Row_Matrix_Mod(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord)
     {
         NodesArrayType& pNodes = this_model_part.Nodes();
         Coord.resize(pNodes.size(), pNodes.size());
@@ -372,7 +371,7 @@ public:
 
     //************************************************************************************************
 
-    void FirstLoop(ModelPart& this_model_part, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp,
+    void FirstLoop(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp,
                    int number_of_triangles, DenseVector<int>&  Elems_In_Plane, double tolerance)//
     {
         //Xp is a random point that belongs to the cutting plane
@@ -515,14 +514,14 @@ public:
 
     ///************************************************************************************************
 
-    void Create_List_Of_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part, compressed_matrix<int>& Coord, DenseVector<int> &List_New_Nodes,
+    void Create_List_Of_New_Nodes_Mod(ModelPart& this_model_part, ModelPart& new_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord, DenseVector<int> &List_New_Nodes,
                                       DenseVector<array_1d<int, 2 > >& Position_Node) //plane number = 1 -- inf (but the first one should be always one!
     {
 
         unsigned int number_of_new_nodes = 0;
         //NodesArrayType& pNodes = this_model_part.Nodes();
-        typedef compressed_matrix<int>::iterator1 i1_t;
-        typedef compressed_matrix<int>::iterator2 i2_t;
+        typedef boost::numeric::ublas::compressed_matrix<int>::iterator1 i1_t;
+        typedef boost::numeric::ublas::compressed_matrix<int>::iterator2 i2_t;
 
         ///*WARNING
         for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
@@ -664,7 +663,7 @@ public:
     ///**********************************************************************************
 
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, DenseVector<int> Elems_In_Plane, boost::numeric::ublas::compressed_matrix<int>& Coord, array_1d<double, 3 > versor, int plane_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;

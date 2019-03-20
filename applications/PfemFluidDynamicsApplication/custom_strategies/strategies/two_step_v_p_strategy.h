@@ -17,7 +17,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -207,11 +207,11 @@ public:
             if (ierr != 0) break;
         }
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-        {
-            ierr = itCond->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
-        }
+        /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
+        /* { */
+        /*     ierr = itCond->Check(rCurrentProcessInfo); */
+        /*     if (ierr != 0) break; */
+        /* } */
 
         return ierr;
 
@@ -289,6 +289,9 @@ public:
 
 	      break;
 	    }
+     	  if( fixedTimeStep==true){
+	    break;
+	  } 
 
 	}
 
@@ -320,10 +323,10 @@ public:
     {
       KRATOS_TRY;
 
-      this->CalculateDisplacements();
+      this->CalculateDisplacementsAndPorosity();
       BaseType::MoveMesh();
-      BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
+      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
       KRATOS_CATCH("");
 
@@ -370,8 +373,70 @@ public:
 	    double & PreviousPressureVelocity     = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1);
 	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
 	    CurrentPressureAcceleration = (CurrentPressureVelocity-PreviousPressureVelocity)/timeInterval;
+	  }
+
+        }
+    }
+
+    virtual void CalculateTemporalVariables()
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+      for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+	   i != rModelPart.NodesEnd(); ++i)
+        {
+
+	  array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+	  array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+
+	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+
+	  /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
+	  if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
+	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
+	  }else if((i)->Is(RIGID)){
+	    array_1d<double, 3>  Zeros(3,0.0);
+	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
+	    (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
+	  }else {
+	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+	      array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	      (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
+	      (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+	    }
+	  }
+
+	  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+	  unsigned int timeStep = rCurrentProcessInfo[STEP];
+	  if(timeStep==1){
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1)=0;
+	  }else{
+	    double  & CurrentPressure      = (i)->FastGetSolutionStepValue(PRESSURE, 0);
+	    double  & PreviousPressure     = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+	    double  & CurrentPressureVelocity  = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
+	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
+
+	    CurrentPressureAcceleration = CurrentPressureVelocity/timeInterval;
+
+	    CurrentPressureVelocity = (CurrentPressure-PreviousPressure)/timeInterval;
+
+	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
 
 	  }
+
+
         }
     }
 
@@ -429,7 +494,7 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacements()
+  virtual void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -446,14 +511,15 @@ public:
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
+	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+	  CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
+	  CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
+	  // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
     }
 
@@ -478,9 +544,11 @@ public:
 
      }
 
-     this->CalculateAccelerations();
-     this->CalculatePressureVelocity();
-     this->CalculatePressureAcceleration();
+     /* this->CalculateAccelerations(); */
+     /* this->CalculatePressureVelocity(); */
+     /* this->CalculatePressureAcceleration(); */
+
+     this->CalculateTemporalVariables();
 
    }
 
@@ -514,7 +582,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TwoStepVPStrategy" ;
@@ -522,10 +590,16 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "TwoStepVPStrategy";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "TwoStepVPStrategy";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override
+    {
+
+    }
 
 
     ///@}
@@ -624,12 +698,17 @@ protected:
 
       double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
+
+      unsigned int iterationForCheck=3;
+
       // Check convergence
       if(it==maxIt-1){
 
         KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
 	fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
+      }else if(it>iterationForCheck){
+	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -821,6 +900,45 @@ protected:
       return fixedTimeStep;
     }
 
+
+
+
+    bool CheckMomentumConvergence(const double DvErrorNorm)
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double minTolerance=0.99999;
+      bool fixedTimeStep=false;
+
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+      	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,true);
+	      std::cout<< "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: "<<DvErrorNorm<<" higher than 0.9999"<< std::endl;
+	      std::cout<< "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+	      fixedTimeStep=true;
+#pragma omp parallel
+	  {
+	      ModelPart::NodeIterator NodeBegin;
+	      ModelPart::NodeIterator NodeEnd;
+	      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+	      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+	      	itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+	      	itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+		      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+	      }
+	  }
+      }else{
+	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+      }
+      return fixedTimeStep;
+    }
+
+
+
    bool FixTimeStepContinuity(const double DvErrorNorm)
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
@@ -866,7 +984,6 @@ protected:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -912,7 +1029,7 @@ private:
     ///@{
 
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig)
+    virtual void InitializeStrategy(SolverSettingsType& rSolverConfig)
     {
         KRATOS_TRY;
 

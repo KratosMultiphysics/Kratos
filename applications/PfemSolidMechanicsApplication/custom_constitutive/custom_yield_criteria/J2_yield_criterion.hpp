@@ -46,7 +46,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class J2YieldCriterion
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) J2YieldCriterion
 	: public YieldCriterion 
 {
     public:

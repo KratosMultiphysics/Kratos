@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MisesHuberYieldSurface : public YieldSurface<THardeningRule>
+  class MisesHuberYieldSurface : public YieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions
@@ -61,7 +61,7 @@ namespace Kratos
     typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
-    
+
     /// Pointer definition of MisesHuberYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldSurface );
 
@@ -71,7 +71,7 @@ namespace Kratos
 
     /// Default constructor.
     MisesHuberYieldSurface() : BaseType() {}
-   
+
     /// Copy constructor.
     MisesHuberYieldSurface(MisesHuberYieldSurface const& rOther) : BaseType(rOther) {}
 
@@ -81,22 +81,22 @@ namespace Kratos
       BaseType::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MisesHuberYieldSurface(*this));
+      return Kratos::make_shared<MisesHuberYieldSurface>(*this);
     }
-    
+
     /// Destructor.
-    virtual ~MisesHuberYieldSurface() {}
+    ~MisesHuberYieldSurface() override {}
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -105,7 +105,7 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
 
@@ -114,44 +114,44 @@ namespace Kratos
       const double& rStressNorm = rVariables.GetStressNorm();
 
       Hardening = this->mHardeningRule.CalculateHardening(rVariables,Hardening);
-     
+
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
-		
+
       return rYieldCondition;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function
      */
 
-    virtual double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
     {
       KRATOS_TRY
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-    
+
       const double& rStressNorm = rVariables.GetStressNorm();
-    
+
       const double& rDeltaGamma = rVariables.GetDeltaInternalVariables()[0];
-    
+
       double Hardening = 0;
-		
+
       Hardening = this->mHardeningRule.CalculateHardening( rVariables, Hardening );
 
       rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
-		
+
       return rStateFunction;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function derivative
      */
 
-    virtual double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
 
@@ -162,17 +162,17 @@ namespace Kratos
       DeltaHardening = this->mHardeningRule.CalculateDeltaHardening( rVariables, DeltaHardening );
 
       rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
-		
+
       return rDeltaStateFunction;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation
      */
 
-    virtual double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -181,12 +181,12 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation derivative
      */
-    
-    virtual double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+
+    double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -199,34 +199,34 @@ namespace Kratos
      * Calculate Implex Plastic Dissipation
      */
 
-    virtual double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
       rPlasticDissipation = 0;
       return rPlasticDissipation;
-    
+
       KRATOS_CATCH(" ")
-    }      
-    
+    }
+
     /**
      * Calculate Implex Plastic Dissipation derivative
      */
-    
-    virtual double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+
+    double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
-      
+
       rDeltaPlasticDissipation = 0;
       return rDeltaPlasticDissipation;
 
       KRATOS_CATCH(" ")
     }
-          
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -238,7 +238,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "YieldSurface" ;
@@ -246,13 +246,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "MisesHuberYieldSurface";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "MisesHuberYieldSurface Data";
     }
@@ -273,8 +273,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -326,22 +326,22 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
-    
-    virtual void load(Serializer& rSerializer) override
+
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -372,6 +372,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED  defined

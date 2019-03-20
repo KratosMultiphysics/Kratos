@@ -1,9 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        			KratosDamApplication $
-//   Last Modified by:    $Author:    	  Lorenzo Gracia $
-//   Date:                $Date:           	January 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Lorenzo Gracia
+//
+
 
 #if !defined(KRATOS_UP_CONDITION_H_INCLUDED )
 #define  KRATOS_UP_CONDITION_H_INCLUDED
@@ -18,7 +24,7 @@
 #include "includes/process_info.h"
 
 // Application includes
-#include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/poro_condition_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos

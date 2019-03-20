@@ -22,7 +22,7 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
 //Data:
@@ -107,6 +107,7 @@ public:
       {
 	// count++;
 	i_node->Set(INLET);
+	i_node->Set(RIGID);
 	// std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
         // i_node->Set(RIGID);
 	// std::cout<<count<<".  "<<i_node->X()<<std::endl;
@@ -169,7 +170,7 @@ private:
     ///@{
     ModelPart& mrModelPart;
 
-    ModelerUtilities mModelerUtilities;
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 

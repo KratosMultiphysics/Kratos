@@ -29,18 +29,21 @@
     "constraints_process_list" : [{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
         "value"           : [0.0,0.0,0.0],
-        "interval"        : [0.0,2.49]        
+        "interval"        : [0.0,2.49]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
-        "value"           : ["current","current","current"],
-        "interval"        : [2.5,5.0]
+        "value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
+	"interval"        : [2.5,5.0]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto4",
-        "value"           : ["current","current","current"],
+	"value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
         "interval"        : [5.01,7.5]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto5",
-	"value"           : ["current","current","current"],
+	"value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
         "interval"        : [7.51,10]
     }],
     "loads_process_list"       : [{

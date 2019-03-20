@@ -2,12 +2,6 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
-import KratosMultiphysics.HDF5Application as KHdf5
-import KratosMultiphysics.AdjointFluidApplication as KAdjoint
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
@@ -19,15 +13,15 @@ class AdjointFluidAnalysis(AnalysisStage):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
         if not solver_settings.Has("domain_size"):
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
+            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name"):
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
+            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
-        
+
         if not parameters["problem_data"].Has("end_time"):
             parameters["problem_data"].AddEmptyValue("end_time")
             parameters["problem_data"]["end_time"].SetDouble( \
@@ -42,26 +36,18 @@ class AdjointFluidAnalysis(AnalysisStage):
                             )
         self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
 
-        self.is_printing_rank = True
-        ## Import parallel modules if needed
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication        
-            self.is_printing_rank = (mpi.rank == 0)
-
         super(AdjointFluidAnalysis, self).__init__(model, parameters)
-    
+
     def Initialize(self):
-        super(self.__class__, self).Initialize()
+        super(AdjointFluidAnalysis, self).Initialize()
 
         # dummy time step to correctly calculate DELTA_TIME
         self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_adjoint_fluid
-        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)            
-    
+        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
+
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
@@ -75,7 +61,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -87,14 +73,14 @@ class AdjointFluidAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the gid-output, this will be removed!")
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:
             raise NameError("wrong parameter name")
 
         return list_of_processes
-    
+
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
@@ -106,7 +92,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                 self.project_parameters["output_configuration"])
 
-        return output 
+        return output
 
     def RunSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time
@@ -125,7 +111,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                 "boundary_conditions_process_list",
                 "auxiliar_process_list"]
 
-    def _GetSimulationName(self):            
+    def _GetSimulationName(self):
         return self.__class__.__name__
 
 if __name__ == '__main__':

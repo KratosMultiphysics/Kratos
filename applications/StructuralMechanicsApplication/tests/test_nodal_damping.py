@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,16 +9,15 @@ from math import sqrt, atan, cos, exp
 class NodalDampingTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)        
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
-        
+
     def _solve(self,mp):
-        
+
         #define a minimal newton raphson dynamic solver
         damp_factor_m = -0.01
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
@@ -27,22 +26,22 @@ class NodalDampingTests(KratosUnittest.TestCase):
         # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
-        
+
         max_iters = 20
         compute_reactions = False
         reform_step_dofs = True
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        linear_solver,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
                                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
@@ -62,9 +61,11 @@ class NodalDampingTests(KratosUnittest.TestCase):
             mp.CloneTimeStep(time)
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-   
+
     def test_nodal_damping(self):
-        mp = KratosMultiphysics.ModelPart("sdof")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("sdof")
+
         self._add_variables(mp)
 
         #create node
@@ -113,7 +114,7 @@ class NodalDampingTests(KratosUnittest.TestCase):
             self._solve(mp)
             current_analytical_displacement_y = A * cos(omega_D*time+theta) * exp(-delta*time)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0),current_analytical_displacement_y,delta=1e-3)
-            
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FSIApplication")
-
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 
@@ -49,7 +46,7 @@ def CreateTrilinosConvergenceAccelerator(interface_model_part, epetra_communicat
         raise Exception("Third input in Trilinos convergence accelerator factory is expected to be provided as a Kratos Parameters object.")
 
     convergence_accelerator_type = configuration["solver_type"].GetString()
-    
+
     if(convergence_accelerator_type == "Relaxation"):
         return KratosTrilinos.TrilinosAitkenConvergenceAccelerator(configuration)
 

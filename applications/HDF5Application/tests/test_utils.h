@@ -118,6 +118,24 @@ HDF5::File GetTestFile();
 
 HDF5::FileSerial GetTestSerialFile();
 
+/// Silences HDF5 stderr messages for duration of local scope.
+class H5_stderr_muter
+{
+    H5E_auto2_t old_func;
+    void* old_client_data;
+
+public:
+    H5_stderr_muter()
+    {
+        H5Eget_auto(H5E_DEFAULT, &old_func, &old_client_data);
+        H5Eset_auto(H5E_DEFAULT, NULL, NULL);
+    }
+    ~H5_stderr_muter()
+    {
+        H5Eset_auto(H5E_DEFAULT, old_func, old_client_data);
+    }
+};
+
 } // namespace Testing
 } // namespace Kratos.
 

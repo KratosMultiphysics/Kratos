@@ -16,9 +16,8 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -1549,7 +1548,7 @@ void IsotropicShellElement::CalculateProjectionOperator(
     rho(14,0) = 1.0/y31;
 
     //completing the calculation of the projections
-    noalias(rProjOperator) = IdentityMatrix(18,18);
+    noalias(rProjOperator) = IdentityMatrix(18);
     //noalias(rProjOperator) -= prod(trans(psi),rho);
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
@@ -1621,7 +1620,7 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
 
         double temp = 1.0/(1.0 + 0.25*omega_scalar_2);
 
-        noalias(Ttilde) = IdentityMatrix(3,3);
+        noalias(Ttilde) = IdentityMatrix(3);
         noalias(Ttilde) += temp * Omega;
         noalias(Ttilde) += 0.5*temp * prod( Omega, Omega);
 
@@ -1656,9 +1655,9 @@ void IsotropicShellElement::SaveOriginalReference(
     }
 
     //initializing nodal triad matrices
-    noalias(mTs[0]) = IdentityMatrix(3,3);
-    noalias(mTs[1]) = IdentityMatrix(3,3);
-    noalias(mTs[2]) = IdentityMatrix(3,3);
+    noalias(mTs[0]) = IdentityMatrix(3);
+    noalias(mTs[1]) = IdentityMatrix(3);
+    noalias(mTs[2]) = IdentityMatrix(3);
 
 
     KRATOS_CATCH( "" )
@@ -1698,11 +1697,11 @@ void IsotropicShellElement::CalculatePureDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //extract pure rotations from Omega
@@ -1765,11 +1764,11 @@ void IsotropicShellElement::CalculatePureMembraneDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1828,11 +1827,11 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
         noalias(Ttilde) = prod(trans(TE),temp);
 
         //calculate Omega = 2.0*(T-I)*(T+I)^-1
-        noalias(aux) = IdentityMatrix(3,3);
+        noalias(aux) = IdentityMatrix(3);
         noalias(aux) += Ttilde;
         InvertMatrix(aux,temp,aaa); //now temp contains the inverse
         noalias(aux) = Ttilde;
-        noalias(aux) -= IdentityMatrix(3,3);
+        noalias(aux) -= IdentityMatrix(3);
         noalias(Omega) = 2.0 * prod(aux,temp);
 
         //node pos in the current config
@@ -1865,7 +1864,7 @@ void IsotropicShellElement::InvertMatrix(const BoundedMatrix<double,3,3>& InputM
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-        InvertedMatrix.resize(3,3);
+        InvertedMatrix.resize(3,3, false);
 
     //filling the inverted matrix with the algebraic complements
     //first column
@@ -2017,9 +2016,9 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
     CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,area);
 
-    double h = GetProperties()[THICKNESS];
-    double density = GetProperties()[DENSITY];
-    double node_mass = area * density * h / 3.00;
+    const double h = GetProperties()[THICKNESS];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double node_mass = area * density * h / 3.00;
 
     //lumped
     unsigned int MatSize = 18;

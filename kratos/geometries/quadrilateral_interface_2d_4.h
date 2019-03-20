@@ -383,15 +383,6 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 4)
-           rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
-
     ///@}
     ///@name Information
     ///@{
@@ -492,7 +483,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -501,7 +492,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         rResult.clear();
 
@@ -614,7 +605,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
@@ -1122,7 +1113,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 

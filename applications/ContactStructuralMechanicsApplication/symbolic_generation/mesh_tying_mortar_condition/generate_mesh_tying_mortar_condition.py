@@ -12,22 +12,23 @@ mode = "c" #to output to a c++ file
 
 impose_partion_of_unity = False
 
-dim_combinations = [2,2,2,2,3,3,3,3]
-nnodeselement_combinations = [3,3,4,4,4,4,8,8]
-tensor_combinations = [1,2,1,2,1,3,1,3]
+dim_combinations = [2,2,2,2,3,3,3,3,3,3,3,3]
+nnodeselement_combinations = [3,3,4,4,4,4,8,8,4,4,8,8]
+nnodeselement_master_combinations = [3,3,4,4,4,4,8,8,8,8,4,4]
+tensor_combinations = [1,2,1,2,1,3,1,3,1,3,1,3]
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalLHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const IndexType rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::CalculateLocalLHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
 lhs_template_end_string = "\n}\n"
 
 rhs_string = ""
 
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const IndexType rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const BoundedMatrix<double, NumNodes, TTensor> u2 = rDofData.u2;\n\n    const BoundedMatrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLocalRHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const BoundedMatrix<double, NumNodesMaster, TTensor> u2 = rDofData.u2;\n\n    const BoundedMatrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
 rhs_template_end_string = "\n}\n"
 
-for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinations, tensor_combinations):
+for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nnodeselement_combinations, nnodeselement_master_combinations, tensor_combinations):
 
     if ((nnodeselement == 3) or (dim == 2 and nnodeselement == 4)):
         nnodes =  2
@@ -37,27 +38,35 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
         else:
             nnodes = 4
 
-    number_dof = tensor * (3 * nnodes)
+    if ((nnodeselement_master == 3) or (dim == 2 and nnodeselement_master == 4)):
+        nnodes_master =  2
+    else:
+        if (nnodeselement_master == 4):
+            nnodes_master = 3
+        else:
+            nnodes_master = 4
+
+    number_dof = tensor * (nnodes_master + 2 * nnodes)
 
     #Defining the unknowns
     u1 = DefineMatrix('u1',nnodes,tensor) #u1(i,j) is displacement of node i component j at domain 1
-    u2 = DefineMatrix('u2',nnodes,tensor) #u2(i,j) is displacement of node i component j at domain 2
+    u2 = DefineMatrix('u2',nnodes_master,tensor) #u2(i,j) is displacement of node i component j at domain 2
     lm = DefineMatrix('lm',nnodes,tensor)
 
     # Define test functions
     w1 = DefineMatrix('w1',nnodes,tensor)
-    w2 = DefineMatrix('w2',nnodes,tensor)
+    w2 = DefineMatrix('w2',nnodes_master,tensor)
     wlm = DefineMatrix('wlm',nnodes, tensor)
 
     DOperator = DefineMatrix('DOperator',nnodes,nnodes)
-    MOperator = DefineMatrix('MOperator',nnodes,nnodes)
+    MOperator = DefineMatrix('MOperator',nnodes,nnodes_master)
 
     # Define dofs & test function vector
     dofs = Matrix( zeros(number_dof, 1) )
     testfunc = Matrix( zeros(number_dof, 1) )
     count = 0
 
-    for i in range(0,nnodes):
+    for i in range(0,nnodes_master):
         for k in range(0,tensor):
             dofs[count] = u2[i,k]
             testfunc[count] = w2[i,k]
@@ -119,6 +128,7 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     rhs_string += rhs_template_end_string
 
     lhs_string = lhs_string.replace("TDim", str(dim))
+    lhs_string = lhs_string.replace("TNumNodesElemMaster", str(nnodeselement_master))
     lhs_string = lhs_string.replace("TNumNodesElem", str(nnodeselement))
     if (tensor == 1):
         lhs_string = lhs_string.replace("TTensor", "ScalarValue")
@@ -126,10 +136,12 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
         lhs_string = lhs_string.replace("TTensor", "Vector2DValue")
     elif (tensor == 3):
         lhs_string = lhs_string.replace("TTensor", "Vector3DValue")
+    lhs_string = lhs_string.replace("NumNodesMaster", str(nnodes_master))
     lhs_string = lhs_string.replace("NumNodes", str(nnodes))
     lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
 
     rhs_string = rhs_string.replace("TDim", str(dim))
+    rhs_string = rhs_string.replace("TNumNodesElemMaster", str(nnodeselement_master))
     rhs_string = rhs_string.replace("TNumNodesElem", str(nnodeselement))
     if (tensor == 1):
         rhs_string = rhs_string.replace("TTensor", "ScalarValue")
@@ -137,6 +149,7 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
         rhs_string = rhs_string.replace("TTensor", "Vector2DValue")
     elif (tensor == 3):
         rhs_string = rhs_string.replace("TTensor", "Vector3DValue")
+    rhs_string = rhs_string.replace("NumNodesMaster", str(nnodes_master))
     rhs_string = rhs_string.replace("NumNodes", str(nnodes))
     rhs_string = rhs_string.replace("MatrixSize", str(rhs.shape[0]))
     lhs_string = lhs_string.replace("lhs(", "rLocalLHS(")

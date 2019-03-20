@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import MainFluidPFEM
+from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -33,8 +33,8 @@ class TestFactory(KratosUnittest.TestCase):
             if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-            self.test = MainFluidPFEM.Solution(self.file_parameters)
-            #self.test = MainFluidPFEM.Solution(self.file_parameters,self.file_name)
+            model= KratosMultiphysics.Model()
+            self.test = PfemFluidDynamicsAnalysis(model,ProjectParameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

@@ -72,7 +72,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 
         /// Destructor.
-        virtual ~ModifiedMisesYieldCriterion();
+        ~ModifiedMisesYieldCriterion() override;
 
 
         ///@}
@@ -90,8 +90,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@{
 
         double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables) override;
-        
-        
+
+
         double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables) override;
 
 
@@ -100,7 +100,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -126,8 +126,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -136,7 +136,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@}
         ///@name Protected Operations
         ///@{
-        
+
         ///@}
         ///@name Protected  Access
         ///@{
@@ -178,7 +178,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -219,4 +219,4 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED  defined
