@@ -106,7 +106,7 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
             convergence_boolean = True
     # TODO: check if this convergence criteria coincides with the first
     elif(convergence_criteria == "total_error_stopping_rule"):
-        cphi_confidence = norm.ppf(current_delta)
+        cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
         statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
         bias = 0.0 # hypothesis bias = 0 since we can't compute
         total_error = bias + statistical_error
