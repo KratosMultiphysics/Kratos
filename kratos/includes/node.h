@@ -768,8 +768,7 @@ public:
         typename DofsContainerType::const_iterator it_end = mDofs.end();
         typename DofsContainerType::const_iterator it;
         // If the guess is exact return the guess
-        const IndexType distance = it_end - it_begin;
-        if(Position < distance) {
+        if(Position < it_end-it_begin) {
             it = it_begin + Position;
             if( (it)->GetVariable() == rDofVariable) {
                 return *it;
@@ -791,12 +790,11 @@ public:
      * @brief Faster get with very simple and plain check in debug, in release it is direct
      * @param Position Position of the DoF
      */
-    inline const DofType& FastGetDof(const IndexType Position) const
+    inline const DofType& GetDof(const IndexType Position) const
     {
     #ifdef KRATOS_DEBUG
         // We do a check, otherwise throws an error
-        const IndexType distance = mDofs.end() - mDofs.begin();
-        if(Position < distance) {
+        if(Position < mDofs.end() - mDofs.begin()) {
             typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
             return *it;
         } else {

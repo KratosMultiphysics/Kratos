@@ -75,35 +75,5 @@ namespace Kratos {
         KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_node->FastGetSolutionStepValue(VELOCITY_Z), 0.00);
         KRATOS_CHECK(p_clone_of_node->Is(ACTIVE));
     }
-
-    /**
-     *  Here the GetDof position
-     */
-    KRATOS_TEST_CASE_IN_SUITE(NodeGetDofPosition, KratosCoreFastSuite)
-    {
-        Model current_model;
-        ModelPart& model_part = current_model.CreateModelPart("test");
-        model_part.AddNodalSolutionStepVariable(VELOCITY);
-
-        auto p_node = model_part.CreateNewNode(1, 1., 0, 0);
-        p_node->AddDof(VELOCITY_X);
-        p_node->AddDof(VELOCITY_Y);
-        p_node->AddDof(VELOCITY_Z);
-
-        // GetDofPosition
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_X), 0);
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_Y), 1);
-        KRATOS_CHECK_EQUAL(p_node->GetDofPosition(VELOCITY_Z), 2);
-
-        // GetDof with position
-        KRATOS_CHECK((p_node->GetDof(VELOCITY_X, 0)).GetVariable() == VELOCITY_X);
-        KRATOS_CHECK((p_node->GetDof(VELOCITY_Y, 1)).GetVariable() == VELOCITY_Y);
-        KRATOS_CHECK((p_node->GetDof(VELOCITY_Z, 2)).GetVariable() == VELOCITY_Z);
-
-        // GetDof with position not check
-        KRATOS_CHECK((p_node->FastGetDof(0)).GetVariable() == VELOCITY_X);
-        KRATOS_CHECK((p_node->FastGetDof(1)).GetVariable() == VELOCITY_Y);
-        KRATOS_CHECK((p_node->FastGetDof(2)).GetVariable() == VELOCITY_Z);
-    }
 }  // namespace Testing.
 }  // namespace Kratos.
