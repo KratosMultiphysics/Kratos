@@ -913,7 +913,7 @@ public:
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            KRATOS_WARNING_IF("Triangle3D3", std::abs(distance) > 1.0e-6 * Length()) << "The point of coordinates X: " << rPoint.X() << "\tY: " << rPoint.Y() << "\tZ: " << rPoint.Z() << " it is in a distance: " << std::abs(distance) << std::endl;
+            KRATOS_WARNING_IF("Triangle3D3", std::abs(distance) > 1.0e-6 * Length()) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
 
             // Not in the plane, but allowing certain distance, projecting
             noalias(point_projected) = rPoint - normal * distance;
