@@ -569,6 +569,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater(); /// TODO: Move to ImplicitBaseType
+
     /**
      * @brief The Bossak Alpha components
      */
@@ -768,8 +770,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     ///@}
     ///@name Private Operators
