@@ -146,6 +146,87 @@ public:
     ///@{
 
     /**
+     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        BDFBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
+        // Getting position
+        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
+        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
+        const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
+        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
+        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
+        const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
+
+        bool fixed_x, fixed_y, fixed_z;
+
+        #pragma omp parallel for private(fixed_x, fixed_y, fixed_z)
+        for(int i = 0;  i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
+
+            fixed_x = false;
+            fixed_y = false;
+            fixed_z = false;
+
+            if (accelpos_x > -1) {
+                if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
+                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                    fixed_x = true;
+                }
+            }
+            if (velpos_x > -1 && !fixed_x) {
+                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !fixed_x) {
+                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                }
+            }
+            if (accelpos_y > -1) {
+                if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
+                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                    fixed_y = true;
+                }
+            }
+            if (velpos_y > -1 && !fixed_y) {
+                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !fixed_y) {
+                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                }
+            }
+            if (accelpos_z > -1) {
+                if (it_node->GetDof(ACCELERATION_Z, accelpos_z).IsFixed()) {
+                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                    fixed_z = true;
+                }
+            }
+            if (velpos_z > -1 && !fixed_z) {
+                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !fixed_z) {
+                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                }
+            }
+        }
+
+        KRATOS_CATCH("ResidualBasedBDFDisplacementScheme.InitializeSolutionStep");
+    }
+
+    /**
      * @brief Performing the prediction of the solution
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
@@ -393,21 +474,10 @@ protected:
      */
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
-        array_1d<double, 3> auxiliar_dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(auxiliar_dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
-
-        // We check if the dofs are fixed
         array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
-        if (!itNode->IsFixed(VELOCITY_X)) {
-            dotun0[0] = auxiliar_dotun0[0];
-        }
-        if (!itNode->IsFixed(VELOCITY_Y)) {
-            dotun0[1] = auxiliar_dotun0[1];
-        }
-        if (!itNode->IsFixed(VELOCITY_Z)) {
-            dotun0[2] = auxiliar_dotun0[2];
-        }
+        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
     }
 
     /**
@@ -416,21 +486,10 @@ protected:
      */
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
-        array_1d<double, 3> auxiliar_dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(auxiliar_dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
-
-        // We check if the dofs are fixed
         array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        if (!itNode->IsFixed(ACCELERATION_X)) {
-            dot2un0[0] = auxiliar_dot2un0[0];
-        }
-        if (!itNode->IsFixed(ACCELERATION_Y)) {
-            dot2un0[1] = auxiliar_dot2un0[1];
-        }
-        if (!itNode->IsFixed(ACCELERATION_Z)) {
-            dot2un0[2] = auxiliar_dot2un0[2];
-        }
+        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
+        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
     }
 
     ///@}
