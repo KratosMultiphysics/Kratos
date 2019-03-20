@@ -8,8 +8,7 @@ def Create(model, cosim_solver_settings):
 
 class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
     def SolveSolutionStep(self):
-        for solver_name in self.solver_names:
-            solver = self.participating_solvers[solver_name]
+        for solver_name, solver in self.participating_solvers.items():
             self._SynchronizeInputData(solver, solver_name)
             solver.SolveSolutionStep()
             self._SynchronizeOutputData(solver, solver_name)
