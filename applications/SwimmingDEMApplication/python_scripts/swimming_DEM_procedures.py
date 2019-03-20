@@ -240,6 +240,7 @@ class IOTools:
                                     "VELOCITY": VELOCITY,
                                     "BUOYANCY": BUOYANCY,
                                     "DRAG_FORCE": DRAG_FORCE,
+                                    "LIFT_FORCE": LIFT_FORCE,
                                     "MU": MU}
 
             for node in model_part.Nodes:

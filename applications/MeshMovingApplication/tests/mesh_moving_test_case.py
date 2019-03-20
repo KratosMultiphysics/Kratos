@@ -9,6 +9,9 @@ class MeshMovingAnalysisForTesting(MeshMovingAnalysis):
     def __init__(self, model, project_parameters, mesh_vel_calc_helper):
         super(MeshMovingAnalysisForTesting, self).__init__(model, project_parameters)
         self.mesh_vel_calc_helper = mesh_vel_calc_helper
+        # Variables needed for the mesh-velocity-calculation
+        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
+        self.model["MainModelPart"].AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
 
     def RunSolutionLoop(self):
         """custom to also compute the mesh-velocities"""
@@ -56,6 +59,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         solver_settings = self.project_parameters["solver_settings"]
 
         solver_settings["domain_size"].SetInt(self.domain_size)
+        solver_settings["buffer_size"].SetInt(KM.GetMinimumBufferSize(self.mesh_vel_calc_helper))
         solver_settings["solver_type"].SetString(self.solver_type)
         input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test".format(self.__GetElementTopology()))
         solver_settings["model_import_settings"]["input_filename"].SetString(input_file_name)
@@ -65,7 +69,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         result_file_name = os.path.join("test_results", self.__GetProblemName()+"_results.json")
         if self.print_reference_results:
             warn_msg  = 'The test "{}" is configured for writing reference results\n'.format(self.__GetProblemName())
-            warn_msg += 'This is on for setting up the test, the results are NOT checked!'
+            warn_msg += 'This is only for setting up the test, the results are NOT checked!'
             KM.Logger.PrintWarning("WARNING MeshMovingTestCase", warn_msg)
             processes.AddValue("json_output", KM.Parameters("""[{
                 "python_module" : "json_output_process",

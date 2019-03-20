@@ -8,6 +8,7 @@
     },
     "solver_settings" : {
         "domain_size"     : -1,
+        "buffer_size"     : -1,
         "echo_level"      : 0,
         "model_part_name" : "MainModelPart",
         "solver_type"     : "UNSET",
@@ -19,7 +20,8 @@
         },
         "time_stepping" : {
             "time_step" : 0.1
-        }
+        },
+        "calculate_mesh_velocities" : false
     },
     "processes" : {
         "boundary_conditions_process_list" : [{
