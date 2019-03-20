@@ -25,9 +25,9 @@ if __name__ == '__main__':
     # customize setting parameters of the MC simulation"""
     settings_MC_simulation = KratosMultiphysics.Parameters("""
     {
-        "tolerance"  : 0.1,
+        "tolerance"  : 0.001,
         "confidence" : 0.9,
-        "batch_size" : 20,
+        "batch_size" : 5,
         "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
     }
     """)

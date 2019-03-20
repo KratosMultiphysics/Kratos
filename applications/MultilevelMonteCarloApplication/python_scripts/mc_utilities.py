@@ -115,7 +115,9 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
     else:
         convergence_boolean = False
         raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
-    return convergence_boolean
+    cphi_confidence = norm.ppf(1.0 - current_delta)
+    statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+    return convergence_boolean,statistical_error
 
 
 """
@@ -222,6 +224,7 @@ class MonteCarlo(object):
         self.is_project_parameters_pickled = False
         self.is_model_pickled = False
         self.SerializeModelParameters()
+        self.stat_err = [[],[]]
 
     """
     function executing the Monte Carlo algorithm
@@ -325,8 +328,11 @@ class MonteCarlo(object):
         current_tol = self.settings["tolerance"].GetDouble()
         current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] is the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
-        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
+        convergence_boolean,current_stat_error = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
             current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
+        self.stat_err[0].append(current_number_samples)
+        self.stat_err[1].append(current_stat_error)
+        print(self.stat_err)
         self.convergence = convergence_boolean
 
     """
@@ -357,7 +363,8 @@ class MonteCarlo(object):
         # update number of samples (MonteCarlo.number_samples) and batch size
         if (self.iteration_counter > 1):
             self.previous_number_samples[current_level] = self.number_samples[current_level]
-            self.number_samples[current_level] = self.number_samples[current_level] * 2 + self.previous_number_samples[current_level]
+            # self.number_samples[current_level] = self.number_samples[current_level] * 2 + self.previous_number_samples[current_level]
+            self.number_samples[current_level] = 10 + self.previous_number_samples[current_level]
             self.difference_number_samples[current_level] = self.number_samples[current_level] - self.previous_number_samples[current_level]
             self.UpdateBatch()
         else:
