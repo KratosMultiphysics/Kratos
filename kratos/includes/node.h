@@ -742,7 +742,10 @@ public:
     ///@name Dofs
     ///@{
 
-    //advanced functions by Riccardo
+    /**
+     * @brief Get dof  position with a given position
+     * @param rDofVariable Name of the variable to serach the position
+     */
     template<class TVariableType>
     inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
@@ -750,32 +753,57 @@ public:
         return it - mDofs.begin();
     }
 
+    /**
+     * @brief Get dof with a given position. If not found it is search
+     * @param rDofVariable Name of the variable
+     * @param Position Position of the DoF
+     */
     template<class TVariableType>
-    inline const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
+    inline const DofType& GetDof(
+        TVariableType const& rDofVariable,
+        const IndexType Position
+        ) const
     {
         typename DofsContainerType::const_iterator it_begin = mDofs.begin();
         typename DofsContainerType::const_iterator it_end = mDofs.end();
         typename DofsContainerType::const_iterator it;
-        //if the guess is exact return the guess
-        if(pos < it_end-it_begin)
-        {
-            it = it_begin + pos;
-            if( (it)->GetVariable() == rDofVariable)
-            {
+        // If the guess is exact return the guess
+        if(Position < it_end-it_begin) {
+            it = it_begin + Position;
+            if( (it)->GetVariable() == rDofVariable) {
                 return *it;
             }
         }
 
         // Otherwise do a find
         it = mDofs.find(rDofVariable.Key());
-        if ( it!= mDofs.end() )
-        {
+        if ( it!= mDofs.end() ) {
             return *it;
         }
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
         KRATOS_ERROR <<  buffer.str() << std::endl;
+    }
+
+    /**
+     * @brief Faster get with very simple and plain check in debug, in release it is direct
+     * @param Position Position of the DoF
+     */
+    inline const DofType& GetDof(const IndexType Position) const
+    {
+    #ifdef KRATOS_DEBUG
+        // We do a check, otherwise throws an error
+        if(Position < mDofs.end() - mDofs.begin()) {
+            typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
+            return *it;
+        } else {
+            KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for position : " << Position << std::endl;
+        }
+    #else
+        typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
+        return *it;
+    #endif
     }
 
     /** returns the Dof asociated with variable  */
