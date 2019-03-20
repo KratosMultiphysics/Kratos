@@ -595,6 +595,7 @@ struct PrimalResults : Base::PrimalResults
 
 void InitializePrimalModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -618,6 +619,7 @@ void InitializePrimalModelPart(ModelPart& rModelPart)
 
 void InitializeAdjointModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
