@@ -259,6 +259,11 @@ public:
                 }
             }
 
+            // Precompute for masses and inertias
+            if(r_model_part.MasterSlaveConstraints().size() > 0) {
+                ConstraintUtilities::PreComputeExplicitConstraintMassAndInertia(r_model_part);
+            }
+
             this->mInitializeWasPerformed = true;
         }
 
@@ -317,6 +322,11 @@ public:
                     auto it_elem = it_elem_begin + i;
                     it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
                 }
+            }
+
+            // Precompute for masses and inertias
+            if(r_model_part.MasterSlaveConstraints().size() > 0) {
+                ConstraintUtilities::PreComputeExplicitConstraintMassAndInertia(r_model_part);
             }
         }
 
