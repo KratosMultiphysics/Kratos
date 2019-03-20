@@ -1,3 +1,7 @@
+
+from . import co_simulation_tools as tools
+# Other imports
+cs_data_structure = tools.cs_data_structure
 import numpy as np
 
 ## Class CouplingInterfaceData: Class to hold different properties of the data field contributed in

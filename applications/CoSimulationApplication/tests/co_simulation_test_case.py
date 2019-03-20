@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 import os, json
 
@@ -16,7 +17,11 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
     def createTest(self, problem_dir_name, parameter_file_name):
         self.problem_dir_name = problem_dir_name
 
-        with open(os.path.join(problem_dir_name, parameter_file_name + '_parameters.json'), 'r') as parameter_file:
+        global cs_data_structure
+        full_parameter_file_name = os.path.join(problem_dir_name, parameter_file_name + '_parameters.json')
+        cs_data_structure = cs_tools.ImportDataStructure(full_parameter_file_name)
+
+        with open(full_parameter_file_name, 'r') as parameter_file:
             self.cosim_parameters = json.load(parameter_file)
 
         # To avoid many prints
