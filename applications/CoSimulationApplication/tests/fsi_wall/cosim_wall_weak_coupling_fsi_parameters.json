@@ -11,19 +11,13 @@
         "solver_type" : "gauss_seidel_weak",
         "echo_level" : 0,
         "start_coupling_time" : 0.0,
-        "predictors" :
-        {
-            "predictor_type" : "average_value_based",
-            "data_list"      :
-            [
-                {
-                    "solver": "fluid",
-                    "data_name"  : "force"
-                }
-
-            ]
-        },
-
+        "predictors" : [
+            {
+                "type" : "average_value_based",
+                "solver"         : "fluid",
+                "data_name"      : "force"
+            }
+        ],
         "coupling_sequence":
         [
         {

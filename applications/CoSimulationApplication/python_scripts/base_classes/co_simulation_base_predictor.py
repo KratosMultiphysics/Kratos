@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Other imports
-import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CosimulationBasePredictor(object):
@@ -25,8 +24,8 @@ class CosimulationBasePredictor(object):
     def FinalizeSolutionStep(self):
         pass
 
-    def SetDeltaTime(self, delta_time):
-        self.delta_time = delta_time
+    # def SetDeltaTime(self, delta_time):
+    #     self.delta_time = delta_time
 
     def PrintInfo(self):
         '''Function to print Info abt the Object
@@ -44,10 +43,9 @@ class CosimulationBasePredictor(object):
         raise Exception('"_Name" has to be implemented in the derived class!')
 
     def _UpdateData(self, updated_data):
-        for data_entry, data_update in zip(self.settings["data_list"], updated_data):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ExportArrayToSolver(solver, data_name, data_update)
+        solver = self.solvers[self.settings["solver"]]
+        data_name = self.settings["data_name"]
+        cs_tools.ExportArrayToSolver(solver, data_name, updated_data)
 
         if self.echo_level > 3:
             cs_tools.classprint(self._Name(), "Computed prediction")

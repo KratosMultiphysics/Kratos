@@ -12,19 +12,14 @@
         "echo_level" : 0,
         "num_coupling_iterations" : 12,
         "start_coupling_time" : 0.0,
-        "predictors" :
-        {
-            "predictor_type" : "linear_derivative_based",
-            "data_list"      :
-            [
-                {
-                    "solver": "fluid",
-                    "data_name"  : "disp",
-                    "derivative_data_name"  : "vel"
-                }
-
-            ]
-        },
+        "predictors" : [
+            {
+                "type"        : "linear_derivative_based",
+                "solver"                : "fluid",
+                "data_name"             : "disp",
+                "derivative_data_name"  : "vel"
+            }
+        ],
         "convergence_accelerator_settings" :
         {
             "type"          : "mvqn",

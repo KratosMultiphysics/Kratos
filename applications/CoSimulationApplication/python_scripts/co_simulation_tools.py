@@ -22,6 +22,13 @@ def ImportDataStructure(parameters_file_name):
 
     return cs_data_structure
 
+def CreatePredictors(predictor_settings, solvers):
+    from KratosMultiphysics.CoSimulationApplication.predictors.co_simulation_predictor_factory import CreatePredictor
+    predictors = []
+    for predictor_setting in predictor_settings:
+        predictors.append(CreatePredictor(predictor_setting, solvers))
+
+    return predictors
 
 
 

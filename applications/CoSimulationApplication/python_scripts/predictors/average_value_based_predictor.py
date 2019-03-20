@@ -27,30 +27,27 @@ class AverageValuePredictor(CosimulationBasePredictor):
         # TODO check buffer_size
 
         # TODO add comment why we do this
-        num_data = len(self.settings["data_list"])
-        self.data_arrays_prediction = [np.array([]) for e in range(num_data)]
-        self.data_arrays_aux = [np.array([]) for e in range(num_data)]
+        self.data_array_prediction = np.array([])
+        self.data_array_aux        = np.array([])
 
     def Predict(self):
-        for i, data_entry in enumerate(self.settings["data_list"]):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_prediction[i], 0)
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_aux[i], 1)
+        solver = self.solvers[self.settings["solver"]]
+        data_name = self.settings["data_name"]
+        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_prediction, 0)
+        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 1)
 
-            self.data_arrays_prediction[i] = 2*self.data_arrays_prediction[i] - self.data_arrays_aux[i]
+        self.data_array_prediction = 2*self.data_array_prediction - self.data_array_aux
 
-        self._UpdateData(self.data_arrays_prediction)
+        self._UpdateData(self.data_array_prediction)
 
     def FinalizeSolutionStep(self):
-        for i, data_entry in enumerate(self.settings["data_list"]):
-            solver = self.solvers[data_entry["solver"]]
-            data_name = data_entry["data_name"]
-            cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays_aux[i], 0)
+        solver = self.solvers[self.settings["solver"]]
+        data_name = self.settings["data_name"]
+        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 0)
 
-            self.data_arrays_prediction[i] = self.beta * self.data_arrays_aux[i] + (1-self.beta) * self.data_arrays_prediction[i]
+        self.data_array_prediction = self.beta * self.data_array_aux + (1-self.beta) * self.data_array_prediction
 
-        self._UpdateData(self.data_arrays_prediction)
+        self._UpdateData(self.data_array_prediction)
 
 
     def _Name(self):
