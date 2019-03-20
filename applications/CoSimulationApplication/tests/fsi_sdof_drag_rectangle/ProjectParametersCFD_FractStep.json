@@ -114,16 +114,14 @@
                 "h_top"              : 0.0
             }
         },{
-            "python_module" : "assign_vector_variable_process",
+            "python_module" : "fix_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.Outlet2D_outlet",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "constrained"      : [true, true, true],
-                "value"           : [0.0,0.0,0.0]
+                "constrained"      : [true, true, true]
             }
         },{
             "python_module" : "apply_slip_process",
@@ -134,16 +132,14 @@
                 "model_part_name" : "FluidModelPart.Slip2D_wall"
             }
         },{
-            "python_module" : "assign_vector_variable_process",
+            "python_module" : "fix_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.Slip2D_wall",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "constrained"      : [true, true, true],
-                "value"           : [0.0,0.0,0.0]
+                "constrained"      : [true, true, true]
             }
         },{
             "python_module" : "apply_noslip_process",
@@ -154,16 +150,14 @@
                 "model_part_name" : "FluidModelPart.NoSlip2D_structure"
             }
         },{
-            "python_module" : "assign_vector_variable_process",
+            "python_module" : "fix_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.NoSlip2D_structure",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "constrained"      : [true, true, true],
-                "value"           : [0.0,0.0,0.0]
+                "constrained"      : [true, true, true]
             }
         },{
             "python_module" : "assign_vector_variable_process",
@@ -192,16 +186,14 @@
                 "interval"        : [10,100.05]
             }
         },{
-            "python_module" : "assign_vector_variable_process",
+            "python_module" : "fix_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.VelocityConstraints2D_inlet",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "constrained"      : [true, true, true],
-                "value"           : [0.0,0.0,0.0]
+                "constrained"      : [true, true, true]
             }
         }],
         "gravity"                          : [{
