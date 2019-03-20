@@ -37,6 +37,8 @@ class Algorithm(object):
 
     def AddDEMVariablesToStructural(self):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD_OLD)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD_OLD2)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.CURRENT_STRUCTURAL_VELOCITY)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.CURRENT_STRUCTURAL_DISPLACEMENT)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DELTA_DISPLACEMENT)
@@ -137,7 +139,9 @@ class Algorithm(object):
         self.Dt_structural = self.structural_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
 
         while self.structural_solution.time < self.structural_solution.end_time:
-
+            for node in self.structural_mp.Nodes:
+                averaged_force =0.1666666666666 * ( node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD) + 2.0*node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD_OLD) + 3.0*node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD_OLD2) )
+                node.SetSolutionStepValue(DemFem.DEM_SURFACE_LOAD, averaged_force)
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()

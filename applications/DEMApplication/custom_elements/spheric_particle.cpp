@@ -1953,13 +1953,15 @@ void SphericParticle::Move(const double delta_t, const bool rotation_option, con
     }
 }
 
-void SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
+bool SphericParticle::SwapIntegrationSchemeToGluedToWall(Condition* p_wall) {
     if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) {
         delete mpTranslationalIntegrationScheme;
     }
-    mpTranslationalIntegrationScheme = new GluedToWallScheme(p_wall, this);
+    bool is_inside = false;
+    mpTranslationalIntegrationScheme = new GluedToWallScheme(p_wall, this, is_inside);
     delete mpRotationalIntegrationScheme;
     mpRotationalIntegrationScheme = mpTranslationalIntegrationScheme;
+    return is_inside;
 }
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}

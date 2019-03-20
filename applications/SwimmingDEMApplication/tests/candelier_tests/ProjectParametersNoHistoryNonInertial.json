@@ -25,8 +25,6 @@
 "include_faxen_terms_option_comment"     : "(relevant if the Maxey Riley equation is used)",
 "gradient_calculation_type"              : 1,
 "gradient_calculation_type_comment"      : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-"laplacian_calculation_type"             : 2,
-"laplacian_calculation_type_comment"     : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
 "buoyancy_force_type"                    : 2,
 "buoyancy_force_type_comment"            : "null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity",
 "drag_force_type"                        : 10,
@@ -39,10 +37,7 @@
 "magnus_force_type_comment"              : " null magnus force (0), Rubinow and Keller (1), Oesterle and Bui Dihn (2)",
 "hydro_torque_type"                      : 0,
 "hydro_torque_type_comment"              : "null hydrodynamic torque (0), Dennis (1)",
-"drag_modifier_type"                     : 0,
 "viscosity_modification_type"            : 0,
-
-
 "coupling_weighing_type"                 : 2,
 "coupling_weighing_type_comment"         : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
 "fluid_model_type"                       : 1,
