@@ -27,7 +27,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             self.participating_solvers[solver_name] = solver_factory.CreateSolverInterface(
                 model, self.cosim_solver_settings["solvers"][solver_name]) # -1 to have solver prints on same lvl
 
-        self.cosim_solver_details = cs_tools.GetSolverCoSimulationDetails(
+        self.cosim_solver_details = self.__GetSolverCoSimulationDetails(
             self.cosim_solver_settings["coupling_sequence"])
 
         ### Creating the predictors
@@ -159,3 +159,12 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def IsDistributed(self):
         return True
+
+
+    def __GetSolverCoSimulationDetails(self, co_simulation_solver_settings):
+        num_solvers = len(co_simulation_solver_settings)
+        solver_cosim_details = {}
+        for solver_settings in co_simulation_solver_settings:
+            solver_name = solver_settings["name"]
+            solver_cosim_details[solver_name] = solver_settings
+        return solver_cosim_details

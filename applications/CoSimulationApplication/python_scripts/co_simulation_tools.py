@@ -55,16 +55,6 @@ def CreateConvergenceCriteria(convergence_criteria_settings, solvers):
 
 
 
-
-
-def GetSolverCoSimulationDetails(co_simulation_solver_settings):
-    num_solvers = len(co_simulation_solver_settings)
-    solver_cosim_details = {}
-    for solver_settings in co_simulation_solver_settings:
-        solver_name = solver_settings["name"]
-        solver_cosim_details[solver_name] = solver_settings
-    return solver_cosim_details
-
 def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
     # TODO check if the data is consitently defined! => maybe do at another place though...
     # - input in one is output in another
