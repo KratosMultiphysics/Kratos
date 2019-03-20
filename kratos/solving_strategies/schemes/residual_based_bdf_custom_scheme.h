@@ -137,7 +137,7 @@ public:
     explicit ResidualBasedBDFCustomScheme(ResidualBasedBDFCustomScheme& rOther)
         :BDFBaseType(rOther)
         ,mDoubleVariable(rOther.mDoubleVariable)
-        ,mFirtsDoubleDerivatives(rOther.mFirtsDoubleDerivatives)
+        ,mFirstDoubleDerivatives(rOther.mFirstDoubleDerivatives)
         ,mSecondDoubleDerivatives(rOther.mSecondDoubleDerivatives)
         ,mArrayVariable(rOther.mArrayVariable)
         ,mFirstArrayDerivatives(rOther.mFirstArrayDerivatives)
@@ -206,7 +206,7 @@ public:
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
                 // Derivatives
-                const auto& dvar = *mFirtsDoubleDerivatives[counter];
+                const auto& dvar = *mFirstDoubleDerivatives[counter];
                 const auto& d2var = *mSecondDoubleDerivatives[counter];
 
                 ComputePredictComponent(it_node, *p_var, dvar, d2var, delta_time);
@@ -251,7 +251,7 @@ public:
         // Verify that the variables are correctly initialized
         for ( auto p_var : mDoubleVariable)
             KRATOS_CHECK_VARIABLE_KEY((*p_var))
-        for ( auto p_var : mFirtsDoubleDerivatives)
+        for ( auto p_var : mFirstDoubleDerivatives)
             KRATOS_CHECK_VARIABLE_KEY((*p_var))
         for ( auto p_var : mSecondDoubleDerivatives)
             KRATOS_CHECK_VARIABLE_KEY((*p_var))
@@ -266,7 +266,7 @@ public:
         for(auto& r_node : rModelPart.Nodes()) {
             for ( auto p_var : mDoubleVariable)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_var), r_node)
-            for ( auto p_var : mFirtsDoubleDerivatives)
+            for ( auto p_var : mFirstDoubleDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_var), r_node)
             for ( auto p_var : mSecondDoubleDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_var), r_node)
@@ -334,7 +334,7 @@ protected:
     ///@{
 
     std::vector<const Variable<double>*> mDoubleVariable;                         /// The double variables
-    std::vector<const Variable<double>*> mFirtsDoubleDerivatives;                 /// The first derivative double variable to compute
+    std::vector<const Variable<double>*> mFirstDoubleDerivatives;                 /// The first derivative double variable to compute
     std::vector<const Variable<double>*> mSecondDoubleDerivatives;                /// The second derivative double variable to compute
     std::vector<const VariableComponent<ComponentType>*> mArrayVariable;          /// The array variables to compute
     std::vector<const VariableComponent<ComponentType>*> mFirstArrayDerivatives;  /// The first derivative array variable to compute
@@ -357,8 +357,8 @@ protected:
         // DOUBLES
         std::size_t counter = 0;
         for (auto p_var : mDoubleVariable) {
-            if (!itNode->IsFixed(*mFirtsDoubleDerivatives[counter])) {
-                double& dotun0 = itNode->FastGetSolutionStepValue(*mFirtsDoubleDerivatives[counter]);
+            if (!itNode->IsFixed(*mFirstDoubleDerivatives[counter])) {
+                double& dotun0 = itNode->FastGetSolutionStepValue(*mFirstDoubleDerivatives[counter]);
                 dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
                 for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
                     dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(*p_var, i_order);
@@ -387,7 +387,7 @@ protected:
     {
         // DOUBLES
         std::size_t counter = 0;
-        for (auto p_var : mFirtsDoubleDerivatives) {
+        for (auto p_var : mFirstDoubleDerivatives) {
             if (!itNode->IsFixed(*mSecondDoubleDerivatives[counter])) {
                 double& dot2un0 = itNode->FastGetSolutionStepValue(*mSecondDoubleDerivatives[counter]);
                 dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(*p_var);
@@ -508,7 +508,7 @@ private:
 
             if(KratosComponents<Variable<double>>::Has(variable_name)){
                 mDoubleVariable.push_back(&KratosComponents<Variable<double>>::Get(variable_name));
-                mFirtsDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(first_derivative_name));
+                mFirstDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(first_derivative_name));
                 mSecondDoubleDerivatives.push_back(&KratosComponents<Variable<double>>::Get(second_derivative_name));
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 // Components
