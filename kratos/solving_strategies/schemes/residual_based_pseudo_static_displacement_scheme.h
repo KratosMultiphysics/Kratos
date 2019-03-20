@@ -167,11 +167,11 @@ public:
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
         const auto it_node_begin = rModelPart.Nodes().begin();
 
-        #pragma omp parallel for
+        array_1d<double, 3 > delta_displacement;
+
+        #pragma omp parallel for private(delta_displacement)
         for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = it_node_begin + i;
-
-            array_1d<double, 3 > delta_displacement;
 
             noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
@@ -189,9 +189,9 @@ public:
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Predict(
         ModelPart& rModelPart,
