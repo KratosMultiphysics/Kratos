@@ -12,7 +12,7 @@ def Create(solvers, solver_name):
 
 class SDoFIO(CoSimulationBaseIO):
 
-    def ImportData(self, data_settings, from_client):
+    def ImportCouplingInterfaceData(self, data_settings, from_client):
         data_name = data_settings["data_name"]
         io_settings = data_settings["io_settings"]
         data_array = np.array([])
@@ -31,7 +31,7 @@ class SDoFIO(CoSimulationBaseIO):
         sdof_solver.SetData(data_identifier, value)
 
 
-    def ExportData(self, data_settings, to_client):
+    def ExportCouplingInterfaceData(self, data_settings, to_client):
         sdof_solver = self.solvers[self.solver_name]
         sdof_data_settings = sdof_solver.GetDataDefinition(data_settings["data_name"])
         sdof_data_settings["data_name"] = data_settings["data_name"]
@@ -46,4 +46,4 @@ class SDoFIO(CoSimulationBaseIO):
 
         sdof_data_settings["scalar_value"] = x
 
-        to_client.ImportData(sdof_data_settings, to_client)
+        to_client.ImportCouplingInterfaceData(sdof_data_settings, to_client)

@@ -57,23 +57,23 @@ class CoSimulationBaseSolver(object):
     def SolveSolutionStep(self):
         pass
 
-    def ImportData(self, data_name, from_client):
+    def ImportCouplingInterfaceData(self, data_name, from_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportData(data_name, from_client)
-    def ImportMesh(self, mesh_name, from_client):
+        self.io.ImportCouplingInterfaceData(data_name, from_client)
+    def ImportCouplingInterface(self, mesh_name, from_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportMesh(mesh_name, from_client)
+        self.io.ImportCouplingInterface(mesh_name, from_client)
 
-    def ExportData(self, data_name, to_client):
+    def ExportCouplingInterfaceData(self, data_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ExportData(data_name, to_client)
-    def ExportMesh(self, mesh_name, to_client):
+        self.io.ExportCouplingInterfaceData(data_name, to_client)
+    def ExportCouplingInterface(self, mesh_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ExportMesh(mesh_name, to_client)
+        self.io.ExportCouplingInterface(mesh_name, to_client)
 
     def GetDataDefinition(self, data_name):
         return self.cosim_solver_settings["data"][data_name]

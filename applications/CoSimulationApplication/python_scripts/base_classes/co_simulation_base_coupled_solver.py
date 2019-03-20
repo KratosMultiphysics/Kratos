@@ -123,7 +123,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                     data_settings = { "data_format" : data_definition["data_format"],
                                     "data_name"   : data_name,
                                     "io_settings" : input_data["io_settings"] }
-                    solver.ImportData(data_settings, from_solver)
+                    solver.ImportCouplingInterfaceData(data_settings, from_solver)
 
     def _SynchronizeOutputData(self, solver, solver_name):
         if self.coupling_started:
@@ -137,7 +137,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                     data_settings = { "data_format" : data_definition["data_format"],
                                     "data_name"   : data_name,
                                     "io_settings" : output_data["io_settings"] }
-                    solver.ExportData(data_settings, to_solver)
+                    solver.ExportCouplingInterfaceData(data_settings, to_solver)
 
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()

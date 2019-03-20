@@ -203,7 +203,7 @@ def ImportArrayFromSolver(solver, data_name, data_array, buffer_index=0):
         "buffer_index" : buffer_index
     }
 
-    solver.ExportData(data_settings, solver)
+    solver.ExportCouplingInterfaceData(data_settings, solver)
 
 def ExportArrayToSolver(solver, data_name, data_array, buffer_index=0):
     data_settings = {
@@ -213,7 +213,7 @@ def ExportArrayToSolver(solver, data_name, data_array, buffer_index=0):
         "buffer_index" : buffer_index
     }
 
-    solver.ImportData(data_settings, solver)
+    solver.ImportCouplingInterfaceData(data_settings, solver)
 
 
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):

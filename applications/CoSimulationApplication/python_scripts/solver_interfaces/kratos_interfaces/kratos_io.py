@@ -29,7 +29,7 @@ class KratosIO(CoSimulationBaseIO):
         # hopefully faster than accessing KratosComponents all the time
 
 
-    def ImportData(self, data_settings, from_client):
+    def ImportCouplingInterfaceData(self, data_settings, from_client):
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
 
@@ -92,7 +92,7 @@ class KratosIO(CoSimulationBaseIO):
             raise Exception("The requested data_format is not implemented in KratosIO!")
 
 
-    def ExportData(self, data_settings, to_client):
+    def ExportCouplingInterfaceData(self, data_settings, to_client):
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
 
@@ -143,7 +143,7 @@ class KratosIO(CoSimulationBaseIO):
         else:
             raise Exception("The requested data_format is not implemented in KratosIO!")
 
-    def ExportMesh(self, data_settings, to_client):
+    def ExportCouplingInterface(self, data_settings, to_client):
 
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
