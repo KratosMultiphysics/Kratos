@@ -287,9 +287,7 @@ public:
             predicted_y = false;
             predicted_z = false;
 
-            //Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
-            //ATTENTION::: the prediction is performed only on free nodes
-
+            // Predicting: NewDisplacement = r_previous_displacement + r_previous_velocity * delta_time;
             const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double, 3>& r_previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
             const array_1d<double, 3>& r_previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);

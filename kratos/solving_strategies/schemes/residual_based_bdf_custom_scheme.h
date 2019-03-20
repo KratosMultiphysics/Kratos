@@ -201,7 +201,6 @@ public:
         for(int i = 0;  i< num_nodes; ++i) {
             auto it_node = it_node_begin + i;
 
-            //ATTENTION::: the prediction is performed only on free nodes
             std::size_t counter = 0;
             for (auto p_var : mDoubleVariable) {
                 // Derivatives
