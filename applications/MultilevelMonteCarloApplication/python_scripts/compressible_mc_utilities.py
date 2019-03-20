@@ -89,6 +89,7 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_
     # TODO: remove above lines later
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
+        print(current_number_samples,current_tol,current_sample_variance)
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
         # evaluate probability of failure
         main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
@@ -427,9 +428,10 @@ class MonteCarlo(object):
         if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update statistics of the QoI
-        for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
-            self.QoI.UpdateOnePassMomentsVariance(current_level,i_sample)
-            self.QoI.UpdateOnePassPowerSums(current_level,i_sample)
+        self.QoI.UpdateOnePassMomentsVariance(current_level,self.previous_number_samples[current_level],self.number_samples[current_level])
+        self.QoI.UpdateOnePassPowerSums(current_level,self.previous_number_samples[current_level],self.number_samples[current_level])
+        #for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
+
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
         # self.QoI.central_moment_from_scratch_3_absolute_to_compute = True # by default set to true
