@@ -12,8 +12,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         super(CoSimulationBaseCouplingSolver, self).__init__(model, cosim_solver_settings)
 
         self.participating_solvers = self.__CreateSolvers()
-
-        self.cosim_solver_details = self.__GetSolverCoSimulationDetails()
+        self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
@@ -90,9 +89,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def _SynchronizeInputData(self, solver, solver_name):
         if self.coupling_started:
-            input_data_list = self.cosim_solver_details[solver_name]["input_data_list"]
+            input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
 
-            if self.time >= self.cosim_solver_details[solver_name]["input_coupling_start_time"]:
+            if self.time >= self.coupling_sequence[solver_name]["input_coupling_start_time"]:
                 for input_data in input_data_list:
                     from_solver = self.participating_solvers[input_data["from_solver"]]
                     data_name = input_data["data_name"]
@@ -104,9 +103,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def _SynchronizeOutputData(self, solver, solver_name):
         if self.coupling_started:
-            output_data_list = self.cosim_solver_details[solver_name]["output_data_list"]
+            output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
 
-            if self.time >= self.cosim_solver_details[solver_name]["output_coupling_start_time"]:
+            if self.time >= self.coupling_sequence[solver_name]["output_coupling_start_time"]:
                 for output_data in output_data_list:
                     to_solver = self.participating_solvers[output_data["to_solver"]]
                     data_name = output_data["data_name"]
@@ -140,7 +139,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
     def IsDistributed(self):
         return True
 
-
     def __CreateSolvers(self):
         ### ATTENTION, big flaw, also the participants can be coupled solvers !!!
         import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_solver_factory as solver_factory
@@ -161,11 +159,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
         return solvers_map
 
-
     def __GetSolverCoSimulationDetails(self):
         solver_cosim_details = {}
         for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
             solver_name = solver_settings["name"]
             solver_cosim_details[solver_name] = solver_settings
         return solver_cosim_details
-
