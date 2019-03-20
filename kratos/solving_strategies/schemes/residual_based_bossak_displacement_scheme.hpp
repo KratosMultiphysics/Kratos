@@ -400,6 +400,66 @@ public:
         mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
+        // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
+        // Getting position
+        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
+        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
+        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
+        const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
+        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
+        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
+        const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
+
+        bool fixed_x, fixed_y, fixed_z;
+
+        #pragma omp parallel for private(fixed_x, fixed_y, fixed_z)
+        for(int i = 0;  i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
+
+            fixed_x = false;
+            fixed_y = false;
+            fixed_z = false;
+
+            if (accelpos_x > -1) {
+                if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
+                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                    fixed_x = true;
+                }
+            }
+            if (velpos_x > -1 && !fixed_x) {
+                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !fixed_x) {
+                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                }
+            }
+            if (accelpos_y > -1) {
+                if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
+                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                    fixed_y = true;
+                }
+            }
+            if (velpos_y > -1 && !fixed_y) {
+                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !fixed_y) {
+                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                }
+            }
+            if (accelpos_z > -1) {
+                if (it_node->GetDof(ACCELERATION_Z, accelpos_z).IsFixed()) {
+                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                    fixed_z = true;
+                }
+            }
+            if (velpos_z > -1 && !fixed_z) {
+                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !fixed_z) {
+                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                }
+            }
+        }
+
         KRATOS_CATCH( "" );
     }
 
@@ -569,18 +629,7 @@ protected:
         const array_1d<double, 3>& rPreviousAcceleration
         )
     {
-        const array_1d<double, 3> auxiliar_updated_velocity = (mBossak.c1 * rDeltaDisplacement - mBossak.c4 * rPreviousVelocity - mBossak.c5 * rPreviousAcceleration);
-
-        // We check if the dofs are fixed
-        if (!itNode->IsFixed(VELOCITY_X)) {
-            rCurrentVelocity[0] = auxiliar_updated_velocity[0];
-        }
-        if (!itNode->IsFixed(VELOCITY_Y)) {
-            rCurrentVelocity[1] = auxiliar_updated_velocity[1];
-        }
-        if (!itNode->IsFixed(VELOCITY_Z)) {
-            rCurrentVelocity[2] = auxiliar_updated_velocity[2];
-        }
+        noalias(rCurrentVelocity) = (mBossak.c1 * rDeltaDisplacement - mBossak.c4 * rPreviousVelocity - mBossak.c5 * rPreviousAcceleration);
     }
 
     /**
@@ -598,18 +647,7 @@ protected:
         const array_1d<double, 3>& rPreviousAcceleration
         )
     {
-        const array_1d<double, 3> auxiliar_updated_acceleration = (mBossak.c0 * rDeltaDisplacement - mBossak.c2 * rPreviousVelocity -  mBossak.c3 * rPreviousAcceleration);
-
-        // We check if the dofs are fixed
-        if (!itNode->IsFixed(ACCELERATION_X)) {
-            rCurrentAcceleration[0] = auxiliar_updated_acceleration[0];
-        }
-        if (!itNode->IsFixed(ACCELERATION_Y)) {
-            rCurrentAcceleration[1] = auxiliar_updated_acceleration[1];
-        }
-        if (!itNode->IsFixed(ACCELERATION_Z)) {
-            rCurrentAcceleration[2] = auxiliar_updated_acceleration[2];
-        }
+        noalias(rCurrentAcceleration) = (mBossak.c0 * rDeltaDisplacement - mBossak.c2 * rPreviousVelocity -  mBossak.c3 * rPreviousAcceleration);
     }
 
     /**
