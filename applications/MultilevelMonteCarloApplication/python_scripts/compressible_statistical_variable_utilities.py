@@ -48,41 +48,45 @@ output: new_mean:             updated mean
 # TODO: update depending on length samples
 @ExaquteTask(returns=7,priority=True)
 def UpdateOnePassMomentsVarianceAux_Task(old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples,*samples):
+    if nsamples == 0:
+        new_mean = samples[0]
+        old_mean = samples[0]
+        new_sample_variance = 0.0
+        old_central_moment_1 = new_mean
+        old_central_moment_2 = 0.0
+        old_central_moment_3 = 0.0
+        old_central_moment_4 = 0.0
+        new_central_moment_1 = new_mean
+        new_central_moment_2 = 0.0
+        new_central_moment_3 = 0.0
+        new_central_moment_4 = 0.0
+        nsamples = 1
+        samples = samples[1:]
     for sample in samples:
         old_M1 = old_central_moment_1 * nsamples
         old_M2 = old_central_moment_2 * nsamples
         old_M3 = old_central_moment_3 * nsamples
         old_M4 = old_central_moment_4 * nsamples
         nsamples = nsamples + 1
-        if nsamples == 1:
-            new_mean = sample
-            new_M1 = 0.0
-            new_M2 = 0.0
-            new_sample_variance = 0.0
-            new_M3 = 0.0
-            new_M4 = 0.0
+        delta = np.subtract(sample,old_mean)
+        new_mean = old_mean + np.divide(delta,nsamples)
+        if (compute_M1):
+            new_M1 = old_M1 # we are not updating, first central moment = 0.0
         else:
-            delta = np.subtract(sample,old_mean)
-            new_mean = old_mean + np.divide(delta,nsamples)
-            if (compute_M1):
-                new_M1 = old_M1 # we are not updating, first central moment = 0.0
-            else:
-                new_M1 = old_M1 # we are not updating, first central moment = 0.0
-            if (compute_M2):
-                new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-            else:
-                raise Exception ("Not computing StatisticalVariable.central_moment_2, please set StatisticalVariable.central_moment_2_to_compute to True")
-            new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
-            if (compute_M3):
-                new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
-            else:
-                new_M3 = old_M3 # we are not updating
-            if (compute_M4):
-                new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
-            else:
-                new_M4 = old_M4 # we are not updating
-        print(new_M1)
-        print(nsamples)
+            new_M1 = old_M1 # we are not updating, first central moment = 0.0
+        if (compute_M2):
+            new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
+        else:
+            raise Exception ("Not computing StatisticalVariable.central_moment_2, please set StatisticalVariable.central_moment_2_to_compute to True")
+        new_sample_variance = np.divide(new_M2, np.subtract(nsamples, 1))
+        if (compute_M3):
+            new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
+        else:
+            new_M3 = old_M3 # we are not updating
+        if (compute_M4):
+            new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
+        else:
+            new_M4 = old_M4 # we are not updating
         new_central_moment_1 = new_M1 / nsamples
         new_central_moment_2 = new_M2 / nsamples
         new_central_moment_3 = new_M3 / nsamples
@@ -238,10 +242,10 @@ class StatisticalVariable(object):
         self.central_moment_3 = []
         self.central_moment_4 = []
         # set which central moments will be computed (moment_2 is mandatory to be computed because it is exploited in the mean evaluation)
-        self.central_moment_1_to_compute = False
+        self.central_moment_1_to_compute = True
         self.central_moment_2_to_compute = True
-        self.central_moment_3_to_compute = False
-        self.central_moment_4_to_compute = False
+        self.central_moment_3_to_compute = True
+        self.central_moment_4_to_compute = True
         # bias error of the variable
         self.bias_error = None
         # statistical error of the variable

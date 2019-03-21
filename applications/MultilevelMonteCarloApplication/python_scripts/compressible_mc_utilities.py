@@ -57,6 +57,7 @@ def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed
         # i.e. results = [[value_level_0],[value_level_1],...]
+        print(simulation_results)
         QoI_value = simulation_results.QoI[level][0]
     else:
         raise Exception("level not equal to 0, in MC we should have only level zero")
