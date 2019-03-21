@@ -43,30 +43,40 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
+        computing_model_part = self._GetSolver().GetComputingModelPart()
         if not self.process_remesh:
             convergence_criteria = self._GetSolver().get_convergence_criterion()
-            convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
+            convergence_criteria.Initialize(computing_model_part)
+
         # Ensuring to have conditions on the BC before remesh
-        computing_model_part = self._GetSolver().GetComputingModelPart()
-        # We need to detect the conditions in the boundary conditions
-        list_model_parts = []
-        if self.project_parameters.Has("constraints_process_list"):
-            constraints_process_list = self.project_parameters["constraints_process_list"]
-            for i in range(0,constraints_process_list.size()):
-                item = constraints_process_list[i]
-                list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
-        skin_detection_parameters = KM.Parameters("""
-        {
-            "list_model_parts_to_assign_conditions" : []
-        }
-        """)
-        for name_mp in list_model_parts:
-            skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
-        if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
-        else:
-            detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
-        detect_skin.Execute()
+        is_surface = False
+        for elem in computing_model_part.Elements:
+            geom = elem.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            break
+
+        if not is_surface:
+            # We need to detect the conditions in the boundary conditions
+            list_model_parts = []
+            if self.project_parameters.Has("constraints_process_list"):
+                constraints_process_list = self.project_parameters["constraints_process_list"]
+                for i in range(0,constraints_process_list.size()):
+                    item = constraints_process_list[i]
+                    list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
+            skin_detection_parameters = KM.Parameters("""
+            {
+                "list_model_parts_to_assign_conditions" : []
+            }
+            """)
+            for name_mp in list_model_parts:
+                skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
+
+            if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+                detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
+            else:
+                detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
+            detect_skin.Execute()
         self._GetSolver().SetEchoLevel(self.echo_level)
 
     def RunSolutionLoop(self):
