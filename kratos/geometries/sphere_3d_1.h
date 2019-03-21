@@ -164,7 +164,7 @@ public:
     }
 
     Sphere3D1( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData ) , mpRadius(NULL)
+        : BaseType( ThisPoints, &msGeometryData ), mpRadius(NULL)
     {
         if ( BaseType::PointsNumber() != 1 )
             KRATOS_ERROR << "Invalid points number. Expected 1, given " << BaseType::PointsNumber() << std::endl;
@@ -178,10 +178,10 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    Sphere3D1( Sphere3D1 const& rOther )
-        : BaseType( rOther )
-    {}
 
+    Sphere3D1( Sphere3D1 const& rOther )
+        : BaseType( rOther ), mpRadius(NULL)
+    {}
 
     /** Copy constructor from a geometry with other point type.
     Construct this geometry as a copy of given geometry which
@@ -194,8 +194,9 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
+
     template<class TOtherPointType> Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
-        : BaseType( rOther )
+        : BaseType( rOther ), mpRadius(NULL)
     {}
 
     /// Destructor. Do nothing!!!
@@ -300,7 +301,7 @@ public:
     ///@name Informations
     ///@{
 
-    /** This method calculate and return Length or charactereistic
+    /** This method calculate and return Length or characteristic
     length of this geometry depending to it's dimension. For one
     dimensional geometry for example Line it returns length of it
     and for the other geometries it gives Characteristic length
@@ -422,7 +423,7 @@ public:
     */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -445,7 +446,7 @@ public:
     */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
     {
-        std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -468,7 +469,7 @@ public:
     */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -485,7 +486,7 @@ public:
     */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout<<"This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (Jacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -502,7 +503,7 @@ public:
     */
     Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -526,7 +527,7 @@ public:
     */
     double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.0;
     }
 
@@ -544,7 +545,7 @@ public:
     */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout<<"This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (DeterminantOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0.0;
     }
 
@@ -565,7 +566,7 @@ public:
     */
     JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -588,7 +589,7 @@ public:
     */
     Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -605,7 +606,7 @@ public:
     */
     Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout<<"This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (InverseOfJacobian) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return rResult;
     }
 
@@ -630,14 +631,14 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout<<"This method (ShapeFunctionValue) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (ShapeFunctionValue) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return 0;
     }
 
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        std::cout<<"This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return( rResult );
     }
 
@@ -645,7 +646,7 @@ public:
 
     ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        std::cout<<"This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (ShapeFunctionsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
         return( rResult );
     }
 
@@ -661,6 +662,8 @@ public:
      */
 
     void SetRadius(const double& rRadius) override {
+        KRATOS_ERROR_IF(mpRadius != NULL) << "Trying to set the sphere's radius for a second time to a value other than NULL. This operation must be done only once." << std::endl;
+
         mpRadius = &rRadius;
     }
 
@@ -788,8 +791,6 @@ private:
         const int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 1 );
 
-        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsValues) has no meaning for this type of geometry (Sphere)."<<std::endl;
-
         return N;
     }
 
@@ -799,8 +800,6 @@ private:
         const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
         ShapeFunctionsGradientsType DN_De( IntegrationPoints.size() );
         std::fill( DN_De.begin(), DN_De.end(), Matrix( 2, 1 ) );
-
-        //std::cout<<"This method (CalculateShapeFunctionsIntegrationPointsLocalGradients) has no meaning for this type of geometry (Sphere)."<<std::endl;
 
         return DN_De;
 

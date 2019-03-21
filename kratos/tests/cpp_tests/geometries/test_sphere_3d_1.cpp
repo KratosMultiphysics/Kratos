@@ -97,46 +97,50 @@ namespace Testing {
         const auto high_point = Point(1.0, 1.0, 1.0);
 
         // test sphere that is fully inside:
+        double radius = 0.5;
         auto p_geom_inside = GenerateSphere3D1CenterOrigin();
-        p_geom_inside->SetRadius(0.5);
+        p_geom_inside->SetRadius(radius);
         const bool has_intersection_centered_fully_inside = p_geom_inside->HasIntersection(low_point, high_point);
         KRATOS_CHECK(has_intersection_centered_fully_inside);
 
         // test sphere that is inside, but bigger than the box:
-        p_geom_inside->SetRadius(2.0);
+        radius = 2.0;
         const bool has_intersection_centered_partially_inside = p_geom_inside->HasIntersection(low_point, high_point);
         KRATOS_CHECK(has_intersection_centered_partially_inside);
 
         // test sphere that intersects with one face only:
         auto p_geom_one_face = GenerateSphere3D1WithPoint(Kratos::make_shared<Point>(2.0, 0.0, 0.0));
-        p_geom_one_face->SetRadius(1.1);
+        radius = 1.1;
+        p_geom_one_face->SetRadius(radius);
         const bool has_intersection_with_one_face = p_geom_one_face->HasIntersection(low_point, high_point);
         KRATOS_CHECK(has_intersection_with_one_face);
 
         // test sphere that is too small to intersect with one face:
-        p_geom_one_face->SetRadius(0.9);
+        radius = 0.9;
         const bool does_not_intersect_with_one_face = !p_geom_one_face->HasIntersection(low_point, high_point);
         KRATOS_CHECK(does_not_intersect_with_one_face);
 
         // test sphere that intersects with one edge only:
         auto p_geom_one_edge = GenerateSphere3D1WithPoint(Kratos::make_shared<Point>(-2.0, 2.0, 0.0));
-        p_geom_one_edge->SetRadius(1.5);
+        radius = 1.5;
+        p_geom_one_edge->SetRadius(radius);
         const bool has_intersection_with_one_edge = p_geom_one_edge->HasIntersection(low_point, high_point);
         KRATOS_CHECK(has_intersection_with_one_edge);
 
         // test sphere that is too small to intersect with one edge:
-        p_geom_one_edge->SetRadius(1.0);
+        radius = 1.0;
         const bool does_not_intersect_with_one_edge = !p_geom_one_edge->HasIntersection(low_point, high_point);
         KRATOS_CHECK(does_not_intersect_with_one_edge);
 
         // test sphere that intersects with one corner only:
         auto p_geom_one_corner = GenerateSphere3D1WithPoint(Kratos::make_shared<Point>(2.0, 2.0, 2.0));
-        p_geom_one_corner->SetRadius(1.8);
+        radius = 1.8;
+        p_geom_one_corner->SetRadius(radius);
         const bool has_intersection_with_one_corner = p_geom_one_corner->HasIntersection(low_point, high_point);
         KRATOS_CHECK(has_intersection_with_one_corner);
 
         // test sphere that is too small to intersect with one corner:
-        p_geom_one_corner->SetRadius(1.5);
+        radius = 1.5;
         const bool does_not_intersect_with_one_corner = !p_geom_one_corner->HasIntersection(low_point, high_point);
         KRATOS_CHECK(does_not_intersect_with_one_corner);
     }
