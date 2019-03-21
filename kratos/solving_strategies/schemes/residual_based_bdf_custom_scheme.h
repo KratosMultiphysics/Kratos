@@ -181,6 +181,7 @@ public:
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting dimension
+        KRATOS_WARNING_IF("ResidualBasedBDFCustomScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
         const std::size_t domain_size = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
         if (domain_size != mDomainSize) {
             const std::size_t total_number_of_variables = mArrayVariable.size();

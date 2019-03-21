@@ -273,6 +273,7 @@ public:
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
         // Getting dimension
+        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Auxiliar variables
@@ -366,6 +367,7 @@ public:
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting dimension
+        KRATOS_WARNING_IF("ResidualBasedBossakDisplacementScheme", !r_current_process_info.Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined. Please define DOMAIN_SIZE. 3D case will be assumed" << std::endl;
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Getting position
