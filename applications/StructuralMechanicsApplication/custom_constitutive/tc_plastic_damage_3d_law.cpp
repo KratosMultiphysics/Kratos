@@ -8,7 +8,6 @@
 //
 //  Main authors:    Michael Loibl
 //					 Tobias Teschemacher
-//					 Riccardo Rossi
 //
 //  Based on work of Tesser and Talledo (University of Padua)
 

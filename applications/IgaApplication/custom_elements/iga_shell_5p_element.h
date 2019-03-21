@@ -64,6 +64,9 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
+        
+        KRATOS_WATCH("CreateStart");
+        
         return Kratos::make_shared<IgaShell5pElement>(
             NewId, pGeom, pProperties);
     };
@@ -74,6 +77,9 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
+
+        KRATOS_WATCH("CreateStart");
+        
         return Kratos::make_shared<IgaShell5pElement>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
@@ -103,7 +109,24 @@ public:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     ) override;
+    
+    // function not checked yet, just copied from surface_base, needed? (ML)
+    /**
+    * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
+    */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double IntegrationWeight) {KRATOS_WATCH("CalculateAndAddKm");};
 
+    // function not checked yet, just copied from surface_base, needed? (ML)
+    void CalculateAndAddNonlinearKm(
+        Matrix& rLeftHandSideMatrix,
+        // const SecondVariations& SecondVariationsStrain,
+        const Vector& SD,
+        const double& rIntegrationWeight) {KRATOS_WATCH("CalculateAndAddNonlinearKm");};
+   
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -135,6 +158,9 @@ public:
 
     std::string Info() const override
     {
+        
+        KRATOS_WATCH("Check");
+
         std::stringstream buffer;
         buffer << "IgaShell5pElement #" << Id();
         KRATOS_WATCH(GetValue(SHAPE_FUNCTION_VALUES));
@@ -145,11 +171,18 @@ public:
     };
 
     /// Print information about this object.
-
     void PrintInfo(std::ostream& rOStream) const override
     {
+        
+        KRATOS_WATCH("PrintInfo");
+        
         rOStream << "IgaShell5pElement #" << Id();
     };
+
+    // function not checked yet, just copied from surface_base, needed? (ML)
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo) override {KRATOS_WATCH("CalculateMassMatrix");};
 
     ///@}
 
@@ -179,14 +212,44 @@ private:
         Matrix H; //Hessian
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
         Matrix T; //Transformation matrix T from contravariant to local cartesian basis
+        
+        /**
+            * The default constructor
+            * @param Dimension: The size of working space dimension
+            */
+        MetricVariables(const unsigned int& Dimension)
+        {
+            gab = ZeroVector(Dimension);
+            gab_con = ZeroVector(Dimension);
+
+            curvature = ZeroVector(Dimension);
+
+            J = ZeroMatrix(Dimension, Dimension);
+            detJ = 1.0;
+
+            g1 = ZeroVector(Dimension);
+            g2 = ZeroVector(Dimension);
+            g3 = ZeroVector(Dimension);
+
+            dA = 1.0;
+
+            Matrix H = ZeroMatrix(3, 3);
+            Matrix Q = ZeroMatrix(3, 3);
+            Matrix T = ZeroMatrix(3, 3);
+        }
     };
 
-    MetricVariables m_initial_metric;
-
+    MetricVariables m_initial_metric = MetricVariables(3);
+    
     // rotation vector
     Vector m_Phi;
     // rotation angle
     double m_phi1, m_phi2;
+
+    // first derivative of the mid-surface displacement v w.r.t. theta1 (convective coordinate) 
+    Vector m_Dv_D1;
+    // first derivative of the mid-surface displacement v w.r.t. theta2 (convective coordinate) 
+    Vector m_Dv_D2;        
 
     /**
     * Internal variables used in the constitutive equations
@@ -234,17 +297,10 @@ private:
     ///@{        
     ///@name Operations
     ///@{
+   
     /**
-     * @brief Initialization of the structure MetricVariables with zero values
-     * @param Dimension: The size of working space dimension
-     */
-    void InitializeMetricVariables(
-        MetricVariables& rMetric,
-        const unsigned int& Dimension);
-    
-    /**
-         * @brief This function calculates all metric variables
-         */
+        * @brief This function calculates all metric variables
+        */
     void CalculateMetric(MetricVariables& rMetric);
 
     /**
@@ -253,15 +309,16 @@ private:
      * between the director in the undeformed and deformed configuration
      * @param rActualMetric: The actual metric
      */
-    void CalculateRotationVector(MetricVariables& rAcutalMetric);
+    void CalculateRotationVector(
+        MetricVariables& rAcutalMetric);
 
     /**
-    * This functions updates the constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
+        * @brief This functions updates the constitutive variables
+        * @param rActualMetric: The actual metric
+        * @param rThisConstitutiveVariables: The constitutive variables to be calculated
+        * @param rValues: The CL parameters
+        * @param ThisStressMeasure: The stress measure considered
+        */
     void CalculateConstitutiveVariables(
         MetricVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
@@ -269,11 +326,28 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
     
-    // still open (ML)
+    /** 
+     * @brief This function computes the membrane strains (strains at mid-surface resp. constant part of strains)
+     * @param rStrainVector: container to save the calculated membrane strain
+     */
     void CalculateStrain(
-        Vector& rStrainVector,
-        Vector& rActualMetric_gab);
+        Vector& rStrainVector);
     
+    void CalculateCurvature(
+        Vector& CurvatureVector,
+        Vector& bv,
+        Vector& bv_ref);
+
+    // function not checked yet, just copied from surface_base, needed? (ML)
+    void CalculateBMembrane(
+        Matrix& rB,
+        const MetricVariables& metric) {KRATOS_WATCH("CalculateBMembrane");};
+
+    // function not checked yet, just copied from surface_base, needed? (ML)
+    void CalculateBCurvature(
+        Matrix& rB,
+        const MetricVariables& metric) {KRATOS_WATCH("CalculateBCurvature");};
+
     ///@}
 
     ///@}

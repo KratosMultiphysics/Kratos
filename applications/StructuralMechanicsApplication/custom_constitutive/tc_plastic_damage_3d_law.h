@@ -8,7 +8,6 @@
 //
 //  Main authors:    Michael Loibl
 //					 Tobias Teschemacher
-//					 Riccardo Rossi
 //
 //  Based on work of Tesser and Talledo (University of Padua)
 
@@ -307,8 +306,8 @@ namespace Kratos
 		Matrix m_D0;
 		Matrix m_D;
 		
-		Vector m_elastic_strain;
-		Vector m_plastic_strain;
+		// strain vector is defined as eps11,eps22, eps33, 2eps12, 2eps23, 2eps13 
+		Vector m_elastic_strain, m_plastic_strain;
 		
 		// rate intensity of plastic strain
 		double m_beta;
@@ -369,9 +368,9 @@ namespace Kratos
 			Matrix& rConstitutiveLaw);
 
 		/**
-			* @brief This method calculates the 3D Elasticity Matrix
-			* @details voigt notation, 
-			* note that the shear strains are considered as 2*strain_ij in the strain vector
+		 * @brief This method calculates the 3D Elasticity Matrix
+		 * @details voigt notation, 
+		 * note that the shear strains are considered as 2*strain_ij in the strain vector
 		 */ 
 		void CalculateElasticityMatrix(
     		Matrix& rElasticityMatrix);

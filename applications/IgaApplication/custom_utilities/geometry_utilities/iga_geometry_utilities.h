@@ -36,10 +36,14 @@ namespace IgaGeometryUtilities
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
+            // WorkingSpaceDimension normally 3 with x,y,z 
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)
             {
+                // LocalSpaceDimension normally 2 with xi und eta
                 for (unsigned int m = 0; m<rLocalSpaceDimension; m++)
                 {
+                    // rDN_De(i, m): derivative of form function at node i w.r.t. convective coordinate m
+                    // rJacobian(k, m): sum(over CP) (CP[k] * rDN_De(i,m))
                     rJacobian(k, m) += (rGeometry[i]).Coordinates()[k] * rDN_De(i, m);
                 }
             }
