@@ -86,6 +86,8 @@ class MorOfflineSecondOrderStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
+    typedef TLinearSolver TLinearSolverType;
+
     //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -150,19 +152,6 @@ class MorOfflineSecondOrderStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpS = TSparseSpace::CreateEmptyMatrixPointer();
-        mpM = TSparseSpace::CreateEmptyMatrixPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-
-        mpAr = TSparseSpace::CreateEmptyMatrixPointer();
-        mpMr = TSparseSpace::CreateEmptyMatrixPointer();
-        mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
-        mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
-        mpSr = TSparseSpace::CreateEmptyMatrixPointer();
-
-        // mSamplingPoints = samplingPoints;
-
         KRATOS_CATCH("");
     }
 
@@ -209,6 +198,24 @@ class MorOfflineSecondOrderStrategy
     typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
+    };
+
+    /**
+     * @brief Set method for the builder and solver
+     * @param pNewBuilderAndSolver The pointer to the builder and solver considered
+     */
+    void SetLinearSolver(typename TLinearSolverType::Pointer pNewLinearSolver)
+    {
+        mpLinearSolver = pNewLinearSolver;
+    };
+
+    /**
+     * @brief Get method for the builder and solver
+     * @return mpBuilderAndSolver: The pointer to the builder and solver considered
+     */
+    typename TLinearSolverType::Pointer GetLinearSolver()
+    {
+        return mpLinearSolver;
     };
 
     /**
@@ -276,6 +283,17 @@ class MorOfflineSecondOrderStrategy
 
         if (mInitializeWasPerformed == false)
         {
+            mpA = TSparseSpace::CreateEmptyMatrixPointer();
+            mpS = TSparseSpace::CreateEmptyMatrixPointer();
+            mpM = TSparseSpace::CreateEmptyMatrixPointer();
+            mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+
+            mpAr = TSparseSpace::CreateEmptyMatrixPointer();
+            mpMr = TSparseSpace::CreateEmptyMatrixPointer();
+            mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
+            mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
+            mpSr = TSparseSpace::CreateEmptyMatrixPointer();
+
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
 
@@ -647,6 +665,8 @@ class MorOfflineSecondOrderStrategy
     // TDenseMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpSr;
+
+    int myTestInteger = 42;
 
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
