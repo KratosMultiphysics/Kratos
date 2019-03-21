@@ -59,7 +59,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
     def GetParticlesResultsCounter(self):
         return SDP.Counter()
 
-    def GetPrintCounterUpdatedDEM(self):
+    def GetPrintCounter(self):
         return SDP.Counter(is_dead=True)
 
     def GetFieldUtility(self):

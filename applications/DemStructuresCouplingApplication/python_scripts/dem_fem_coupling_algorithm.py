@@ -184,7 +184,7 @@ class Algorithm(object):
 
                 stepinfo = self.dem_solution.report.StepiReport(timer, self.dem_solution.time, self.dem_solution.step)
                 if stepinfo:
-                    self.dem_solution.KRATOSprint(stepinfo)
+                    self.dem_solution.KratosPrintInfo(stepinfo)
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)
