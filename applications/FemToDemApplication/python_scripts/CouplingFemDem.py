@@ -180,7 +180,7 @@ class FEMDEM_Solution:
 
         self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
-        self.DEM_Solution.step = self.FEM_Solution.step
+        self.DEM_Solution.step = self.ComputeDeltaTime()
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
                                                                    self.DEM_Solution.solver.dt,
@@ -1041,3 +1041,13 @@ class FEMDEM_Solution:
                                                                             self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
+
+#============================================================================================================================
+
+    def ComputeDeltaTime(self):
+
+        if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
+            return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+        else: 
+            
