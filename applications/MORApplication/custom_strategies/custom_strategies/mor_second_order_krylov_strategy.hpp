@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(MOR_OFFLINE_STRATEGY)
-#define MOR_OFFLINE_STRATEGY
+#if !defined(MOR_SECOND_ORDER_KRYLOV_STRATEGY)
+#define MOR_SECOND_ORDER_KRYLOV_STRATEGY
 
 // System includes
 
@@ -23,7 +23,6 @@
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
-
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 
 //default builder and solver
@@ -53,7 +52,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class MorOfflineStrategy
+ * @class MorSecondOrderKrylovStrategy
  * @ingroup KratosCore
  * @brief This is the linear MOR matrix output strategy
  * @details This strategy builds the K and M matrices and outputs them
@@ -63,15 +62,17 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class MorOfflineStrategy
-    : public MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class MorSecondOrderKrylovStrategy
+    // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
   public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of ClassName
-    KRATOS_CLASS_POINTER_DEFINITION(MorOfflineStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderKrylovStrategy);
 
+    // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
@@ -115,7 +116,7 @@ class MorOfflineStrategy
      * @param pScheme The integration schemed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    MorOfflineStrategy(
+    MorSecondOrderKrylovStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -157,7 +158,7 @@ class MorOfflineStrategy
         mpS = TSparseSpace::CreateEmptyMatrixPointer();
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-
+        // // this->
         mpAr = TSparseSpace::CreateEmptyMatrixPointer();
         mpMr = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
@@ -174,7 +175,7 @@ class MorOfflineStrategy
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~MorOfflineStrategy() override
+    ~MorSecondOrderKrylovStrategy() override
     {
         Clear();
     }
@@ -419,9 +420,9 @@ class MorOfflineStrategy
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << system_construction_time.ElapsedSeconds() << std::endl;
 
-            TSystemMatrixType& rA  = *mpA;
-            TSystemMatrixType& rM = *mpM;
-            TSystemVectorType& rRHS  = *mpRHS;
+            TSystemMatrixType& rA  = *this->mpA;
+            TSystemMatrixType& rM = *this->mpM;
+            TSystemVectorType& rRHS  = *this->mpRHS;
 
             //initial operations ... things that are constant over the Solution Step
             p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
@@ -452,10 +453,10 @@ class MorOfflineStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
-        TSystemMatrixType& rA  = *mpA;
-        TSystemMatrixType& rM = *mpM;
-        TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
+        TSystemMatrixType& rA  = *this->mpA;
+        TSystemMatrixType& rM = *this->mpM;
+        TSystemVectorType& rRHS  = *this->mpRHS;
+        TSystemMatrixType& rS  = *this->mpS;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -641,9 +642,11 @@ class MorOfflineStrategy
 
         r_damping_reduced = prod( matrix< double >( prod( trans( r_basis ),rS ) ), r_basis );
         // KRATOS_WATCH(r_force_vector_reduced)
-        // KRATOS_WATCH(r_stiffness_matrix_reduced)
-        // KRATOS_WATCH(r_mass_matrix_reduced)
+        KRATOS_WATCH(r_stiffness_matrix_reduced)
+        KRATOS_WATCH(r_mass_matrix_reduced)
         // KRATOS_WATCH(r_basis)
+        // KRATOS_WATCH(r_basis)
+
         std::cout << "MOR offline solve finished" << std::endl;
 		//std::cout << "Compiled succesfully finally after long time"<<std::endl;
 		return true;
@@ -687,21 +690,21 @@ class MorOfflineStrategy
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType &GetSystemMatrix()
+    TSystemMatrixType &GetSystemMatrix() override
     {
         TSystemMatrixType &mA = *mpA;
 
         return mA;
     }
 
-    TSystemMatrixType &GetMassMatrix()
+    TSystemMatrixType &GetMassMatrix() override
     {
         TSystemMatrixType &mM = *mpM;
 
         return mM;
     }
 
-    TSystemMatrixType &GetDampingMatrix()
+    TSystemMatrixType &GetDampingMatrix() override
     {
         TSystemMatrixType &mS = *mpS;
 
@@ -712,72 +715,78 @@ class MorOfflineStrategy
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector()
+    TSystemVectorType& GetSystemVector() override
     {
         TSystemVectorType& mb = *mpRHS;
 
         return mb;
     }
 
-    TSystemMatrixType& GetMr()
-    {
-        TSystemMatrixType &mMr = *mpMr;
+    // TSystemMatrixType& GetMr() override
+    // {
+    //     TSystemMatrixType &mMr = *mpMr;
 
-        return mMr;
-    }
+    //     return mMr;
+    // }
 
-    TSystemMatrixPointerType& pGetMr()
-    {
-        return mpMr;
-    }
+    // TSystemMatrixPointerType& pGetMr() override
+    // {
+    //     return mpMr;
+    // }
 
-    TSystemMatrixType& GetKr()
-    {
-        TSystemMatrixType &mAr = *mpAr;
+    // TSystemMatrixType& GetKr() override
+    // {
+    //     TSystemMatrixType &mAr = *mpAr;
 
-        return mAr;
-    }
+    //     return mAr;
+    // }
 
-    TSystemMatrixPointerType& pGetKr()
-    {
-        return mpAr;
-    }
+    // TSystemMatrixPointerType& pGetKr() override
+    // {
+    //     return mpAr;
+    // }
 
-    TSystemMatrixType& GetDr()
-    {
-        TSystemMatrixType &mSr = *mpSr;
+    // TSystemMatrixType& GetDr() override
+    // {
+    //     TSystemMatrixType &mSr = *mpSr;
 
-        return mSr;
-    };
+    //     return mSr;
+    // };
 
-    TSystemMatrixPointerType& pGetDr()
-    {
-        return mpSr;
-    }
+    // TSystemMatrixPointerType& pGetDr() override
+    // {
+    //     return mpSr;
+    // }
 
-    TSystemVectorType& GetRHSr()
-    {
+    // TSystemVectorType& GetRHSr() override
+    // {
         
-        TSystemVectorType& mb = *mpRHSr;
+    //     TSystemVectorType& mb = *mpRHSr;
 
-        return mb;
-    };
+    //     return mb;
+    // };
 
-    TSystemVectorPointerType& pGetRHSr()
+    // TSystemVectorPointerType& pGetRHSr() override
+    // {
+    //     return mpRHSr;
+    // }
+
+    // TSystemMatrixType& GetBasis() override
+    // {
+    //     TSystemMatrixType &mBasis = *mpBasis;
+
+    //     return mBasis;
+    // }
+
+    // TSystemMatrixPointerType& pGetBasis() override
+    // {
+    //     return mpBasis;
+    // }
+
+    /// Turn back information as a string.
+    virtual std::string Info() const override
     {
-        return mpRHSr;
-    }
-
-    TSystemMatrixType& GetBasis()
-    {
-        TSystemMatrixType &mBasis = *mpBasis;
-
-        return mBasis;
-    }
-
-    TSystemMatrixPointerType& pGetBasis()
-    {
-        return mpBasis;
+        return "MorSecondOrderKrylovStrategy";
     }
 
     ///@}
@@ -831,19 +840,18 @@ class MorOfflineStrategy
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
 
-    TSystemVectorPointerType mpRHS; /// The RHS vector of the system of equations
-    TSystemMatrixPointerType mpA; /// The Stiffness matrix of the system of equations
-    TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
-    TSystemMatrixPointerType mpS; /// The Damping matrix of the system of equations
+    TSystemVectorPointerType mpRHS = this->mpRHS; /// The RHS vector of the system of equations
+    TSystemMatrixPointerType mpA = this->mpA; /// The Stiffness matrix of the system of equations
+    TSystemMatrixPointerType mpM = this->mpM; /// The Mass matrix of the system of equations
+    TSystemMatrixPointerType mpS = this->mpS; /// The Damping matrix of the system of equations
 
 
     // reduced matrices
-    TSystemVectorPointerType mpRHSr; //reduced RHS
-    TSystemMatrixPointerType mpAr;
-    TSystemMatrixPointerType mpMr;
-    // TDenseMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpSr;
+    TSystemVectorPointerType mpRHSr = this->mpRHSr; //reduced RHS
+    TSystemMatrixPointerType mpAr = this->mpAr;
+    TSystemMatrixPointerType mpMr = this->mpMr;
+    TSystemMatrixPointerType mpBasis = this->mpBasis;
+    TSystemMatrixPointerType mpSr = this->mpSr;
 
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
@@ -869,7 +877,7 @@ class MorOfflineStrategy
      * @brief This method returns the components of the system of equations depending of the echo level
      * @param IterationNumber The non linear iteration in the solution loop
      */
-    virtual void EchoInfo(const unsigned int IterationNumber)
+    virtual void EchoInfo(const unsigned int IterationNumber) override
     {
         TSystemMatrixType& rA  = *mpA;
         TSystemMatrixType& rM = *mpM;
@@ -909,7 +917,7 @@ class MorOfflineStrategy
      * @todo Replace by logger
      */
 
-    virtual void MaxIterationsExceeded()
+    virtual void MaxIterationsExceeded() override
     {
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
@@ -939,11 +947,11 @@ class MorOfflineStrategy
      * Copy constructor.
      */
 
-    MorOfflineStrategy(const MorOfflineStrategy &Other){};
+    MorSecondOrderKrylovStrategy(const MorSecondOrderKrylovStrategy &Other){};
 
     ///@}
 
-}; /* Class MorOfflineStrategy */
+}; /* Class MorSecondOrderKrylovStrategy */
 
 ///@}
 
@@ -954,4 +962,4 @@ class MorOfflineStrategy
 
 } /* namespace Kratos. */
 
-#endif /* MOR_OFFLINE_STRATEGY  defined */
+#endif /* MOR_SECOND_ORDER_KRYLOV_STRATEGY  defined */

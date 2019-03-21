@@ -23,7 +23,7 @@
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
-#include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
+#include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 
 // Application includes
 #include "mor_application_variables.h"
@@ -77,7 +77,7 @@ class MorOnlineStrategy
 
     // typedef LinearMorMatrixOutputStrategy< TSparseSpace, TDenseSpace, TLinearSolver > OfflineStrategyType;
 
-    typedef MorOfflineStrategy< TSparseSpace, TDenseSpace, TLinearSolver > OfflineStrategyType;
+    typedef MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver > OfflineStrategyType;
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
@@ -110,6 +110,7 @@ class MorOnlineStrategy
 
     /**
      * Default constructor
+     * TODO: rename to MorOnlineSecondOrderStrategy
      * @param rModelPart The model part of the problem
      * @param pLinearSolver The linear solver
      * @param pOfflineStrategy The offline MOR strategy
