@@ -25,16 +25,16 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             "analysis_type" : "linear"
         }
         """)
-        if (project_parameters["solver_settings"].Has("max_iteration") is True):
+        if project_parameters["solver_settings"].Has("max_iteration") is True:
             self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         else:
             self.non_linear_iterations = 10
             project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if (project_parameters["solver_settings"].Has("analysis_type") is True):
+        if project_parameters["solver_settings"].Has("analysis_type") is True:
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
-        if (project_parameters.Has("recursive_remeshing_process") is True):
+        if project_parameters.Has("recursive_remeshing_process") is True:
             self.process_remesh = True
         else:
             self.process_remesh = False
@@ -43,15 +43,15 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
-        if (self.process_remesh is False):
+        if not self.process_remesh:
             convergence_criteria = self._GetSolver().get_convergence_criterion()
             convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
         # Ensuring to have conditions on the BC before remesh
         computing_model_part = self._GetSolver().GetComputingModelPart()
         # We need to detect the conditions in the boundary conditions
-        if (self.project_parameters.Has("constraints_process_list") is True):
+        list_model_parts = []
+        if self.project_parameters.Has("constraints_process_list"):
             constraints_process_list = self.project_parameters["constraints_process_list"]
-            list_model_parts = []
             for i in range(0,constraints_process_list.size()):
                 item = constraints_process_list[i]
                 list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
@@ -62,7 +62,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         """)
         for name_mp in list_model_parts:
             skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
-        if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+        if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
             detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
         else:
             detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
@@ -75,10 +75,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         """
 
         # If we remesh using a process
-        if (self.process_remesh is True):
+        if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                if self.main_model_part.Is(KM.MODIFIED):
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
@@ -105,7 +105,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
-                    if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    if computing_model_part.Is(KM.MODIFIED):
                         self._GetSolver().Clear()
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
@@ -117,28 +117,28 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                         ## Processes of initialize the solution step
                         for process in self._list_of_processes:
                             process.ExecuteInitializeSolutionStep()
-                    if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
-                        computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                        computing_model_part.Set(KM.MODIFIED, False)
                         self.is_printing_rank = False
-                    computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
+                    computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self.FinalizeSolutionStep()
-                    if (is_converged):
+                    if is_converged:
                         self.is_printing_rank = True
-                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
+                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
                     elif (non_linear_iteration == self.non_linear_iterations):
                         self.is_printing_rank = True
-                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
+                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
                     else:
                         metric_process.Execute()
                         remeshing_process.Execute()
-                        computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
+                        computing_model_part.Set(KM.MODIFIED, True)
                         non_linear_iteration += 1
                 self.OutputSolutionStep()
 
@@ -164,16 +164,16 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KM.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
+                    if self.project_parameters.Has(process_name):
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                    if self.project_parameters.Has(process_name):
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             pass # Already added
         else:
