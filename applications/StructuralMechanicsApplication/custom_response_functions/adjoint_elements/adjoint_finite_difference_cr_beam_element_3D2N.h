@@ -41,19 +41,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
 
     AdjointFiniteDifferenceCrBeamElement(IndexType NewId = 0)
-    : BaseType(NewId, true)
+    : BaseType(NewId, true), mPrimalBeamElement(NewId, this->pGetGeometry())
     {
     }
 
     AdjointFiniteDifferenceCrBeamElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
-    : BaseType(NewId, pGeometry, true)
+    : BaseType(NewId, pGeometry, true), mPrimalBeamElement(NewId, pGeometry)
     {
     }
 
     AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
                         typename GeometryType::Pointer pGeometry,
                         typename PropertiesType::Pointer pProperties)
-    : BaseType(NewId, pGeometry, pProperties, true)
+    : BaseType(NewId, pGeometry, pProperties, true), mPrimalBeamElement(NewId, pGeometry, pProperties)
     {
     }
 
@@ -84,6 +84,7 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
+    TPrimalElement mPrimalBeamElement;
 
 
 private:
