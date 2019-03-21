@@ -56,30 +56,40 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).Initialize()
-        if (self.process_remesh is False):
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
-        # Ensuring to have conditions on the BC before remesh
         computing_model_part = self._GetSolver().GetComputingModelPart()
-        list_model_parts = []
-        # We need to detect the conditions in the boundary conditions
-        if self.project_parameters.Has("constraints_process_list"):
-            constraints_process_list = self.project_parameters["constraints_process_list"]
-            for i in range(0,constraints_process_list.size()):
-                item = constraints_process_list[i]
-                list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
-        skin_detection_parameters = KM.Parameters("""
-        {
-            "list_model_parts_to_assign_conditions" : []
-        }
-        """)
-        for name_mp in list_model_parts:
-            skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
-        if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
-            detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
-        else:
-            detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
-        detect_skin.Execute()
+        if not self.process_remesh:
+            convergence_criteria = self._GetSolver().get_convergence_criterion()
+            convergence_criteria.Initialize(computing_model_part)
+
+        # Ensuring to have conditions on the BC before remesh
+        is_surface = False
+        for elem in computing_model_part.Elements:
+            geom = elem.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            break
+
+        if not is_surface:
+            list_model_parts = []
+            # We need to detect the conditions in the boundary conditions
+            if self.project_parameters.Has("constraints_process_list"):
+                constraints_process_list = self.project_parameters["constraints_process_list"]
+                for i in range(0,constraints_process_list.size()):
+                    item = constraints_process_list[i]
+                    list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
+            skin_detection_parameters = KM.Parameters("""
+            {
+                "list_model_parts_to_assign_conditions" : []
+            }
+            """)
+            for name_mp in list_model_parts:
+                skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
+
+            if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+                detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
+            else:
+                detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
+            detect_skin.Execute()
         self._GetSolver().SetEchoLevel(self.echo_level)
 
     def RunSolutionLoop(self):
@@ -221,6 +231,8 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
+            "origin_variable"                  : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
+            "destination_variable"             : "CONTACT_PRESSURE",
             "integration_order"                : 2
         }
         """)
@@ -233,28 +245,17 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
         else:
             slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE)
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE)
-        if (interface_model_part.HasSubModelPart("MasterSubModelPart")):
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE).Execute()
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE).Execute()
+        if interface_model_part.HasSubModelPart("MasterSubModelPart"):
             master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
         else:
             master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER)
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER)
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER).Execute()
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER).Execute()
 
-        if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-        else:
-            number_nodes = len(computing_model_part["Contact"].Conditions[1].GetNodes())
-            if (number_nodes == 3):
-                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-            else:
-                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-
+        mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
         mortar_mapping.Execute()
-
-        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to CONTACT_PRESSURE
-        KM.VariableUtils().SaveScalarNonHistoricalVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
 
 if __name__ == "__main__":
     from sys import argv
