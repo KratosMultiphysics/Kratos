@@ -116,7 +116,7 @@ namespace Kratos
             SchemeType::Pointer pScheme,
             const double DeltaTime = 1.0e-4,
             const std::string TestType = "DISPLACEMENT",
-            const bool TestPedict = false
+            const bool TestPredict = false
             )
         {
             Model current_model;
@@ -177,7 +177,7 @@ namespace Kratos
             }
 
             // Check Predict (displacement)
-            if (TestPedict) {
+            if (TestPredict) {
                 pnode->pGetDof(DISPLACEMENT_X)->FixDof();
                 time = 0;
 
