@@ -332,12 +332,12 @@ public:
     */
     double Area() const override
     {
-        return 4 * Globals::Pi * std::pow(GetRadius(), 2);
+        return 4.0 * Globals::Pi * std::pow(GetRadius(), 2);
     }
 
     double Volume() const override
     {
-        return 4/3 * Globals::Pi * std::pow(GetRadius(), 3);
+        return 4.0/3.0 * Globals::Pi * std::pow(GetRadius(), 3);
     }
 
     /** This method calculate and return length, area or volume of
