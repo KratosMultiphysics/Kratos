@@ -402,31 +402,62 @@ protected:
 
         // Database access to all of the variables needed
         rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];     // Only, needed if the temporal dependent term is considered in the subscales
+        
+        /*
         rData.dt = rCurrentProcessInfo[DELTA_TIME];  // Only, needed if the temporal dependent term is considered in the subscales
         rData.t = rCurrentProcessInfo[TIME];
-        // KRATOS_WATCH(rData.dt)
-        // KRATOS_WATCH(rData.t)
+        KRATOS_WATCH(rData.dt)
+        KRATOS_WATCH(rData.t)
 
         //previous step data
         const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
         rData.dtn = rPreviousProcessInfo[DELTA_TIME];
         rData.tn = rPreviousProcessInfo[TIME];
-        // KRATOS_WATCH(rData.dtn)
-        // KRATOS_WATCH(rData.tn)
+        KRATOS_WATCH(rData.dtn)
+        KRATOS_WATCH(rData.tn)
         
         // 2 previous step data
         const ProcessInfo& r2PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(2);
         rData.dtnn = r2PreviousProcessInfo[DELTA_TIME];
         rData.tnn = r2PreviousProcessInfo[TIME];
-        // KRATOS_WATCH(rData.dtnn)
-        // KRATOS_WATCH(rData.tnn)
+        KRATOS_WATCH(rData.dtnn)
+        KRATOS_WATCH(rData.tnn)
 
         // 3 previous step data
 		const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
         rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
         rData.tnnn = r3PreviousProcessInfo[TIME];
-        // KRATOS_WATCH(rData.dtnnn)
+        KRATOS_WATCH(rData.dtnnn)
+        KRATOS_WATCH(rData.tnnn)
+        */
+
+        // KRATOS_WATCH("=================================")
+
+
+        rData.t = rCurrentProcessInfo[TIME];
+        rData.dt = rCurrentProcessInfo[DELTA_TIME];      
+        
+        const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);    
+        const ProcessInfo& r2PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(2);
+        const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
+
+        rData.tn = rPreviousProcessInfo[TIME];
+        rData.tnn = r2PreviousProcessInfo[TIME];
+        rData.tnnn = r3PreviousProcessInfo[TIME];
+        
+        rData.dtn = rData.t - rData.tn;
+        rData.dtnn = rData.tn - rData.tnn;
+        rData.dtnnn = rData.tnn - rData.tnnn;
+        
+        // KRATOS_WATCH(rData.dt)
+        // KRATOS_WATCH(rData.t)
+        // KRATOS_WATCH(rData.dtn)
+        // KRATOS_WATCH(rData.tn)
+        // KRATOS_WATCH(rData.dtnn)
+        // KRATOS_WATCH(rData.tnn)
         // KRATOS_WATCH(rData.tnnn)
+        // KRATOS_WATCH(rData.dtnnn)
+
 
         KRATOS_CATCH("TimeAveragedNavierStokesElement::FillElementData: Error in Assigning Previous Time Step Information")
         // BDF coefficients -> time dependent
@@ -451,6 +482,25 @@ protected:
         rData.dts = rCurrentProcessInfo[AVERAGING_TIME_LENGTH];
 
         // parameters for time averaged variables
+        // for current time step: v = ave_c1 * v_ave - ave_c2 * vn_ave
+        rData.ave_c1 = rData.t / rData.dtn;
+        rData.ave_c2 = rData.tn / rData.dtn;
+
+        // for previous time step: vn = ave_n_c0 * vn_ave - ave_n_c1 * vnn_ave
+        rData.ave_n_c1 = rData.tn / rData.dtnn;
+        rData.ave_n_c2 = rData.tnn / rData.dtnn;
+
+        // for 2 previous time step: vnn = ave_nn_c0 * vnn_ave - ave_nn_c1 * vnnn_ave
+        rData.ave_nn_c1 = rData.tnn / rData.dtnnn;
+        rData.ave_nn_c2 = rData.tnnn / rData.dtnnn;
+                
+        // KRATOS_WATCH(rData.ave_c1)
+        // KRATOS_WATCH(rData.ave_c2)
+        // KRATOS_WATCH(rData.ave_n_c1)
+        // KRATOS_WATCH(rData.ave_n_c2)
+        // KRATOS_WATCH(rData.ave_nn_c1)
+        // KRATOS_WATCH(rData.ave_nn_c2)
+        /*
         if (rData.t <= rData.dts){
 
             // for current time step: v = ave_c1 * v_ave - ave_c2 * vn_ave
@@ -478,7 +528,7 @@ protected:
             // for 2 previous time step: vnn = ave_nn_c0 * vnn_ave - ave_nn_c1 * vnnn_ave
             rData.ave_nn_c1 = ( rData.dts - rData.dtn - rData.dtnn ) / rData.dtnn;
             rData.ave_nn_c2 = ( rData.dts - rData.dtn - rData.dtnn - rData.dtnnn) / rData.dtnn;
-        }
+        }*/
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
