@@ -119,8 +119,10 @@ namespace Kratos {
 
 			// Fake time advance
 			double current_time = 0.0;
+			int time_step = 0;
 			for (unsigned int i = 0; i < buffer_size; ++i) {
-				current_time = i*delta_time;
+				time_step += 1;
+				current_time += delta_time;
 				modelPart.CloneTimeStep(current_time);
 			}
 
@@ -139,15 +141,19 @@ namespace Kratos {
 			std::vector<double> error_vel_norms;
 			std::vector<double> error_pres_norms;
 
-			double current_delta_time = delta_time;
-
-			for (unsigned int time_step=1; time_step<5; ++time_step)
+			for (unsigned int i=0; i<5; ++i)
 			{
+				modelPart.CloneTimeStep(current_time);
+				time_step += 1;
 				KRATOS_WATCH(time_step)
-				current_delta_time = delta_time * time_step;
-				current_time += time_step * current_delta_time;
+				double previous_time_step = modelPart.GetProcessInfo().GetPreviousTimeStepInfo()[DELTA_TIME];
+				KRATOS_WATCH(previous_time_step)
+				double next_delta_time = previous_time_step*1.2;
+				KRATOS_WATCH(next_delta_time)
+				current_time += previous_time_step;
 				modelPart.GetProcessInfo().SetValue(TIME,current_time);
-				modelPart.GetProcessInfo().SetValue(DELTA_TIME,current_delta_time);
+				modelPart.GetProcessInfo().SetValue(DELTA_TIME,next_delta_time);
+				
 				bdf_process.Execute();
 				const Vector& BDFVector = modelPart.GetProcessInfo().GetValue(BDF_COEFFICIENTS);
 				KRATOS_WATCH(BDFVector[0])
@@ -175,6 +181,9 @@ namespace Kratos {
 				noalias(RHS_obtained) = RHS - solution_increment;
 				noalias(error) = RHS_perturbed - RHS_obtained;
 				error_norms.push_back(norm_2(error));
+				
+				
+				//modelPart.GetProcessInfo().SetValue(DELTA_TIME,next_delta_time);
 			}
 
 			// // Check quadratic convergence (if FullNR has been selected when generating the element)
