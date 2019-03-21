@@ -2,8 +2,8 @@ import h5py
 import numpy as np
 import math
 from KratosMultiphysics import *
-import candelier_scripts.candelier as candelier
-import candelier_scripts.candelier_parameters as ch_pp
+import candelier
+import candelier_parameters as ch_pp
 
 class ResultsCandelier:
     def __init__(self, parameters, path):

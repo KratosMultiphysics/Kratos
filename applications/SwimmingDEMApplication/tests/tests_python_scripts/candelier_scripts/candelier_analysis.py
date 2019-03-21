@@ -1,8 +1,13 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
 import math
-import candelier_scripts.candelier as candelier
-import candelier_scripts.candelier_parameters as candelier_pp
+import os
+import sys
+file_path = os.path.abspath(__file__)
+dir_path = os.path.dirname(file_path)
+sys.path.insert(0, dir_path)
+import candelier
+import candelier_parameters as candelier_pp
 
 def Cross(a, b):
     c0 = a[1]*b[2] - a[2]*b[1]
@@ -12,18 +17,17 @@ def Cross(a, b):
 
 from swimming_DEM_analysis import SwimmingDEMAnalysis
 from swimming_DEM_analysis import Say
+import parameters_tools as PT
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
         self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
-        #Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
-    def GetFluidSolveCounter(self):
-        return SDP.Counter(is_dead = True)
+        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
     def GetEmbeddedCounter(self):
-        return SDP.Counter(1, 3, self.project_parameters["embedded_option"].GetBool())  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        return SDP.Counter(is_dead=True)
 
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 4, 0)
@@ -34,7 +38,9 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
         super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
         candelier_pp.include_history_force = bool(self.project_parameters["basset_force_type"].GetInt())
-        candelier_pp.include_lift = bool(self.project_parameters["lift_force_type"].GetInt())
+        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(custom_parameters["properties"],
+                                                                            'vorticity_induced_lift_parameters',
+                                                                            condition=lambda value: not (value['name']=='default'))
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.project_parameters["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
@@ -60,17 +66,14 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
             node.Fix(VELOCITY_Z)
             node.SetSolutionStepValue(VELOCITY_OLD, v0)
             node.Fix(VELOCITY_OLD_Z)
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v0)
 
             if candelier_pp.include_lift:
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, 0.0)
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, 0.0)
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, 2 * candelier_pp.omega)
+                vorticity = Vector([0.0, 0.0, 2.0 * candelier_pp.omega])
+                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED, vorticity)
 
     def _CreateSolver(self):
-        import candelier_scripts.candelier_dem_solver as sdem_solver
+        import candelier_dem_solver as sdem_solver
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),

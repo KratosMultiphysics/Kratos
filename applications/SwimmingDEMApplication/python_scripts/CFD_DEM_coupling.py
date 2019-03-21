@@ -69,7 +69,7 @@ class ProjectionModule:
             if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
                 coupling_dem_vars.remove(var)
-            self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
+            self.projector.AddDEMVariablesToImpose(AUX_VEL)
 
         for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
@@ -82,20 +82,20 @@ class ProjectionModule:
         else:
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
-    def ApplyForwardCoupling(self, alpha = None):
+    def ApplyForwardCoupling(self, alpha=None):
         if self.do_impose_flow_from_field:
             self.ImposeFluidFlowOnParticles()
         else:
             if alpha == None:
-                self.ProjectFromNewestFluid()
-            else:
-                self.ProjectFromFluid(alpha)
+                alpha = 1.0
+            self.ProjectFromFluid(alpha)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self):
+    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
         if self.do_impose_flow_from_field:
-            self.ImposeVelocityOnDEMFromFieldToSlipVelocity()
-        else:
-            self.InterpolateVelocityOnSlipVelocity()
+            self.ImposeVelocityOnDEMFromFieldToAuxVelocity()
+        elif alpha == None:
+            alpha = 1.0
+        self.InterpolateVelocityOnAuxVelocity(alpha)
 
     def ProjectFromFluid(self, alpha):
 
@@ -105,17 +105,14 @@ class ProjectionModule:
                                                 self.bin_of_objects_fluid,
                                                 alpha)
 
-    def ProjectFromNewestFluid(self):
-        self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
-
-    def InterpolateVelocityOnSlipVelocity(self):
-        self.projector.InterpolateVelocityOnSlipVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+    def InterpolateVelocityOnAuxVelocity(self, alpha):
+        self.projector.InterpolateVelocityOnAuxVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ImposeFluidFlowOnParticles(self):
         self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
 
-    def ImposeVelocityOnDEMFromFieldToSlipVelocity(self):
-        self.projector.ImposeVelocityOnDEMFromFieldToSlipVelocity(self.flow_field, self.particles_model_part)
+    def ImposeVelocityOnDEMFromFieldToAuxVelocity(self):
+        self.projector.ImposeVelocityOnDEMFromFieldToAuxVelocity(self.flow_field, self.particles_model_part)
 
     def ProjectFromParticles(self, recalculate_neigh = True):
         #print("\nProjecting from particles to the fluid...")
