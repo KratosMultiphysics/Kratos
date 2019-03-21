@@ -37,8 +37,8 @@ class ApplyInletProcess(KratosMultiphysics.Process):
         # Check input data
         if (settings["model_part_name"].GetString() == ""):
             raise Exception("Empty inlet model part name string. Set a valid model part name.")
-        elif (settings["variable_name"].GetString() != "VELOCITY"):
-            raise Exception("Inlet variable_name is not VELOCITY.")
+        elif (settings["variable_name"].GetString() != "VELOCITY" and settings["variable_name"].GetString() != "TIME_AVERAGED_VELOCITY"):
+            raise Exception("Inlet variable_name is not VELOCITY or TIME_AVERAGED_VELOCITY.")
         else:
             if (settings["modulus"].IsDouble()):
                 if (settings["modulus"].GetDouble == 0.0):
