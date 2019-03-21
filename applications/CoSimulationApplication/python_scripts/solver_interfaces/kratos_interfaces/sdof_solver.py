@@ -4,6 +4,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import RecursivelyValidateAndAssignDefaults
 
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 # Other imports
 import numpy as np
 import json
@@ -16,14 +18,14 @@ class SDoFSolver(CoSimulationBaseSolver):
     def __init__(self, model, cosim_solver_settings, solver_name):
         super(SDoFSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
-        input_file_name = self.cosim_solver_settings["input_file"]
+        input_file_name = self.cosim_solver_settings["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 
         with open(input_file_name,'r') as ProjectParameters:
-            parameters = json.load(ProjectParameters)
+            parameters = cs_tools.cs_data_structure.Parameters(ProjectParameters.read())
 
-        default_settings = {
+        default_settings = cs_tools.cs_data_structure.Parameters(r'''{
                 "system_parameters":{
                     "mass"      : 100.0,
                     "stiffness" : 4000.0,
@@ -47,22 +49,22 @@ class SDoFSolver(CoSimulationBaseSolver):
                 },
                 "output_parameters":{
                     "file_name" : "sdof_solver/results_sdof.dat"
-                }}
+                }}''')
 
-        RecursivelyValidateAndAssignDefaults(default_settings, parameters)
+        parameters.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        self.mass = parameters["system_parameters"]["mass"]
-        self.stiffness = parameters["system_parameters"]["stiffness"]
-        self.damping = parameters["system_parameters"]["damping"]
+        self.mass = parameters["system_parameters"]["mass"].GetDouble()
+        self.stiffness = parameters["system_parameters"]["stiffness"].GetDouble()
+        self.damping = parameters["system_parameters"]["damping"].GetDouble()
 
-        self.alpha_m = parameters["time_integration_parameters"]["alpha_m"]
-        self.alpha_f = parameters["time_integration_parameters"]["alpha_f"]
-        self.delta_t = parameters["time_integration_parameters"]["time_step"]
+        self.alpha_m = parameters["time_integration_parameters"]["alpha_m"].GetDouble()
+        self.alpha_f = parameters["time_integration_parameters"]["alpha_f"].GetDouble()
+        self.delta_t = parameters["time_integration_parameters"]["time_step"].GetDouble()
 
-        self.initial_displacement = parameters["initial_values"]["displacement"]
-        self.initial_velocity = parameters["initial_values"]["velocity"]
+        self.initial_displacement = parameters["initial_values"]["displacement"].GetDouble()
+        self.initial_velocity = parameters["initial_values"]["velocity"].GetDouble()
 
-        self.force = parameters["boundary_conditions"]["external_load"]
+        self.force = parameters["boundary_conditions"]["external_load"].GetDouble()
 
         #calculate initial acceleration
         factor = self.force - self.stiffness * self.initial_displacement
@@ -83,9 +85,9 @@ class SDoFSolver(CoSimulationBaseSolver):
                                       -self.alpha_f * self.damping,
                                       -self.alpha_m * self.mass]])
 
-        self.buffer_size = parameters["solver_parameters"]["buffer_size"]
+        self.buffer_size = parameters["solver_parameters"]["buffer_size"].GetInt()
 
-        self.output_file_name = parameters["output_parameters"]["file_name"]
+        self.output_file_name = parameters["output_parameters"]["file_name"].GetString()
 
     def Initialize(self):
         self.x = np.zeros((3, self.buffer_size))

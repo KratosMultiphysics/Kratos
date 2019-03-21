@@ -23,27 +23,32 @@ class SDoFIO(CoSimulationBaseIO):
 
         value = sum(data_array)
 
-        if "io_options" in io_settings:
-            if "swap_sign" in io_settings["io_options"]:
+        if io_settings.Has("io_options"):
+            if io_settings["io_options"].Has("swap_sign"):
                 value *= -1.0
 
-        data_identifier = sdof_data_settings["data_identifier"]
+        data_identifier = sdof_data_settings["data_identifier"].GetString()
         sdof_solver.SetData(data_identifier, value)
 
 
     def ExportCouplingInterfaceData(self, data_settings, to_client):
         sdof_solver = self.solvers[self.solver_name]
         sdof_data_settings = sdof_solver.GetInterfaceData(data_settings["data_name"])
-        sdof_data_settings["data_name"] = data_settings["data_name"]
+        out_data_settings = {"data_format" : "scalar_value"}
+        out_data_settings["data_name"] = data_settings["data_name"]
+        # sdof_data_settings["data_name"].SetString(data_settings["data_name"])# TODO maybe it is not existing before ...? => check
+        # sdof_data_settings.AddEmptyValue("data_name").SetString(data_settings["data_name"])# TODO maybe it is not existing before ...? => check
 
-        if not sdof_data_settings["data_format"] == "scalar_value":
+        if not sdof_data_settings["data_format"].GetString() == "scalar_value":
             raise Exception('SDoFIO can only handle scalar values')
         sdof_solver = self.solvers[self.solver_name]
 
-        data_identifier = sdof_data_settings["data_identifier"]
+        data_identifier = sdof_data_settings["data_identifier"].GetString()
 
         x = sdof_solver.GetData(data_identifier)
 
-        sdof_data_settings["scalar_value"] = x
-
-        to_client.ImportCouplingInterfaceData(sdof_data_settings, to_client)
+        out_data_settings["scalar_value"] = x
+        # sdof_data_settings.AddEmptyValue("scalar_value").SetDouble(x)
+        # print(sdof_data_settings)
+        # TODO convert to dict
+        to_client.ImportCouplingInterfaceData(data_settings, to_client)
