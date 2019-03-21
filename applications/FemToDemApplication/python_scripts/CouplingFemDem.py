@@ -112,7 +112,8 @@ class FEMDEM_Solution:
     def InitializeSolutionStep(self):
 
         # modified for the remeshing
-        self.FEM_Solution.delta_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
         self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
         self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
         self.FEM_Solution.step = self.FEM_Solution.step + 1
@@ -180,7 +181,7 @@ class FEMDEM_Solution:
 
         self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
-        self.DEM_Solution.step = self.ComputeDeltaTime()
+        self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
                                                                    self.DEM_Solution.solver.dt,
@@ -1049,5 +1050,20 @@ class FEMDEM_Solution:
         if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
             return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-        else: 
+        elif self.FEM_Solution.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+            current_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            for key in self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+                interval_settings = self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"][key]
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
+
+                 # Getting the time step of the interval
+                if interval.IsInInterval(current_time):
+                    return interval_settings["time_step"].GetDouble()
+            # If we arrive here we raise an error because the intervals are not well defined
+            raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+
+
             
