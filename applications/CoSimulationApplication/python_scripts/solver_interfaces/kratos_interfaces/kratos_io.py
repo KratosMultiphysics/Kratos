@@ -318,7 +318,8 @@ class KratosIO(CoSimulationBaseIO):
                 info_msg  = bold(pre_string+"Mapping with: ")
                 info_msg += bold("Origin_Variable: ") + var_origin.Name() + " | "
                 info_msg += bold("Destination_Variable: ") + var_dest.Name()
-                if "mapper_args" in data_settings["io_settings"]:
+                if data_settings["io_settings"].Has("mapper_args"):
+                    broken
                     info_msg += " | " + bold("Mapper-Flags: ") + ", ".join(data_settings["io_settings"]["mapper_args"])
                 csprint(info_msg)
 
