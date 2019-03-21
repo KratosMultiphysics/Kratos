@@ -288,7 +288,7 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
         return true;
     } else {
-        return BaseType::Has(rThisVariable);
+        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(rThisVariable);
     }
     return false;
 }
@@ -310,7 +310,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
         mNumberOfCycles = rValue;
     } else {
-        return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
 }
 
@@ -330,7 +330,7 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
         rValue = mNumberOfCycles;
     } else {
-        return BaseType::GetValue(rThisVariable, rValue);
+        return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
     }
     return rValue;
 }
@@ -364,7 +364,7 @@ Vector& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     Vector& rValue
     )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -389,7 +389,7 @@ Vector& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     Vector& rValue
     )
 {
-    return BaseType::GetValue(rThisVariable, rValue);
+    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -401,7 +401,7 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     Matrix& rValue
     )
 {
-    return BaseType::GetValue(rThisVariable, rValue);
+    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -443,7 +443,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     const Vector& rShapeFunctionsValues
     )
 {
-    BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+    GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/

@@ -77,7 +77,7 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of the base class
-    typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+    //typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
 
     ///@}
     ///@name Life Cycle
