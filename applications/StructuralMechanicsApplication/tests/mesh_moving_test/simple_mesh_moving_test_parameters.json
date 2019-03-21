@@ -15,10 +15,16 @@
         "echo_level"                         : 0,
         "domain_size"     : 2,
         "time_stepping"                      : {
-            "time_step" : 0.005
-        },
-        "linear_solver_settings" : {
-            "solver_type" : "ExternalSolversApplication.super_lu"
+            "time_step_intervals" : {
+                "first_interval" : {
+                    "interval"  : [0.0, 0.5],
+                    "time_step" : 0.005
+                },
+                "second_interval" : {
+                    "interval"  : [0.5, "End"],
+                    "time_step" : 0.01
+                }
+            }
         },
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
