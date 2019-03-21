@@ -93,12 +93,12 @@ for dim in dim_vector:
 
     ## Other simbols definition
     c   = Symbol('c',positive= True)            # Wave length number
-    dtn  = Symbol('dtn', positive = True)       # Time increment: notice t = tn + dtn
+    dtn  = Symbol('dtn', positive = True)         # Time increment: notice t = tn + dtn
     rho = Symbol('rho', positive = True)        # Density
     nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
     mu  = Symbol('mu', positive = True)         # Dynamic viscosity
     h = Symbol('h', positive = True)
-    dyn_tau = Symbol('dyn_tau', positive = True)
+    dyn_tau = 0.0                               # for steady state problem, dynamic tau is set to 0
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
 
@@ -174,7 +174,7 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = - div_v
+        mas_residual = -div_v
         if (artificial_compressibility):
             mas_residual -= (1/(rho*c*c))*pder_gauss
     else:

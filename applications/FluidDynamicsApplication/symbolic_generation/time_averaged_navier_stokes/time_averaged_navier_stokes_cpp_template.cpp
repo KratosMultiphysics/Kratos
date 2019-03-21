@@ -36,7 +36,7 @@ void TimeAveragedNavierStokes<3>::EquationIdVector(
         rResult[i*(dim+1)+3]  =  this->GetGeometry()[i].GetDof(TIME_AVERAGED_PRESSURE).EquationId();
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("ERROR in constrcuting EquationIdVector")
 }
 
 
@@ -61,7 +61,7 @@ void TimeAveragedNavierStokes<2>::EquationIdVector(
         rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(TIME_AVERAGED_PRESSURE).EquationId();
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("ERROR in constrcuting EquationIdVector")
 }
 
 
@@ -86,8 +86,7 @@ void TimeAveragedNavierStokes<3>::GetDofList(
         ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(TIME_AVERAGED_VELOCITY_Z);
         ElementalDofList[i*(dim+1)+3]  =  this->GetGeometry()[i].pGetDof(TIME_AVERAGED_PRESSURE);
     }
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("ERROR in constrcuting GetDofList")
 }
 
 
@@ -112,7 +111,7 @@ void TimeAveragedNavierStokes<2>::GetDofList(
         ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(TIME_AVERAGED_PRESSURE);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("ERROR in constrcuting GetDofList")
 }
 
 
@@ -129,7 +128,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
@@ -142,10 +141,6 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     // time averaging parameters
     double ave_c1 = data.ave_c1;
     double ave_c2 = data.ave_c2;
-    double ave_n_c1 = data.ave_n_c1;
-    double ave_n_c2 = data.ave_n_c2;
-    double ave_nn_c1 = data.ave_nn_c1;
-    double ave_nn_c2 = data.ave_nn_c2;
 
     // get time accurate expression
     const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
@@ -180,7 +175,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
@@ -193,10 +188,6 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     // time averaging parameters
     double ave_c1 = data.ave_c1;
     double ave_c2 = data.ave_c2;
-    double ave_n_c1 = data.ave_n_c1;
-    double ave_n_c2 = data.ave_n_c2;
-    double ave_nn_c1 = data.ave_nn_c1;
-    double ave_nn_c2 = data.ave_nn_c2;
 
     // get time accurate expression
     const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
@@ -232,7 +223,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointRHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
@@ -296,7 +287,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointRHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
 
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
@@ -358,7 +349,7 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     const double h = data.h;                                // Characteristic element size
     // const double c = data.c;                                // Wave velocity
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
@@ -384,8 +375,8 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     double ave_nn_c2 = data.ave_nn_c2;
 
     // get time accurate expression
-    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
-    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
+    const array_1d<double,nnodes>& p = data.p;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get shape function values
@@ -422,7 +413,7 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
 
-    const double& dts = data.dts;                           // The averaging time period
+    //const double& dts = data.dts;                           // The averaging time period
     const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
@@ -448,8 +439,8 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     double ave_nn_c2 = data.ave_nn_c2;
 
     // get time accurate expression
-    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
-    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
+    const array_1d<double,nnodes>& p = data.p;
+    const BoundedMatrix<double,nnodes,dim>& v = data.v;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get shape function values

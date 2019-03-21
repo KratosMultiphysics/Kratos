@@ -116,9 +116,7 @@ public:
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-            KRATOS_WATCH(Dt)
-            KRATOS_WATCH(OldDt)
-            
+
             if(OldDt > 1e-10*Dt) //this should always be the case!!
             {
                 double Rho = OldDt / Dt;

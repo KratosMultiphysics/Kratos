@@ -197,6 +197,20 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
         KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size).Execute()
         
+        self.automatic_time_step = self.settings["time_stepping"]["automatic_time_step"].GetBool()
+
+        if self.automatic_time_step:
+            self.CFL_min =  self.settings["time_stepping"]["CFL_number"].GetDouble()
+            self.min_dt = self.settings["time_stepping"]["minimum_delta_time"].GetDouble()
+            self.max_dt =  self.settings["time_stepping"]["maximum_delta_time"].GetDouble()
+            if(self.domain_size == 3):
+                self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+            elif(self.domain_size == 2):
+                self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+        else:
+            self.CFL_min = 1.0
+            self.min_dt = self.settings["time_stepping"]["time_step"].GetDouble()
+
         self.accelerated = self.settings["time_averaging_acceleration"]["acceleration"]["consider_acceleration"].GetBool()
         if self.accelerated == True:
             self.delta_time_acceleration_type = self.settings["time_averaging_acceleration"]["acceleration"]["type"].GetString()
@@ -216,19 +230,6 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             if self.delta_time_acceleration_type == "linear":
                 self.CFL_max = self.settings["time_averaging_acceleration"]["acceleration"]["maximum_CFL"].GetDouble()
         else:
-            if self.settings["time_stepping"]["automatic_time_step"].GetBool() == True:
-                self.automatic_time_step = True
-                self.CFL_min =  self.settings["time_stepping"]["CFL_number"].GetDouble()
-                self.min_dt = self.settings["time_stepping"]["minimum_delta_time"].GetDouble()
-                self.max_dt =  self.settings["time_stepping"]["maximum_delta_time"].GetDouble()
-                if(self.domain_size == 3):
-                    self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
-                elif(self.domain_size == 2):
-                    self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
-            else:
-                self.automatic_time_step = False
-                self.CFL_min = 1.0
-                self.min_dt = self.settings["time_stepping"]["time_step"].GetDouble()
             self.delta_time_acceleration_type = "None"
 
         self.restart = self.settings["time_averaging_acceleration"]["restart"]["consider_restart"].GetBool()
@@ -247,14 +248,23 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self.averaging_time_length = self.end_time
         # sets initial averaging time length
         self._set_averaging_time_length(self.averaging_time_length)
+
+        self.InitializeBuffer()
+
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Using", self.delta_time_acceleration_type, "acceleration")
+
+
+    def InitializeBuffer(self):
         # Initializing STEP
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
         self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = 0
         self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.min_dt
-
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Using", self.delta_time_acceleration_type, "acceleration")
+        for i in range(0, self.min_buffer_size):
+            self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.min_dt
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = 0
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +=1 
+            self.main_model_part.CloneSolutionStep()
 
 
     def AdvanceInTime(self, previous_time):   
@@ -306,14 +316,12 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self._compute_averaging_time_length(new_time, new_dt)
             self._set_averaging_time_length(self.averaging_time_length)
         
-        print("New Dt: ", new_dt)
+        print("New Dt is: ", new_dt)
         return new_time
 
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            #(self.bdf_process).Execute()
-            (self.solver).InitializeSolutionStep()
+        (self.solver).InitializeSolutionStep()
 
 
     def _set_physical_properties(self):

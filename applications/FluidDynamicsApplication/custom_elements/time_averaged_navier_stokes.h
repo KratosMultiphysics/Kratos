@@ -18,6 +18,10 @@
 #include "fluid_dynamics_application_variables.h"
 #include "processes/compute_bdfcoefficients_process.h"
 
+#if !defined(isnan)
+#define isnan(x) ((x)!=(x))
+#endif
+
 namespace Kratos
 {
 
@@ -61,6 +65,9 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TDim> v_ave, vn_ave, vnn_ave, vnnn_ave, vmesh, f;
         array_1d<double,TNumNodes> p_ave, pn_ave, pnn_ave, pnnn_ave, rho, mu;
+
+        BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn;
+        array_1d<double,TNumNodes> p, pn, pnn;
 
         double t, tn, tnn, tnnn;        // time history
         double dt, dtn, dtnn, dtnnn;    // time step history
@@ -403,37 +410,6 @@ protected:
         // Database access to all of the variables needed
         rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];     // Only, needed if the temporal dependent term is considered in the subscales
         
-        /*
-        rData.dt = rCurrentProcessInfo[DELTA_TIME];  // Only, needed if the temporal dependent term is considered in the subscales
-        rData.t = rCurrentProcessInfo[TIME];
-        KRATOS_WATCH(rData.dt)
-        KRATOS_WATCH(rData.t)
-
-        //previous step data
-        const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
-        rData.dtn = rPreviousProcessInfo[DELTA_TIME];
-        rData.tn = rPreviousProcessInfo[TIME];
-        KRATOS_WATCH(rData.dtn)
-        KRATOS_WATCH(rData.tn)
-        
-        // 2 previous step data
-        const ProcessInfo& r2PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(2);
-        rData.dtnn = r2PreviousProcessInfo[DELTA_TIME];
-        rData.tnn = r2PreviousProcessInfo[TIME];
-        KRATOS_WATCH(rData.dtnn)
-        KRATOS_WATCH(rData.tnn)
-
-        // 3 previous step data
-		const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
-        rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
-        rData.tnnn = r3PreviousProcessInfo[TIME];
-        KRATOS_WATCH(rData.dtnnn)
-        KRATOS_WATCH(rData.tnnn)
-        */
-
-        // KRATOS_WATCH("=================================")
-
-
         rData.t = rCurrentProcessInfo[TIME];
         rData.dt = rCurrentProcessInfo[DELTA_TIME];      
         
@@ -460,14 +436,12 @@ protected:
 
 
         KRATOS_CATCH("TimeAveragedNavierStokesElement::FillElementData: Error in Assigning Previous Time Step Information")
-        // BDF coefficients -> time dependent
-        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        // rData.bdf0 = BDFVector[0];
-        // rData.bdf1 = BDFVector[1];
-        // rData.bdf2 = BDFVector[2];
         
-        // Define time step size ratios        
-        double r = rData.dt / rData.dtn;
+        // Define time step size ratios 
+        double r = 1;
+        if (rData.dtn != 0.0) {    
+            double r = rData.dt / rData.dtn;
+        }
         rData.bdf0 =  1/rData.dt * (1 + 2.0*r) / (1 + r);
         rData.bdf1 = -1/rData.dt * (1 + r);
         rData.bdf2 =  1/rData.dt * (r * r) / (1 + r);
@@ -483,23 +457,41 @@ protected:
 
         // parameters for time averaged variables
         // for current time step: v = ave_c1 * v_ave - ave_c2 * vn_ave
-        rData.ave_c1 = rData.t / rData.dtn;
-        rData.ave_c2 = rData.tn / rData.dtn;
+        if (rData.t == rData.tn){
+            // for initialization v1 = 1*v_ave1 - 0*v_ave0 
+            rData.ave_c1 = 1;
+            rData.ave_c2 = 0;
+        } else {
+            rData.ave_c1 = rData.t / rData.dtn;
+            rData.ave_c2 = rData.tn / rData.dtn;
+        }
 
         // for previous time step: vn = ave_n_c0 * vn_ave - ave_n_c1 * vnn_ave
-        rData.ave_n_c1 = rData.tn / rData.dtnn;
-        rData.ave_n_c2 = rData.tnn / rData.dtnn;
-
+        if (rData.tn == rData.tnn){
+            // for initialization v1 = 1*v_n_ave1 - 0*v_n_ave0 
+            rData.ave_n_c1 = 1;
+            rData.ave_n_c2 = 0;
+        } else {  
+            rData.ave_n_c1 = rData.tn / rData.dtnn;
+            rData.ave_n_c2 = rData.tnn / rData.dtnn;
+        }
         // for 2 previous time step: vnn = ave_nn_c0 * vnn_ave - ave_nn_c1 * vnnn_ave
-        rData.ave_nn_c1 = rData.tnn / rData.dtnnn;
-        rData.ave_nn_c2 = rData.tnnn / rData.dtnnn;
-                
+        if (rData.tnn == rData.tnnn){
+            // for initialization v1 = 1*v_n_ave1 - 0*v_n_ave0 
+            rData.ave_nn_c1 = 1;
+            rData.ave_nn_c2 = 0;
+        } else { 
+            rData.ave_nn_c1 = rData.tnn / rData.dtnnn;
+            rData.ave_nn_c2 = rData.tnnn / rData.dtnnn;
+        }
+
         // KRATOS_WATCH(rData.ave_c1)
         // KRATOS_WATCH(rData.ave_c2)
         // KRATOS_WATCH(rData.ave_n_c1)
         // KRATOS_WATCH(rData.ave_n_c2)
         // KRATOS_WATCH(rData.ave_nn_c1)
         // KRATOS_WATCH(rData.ave_nn_c2)
+                
         /*
         if (rData.t <= rData.dts){
 
@@ -560,6 +552,15 @@ protected:
             rData.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         }
 
+        //fill time instantaneous values
+        rData.v   = rData.ave_c1    * rData.v_ave   - rData.ave_c2    * rData.vn_ave;
+        rData.vn  = rData.ave_n_c1  * rData.vn_ave  - rData.ave_n_c2  * rData.vnn_ave;
+        rData.vnn = rData.ave_nn_c1 * rData.vnn_ave - rData.ave_nn_c2 * rData.vnnn_ave;
+
+        rData.p   = rData.ave_c1    * rData.p_ave   - rData.ave_c2    * rData.pn_ave;
+        rData.pn  = rData.ave_n_c1  * rData.pn_ave  - rData.ave_n_c2  * rData.pnn_ave;
+        rData.pnn = rData.ave_nn_c1 * rData.pnn_ave - rData.ave_nn_c2 * rData.pnnn_ave;
+
     }
 
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
@@ -613,19 +614,8 @@ protected:
     // Computes the strain rate in Voigt notation
     void ComputeStrain(ElementDataStruct& rData, const unsigned int& strain_size)
     {
-        const BoundedMatrix<double, TNumNodes, TDim>& v_ave = rData.v_ave;
-        const BoundedMatrix<double, TNumNodes, TDim>& vn_ave = rData.vn_ave;
+        const BoundedMatrix<double, TNumNodes, TDim>& v = rData.v;
         const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
-
-		double t = rData.t;
-		double dtn = rData.dtn;
-		double dt = rData.dt;
-
-        // time averaging parameters
-        double ave_c1 = rData.ave_c1;
-        double ave_c2 = rData.ave_c2;
-
-		const BoundedMatrix<double, TNumNodes, TDim> v = ave_c1 * v_ave - ave_c2 * vn_ave;
 
         // Compute strain (B*v)
         // 3D strain computation
