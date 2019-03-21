@@ -541,7 +541,7 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
 void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;
-    ClearSensitivities();
+    Clear();
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              mpSensitivityModelPart->Nodes());
     VariableUtils().SetNonHistoricalVariable(
@@ -560,9 +560,14 @@ void SensitivityBuilder::UpdateSensitivities()
         // integrate in time
         scaling_factor = -mpModelPart->GetProcessInfo()[DELTA_TIME];
     }
-    else if (mBuildMode == "sum" || mBuildMode == "static")
+    else if (mBuildMode == "sum")
     {
         scaling_factor = 1.0;
+    }
+    else if (mBuildMode == "static")
+    {
+        scaling_factor = 1.0;
+        ClearSensitivities();
     }
     else
     {
@@ -599,12 +604,6 @@ void SensitivityBuilder::UpdateSensitivities()
 void SensitivityBuilder::ClearSensitivities()
 {
     KRATOS_TRY;
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Nodes());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Elements());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Conditions());
     using sensitivity_builder_cpp::SetNodalSolutionStepSensitivityVariablesToZero;
     using sensitivity_builder_cpp::SetNonHistoricalSensitivityVariablesToZero;
     SetNodalSolutionStepSensitivityVariablesToZero(
@@ -613,6 +612,19 @@ void SensitivityBuilder::ClearSensitivities()
         mElementDataValueSensitivityVariables, mpModelPart->Elements());
     SetNonHistoricalSensitivityVariablesToZero(
         mConditionDataValueSensitivityVariables, mpModelPart->Conditions());
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::Clear()
+{
+    KRATOS_TRY;
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Nodes());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Elements());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Conditions());
+    ClearSensitivities();
     KRATOS_CATCH("");
 }
 

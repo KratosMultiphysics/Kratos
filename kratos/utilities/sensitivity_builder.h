@@ -79,6 +79,8 @@ public:
 
     void ClearSensitivities();
 
+    void Clear();
+
     ///@}
 
 private:
