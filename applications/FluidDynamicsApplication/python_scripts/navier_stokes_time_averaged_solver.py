@@ -12,6 +12,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from fluid_solver import FluidSolver
 
+from numpy import log
+
 def CreateSolver(model, custom_settings):
     return NavierStokesTimeAveragedMonolithicSolver(model, custom_settings)
 
@@ -65,12 +67,15 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
                 "acceleration" : {
                     "type"                          : "exponential",
                     "exponential_factor"            : 1.05,
+                    "log_factor"                    : 1.0,
                     "minimum_delta_time"            : 0.05,
                     "maximum_delta_time"            : 1.0,
                     "minimum_CFL"                   : 1.0,
                     "maximum_CFL"                   : 40.0,
                     "start_acceleration_time"       : 1.0,
-                    "end_acceleration_time"         : 10
+                    "end_acceleration_time"         : 10,
+                    "maximum_iteration_number"      : 8,
+                    "minimum_iteration_number"      : 3
                 }
             },
             "move_mesh_flag": false,
@@ -110,22 +115,27 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Fluid solver variables added correctly.")
 
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_X,  self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Y,  self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Z,  self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_PRESSURE,    self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_X, KratosMultiphysics.REACTION_X,  self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,  self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Fluid solver DOFs added correctly.")
@@ -147,10 +157,6 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
     def Initialize(self):
 
         self.computing_model_part = self.GetComputingModelPart()
-
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -199,18 +205,35 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self.end_acceleration_time = self.settings["time_averaging_acceleration"]["acceleration"]["end_acceleration_time"].GetDouble()
             self.min_dt = self.settings["time_averaging_acceleration"]["acceleration"]["minimum_delta_time"].GetDouble()
             self.max_dt = self.settings["time_averaging_acceleration"]["acceleration"]["maximum_delta_time"].GetDouble()
-            self.CFL_min =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_CFL"].GetDouble()          
-            
+            self.CFL_min =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_CFL"].GetDouble()        
+            self.max_it_number =  self.settings["time_averaging_acceleration"]["acceleration"]["maximum_iteration_number"].GetDouble()
+            self.min_it_number =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_iteration_number"].GetDouble()
+
             if self.delta_time_acceleration_type == "exponential":
-                self.delta_time_acceleration_factor = self.settings["time_averaging_acceleration"]["acceleration"]["exponential_factor"].GetDouble()
+                self.delta_time_acceleration_exp_factor = self.settings["time_averaging_acceleration"]["acceleration"]["exponential_factor"].GetDouble()
+            if self.delta_time_acceleration_type == "log":
+                self.delta_time_acceleration_log_factor = self.settings["time_averaging_acceleration"]["acceleration"]["log_factor"].GetDouble()
             if self.delta_time_acceleration_type == "linear":
                 self.CFL_max = self.settings["time_averaging_acceleration"]["acceleration"]["maximum_CFL"].GetDouble()
-        else: 
+        else:
+            if self.settings["time_stepping"]["automatic_time_step"].GetBool() == True:
+                self.automatic_time_step = True
+                self.CFL_min =  self.settings["time_stepping"]["CFL_number"].GetDouble()
+                self.min_dt = self.settings["time_stepping"]["minimum_delta_time"].GetDouble()
+                self.max_dt =  self.settings["time_stepping"]["maximum_delta_time"].GetDouble()
+                if(self.domain_size == 3):
+                    self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+                elif(self.domain_size == 2):
+                    self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+            else:
+                self.automatic_time_step = False
+                self.CFL_min = 1.0
+                self.min_dt = self.settings["time_stepping"]["time_step"].GetDouble()
             self.delta_time_acceleration_type = "None"
 
         self.restart = self.settings["time_averaging_acceleration"]["restart"]["consider_restart"].GetBool()
         self.end_time = self.settings["time_averaging_acceleration"]["restart"]["end_time"].GetDouble()
-
+        
         if self.restart == True:
             # parameters for time averaging acceleration
             self.initial_averaging_time_length = self.settings["time_averaging_acceleration"]["restart"]["considered_time"].GetDouble()
@@ -226,29 +249,64 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self._set_averaging_time_length(self.averaging_time_length)
         # Initializing STEP
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
+        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = 0
+        self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.min_dt
 
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Using", self.delta_time_acceleration_type, "acceleration")
 
 
-    def AdvanceInTime(self, current_time):   
+    def AdvanceInTime(self, previous_time):   
+        # check if already converged, when yes, stop progressing in time
         self._check_steady_state()
+        old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         
-        if self.delta_time_acceleration_type == "exponential": 
-            old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            dt = self._compute_increased_exponential_delta_time(current_time, old_dt)
-        elif self.delta_time_acceleration_type == "linear":
-            dt = self._compute_increased_delta_time_with_CFL(current_time)
-        else:
-            dt = self._ComputeDeltaTime()
-        new_time = current_time + dt
+        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
 
-        self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        if step < self.min_buffer_size:
+            new_dt = self.min_dt
+        else:
+            if self.accelerated and previous_time > self.start_acceleration_time:
+                if previous_time <= self.end_acceleration_time:
+                    if self.delta_time_acceleration_type == "exponential": 
+                        print("old dt:", old_dt )
+                        new_dt = self._compute_increased_exponential_delta_time(previous_time, old_dt)
+                    elif self.delta_time_acceleration_type == "linear":
+                        new_dt = self._compute_increased_delta_time_with_CFL(previous_time)
+                    elif self.delta_time_acceleration_type == "log":    
+                        new_dt = self._compute_increased_logarithmic_delta_time(previous_time, step)
+                    else:
+                        new_dt = self.EstimateDeltaTimeUtility.EstimateDt()
+        
+                    if new_dt > self.max_dt:
+                            new_dt = self.max_dt
+                    if new_dt < self.min_dt:
+                        new_dt = self.min_dt
+
+                else:
+                    old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                    new_dt = old_dt
+            else:
+                if self.automatic_time_step:
+                    new_dt = self.EstimateDeltaTimeUtility.EstimateDt()
+                else:
+                    new_dt = self.min_dt
+        print(new_dt)
+        # clone the time steps to save place for new variables new_time t and new_dt dt
+        self.main_model_part.CloneTimeStep(previous_time)
+        # tn+1 = tn + dtn
+        new_time = previous_time + old_dt
+        #print("new_time ", new_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, new_dt)
 
         if (self.restart == True):
-            self._compute_averaging_time_length(new_time, dt)
+            self._compute_averaging_time_length(new_time, new_dt)
             self._set_averaging_time_length(self.averaging_time_length)
+        
+        print("New Dt: ", new_dt)
         return new_time
 
 
@@ -292,21 +350,27 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def _compute_increased_exponential_delta_time(self, current_time, old_dt):
-        if ( current_time > self.start_acceleration_time): 
-            if (current_time <= self.end_acceleration_time):
-                new_dt = old_dt*self.delta_time_acceleration_factor 
-                if new_dt > self.max_dt:
-                    new_dt = self.max_dt
-            else:
-                new_dt = self.max_dt
-        else: 
-            if(self.domain_size == 3):
-                EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
-            elif(self.domain_size == 2):
-                EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
-            new_dt = EstimateDeltaTimeUtility.EstimateDt()
 
-        print("New dt is: ", new_dt)
+        print("Nr Nonlinear Iterations: " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]))
+        # if few iteration steps needed -> increase time step
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] <= self.min_it_number:
+            new_dt = old_dt*self.delta_time_acceleration_exp_factor 
+        # if a lot of iteration steps needed -> increase time step
+        elif self.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] >= self.max_it_number:
+            new_dt = old_dt/self.delta_time_acceleration_exp_factor 
+        else:
+            new_dt = old_dt
+
+        return new_dt
+
+
+    def _compute_increased_logarithmic_delta_time(self, current_time, step):
+        step -= self.step_before_accleration
+        step += 4
+        new_dt = self.delta_time_acceleration_log_factor*self.min_dt*(log(step+1)-log(step))
+        if new_dt > self.max_dt:
+            new_dt = self.max_dt
+
         return new_dt
 
 
