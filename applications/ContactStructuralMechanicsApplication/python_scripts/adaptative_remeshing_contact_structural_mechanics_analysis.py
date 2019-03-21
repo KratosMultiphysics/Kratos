@@ -46,10 +46,12 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                 project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
         else:
             project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
+        self.process_remesh = False
         if project_parameters.Has("recursive_remeshing_process"):
             self.process_remesh = True
-        else:
-            self.process_remesh = False
+        if project_parameters["processes"].Has("recursive_remeshing_process"):
+            self.process_remesh = True
+        if not self.process_remesh:
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -97,10 +99,11 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         It can be overridden by derived classes
         """
         # If we remesh using a process
+        computing_model_part = self._GetSolver().GetComputingModelPart()
         if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if self.main_model_part.Is(KM.MODIFIED):
+                if computing_model_part.Is(KM.MODIFIED):
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
@@ -117,7 +120,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                 self.FinalizeSolutionStep()
                 self.OutputSolutionStep()
         else: # Remeshing adaptively
-            computing_model_part = self._GetSolver().GetComputingModelPart()
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver().get_convergence_criterion()

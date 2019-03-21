@@ -25,19 +25,20 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             "analysis_type" : "linear"
         }
         """)
-        if project_parameters["solver_settings"].Has("max_iteration") is True:
+        if project_parameters["solver_settings"].Has("max_iteration"):
             self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         else:
             self.non_linear_iterations = 10
             project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if project_parameters["solver_settings"].Has("analysis_type") is True:
+        if project_parameters["solver_settings"].Has("analysis_type"):
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
-        if project_parameters.Has("recursive_remeshing_process") is True:
+        self.process_remesh = False
+        if project_parameters.Has("recursive_remeshing_process"):
             self.process_remesh = True
-        else:
-            self.process_remesh = False
+        if project_parameters["processes"].Has("recursive_remeshing_process"):
+            self.process_remesh = True
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
@@ -85,10 +86,11 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         """
 
         # If we remesh using a process
+        computing_model_part = self._GetSolver().GetComputingModelPart()
         if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if self.main_model_part.Is(KM.MODIFIED):
+                if computing_model_part.Is(KM.MODIFIED):
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
@@ -104,7 +106,6 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                 self.FinalizeSolutionStep()
                 self.OutputSolutionStep()
         else: # Remeshing adaptively
-            computing_model_part = self._GetSolver().GetComputingModelPart()
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver().get_convergence_criterion()
