@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
+import parameters_tools as PT
 
 class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -11,7 +12,9 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = project_parameters["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
 
         if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
@@ -66,7 +69,9 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.project_parameters["lift_force_type"].GetInt()
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")

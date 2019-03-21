@@ -16,11 +16,6 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
         self.fluid_solution.main_path = self.main_path
 
-    def SetCouplingParameters(self, parameters):
-
-        super(SDEMPFEMAnalysis,self).SetCouplingParameters(parameters)
-        #self.pp.domain_size = self.pp.fluid_parameters["problem_data"]["dimension"].GetInt()
-
     def SetBetaParameters(self):
 
         super(SDEMPFEMAnalysis,self).SetBetaParameters()
