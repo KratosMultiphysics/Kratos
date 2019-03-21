@@ -12,7 +12,7 @@ def CanBeIterated(my_object):
         try:
             _ = my_object[0]
             return True
-        except:
+        except TypeError:
             return False
 
 def RecursiveFindTrueBoolInParameters(parameters, key):

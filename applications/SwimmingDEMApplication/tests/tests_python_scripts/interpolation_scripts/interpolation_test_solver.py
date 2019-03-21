@@ -1,7 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_solver
-from swimming_DEM_solver import Say
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
 class InterpolationTestSolver(BaseSolver):

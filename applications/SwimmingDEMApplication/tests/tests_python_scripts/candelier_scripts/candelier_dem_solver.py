@@ -42,7 +42,7 @@ class CandelierDEMSolver(BaseSolver):
                 vort = Vector([0.0, 0.0, 2.0 * omega])
                 node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED, vort)
 
-    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, time=None):
+    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
         for node in self.dem_solver.spheres_model_part.Nodes:
             r = Vector([node.X, node.Y, node.Z])
             new_vx = - candelier_pp.omega * r[1]
