@@ -83,8 +83,10 @@ namespace Testing {
         auto p_cloned_geom = Kratos::make_shared<Sphere3D1<Point>>(*p_geom);
         double big_radius = 2.0;
         p_cloned_geom->SetRadius(big_radius);
-        KRATOS_CHECK_EQUAL(p_geom->Volume(), 4/3 * Globals::Pi);
-        KRATOS_CHECK_EQUAL(p_cloned_geom->Volume(), 32/3 * Globals::Pi);
+        const double volume = 4.0/3 * Globals::Pi;
+        const double big_volume = 32.0/3 * Globals::Pi;
+        KRATOS_CHECK_DOUBLE_EQUAL(p_geom->Volume(), volume);
+        KRATOS_CHECK_DOUBLE_EQUAL(p_cloned_geom->Volume(), big_volume);
     }
 
     /** Checks that the HasIntersection method is well implemented for th.
