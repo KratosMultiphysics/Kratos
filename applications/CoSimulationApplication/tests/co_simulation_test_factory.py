@@ -92,7 +92,7 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
             self.runTest()
 
-    def test_SDoFDragRectangleFSI(self):
+    def _test_SDoFDragRectangleFSI(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
