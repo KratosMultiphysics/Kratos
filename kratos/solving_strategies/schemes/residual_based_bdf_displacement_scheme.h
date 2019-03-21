@@ -168,13 +168,10 @@ public:
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting position
-        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
         const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
         const int accelpos_x = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
-        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
         const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
         const int accelpos_y = it_node_begin->HasDofFor(ACCELERATION_Y) ? it_node_begin->GetDofPosition(ACCELERATION_Y) : -1;
-        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
         const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
         const int accelpos_z = it_node_begin->HasDofFor(ACCELERATION_Z) ? it_node_begin->GetDofPosition(ACCELERATION_Z) : -1;
 
@@ -190,35 +187,35 @@ public:
 
             if (accelpos_x > -1) {
                 if (it_node->GetDof(ACCELERATION_X, accelpos_x).IsFixed()) {
-                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                    it_node->Fix(DISPLACEMENT_X);
                     fixed_x = true;
                 }
             }
             if (velpos_x > -1 && !fixed_x) {
                 if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed() && !fixed_x) {
-                    if (disppos_x > -1) it_node->Fix(DISPLACEMENT_X);
+                    it_node->Fix(DISPLACEMENT_X);
                 }
             }
             if (accelpos_y > -1) {
                 if (it_node->GetDof(ACCELERATION_Y, accelpos_y).IsFixed()) {
-                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                    it_node->Fix(DISPLACEMENT_Y);
                     fixed_y = true;
                 }
             }
             if (velpos_y > -1 && !fixed_y) {
                 if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed() && !fixed_y) {
-                    if (disppos_y > -1) it_node->Fix(DISPLACEMENT_Y);
+                    it_node->Fix(DISPLACEMENT_Y);
                 }
             }
             if (accelpos_z > -1) {
                 if (it_node->GetDof(ACCELERATION_Z, accelpos_z).IsFixed()) {
-                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                    it_node->Fix(DISPLACEMENT_Z);
                     fixed_z = true;
                 }
             }
             if (velpos_z > -1 && !fixed_z) {
                 if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed() && !fixed_z) {
-                    if (disppos_z > -1) it_node->Fix(DISPLACEMENT_Z);
+                    it_node->Fix(DISPLACEMENT_Z);
                 }
             }
         }

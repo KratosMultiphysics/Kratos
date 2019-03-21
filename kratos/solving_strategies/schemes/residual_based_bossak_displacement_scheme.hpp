@@ -277,6 +277,9 @@ public:
         // Auxiliar variables
         array_1d<double, 3 > delta_displacement;
         std::array<bool, 3> predicted = {false, false, false};
+        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(delta_displacement, predicted)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -295,7 +298,7 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->FastGetDof(accelpos + i_dim).IsFixed()) {
+                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
                         delta_displacement[i_dim] = (r_current_acceleration[i_dim] + mBossak.c3 * r_previous_acceleration[i_dim] +  mBossak.c2 * r_previous_velocity[i_dim])/mBossak.c0;
                         r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
                         predicted[i_dim] = true;
@@ -304,7 +307,7 @@ public:
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->FastGetDof(velpos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !predicted[i_dim]) {
                         delta_displacement[i_dim] = (r_current_velocity[i_dim] + mBossak.c4 * r_previous_velocity[i_dim] + mBossak.c5 * r_previous_acceleration[i_dim])/mBossak.c1;
                         r_current_displacement[i_dim] =  r_previous_displacement[i_dim] + delta_displacement[i_dim];
                         predicted[i_dim] = true;
@@ -313,7 +316,7 @@ public:
             }
             if (disppos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (!it_node->FastGetDof(disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
                         r_current_displacement[i_dim] = r_previous_displacement[i_dim] + delta_time * r_previous_velocity[i_dim] + 0.5 * std::pow(delta_time, 2) * r_previous_acceleration[i_dim];
                     }
                 }
@@ -367,12 +370,13 @@ public:
         const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
         // Getting position
-        const int disppos = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
         const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
-        std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(fixed)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -383,16 +387,16 @@ public:
 
             if (accelpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->FastGetDof(accelpos + i_dim).IsFixed()) {
-                        if (disppos > -1) it_node->Fix(disp_components[i_dim]);
+                    if (it_node->GetDof(accel_components[i_dim], accelpos + i_dim).IsFixed()) {
+                        it_node->Fix(disp_components[i_dim]);
                         fixed[i_dim] = true;
                     }
                 }
             }
             if (velpos > -1) {
                 for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (it_node->FastGetDof(velpos + i_dim).IsFixed() && !fixed[i_dim]) {
-                        if (disppos > -1) it_node->Fix(disp_components[i_dim]);
+                    if (it_node->GetDof(vel_components[i_dim], velpos + i_dim).IsFixed() && !fixed[i_dim]) {
+                        it_node->Fix(disp_components[i_dim]);
                     }
                 }
             }
