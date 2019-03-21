@@ -2,7 +2,9 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
-
+print(' ')
+print ('define_wake_process_2d.py @CompressiblePotentialFlowApplication')
+print(' ')
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception(
@@ -114,6 +116,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     self.wake_model_part.AddElement(elem,0)
+                    for node in elem.GetNodes():
+                        self.wake_model_part.AddNode(node,0)
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -229,4 +233,15 @@ class DefineWakeProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         for elem in self.wake_model_part.Elements:
             print(elem.Id)
+            for node in elem.GetNodes():
+                node_velocity = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL) # node's velocity at the current time step
+                print('node_velocity', node_velocity)
+
+        input()
+        print('node_velocity')
+        print(len(self.wake_model_part.Nodes))
+        print(len(self.wake_model_part.Elements))
+        for node in self.wake_model_part.Nodes:
+            node_velocity = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL) # node's velocity at the current time step
+            print(node_velocity)
 
