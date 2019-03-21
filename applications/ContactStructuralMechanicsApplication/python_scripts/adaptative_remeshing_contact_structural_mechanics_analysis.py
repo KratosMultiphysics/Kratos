@@ -30,23 +30,23 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             }
         }
         """)
-        if (project_parameters["solver_settings"].Has("max_iteration") is True):
+        if project_parameters["solver_settings"].Has("max_iteration"):
             self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         else:
             self.non_linear_iterations = 10
             project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if (project_parameters["solver_settings"].Has("analysis_type") is True):
+        if project_parameters["solver_settings"].Has("analysis_type"):
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
-        if (project_parameters["solver_settings"].Has("contact_settings") is True):
-            if (project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion") is True):
+        if project_parameters["solver_settings"].Has("contact_settings"):
+            if project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion"):
                 project_parameters["solver_settings"]["contact_settings"]["fancy_convergence_criterion"].SetBool(False)
             else:
                 project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
         else:
             project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
-        if (project_parameters.Has("recursive_remeshing_process") is True):
+        if project_parameters.Has("recursive_remeshing_process"):
             self.process_remesh = True
         else:
             self.process_remesh = False
@@ -61,10 +61,10 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
         # Ensuring to have conditions on the BC before remesh
         computing_model_part = self._GetSolver().GetComputingModelPart()
+        list_model_parts = []
         # We need to detect the conditions in the boundary conditions
-        if (self.project_parameters.Has("constraints_process_list") is True):
+        if self.project_parameters.Has("constraints_process_list"):
             constraints_process_list = self.project_parameters["constraints_process_list"]
-            list_model_parts = []
             for i in range(0,constraints_process_list.size()):
                 item = constraints_process_list[i]
                 list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
@@ -87,10 +87,10 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         It can be overridden by derived classes
         """
         # If we remesh using a process
-        if (self.process_remesh is True):
+        if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if (self.main_model_part.Is(KM.MODIFIED) is True):
+                if self.main_model_part.Is(KM.MODIFIED):
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
@@ -118,7 +118,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
-                    if (computing_model_part.Is(KM.MODIFIED) is True):
+                    if computing_model_part.Is(KM.MODIFIED):
                         self._GetSolver().Clear()
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
@@ -130,7 +130,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         ## Processes of initialize the solution step
                         for process in self._list_of_processes:
                             process.ExecuteInitializeSolutionStep()
-                    if (non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED) is True):
+                    if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
@@ -141,7 +141,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._transfer_slave_to_master()
                     self.FinalizeSolutionStep()
-                    if (is_converged):
+                    if is_converged:
                         self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
@@ -229,7 +229,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         main_model_part = computing_model_part.GetRootModelPart()
         main_model_part.RemoveSubModelPart("ComputingContact")
 
-        if (interface_model_part.HasSubModelPart("SlaveSubModelPart")):
+        if interface_model_part.HasSubModelPart("SlaveSubModelPart"):
             slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
         else:
             slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
@@ -242,7 +242,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER)
             KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER)
 
-        if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+        if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
             mortar_mapping = KM.SimpleMortarMapperProcess2D2NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
         else:
             number_nodes = len(computing_model_part["Contact"].Conditions[1].GetNodes())
