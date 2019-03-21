@@ -68,18 +68,15 @@ class SolutionScheme:
                     variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
 
                 integration_method = None
+                vector_integration_method = getattr(KratosSolver,
+                integration_method_name+'VectorIntegration')
                 if( len(variables) == 4 ):
-                    vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
                     integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
-                    if(integration_method_name.find("Step") != -1):
-                        vector_integration_method = getattr(KratosSolid, 'StaticStepVectorIntegration')
-                    else:
-                        vector_integration_method = getattr(KratosSolid, 'StaticVectorIntegration')
                     integration_method = vector_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
-
+                    
                 if(integration_method_name.find("Step") != -1):
                     step_variable_name = 'STEP_'+dof
                     integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
