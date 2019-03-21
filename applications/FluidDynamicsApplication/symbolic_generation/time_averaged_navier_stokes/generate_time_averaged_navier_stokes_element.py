@@ -59,18 +59,6 @@ for dim in dim_vector:
     pnn_ave =  DefineVector('pnn_ave',nnodes)           # Averaged 2 previous step pressure
     pnnn_ave = DefineVector('pnnn_ave',nnodes)          # Averaged 3 previous step pressure
 
-    ## Time history
-    t = symbols('t')  # current time
-    tn = symbols('tn') # 1 previous time
-    tnn = symbols('tnn') # 2 previous time
-    tnnn = symbols('tnnn') # 3 previous time
-
-    ## Time step size history
-    dt = symbols('dt')  # current time step size
-    dtn = symbols('dtn') # 1 previous time step size
-    dtnn = symbols('dtnn') # 2 previous time step size
-    dtnnn = symbols('dtnnn') # 3 previous time step size
-
     ## time averaging parameters
     # current time step
     ave_c1 = symbols('ave_c1')
@@ -105,7 +93,7 @@ for dim in dim_vector:
 
     ## Other simbols definition
     c   = Symbol('c',positive= True)            # Wave length number
-    dt  = Symbol('dt', positive = True)         # Time increment
+    dtn  = Symbol('dtn', positive = True)       # Time increment: notice t = tn + dtn
     rho = Symbol('rho', positive = True)        # Density
     nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
     mu  = Symbol('mu', positive = True)         # Dynamic viscosity
@@ -138,7 +126,7 @@ for dim in dim_vector:
         vconv_gauss_norm += vconv_gauss[i]**2
     vconv_gauss_norm = sqrt(vconv_gauss_norm)
 
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
+    tau1 = 1.0/((rho*dyn_tau)/dtn + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
@@ -186,7 +174,7 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = -div_v
+        mas_residual = - div_v
         if (artificial_compressibility):
             mas_residual -= (1/(rho*c*c))*pder_gauss
     else:
@@ -259,6 +247,6 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
 
 ## Write the modified template
-out = open("..\\..\\custom_elements\\time_averaged_navier_stokes.cpp",'w')
+out = open("../../custom_elements/time_averaged_navier_stokes.cpp",'w')
 out.write(outstring)
 out.close()

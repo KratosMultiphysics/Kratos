@@ -130,18 +130,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
@@ -192,18 +181,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
@@ -255,18 +233,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointRHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -331,17 +298,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointRHSContribution(
 
     const double& dts = data.dts;                           // The averaging time period
 
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -402,18 +359,7 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     // const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -477,18 +423,7 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     const double h = data.h;                                // Characteristic element size
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;

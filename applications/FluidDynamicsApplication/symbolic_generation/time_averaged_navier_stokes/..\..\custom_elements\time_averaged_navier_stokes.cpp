@@ -130,18 +130,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
@@ -190,7 +179,7 @@ const double clhs13 =             pow(N[0], 2);
 const double clhs14 =             bdf0*rho;
 const double clhs15 =             N[0]*bdf0;
 const double clhs16 =             clhs11 + clhs15;
-const double clhs17 =             1.0/(clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs17 =             1.0/(clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double clhs18 =             clhs17*pow(rho, 2);
 const double clhs19 =             clhs11*clhs18;
 const double clhs20 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
@@ -793,18 +782,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
@@ -850,7 +828,7 @@ const double clhs10 =             pow(N[0], 2);
 const double clhs11 =             bdf0*rho;
 const double clhs12 =             N[0]*bdf0;
 const double clhs13 =             clhs12 + clhs8;
-const double clhs14 =             1.0/(clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs14 =             1.0/(clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double clhs15 =             clhs14*pow(rho, 2);
 const double clhs16 =             clhs15*clhs8;
 const double clhs17 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
@@ -1068,18 +1046,7 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointRHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -1153,7 +1120,7 @@ const double crhs26 =             ave_c1*v_ave(3,2) - ave_c2*vn_ave(3,2);
 const double crhs27 =             DN(0,2)*crhs23 + DN(1,2)*crhs24 + DN(2,2)*crhs25 + DN(3,2)*crhs26;
 const double crhs28 =             crhs12 + crhs22 + crhs27;
 const double crhs29 =             (crhs17 + crhs28)*(crhs16*h/stab_c1 + mu);
-const double crhs30 =             1.0/(crhs16/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs30 =             1.0/(crhs16/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double crhs31 =             crhs30*(DN(0,0)*crhs1 + DN(1,0)*crhs2 + DN(2,0)*crhs3 + DN(3,0)*crhs4 - crhs0 + crhs10 + crhs15);
 const double crhs32 =             rho*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2));
 const double crhs33 =             N[0]*crhs32;
@@ -1209,17 +1176,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointRHSContribution(
 
     const double& dts = data.dts;                           // The averaging time period
 
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -1284,7 +1241,7 @@ const double crhs17 =             ave_c1*v_ave(2,1) - ave_c2*vn_ave(2,1);
 const double crhs18 =             DN(0,1)*crhs15 + DN(1,1)*crhs16 + DN(2,1)*crhs17;
 const double crhs19 =             crhs18 + crhs9;
 const double crhs20 =             (crhs14 + crhs19)*(crhs13*h/stab_c1 + mu);
-const double crhs21 =             1.0/(crhs13/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs21 =             1.0/(crhs13/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double crhs22 =             crhs21*(DN(0,0)*crhs1 + DN(1,0)*crhs2 + DN(2,0)*crhs3 - crhs0 + crhs11 + crhs12);
 const double crhs23 =             rho*(DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1));
 const double crhs24 =             N[0]*crhs23;
@@ -1323,18 +1280,7 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     // const double c = data.c;                                // Wave velocity
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -1389,7 +1335,7 @@ const double cv_s_gauss7 =             ave_c1*v_ave(3,0) - ave_c2*vn_ave(3,0);
 const double cv_s_gauss8 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double cv_s_gauss9 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double cv_s_gauss10 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double cv_s_gauss11 =             1.0/(rho*stab_c2*sqrt(pow(cv_s_gauss10, 2) + pow(cv_s_gauss8, 2) + pow(cv_s_gauss9, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cv_s_gauss11 =             1.0/(rho*stab_c2*sqrt(pow(cv_s_gauss10, 2) + pow(cv_s_gauss8, 2) + pow(cv_s_gauss9, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double cv_s_gauss12 =             ave_c1*v_ave(0,1) - ave_c2*vn_ave(0,1);
 const double cv_s_gauss13 =             ave_c1*v_ave(1,1) - ave_c2*vn_ave(1,1);
 const double cv_s_gauss14 =             ave_c1*v_ave(2,1) - ave_c2*vn_ave(2,1);
@@ -1421,18 +1367,7 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     const double h = data.h;                                // Characteristic element size
 
     const double& dts = data.dts;                           // The averaging time period
-
-    // time step history info
-    const double& dt = data.dt;
-    const double& dtn = data.dtn;
-    const double& dtnn = data.dtnn;
-    const double& dtnnn = data.dtnnn;
-
-    // time history info
-    const double& t = data.t;
-    const double& tn = data.tn;
-    const double& tnn = data.tnn;
-    const double& tnnn = data.tnnn;
+    const double& dtn = data.dtn;                           // Time increment: notice t = tn + dtn
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -1484,7 +1419,7 @@ const double cv_s_gauss4 =             ave_c1*v_ave(1,0) - ave_c2*vn_ave(1,0);
 const double cv_s_gauss5 =             ave_c1*v_ave(2,0) - ave_c2*vn_ave(2,0);
 const double cv_s_gauss6 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double cv_s_gauss7 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double cv_s_gauss8 =             1.0/(rho*stab_c2*sqrt(pow(cv_s_gauss6, 2) + pow(cv_s_gauss7, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double cv_s_gauss8 =             1.0/(rho*stab_c2*sqrt(pow(cv_s_gauss6, 2) + pow(cv_s_gauss7, 2))/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dtn);
 const double cv_s_gauss9 =             ave_c1*v_ave(0,1) - ave_c2*vn_ave(0,1);
 const double cv_s_gauss10 =             ave_c1*v_ave(1,1) - ave_c2*vn_ave(1,1);
 const double cv_s_gauss11 =             ave_c1*v_ave(2,1) - ave_c2*vn_ave(2,1);
