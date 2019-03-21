@@ -167,6 +167,56 @@ public:
     ///@{
 
     /**
+     * @brief This is the place to initialize the Scheme.
+     * @details This is intended to be called just once when the strategy is initialized
+     * @param rModelPart The model part of the problem to solve
+     */
+    void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        BDFBaseType::Initialize(rModelPart);
+
+        // The current process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Getting dimension
+        const std::size_t domain_size = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
+        if (domain_size != mDomainSize) {
+            const std::size_t total_number_of_variables = mArrayVariable.size();
+
+            // We remove the third component
+            if (domain_size == 2) {
+                const std::size_t number_variables_added = total_number_of_variables/3;
+                for (std::size_t i = 0; i < number_variables_added; ++i) {
+                    mArrayVariable.erase(mArrayVariable.begin() + (2 + 2 * i));
+                    mFirstArrayDerivatives.erase(mArrayVariable.begin() + (2 + 2 * i));
+                    mSecondArrayDerivatives.erase(mArrayVariable.begin() + (2 + 2 * i));
+                }
+            } else if (domain_size == 3) { // We need to add the third component
+                const std::size_t number_variables_added = total_number_of_variables/2;
+                for (std::size_t i = 0; i < number_variables_added; ++i) {
+                    std::string variable_name = (*(mArrayVariable.begin() + 2 * i))->Name();
+                    variable_name.substr(0, variable_name.size() - 2);
+                    std::string first_derivative_name = (*(mFirstArrayDerivatives.begin() + 2 * i))->Name();
+                    first_derivative_name.substr(0, first_derivative_name.size() - 2);
+                    std::string second_derivative_name = (*(mSecondArrayDerivatives.begin() + 2 * i))->Name();
+                    second_derivative_name.substr(0, second_derivative_name.size() - 2);
+                    mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name + "_Z"));
+                    mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name + "_Z"));
+                    mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name + "_Z"));
+                }
+            } else {
+                KRATOS_ERROR << "DOMAIN_SIZE can onbly be 2 or 3. It is: " << domain_size << std::endl;
+            }
+
+            mDomainSize = domain_size;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Performing the prediction of the solution
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
@@ -417,9 +467,12 @@ private:
 
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
+
+    std::size_t mDomainSize = 3; /// This auxiliar variable is used to store the domain size of the problem
 
     ///@}
     ///@name Private Operators
@@ -501,7 +554,7 @@ private:
         KRATOS_ERROR_IF(n_variables != n_second_derivative) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
 
         // The current dimension
-        const std::size_t domain_size = ThisParameters["domain_size"].GetInt();
+        mDomainSize = ThisParameters["domain_size"].GetInt();
 
         for (std::size_t p_var = 0; p_var < n_variables; ++p_var){
             const std::string& variable_name = ThisParameters["variable"].GetArrayItem(p_var).GetString();
@@ -516,17 +569,17 @@ private:
                 // Components
                 mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X"));
                 mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y"));
-                if (domain_size == 3)
+                if (mDomainSize == 3)
                     mArrayVariable.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z"));
 
                 mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_X"));
                 mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Y"));
-                if (domain_size == 3)
+                if (mDomainSize == 3)
                     mFirstArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(first_derivative_name+"_Z"));
 
                 mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_X"));
                 mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Y"));
-                if (domain_size == 3)
+                if (mDomainSize == 3)
                     mSecondArrayDerivatives.push_back(&KratosComponents< VariableComponent<ComponentType>>::Get(second_derivative_name+"_Z"));
             } else {
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
