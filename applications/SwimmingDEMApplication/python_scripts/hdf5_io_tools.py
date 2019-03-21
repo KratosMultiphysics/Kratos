@@ -4,7 +4,7 @@ import h5py
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from DEM_procedures import KratosPrint as Say
+from DEM_procedures import KratosPrintInfo as Say
 import json
 
 def DeleteDataSet(file_or_group, dset_name):

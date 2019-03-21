@@ -247,6 +247,12 @@
         "CleanIndentationsOption"          : false,
         "RemoveBallsInEmbeddedOption"      : true,
 
+        "solver_settings" : {
+                "strategy"                 : "swimming_sphere_strategy",
+                "RemoveBallsInitiallyTouchingWalls"          : false
+        },
+
+
         "DeltaOption"                      : "Absolute",
         "SearchTolerance"                  : 0.0001,
         "CoordinationNumber"               : 10,

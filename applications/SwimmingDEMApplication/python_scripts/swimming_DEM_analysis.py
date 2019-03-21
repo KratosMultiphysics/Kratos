@@ -96,6 +96,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.ModifyInputParametersForCoherence()
 
+        # self.project_parameters = self.pp.CFD_DEM  # seems not to be necessary
+
         self.SetDispersePhaseAlgorithm()
 
         self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
@@ -113,7 +115,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.spheres_model_part = self.disperse_phase_solution.spheres_model_part
         self.cluster_model_part = self.disperse_phase_solution.cluster_model_part
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
-        self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
+        self.dem_inlet_model_part = self.disperse_phase_solution.dem_inlet_model_part
         self.vars_man.ConstructListsOfVariables(self.project_parameters)
         super(SwimmingDEMAnalysis, self).__init__(model, self.project_parameters) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
@@ -466,13 +468,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
         SDP.AddExtraDofs(self.fluid_model_part,
                          self.spheres_model_part,
                          self.cluster_model_part,
-                         self.DEM_inlet_model_part,
+                         self.dem_inlet_model_part,
                          self.vars_man)
 
     def DispersePhaseInitialize(self):
         self.vars_man.__class__.AddNodalVariables(self.spheres_model_part, self.vars_man.dem_vars)
         self.vars_man.__class__.AddNodalVariables(self.rigid_face_model_part, self.vars_man.rigid_faces_vars)
-        self.vars_man.__class__.AddNodalVariables(self.DEM_inlet_model_part, self.vars_man.inlet_vars)
+        self.vars_man.__class__.AddNodalVariables(self.dem_inlet_model_part, self.vars_man.inlet_vars)
         self.vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.project_parameters,
                                                                            self.disperse_phase_solution.spheres_model_part)
 
@@ -499,9 +501,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 )
             self.calculate_distance_process.Execute()
 
-    def TheSimulationMustGoOn(self):
-        return self.time <= self.end_time
-
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 1
         analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
@@ -510,15 +509,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def MakeAnalyticsMeasurements(self):
         self.analytic_face_watcher.MakeMeasurements()
         self.analytic_particle_watcher.MakeMeasurements()
-
-    def RunSolutionLoop(self):
-        while self.TheSimulationMustGoOn():
-            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
 
     def InitializeSolutionStep(self):
         self.TellTime()
@@ -625,9 +615,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
             # Note that right now only inlets of a single type are possible.
             # This should be generalized.
             if self.project_parameters["type_of_inlet"].GetString() == 'VelocityImposed':
-                self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             elif self.project_parameters["type_of_inlet"].GetString() == 'ForceImposed':
-                self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
+                self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
 
             self.disperse_phase_solution.DEM_inlet = self.DEM_inlet
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.disperse_phase_solution.creator_destructor)
