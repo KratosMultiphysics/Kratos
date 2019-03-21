@@ -101,9 +101,9 @@ namespace Kratos {
         KRATOS_CHECK((p_node->GetDof(VELOCITY_Z, 2)).GetVariable() == VELOCITY_Z);
 
         // GetDof with position not check
-        KRATOS_CHECK((p_node->FastGetDof(0)).GetVariable() == VELOCITY_X);
-        KRATOS_CHECK((p_node->FastGetDof(1)).GetVariable() == VELOCITY_Y);
-        KRATOS_CHECK((p_node->FastGetDof(2)).GetVariable() == VELOCITY_Z);
+        KRATOS_CHECK((p_node->FastGetDof(VELOCITY_X, 0)).GetVariable() == VELOCITY_X);
+        KRATOS_CHECK((p_node->FastGetDof(VELOCITY_Y, 1)).GetVariable() == VELOCITY_Y);
+        KRATOS_CHECK((p_node->FastGetDof(VELOCITY_Z, 2)).GetVariable() == VELOCITY_Z);
     }
 }  // namespace Testing.
 }  // namespace Kratos.

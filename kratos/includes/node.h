@@ -744,7 +744,8 @@ public:
 
     /**
      * @brief Get dof  position with a given position
-     * @param rDofVariable Name of the variable to serach the position
+     * @param rDofVariable Name of the variable to search the position
+     * @tparam TVariableType The variable type template argument
      */
     template<class TVariableType>
     inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
@@ -757,6 +758,7 @@ public:
      * @brief Get dof with a given position. If not found it is search
      * @param rDofVariable Name of the variable
      * @param Position Position of the DoF
+     * @tparam TVariableType The variable type template argument
      */
     template<class TVariableType>
     inline const DofType& GetDof(
@@ -789,19 +791,18 @@ public:
 
     /**
      * @brief Faster get with very simple and plain check in debug, in release it is direct
+     * @param rDofVariable Name of the variable
      * @param Position Position of the DoF
+     * @tparam TVariableType The variable type template argument
      */
-    inline const DofType& FastGetDof(const IndexType Position) const
+    template<class TVariableType>
+    inline const DofType& FastGetDof(
+        TVariableType const& rDofVariable,
+        const IndexType Position
+        ) const
     {
     #ifdef KRATOS_DEBUG
-        // We do a check, otherwise throws an error
-        const IndexType distance = mDofs.end() - mDofs.begin();
-        if(Position < distance) {
-            typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
-            return *it;
-        } else {
-            KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for position : " << Position << std::endl;
-        }
+        return GetDof(rDofVariable, Position);
     #else
         typename DofsContainerType::const_iterator it = mDofs.begin() + Position;
         return *it;
