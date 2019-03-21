@@ -71,6 +71,10 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
             incremental_displacement = total_displacement - old_displacement
             self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
 
+            ## ADD VELOCITY
+            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_VELOCITY, current_velocity)
+
             ## ADD NORMAL
             normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
             self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
@@ -88,5 +92,6 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
     # Local functions
     def _add_coupling_variables_to_model_part(self, coupling_model_part):
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
