@@ -2,9 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
-print(' ')
-print ('define_wake_process_2d.py @CompressiblePotentialFlowApplication')
-print(' ')
+
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception(
@@ -25,11 +23,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "fluid_part_name"           : "MainModelPart",
                 "wake_direction"                 : [1.0,0.0,0.0],
+                "velocity_infinity": [1.0,0.0,0],
                 "epsilon"    : 1e-9
             }
             """)
 
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)   
         # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
 
         self.wake_direction = settings["wake_direction"].GetVector()
@@ -54,6 +53,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString(
         )]
 
+        self.velocity_infinity = [0,0,0]
+        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
+        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
+        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()].GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
             "trailing_edge_model_part")
@@ -116,8 +119,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
                     self.wake_model_part.AddElement(elem,0)
-                    for node in elem.GetNodes():
-                        self.wake_model_part.AddNode(node,0)
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -154,7 +155,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # This function computes the distance of the element nodes
         # to the wake
         nodal_distances_to_wake = KratosMultiphysics.Vector(3)
-        counter = 0
+        counter = 0      
         for elnode in elem.GetNodes():
             # Compute the distance from the node to the trailing edge
             x_distance_to_te = elnode.X - self.te.X
@@ -231,17 +232,48 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, False)
 
     def ExecuteFinalizeSolutionStep(self):
+        node_velocity_potential_above = 0
+        node_velocity_potential_below = 0
+        
         for elem in self.wake_model_part.Elements:
-            print(elem.Id)
-            for node in elem.GetNodes():
-                node_velocity = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL) # node's velocity at the current time step
-                print('node_velocity', node_velocity)
+            print('element: ',elem.Id)       
+            for node in elem.GetNodes():             
+                #node_velocity_potential = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
+                #print('node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+                
+                # Compute the distance from the node to the trailing edge
+                x_distance_to_te = node.X - self.te.X
+                y_distance_to_te = node.Y - self.te.Y
 
-        input()
-        print('node_velocity')
-        print(len(self.wake_model_part.Nodes))
-        print(len(self.wake_model_part.Elements))
-        for node in self.wake_model_part.Nodes:
-            node_velocity = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL) # node's velocity at the current time step
-            print(node_velocity)
+                # Compute the projection of the distance vector in the wake normal direction
+                distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
+                    y_distance_to_te*self.wake_normal[1]
 
+                if distance_to_wake>0:
+                    node_velocity_potential_above = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
+                    #print('ABOVE: node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+                else:
+                    node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
+                    #print('BELOW: node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+                if node_velocity_potential_above!=0 and node_velocity_potential_below!=0:
+                    potential_jump = node_velocity_potential_above - node_velocity_potential_below
+                    CL = 2*potential_jump/self.velocity_infinity[0]
+                    print ('potential jump', potential_jump, 'CL = ',CL )
+                    raw_input()
+'''
+        print('trailing edge Y coordinate',self.te.Y)
+        #print(len(self.wake_model_part.Nodes))
+        #print(len(self.wake_model_part.Elements))
+        
+        for node in self.wake_model_part.Nodes: # Get each wake element node only once
+
+            # Compute the distance from the node to the trailing edge
+            x_distance_to_te = node.X - self.te.X
+            y_distance_to_te = node.Y - self.te.Y
+
+            # Compute the projection of the distance vector in the wake normal direction
+            distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
+                y_distance_to_te*self.wake_normal[1]
+
+            #print('node id:', node.Id,'has ',distance_to_wake, 'distance from the wake')
+'''     
