@@ -528,7 +528,6 @@ namespace Kratos
                     vertices_vector,
                     rModelPart);
             }
-            std::cout << "here" << std::endl;   
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // 3. Step: Create BrepModel

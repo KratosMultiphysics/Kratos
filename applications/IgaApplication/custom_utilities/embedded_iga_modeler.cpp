@@ -31,12 +31,8 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
    unsigned int vertex_id = 0; 
     for (unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
-        std::cout << "Brep " << brep_i << std::endl;
-
         for (unsigned int edge_i = 0; edge_i < m_brep_model_vector[brep_i].GetEdgeVector().size(); ++edge_i)
         {
-            std::cout << "Edge " << edge_i << std::endl;
-
             const auto edge = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i];
             
             std::vector<array_1d<double,3>> polygon;
@@ -76,12 +72,8 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
     unsigned int element_id = 0;
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {   
-        std::cout << "Brep " << brep_i << std::endl; 
-
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
-        {
-            std::cout << "Face " << face_i << std::endl; 
-            
+        {   
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
 
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;

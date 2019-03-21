@@ -25,13 +25,16 @@ class MoveObjectProcess(KratosMultiphysics.Process):
               },
             "current_parameter"         : 0.0,
             "reference_parameter"       : 0.0,
-            "steps"                     : 0 
+            "start_time"                : 0.0,
+            "end_time"                  : 0.0,    
+            "time_step"                 : 0.0  
         }''')
 
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
         self.model_part = model[self.params["model_part_name"].GetString()]
+
         
         degree = self.params["3d_curve"]["degree"].GetInt()
         number_cps = self.params["3d_curve"]["control_points"].size()
@@ -50,68 +53,78 @@ class MoveObjectProcess(KratosMultiphysics.Process):
 
         for i in range(1,len(knot_vector) - 1): 
             self.geometry.SetKnot(i-1, knot_vector[i])
-    
-    def ExecuteInitializeSolutionStep(self):
-        print("ExecuteInitializeSolutionStep")
-        
-        if self.params["steps"].GetInt() != 0:
-            step_size = ((self.params["reference_parameter"].GetDouble() - self.params["current_parameter"].GetDouble())
-                        /(self.params["steps"].GetInt()))
         
         
+        self.start_coords = np.ones((4, len(self.model_part.Nodes)))   
         index = 0
-        coords = np.ones((4, len(self.model_part.Nodes)))   
+
         for node in self.model_part.Nodes:
-            coords[0,index] = node.X0
-            coords[1,index] = node.Y0
-            coords[2,index] = node.Z0
+            self.start_coords[0,index] = node.X0
+            self.start_coords[1,index] = node.Y0
+            self.start_coords[2,index] = node.Z0
             index += 1
+            
+        self.start_location = self.geometry.DerivativesAt(self.params["current_parameter"].GetDouble(), 1)
+        self.time = self.params["time_step"].GetDouble()
 
-        current_val = self.geometry.DerivativesAt(self.params["current_parameter"].GetDouble(), 1)
 
-        import matplotlib.pyplot as plt
-        plt.plot([coords[0,0],coords[0,1],coords[0,3],coords[0,2],coords[0,0]],
-                [coords[1,0],coords[1,1],coords[1,3],coords[1,2],coords[1,0]])
+        # import matplotlib.pyplot as plt
+
+        # plt.plot([self.start_coords[0,0],self.start_coords[0,1],self.start_coords[0,3],self.start_coords[0,2],self.start_coords[0,0]],
+        #          [self.start_coords[1,0],self.start_coords[1,1],self.start_coords[1,3],self.start_coords[1,2],self.start_coords[1,0]])
         
-        for j in range(4):
-            plt.annotate(str(j), xy=(coords[0,j], coords[1,j]),color="red")
+        # for j in range(4):
+        #     plt.annotate(str(j), xy=(self.start_coords[0,j], self.start_coords[1,j]),color="red")
+        
+    def ExecuteInitializeSolutionStep(self):
+        
+        current_index = (self.time 
+                        / (self.params["end_time"].GetDouble() - self.params["start_time"].GetDouble())
+                        * (self.params["reference_parameter"].GetDouble() - self.params["current_parameter"].GetDouble()))
 
-        for i in range(self.params["steps"].GetInt()):
+        current_location = self.geometry.DerivativesAt(current_index, 1)        
+   
+        angle = (np.arctan2(current_location[1][1], current_location[1][0])
+                -np.arctan2(self.start_location[1][1], self.start_location[1][0]))
+
+        M = np.identity(4)
+        M[0,0] =  np.cos(angle)
+        M[0,1] = -np.sin(angle)
+        M[1,0] =  np.sin(angle)
+        M[1,1] =  np.cos(angle)
+
+        M[0,3] = (current_location[0][0] - np.cos(angle) * self.start_location[0][0]
+                + np.sin(angle) * self.start_location[0][1])
+
+        M[1,3] = (current_location[0][1] - np.cos(angle) * self.start_location[0][1] 
+                - np.sin(angle) * self.start_location[0][0])
             
-            next_parameter = (i + 1) * step_size
-            next_val = self.geometry.DerivativesAt(next_parameter, 1)
+        M[2,3] = current_location[0][2] - self.start_location[0][2]
+
+        coords = np.matmul(M, self.start_coords)
             
-            translation_current = current_val[0]
-            translation_reference = next_val[0]
-
-            angle = (np.arctan2(next_val[1][1], next_val[1][0])
-                    -np.arctan2(current_val[1][1], current_val[1][0]))
-
-            M = np.identity(4)
-            M[0,0] =  np.cos(angle)
-            M[0,1] = -np.sin(angle)
-            M[1,0] =  np.sin(angle)
-            M[1,1] =  np.cos(angle)
-
-            M[0,3] = (translation_reference[0] - np.cos(angle) * translation_current[0]
-                    + np.sin(angle) * translation_current[1])
-
-            M[1,3] = (translation_reference[1] - np.cos(angle) * translation_current[1] 
-                    - np.sin(angle) * translation_current[0])
-            
-            M[2,3] = translation_reference[2] - translation_current[2]
-
-            coords = np.matmul(M, coords)
-
-            plt.plot([coords[0,0],coords[0,1],coords[0,3],coords[0,2],coords[0,0]],
-                    [coords[1,0],coords[1,1],coords[1,3],coords[1,2],coords[1,0]])
-            
-            for j in range(4):
-                plt.annotate(str(j), xy=(coords[0,j], coords[1,j]),color="red")
+        index = 0
+        for node in self.model_part.Nodes: 
+            node.X = coords[0,index]
+            node.Y = coords[1,index]
+            node.Z = coords[2,index]
+            index += 1
+        
+        self.time += self.params["time_step"].GetDouble()
 
 
-            current_val = next_val
-       
-        plt.grid()
-        plt.axis("equal")
-        plt.show()
+    #     import matplotlib.pyplot as plt
+
+    #     plt.plot([coords[0,0],coords[0,1],coords[0,3],coords[0,2],coords[0,0]],
+    #             [coords[1,0],coords[1,1],coords[1,3],coords[1,2],coords[1,0]])
+        
+    #     for j in range(4):
+    #         plt.annotate(str(j), xy=(coords[0,j], coords[1,j]),color="red")
+
+        
+    #     # plt.annotate(str(self.model_part.ProcessInfo[KratosMultiphysics.TIME]), xy=(coords[0,0],coords[1,0]))
+    # def ExecuteFinalize(self):
+    #     import matplotlib.pyplot as plt
+    #     plt.grid()
+    #     plt.axis("equal")
+    #     plt.show()
