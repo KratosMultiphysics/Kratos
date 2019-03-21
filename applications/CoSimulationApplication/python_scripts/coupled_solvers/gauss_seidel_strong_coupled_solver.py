@@ -19,13 +19,13 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.cosim_solver_settings["convergence_accelerators"],
-            self.participating_solvers)
-        # self.convergence_accelerator.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
+            self.participating_solvers,
+            self.echo_level)
 
         self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
             self.cosim_solver_settings["convergence_criteria"],
-            self.participating_solvers)
-        # self.convergence_criteria.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
+            self.participating_solvers,
+            self.echo_level)
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"].GetInt()
 

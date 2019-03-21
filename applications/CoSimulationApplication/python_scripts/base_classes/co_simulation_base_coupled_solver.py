@@ -17,7 +17,8 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
             self.cosim_solver_settings["predictors"],
-            self.participating_solvers) # TODO set echo-lvl?
+            self.participating_solvers,
+            self.echo_level)
 
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
