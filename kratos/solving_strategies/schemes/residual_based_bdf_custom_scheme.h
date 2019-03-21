@@ -508,35 +508,23 @@ private:
         double& dotun0 = itNode->FastGetSolutionStepValue(rDerivedVariable);
         double& un0 = itNode->FastGetSolutionStepValue(rVariable);
 
-        bool predicted = false;
+        if (itNode->HasDofFor(rDerived2Variable) && itNode->IsFixed(rDerived2Variable)) {
+            dotun0 = dot2un0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                dotun0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rDerivedVariable, i_order);
+            dotun0 /= BDFBaseType::mBDF[0];
 
-        if (itNode->HasDofFor(rDerived2Variable)) {
-            if (itNode->IsFixed(rDerived2Variable)) {
-                dotun0 = dot2un0;
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    dotun0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rDerivedVariable, i_order);
-                dotun0 /= BDFBaseType::mBDF[0];
-
-                un0 = dotun0;
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
-                un0 /= BDFBaseType::mBDF[0];
-                predicted = true;
-            }
-        }
-        if (itNode->HasDofFor(rDerivedVariable) && !predicted) {
-            if (itNode->IsFixed(rDerivedVariable) && !predicted) {
-                un0 = dotun0;
-                for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                    un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
-                un0 /= BDFBaseType::mBDF[0];
-                predicted = true;
-            }
-        }
-        if (itNode->HasDofFor(rVariable) && !predicted) {
-            if (!itNode->IsFixed(rVariable) && !predicted) {
-                un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
-            }
+            un0 = dotun0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
+            un0 /= BDFBaseType::mBDF[0];
+        } else if (itNode->HasDofFor(rDerivedVariable) && itNode->IsFixed(rDerivedVariable)) {
+            un0 = dotun0;
+            for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+                un0 -= BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(rVariable, i_order);
+            un0 /= BDFBaseType::mBDF[0];
+        } else if (!itNode->IsFixed(rVariable)) {
+            un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
         }
     }
 
