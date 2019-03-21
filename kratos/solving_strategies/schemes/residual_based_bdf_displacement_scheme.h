@@ -239,7 +239,8 @@ public:
         const auto it_node_begin = rModelPart.Nodes().begin();
 
         // Getting position
-        const int disppos = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        KRATOS_ERROR_IF_NOT(it_node_begin->HasDofFor(DISPLACEMENT_X)) << "ResidualBasedBDFDisplacementScheme:: DISPLACEMENT is not added" << std::endl;
+        const int disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
         const int velpos = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
@@ -293,11 +294,9 @@ public:
                     }
                 }
             }
-            if (disppos > -1) {
-                for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
-                    if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
-                        un0[i_dim] = un1[i_dim] + delta_time * dotun1[i_dim] + 0.5 * std::pow(delta_time, 2) * dot2un1[i_dim];
-                    }
+            for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
+                if (!it_node->GetDof(disp_components[i_dim], disppos + i_dim).IsFixed() && !predicted[i_dim]) {
+                    un0[i_dim] = un1[i_dim] + delta_time * dotun1[i_dim] + 0.5 * std::pow(delta_time, 2) * dot2un1[i_dim];
                 }
             }
 
