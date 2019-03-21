@@ -182,7 +182,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
         self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
-        self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
+        self.adjoint_beam_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
     def test_CalculateSensitivityMatrix_Property(self):
