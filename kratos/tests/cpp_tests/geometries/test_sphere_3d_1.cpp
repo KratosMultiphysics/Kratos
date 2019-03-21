@@ -71,6 +71,22 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(p_geom->GetRadius(), 2.0);
     }
 
+    /** Checks that the copy constructor works as expected.
+     *  The new sphere should not share the same radius with the original one
+    * Checks if the length of the line is calculated correctly.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SphereCopyConstructor, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateSphere3D1CenterOrigin();
+        double radius = 1.0;
+        p_geom->SetRadius(radius);
+        // use copy-constructor to create a new sphere
+        auto p_cloned_geom = Kratos::make_shared<Sphere3D1<Point>>(*p_geom);
+        double big_radius = 2.0;
+        p_cloned_geom->SetRadius(big_radius);
+        KRATOS_CHECK_EQUAL(p_geom->Volume(), 4/3 * Globals::Pi);
+        KRATOS_CHECK_EQUAL(p_cloned_geom->Volume(), 32/3 * Globals::Pi);
+    }
+
     /** Checks that the HasIntersection method is well implemented for th.
     * Checks if the length of the line is calculated correctly.
     */

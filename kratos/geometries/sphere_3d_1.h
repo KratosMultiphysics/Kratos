@@ -180,15 +180,13 @@ public:
     */
     Sphere3D1( Sphere3D1 const& rOther )
         : BaseType( rOther )
-    {
-        mpRadius = rOther.mpRadius;
-    }
+    {}
 
 
     /** Copy constructor from a geometry with other point type.
     Construct this geometry as a copy of given geometry which
-    has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
+    has different type of points. The given geometry's
+    TOtherPointType* must be implicitly convertible to this
     geometry PointType.
 
     @note This copy constructor don't copy the points and new
@@ -198,9 +196,7 @@ public:
     */
     template<class TOtherPointType> Sphere3D1( Sphere3D1<TOtherPointType> const& rOther )
         : BaseType( rOther )
-    {
-        mpRadius = rOther.mpRadius;
-    }
+    {}
 
     /// Destructor. Do nothing!!!
     ~Sphere3D1() override {}
@@ -224,7 +220,8 @@ public:
     @note This operator don't copy the points and this
     geometry shares points with given source geometry. It's
     obvious that any change to this geometry's point affect
-    source geometry's points too.
+    source geometry's points too. However the radius will need
+    to be set separately.
 
     @see Clone
     @see ClonePoints
@@ -241,7 +238,8 @@ public:
     @note This operator don't copy the points and this
     geometry shares points with given source geometry. It's
     obvious that any change to this geometry's point affect
-    source geometry's points too.
+    source geometry's points too. However the radius will need
+    to be set separately.
 
     @see Clone
     @see ClonePoints
@@ -316,7 +314,7 @@ public:
     */
     double Length() const override
     {
-        std::cout<<"This method (Length) has no meaning for this type of geometry (Sphere)."<<std::endl;
+        KRATOS_WARNING("Sphere3D1") << "This method (Length) has no meaning for this type of geometry (Sphere)."<<std::endl;
 
         return 0.0;
     }
