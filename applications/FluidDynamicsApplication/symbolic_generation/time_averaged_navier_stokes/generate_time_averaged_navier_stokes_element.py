@@ -186,7 +186,7 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = - div_v
+        mas_residual = -div_v
         if (artificial_compressibility):
             mas_residual -= (1/(rho*c*c))*pder_gauss
     else:
