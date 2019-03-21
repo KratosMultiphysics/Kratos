@@ -30,6 +30,8 @@ class KratosIO(CoSimulationBaseIO):
 
 
     def ImportCouplingInterfaceData(self, data_settings, from_client):
+        if not isinstance(data_settings, dict):
+            raise Exception("not a dict!")
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
 
@@ -37,8 +39,8 @@ class KratosIO(CoSimulationBaseIO):
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
             data_definition = from_client.GetInterfaceData(data_name)
-            geometry_name = data_definition["geometry_name"]
-            var_name = data_definition["data_identifier"]
+            geometry_name = data_definition["geometry_name"].GetString()
+            var_name = data_definition["data_identifier"].GetString()
             data_array = data_settings["data_array"]
 
             model_part = from_client.model[geometry_name]
@@ -72,8 +74,8 @@ class KratosIO(CoSimulationBaseIO):
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
             data_definition = from_client.GetInterfaceData(data_name)
-            geometry_name = data_definition["geometry_name"]
-            var_name = data_definition["data_identifier"]
+            geometry_name = data_definition["geometry_name"].GetString()
+            var_name = data_definition["data_identifier"].GetString()
             value = data_settings["scalar_value"]
 
             model_part = from_client.model[geometry_name]
@@ -93,6 +95,8 @@ class KratosIO(CoSimulationBaseIO):
 
 
     def ExportCouplingInterfaceData(self, data_settings, to_client):
+        if not isinstance(data_settings, dict):
+            raise Exception("not a dict!")
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
 
@@ -100,8 +104,8 @@ class KratosIO(CoSimulationBaseIO):
             # TODO check if var in ModelPart!
             # In this case the to_client is the solver itself
             data_definition = to_client.GetInterfaceData(data_name)
-            geometry_name = data_definition["geometry_name"]
-            var_name = data_definition["data_identifier"]
+            geometry_name = data_definition["geometry_name"].GetString()
+            var_name = data_definition["data_identifier"].GetString()
             data_array = data_settings["data_array"]
             buffer_index = data_settings["buffer_index"]
 
@@ -144,6 +148,8 @@ class KratosIO(CoSimulationBaseIO):
             raise Exception("The requested data_format is not implemented in KratosIO!")
 
     def ExportCouplingInterface(self, data_settings, to_client):
+        if not isinstance(data_settings, dict):
+            raise Exception("not a dict!")
 
         data_format = data_settings["data_format"]
         data_name = data_settings["data_name"]
@@ -151,7 +157,7 @@ class KratosIO(CoSimulationBaseIO):
         if data_format == "numpy_array_mesh":
             # In this case the to_client is the solver itself
             data_definition = to_client.GetInterfaceData(data_name)
-            geometry_name = data_definition["geometry_name"]
+            geometry_name = data_definition["geometry_name"].GetString()
             model_part = to_client.model[geometry_name]
 
             num_nodes = NumberOfNodes(model_part)
@@ -196,8 +202,8 @@ class KratosIO(CoSimulationBaseIO):
         data_definition_from = from_client.GetInterfaceData(data_name)
         data_definition_to   = to_client.GetInterfaceData(data_name)
 
-        geometry_name_from = data_definition_from["geometry_name"]
-        geometry_name_to = data_definition_to["geometry_name"]
+        geometry_name_from = data_definition_from["geometry_name"].GetString()
+        geometry_name_to = data_definition_to["geometry_name"].GetString()
 
         mapper = None
         is_inverse_mapper = False
@@ -221,7 +227,7 @@ class KratosIO(CoSimulationBaseIO):
             mapper_settings = KratosMultiphysics.Parameters("""{
                 "mapper_type" : ""
             }""")
-            mapper_settings["mapper_type"].SetString(data_settings["io_settings"]["mapper_type"])
+            mapper_settings["mapper_type"].SetString(data_settings["io_settings"]["mapper_type"].GetString())
             if from_client.IsDistributed() or to_client.IsDistributed():
                 mapper = KratosMapping.MapperFactory.CreateMPIMapper(client_mesh_from, client_mesh_to, mapper_settings)
             else:
@@ -247,19 +253,19 @@ class KratosIO(CoSimulationBaseIO):
             data_definition_to = to_client.GetInterfaceData(data_name)
 
             if is_inverse_mapper:
-                var_origin = self.__GetKratosVariable(data_definition_to["data_identifier"])
-                var_dest = self.__GetKratosVariable(data_definition_from["data_identifier"])
+                var_origin = self.__GetKratosVariable(data_definition_to["data_identifier"].GetString())
+                var_dest = self.__GetKratosVariable(data_definition_from["data_identifier"].GetString())
             else:
-                var_origin = self.__GetKratosVariable(data_definition_from["data_identifier"])
-                var_dest = self.__GetKratosVariable(data_definition_to["data_identifier"])
+                var_origin = self.__GetKratosVariable(data_definition_from["data_identifier"].GetString())
+                var_dest = self.__GetKratosVariable(data_definition_to["data_identifier"].GetString())
 
             var_origin_for_mapping = var_origin
             var_dest_for_mapping = var_dest
 
             mapper_flags = KratosMultiphysics.Flags()
-            if "mapper_args" in data_settings["io_settings"]:
-                for flag_name in data_settings["io_settings"]["mapper_args"]:
-                    mapper_flags |= self.mapper_flags[flag_name]
+            if data_settings["io_settings"].Has("mapper_args"):
+                for i_flag_name in range(data_settings["io_settings"]["mapper_args"].size()):
+                    mapper_flags |= self.mapper_flags[data_settings["io_settings"]["mapper_args"][i_flag_name].GetString()]
 
             if "type_of_quantity" in data_definition_from:
                 if data_definition_from["type_of_quantity"] == "nodal_point":

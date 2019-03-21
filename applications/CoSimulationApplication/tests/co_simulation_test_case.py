@@ -22,10 +22,10 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         cs_data_structure = cs_tools.ImportDataStructure(full_parameter_file_name)
 
         with open(full_parameter_file_name, 'r') as parameter_file:
-            self.cosim_parameters = json.load(parameter_file)
+            self.cosim_parameters = cs_data_structure.Parameters(parameter_file.read())
 
         # To avoid many prints
-        echo_level = self.cosim_parameters["problem_data"]["echo_level"]
+        echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
         if (echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
         else:

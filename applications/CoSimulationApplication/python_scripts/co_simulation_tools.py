@@ -63,22 +63,22 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
     # - check if data format has been specified
 
     def CheckIfEntryExists(key, dict_name, dict_to_check):
-        if not key in dict_to_check:
+        if not dict_to_check.Has(key):
             raise Exception('"' + key + '" not existing in "' + dict_name + '"!')
 
     def CheckSolverSetting(solvers):
         solver_data_dict = {}
-        data_default = {
+        data_default = cs_data_structure.Parameters(r'''{
             "data_identifier" : "UNSPECIFIED",
             "data_format"     : "UNSPECIFIED",
             "geometry_name"   : "undefined",
             "type_of_quantity": "undefined"
-        }
+        }''')
         for solver_name, solver_definition in solvers.items():
             CheckIfEntryExists("data", solver_name, solver_definition)
             solver_data_dict[solver_name] = solver_definition["data"].keys()
             for data_name, data_def in solver_definition["data"].items():
-                ValidateAndAssignDefaults(data_default, data_def)
+                data_def.ValidateAndAssignDefaults(data_default)
                 keys_to_pop = []
                 for data_key, data_val in data_def.items():
                     if data_val == "UNSPECIFIED":
@@ -168,26 +168,26 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
             CheckInputDataList(solver["input_data_list"], solver_name, solver_data_dict)
             CheckOutputDataList(solver["output_data_list"], solver_name, solver_data_dict)
 
-    problem_data_defaults = {
+    problem_data_defaults = cs_data_structure.Parameters(r'''{
         "start_time"    : -1.0,
         "end_time"      : -1.0,
         "echo_level"    : 0,
         "parallel_type" : "OpenMP",
-        "print_colors"  : False,
-        "flush_stdout"  : False
-    }
+        "print_colors"  : false,
+        "flush_stdout"  : false
+    }''')
 
     # checking "problem_data"
     CheckIfEntryExists("problem_data", "co_simulation_settings", co_simulation_settings)
     problem_data = co_simulation_settings["problem_data"]
 
-    ValidateAndAssignDefaults(problem_data_defaults, co_simulation_settings["problem_data"])
+    co_simulation_settings["problem_data"].ValidateAndAssignDefaults(problem_data_defaults)
 
-    start_time = problem_data["start_time"]
+    start_time = problem_data["start_time"].GetDouble()
     if start_time < 0.0:
         raise Exception('"start_time" has to be >= 0.0!')
 
-    end_time = problem_data["end_time"]
+    end_time = problem_data["end_time"].GetDouble()
     if end_time < 0.0:
         raise Exception('"end_time" has to be >= 0.0!')
     if start_time > end_time:
@@ -200,7 +200,7 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
     CheckIfEntryExists("solver_type", "solver_settings", solver_settings)
 
     # This is only existing in a coupled simulation
-    if "coupling_sequence" in solver_settings:
+    if solver_settings.Has("coupling_sequence"):
         solver_data_dict = CheckSolverSetting(solver_settings["solvers"])
         CheckIfEntryExists("solvers", "solver_settings", solver_settings)
         CheckCouplingLoop(solver_settings["coupling_sequence"], solver_data_dict)
@@ -209,6 +209,8 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
 
 
 def ImportArrayFromSolver(solver, data_name, data_array, buffer_index=0):
+    if not isinstance(data_name, str):
+        raise Exception("not a string!")
     data_settings = {
         "data_format"  : "numpy_array",
         "data_name"    : data_name,
@@ -219,6 +221,8 @@ def ImportArrayFromSolver(solver, data_name, data_array, buffer_index=0):
     solver.ExportCouplingInterfaceData(data_settings, solver)
 
 def ExportArrayToSolver(solver, data_name, data_array, buffer_index=0):
+    if not isinstance(data_name, str):
+        raise Exception("not a string!")
     data_settings = {
         "data_format"  : "numpy_array",
         "data_name"    : data_name,

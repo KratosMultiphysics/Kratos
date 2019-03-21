@@ -5,10 +5,7 @@ def CreateConvergenceAccelerator(convergence_accelerator_settings, solvers):
     The convergence-accelerator-module has to be on the PYTHONPATH
     Naming-Convention: The module-file has to end with "_convergence_accelerator"
     """
-    if (type(convergence_accelerator_settings) != dict):
-        raise Exception("Input is expected to be provided as a python dictionary")
-
-    module_name = convergence_accelerator_settings["type"]
+    module_name = convergence_accelerator_settings["type"].GetString()
     module_full = "KratosMultiphysics.CoSimulationApplication.convergence_accelerators."+module_name
     module_full += "_convergence_accelerator"
 

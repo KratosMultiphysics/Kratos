@@ -12,7 +12,7 @@ def Create(model, cosim_solver_settings, solver_name):
 
 class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
     def __init__(self, model, cosim_solver_settings, solver_name):
-        if not len(cosim_solver_settings["solvers"]) == 2:
+        if not cosim_solver_settings['coupling_sequence'].size() == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         super(GaussSeidelStrongCouplingSolver, self).__init__(model, cosim_solver_settings, solver_name)
@@ -27,7 +27,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             self.participating_solvers)
         # self.convergence_criteria.SetEchoLevel(self.echo_level) # TODO set echo-lvl?
 
-        self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
+        self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"].GetInt()
 
     def Initialize(self):
         super(GaussSeidelStrongCouplingSolver, self).Initialize()

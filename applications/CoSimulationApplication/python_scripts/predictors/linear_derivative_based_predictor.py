@@ -20,9 +20,9 @@ class LinearDerivativeBasedPredictor(CosimulationBasePredictor):
         # TODO check buffer size!
 
     def Predict(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
-        deriv_data_name = self.settings["derivative_data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
+        deriv_data_name = self.settings["derivative_data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, deriv_data_name, self.derivative_data_array, 1)
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array, 1)
 

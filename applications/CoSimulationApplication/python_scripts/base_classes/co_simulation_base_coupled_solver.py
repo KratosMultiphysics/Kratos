@@ -90,30 +90,30 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
     def _SynchronizeInputData(self, solver, solver_name):
         if self.coupling_started:
             input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
-
-            if self.time >= self.coupling_sequence[solver_name]["input_coupling_start_time"]:
-                for input_data in input_data_list:
-                    from_solver = self.participating_solvers[input_data["from_solver"]]
-                    data_name = input_data["data_name"]
-                    data_definition = from_solver.GetInterfaceData(data_name)
-                    data_settings = { "data_format" : data_definition["data_format"],
-                                    "data_name"   : data_name,
-                                    "io_settings" : input_data["io_settings"] }
-                    solver.ImportCouplingInterfaceData(data_settings, from_solver)
+            # TODO reimplement this properly!
+            # if self.time >= self.coupling_sequence[solver_name]["input_coupling_start_time"]:
+            for input_data in input_data_list:
+                from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
+                data_name = input_data["data_name"].GetString()
+                data_definition = from_solver.GetInterfaceData(data_name)
+                data_settings = { "data_format" : data_definition["data_format"].GetString(),
+                                "data_name"   : data_name,
+                                "io_settings" : input_data["io_settings"] }
+                solver.ImportCouplingInterfaceData(data_settings, from_solver)
 
     def _SynchronizeOutputData(self, solver, solver_name):
         if self.coupling_started:
             output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
-
-            if self.time >= self.coupling_sequence[solver_name]["output_coupling_start_time"]:
-                for output_data in output_data_list:
-                    to_solver = self.participating_solvers[output_data["to_solver"]]
-                    data_name = output_data["data_name"]
-                    data_definition = to_solver.GetInterfaceData(data_name)
-                    data_settings = { "data_format" : data_definition["data_format"],
-                                    "data_name"   : data_name,
-                                    "io_settings" : output_data["io_settings"] }
-                    solver.ExportCouplingInterfaceData(data_settings, to_solver)
+            # TODO reimplement this properly!
+            # if self.time >= self.coupling_sequence[solver_name]["output_coupling_start_time"]:
+            for output_data in output_data_list:
+                to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
+                data_name = output_data["data_name"].GetString()
+                data_definition = to_solver.GetInterfaceData(data_name)
+                data_settings = { "data_format" : data_definition["data_format"].GetString(),
+                                "data_name"   : data_name,
+                                "io_settings" : output_data["io_settings"] }
+                solver.ExportCouplingInterfaceData(data_settings, to_solver)
 
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()
@@ -152,15 +152,17 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         # then order them according to the coupling-loop
         # NOTE solvers that are not used in the coupling-sequence will not participate
         solvers_map = OrderedDict()
-        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
-            solver_name = solver_settings["name"]
+        for i_solver_settings in range(self.cosim_solver_settings["coupling_sequence"].size()):
+            solver_settings = self.cosim_solver_settings["coupling_sequence"][i_solver_settings]
+            solver_name = solver_settings["name"].GetString()
             solvers_map[solver_name] = solvers[solver_name]
 
         return solvers_map
 
     def __GetSolverCoSimulationDetails(self):
         solver_cosim_details = {}
-        for solver_settings in self.cosim_solver_settings["coupling_sequence"]:
-            solver_name = solver_settings["name"]
+        for i_solver_settings in range(self.cosim_solver_settings["coupling_sequence"].size()):
+            solver_settings = self.cosim_solver_settings["coupling_sequence"][i_solver_settings]
+            solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
         return solver_cosim_details

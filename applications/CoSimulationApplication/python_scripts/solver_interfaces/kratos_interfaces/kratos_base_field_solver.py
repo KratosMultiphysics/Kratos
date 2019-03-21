@@ -14,14 +14,12 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, model, cosim_solver_settings, solver_name):
         super(KratosBaseFieldSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
-        input_file_name = self.cosim_solver_settings["input_file"]
+        input_file_name = self.cosim_solver_settings["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 
         with open(input_file_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        self.project_parameters = KratosMultiphysics.Parameters(parameters)
+            self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()

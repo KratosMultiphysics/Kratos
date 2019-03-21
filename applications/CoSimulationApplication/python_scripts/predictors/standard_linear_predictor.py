@@ -20,8 +20,8 @@ class StandardLinearPredictor(CosimulationBasePredictor):
         # TODO check buffer size!
 
     def Predict(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_t0, 0)
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_t1, 1)
 

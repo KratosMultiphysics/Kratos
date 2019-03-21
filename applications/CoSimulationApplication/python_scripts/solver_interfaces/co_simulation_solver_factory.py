@@ -4,7 +4,7 @@ def CreateSolverInterface(model, settings, solver_name):
     """
     This function creates and returns the coupled solver.
     """
-    coupled_solver_type = settings["solver_type"]
+    coupled_solver_type = settings["solver_type"].GetString()
     # TODO come up with sth better, this is hardcoded to Kratos!
     module_full  = 'KratosMultiphysics.CoSimulationApplication.solver_interfaces.kratos_interfaces.'+coupled_solver_type
     module_full += '_solver'

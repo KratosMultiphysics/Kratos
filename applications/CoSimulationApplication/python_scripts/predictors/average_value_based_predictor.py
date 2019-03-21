@@ -31,8 +31,8 @@ class AverageValuePredictor(CosimulationBasePredictor):
         self.data_array_aux        = np.array([])
 
     def Predict(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_prediction, 0)
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 1)
 
@@ -41,8 +41,8 @@ class AverageValuePredictor(CosimulationBasePredictor):
         self._UpdateData(self.data_array_prediction)
 
     def FinalizeSolutionStep(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 0)
 
         self.data_array_prediction = self.beta * self.data_array_aux + (1-self.beta) * self.data_array_prediction

@@ -14,8 +14,8 @@ class CoSimulationConvergenceCriteria(object):
         self.settings = settings
         self.solvers = solvers
         self.echo_level = 0
-        self.abs_tolerance = self.settings["abs_tolerance"]
-        self.rel_tolerance = self.settings["rel_tolerance"]
+        self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
+        self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
         ## Here we preallocate the arrays that will be used to exchange data
         self.old_data = np.array([])
@@ -35,16 +35,16 @@ class CoSimulationConvergenceCriteria(object):
 
     def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.old_data)
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def IsConverged(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.new_data)
 
         residual = self.new_data - self.old_data

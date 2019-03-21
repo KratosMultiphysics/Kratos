@@ -29,16 +29,16 @@ class CoSimulationBaseConvergenceAccelerator(object):
     def InitializeNonLinearIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
         cs_tools.ImportArrayFromSolver(solver, data_name, self.prev_data)
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def ComputeUpdate(self):
-        solver = self.solvers[self.settings["solver"]]
-        data_name = self.settings["data_name"]
+        solver = self.solvers[self.settings["solver"].GetString()]
+        data_name = self.settings["data_name"].GetString()
 
         cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array)
 

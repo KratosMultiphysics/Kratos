@@ -40,7 +40,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     def __ManipulateSettings(self):
 
-        self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"] = self.name
+        self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"].SetString(self.name)
 
         with open("fsi_mok/ProjectParametersCFD_ref.json",'r') as parameter_file:
             self.cfd_parameters = KM.Parameters(parameter_file.read())

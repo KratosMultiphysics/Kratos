@@ -5,10 +5,7 @@ def CreatePredictor(predictor_settings, solvers):
     The predictor-module has to be on the PYTHONPATH
     Naming-Convention: The module-file has to end with "_predictor"
     """
-    if (type(predictor_settings) != dict):
-        raise Exception("Input is expected to be provided as a python dictionary")
-
-    module_name = predictor_settings["type"]
+    module_name = predictor_settings["type"].GetString()
     module_full = "KratosMultiphysics.CoSimulationApplication.predictors."+module_name
     module_full += "_predictor"
 
