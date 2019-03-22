@@ -17,7 +17,7 @@ else:
 import structural_mechanics_static_solver
 
 # Import auxiliar methods
-import auxiliar_methods_solvers
+import auxiliar_methods_adaptative_solvers
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
@@ -55,7 +55,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        return auxiliar_methods_solvers.CreateRemeshingProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateRemeshingProcess(self.main_model_part, self.adaptative_remesh_parameters)
 
     def get_metric_process(self):
         if not hasattr(self, '_metric_process'):
@@ -63,7 +63,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._metric_process
 
     def _create_metric_process(self):
-        return auxiliar_methods_solvers.CreateMetricProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateMetricProcess(self.main_model_part, self.adaptative_remesh_parameters)
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()

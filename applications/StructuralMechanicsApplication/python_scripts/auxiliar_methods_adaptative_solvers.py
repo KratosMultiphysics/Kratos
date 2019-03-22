@@ -13,15 +13,6 @@ if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
 else:
     missing_meshing_dependencies = False
 
-def print_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintInfo(" ".join(map(str, args)))
-
-
-def print_warning_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintWarning(" ".join(map(str, args)))
-
 def CreateRemeshingProcess(main_model_part, adaptative_remesh_parameters):
     if main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
         remeshing_process = MeshingApplication.MmgProcess2D(main_model_part, adaptative_remesh_parameters["remeshing_parameters"])
