@@ -49,8 +49,9 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         self.process_remesh = False
         if project_parameters.Has("recursive_remeshing_process"):
             self.process_remesh = True
-        if project_parameters["processes"].Has("recursive_remeshing_process"):
-            self.process_remesh = True
+        if project_parameters.Has("processes"):
+            if project_parameters["processes"].Has("recursive_remeshing_process"):
+                self.process_remesh = True
         if not self.process_remesh:
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
@@ -100,21 +101,18 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         """
         # If we remesh using a process
         computing_model_part = self._GetSolver().GetComputingModelPart()
+        root_model_part = computing_model_part.GetRootModelPart()
         if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if computing_model_part.Is(KM.MODIFIED):
-                    self._GetSolver().Clear()
-                    # WE INITIALIZE THE SOLVER
-                    self._GetSolver().Initialize()
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    ## Processes initialization
-                    for process in self._list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self._list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
+                # We reinitialize if remeshed previously
+                if root_model_part.Is(KM.MODIFIED):
+                    self._ReInitializeSolver()
                 self.InitializeSolutionStep()
+                # We reinitialize if remeshed on the InitializeSolutionStep
+                if root_model_part.Is(KM.MODIFIED):
+                    self._ReInitializeSolver()
+                    self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 self._GetSolver().SolveSolutionStep()
                 self._transfer_slave_to_master()
@@ -158,7 +156,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
-                    elif (non_linear_iteration == self.non_linear_iterations):
+                    elif non_linear_iteration == self.non_linear_iterations:
                         self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
@@ -259,6 +257,22 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
 
         mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
         mortar_mapping.Execute()
+
+    def _ReInitializeSolver(self):
+        """ This reinitializes after remesh """
+        self._GetSolver().Clear()
+        # WE INITIALIZE THE SOLVER
+        self._GetSolver().Initialize()
+        # WE RECOMPUTE THE PROCESSES AGAIN
+        ## Processes initialization
+        for process in self._list_of_processes:
+            process.ExecuteInitialize()
+        ## Processes before the loop
+        for process in self._list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+        ## Processes of initialize the solution step
+        for process in self._list_of_processes:
+            process.ExecuteInitializeSolutionStep()
 
 if __name__ == "__main__":
     from sys import argv
