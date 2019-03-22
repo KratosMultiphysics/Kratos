@@ -74,7 +74,7 @@
                 "automatic_remesh_parameters"      :{
                     "automatic_remesh_type"            : "Ratio",
                     "min_size_ratio"                   : 1.0e-2,
-                    "max_size_ratio"                   : 1.0e-1
+                    "max_size_ratio"                   : 2.0e-1
                 },
                 "initial_remeshing"                : false,
                 "step_frequency"                   : 2,
