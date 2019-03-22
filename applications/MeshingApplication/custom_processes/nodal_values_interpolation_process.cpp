@@ -65,8 +65,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     point_locator.UpdateSearchDatabase();
 
     // Iterate in the nodes
-    NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
-    const SizeType num_nodes = nodes_array.size();
+    NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
+    const SizeType num_nodes = r_nodes_array.size();
+    const auto it_node_begin = r_nodes_array.begin();
 
     if (mThisParameters["interpolate_non_historical"].GetBool())
         GetListNonHistoricalVariables();
@@ -76,18 +77,19 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
+    // Auxiliar values
+    Vector shape_functions;
+    Element::Pointer p_element;
+
     #pragma omp parallel
     {
         // Creating a buffer for parallel vector fill
         std::vector<NodeType::Pointer> to_extrapolate_nodes_buffer;
 
         /* Nodes */
-        #pragma omp for firstprivate(point_locator)
+        #pragma omp for firstprivate(point_locator, shape_functions, p_element)
         for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
-            auto it_node = nodes_array.begin() + i;
-
-            Vector shape_functions;
-            Element::Pointer p_element;
+            auto it_node = it_node_begin + i;
 
             const array_1d<double, 3>& coordinates = it_node->Coordinates();
             const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
@@ -368,12 +370,13 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
         }
     }
 
-    NodesArrayType& nodes_array = rModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    NodesArrayType& r_nodes_array = rModelPart.Nodes();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
 
         array_1d<double, 3>& normal = it_node->GetValue(NORMAL);
         const double norm_normal = norm_2(normal);
