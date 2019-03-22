@@ -56,7 +56,7 @@ def UpdateOnePassMomentsVarianceAux_Task(old_mean,old_central_moment_1,compute_M
         old_central_moment_2 = 0.0
         old_central_moment_3 = 0.0
         old_central_moment_4 = 0.0
-        new_central_moment_1 = new_mean
+        new_central_moment_1 = 0.0
         new_central_moment_2 = 0.0
         new_central_moment_3 = 0.0
         new_central_moment_4 = 0.0
