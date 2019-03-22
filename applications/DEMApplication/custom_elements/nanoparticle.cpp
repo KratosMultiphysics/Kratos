@@ -8,22 +8,23 @@
 
 // Project includes
 #include "nanoparticle.h"
+#include "includes/checks.h"
 
 namespace Kratos {
 
 NanoParticle::~NanoParticle(){}
 
 NanoParticle& NanoParticle::operator=(NanoParticle const& rOther) {
-    
+
     SphericParticle::operator=(rOther);
-        
+
     mThicknessOverRadius = rOther.mThicknessOverRadius;
     mInteractionRadius = rOther.mInteractionRadius;
 
     return *this;
 }
 
-void NanoParticle::Initialize(const ProcessInfo& r_process_info) {   
+void NanoParticle::Initialize(const ProcessInfo& r_process_info) {
     SphericParticle::Initialize(r_process_info);
     double added_mass_coefficient = 1.0;
     SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
@@ -59,15 +60,15 @@ double NanoParticle::GetInteractionRadius(const int radius_index)
 
 void NanoParticle::SetInteractionRadius(const double radius, const int radius_index)
 {
-    assert(radius >= GetRadius());
+    KRATOS_CHECK(radius >= GetRadius()) << "The interaction radius cannot be smaller than the radius!" << std::endl;
     mInteractionRadius = radius;
 }
 
-void NanoParticle::SetDefaultRadiiHierarchy(const double radius)
+void NanoParticle::SetDefaultRadiiHierarchy()
 {
-    SetRadius(radius);
-    SetInteractionRadius(2.5 * radius);
-    SetSearchRadius(3 * radius); // overwriting that established by the strategy
+    SetRadius();
+    SetInteractionRadius(2.5 * GetRadius());
+    SetSearchRadius(3 * GetRadius()); // overwriting that established by the strategy
 }
 
 double NanoParticle::CalculateVolume()
@@ -76,5 +77,5 @@ double NanoParticle::CalculateVolume()
     return Globals::Pi * radius * radius * radius * mThicknessOverRadius;
 }
 
-    
+
 } // namespace Kratos

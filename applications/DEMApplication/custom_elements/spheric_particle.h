@@ -182,14 +182,13 @@ int   GetClusterId();
 void  SetClusterId(const int Id);
 
 virtual double GetRadius();
-virtual void   SetRadius(double radius);
 virtual void   SetRadius();
 virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
 DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
-virtual void SetDefaultRadiiHierarchy(const double radius);
+virtual void SetDefaultRadiiHierarchy();
 virtual void SetSearchRadius(const double radius);
 virtual double GetMass();
 virtual void   SetMass(double real_mass);

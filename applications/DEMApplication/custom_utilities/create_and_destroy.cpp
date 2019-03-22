@@ -375,7 +375,6 @@ namespace Kratos {
         spheric_p_particle->SetFastProperties(p_fast_properties);
 
         const double density = spheric_p_particle->GetDensity();
-        spheric_p_particle->SetDefaultRadiiHierarchy(radius);
         const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -510,7 +509,6 @@ namespace Kratos {
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
-        spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
@@ -549,7 +547,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());
-        spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
         if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
@@ -735,7 +732,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         spheric_p_particle->SetFastProperties(vector_of_proxies);
 
         const double density = spheric_p_particle->GetDensity();
-        spheric_p_particle->SetDefaultRadiiHierarchy(radius);
         const double mass = 4.0 / 3.0 * Globals::Pi * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -1431,7 +1427,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         SphericParticle* regular_sample_element = dynamic_cast<SphericParticle*>(p_elem_to_be_replaced.get());
 
         analytic_sample_element->SetFastProperties(regular_sample_element->GetFastProperties());
-        analytic_sample_element->SetDefaultRadiiHierarchy(nodelist[0].FastGetSolutionStepValue(RADIUS));
         analytic_sample_element->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         analytic_sample_element->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
         analytic_sample_element->CreateDiscontinuumConstitutiveLaws(spheres_model_part.GetProcessInfo());

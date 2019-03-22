@@ -161,12 +161,11 @@ namespace Kratos
     void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info)
     {
         double temperature = GetTemperature();
-        double radius = GetRadius();
+        double& radius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
         const int RT = 293; // room temperature // is there already a variable for RT?
         double relative_temp = temperature - RT; // temp in Kelvin
-        double updated_radius = radius * (1 + thermal_alpha*relative_temp);
-        SetRadius(updated_radius);
+        radius *= 1 + thermal_alpha*relative_temp;
     }
 
     template< class TBaseElement >

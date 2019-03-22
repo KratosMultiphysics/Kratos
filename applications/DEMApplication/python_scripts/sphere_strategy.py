@@ -298,7 +298,6 @@ class ExplicitStrategy(object):
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
         self.RebuildListOfDiscontinuumSphericParticles()
-        self.SetNormalRadiiOnAllParticles()
         self.SetSearchRadiiOnAllParticles()
 
     def Initialize(self):

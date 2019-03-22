@@ -161,7 +161,8 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
     NodeType& node = GetGeometry()[0];
 
-    SetRadius(node.GetSolutionStepValue(RADIUS));
+    SetRadius();
+
     SetMass(GetDensity() * CalculateVolume());
 
     if (this->IsNot(BLOCKED)) node.GetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
@@ -2017,16 +2018,21 @@ int    SphericParticle::GetClusterId()                                          
 void   SphericParticle::SetClusterId(int givenId)                                                { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                              { return mRadius;         }
 double SphericParticle::CalculateVolume()                                                        { return 4.0 * Globals::Pi / 3.0 * mRadius * mRadius * mRadius;     }
-void   SphericParticle::SetRadius(double radius)                                                 { mRadius = radius; this->GetGeometry().SetRadius(radius);     }
-void   SphericParticle::SetRadius()                                                              { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS); this->GetGeometry().SetRadius(mRadius);      }
+
+    void SphericParticle::SetRadius() {
+        const double& radius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        mRadius = radius;
+        this->GetGeometry().SetRadius(radius);
+    }
+
 double SphericParticle::GetInteractionRadius(const int radius_index)                             { return mRadius;         }
-void   SphericParticle::SetInteractionRadius(const double radius, const int radius_index)        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius; this->GetGeometry().SetRadius(radius);}
+void   SphericParticle::SetInteractionRadius(const double radius, const int radius_index)        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
 double SphericParticle::GetSearchRadius()                                                        { return mSearchRadius;   }
 void   SphericParticle::SetSearchRadius(const double radius)                                     { mSearchRadius = radius; }
-void SphericParticle::SetDefaultRadiiHierarchy(const double radius)
+void SphericParticle::SetDefaultRadiiHierarchy()
 {
-    SetRadius(radius);
-    SetSearchRadius(radius);
+    SetRadius();
+    SetSearchRadius(GetRadius());
 }
 
 double SphericParticle::GetMass()                                                                { return mRealMass;       }

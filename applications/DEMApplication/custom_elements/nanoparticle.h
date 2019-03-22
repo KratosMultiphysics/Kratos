@@ -7,7 +7,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -44,7 +44,7 @@ public:
     virtual ~NanoParticle();
 
     /// Assignment operator.
-    NanoParticle& operator=(NanoParticle const& rOther); 
+    NanoParticle& operator=(NanoParticle const& rOther);
 
     /// Turn back information as a string.
     virtual std::string Info() const override
@@ -58,7 +58,7 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "NanoParticle";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}    
+    virtual void PrintData(std::ostream& rOStream) const override {}
     void Initialize(const ProcessInfo& r_process_info) override;
 
     void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
@@ -67,12 +67,12 @@ public:
                                  const array_1d<double,3>& gravity) override;
 
     void MemberDeclarationFirstStep(const ProcessInfo& r_process_info) override;
-    
+
     double CalculateVolume() override;
 
     double GetInteractionRadius(const int radius_index = 0) override;
     void SetInteractionRadius(const double radius, const int radius_index = 0) override;
-    void SetDefaultRadiiHierarchy(const double radius) override;
+    void SetDefaultRadiiHierarchy() override;
 
     double GetCationConcentration();
 
@@ -93,7 +93,7 @@ private:
     virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
-    }    
+    }
 
     /// Copy constructor.
     NanoParticle(NanoParticle const& rOther)
@@ -118,6 +118,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const NanoParticle& rT
 
 } // namespace Kratos
 
-#endif // KRATOS_NANOPARTICLE_H_INCLUDED defined 
+#endif // KRATOS_NANOPARTICLE_H_INCLUDED defined
 
 
