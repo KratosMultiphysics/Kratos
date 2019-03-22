@@ -8,6 +8,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
+    import KratosMultiphysics.MeshingApplication as MeshingApplication
     missing_meshing_dependencies = True
 else:
     missing_meshing_dependencies = False
