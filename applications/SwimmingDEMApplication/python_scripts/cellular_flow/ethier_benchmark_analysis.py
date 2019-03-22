@@ -25,9 +25,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         Add("print_VELOCITY_LAPLACIAN_option").SetBool(True)
         Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
-    def SetCustomBetaParameters(self, custom_parameters):
-        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
-        self.project_parameters.size_parameter = self.project_parameters["size_parameter"].GetDouble()
+    def SetCustomBetaParameters(self):
         self.field_identifier = self.project_parameters["field_identifier"].GetString()
         self.mesh_tag = self.project_parameters["mesh_tag"].GetString()
         # Creating a code for the used input variables
@@ -46,9 +44,9 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         tag =  self.project_parameters["mesh_tag"].GetString()
 
         if is_regular_mesh:
-            mdpa_name = problem_name + '_ndiv_' + str(int(self.project_parameters.size_parameter)) + tag + 'Fluid'
+            mdpa_name = problem_name + '_ndiv_' + str(int(self.project_parameters["size_parameter"].GetDouble())) + tag + 'Fluid'
         else:
-            mdpa_name = problem_name + '_h_' + str(self.project_parameters.size_parameter) + 'Fluid'
+            mdpa_name = problem_name + '_h_' + str(self.project_parameters["size_parameter"].GetDouble()) + 'Fluid'
 
         model_part_io_fluid = ModelPartIO(mdpa_name)
         model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
@@ -180,7 +178,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         file_name = self.main_path + '/errors_recorded/recovery_errors.hdf5'
         # with h5py.File(self.file_name, 'r+') as f:
         #     f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
-        size_parameter = self.project_parameters.size_parameter
+        size_parameter = self.project_parameters["size_parameter"].GetInt()
         is_regular_mesh = self.project_parameters["regular_mesh_option"].GetBool()
 
         with h5py.File(file_name) as f:

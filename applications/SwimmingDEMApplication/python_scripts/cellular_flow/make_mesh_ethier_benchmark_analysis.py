@@ -11,9 +11,8 @@ class EthierBenchmarkMakeMeshAnalysis(BaseAnalysis):
         self.project_parameters.AddEmptyValue("pressure_grad_recovery_type")
         self.project_parameters.AddEmptyValue("size_parameter").SetInt(1)
 
-    def SetCustomBetaParameters(self, custom_parameters): # TO DO: remove and make all calls to .size_parameter calls to Parameters object
-        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
-        self.project_parameters.size_parameter = self.project_parameters["size_parameter"].GetInt()
+    def SetCustomBetaParameters(self): # TO DO: remove and make all calls to .size_parameter calls to Parameters object
+        BaseAnalysis.SetCustomBetaParameters(self)
 
     def ReadFluidModelParts(self):
         from meshing import meshing_utilities

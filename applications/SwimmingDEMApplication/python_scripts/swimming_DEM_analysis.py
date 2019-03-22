@@ -90,7 +90,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.end_time   = self.project_parameters["FinalTime"].GetDouble()
         self.do_print_results = self.project_parameters["do_print_results_option"].GetBool()
 
-        self.SetCouplingParameters(parameters)
+        self.SetCouplingParameters()
 
         self.SetFluidParameters()
 
@@ -148,7 +148,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults)
 
-    def SetCouplingParameters(self, parameters):
+    def SetCouplingParameters(self):
 
         # First, read the parameters generated from the interface
         self.ReadDispersePhaseAndCouplingParameters()
@@ -157,7 +157,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.SetBetaParameters()
 
         # Third, set the parameters fed to the particular case that you are running
-        self.SetCustomBetaParameters(parameters)
+        self.SetCustomBetaParameters() # TODO: deprecate this
 
     def SetAllModelParts(self):
         self.all_model_parts = weakref.proxy(self.disperse_phase_solution.all_model_parts)
@@ -246,14 +246,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.project_parameters["flow_in_porous_DEM_medium_option"].GetBool():
             self.do_solve_dem = False
 
-    def SetCustomBetaParameters(self, custom_parameters):
-        custom_parameters.ValidateAndAssignDefaults(self.project_parameters)
-        self.project_parameters = custom_parameters
-        # TO DO: remove next lines as info is taken from Parameters object everywhere
-        # var_names = [k for k in dictionary.keys()]
-        # var_values = [k for k in dictionary.values()]
-        # for name, value in zip(var_names, var_values):
-        #     self.project_parameters.__setitem__(name, value)
+    def SetCustomBetaParameters(self):
+        pass
 
     def Run(self):
         super(SwimmingDEMAnalysis, self).Run()
@@ -343,15 +337,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.project_parameters["coupling_level_type"].GetInt():
             default_meso_scale_length_needed = (
-                self.project_parameters["meso_scale_length"].GetDouble() <= 0.0 and
+                self.project_parameters["backward_coupling"]["meso_scale_length"].GetDouble() <= 0.0 and
                 self.spheres_model_part.NumberOfElements(0) > 0)
 
             if default_meso_scale_length_needed:
                 biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, RADIUS))
-                self.project_parameters["meso_scale_length"].SetDouble(20 * biggest_size)
+                self.project_parameters["backward_coupling"]["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
-                self.project_parameters["meso_scale_length"].SetDouble(1.0)
+                self.project_parameters["backward_coupling"]["meso_scale_length"].SetDouble(1.0)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions

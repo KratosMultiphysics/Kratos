@@ -22,17 +22,19 @@ def GetDefaultInputParameters():
 
             "ElementType" : "SwimmingDEMElement",
             "echo_level" : 1,
-            "problem_data" : {
-                "problem_name" : "dummy_name.Provide_a_real_one",
-                "parallel_type" : "OpenMP",
-                "echo_level" : 1,
-                "start_time" : 0.0,
-                "end_time" : 1
-            },
+
+            "problem_data" : {},
             "do_print_results_option" : true,
             "processes" : {
                 "auxiliar_process_list": []
             },
+
+            "backward_coupling" : {
+                "meso_scale_length" : 0.2,
+                "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
+                "shape_factor" : 0.5
+            },
+
             "json_output_process" : [],
             "sdem_output_processes" : {},
             "fluid_already_calculated" : false,
@@ -80,12 +82,9 @@ def GetDefaultInputParameters():
             "dem_inlet_element_type_comment" : " SphericParticle3D, SphericSwimmingParticle3D",
             "drag_modifier_type" : 2,
             "drag_modifier_type_comment" : " Hayder (2), Chien (3) # problemtype option",
-            "drag_porosity_correction_type" : 0,
-            "drag_porosity_correction_type_comment" : " No correction (0), Richardson and Zaki (1)",
             "min_fluid_fraction" : 0.2,
             "fluid_fraction_grad_type" : 0,
             "initial_drag_force" : 0.0,
-            "drag_law_slope" : 0.0,
             "model_over_real_diameter_factor" : 1.0,
             "model_over_real_diameter_factor_comment": " not active if similarity_transformation_type = 0",
             "max_pressure_variation_rate_tol" : 1e-3,
@@ -94,9 +93,6 @@ def GetDefaultInputParameters():
             "time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
             "time_steps_per_analytic_processing_step": 1,
             "do_process_analytic_data" : true,
-            "meso_scale_length" : 0.2,
-            "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
-            "shape_factor" : 0.5,
             "non_newtonian_option" : false,
             "yield_stress" : 0.0,
             "regularization_coefficient" : 0.0,

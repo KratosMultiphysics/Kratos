@@ -96,9 +96,7 @@ class VariablesManager:
         dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["fluid_model_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, parameters["initial_drag_force"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, parameters["drag_law_slope"].GetDouble())
         dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["power_law_tol"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, parameters["drag_porosity_correction_type"].GetInt())
 
         for prop in parameters["properties"].values():
             if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):

@@ -35,10 +35,9 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def GetDebugInfo(self):
         return SDP.Counter(self.project_parameters["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
 
-    def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
-        super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
+    def SetCustomBetaParameters(self): # These are input parameters that have not yet been transferred to the interface
         candelier_pp.include_history_force = bool(self.project_parameters["basset_force_type"].GetInt())
-        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(custom_parameters["properties"],
+        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(self.project_parameters["properties"],
                                                                             'vorticity_induced_lift_parameters',
                                                                             condition=lambda value: not (value['name']=='default'))
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
