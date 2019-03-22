@@ -104,6 +104,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 if computing_model_part.Is(KM.MODIFIED):
+                    self._GetSolver().Clear()
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
