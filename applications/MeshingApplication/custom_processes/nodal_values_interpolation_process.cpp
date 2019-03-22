@@ -158,30 +158,34 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& 
 
     // Initialize values of Normal
     /* Origin model part */
-    NodesArrayType& nodes_array_origin = mrOriginMainModelPart.Nodes();
-    const int num_nodes_origin = static_cast<int>(nodes_array_origin.size());
-    NodesArrayType& nodes_array_destiny = mrDestinationMainModelPart.Nodes();
-    const int num_nodes_destiny = static_cast<int>(nodes_array_destiny.size());
+    NodesArrayType& r_nodes_array_origin = mrOriginMainModelPart.Nodes();
+    const int num_nodes_origin = static_cast<int>(r_nodes_array_origin.size());
+    const auto it_node_begin_origin = r_nodes_array_origin.begin();
+    NodesArrayType& r_nodes_array_destiny = mrDestinationMainModelPart.Nodes();
+    const int num_nodes_destiny = static_cast<int>(r_nodes_array_destiny.size());
+    const auto it_node_begin_destination = r_nodes_array_destiny.begin();
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes_origin; ++i)
-        (nodes_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+        (it_node_begin_origin + i)->SetValue(NORMAL, zero_array);
     #pragma omp parallel for
     for(int i = 0; i < num_nodes_destiny; ++i)
-        (nodes_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+        (it_node_begin_destination + i)->SetValue(NORMAL, zero_array);
 
     /* Destination model part */
-    ConditionsArrayType& conditions_array_origin = mrOriginMainModelPart.Conditions();
-    const int num_conditions_origin = static_cast<int>(conditions_array_origin.size());
-    ConditionsArrayType& conditions_array_destiny = mrDestinationMainModelPart.Conditions();
-    const int num_conditions_destiny = static_cast<int>(conditions_array_destiny.size());
+    ConditionsArrayType& r_conditions_array_origin = mrOriginMainModelPart.Conditions();
+    const int num_conditions_origin = static_cast<int>(r_conditions_array_origin.size());
+    const auto it_cond_begin_origin = r_conditions_array_origin.begin();
+    ConditionsArrayType& r_conditions_array_destiny = mrDestinationMainModelPart.Conditions();
+    const int num_conditions_destiny = static_cast<int>(r_conditions_array_destiny.size());
+    const auto it_cond_begin_destiny = r_conditions_array_destiny.begin();
 
     #pragma omp parallel for
     for(int i = 0; i < num_conditions_origin; ++i)
-        (conditions_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+        (it_cond_begin_origin + i)->SetValue(NORMAL, zero_array);
     #pragma omp parallel for
     for(int i = 0; i < num_conditions_destiny; ++i)
-        (conditions_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+        (it_cond_begin_destiny + i)->SetValue(NORMAL, zero_array);
 
     Parameters skin_parameters = Parameters(R"(
     {
@@ -255,33 +259,28 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
 
     // A list that contents the all the points (from nodes) from the modelpart
     PointVector point_list_destination;
-
     point_list_destination.clear();
 
     // Iterate in the conditions
-    ConditionsArrayType& origin_conditions_array = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart).Conditions();
-
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<PointVector> points_buffer(num_threads);
+    ConditionsArrayType& r_origin_conditions_array = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart).Conditions();
 
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        PointVector points_buffer;
 
         #pragma omp for
-        for(int i = 0; i < static_cast<int>(origin_conditions_array.size()); ++i) {
-            auto it_cond = origin_conditions_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_origin_conditions_array.size()); ++i) {
+            auto it_cond = r_origin_conditions_array.begin() + i;
 
             const PointTypePointer& p_point = PointTypePointer(new PointBoundaryType((*it_cond.base())));
-            (points_buffer[thread_id]).push_back(p_point);
+            points_buffer.push_back(p_point);
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& point_buffer : points_buffer)
-                std::move(point_buffer.begin(),point_buffer.end(),back_inserter(point_list_destination));
+            std::move(points_buffer.begin(),points_buffer.end(),back_inserter(point_list_destination));
         }
     }
 
