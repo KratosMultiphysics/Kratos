@@ -16,6 +16,9 @@ else:
 # Import base class file
 import structural_mechanics_static_solver
 
+# Import auxiliar methods
+import auxiliar_methods_solvers
+
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
 
@@ -52,21 +55,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            remeshing_process = MeshingApplication.MmgProcess2D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
-        else:
-            is_surface = False
-            for elem in self.main_model_part.Elements:
-                geom = elem.GetGeometry()
-                if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                    is_surface = True
-                break
-            if is_surface:
-                remeshing_process = MeshingApplication.MmgProcess3DSurfaces(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
-            else:
-                remeshing_process = MeshingApplication.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
-
-        return remeshing_process
+        return auxiliar_methods_solvers.CreateRemeshingProcess(self.main_model_part, self.adaptative_remesh_parameters)
 
     def get_metric_process(self):
         if not hasattr(self, '_metric_process'):
@@ -74,12 +63,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._metric_process
 
     def _create_metric_process(self):
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            metric_process = MeshingApplication.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
-        else:
-            metric_process = MeshingApplication.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
-
-        return metric_process
+        return auxiliar_methods_solvers.CreateMetricProcess(self.main_model_part, self.adaptative_remesh_parameters)
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
