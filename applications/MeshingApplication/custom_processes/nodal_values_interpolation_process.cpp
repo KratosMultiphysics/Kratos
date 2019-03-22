@@ -343,11 +343,12 @@ template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelPart)
 {
     // Sum all the nodes normals
-    ConditionsArrayType& conditions_array = rModelPart.Conditions();
+    ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-        auto it_cond = conditions_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
         GeometryType& this_geometry = it_cond->GetGeometry();
 
         // Aux coordinates
