@@ -6,15 +6,11 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-try:
-    import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
     missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+else:
+    missing_meshing_dependencies = False
 
 # Import base class file
 import structural_mechanics_static_solver
@@ -45,7 +41,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
 
     def AddVariables(self):
         super(AdaptativeRemeshingStaticMechanicalSolver, self).AddVariables()
-        if (missing_meshing_dependencies is False):
+        if not missing_meshing_dependencies:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.print_on_rank_zero("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Variables ADDED")
 
@@ -55,10 +51,19 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             remeshing_process = MeshingApplication.MmgProcess2D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
         else:
-            remeshing_process = MeshingApplication.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+            is_surface = False
+            for elem in self.main_model_part.Elements:
+                geom = elem.GetGeometry()
+                if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                    is_surface = True
+                break
+            if is_surface:
+                remeshing_process = MeshingApplication.MmgProcess3DSurfaces(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+            else:
+                remeshing_process = MeshingApplication.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
 
         return remeshing_process
 
@@ -68,7 +73,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._metric_process
 
     def _create_metric_process(self):
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             metric_process = MeshingApplication.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
         else:
             metric_process = MeshingApplication.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
