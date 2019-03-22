@@ -236,10 +236,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         node_velocity_potential_below = 0
         
         for elem in self.wake_model_part.Elements:
-            print('element: ',elem.Id)       
-            for node in elem.GetNodes():             
-                #node_velocity_potential = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-                #print('node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+            print('element: ',elem.Id)
+            for node in elem.GetNodes():
                 
                 # Compute the distance from the node to the trailing edge
                 x_distance_to_te = node.X - self.te.X
@@ -251,29 +249,24 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
                 if distance_to_wake>0:
                     node_velocity_potential_above = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-                    #print('ABOVE: node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+                    node_auxiliary_velocity_potential_above = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+                    potential_jump_phi_minus_psi_above = node_velocity_potential_above - node_auxiliary_velocity_potential_above
+                    CL_phi_minus_psi = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
+                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',CL_phi_minus_psi)
                 else:
                     node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-                    #print('BELOW: node: ',node.Id,' node_velocity_potential :', node_velocity_potential)
+                    node_auxiliary_velocity_potential_below = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+                    potential_jump_psi_minus_phi_below = -(node_velocity_potential_below - node_auxiliary_velocity_potential_below)
+                    CL_psi_minus_phi = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
+                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',CL_psi_minus_phi)
                 if node_velocity_potential_above!=0 and node_velocity_potential_below!=0:
-                    potential_jump = node_velocity_potential_above - node_velocity_potential_below
-                    CL = 2*potential_jump/self.velocity_infinity[0]
-                    print ('potential jump', potential_jump, 'CL = ',CL )
-                    raw_input()
-'''
-        print('trailing edge Y coordinate',self.te.Y)
+                    potential_jump_delta_phi = node_velocity_potential_above - node_velocity_potential_below
+                    CL_delta_phi = 2*potential_jump_delta_phi/self.velocity_infinity[0]                  
+                    print ('potential jump delta Phi (above - below) = ', potential_jump_delta_phi, '=> CL = ',CL_delta_phi )
+                    #input()
+
+        #print('trailing edge Y coordinate',self.te.Y)
         #print(len(self.wake_model_part.Nodes))
         #print(len(self.wake_model_part.Elements))
         
-        for node in self.wake_model_part.Nodes: # Get each wake element node only once
-
-            # Compute the distance from the node to the trailing edge
-            x_distance_to_te = node.X - self.te.X
-            y_distance_to_te = node.Y - self.te.Y
-
-            # Compute the projection of the distance vector in the wake normal direction
-            distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
-                y_distance_to_te*self.wake_normal[1]
-
-            #print('node id:', node.Id,'has ',distance_to_wake, 'distance from the wake')
-'''     
+        #ALTERNATIVE: "for node in self.wake_model_part.Nodes:" # Get each wake element node only once
