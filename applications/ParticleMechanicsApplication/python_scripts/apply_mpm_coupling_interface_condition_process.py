@@ -91,6 +91,9 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
 
     # Local functions
     def _add_coupling_variables_to_model_part(self, coupling_model_part):
+        domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        coupling_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
+
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
