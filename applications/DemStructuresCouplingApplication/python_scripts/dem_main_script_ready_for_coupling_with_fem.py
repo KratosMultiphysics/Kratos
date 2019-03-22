@@ -52,7 +52,7 @@ class Solution(BaseAlgorithm):
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
         DEM_Inlet_filename = self.GetInletFilename()
         model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-        model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+        model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
