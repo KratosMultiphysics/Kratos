@@ -37,8 +37,9 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         self.process_remesh = False
         if project_parameters.Has("recursive_remeshing_process"):
             self.process_remesh = True
-        if project_parameters["processes"].Has("recursive_remeshing_process"):
-            self.process_remesh = True
+        if project_parameters.Has("processes"):
+            if project_parameters["processes"].Has("recursive_remeshing_process"):
+                self.process_remesh = True
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
@@ -87,21 +88,18 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
 
         # If we remesh using a process
         computing_model_part = self._GetSolver().GetComputingModelPart()
+        root_model_part = computing_model_part.GetRootModelPart()
         if self.process_remesh:
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if computing_model_part.Is(KM.MODIFIED):
-                    self._GetSolver().Clear()
-                    # WE INITIALIZE THE SOLVER
-                    self._GetSolver().Initialize()
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    ## Processes initialization
-                    for process in self._list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self._list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
+                # We reinitialize if remeshed previously
+                if root_model_part.Is(KM.MODIFIED):
+                    self._ReInitializeSolver()
                 self.InitializeSolutionStep()
+                # We reinitialize if remeshed on the InitializeSolutionStep
+                if root_model_part.Is(KM.MODIFIED):
+                    self._ReInitializeSolver()
+                    self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 self._GetSolver().SolveSolutionStep()
                 self.FinalizeSolutionStep()
@@ -117,19 +115,9 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
-                    if computing_model_part.Is(KM.MODIFIED):
-                        self._GetSolver().Clear()
-                        # WE RECOMPUTE THE PROCESSES AGAIN
-                        # Processes initialization
-                        for process in self._list_of_processes:
-                            process.ExecuteInitialize()
-                        ## Processes before the loop
-                        for process in self._list_of_processes:
-                            process.ExecuteBeforeSolutionLoop()
-                        ## Processes of initialize the solution step
-                        for process in self._list_of_processes:
-                            process.ExecuteInitializeSolutionStep()
-                    if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
+                    if root_model_part.Is(KM.MODIFIED):
+                        self._ReInitializeSolver()
+                    if non_linear_iteration == 1 or root_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
                         computing_model_part.Set(KM.MODIFIED, False)
@@ -143,7 +131,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                         self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
-                    elif (non_linear_iteration == self.non_linear_iterations):
+                    elif non_linear_iteration == self.non_linear_iterations:
                         self.is_printing_rank = True
                         KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
@@ -192,6 +180,22 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             raise NameError("wrong parameter name")
 
         return list_of_processes
+
+    def _ReInitializeSolver(self):
+        """ This reinitializes after remesh """
+        self._GetSolver().Clear()
+        # WE INITIALIZE THE SOLVER
+        self._GetSolver().Initialize()
+        # WE RECOMPUTE THE PROCESSES AGAIN
+        ## Processes initialization
+        for process in self._list_of_processes:
+            process.ExecuteInitialize()
+        ## Processes before the loop
+        for process in self._list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+        ## Processes of initialize the solution step
+        for process in self._list_of_processes:
+            process.ExecuteInitializeSolutionStep()
 
 if __name__ == "__main__":
     from sys import argv
