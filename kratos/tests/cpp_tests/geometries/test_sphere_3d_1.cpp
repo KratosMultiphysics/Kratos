@@ -89,8 +89,8 @@ namespace Testing {
         KRATOS_CHECK_DOUBLE_EQUAL(p_cloned_geom->Volume(), big_volume);
     }
 
-    /** Checks that the HasIntersection method is well implemented for th.
-    * Checks if the length of the line is calculated correctly.
+    /** Checks that the HasIntersection method is well implemented for
+    * sphere-bounding box intersections.
     */
     KRATOS_TEST_CASE_IN_SUITE(Sphere3dTestIntersectionWithBox, KratosCoreGeometriesFastSuite) {
         const auto low_point = Point(-1.0, -1.0, -1.0);
@@ -143,6 +143,18 @@ namespace Testing {
         radius = 1.5;
         const bool does_not_intersect_with_one_corner = !p_geom_one_corner->HasIntersection(low_point, high_point);
         KRATOS_CHECK(does_not_intersect_with_one_corner);
+    }
+
+    /** Checks that an exception is properly thrown either when
+     * doing 'GetRadius' before initializing the radius or when
+     * doing 'SetRadius' for a second time.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SphereRadiusGetSetExceptions, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateSphere3D1CenterOrigin();
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(p_geom->GetRadius(), "The Sphere3D1's radius address has not been properly set before calling the method 'GetRadius'. Use 'SetRadius' for that.");
+        double radius = 1.0;
+        p_geom->SetRadius(radius);
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(p_geom->SetRadius(radius), "Trying to set the sphere's radius for a second time to a value other than NULL. This operation must be done only once.");
     }
 
 } // namespace Testing.

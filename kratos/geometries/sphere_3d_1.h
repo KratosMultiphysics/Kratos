@@ -651,7 +651,7 @@ public:
     }
 
     double GetRadius() const override{
-        KRATOS_ERROR_IF(mpRadius == NULL) << "The Sphere3D1's radius address has not been properly set before calling the method 'GetRadius'. Use 'SetRadius' for that." << std::endl;
+        KRATOS_ERROR_IF_NOT(mpRadius) << "The Sphere3D1's radius address has not been properly set before calling the method 'GetRadius'. Use 'SetRadius' for that." << std::endl;
 
         return *mpRadius;
     }
@@ -662,7 +662,7 @@ public:
      */
 
     void SetRadius(const double& rRadius) override {
-        KRATOS_ERROR_IF(mpRadius != NULL) << "Trying to set the sphere's radius for a second time to a value other than NULL. This operation must be done only once." << std::endl;
+        KRATOS_ERROR_IF(mpRadius) << "Trying to set the sphere's radius for a second time to a value other than NULL. This operation must be done only once." << std::endl;
 
         mpRadius = &rRadius;
     }
