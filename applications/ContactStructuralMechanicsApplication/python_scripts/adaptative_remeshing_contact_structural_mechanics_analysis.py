@@ -133,13 +133,13 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                         self._GetSolver().Clear()
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
-                        for process in self._list_of_processes:
+                        for process in self._GetListOfProcesses():
                             process.ExecuteInitialize()
                         ## Processes before the loop
-                        for process in self._list_of_processes:
+                        for process in self._GetListOfProcesses():
                             process.ExecuteBeforeSolutionLoop()
                         ## Processes of initialize the solution step
-                        for process in self._list_of_processes:
+                        for process in self._GetListOfProcesses():
                             process.ExecuteInitializeSolutionStep()
                     if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
@@ -265,13 +265,13 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         self._GetSolver().Initialize()
         # WE RECOMPUTE THE PROCESSES AGAIN
         ## Processes initialization
-        for process in self._list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
         ## Processes before the loop
-        for process in self._list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
         ## Processes of initialize the solution step
-        for process in self._list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
 
 if __name__ == "__main__":
