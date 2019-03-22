@@ -546,44 +546,6 @@ class ResultsFileCreator:
                     line += str('%.17f' % entry) + ' '
                 f.write(line + ' \n')
 
-# The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
-def CreateRunCode(parameters):
-    code = []
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        history_or_not = 'H'
-    else:
-        history_or_not = 'NH'
-
-    code.append(history_or_not)
-
-    if parameters["basset_force_type"].GetInt() == 4:
-        method_name = 'Hinsberg'
-        number_of_exponentials = 'm=' + str(parameters.number_of_exponentials)
-        time_window = 'tw=' + str(parameters["time_window"].GetDouble())
-        code.append(method_name)
-        code.append(number_of_exponentials)
-        code.append(time_window)
-
-    elif parameters["basset_force_type"].GetInt() > 0:
-        method_name = 'Daitche'
-        code.append(method_name)
-    else:
-        method_name = parameters["TranslationalIntegrationScheme"].GetString()
-        code.append(method_name)
-
-    DEM_dt = 'Dt=' + str(parameters["MaxTimeStep"].GetDouble())
-    code.append(DEM_dt)
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / parameters["time_steps_per_quadrature_step"].GetInt(), 3))
-        code.append(phi)
-
-    quadrature_order = 'QuadOrder=' + str(parameters["quadrature_order"].GetInt())
-    code.append(quadrature_order)
-
-    return '_' + '_'.join(code)
-
 def CopyInputFilesIntoFolder(files_path, folder_path):
     import glob, os, shutil
     input_data_directory = folder_path + "/InputData"

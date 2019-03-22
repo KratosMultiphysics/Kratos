@@ -4,6 +4,7 @@ import math
 from KratosMultiphysics import *
 import candelier
 import candelier_parameters as ch_pp
+import parameters_tools as PT
 
 class ResultsCandelier:
     def __init__(self, parameters, path):
@@ -16,9 +17,18 @@ class ResultsCandelier:
         self.reading_index = 0
         self.times = []
         self.errors = []
-        ch_pp.include_history_force = bool(project_parameters["basset_force_type"].GetInt())
+        self.do_include_history_force = (PT.RecursiveFindParametersWithCondition(
+                                         project_parameters["properties"], 'history_force_parameters',
+                                         condition=lambda value: value['name'].GetString() != 'default'))
 
-        if project_parameters["basset_force_type"].GetInt() == 2:
+        ch_pp.include_history_force = self.do_include_history_force
+
+        if self.do_include_history_force: #TODO: extend to multiple properties
+            for prop in parameters["properties"].values():
+                self.history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                break
+
+        if not self.history_force_parameters["mae_parameters"]['do_use_mae'].GetBool():
             self.method = 'Daitche'
         else:
             self.method = 'Hinsberg'

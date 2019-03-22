@@ -70,7 +70,6 @@
 "max_pressure_variation_rate_tol_comment": " for stationary problems, criterion to stop the fluid calculations",
 "time_steps_per_stationarity_step"       : 15,
 "time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
-"basset_force_type"                      : 2,
 
 "OutputTimeStep"                   : 0.5,
 "PostPressure"                     : false,

@@ -29,16 +29,17 @@ def GetDefaultInputParameters():
                 "auxiliar_process_list": []
             },
 
+            "coupling_level_type" : 1,
             "backward_coupling" : {
                 "meso_scale_length" : 0.2,
                 "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
-                "shape_factor" : 0.5
+                "shape_factor" : 0.5,
+                "apply_time_filter_to_fluid_fraction_option" : false
             },
 
             "json_output_process" : [],
             "sdem_output_processes" : {},
             "fluid_already_calculated" : false,
-            "coupling_level_type" : 1,
             "time_averaging_type" : 0,
             "interaction_start_time" : 0.0,
             "do_search_neighbours" : true,
@@ -99,7 +100,6 @@ def GetDefaultInputParameters():
             "power_law_tol" : 0.0,
             "power_law_k" : 0.0,
             "power_law_n" : 0.0,
-            "basset_force_type" : 0,
             "basset_force_integration_type" : 2,
             "n_init_basset_steps" : 0,
             "time_window" : 0.04,
@@ -109,7 +109,6 @@ def GetDefaultInputParameters():
             "do_impose_flow_from_field_option" : false,
             "calculate_diffusivity_option" : false,
             "filter_velocity_option" : false,
-            "apply_time_filter_to_fluid_fraction_option" : false,
             "full_particle_history_watcher" : "Empty",
             "full_particle_history_watcher" : "",
             "ALE_option" : false,

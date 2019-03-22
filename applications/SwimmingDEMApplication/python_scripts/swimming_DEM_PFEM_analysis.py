@@ -11,7 +11,7 @@ sys.path.insert(0,'')
 
 class SDEMPFEMAnalysis(BaseAnalysis):
 
-    def SetFluidAlgorithm(self):
+    def SetFluidAnalysis(self):
         import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_solution
         self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
         self.fluid_solution.main_path = self.main_path
@@ -23,7 +23,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
 
     def SetAllModelParts(self):
-        self.all_model_parts = self.disperse_phase_solution.all_model_parts
+        self.all_model_parts = self._GetDEMAnalysis().all_model_parts
 
         # defining a fluid model
         self.all_model_parts.Add(self.fluid_model_part, "FluidPart")
@@ -38,7 +38,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.TransferWallsFromPfemToDem()
 
     def TransferWallsFromPfemToDem(self):
-        destination_model_part = self.disperse_phase_solution.rigid_face_model_part
+        destination_model_part = self._GetDEMAnalysis().rigid_face_model_part
         bodies_parts_list = self.fluid_solution.project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
@@ -125,9 +125,9 @@ class SDEMPFEMAnalysis(BaseAnalysis):
                                         self.project_parameters,
                                         self.vars_man,
                                         general_model_part,
-                                        self.disperse_phase_solution.spheres_model_part,
-                                        self.disperse_phase_solution.cluster_model_part,
-                                        self.disperse_phase_solution.rigid_face_model_part,
+                                        self._GetDEMAnalysis().spheres_model_part,
+                                        self._GetDEMAnalysis().cluster_model_part,
+                                        self._GetDEMAnalysis().rigid_face_model_part,
                                         self.mixed_model_part)
     def SetEmbeddedTools(self):
         pass

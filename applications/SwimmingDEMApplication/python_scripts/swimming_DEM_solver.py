@@ -1,24 +1,25 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+from KratosMultiphysics import *
 from python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
+import parameters_tools as PT
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 import math
 
 def Say(*args):
-    KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", *args)
-    KratosMultiphysics.Logger.Flush()
+    Logger.PrintInfo("SwimmingDEM", *args)
+    Logger.Flush()
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
 
-        default_processes_settings = KratosMultiphysics.Parameters("""{
+        default_processes_settings = Parameters("""{
                 "python_module" : "calculate_nodal_area_process",
                 "kratos_module" : "KratosMultiphysics",
                 "process_name"  : "CalculateNodalAreaProcess",
@@ -74,6 +75,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
         self.first_DEM_iteration = True
+        self.SetHistoryForceOptions()
         self.ConstructStationarityTool()
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
@@ -112,10 +114,22 @@ class SwimmingDEMSolver(PythonSolver):
 
         return projection_module
 
+    def SetHistoryForceOptions(self):
+        self.history_force_on = False
+        self.MAE_parameters = Parameters("{}")
+        for prop in self.project_parameters["properties"].values(): #TODO: now it only works for one property!
+            self.history_force_on = (PT.RecursiveFindParametersWithCondition(
+                                     self.project_parameters["properties"], 'history_force_parameters',
+                                     condition=lambda value: value['name'].GetString() != 'default'))
+            if self.history_force_on:
+                self.MAE_parameters = prop["hydrodynamic_law_parameters"]["history_force_parameters"]["mae_parameters"]
+            break
+        self.do_use_mae = PT.RecursiveFindTrueBoolInParameters(self.MAE_parameters, 'do_use_mae')
+
+
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
-        self.using_hinsberg_method = bool(self.project_parameters["basset_force_type"].GetInt() >= 3 or
-                                          self.project_parameters["basset_force_type"].GetInt() == 1)
+
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,
             self.fluid_solver.main_model_part,
@@ -123,7 +137,8 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
-        self.basset_force_tool = SDEM.BassetForceTools()
+        if self.history_force_on:
+            self.basset_force_tool = SDEM.BassetForceTools(self.MAE_parameters)
 
     def GetStationarityCounter(self):
         return SDP.Counter(
@@ -257,9 +272,9 @@ class SwimmingDEMSolver(PythonSolver):
         self.first_DEM_iteration = False
 
     def AppendValuesForTheHistoryForce(self):
-        if self.using_hinsberg_method:
+        if PT.RecursiveFindTrueBoolInParameters(self.MAE_parameters, 'do_use_mae'):
             self.basset_force_tool.AppendIntegrandsWindow(self.dem_solver.spheres_model_part)
-        elif self.project_parameters["basset_force_type"].GetInt() == 2:
+        else:
             self.basset_force_tool.AppendIntegrands(self.dem_solver.spheres_model_part)
 
     def ImportModelPart(self): # TODO: implement this

@@ -51,7 +51,7 @@ class Algorithm(BaseAlgorithm):
                            is_dead = not self.project_parameters["fluid_already_calculated"].GetBool())
 
     def GetRunCode(self):
-        code = SDP.CreateRunCode(self.project_parameters)
+        code = ""
 
         if self.project_parameters["fluid_already_calculated"].GetBool():
             return code + '_precalculated_fluid'

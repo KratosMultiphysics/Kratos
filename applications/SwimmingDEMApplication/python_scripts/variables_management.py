@@ -30,7 +30,7 @@ class VariablesManager:
 
     def __init__(self, parameters):
         self.project_parameters = parameters
-
+        self.SetOptions(parameters)
     # constructing lists of variables to add
     # * Performing modifications to the input parameters for consistency (provisional until interface does it)
     # * Choosing the variables to be printed
@@ -59,6 +59,20 @@ class VariablesManager:
                 model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
                 model_part.ProcessInfo.SetValue(ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
                 model_part.ProcessInfo.SetValue(ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
+
+
+    def SetOptions(self, parameters):
+        self.do_include_history_force = (PT.RecursiveFindParametersWithCondition(
+                                         parameters["properties"], 'history_force_parameters',
+                                         condition=lambda value: value['name'].GetString() != 'default'))
+
+        if self.do_include_history_force: #TODO: extend to multiple properties
+            for prop in parameters["properties"].values():
+                self.history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                break
+
+        self.do_backward_coupling = parameters["coupling_level_type"].GetInt() > 1
+        self.backward_coupling_tools = parameters["backward_coupling"]
 
     def AddExtraProcessInfoVariablesToFluidModelPart(self, parameters, fluid_model_part):
 
@@ -92,23 +106,16 @@ class VariablesManager:
 
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
         dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling_level_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, parameters["basset_force_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["fluid_model_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, parameters["initial_drag_force"].GetDouble())
         dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["power_law_tol"].GetDouble())
 
-        for prop in parameters["properties"].values():
-            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
-                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
-
-                if (prop["hydrodynamic_law_parameters"]["name"].GetString() != "default"
-                    and history_force_parameters["name"].GetString() != "default"):
-                    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, history_force_parameters["n_init_basset_steps"].GetInt())
-                    dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, history_force_parameters["time_steps_per_quadrature_step"].GetInt())
-                    dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
-                    dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, history_force_parameters["quadrature_order"].GetInt())
-                    break
+        if self.do_include_history_force:
+            dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, self.history_force_parameters["n_init_basset_steps"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, self.history_force_parameters["time_steps_per_quadrature_step"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
+            dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, self.history_force_parameters["quadrature_order"].GetInt())
 
         if parameters["non_newtonian_option"].GetBool():
             dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
@@ -117,6 +124,17 @@ class VariablesManager:
     def ConstructListsOfVariables(self, parameters):
         # PRINTING VARIABLES
         # constructing lists of variables to be printed
+
+        self.nodal_results, self.gauss_points_results = [], []
+        self.fluid_parameters = parameters['fluid_parameters']
+        if self.fluid_parameters.Has('sdem_output_processes'):
+            gid_output_options = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+            gauss_point_results = result_file_configuration["gauss_point_results"]
+            nodal_variables = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            self.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
+            self.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
+
         self.ConstructListsOfResultsToPrint(parameters)
 
         # COUPLING VARIABLES
@@ -174,13 +192,16 @@ class VariablesManager:
         self.dem_vars += [BUOYANCY]
         self.dem_vars += [VELOCITY_OLD]
 
-        if parameters["frame_of_reference_type"].GetInt() and parameters["basset_force_type"].GetInt() > 0:
+        if self.do_include_history_force:
+            self.dem_vars += [BASSET_FORCE]
+
+        if parameters["frame_of_reference_type"].GetInt() and self.do_include_history_force > 0:
             self.dem_vars += [DISPLACEMENT_OLD]
             self.dem_vars += [VELOCITY_OLD_OLD]
 
         if (parameters["TranslationalIntegrationScheme"].GetString()
             in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}
-            or parameters["basset_force_type"].GetInt() > 0):
+            or self.do_include_history_force):
             self.dem_vars += [VELOCITY_OLD]
             self.dem_vars += [ADDITIONAL_FORCE_OLD]
             self.dem_vars += [AUX_VEL]
@@ -196,16 +217,6 @@ class VariablesManager:
 
         if parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
-
-        will_need_basset_force_variable = False
-        for prop in parameters["properties"].values():
-            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
-                if prop["hydrodynamic_law_parameters"]["history_force_parameters"]["name"].GetString() != 'default':
-                    will_need_basset_force_variable = True
-                    break
-
-        if will_need_basset_force_variable:
-            self.dem_vars += [BASSET_FORCE]
 
         # clusters variables
         self.clusters_vars = []
@@ -373,7 +384,7 @@ class VariablesManager:
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
 
-            if parameters["basset_force_type"].GetInt() > 0:
+            if self.do_include_history_force:
                 self.coupling_dem_vars += [FLUID_VEL_PROJECTED_RATE]
 
         if parameters["coupling_level_type"].GetInt() >= 1 or parameters["fluid_model_type"].GetInt() == 0:
@@ -398,8 +409,9 @@ class VariablesManager:
         if 'REYNOLDS_NUMBER' in self.dem_nodal_results:
             self.coupling_dem_vars += [REYNOLDS_NUMBER]
 
-        if parameters["apply_time_filter_to_fluid_fraction_option"].GetBool():
-            self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
+        if self.do_backward_coupling:
+            if parameters["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
+                self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
 
         if parameters["filter_velocity_option"].GetBool():
             self.time_filtered_vars += [PARTICLE_VEL_FILTERED]

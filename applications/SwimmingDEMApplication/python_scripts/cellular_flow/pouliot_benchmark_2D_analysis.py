@@ -15,7 +15,6 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
 
     def GetFieldUtility(self):
-        print('PouliotFlowField2D')
         self.flow_field = PouliotFlowField2D()
         space_time_set = SpaceTimeSet()
         self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
@@ -33,9 +32,9 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         self.ReadFluidModelParts()
         self.fluid_solution.SetFluidBufferSizeAndAddDofs()
         SDP.AddExtraDofs(self.fluid_model_part,
-                         self.disperse_phase_solution.spheres_model_part,
-                         self.disperse_phase_solution.cluster_model_part,
-                         self.disperse_phase_solution.dem_inlet_model_part,
+                         self._GetDEMAnalysis().spheres_model_part,
+                         self._GetDEMAnalysis().cluster_model_part,
+                         self._GetDEMAnalysis().dem_inlet_model_part,
                          self.vars_man)
         self.fluid_solution.SetFluidSolver()
         self.fluid_solution.fluid_solver.Initialize()
