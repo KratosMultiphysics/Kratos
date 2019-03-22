@@ -1,14 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.MeshingApplication as MeshingApplication
 try:
-  import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
-  missing_external_fluid_dependencies = False
-except ImportError as e:
-    missing_external_fluid_dependencies = True
-try:
-  import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
   from KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_analysis import AdaptativeRemeshingStructuralMechanicsAnalysis
   missing_external_structural_dependencies = False
 except ImportError as e:
