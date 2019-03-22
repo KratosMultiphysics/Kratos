@@ -213,7 +213,7 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
     Kratos_run_time = time_7 - time_6
     serialization_time = time_8 - time_7
     total_task_time = time_8 - time_0
-    print("current level:",current_level)
+    print("[LEVEL] current level:",current_level)
     print("[TIMER] total task time:", total_task_time)
     print("[TIMER] Kratos Run time:",Kratos_run_time)
     print("[TIMER] Deserialization time:",deserialization_time)
@@ -222,12 +222,12 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
     if (current_level > 0):
         print("[TIMER] mmg refinement time",mmg_refinement_time)
     print("RATIOs: time of interest / total task time")
-    print("Relative deserialization time:",(deserialization_time)/total_task_time)
-    print("Relative serialization time:",(serialization_time)/total_task_time)
-    print("Relative Kratos run time:",Kratos_run_time/total_task_time)
-    print("Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+    print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
+    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
     if (current_level > 0):
-        print("Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+        print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
     return mlmc_results,pickled_finer_model,pickled_finer_project_parameters

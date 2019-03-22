@@ -53,15 +53,19 @@ input:  simulation_results: an instance of the monte carlo result class
 output: QoI_value: qoi value to be added
 """
 @ExaquteTask(returns=1,priority=True)
-def AddResultsAux_Task(simulation_results,level):
+def AddResultsAux_Task(level,old_values,*simulation_results):
+    """
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed
         # i.e. results = [[value_level_0],[value_level_1],...]
-        print(simulation_results)
         QoI_value = simulation_results.QoI[level][0]
     else:
         raise Exception("level not equal to 0, in MC we should have only level zero")
     return QoI_value
+    """
+    old_values.extend(
+        list(map(lambda x: x.QoI[level][0], simulation_results)))
+    return old_values
 
 
 """
@@ -78,19 +82,18 @@ input:  current_number_samples:                   current number of samples comp
         convergence_criteria:                     convergence criteria exploited to check convergence
 output: convergence_boolean: boolean setting if convergence is achieved
 """
-@ExaquteTask(returns=1)
+@ExaquteTask(returns=1,priority=True)
 def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
-    # TODO: rempve fllowing lines later
-    cphi_confidence = norm.ppf(current_delta)
-    statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+    # TODO: rempve below lines later
+    cphi_confidence = norm.ppf(1.0-current_delta) # confidence + error probability = 1.0
+    statistical_error = cphi_confidence*np.sqrt(current_h2/current_number_samples)
     bias = 0.0 # hypothesis bias = 0 since we can't compute
     total_error = bias + statistical_error
     print("[TOT-ERR] total error = bias (hyp MC == 0) + statistical error =",total_error)
     # TODO: remove above lines later
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
-        print(current_number_samples,current_tol,current_sample_variance)
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
         # evaluate probability of failure
         main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
@@ -162,13 +165,13 @@ def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,curre
     deserialization_time = time_1 - time_0
     Kratos_run_time = time_2 - time_1
     total_task_time = time_2 - time_0
-    print("current level:",current_level)
+    print("[LEVEL] current level:",current_level)
     print("[TIMER] total task time:", total_task_time)
     print("[TIMER] Kratos Run time:",Kratos_run_time)
     print("[TIMER] Deserialization time:",deserialization_time)
     print("RATIOs: time of interest / total task time")
-    print("Relative deserialization times:",(deserialization_time)/total_task_time)
-    print("Relative Kratos run time:",Kratos_run_time/total_task_time)
+    print("[RATIO] Relative deserialization times:",deserialization_time/total_task_time)
+    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
 
@@ -216,6 +219,9 @@ class MonteCarlo(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         # convergence: boolean variable defining if MC algorithm has converged
         self.convergence = False
+        # handle confidence = 1.0
+        if (self.settings["confidence"].GetDouble()==1.0):
+                self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
         # set error probability = 1.0 - confidence on given tolerance
         self.settings.AddEmptyValue("error_probability")
         self.settings["error_probability"].SetDouble(1-self.settings["confidence"].GetDouble())
@@ -276,8 +282,14 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def LaunchEpoch(self):
+        batch_results = []
+        for instance in range(self.batch_size[self.current_level]):
+            batch_results.append(self.ExecuteInstance())
+        self.AddResults(batch_results)
+        """
         for instance in range (self.batch_size[self.current_level]):
             self.AddResults(self.ExecuteInstance())
+        """
 
     """
     function executing an instance of the Monte Carlo algorithm
@@ -383,15 +395,34 @@ class MonteCarlo(object):
     input:  self:               an instance of the class
             simulation_results: tuple=(instance of MonteCarloResults class, working level)
     """
-    def AddResults(self,simulation_results):
-        simulation_results_class = simulation_results[0]
-        current_level = simulation_results[1] # not compss future object
+    def AddResults(self,simulation_results,batch_size=250):
+        """
+        for simulation_result in simulation_results:
+            simulation_results_class = simulation_result[0]
+            current_level = simulation_result[1] # not compss future object
+            if (current_level != 0):
+                raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
+            for lev in range (current_level+1):
+                QoI_value = AddResultsAux_Task(simulation_results_class,lev)
+                # update values of difference QoI and time ML per each level
+                self.QoI.values[lev] = np.append(self.QoI.values[lev],QoI_value)
+        """
+        simulation_results_class = simulation_results[0][0]
+        current_level = simulation_results[0][1]  # not compss future object
         if (current_level != 0):
-            raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
-        for lev in range (current_level+1):
-            QoI_value = AddResultsAux_Task(simulation_results_class,lev)
-            # update values of difference QoI and time ML per each level
-            self.QoI.values[lev] = np.append(self.QoI.values[lev],QoI_value)
+            raise Exception(
+                "current work level must be = 0 in the Monte Carlo algorithm")
+        #for simulation_result in simulation_results:
+        #    for lev in range (current_level+1):
+        #        QoI_value =
+        #        # update values of difference QoI and time ML per each level
+        simulation_results = list(map(lambda x: x[0], simulation_results))
+        #self.QoI.values[0] = AddResultsAux_Task(0,*simulation_results)
+
+        for i in range(0, len(simulation_results), batch_size):
+            current_simulations = simulation_results[i:i+batch_size]
+            self.QoI.values[0] = AddResultsAux_Task(0,self.QoI.values[0],*current_simulations)
+
 
     """
     function initializing the MC phase
@@ -447,6 +478,7 @@ class MonteCarlo(object):
         self.number_samples = get_value_from_remote(self.number_samples)
         self.QoI.mean = get_value_from_remote(self.QoI.mean)
         self.QoI.sample_variance = get_value_from_remote(self.QoI.sample_variance)
+        self.QoI.values = get_value_from_remote(self.QoI.values)
 
     """
     function printing informations about initializing MLMC phase
