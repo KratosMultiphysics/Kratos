@@ -81,5 +81,8 @@ class TwoDDynamicBeamTest(MeshingStructuralMechanicsTestFactory):
 class TwoDDynamicBeamLineLoadTest(MeshingStructuralMechanicsTestFactory):
     file_name = "mmg_lagrangian_test/beam2D_line_load_test"
 
+class ThreeDShellTest(MeshingStructuralMechanicsTestFactory):
+    file_name = "mmg_lagrangian_test/test_remesh_shell"
+
 class ThreeDDynamicBeamTest(MeshingStructuralMechanicsTestFactory):
     file_name = "mmg_lagrangian_test/beam3D_test"

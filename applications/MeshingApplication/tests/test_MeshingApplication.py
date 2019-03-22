@@ -12,6 +12,7 @@ from test_refine import TestRedistance                                     as TT
 from test_remesh_sphere import TestRemeshMMG                               as TTestRemeshMMG
 from meshing_application_test_factory  import TwoDDynamicBeamTest          as TTwoDDynamicBeamTest
 from meshing_application_test_factory  import TwoDDynamicBeamLineLoadTest  as TTwoDDynamicBeamLineLoadTest
+from meshing_application_test_factory  import ThreeDShellTest              as TThreeDShellTest
 from meshing_application_test_factory  import ThreeDDynamicBeamTest        as TThreeDDynamicBeamTest
 
 ## NIGHTLY TESTS
@@ -44,6 +45,7 @@ def AssembleTestSuites():
         smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
         smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
+        smallSuite.addTest(TThreeDShellTest('test_execution'))
         smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
     else:
         KratosMultiphysics.Logger.PrintWarning("Unittests", "MMG process is not compiled and the corresponding tests will not be executed")
@@ -72,6 +74,7 @@ def AssembleTestSuites():
                 TTestRemeshMMG,
                 TTwoDDynamicBeamTest,
                 TTwoDDynamicBeamLineLoadTest,
+                TThreeDShellTest,
                 TThreeDDynamicBeamTest,
             ])
         )
