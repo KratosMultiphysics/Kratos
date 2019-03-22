@@ -132,6 +132,23 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
         self.assertAlmostEqual(sensitivities_to_check[3], reference_values[3], 5)
 
+
+    def test_nodal_reaction_response(self):
+        # Create the adjoint solver
+        with controlledExecutionScope(_get_test_working_dir()):
+            with open("beam_test_nodal_reaction_adjoint_parameters.json",'r') as parameter_file:
+                ProjectParametersAdjoint = Parameters( parameter_file.read())
+
+            model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            model_adjoint = Model()
+            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
+            adjoint_analysis.Run()
+
+        # Check sensitivity for the parameter POINT_LOAD
+        reference_values = -0.31249774999397384
+        sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2]
+        self.assertAlmostEqual(reference_values, sensitivity_to_check, 4)
+
     # called only once for this class, opposed of tearDown()
     @classmethod
     def tearDownClass(cls):

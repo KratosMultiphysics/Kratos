@@ -62,8 +62,7 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         this->CheckForBodyForces(rAdjointElement);
 
@@ -113,8 +112,7 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         this->CheckForBodyForces(rAdjointElement);
 
