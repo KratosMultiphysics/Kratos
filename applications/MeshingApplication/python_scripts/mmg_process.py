@@ -143,6 +143,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "max_number_of_searchs"            : 1000,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
+            "surface_elements"                 : false,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,
@@ -185,6 +186,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.initial_remeshing = self.settings["initial_remeshing"].GetBool()
         self.initial_step = self.settings["initial_step"].GetInt()
         self.step_frequency = self.settings["step_frequency"].GetInt()
+        self.settings["surface_elements"].SetBool(self.is_surface)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
