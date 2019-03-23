@@ -87,7 +87,12 @@ public:
      * Called at the begining at each nonlinear iteration
      * @param rCurrentProcessInfo the current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    // void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
@@ -176,7 +181,7 @@ protected:
         bool CalculateResidualVectorFlag
         ) override;
 
-    virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
+    // virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
 
     virtual void CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo );
 
