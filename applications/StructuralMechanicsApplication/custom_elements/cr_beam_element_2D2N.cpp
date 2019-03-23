@@ -889,79 +889,77 @@ void CrBeamElement2D2N::AddExplicitContribution(
   KRATOS_CATCH("")
 }
 
-int CrBeamElement2D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
+int CrBeamElement2D2N::Check(const ProcessInfo &rCurrentProcessInfo)
+{
   KRATOS_TRY
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
-  if (GetGeometry().WorkingSpaceDimension() != 2 || GetGeometry().size() != 2) {
-    KRATOS_ERROR
-        << "The beam element works only in 2D and with 2 noded elements"
-        << "" << std::endl;
-  }
-  // verify that the variables are correctly initialized
-  if (VELOCITY.Key() == 0) {
-    KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  }
-  if (DISPLACEMENT.Key() == 0) {
-    KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  }
-  if (ACCELERATION.Key() == 0) {
-    KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  }
-  if (DENSITY.Key() == 0) {
-    KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  }
-  if (CROSS_AREA.Key() == 0) {
-    KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  }
-  // verify that the dofs exist
-  for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
-    if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
-      KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                   << this->GetGeometry()[i].Id() << std::endl;
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 2 || GetGeometry().size() != 2)
+        << "The beam element works only in 2D and with 2 noded elements" << std::endl;
+
+    // verify that the variables are correctly initialized
+    if (VELOCITY.Key() == 0) {
+        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
+                        "correctly registered"
+                    << "" << std::endl;
     }
-    if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-        this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false) {
-      KRATOS_ERROR
-          << "missing one of the dofs for the variable DISPLACEMENT on node "
-          << GetGeometry()[i].Id() << std::endl;
+    if (DISPLACEMENT.Key() == 0) {
+        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
+                        "correctly registered"
+                    << "" << std::endl;
     }
-  }
+    if (ACCELERATION.Key() == 0) {
+        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
+                        "correctly registered"
+                    << "" << std::endl;
+    }
+    if (DENSITY.Key() == 0) {
+        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
+                        "correctly registered"
+                    << "" << std::endl;
+    }
+    if (CROSS_AREA.Key() == 0) {
+        KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
+                        "correctly registered"
+                    << "" << std::endl;
+    }
 
-  if (this->GetProperties().Has(CROSS_AREA) == false ||
-      this->GetProperties()[CROSS_AREA] <= numerical_limit) {
-    KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id()
-                 << std::endl;
-  }
+    // verify that the dofs exist
+    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
+        if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
+        KRATOS_ERROR << "missing variable DISPLACEMENT on node "
+                    << this->GetGeometry()[i].Id() << std::endl;
+        }
+        if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
+            this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false) {
+        KRATOS_ERROR
+            << "missing one of the dofs for the variable DISPLACEMENT on node "
+            << GetGeometry()[i].Id() << std::endl;
+        }
+    }
 
-  if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
-      this->GetProperties()[YOUNG_MODULUS] <= numerical_limit) {
-    KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id()
-                 << std::endl;
-  }
-  if (this->GetProperties().Has(DENSITY) == false) {
-    KRATOS_ERROR << "DENSITY not provided for this element" << this->Id()
-                 << std::endl;
-  }
+    KRATOS_ERROR_IF(!this->GetProperties().Has(CROSS_AREA) ||
+                    this->GetProperties()[CROSS_AREA] <= numerical_limit)
+        << "Please provide a reasonable value for \"CROSS_AREA\" for element #"
+        << this->Id() << std::endl;
 
-  if (this->GetProperties().Has(POISSON_RATIO) == false) {
-    KRATOS_ERROR << "POISSON_RATIO not provided for this element" << this->Id()
-                 << std::endl;
-  }
+    KRATOS_ERROR_IF(!this->GetProperties().Has(YOUNG_MODULUS) ||
+                    this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+        << "Please provide a reasonable value for \"YOUNG_MODULUS\" for element #"
+        << this->Id() << std::endl;
 
-  if (this->GetProperties().Has(I33) == false) {
-    KRATOS_ERROR << "I33 not provided for this element" << this->Id()
-                 << std::endl;
-  }
+    KRATOS_ERROR_IF(!this->GetProperties().Has(DENSITY) ||
+                    this->GetProperties()[DENSITY] <= numerical_limit)
+        << "Please provide a reasonable value for \"DENSITY\" for element #"
+        << this->Id() << std::endl;
+
+    KRATOS_ERROR_IF(!this->GetProperties().Has(I33) ||
+                    this->GetProperties()[I33] <= numerical_limit)
+        << "Please provide a reasonable value for \"I33\" for element #"
+        << this->Id() << std::endl;
+
+    KRATOS_ERROR_IF(!this->GetProperties().Has(POISSON_RATIO))
+        << "\"POISSON_RATIO\" not provided for element #" << this->Id() << std::endl;
 
     KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this)
          < std::numeric_limits<double>::epsilon())

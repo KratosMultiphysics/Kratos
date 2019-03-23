@@ -16,11 +16,6 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.fluid_solution = fluid_solution.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
         self.fluid_solution.main_path = self.main_path
 
-    def SetCouplingParameters(self, parameters):
-
-        super(SDEMPFEMAnalysis,self).SetCouplingParameters(parameters)
-        #self.pp.domain_size = self.pp.fluid_parameters["problem_data"]["dimension"].GetInt()
-
     def SetBetaParameters(self):
 
         super(SDEMPFEMAnalysis,self).SetBetaParameters()
@@ -122,7 +117,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
         if self.pp.type_of_inlet == 'ForceImposed':
-            self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+            self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
 
     def SetPostUtils(self):
         general_model_part = self.fluid_solution.main_model_part

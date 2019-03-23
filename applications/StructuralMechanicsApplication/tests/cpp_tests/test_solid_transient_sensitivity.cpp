@@ -221,7 +221,11 @@ void SolveAdjoint(ModelPart* pAdjointModelPart,
         CreateAdjointSolvingStrategy(pAdjointModelPart, p_response_function);
     p_adjoint_solver->Initialize();
     SensitivityBuilder sensitivity_builder(
-        Parameters(R"({"nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"]})"),
+        Parameters(R"(
+            {
+                "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+                "build_mode" : "integrate"
+            })"),
         *pAdjointModelPart, p_response_function);
     sensitivity_builder.Initialize();
     while (!pPrimalSolution->empty())

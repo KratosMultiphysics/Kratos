@@ -17,7 +17,13 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         return SolverStrategy
 
     def _CreateSolver(self):
-        return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
+
+        def SetSolverStrategy():
+            strategy = self.sdem_parameters['dem_parameters']['solver_settings']['strategy'].GetString()
+            filename = __import__(strategy)
+            return filename
+
+        return SetSolverStrategy().SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
                                                      self.sdem_parameters,
