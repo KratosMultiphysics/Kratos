@@ -17,6 +17,11 @@ class KratosStructuralSolver(KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
         return StructuralMechanicsAnalysis(self.model, self.project_parameters)
 
+    def SolveSolutionStep(self):
+        super(KratosStructuralSolver, self).SolveSolutionStep()
+        smp_normal_calculator = self.model["Structure.LineLoad2D_NormalCalculator"]
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()
 

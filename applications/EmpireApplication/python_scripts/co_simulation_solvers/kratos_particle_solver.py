@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 try:
     import KratosMultiphysics.ExternalSolversApplication
     KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
@@ -21,6 +21,38 @@ def CreateSolver(cosim_solver_settings, level):
 class KratosParticleSolver(KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
+
+    def SolveSolutionStep(self):
+        coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface")
+        model_part = self.model["MPM_Material.Slip2D_Slip_Auto1"]
+
+        ## Transfer information from coupling_mp to mp
+        for coupling_node in coupling_model_part.Nodes:
+            coupling_id  = coupling_node.Id
+
+            ## IMPOSED DISPLACEMENT
+            total_displacement = coupling_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
+            old_displacement = model_part.GetCondition(coupling_id).GetValue(KratosParticle.MPC_DISPLACEMENT)
+            incremental_displacement = total_displacement - old_displacement
+            model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
+
+            ## ADD VELOCITY
+            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_VELOCITY, current_velocity)
+
+            ## ADD NORMAL
+            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
+
+        super(KratosParticleSolver, self).SolveSolutionStep()
+
+        ### Get contact force from mp to coupling_mp
+        for mpc in model_part.Conditions:
+            if (mpc.Is(KratosMultiphysics.INTERFACE)):
+                coupling_id   = mpc.Id
+                contact_force = mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
+                coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,contact_force)
+
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()
