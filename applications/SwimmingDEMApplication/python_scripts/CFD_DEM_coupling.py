@@ -34,7 +34,7 @@ class ProjectionModule:
 
         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
-        self.projector_parameters.AddValue("min_fluid_fraction", project_parameters["min_fluid_fraction"])
+        self.projector_parameters.AddValue("backward_coupling", project_parameters["backward_coupling"])
         self.projector_parameters.AddValue("coupling_type", project_parameters["coupling_weighing_type"])
         self.projector_parameters.AddValue("time_averaging_type", project_parameters["time_averaging_type"])
         self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["viscosity_modification_type"])

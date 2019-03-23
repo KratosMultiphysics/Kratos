@@ -4,7 +4,7 @@ import os
 from KratosMultiphysics import *
 import KratosMultiphysics.DEMApplication as DEMApp
 import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
-import DEM_procedures
+import DEM_procedures as DP
 import shutil
 import os
 import weakref
@@ -282,7 +282,7 @@ class ProjectionDebugUtils:
         self.UpdateDataAndPrint(domain_volume, False)
 
     def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
-        self.granul_utils                         = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.granul_utils                         = DP.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                        = domain_volume
         self.number_of_balls                      = self.balls_model_part.NumberOfElements(0)
         self.discr_domain_volume                  = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)

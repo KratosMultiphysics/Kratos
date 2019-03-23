@@ -12,6 +12,7 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class EthierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
+        self.SetCustomBetaParameters()
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
@@ -49,7 +50,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             mdpa_name = problem_name + '_h_' + str(self.project_parameters["size_parameter"].GetDouble()) + 'Fluid'
 
         model_part_io_fluid = ModelPartIO(mdpa_name)
-        model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
+        model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
         BaseAnalysis.AddExtraVariables(self, self.run_code)

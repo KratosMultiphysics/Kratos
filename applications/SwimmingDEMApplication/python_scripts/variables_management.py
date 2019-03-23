@@ -40,22 +40,22 @@ class VariablesManager:
     #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
     @staticmethod
     def AddFrameOfReferenceRelatedVariables(parameters, model_part):
-        frame_of_reference_type = parameters["frame_of_reference_type"].GetInt()
+        frame_of_reference_type = parameters["frame_of_reference"]["frame_type"].GetInt()
         model_part.ProcessInfo.SetValue(FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
 
         if frame_of_reference_type == 1: # Rotating frame
             angular_velocity_of_frame = Vector(3)
-            angular_velocity_of_frame[:] = [parameters["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+            angular_velocity_of_frame[:] = [parameters['frame_of_reference']["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
 
             model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME, angular_velocity_of_frame)
 
             if frame_of_reference_type >= 2: # Gemeral frame
                 angular_velocity_of_frame_old = Vector(3)
-                angular_velocity_of_frame_old[:] = [parameters["angular_velocity_of_frame_old" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                angular_velocity_of_frame_old[:] = [parameters['frame_of_reference']["angular_velocity_of_frame_old" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 acceleration_of_frame_origin = Vector(3)
-                acceleration_of_frame_origin[:] = [parameters["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                acceleration_of_frame_origin[:] = [parameters['frame_of_reference']["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 angular_acceleration_of_frame = Vector(3)
-                angular_acceleration_of_frame[:] = [parameters["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                angular_acceleration_of_frame[:] = [parameters['frame_of_reference']["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
                 model_part.ProcessInfo.SetValue(ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
                 model_part.ProcessInfo.SetValue(ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
@@ -96,11 +96,11 @@ class VariablesManager:
         if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
             fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
-        if parameters["non_newtonian_option"].GetBool():
-            fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, parameters["yield_stress"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, parameters["regularization_coefficient"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
+            fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def AddExtraProcessInfoVariablesToDispersePhaseModelPart(self, parameters, dem_model_part):
 
@@ -108,8 +108,7 @@ class VariablesManager:
         dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling_level_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["fluid_model_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, parameters["initial_drag_force"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["power_law_tol"].GetDouble())
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["non_newtonian_fluid"]["power_law_tol"].GetDouble())
 
         if self.do_include_history_force:
             dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, self.history_force_parameters["n_init_basset_steps"].GetInt())
@@ -117,9 +116,9 @@ class VariablesManager:
             dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
             dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, self.history_force_parameters["quadrature_order"].GetInt())
 
-        if parameters["non_newtonian_option"].GetBool():
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
+            dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def ConstructListsOfVariables(self, parameters):
         # PRINTING VARIABLES
@@ -195,7 +194,7 @@ class VariablesManager:
         if self.do_include_history_force:
             self.dem_vars += [BASSET_FORCE]
 
-        if parameters["frame_of_reference_type"].GetInt() and self.do_include_history_force > 0:
+        if parameters["frame_of_reference"]["frame_type"].GetInt() and self.do_include_history_force > 0:
             self.dem_vars += [DISPLACEMENT_OLD]
             self.dem_vars += [VELOCITY_OLD_OLD]
 
@@ -338,7 +337,7 @@ class VariablesManager:
             if 'DISPERSE_FRACTION' in self.nodal_results:
                 self.coupling_fluid_vars += [DISPERSE_FRACTION]
 
-            if parameters["filter_velocity_option"].GetBool():
+            if parameters["backward_coupling"]["filter_velocity_option"].GetBool():
                 self.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
                 self.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
                 self.coupling_fluid_vars += [PHASE_FRACTION]
@@ -353,7 +352,7 @@ class VariablesManager:
         if parameters["coupling_level_type"].GetInt() >= 1 and parameters["time_averaging_type"].GetInt() > 0:
             self.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
 
-        if parameters["non_newtonian_option"].GetBool():
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
             self.coupling_fluid_vars += [POWER_LAW_N]
             self.coupling_fluid_vars += [POWER_LAW_K]
             self.coupling_fluid_vars += [YIELD_STRESS]
@@ -394,7 +393,7 @@ class VariablesManager:
             and 'FLUID_FRACTION_GRADIENT_PROJECTED' in self.dem_printing_vars):
             self.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
 
-        if parameters["non_newtonian_option"].GetBool():
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
             self.coupling_dem_vars += [POWER_LAW_N]
             self.coupling_dem_vars += [POWER_LAW_K]
             self.coupling_dem_vars += [YIELD_STRESS]
@@ -413,7 +412,7 @@ class VariablesManager:
             if parameters["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
                 self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
 
-        if parameters["filter_velocity_option"].GetBool():
+        if parameters["backward_coupling"]["filter_velocity_option"].GetBool():
             self.time_filtered_vars += [PARTICLE_VEL_FILTERED]
 
 

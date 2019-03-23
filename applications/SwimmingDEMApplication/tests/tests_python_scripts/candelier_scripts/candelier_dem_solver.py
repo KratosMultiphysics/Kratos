@@ -13,8 +13,8 @@ def Cross(a, b):
 class CandelierDEMSolver(BaseSolver):
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
         super(CandelierDEMSolver, self).__init__(model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager)
-        self.frame_angular_vel = Vector([0, 0, self.project_parameters["angular_velocity_of_frame_Z"].GetDouble()])
-        self.omega = self.project_parameters["angular_velocity_of_frame_Z"].GetDouble()
+        self.frame_angular_vel = Vector([0, 0, self.project_parameters['frame_of_reference']["angular_velocity_of_frame_Z"].GetDouble()])
+        self.omega = self.project_parameters['frame_of_reference']["angular_velocity_of_frame_Z"].GetDouble()
 
     def SolveDEMSolutionStep(self):
         super(CandelierDEMSolver, self).SolveDEMSolutionStep()

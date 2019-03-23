@@ -178,7 +178,6 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)
     model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
     model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
-    model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, pp.initial_drag_force)
     model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.power_law_tol)
     model_part.ProcessInfo.SetValue(GRAVITY_X, pp.gravity_x)
     model_part.ProcessInfo.SetValue(GRAVITY_Y, pp.gravity_y)

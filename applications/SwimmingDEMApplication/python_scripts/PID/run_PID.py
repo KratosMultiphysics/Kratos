@@ -14,9 +14,9 @@ errors = []
 varying_parameters["ALE_option"] = True
 varying_parameters["fluid_already_calculated"] = False
 from math import pi
-varying_parameters["angular_velocity_magnitude"] = - 2 * pi
-varying_parameters["frame_rotation_axis_initial_point"] = [0., 0., 0.]
-varying_parameters["frame_rotation_axis_final_point"] = [0., 0., 1.]
+varying_parameters['frame_of_reference']["angular_velocity_magnitude"] = - 2 * pi
+varying_parameters['frame_of_reference']["frame_rotation_axis_initial_point"] = [0., 0., 0.]
+varying_parameters['frame_of_reference']["frame_rotation_axis_final_point"] = [0., 0., 1.]
 varying_parameters["print_VISCOSITY_option"] = False
 varying_parameters["PostNonDimensionalVolumeWear"] = True
 varying_parameters["do_search_neighbours"] = True

@@ -22,7 +22,7 @@ import parameters_tools as PT
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
-        self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
+        self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
         Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
         candelier_pp.include_history_force = self.vars_man.do_include_history_force
@@ -74,7 +74,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),
-                                              self.fluid_solution._GetSolver(),
+                                              self._GetFluidAnalysis()._GetSolver(),
                                               self._GetDEMAnalysis()._GetSolver(),
                                               self.vars_man)
 

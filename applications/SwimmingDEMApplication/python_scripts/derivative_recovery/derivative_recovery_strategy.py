@@ -28,7 +28,7 @@ class DerivativeRecoveryStrategy:
         self.laplacian_type = self.parameters["laplacian_calculation_type"].GetInt()
         self.vorticity_type = self.parameters["vorticity_calculation_type"].GetInt()
         self.pressure_grad_type = self.parameters["pressure_grad_recovery_type"].GetInt()
-        self.fluid_fraction_grad_type = self.parameters["fluid_fraction_grad_type"].GetInt()
+        self.fluid_fraction_grad_type = self.parameters["backward_coupling"]["fluid_fraction_grad_type"].GetInt()
 
         self.do_pre_recovery = False
         self.must_reconstruct_gradient = self.laplacian_type in {0, 3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
