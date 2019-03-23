@@ -116,7 +116,8 @@ namespace Kratos
             SchemeType::Pointer pScheme,
             const double DeltaTime = 1.0e-4,
             const std::string TestType = "DISPLACEMENT",
-            const bool TestPredict = false
+            const bool TestPredict = false,
+            const bool TestUpdatePredict = false
             )
         {
             Model current_model;
@@ -174,6 +175,92 @@ namespace Kratos
                 KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
                 KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
                 KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+            }
+
+            // Test updates with fixed velocities and accelerations
+            if (TestUpdatePredict) {
+                Dx[0] = 0.0;
+
+                // Check Update (fix velocity)
+                pScheme->Clear();
+                pnode->pGetDof(DISPLACEMENT_X)->FreeDof();
+                pnode->pGetDof(VELOCITY_X)->FixDof();
+                time = 0.0;
+                r_model_part.CloneTimeStep(time);
+
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 2) = std::cos(time - 2.0 * DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X) = -std::sin(time);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 1) = -std::sin(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 2) = -std::sin(time - 2.0 * DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X) = -std::cos(time);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 1) = -std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 2) = -std::cos(time - 2.0 * DeltaTime);
+
+                for (std::size_t iter = 0; iter < number_iterations; ++iter) {
+                    time += DeltaTime;
+
+                    r_model_part.CloneTimeStep(time);
+
+                    pnode->FastGetSolutionStepValue(VELOCITY_X) = - std::sin(time);
+
+                    pScheme->InitializeSolutionStep(r_model_part, A, Dx, b);
+                    pScheme->Predict(r_model_part, Doftemp, A, Dx, b);
+                    pScheme->Update(r_model_part, Doftemp, A, Dx, b);
+
+                    const double x = pnode->FastGetSolutionStepValue(DISPLACEMENT_X);
+                    const double v = pnode->FastGetSolutionStepValue(VELOCITY_X);
+                    const double a = pnode->FastGetSolutionStepValue(ACCELERATION_X);
+
+//                     // Debug
+//                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
+
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                }
+
+                // Check Update (fix acceleration)
+                pScheme->Clear();
+                pnode->pGetDof(DISPLACEMENT_X)->FreeDof();
+                pnode->pGetDof(VELOCITY_X)->FreeDof();
+                pnode->pGetDof(ACCELERATION_X)->FixDof();
+                time = 0;
+                r_model_part.CloneTimeStep(time);
+
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 1) = std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X, 2) = std::cos(time - 2.0 * DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X) = -std::sin(time);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 1) = -std::sin(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(VELOCITY_X, 2) = -std::sin(time - 2.0 * DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X) = -std::cos(time);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 1) = -std::cos(time - DeltaTime);
+                pnode->FastGetSolutionStepValue(ACCELERATION_X, 2) = -std::cos(time - 2.0 * DeltaTime);
+
+                for (std::size_t iter = 0; iter < number_iterations; ++iter) {
+                    time += DeltaTime;
+
+                    r_model_part.CloneTimeStep(time);
+
+                    pnode->FastGetSolutionStepValue(ACCELERATION_X) = - std::cos(time);
+
+                    pScheme->InitializeSolutionStep(r_model_part, A, Dx, b);
+                    pScheme->Predict(r_model_part, Doftemp, A, Dx, b);
+                    pScheme->Update(r_model_part, Doftemp, A, Dx, b);
+
+                    const double x = pnode->FastGetSolutionStepValue(DISPLACEMENT_X);
+                    const double v = pnode->FastGetSolutionStepValue(VELOCITY_X);
+                    const double a = pnode->FastGetSolutionStepValue(ACCELERATION_X);
+
+//                     // Debug
+//                     std::cout << time << "\t" << x << "\t" << v << "\t" << a << std::endl;
+
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(x - std::cos(time)), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(v + std::sin(time)), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(a + std::cos(time)), tolerance);
+                }
             }
 
             // Check Predict (displacement)
@@ -296,7 +383,7 @@ namespace Kratos
 
             const double delta_time = 1.0e-4;
 
-            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true, true);
         }
 
         /**
@@ -309,7 +396,7 @@ namespace Kratos
 
             const double delta_time = 1.0e-4;
 
-            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true, true);
         }
 
         /**
