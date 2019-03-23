@@ -156,7 +156,7 @@ class MaterialTest(object):
             self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
             #self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
-        self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
+        self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
 
         (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
