@@ -71,7 +71,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         return self.field_utility
 
     def GetRecoveryCounter(self):
-        return SDP.Counter(1, 1, self.project_parameters["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
+        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
 
     def GetRunCode(self):
         return self.run_code

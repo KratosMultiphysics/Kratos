@@ -43,7 +43,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
-        if self.project_parameters["body_force_on_fluid_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
 
             for node in self.fluid_model_part.Nodes:
                 node.SetSolutionStepValue(VOLUME_ACCELERATION_X, 0, self.project_parameters["GravityX"].GetDouble())

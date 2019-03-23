@@ -30,7 +30,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                                                                             'vorticity_induced_lift_parameters',
                                                                             condition=lambda value: not (value['name']=='default'))
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
-        self.project_parameters["fluid_already_calculated"].SetBool(True)
+        self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
 
     def GetEmbeddedCounter(self):

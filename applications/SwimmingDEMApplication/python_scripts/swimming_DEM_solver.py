@@ -65,12 +65,12 @@ class SwimmingDEMSolver(PythonSolver):
         self.dem_solver = dem_solver
         self.project_parameters = self._ValidateSettings(project_parameters)
         self.next_time_to_solve_fluid = project_parameters['problem_data']['start_time'].GetDouble()
-        self.coupling_level_type = project_parameters["coupling_level_type"].GetInt()
-        self.interaction_start_time = project_parameters["interaction_start_time"].GetDouble()
-        self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
+        self.coupling_level_type = project_parameters["coupling"]["coupling_level_type"].GetInt()
+        self.interaction_start_time = project_parameters["coupling"]["interaction_start_time"].GetDouble()
+        self.integration_scheme = project_parameters["custom_dem"]["translational_integration_scheme"].GetString()
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
-        self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
-        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
+        self.do_solve_dem = project_parameters["custom_dem"]["do_solve_dem"].GetBool()
+        self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool()
 
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
@@ -86,7 +86,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.stationarity = False
         self.stationarity_counter = self.GetStationarityCounter()
         self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["max_pressure_variation_rate_tol"].GetDouble(),
+            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
             SDP.FunctionsCalculator()
             )
 
@@ -142,13 +142,13 @@ class SwimmingDEMSolver(PythonSolver):
 
     def GetStationarityCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["time_steps_per_stationarity_step"].GetInt(),
+            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].GetInt(),
             beginning_step=1,
-            is_active=self.project_parameters["stationary_problem_option"].GetBool())
+            is_active=self.project_parameters["stationarity"]["stationary_problem_option"].GetBool())
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (
-            self.project_parameters["coupling_level_type"].GetInt() or
+            self.project_parameters["coupling"]["coupling_level_type"].GetInt() or
             self.project_parameters["print_PRESSURE_GRADIENT_option"].GetBool())
         return SDP.Counter(1, 1, there_is_something_to_recover)
 
@@ -173,7 +173,7 @@ class SwimmingDEMSolver(PythonSolver):
         return self.time
 
     def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
-        if self.project_parameters["ALE_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_solver.main_model_part, time)
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
 
@@ -189,7 +189,7 @@ class SwimmingDEMSolver(PythonSolver):
     # solution algorithm. For instance, the pressure gradient, which is not used for
     # the coupling but can be of interest.
     def ComputePostProcessResults(self):
-        if self.project_parameters["coupling_level_type"].GetInt():
+        if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
             self._GetProjectionModule().ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
 
     def CannotIgnoreFluidNow(self):
@@ -216,7 +216,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         # Solving the fluid part
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
-        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
+        self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
 
         if self.CannotIgnoreFluidNow():
             self.SolveFluidSolutionStep()

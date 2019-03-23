@@ -112,8 +112,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetProjectParameters(self, parameters):
         self.project_parameters = parameters
-        self.time_step = self.project_parameters["MaxTimeStep"].GetDouble()
-        self.end_time   = self.project_parameters["FinalTime"].GetDouble()
+        self.time_step = self.project_parameters["time_stepping"]["time_step"].GetDouble()
+        self.end_time   = self.project_parameters["problem_data"]["end_time"].GetDouble()
         self.do_print_results = self.project_parameters["do_print_results_option"].GetBool()
         self.fluid_parameters = self.project_parameters['fluid_parameters']
 
@@ -147,7 +147,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # import the configuration data as read from the GiD
     def SetBetaParameters(self):
         Add = self.project_parameters.AddEmptyValue
-        if self.project_parameters["type_of_dem_inlet"].GetString() == 'ForceImposed':
+        if self.project_parameters["custom_dem"]["type_of_dem_inlet"].GetString() == 'ForceImposed':
             Add("inlet_force_vector").SetVector(Vector([0., 0., 1.])) # TODO: generalize
 
         # Setting body_force_per_unit_mass_variable_name
@@ -158,24 +158,27 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # (i.e., fluid and dem apps)
     def ModifyInputParametersForCoherence(self):
         # Making all time steps exactly commensurable
-        output_time = self.project_parameters["OutputTimeStep"].GetDouble()
+        output_time = self.project_parameters["output_interval"].GetDouble()
         self.output_time = int(output_time / self.time_step) * self.time_step
-        self.project_parameters["OutputTimeStep"].SetDouble(self.output_time)
+        self.project_parameters["output_interval"].SetDouble(self.output_time)
         self.fluid_time_step = self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.fluid_time_step = int(self.fluid_time_step / self.time_step) * self.time_step
         self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
-
+        translational_scheme_name = self.project_parameters["custom_dem"]["translational_integration_scheme"].GetString()
+        self.project_parameters["dem_parameters"]["TranslationalIntegrationScheme"].SetString(translational_scheme_name)
         # The fluid fraction is not projected from DEM (there may not
         # be a DEM part) but is externally imposed instead:
-        if self.project_parameters["flow_in_porous_medium_option"].GetBool():
-            self.project_parameters["coupling_weighing_type"].SetInt(- 1)
+        if self.project_parameters["custom_fluid"]["flow_in_porous_medium_option"].GetBool():
+            self.project_parameters["coupling"]["coupling_weighing_type"].SetInt(- 1)
 
-        time_steps_per_stationarity_step = self.project_parameters["time_steps_per_stationarity_step"].GetInt()
-        self.project_parameters["time_steps_per_stationarity_step"].SetInt(max(1, int(time_steps_per_stationarity_step)))
+        time_steps_per_stationarity_step = self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].GetInt()
+        self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].SetInt(max(1, int(time_steps_per_stationarity_step)))
 
-        if self.project_parameters["coupling_level_type"].GetInt() > 1:
-            self.project_parameters["stationary_problem_option"].SetBool(False)
+        if self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1:
+            self.project_parameters["stationarity"]["stationary_problem_option"].SetBool(False)
+
+
 
         self.SetDoSolveDEMVariable()
 
@@ -183,7 +186,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
-        if self.project_parameters["body_force_on_fluid_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
             body_force = [self.project_parameters["GravityX"].GetDouble(),
                           self.project_parameters["GravityY"].GetDouble(),
                           self.project_parameters["GravityZ"].GetDouble()]
@@ -195,9 +198,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 gravity_parameters['direction'][i].SetDouble(b)
 
     def SetDoSolveDEMVariable(self):
-        self.do_solve_dem = self.project_parameters["do_solve_dem"].GetBool()
+        self.do_solve_dem = self.project_parameters["custom_dem"]["do_solve_dem"].GetBool()
 
-        if self.project_parameters["flow_in_porous_DEM_medium_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["flow_in_porous_DEM_medium_option"].GetBool():
             self.do_solve_dem = False
 
     def Run(self):
@@ -286,17 +289,17 @@ class SwimmingDEMAnalysis(AnalysisStage):
         dem_physics_calculator = SphericElementGlobalPhysicsCalculator(
             self.spheres_model_part)
 
-        if self.project_parameters["coupling_level_type"].GetInt():
+        if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
             default_meso_scale_length_needed = (
-                self.project_parameters["backward_coupling"]["meso_scale_length"].GetDouble() <= 0.0 and
+                self.project_parameters["coupling"]["backward_coupling"]["meso_scale_length"].GetDouble() <= 0.0 and
                 self.spheres_model_part.NumberOfElements(0) > 0)
 
             if default_meso_scale_length_needed:
                 biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, RADIUS))
-                self.project_parameters["backward_coupling"]["meso_scale_length"].SetDouble(20 * biggest_size)
+                self.project_parameters["coupling"]["backward_coupling"]["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
-                self.project_parameters["backward_coupling"]["meso_scale_length"].SetDouble(1.0)
+                self.project_parameters["coupling"]["backward_coupling"]["meso_scale_length"].SetDouble(1.0)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
@@ -305,7 +308,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["max_pressure_variation_rate_tol"].GetDouble(),
+            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
             self.custom_functions_tool
             )
 
@@ -316,7 +319,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         Say('Initialization Complete\n')
 
-        if self.project_parameters["flow_in_porous_DEM_medium_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["flow_in_porous_DEM_medium_option"].GetBool():
             SDP.FixModelPart(self.spheres_model_part)
 
         ##################################################
@@ -439,7 +442,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def SetEmbeddedTools(self):
     # creating a distance calculation process for the embedded technology
         # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
-        if self.project_parameters["embedded_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["embedded_option"].GetBool():
             self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(
                 self.rigid_face_model_part,
                 self.fluid_model_part
@@ -472,7 +475,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # applying DEM-to-fluid coupling
 
-        if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["interaction_start_time"].GetDouble():
+        if self.DEM_to_fluid_counter.Tick() and self.time >= self.project_parameters["coupling"]["interaction_start_time"].GetDouble():
             self._GetSolver().projection_module.ProjectFromParticles()
 
         # coupling checks (debugging)
@@ -507,7 +510,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         os.chdir(self.main_path)
 
     def ComputePostProcessResults(self):
-        if self.project_parameters["coupling_level_type"].GetInt():
+        if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
             self._GetSolver().projection_module.ComputePostProcessResults(self.spheres_model_part.ProcessInfo)
 
     def GetFirstStepForFluidComputation(self):
@@ -541,7 +544,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def PerformEmbeddedOperations(self):
         # calculating elemental distances defining the structure embedded in the fluid mesh
-        if self.project_parameters["embedded_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["embedded_option"].GetBool():
             self.calculate_distance_process.Execute()
 
         if self.embedded_counter.Tick():
@@ -609,19 +612,19 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(final_message)
 
     def GetBackwardCouplingCounter(self):
-        return SDP.Counter(1, 1, self.project_parameters["coupling_level_type"].GetInt() > 1)
+        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (
-            self.project_parameters["coupling_level_type"].GetInt() or
+            self.project_parameters["coupling"]["coupling_level_type"].GetInt() or
             self.project_parameters["print_PRESSURE_GRADIENT_option"].GetBool())
         return SDP.Counter(1, 1, there_is_something_to_recover)
 
     def GetStationarityCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["time_steps_per_stationarity_step"].GetInt(),
+            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].GetInt(),
             beginning_step=1,
-            is_active=self.project_parameters["stationary_problem_option"].GetBool())
+            is_active=self.project_parameters["stationarity"]["stationary_problem_option"].GetBool())
 
     def GetPrintCounter(self):
         counter = SDP.Counter(steps_in_cycle=int(self.output_time / self.time_step + 0.5),
@@ -654,7 +657,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def ProcessAnalyticDataCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["time_steps_per_analytic_processing_step"].GetInt(),
+            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_analytic_processing_step"].GetInt(),
             beginning_step=1,
             is_active=self.project_parameters["do_process_analytic_data"].GetBool())
 
@@ -675,7 +678,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
 
                 if prop["hydrodynamic_law_parameters"]["history_force_parameters"]["name"].GetString() != 'default':
-                    total_number_of_steps = int(self.end_time / self.project_parameters["MaxTimeStep"].GetDouble()) + 20
+                    total_number_of_steps = int(self.end_time / self.project_parameters["time_stepping"]["time_step"].GetDouble()) + 20
                     history_force_parameters = prop["hydrodynamic_law_parameters"]["history_force_parameters"]
                     time_steps_per_quadrature_step = history_force_parameters["time_steps_per_quadrature_step"].GetInt()
                     self._GetSolver().basset_force_tool.FillDaitcheVectors(

@@ -38,7 +38,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
-        do_search_neighbours =  self.project_parameters["do_search_neighbours"].GetBool()
+        do_search_neighbours =  self.project_parameters["custom_dem"]["do_search_neighbours"].GetBool()
         solver_settings = self.DEM_parameters["solver_settings"]
 
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':

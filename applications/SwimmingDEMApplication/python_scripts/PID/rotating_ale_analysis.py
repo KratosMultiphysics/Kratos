@@ -27,7 +27,7 @@ class RotatingAleAnalysis(BaseAnalysis):
         Add("stationary_start_time").SetDouble(0.0)
 
     def UpdateALEMeshMovement(self, time):
-        if self.project_parameters["ALE_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_model_part, time)
             self.projection_module.UpdateDatabase(self.h_min)
 

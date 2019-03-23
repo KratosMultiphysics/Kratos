@@ -19,7 +19,7 @@ class ResultsCandelier:
                                          condition=lambda value: value['name'].GetString() != 'default'))
 
         ch_pp.include_history_force = self.do_include_history_force
-        self.dt = project_parameters["MaxTimeStep"].GetDouble()
+        self.dt = project_parameters["time_stepping"]["time_step"].GetDouble()
 
         if self.do_include_history_force: #TODO: extend to multiple properties
             for prop in parameters["properties"].values():
