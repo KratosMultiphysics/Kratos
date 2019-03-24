@@ -143,6 +143,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "max_number_of_searchs"            : 1000,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
+            "surface_elements"                 : false,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,
@@ -160,11 +161,18 @@ class MmgProcess(KratosMultiphysics.Process):
             settings.AddValue("model_part_name", default_parameters["model_part_name"])
 
         # Getting model part and working dimension
-        self.model_part= Model[settings["model_part_name"].GetString()]
-        self.dim = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.is_surface = False
+        if self.domain_size == 3:
+            for elem in self.model_part.Elements:
+                geom = elem.GetGeometry()
+                if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                    self.is_surface = True
+                break
 
         # The mesh dependent constant depends on dimension
-        if self.dim == 2:
+        if self.domain_size == 2:
             default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0)
         else:
             default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0)
@@ -178,6 +186,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.initial_remeshing = self.settings["initial_remeshing"].GetBool()
         self.initial_step = self.settings["initial_step"].GetInt()
         self.step_frequency = self.settings["step_frequency"].GetInt()
+        self.settings["surface_elements"].SetBool(self.is_surface)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -233,7 +242,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.metric_variable = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
-                self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
+                self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
         elif self.strategy == "superconvergent_patch_recovery":
             self.error_threshold = self.settings["error_strategy_parameters"]["error_metric_parameters"]["error_threshold"].GetDouble()
             self.estimated_error = 0
@@ -266,7 +275,7 @@ class MmgProcess(KratosMultiphysics.Process):
         if self.strategy == "LevelSet":
             self._CreateGradientProcess()
 
-        if self.dim == 2:
+        if self.domain_size == 2:
             self.initialize_metric = MeshingApplication.MetricFastInit2D(self.model_part)
         else:
             self.initialize_metric = MeshingApplication.MetricFastInit3D(self.model_part)
@@ -294,10 +303,14 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
         mmg_parameters.AddValue("initialize_entities",self.settings["initialize_entities"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
-        if self.dim == 2:
+        if self.domain_size == 2:
             self.mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)
         else:
-            self.mmg_process = MeshingApplication.MmgProcess3D(self.model_part, mmg_parameters)
+            # Differentiate between 3D volumes and 3D surfaces
+            if self.is_surface:
+                self.mmg_process = MeshingApplication.MmgProcess3DSurfaces(self.model_part, mmg_parameters)
+            else:
+                self.mmg_process = MeshingApplication.MmgProcess3D(self.model_part, mmg_parameters)
 
         # We reset the step
         self.step = 0
@@ -364,12 +377,11 @@ class MmgProcess(KratosMultiphysics.Process):
             level_set_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             level_set_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
             level_set_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            if self.dim == 2:
+            if self.domain_size == 2:
                 self.metric_processes.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
                     self.model_part,
                     self.gradient_variable,
                     level_set_parameters))
-
             else:
                 self.metric_processes.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
                     self.model_part,
@@ -399,7 +411,7 @@ class MmgProcess(KratosMultiphysics.Process):
             error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
             error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
             error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
-            if self.dim == 2:
+            if self.domain_size == 2:
                 self.error_compute = StructuralMechanicsApplication.SPRErrorProcess2D(
                     self.model_part,
                     error_compute_parameters
@@ -420,7 +432,7 @@ class MmgProcess(KratosMultiphysics.Process):
             error_metric_parameters.AddValue("perform_nodal_h_averaging", self.settings["error_strategy_parameters"]["perform_nodal_h_averaging"])
             error_metric_parameters.AddValue("echo_level", self.settings["echo_level"])
 
-            if self.dim == 2:
+            if self.domain_size == 2:
                 self.metric_process = MeshingApplication.MetricErrorProcess2D(
                     self.model_part,
                     error_metric_parameters
@@ -433,7 +445,7 @@ class MmgProcess(KratosMultiphysics.Process):
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient
-        if self.dim == 2:
+        if self.domain_size == 2:
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.model_part, self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
         else:
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.model_part, self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
@@ -515,7 +527,7 @@ class MmgProcess(KratosMultiphysics.Process):
               else:
                   variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
                   variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
-                  if (self.dim == 3):
+                  if self.domain_size == 3:
                       variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
 
       return variable_list

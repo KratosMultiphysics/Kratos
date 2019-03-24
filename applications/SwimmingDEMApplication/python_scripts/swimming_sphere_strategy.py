@@ -39,22 +39,22 @@ class SwimmingStrategy(BaseStrategy):
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
         do_search_neighbours =  self.project_parameters["do_search_neighbours"].GetBool()
-        strategy_parameters = self.DEM_parameters["strategy_parameters"]
+        solver_settings = self.DEM_parameters["solver_settings"]
 
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, strategy_parameters, do_search_neighbours)
+                                                              self.search_strategy, solver_settings, do_search_neighbours)
 
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, strategy_parameters, do_search_neighbours)
+                                                              self.search_strategy, solver_settings, do_search_neighbours)
 
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.search_strategy, strategy_parameters, do_search_neighbours)
+                                                             self.search_strategy, solver_settings, do_search_neighbours)
 
     def GetTranslationalSchemeInstance(self, class_name):
          if not class_name == 'NewmarkBetaScheme':

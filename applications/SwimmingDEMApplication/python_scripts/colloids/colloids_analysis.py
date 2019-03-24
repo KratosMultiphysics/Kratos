@@ -19,9 +19,7 @@ class ColloidsAnalysis(BaseAnalysis):
         Add('final_concentration').SetDouble(10)
         Add('fluid_speed').SetDouble(10)
         Add('cation_concentration_frequence').SetDouble(10)
-        Add('drag_force_type').SetUInt(10)
         self.project_parameters["TranslationalIntegrationScheme"].SetString('TerminalVelocityScheme')
-        self.project_parameters["drag_force_type"].SetInt(9)
         self.project_parameters["do_solve_dem"].SetBool(False)
 
     def PerformInitialDEMStepOperations(self, time = None):
