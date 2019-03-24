@@ -14,12 +14,10 @@
 #include <limits>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
 
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-
 
 // Utility includes
 #include "includes/define.h"
@@ -55,6 +53,7 @@ namespace Kratos
             const std::size_t buffer_size = 3;
 
             rModelPart.SetBufferSize(buffer_size);
+            rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
             rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
             rModelPart.AddNodalSolutionStepVariable(VELOCITY);
