@@ -247,25 +247,6 @@ public:
         CalculateResidualNorm(rModelPart, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm, size_residual, rDofSet, rb);
     }
 
-    /**
-     * @brief This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rA System matrix (unused)
-     * @param rDx Vector of results (variations on nodal variables)
-     * @param rb RHS vector (residual)
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& rA,
-        const TSystemVectorType& rDx,
-        const TSystemVectorType& rb
-        ) override
-    {
-        BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
-    }
-
     ///@}
     ///@name Operations
     ///@{
