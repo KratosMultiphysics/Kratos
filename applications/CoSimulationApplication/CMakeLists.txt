@@ -65,7 +65,7 @@ def _ImportApplicationAsModule(application, application_name, application_folder
     application_path = os.path.join(\"${KRATOS_DIR}/applications\", application_folder)
     python_path = os.path.join(application_path, 'python_scripts')
     mod_path.append(python_path)
-    
+
 ")
 
     ## Write CoSimulationApplication __init__.py
