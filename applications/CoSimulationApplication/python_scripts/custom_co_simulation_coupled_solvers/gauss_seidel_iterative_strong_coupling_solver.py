@@ -28,7 +28,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         self._CreateFilters(self.participants_setting_dict)
 
         ### Creating the convergence criterion
-        self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
+        self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria"])
 
     def Initialize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
@@ -63,10 +63,16 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     conv_criteria.InitializeNonLinearIteration()
 
                 for solver_name, solver in self.participating_solvers.items():
+                    solver.InitializeCouplingIteration()
+
+                for solver_name, solver in self.participating_solvers.items():
                     self._SynchronizeInputData(solver_name)
                     cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + "SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
                     solver.SolveSolutionStep()
                     self._SynchronizeOutputData(solver_name)
+
+                for solver_name, solver in self.participating_solvers.items():
+                    solver.FinalizeCouplingIteration()
 
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
@@ -74,14 +80,14 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                 is_converged = True #Comment I think this would be suitable for list-comprehension
                 for conv_criteria in self.convergence_criteria_list:
                     is_converged = is_converged and conv_criteria.IsConverged()
-                if is_converged:
+                if is_converged or iteration+1 >= self.num_coupling_iterations:
                     if self.echo_level > 0:
-                        cs_tools.PrintInfo(cs_tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + cs_tools.bcolors.ENDC )
+                        if is_converged:
+                            cs_tools.PrintInfo(cs_tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + cs_tools.bcolors.ENDC )
+                        if iteration+1 >= self.num_coupling_iterations:
+                            cs_tools.PrintWarning("\t"+cs_tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + cs_tools.bcolors.ENDC)
                     break
 
-                if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                    cs_tools.PrintWarning("\t"+cs_tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + cs_tools.bcolors.ENDC)
-                    break
         else:
             for solver_name, solver in self.participating_solvers.items():
                 cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + "SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
