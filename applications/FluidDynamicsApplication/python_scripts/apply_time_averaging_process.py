@@ -15,7 +15,8 @@ class ApplyTimeAveragingProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "mesh_id"                   : 0,
-            "model_part_name" : ""
+            "model_part_name"           : "",
+            "variables"                 : ["VELOCITY", "PRESSURE", "REACTION"]
         }
         """)
 
@@ -23,8 +24,28 @@ class ApplyTimeAveragingProcess(KratosMultiphysics.Process):
 
         # Get model part name
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
-        self.TimeAveragingProcess = KratosFluid.TimeAveragingProcess(self.fluid_model_part)
+        # setting parameters to be averaged
+        do_average_velocity = False
+        do_average_pressure = False
+        do_average_reaction = False
 
+        for i_var in range(0, settings["variables"].size()):
+            variable_name = settings["variables"][i_var].GetString()
+            print(variable_name)
+            if variable_name == "VELOCITY":
+                do_average_velocity = True
+            elif variable_name == "PRESSURE":
+                do_average_pressure = True
+            elif variable_name == "REACTION":
+                do_average_reaction = True
+            else:
+                KratosMultiphysics.Logger.PrintWarning("ApplyTimeAveragingProcess", 
+                                                        "You are averaging a variable which is not implemented in the averaging process." +
+                                                        "Only VELOCITY, PRESSURE and Reaction will be averaged")
+        self.TimeAveragingProcess = KratosFluid.TimeAveragingProcess(self.fluid_model_part, 
+                                                                     do_average_velocity,
+                                                                     do_average_pressure,
+                                                                     do_average_reaction)
 
     def ExecuteInitialize(self):
         self.TimeAveragingProcess.ExecuteInitialize()
