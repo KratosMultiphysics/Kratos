@@ -32,7 +32,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             "start_coupling_time" : 0.0,
             "convergence_accelerators" : [],
             "participants" : [],
-            "convergence_criteria_settings" : {}
+            "convergence_criteria" : []
         }
         """)
         #Comment predictors are missing (I think those can be optional, but also used for weak-coupling)
@@ -165,11 +165,11 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
                 from_solver_data = from_solver.GetInterfaceData(data_name)
-                solver_data = solver.GetInterfaceData(input_data["settings"]["destination_data"].GetString())
+                solver_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
 
-                if(input_data["settings"].Has("mapper_settings")):
+                if(input_data.Has("mapper_settings")):
                     solver_data.origin_data = from_solver_data
-                    solver_data.mapper_settings = input_data["settings"]["mapper_settings"]
+                    solver_data.mapper_settings = input_data["mapper_settings"]
 
                 solver.ImportCouplingInterfaceData(solver_data, from_solver)
 
@@ -188,11 +188,11 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
                 to_solver_data = to_solver.GetInterfaceData(data_name)
-                solver_data = solver.GetInterfaceData(output_data["settings"]["origin_data"].GetString())
+                solver_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
 
-                if(output_data["settings"].Has("mapper_settings")):
+                if(output_data.Has("mapper_settings")):
                     solver_data.destination_data = to_solver_data
-                    solver_data.mapper_settings = output_data["settings"]["mapper_settings"]
+                    solver_data.mapper_settings = output_data["mapper_settings"]
 
                 solver.ExportCouplingInterfaceData(solver_data, to_solver)
 
@@ -242,9 +242,9 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             for i in range(num_input_data):
                 input_data = input_data_list[i]
                 filters_list = input_data["filters"]
-                destination_data = solver.GetInterfaceData(input_data["settings"]["destination_data"].GetString())
+                destination_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
                 for filter in filters_list:
-                    accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver) ## TODO: should change to filter
+                    accelerator = factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
                     destination_data.filters.append(accelerator)
 
 
@@ -253,10 +253,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             num_output_data = output_data_list.size()
             for i in range(num_output_data):
                 output_data = output_data_list[i]
-                filters_list = input_data["filters"]
-                origin_data = solver.GetInterfaceData(input_data["settings"]["origin_data"].GetString())
+                filters_list = output_data["filters"]
+                origin_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
                 for filter in filters_list:
-                    accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver) ## TODO: should change to filter
+                    accelerator = factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
                     origin_data.filters.append(accelerator)
 
     ## _CreateConvergenceCriteria : Private Function to make convergence criteria objects list #Comment protected
@@ -270,7 +270,9 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             criteria_setting = conv_criteria_settings[i]
             solver_name = criteria_setting["solver"].GetString()
             solver = self.participating_solvers[solver_name]
-            criteria = criteria.Create(criteria_setting, solver) # Change to use interface data
+            data_name = criteria_setting["data_name"].GetString()
+            data = solver.data_map[data_name]
+            criteria = criteria.Create(criteria_setting, data) # Change to use interface data
             conv_criteria.append(criteria)
 
         return conv_criteria
