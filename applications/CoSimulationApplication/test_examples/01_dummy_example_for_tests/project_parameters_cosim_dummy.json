@@ -28,18 +28,15 @@
                 }
             }
         ],
-        "convergence_criteria_settings" :
-        {
-            "data_list" :
-            [
+        "convergence_criteria" :
+        [
                 {
                     "solver"        : "dummy_one",
                     "data_name"     : "MESH_DISPLACEMENT",
                     "abs_tolerance" : 1e-6,
                     "rel_tolerance" : 1e-4
                 }
-            ]
-        },
+        ],
         "participants":
         [
             {
@@ -55,15 +52,13 @@
                 {
                     "from_solver" : "dummy_one",
                     "data_name"   : "REACTION",
-                    "settings"   :
+                    "destination_data":"POINT_LOAD",
+                    "mapper_settings":
                     {
-                        "destination_data":"POINT_LOAD",
-                        "mapper_settings":
-                        {
-                            "type":"nearest_neighbor",
-                            "flags":["swap_sign"]
-                        }
-                    }
+                        "type":"nearest_neighbor",
+                        "flags":["swap_sign"]
+                    },
+                    "filters":[]
                 }
             ],
             "output_data_list":
@@ -71,13 +66,12 @@
                 {
                     "to_solver" : "dummy_one",
                     "data_name"   : "MESH_DISPLACEMENT",
-                    "settings"    : {
-                        "origin_data":"DISPLACEMENT",
-                        "mapper_settings":{
-                               "type":"nearest_neighbor",
-                               "flags":[]
-                        }
-                    }
+                    "origin_data":"DISPLACEMENT",
+                    "mapper_settings":{
+                            "type":"nearest_neighbor",
+                            "flags":[]
+                    },
+                    "filters":[]
                 }
             ]
         }
