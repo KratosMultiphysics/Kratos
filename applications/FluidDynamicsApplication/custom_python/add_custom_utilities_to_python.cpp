@@ -157,6 +157,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_< DragUtilities> (m,"DragUtilities")
         .def(py::init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
+        .def("CalculateTimeAveragedBodyFittedDrag", &DragUtilities::CalculateTimeAveragedBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
         ;
 

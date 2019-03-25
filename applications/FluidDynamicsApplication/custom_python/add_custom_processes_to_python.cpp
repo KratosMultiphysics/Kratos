@@ -136,7 +136,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>
     (m,"TimeAveragingProcess")
-    .def(py::init < ModelPart& >())
+    .def(py::init < ModelPart&, const bool,const bool,const bool>())
     ;
 
 }
