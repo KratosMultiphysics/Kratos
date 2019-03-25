@@ -33,10 +33,7 @@ if(${CO_SIMULATION_APPLICATION} MATCHES ON)
         get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
         install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
     endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-    # Add to the KratosMultiphisics Python module
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py" DESTINATION "KratosMultiphysics/CoSimulationApplication" RENAME "__init__.py")
-
+    
 elseif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     project (KratosMultiphysics)
@@ -46,42 +43,31 @@ elseif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
     get_filename_component(KRATOS_DIR ${PARENT_DIR} DIRECTORY)
 
-    ## Write KratosMultiphisics __init__.py 
-    #take care: do not indent the lines below
-    file(WRITE ${KRATOS_DIR}/KratosMultiphysics/__init__.py "import sys
-import os.path
-kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
-kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
-sys.path.append(kratos_scripts)
-sys.path.append(kratos_tests)
+endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
 
-def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
-    print('Importing python   ' + application_name)
-
-    # adding the scripts in APP_NAME/python_scripts such that they are treated as a regular python-module
-    application_path = os.path.join(\"${KRATOS_DIR}/applications\", application_folder)
-    python_path = os.path.join(application_path, 'python_scripts')
-    mod_path.append(python_path)
-
-")
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+get_filename_component(KRATOS_DIR ${PARENT_DIR} DIRECTORY)
 
     ## Write CoSimulationApplication __init__.py
-    file(WRITE ${KRATOS_DIR}/KratosMultiphysics/CoSimulationApplication/__init__.py "# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py "from __future__ import print_function, absolute_import, division
 import os
 import sys
 
 # Application dependent names and paths
 import KratosMultiphysics as KM
-application = 'KratosCoSimulationApplication'
+from KratosCoSimulationApplication import *
+application = KratosCoSimulationApplication()
+Globals = KM.KratosGlobals
 application_name = 'KratosCoSimulationApplication'
 application_folder = 'CoSimulationApplication'
+applications_root = Globals.ApplicationsRoot
 
 KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
 ## adding pyKratos to path
-application_path = os.path.join(\"${KRATOS_DIR}/applications\", application_folder)
+application_path = os.path.join(applications_root, application_folder)
 python_path = os.path.join(application_path, 'custom_data_structure')
 sys.path.append(python_path)
-")
+")    
 
-endif(NOT ${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
+    # Add to the KratosMultiphisics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py" DESTINATION "KratosMultiphysics/CoSimulationApplication" RENAME "__init__.py")
