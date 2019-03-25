@@ -14,14 +14,14 @@ class CoSimulationConvergenceCriteria(object):
     #
     #  @param self            The object pointer.
     #  @param settings: setting of the convergence criteria
-    #  @param solver: solver to which convergence criteria is to be attached
-    def __init__(self, settings, solver):
+    #  @param data: data to which convergence criteria is to be attached
+    def __init__(self, settings, data):
         default_settings = self._GetDefaultSettings()
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.solver = solver
+        self.data = data
         self.echo_level = 3
-        self.data_name = self.settings["data_name"].GetString()
+        self.data_name = self.data.name
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
         self.iteration = 0
@@ -76,14 +76,16 @@ class CoSimulationConvergenceCriteria(object):
     #  @param self            The object pointer.
     def InitializeNonLinearIteration(self):
         # storing the data for residual calculation
-        self.data_prev_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
+        self.data_prev_iter = self.data.GetPythonList()
+        #self.data_prev_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
 
     ## FinalizeNonLinearIteration : FinalizeNonLinearIteration function of the class.
     #                           To be called once at the end of the non-linear coupling iteration.
     #
     #  @param self            The object pointer.
     def FinalizeNonLinearIteration(self):
-        self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
+        #self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
+        self.data_current_iter = self.data.GetPythonList()
         self.iteration = self.iteration + 1
 
 
