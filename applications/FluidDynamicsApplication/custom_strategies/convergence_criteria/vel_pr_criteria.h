@@ -148,6 +148,12 @@ public:
                             VelIncreaseNorm += DofIncr * DofIncr;
                             ++VelDofNum;
                         }
+                        else if ((CurrVar == TIME_AVERAGED_VELOCITY_X) || (CurrVar == TIME_AVERAGED_VELOCITY_Y) || (CurrVar == TIME_AVERAGED_VELOCITY_Z))
+                        {
+                            VelSolutionNorm += DofValue * DofValue;
+                            VelIncreaseNorm += DofIncr * DofIncr;
+                            ++VelDofNum;
+                        }
                         else
                         {
                             PrSolutionNorm += DofValue * DofValue;
