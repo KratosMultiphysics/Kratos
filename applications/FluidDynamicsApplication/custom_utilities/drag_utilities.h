@@ -67,6 +67,7 @@ namespace Kratos
     ///@{
     
     typedef Geometry<Node<3>>                                 GeometryType;
+    typedef Geometry<Node<3>>::GeometriesArrayType     GeometriesArrayType;
     typedef IntegrationPoint<3>                       IntegrationPointType;
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 
@@ -99,6 +100,8 @@ namespace Kratos
     * @return An array containing the drag force value.
     */
     array_1d<double, 3> CalculateBodyFittedDrag(ModelPart &rModelPart);
+
+    array_1d<double, 3> CalculateTimeAveragedBodyFittedDrag(ModelPart &rModelPart);
 
     /**
     * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.

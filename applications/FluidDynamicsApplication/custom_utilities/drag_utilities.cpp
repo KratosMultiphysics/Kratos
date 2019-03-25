@@ -23,6 +23,7 @@
 
 // Application includes
 #include "drag_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -36,6 +37,16 @@ namespace Kratos
         drag_force *= -1.0;
 
         return drag_force;
+    }
+
+    array_1d<double, 3> DragUtilities::CalculateTimeAveragedBodyFittedDrag(ModelPart& rModelPart) {
+        // Sum the time averaged reactions in the model part of interest.
+        // Note that the reactions are assumed to be already computed.
+        VariableUtils variable_utils;
+        array_1d<double, 3> averaged_drag_force = variable_utils.SumHistoricalNodeVectorVariable(TIME_AVERAGED_REACTION, rModelPart, 0);
+        averaged_drag_force *= -1.0;
+
+        return averaged_drag_force;
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
