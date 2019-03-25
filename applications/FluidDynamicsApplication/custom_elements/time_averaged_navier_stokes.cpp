@@ -767,6 +767,7 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     BoundedMatrix<double,9,9>& lhs,
     const ElementDataStruct& data)
 {
+    
     constexpr int dim = 2;
     constexpr int nnodes = 3;
 
@@ -1020,10 +1021,11 @@ const double clhs130 =             ave_c1*(N[2] + clhs91);
                 for (int j=0; j<9; j++){    
                     if(isnan(lhs(i,j)))
                     {
-                        std::cout<<"##### NaN FOUND ("<<this->GetId()<<") ####"<<std::endl;
+                        std::cout<<"##### NaN FOUND in LHS ("<<this->GetId()<<") ####"<<std::endl;
                     }
                 }
             }
+
 }
 
 
@@ -1260,7 +1262,12 @@ const double crhs33 =             rho*(DN(2,0)*crhs5 + DN(2,1)*crhs10);
             rhs[7]=-DN(2,0)*stress[2] - DN(2,1)*crhs20 + DN(2,1)*crhs4 - DN(2,1)*stress[1] + N[2]*crhs26 - N[2]*crhs27 - N[2]*crhs28 - crhs29*crhs32 - crhs29*crhs33;
             rhs[8]=-DN(2,0)*crhs22 - DN(2,1)*crhs29 - N[2]*crhs14 - N[2]*crhs19;
 
-
+            for (int i=0; i<9; i++){    
+                    if(isnan(rhs(i)))
+                    {
+                        std::cout<<"##### NaN FOUND in RHS ("<<this->GetId()<<") ####"<<std::endl;
+                    }
+            }
 }
 
 
@@ -1425,6 +1432,10 @@ const double cv_s_gauss11 =             ave_c1*v_ave(2,1) - ave_c2*vn_ave(2,1);
 
     const double v_gauss_norm = norm_2(v_gauss);
     const double v_s_gauss_norm = norm_2(v_s_gauss);
+
+ 
+    if(isnan(v_s_gauss_norm/v_gauss_norm))
+        std::cout<<"##### NaN FOUND in SUBSCALE ERROR ESTIMATE ("<<this->GetId()<<") ####"<<std::endl;
 
     return v_s_gauss_norm/v_gauss_norm;
 }
