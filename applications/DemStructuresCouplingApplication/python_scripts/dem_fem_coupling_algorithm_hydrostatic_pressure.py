@@ -15,6 +15,7 @@ class Algorithm(BaseAlgorithm):
         BaseAlgorithm.__init__(self)
 
     def PreliminaryComputations(self):
+        return
         '''self.initial_rigid_face_model_part = self.dem_solution.rigid_face_model_part
         self.initial_rigid_face_area = 0.0
         for elem in self.initial_rigid_face_model_part.Conditions:
@@ -34,6 +35,7 @@ class Algorithm(BaseAlgorithm):
         print(num_of_nodes)'''
 
     def PreviousCalculations(self):
+        return
 
         for node in self.dem_solution.spheres_model_part.Nodes:
             if node.Y > 0.003:

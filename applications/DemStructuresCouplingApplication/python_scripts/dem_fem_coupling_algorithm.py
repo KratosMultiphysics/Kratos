@@ -157,9 +157,10 @@ class Algorithm(object):
                 node.SetSolutionStepValue(DemFem.DEM_SURFACE_LOAD, averaged_force)
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
+            self.structural_solution.InitializeSolutionStep()
+
             self.PreviousCalculations()
 
-            self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
@@ -171,6 +172,8 @@ class Algorithm(object):
             DemFem.InterpolateStructuralSolutionForDEM().SaveStructuralSolution(self.structural_mp)
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
+
+            #DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.skin_mp)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
 
@@ -229,10 +232,8 @@ class Algorithm(object):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-    def ReadDemModelParts(self,
-                                    starting_node_Id=0,
-                                    starting_elem_Id=0,
-                                    starting_cond_Id=0):
+    def ReadDemModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):
+
         creator_destructor = self.dem_solution.creator_destructor
         structures_model_part = self.structural_solution._GetSolver().GetComputingModelPart()
         max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(structures_model_part)
@@ -245,6 +246,10 @@ class Algorithm(object):
         self.dem_solution.Finalize()
         self.dem_solution.CleanUpOperations()
         self.structural_solution.Finalize()
+        self.ClosingOperations()
+
+    def ClosingOperations(self):
+        pass
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
 
