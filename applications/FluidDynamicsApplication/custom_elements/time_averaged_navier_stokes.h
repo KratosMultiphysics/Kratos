@@ -231,6 +231,31 @@ public:
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
             noalias(rRightHandSideVector) += rhs_local;
+            // if (igauss == 0 && this->Id()== 2087){
+            //     KRATOS_WATCH(data.v_ave)
+            //     KRATOS_WATCH(data.vn_ave)
+            //     KRATOS_WATCH(data.vnn_ave)
+            //     KRATOS_WATCH(data.vnnn_ave)
+            //     KRATOS_WATCH(data.ave_c1)
+            //     KRATOS_WATCH(data.ave_c2)
+            //     KRATOS_WATCH(data.ave_n_c1)
+            //     KRATOS_WATCH(data.ave_n_c2)
+            //     KRATOS_WATCH(data.ave_nn_c1)
+            //     KRATOS_WATCH(data.ave_nn_c2)
+
+            //     KRATOS_WATCH(data.v)
+            //     KRATOS_WATCH(data.vn)
+            //     KRATOS_WATCH(data.vnn)
+            //     KRATOS_WATCH(data.t)
+            //     KRATOS_WATCH(data.tn)
+            //     KRATOS_WATCH(data.tnn)
+            //     KRATOS_WATCH(data.dt)
+            //     KRATOS_WATCH(data.dtn)
+            //     KRATOS_WATCH(data.dtnn)
+            //     KRATOS_WATCH(data.bdf0)
+            //     KRATOS_WATCH(data.bdf1)
+            //     KRATOS_WATCH(data.bdf2)
+            // }
         }
 
         // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
@@ -425,16 +450,6 @@ protected:
         rData.dtnn = rData.tn - rData.tnn;
         rData.dtnnn = rData.tnn - rData.tnnn;
         
-        // KRATOS_WATCH(rData.dt)
-        // KRATOS_WATCH(rData.t)
-        // KRATOS_WATCH(rData.dtn)
-        // KRATOS_WATCH(rData.tn)
-        // KRATOS_WATCH(rData.dtnn)
-        // KRATOS_WATCH(rData.tnn)
-        // KRATOS_WATCH(rData.tnnn)
-        // KRATOS_WATCH(rData.dtnnn)
-
-
         KRATOS_CATCH("TimeAveragedNavierStokesElement::FillElementData: Error in Assigning Previous Time Step Information")
         
         // Define time step size ratios 
@@ -445,10 +460,6 @@ protected:
         rData.bdf0 =  1/rData.dt * (1 + 2.0*r) / (1 + r);
         rData.bdf1 = -1/rData.dt * (1 + r);
         rData.bdf2 =  1/rData.dt * (r * r) / (1 + r);
-        
-        // KRATOS_WATCH(rData.bdf0)
-        // KRATOS_WATCH(rData.bdf1)
-        // KRATOS_WATCH(rData.bdf2)
 
         // time period considered in the averaging scheme
         // TODO --> find the way to define the restart time regardless of the problem itself
@@ -484,13 +495,6 @@ protected:
             rData.ave_nn_c1 = rData.tnn / rData.dtnnn;
             rData.ave_nn_c2 = rData.tnnn / rData.dtnnn;
         }
-
-        // KRATOS_WATCH(rData.ave_c1)
-        // KRATOS_WATCH(rData.ave_c2)
-        // KRATOS_WATCH(rData.ave_n_c1)
-        // KRATOS_WATCH(rData.ave_n_c2)
-        // KRATOS_WATCH(rData.ave_nn_c1)
-        // KRATOS_WATCH(rData.ave_nn_c2)
                 
         /*
         if (rData.t <= rData.dts){
@@ -560,7 +564,6 @@ protected:
         rData.p   = rData.ave_c1    * rData.p_ave   - rData.ave_c2    * rData.pn_ave;
         rData.pn  = rData.ave_n_c1  * rData.pn_ave  - rData.ave_n_c2  * rData.pnn_ave;
         rData.pnn = rData.ave_nn_c1 * rData.pnn_ave - rData.ave_nn_c2 * rData.pnnn_ave;
-
     }
 
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
