@@ -65,7 +65,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
                     "end_time"                      : 20
                 },
                 "acceleration" : {
-                    "type"                          : "exponential",
+                    "type"                          : "exp",
                     "exponential_factor"            : 1.05,
                     "log_factor"                    : 1.0,
                     "minimum_delta_time"            : 0.05,
@@ -112,6 +112,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TIME_AVERAGED_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TIME_AVERAGED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TIME_AVERAGED_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
@@ -166,14 +167,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        # TODO -> move bdf coefficients calculation to ComputeBDFCoefficientsProcess
-        # ComputeBDFCoefficientsProcess is only suitable for constant time steps -> bdf coefficients are now calculated within the
-        # time_averaged_navier_stokes element 
-        # self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
-        #                                                                     self.settings["time_order"].GetInt())
-
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # Domain size (2,3)
-                                                                                        self.domain_size+1) # DOFs (3,4)
+        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -223,7 +217,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self.max_it_number =  self.settings["time_averaging_acceleration"]["acceleration"]["maximum_iteration_number"].GetDouble()
             self.min_it_number =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_iteration_number"].GetDouble()
 
-            if self.delta_time_acceleration_type == "exponential":
+            if self.delta_time_acceleration_type == "exp":
                 self.delta_time_acceleration_exp_factor = self.settings["time_averaging_acceleration"]["acceleration"]["exponential_factor"].GetDouble()
             if self.delta_time_acceleration_type == "log":
                 self.delta_time_acceleration_log_factor = self.settings["time_averaging_acceleration"]["acceleration"]["log_factor"].GetDouble()
@@ -271,44 +265,41 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         # check if already converged, when yes, stop progressing in time
         self._check_steady_state()
         old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        print("Old dt is:  ", old_dt )
         
         step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
 
-        if step < self.min_buffer_size:
-            new_dt = self.min_dt
-        else:
-            if self.accelerated and previous_time > self.start_acceleration_time:
-                if previous_time <= self.end_acceleration_time:
-                    if self.delta_time_acceleration_type == "exponential": 
-                        print("old dt:", old_dt )
-                        new_dt = self._compute_increased_exponential_delta_time(previous_time, old_dt)
-                    elif self.delta_time_acceleration_type == "linear":
-                        new_dt = self._compute_increased_delta_time_with_CFL(previous_time)
-                    elif self.delta_time_acceleration_type == "log":    
-                        new_dt = self._compute_increased_logarithmic_delta_time(previous_time, step)
-                    else:
-                        new_dt = self.EstimateDeltaTimeUtility.EstimateDt()
-        
-                    if new_dt > self.max_dt:
-                            new_dt = self.max_dt
-                    if new_dt < self.min_dt:
-                        new_dt = self.min_dt
-
+        if self.accelerated and previous_time > self.start_acceleration_time:
+            if previous_time <= self.end_acceleration_time:
+                if self.delta_time_acceleration_type == "exp": 
+                    new_dt = self._compute_increased_exponential_delta_time(previous_time, old_dt)
+                elif self.delta_time_acceleration_type == "linear":
+                    new_dt = self._compute_increased_delta_time_with_CFL(previous_time)
+                elif self.delta_time_acceleration_type == "log":    
+                    new_dt = self._compute_increased_logarithmic_delta_time(previous_time, step)
                 else:
-                    old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-                    new_dt = old_dt
-            else:
-                if self.automatic_time_step:
                     new_dt = self.EstimateDeltaTimeUtility.EstimateDt()
-                else:
+    
+                if new_dt > self.max_dt:
+                        new_dt = self.max_dt
+                if new_dt < self.min_dt:
                     new_dt = self.min_dt
-        print(new_dt)
+
+            else:
+                old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                new_dt = old_dt
+        else:
+            if self.automatic_time_step:
+                new_dt = self.EstimateDeltaTimeUtility.EstimateDt()
+            else:
+                new_dt = self.min_dt
+
         # clone the time steps to save place for new variables new_time t and new_dt dt
-        self.main_model_part.CloneTimeStep(previous_time)
+        self.main_model_part.CloneSolutionStep()
         # tn+1 = tn + dtn
         new_time = previous_time + old_dt
-        #print("new_time ", new_time)
+        print("New time is:  ", new_time)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, new_dt)
 
