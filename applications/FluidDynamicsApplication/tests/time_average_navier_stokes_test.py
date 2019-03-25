@@ -76,24 +76,6 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             pass
 
 
-    def InitializeModelPart(self):
-        current_model = Model()
-
-        ##set the origin model part
-        origin_model_part = current_model.CreateModelPart("fluid_computational_model_part")
-        model_part_io = KratosMultiphysics.ModelPartIO("TimeAveragedNavierStokesTest/cylinder/cylinder_2d_water_initial_re1000")
-        origin_model_part = model_part_io.ReadModelPart(origin_model_part)
-
-        ##set the destination model part
-        self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-
-        #model_part_io = ModelPartIO(GetFilePath("TimeAveragedNavierStokesTest\cylinder\cylinder_2d_water_initial_re1000.mdpa"))
-
-        ##copy the values to the destination model part
-        VariableUtils().CopyModelPartNodalVar(VISCOSITY, origin_model_part, self.main_model_part, 0)
-        VariableUtils().CopyModelPartNodalVar(DISPLACEMENT, origin_model_part, self.main_model_part, 0)
-
-    
     def SetupMonolithicSolver(self):
         import json  
         with open(self.settings, 'r') as parameter_file:
@@ -179,7 +161,6 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
         ## Defining main model part
         self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        #self.InitializeModelPart()
 
         ## Processes construction
         import process_factory
