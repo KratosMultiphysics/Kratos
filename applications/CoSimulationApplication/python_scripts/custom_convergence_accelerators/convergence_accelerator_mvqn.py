@@ -107,10 +107,6 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
     #
     def InitializeSolutionStep(self):
         self.old_data = np.array(self.data.GetPythonList())
-        print("##################")
-        print(np.linalg.norm(self.old_data))
-        print()
-        print()
         #pass
 
 
