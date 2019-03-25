@@ -30,7 +30,10 @@ class Parameters(object):
                 err_msg += 'self.parameters are:\n'
                 err_msg += json.dumps(self.parameters, indent=4)
                 err_msg += '\ndefaults are:\n'
-                err_msg += json.dumps(defaults, indent=4)
+                if not isinstance(defaults, str):
+                    err_msg += json.dumps(self.parameters, indent=4)
+                elif(isinstance(defaults, dict) or isinstance(defaults, list) ):
+                    err_msg += str(defaults)
                 raise Exception(err_msg)
 
             # check if the type is the same in the defaults
@@ -42,7 +45,10 @@ class Parameters(object):
                 err_msg += 'self.parameters are:\n'
                 err_msg += json.dumps(self.parameters, indent=4)
                 err_msg += '\ndefaults are:\n'
-                err_msg += json.dumps(defaults, indent=4)
+                if isinstance(self.parameters, str):
+                    err_msg += self.parameters
+                else:
+                    err_msg += json.dumps(defaults, indent=4)
                 raise Exception(err_msg)
 
         # loop the defaults and add the missing entries
